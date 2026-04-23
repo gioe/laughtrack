@@ -7,6 +7,7 @@ struct SearchRootView: View {
     let apiClient: Client
     let favorites: ComedianFavoriteStore
     let coordinator: NavigationCoordinator<AppRoute>
+    let searchNavigationBridge: SearchNavigationBridge
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @Environment(\.appTheme) private var theme
@@ -19,11 +20,13 @@ struct SearchRootView: View {
         apiClient: Client,
         favorites: ComedianFavoriteStore,
         coordinator: NavigationCoordinator<AppRoute>,
+        searchNavigationBridge: SearchNavigationBridge,
         nearbyPreferenceStore: NearbyPreferenceStore
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
         self.coordinator = coordinator
+        self.searchNavigationBridge = searchNavigationBridge
         self.nearbyPreferenceStore = nearbyPreferenceStore
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
@@ -44,6 +47,8 @@ struct SearchRootView: View {
                 Text(model.activePivot.queryHelpText)
                     .font(theme.laughTrackTokens.typography.metadata)
                     .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+
+                shortcutRow
 
                 Picker("Entity", selection: $model.activePivot) {
                     ForEach(SearchRootModel.Pivot.allCases) { pivot in
@@ -70,6 +75,34 @@ struct SearchRootView: View {
         .onChange(of: model.activePivot) { _ in
             applyRootQueryToActivePivot()
         }
+        .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { request in
+            model.applySeed(request.seed)
+            applyRootQueryToActivePivot()
+        }
+    }
+
+    private var shortcutRow: some View {
+        HStack(spacing: theme.spacing.sm) {
+            ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
+                Button {
+                    model.selectedShortcut = shortcut
+                } label: {
+                    Text(shortcut)
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .padding(.horizontal, theme.spacing.md)
+                        .padding(.vertical, theme.spacing.sm)
+                        .background(shortcutBackground(for: shortcut))
+                        .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func shortcutBackground(for shortcut: String) -> Color {
+        model.selectedShortcut == shortcut
+            ? theme.laughTrackTokens.colors.accent.opacity(0.22)
+            : theme.laughTrackTokens.colors.surface
     }
 
     private var activeSearchScreenWithDependencies: some View {

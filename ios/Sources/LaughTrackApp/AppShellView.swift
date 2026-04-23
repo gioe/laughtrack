@@ -13,6 +13,7 @@ struct AppShellView: View {
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @State private var selectedTab: AppTab
+    @StateObject private var searchNavigationBridge = SearchNavigationBridge()
 
     init(
         apiClient: Client,
@@ -33,7 +34,8 @@ struct AppShellView: View {
             HomeView(
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
-                nearbyPreferenceStore: nearbyPreferenceStore
+                nearbyPreferenceStore: nearbyPreferenceStore,
+                searchNavigationBridge: searchNavigationBridge
             )
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(AppTab.home)
@@ -42,6 +44,7 @@ struct AppShellView: View {
                 apiClient: apiClient,
                 favorites: favorites,
                 coordinator: coordinator,
+                searchNavigationBridge: searchNavigationBridge,
                 nearbyPreferenceStore: nearbyPreferenceStore
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
@@ -64,6 +67,9 @@ struct AppShellView: View {
         }
         .environmentObject(favorites)
         .tint(theme.colors.primary)
+        .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
+            selectedTab = .search
+        }
     }
 }
 

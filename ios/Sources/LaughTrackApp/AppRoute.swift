@@ -4,9 +4,6 @@ enum AppRoute: Hashable {
     case activity
     case profile
     case settings
-    case showsSearch
-    case clubsSearch
-    case comediansSearch
     case showDetail(Int)
     case comedianDetail(Int)
     case clubDetail(Int)

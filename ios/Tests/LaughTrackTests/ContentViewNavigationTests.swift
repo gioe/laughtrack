@@ -32,7 +32,8 @@ struct ContentViewNavigationTests {
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home")
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home"),
+                searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -64,15 +65,17 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
     }
 
-    @Test("Home shows search entry pushes the dedicated shows search route")
-    func homeShowsSearchButtonPushesShowsSearchRoute() async throws {
+    @Test("Home shows search entry seeds the search tab")
+    func homeShowsSearchButtonSeedsSearchTab() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
+        let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search")
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search"),
+                searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -81,19 +84,21 @@ struct ContentViewNavigationTests {
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
 
-        #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .showsSearch)
+        #expect(coordinator.path.isEmpty)
+        #expect(searchBridge.request?.seed == .init(pivot: .shows, query: "", shortcut: "Near Me"))
     }
 
-    @Test("Home clubs search entry pushes the dedicated clubs search route")
-    func homeClubsSearchButtonPushesClubsSearchRoute() async throws {
+    @Test("Home clubs search entry seeds the search tab")
+    func homeClubsSearchButtonSeedsSearchTab() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
+        let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-clubs-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search")
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search"),
+                searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -102,19 +107,21 @@ struct ContentViewNavigationTests {
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton)
 
-        #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .clubsSearch)
+        #expect(coordinator.path.isEmpty)
+        #expect(searchBridge.request?.seed == .init(pivot: .clubs, query: "", shortcut: "Tonight"))
     }
 
-    @Test("Home comedians search entry pushes the dedicated comedians search route")
-    func homeComediansSearchButtonPushesComediansSearchRoute() async throws {
+    @Test("Home comedians search entry seeds the search tab")
+    func homeComediansSearchButtonSeedsSearchTab() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
+        let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-comedians-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search")
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search"),
+                searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -123,8 +130,8 @@ struct ContentViewNavigationTests {
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton)
 
-        #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .comediansSearch)
+        #expect(coordinator.path.isEmpty)
+        #expect(searchBridge.request?.seed == .init(pivot: .comedians, query: "", shortcut: nil))
     }
 
     @Test("ContentView renders the show detail route")
@@ -142,57 +149,6 @@ struct ContentViewNavigationTests {
         host.render()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.showDetailScreen)
-    }
-
-    @Test("ContentView renders the dedicated shows search route")
-    func contentViewShowsDedicatedShowsSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shows-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.showsSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
-    }
-
-    @Test("ContentView renders the dedicated clubs search route")
-    func contentViewShowsDedicatedClubsSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "clubs-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.clubsSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.clubsSearchScreen)
-    }
-
-    @Test("ContentView renders the dedicated comedians search route")
-    func contentViewShowsDedicatedComediansSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedians-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.comediansSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.comediansSearchScreen)
     }
 
     @Test("ContentView renders the comedian detail route")

@@ -16,6 +16,7 @@ struct SearchRootViewTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: favorites,
                 coordinator: coordinator,
+                searchNavigationBridge: SearchNavigationBridge(),
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -43,6 +44,27 @@ struct SearchRootModelTests {
     func pivotCopyDocumentsQueryBehavior() async throws {
         #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search comedians appearing in shows")
         #expect(SearchRootModel.Pivot.shows.queryHelpText == "Shows search matches comedian names for now. Switch to Clubs to search by venue.")
+    }
+
+    @Test("search seeds update pivot query and shortcut")
+    func searchSeedsUpdatePivotQueryAndShortcut() async throws {
+        let model = SearchRootModel()
+
+        model.applySeed(.init(pivot: .clubs, query: "Cellar", shortcut: "Tonight"))
+
+        #expect(model.activePivot == .clubs)
+        #expect(model.query == "Cellar")
+        #expect(model.selectedShortcut == "Tonight")
+    }
+
+    @Test("home search bridge stores latest seed request")
+    func homeSearchBridgeStoresLatestSeedRequest() async throws {
+        let bridge = SearchNavigationBridge()
+        let seed = SearchRootModel.Seed(pivot: .comedians, query: "Atsuko", shortcut: nil)
+
+        bridge.openSearch(seed)
+
+        #expect(bridge.request?.seed == seed)
     }
 
     @Test("root query is applied only to the active pivot model")

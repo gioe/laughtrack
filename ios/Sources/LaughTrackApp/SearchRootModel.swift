@@ -40,6 +40,19 @@ final class SearchRootModel: ObservableObject {
 
     @Published var query = ""
     @Published var activePivot: Pivot = .shows
+    @Published var selectedShortcut: String? = "Near Me"
+
+    struct Seed: Equatable {
+        let pivot: Pivot
+        let query: String
+        let shortcut: String?
+    }
+
+    func applySeed(_ seed: Seed) {
+        activePivot = seed.pivot
+        query = seed.query
+        selectedShortcut = seed.shortcut
+    }
 
     func applyQuery(to target: any SearchRootQueryReceivable) {
         target.applySearchRootQuery(query)
@@ -58,5 +71,19 @@ final class SearchRootModel: ObservableObject {
         case .clubs:
             applyQuery(to: clubsModel)
         }
+    }
+}
+
+@MainActor
+final class SearchNavigationBridge: ObservableObject {
+    struct Request: Identifiable {
+        let id = UUID()
+        let seed: SearchRootModel.Seed
+    }
+
+    @Published private(set) var request: Request?
+
+    func openSearch(_ seed: SearchRootModel.Seed) {
+        request = Request(seed: seed)
     }
 }
