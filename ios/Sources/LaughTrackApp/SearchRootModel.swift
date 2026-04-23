@@ -18,7 +18,7 @@ final class SearchRootModel: ObservableObject {
         var queryPrompt: String {
             switch self {
             case .shows:
-                return "Search comedians appearing in shows"
+                return "Search nearby comedy"
             case .comedians:
                 return "Search comedian names"
             case .clubs:
@@ -29,11 +29,11 @@ final class SearchRootModel: ObservableObject {
         var queryHelpText: String {
             switch self {
             case .shows:
-                return "Shows search matches comedian names for now. Switch to Clubs to search by venue."
+                return "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search."
             case .comedians:
-                return "Find comedian profiles by name."
+                return "Follow a comic's trail across upcoming dates and saved favorites."
             case .clubs:
-                return "Find comedy clubs and venue pages by name."
+                return "Jump straight into venue pages and upcoming lineups."
             }
         }
     }
@@ -46,6 +46,17 @@ final class SearchRootModel: ObservableObject {
         let pivot: Pivot
         let query: String
         let shortcut: String?
+    }
+
+    var contextSummary: String {
+        switch selectedShortcut {
+        case "Tonight":
+            return "Local dates tonight"
+        case "This Week":
+            return "Local dates this week"
+        default:
+            return "Nearby results first"
+        }
     }
 
     func applySeed(_ seed: Seed) {

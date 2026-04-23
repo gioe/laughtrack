@@ -39,33 +39,42 @@ struct SearchRootView: View {
     }
 
     var body: some View {
+        let tokens = theme.laughTrackTokens
+
         ScrollView {
-            VStack(alignment: .leading, spacing: theme.spacing.xl) {
-                TextField(model.activePivot.queryPrompt, text: $model.query)
-                    .textFieldStyle(.roundedBorder)
+            VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+                LaughTrackHeroModule(
+                    eyebrow: "Search",
+                    title: "Search nearby comedy",
+                    subtitle: model.activePivot.queryHelpText
+                )
 
-                Text(model.activePivot.queryHelpText)
-                    .font(theme.laughTrackTokens.typography.metadata)
-                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                LaughTrackCard(density: .compact) {
+                    VStack(alignment: .leading, spacing: tokens.browseDensity.rowGap) {
+                        LaughTrackSearchField(
+                            placeholder: model.activePivot.queryPrompt,
+                            text: $model.query
+                        )
 
-                shortcutRow
+                        LaughTrackContextRow(
+                            leading: model.contextSummary,
+                            trailing: model.selectedShortcut ?? "Custom"
+                        )
 
-                Picker("Entity", selection: $model.activePivot) {
-                    ForEach(SearchRootModel.Pivot.allCases) { pivot in
-                        Text(pivot.title).tag(pivot)
+                        shortcutRow
+                        pivotRow
                     }
                 }
-                .pickerStyle(.segmented)
 
                 activeSearchScreenWithDependencies
             }
-            .padding(.horizontal, theme.spacing.xl)
-            .padding(.vertical, theme.laughTrackTokens.spacing.heroPadding)
+            .padding(.horizontal, theme.spacing.lg)
+            .padding(.vertical, tokens.browseDensity.heroPadding)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.searchTabScreen)
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Search")
-        .modifier(LaughTrackNavigationChrome(background: theme.laughTrackTokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
         .task {
             applyRootQueryToActivePivot()
         }
@@ -83,28 +92,68 @@ struct SearchRootView: View {
     }
 
     private var shortcutRow: some View {
-        HStack(spacing: theme.spacing.sm) {
-            ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
-                Button {
-                    model.selectShortcut(shortcut)
-                    applyRootQueryToActivePivot()
-                } label: {
-                    Text(shortcut)
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .padding(.horizontal, theme.spacing.md)
-                        .padding(.vertical, theme.spacing.sm)
-                        .background(shortcutBackground(for: shortcut))
-                        .clipShape(Capsule())
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: theme.spacing.sm) {
+                ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
+                    Button {
+                        model.selectShortcut(shortcut)
+                        applyRootQueryToActivePivot()
+                    } label: {
+                        LaughTrackBrowseChip(
+                            shortcut,
+                            systemImage: shortcutSystemImage(for: shortcut),
+                            tone: shortcutTone(for: shortcut)
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }
 
-    private func shortcutBackground(for shortcut: String) -> Color {
-        model.selectedShortcut == shortcut
-            ? theme.laughTrackTokens.colors.accent.opacity(0.22)
-            : theme.laughTrackTokens.colors.surface
+    private var pivotRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: theme.spacing.sm) {
+                ForEach(SearchRootModel.Pivot.allCases) { pivot in
+                    Button {
+                        model.activePivot = pivot
+                    } label: {
+                        LaughTrackBrowseChip(
+                            pivot.title,
+                            systemImage: pivotSystemImage(for: pivot),
+                            tone: model.activePivot == pivot ? .selected : .neutral
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private func shortcutTone(for shortcut: String) -> LaughTrackBrowseChipTone {
+        model.selectedShortcut == shortcut ? .selected : .neutral
+    }
+
+    private func shortcutSystemImage(for shortcut: String) -> String {
+        switch shortcut {
+        case "Tonight":
+            return "moon.stars"
+        case "This Week":
+            return "calendar"
+        default:
+            return "location"
+        }
+    }
+
+    private func pivotSystemImage(for pivot: SearchRootModel.Pivot) -> String {
+        switch pivot {
+        case .shows:
+            return "music.mic"
+        case .comedians:
+            return "person.2"
+        case .clubs:
+            return "building.2"
+        }
     }
 
     private var activeSearchScreenWithDependencies: some View {

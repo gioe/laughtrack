@@ -219,6 +219,70 @@ struct LaughTrackBrowseChip: View {
     }
 }
 
+struct LaughTrackSearchField: View {
+    @Environment(\.appTheme) private var theme
+
+    let placeholder: String
+    @Binding var text: String
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.sm) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.textSecondary)
+
+            TextField(placeholder, text: $text)
+                .autocorrectionDisabled()
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+        }
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, theme.spacing.md)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+}
+
+struct LaughTrackContextRow: View {
+    @Environment(\.appTheme) private var theme
+
+    let leading: String
+    let trailing: String
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.sm) {
+            Text(leading)
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+
+            Spacer(minLength: theme.spacing.sm)
+
+            Text(trailing)
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .padding(.horizontal, laughTrack.browseDensity.chipHorizontalPadding)
+                .padding(.vertical, laughTrack.browseDensity.chipVerticalPadding)
+                .background(laughTrack.colors.highlight.opacity(0.95))
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(laughTrack.colors.borderStrong.opacity(0.45), lineWidth: 1)
+                )
+                .clipShape(Capsule(style: .continuous))
+                .lineLimit(1)
+        }
+    }
+}
+
 struct LaughTrackResultRow: View {
     @Environment(\.appTheme) private var theme
 
