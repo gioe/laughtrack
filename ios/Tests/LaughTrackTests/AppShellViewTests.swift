@@ -71,6 +71,28 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeSettingsButton)
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
+        try host.requireText("Jump back into Search")
+        try host.requireText("Open Search from a head start")
+    }
+
+    @Test("home nearby section remains visible after compact browse redesign")
+    func homeNearbySectionSurvivesRedesign() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-nearby")
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home-nearby")
+        let host = HostedView(
+            AppShellView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+        )
+
+        try host.requireText("Comedy worth noticing nearby")
+        try host.requireText("Nearby tonight")
     }
 
     @Test("shell can start on the profile tab and shows real settings content")

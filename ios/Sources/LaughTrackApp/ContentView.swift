@@ -143,7 +143,7 @@ struct HomeView: View {
         let laughTrack = theme.laughTrackTokens
 
         ScrollView {
-            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+            VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
                 LaughTrackSectionHeader(
                     eyebrow: "Home",
                     title: "Comedy worth noticing nearby",
@@ -152,22 +152,38 @@ struct HomeView: View {
 
                 SessionBannerCard(signedOutMessage: signedOutMessage)
 
+                VStack(alignment: .leading, spacing: theme.spacing.md) {
+                    LaughTrackHeroModule(
+                        eyebrow: "Search",
+                        title: "Jump back into Search",
+                        subtitle: "Move between Shows, Clubs, and Comedians without leaving the same working surface.",
+                        ctaTitle: "Shows, clubs, and comics"
+                    )
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
+                            LaughTrackBrowseChip("Near Me ready", systemImage: "location.fill", tone: .selected)
+                            LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+                            LaughTrackBrowseChip("Favorites in profile", systemImage: "star.fill")
+                        }
+                        .padding(.horizontal, 1)
+                    }
+                }
+
+                HomeSearchEntryRail(searchNavigationBridge: searchNavigationBridge)
+
                 HomeNearbyDiscoverySection(
                     apiClient: apiClient,
                     nearbyPreferenceStore: nearbyPreferenceStore
                 )
-
-                HomeShowsSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
-                HomeClubsSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
-                HomeComediansSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
 
                 DiscoveryHubView(
                     apiClient: apiClient,
                     nearbyPreferenceStore: nearbyPreferenceStore
                 )
             }
-            .padding(.horizontal, theme.spacing.xl)
-            .padding(.vertical, laughTrack.spacing.heroPadding)
+            .padding(.horizontal, theme.spacing.lg)
+            .padding(.vertical, laughTrack.browseDensity.heroPadding)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.homeScreen)
         .background(laughTrack.colors.canvas.ignoresSafeArea())
@@ -201,39 +217,42 @@ struct HomeView: View {
     }
 }
 
-private struct HomeShowsSearchEntryCard: View {
+private struct HomeSearchEntryRail: View {
     let searchNavigationBridge: SearchNavigationBridge
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackShelfHeader(
+                eyebrow: "Search entry points",
+                title: "Open Search from a head start",
+                subtitle: "Pick the shape of discovery first, then refine in place."
+            )
+
+            VStack(spacing: theme.spacing.sm) {
+                HomeShowsSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
+                HomeClubsSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
+                HomeComediansSearchEntryCard(searchNavigationBridge: searchNavigationBridge)
+            }
+        }
+    }
+}
+
+private struct HomeShowsSearchEntryCard: View {
+    let searchNavigationBridge: SearchNavigationBridge
+
+    var body: some View {
         Button {
             searchNavigationBridge.openSearch(.init(pivot: .shows, query: "", shortcut: "Near Me"))
         } label: {
-            LaughTrackCard(tone: .accent) {
-                VStack(alignment: .leading, spacing: theme.spacing.md) {
-                    HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBadge("Shows", systemImage: "magnifyingglass", tone: .highlight)
-                        LaughTrackBadge("Live API", systemImage: "dot.radiowaves.left.and.right", tone: .neutral)
-                    }
-
-                    Text("See what's playing around you")
-                        .font(theme.laughTrackTokens.typography.cardTitle)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-
-                    Text("Start from the local shows pivot with nearby context ready, then refine by comic, date, and sort from one Search surface.")
-                        .font(theme.laughTrackTokens.typography.body)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-
-                    HStack(spacing: theme.spacing.sm) {
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        Text("Open in Search")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                    }
-                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
-                }
-            }
+            LaughTrackResultRow(
+                title: "Shows",
+                subtitle: "Local dates first",
+                metadata: ["Near Me ready", "One search surface"],
+                systemImage: "magnifyingglass",
+                accessoryTitle: "Search"
+            )
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(LaughTrackViewTestID.homeShowsSearchButton)
@@ -243,36 +262,17 @@ private struct HomeShowsSearchEntryCard: View {
 private struct HomeClubsSearchEntryCard: View {
     let searchNavigationBridge: SearchNavigationBridge
 
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
         Button {
             searchNavigationBridge.openSearch(.init(pivot: .clubs, query: "", shortcut: nil))
         } label: {
-            LaughTrackCard(tone: .accent) {
-                VStack(alignment: .leading, spacing: theme.spacing.md) {
-                    HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBadge("Clubs", systemImage: "building.2.fill", tone: .highlight)
-                        LaughTrackBadge("Live API", systemImage: "dot.radiowaves.left.and.right", tone: .neutral)
-                    }
-
-                    Text("Find a venue for tonight")
-                        .font(theme.laughTrackTokens.typography.cardTitle)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-
-                    Text("Jump into the clubs pivot seeded for tonight, then fan out into venue pages and upcoming lineups.")
-                        .font(theme.laughTrackTokens.typography.body)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-
-                    HStack(spacing: theme.spacing.sm) {
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        Text("Open in Search")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                    }
-                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
-                }
-            }
+            LaughTrackResultRow(
+                title: "Clubs",
+                subtitle: "Venue pages and lineups",
+                metadata: ["Tonight-ready", "Upcoming bills"],
+                systemImage: "building.2",
+                accessoryTitle: "Search"
+            )
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(LaughTrackViewTestID.homeClubsSearchButton)
@@ -282,36 +282,17 @@ private struct HomeClubsSearchEntryCard: View {
 private struct HomeComediansSearchEntryCard: View {
     let searchNavigationBridge: SearchNavigationBridge
 
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
         Button {
             searchNavigationBridge.openSearch(.init(pivot: .comedians, query: "", shortcut: nil))
         } label: {
-            LaughTrackCard(tone: .muted) {
-                VStack(alignment: .leading, spacing: theme.spacing.md) {
-                    HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBadge("Comedians", systemImage: "music.mic", tone: .highlight)
-                        LaughTrackBadge("Live API", systemImage: "dot.radiowaves.left.and.right", tone: .neutral)
-                    }
-
-                    Text("Follow a comic's trail")
-                        .font(theme.laughTrackTokens.typography.cardTitle)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-
-                    Text("Move into the comedians pivot to find profiles, save favorites, and follow where each comic is appearing next.")
-                        .font(theme.laughTrackTokens.typography.body)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-
-                    HStack(spacing: theme.spacing.sm) {
-                        Image(systemName: "arrow.up.right")
-                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        Text("Open in Search")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                    }
-                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
-                }
-            }
+            LaughTrackResultRow(
+                title: "Comedians",
+                subtitle: "Profiles and favorites",
+                metadata: ["Follow a comic", "See where they're next"],
+                systemImage: "music.mic",
+                accessoryTitle: "Search"
+            )
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(LaughTrackViewTestID.homeComediansSearchButton)
@@ -711,7 +692,7 @@ private struct SessionBannerCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        LaughTrackCard {
+        LaughTrackCard(density: .compact) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
                 Text(authManager.currentSession == nil ? "Browsing as guest" : "Signed in")
                     .font(laughTrack.typography.metadata)
