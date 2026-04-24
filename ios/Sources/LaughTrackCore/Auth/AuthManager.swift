@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import LaughTrackBridge
 import LaughTrackAPIClient
+import os
 
 @MainActor
 public final class AuthManager: ObservableObject {
@@ -12,6 +13,8 @@ public final class AuthManager: ObservableObject {
         case authenticated(AuthSessionMetadata)
     }
 
+    public typealias SignoutRequest = @Sendable () async throws -> Void
+
     @Published public private(set) var state: State = .restoring
 
     public var currentSession: AuthSessionMetadata? {
@@ -19,11 +22,21 @@ public final class AuthManager: ObservableObject {
         return session
     }
 
+    // Bound after construction in AppBootstrap, because the apiClient that
+    // performs the server-side revocation is built after AuthManager (its
+    // middlewares capture authManager). Left nil in tests that don't exercise
+    // the server sign-out path.
+    public var signoutRequest: SignoutRequest?
+
     private let tokenManager: AuthTokenManager
     private let authMiddleware: AuthenticationMiddleware
     private let appStateStorage: AppStateStorageProtocol
     private let oauthSessionRunner: any OAuthSessionRunning
     private var hasRestoredSession = false
+    private static let logger = Logger(
+        subsystem: "com.laughtrack.auth",
+        category: "AuthManager"
+    )
 
     public init(
         tokenManager: AuthTokenManager,
@@ -102,6 +115,18 @@ public final class AuthManager: ObservableObject {
     }
 
     public func signOut() async {
+        // Revoke server-side refresh tokens while we still have a valid Bearer
+        // access token. Transport or auth failures must not block the local
+        // clear — the user expects to end up signed out regardless.
+        if let signoutRequest {
+            do {
+                try await signoutRequest()
+            } catch {
+                Self.logger.error(
+                    "Server sign-out failed; clearing local session anyway: \(String(describing: error), privacy: .public)"
+                )
+            }
+        }
         await clearSession(message: nil)
     }
 

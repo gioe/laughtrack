@@ -106,6 +106,10 @@ public struct AppBootstrap {
         )
         self.apiClient = apiClient
 
+        authManager.signoutRequest = { [apiClient] in
+            _ = try await apiClient.signout()
+        }
+
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
     }
 }
