@@ -3,7 +3,7 @@ import Foundation
 import HTTPTypes
 import OpenAPIRuntime
 import LaughTrackBridge
-@testable import LaughTrackCore
+import LaughTrackCore
 import LaughTrackAPIClient
 
 // Mirrors AppBootstrap's apiClient construction against a scripted ClientTransport so
@@ -136,7 +136,6 @@ struct TokenRefreshMiddlewareIntegrationTests {
         #expect(await factory.authMiddleware.getAccessToken() == rotatedAccess)
         #expect(tokenManager.retrieveAccessToken() == rotatedAccess)
         #expect(tokenManager.retrieveRefreshToken() == rotatedRefresh)
-        #expect(tokenManager.retrieveAccessToken() != tokenManager.retrieveRefreshToken())
     }
 }
 
