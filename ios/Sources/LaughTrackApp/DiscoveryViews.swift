@@ -753,14 +753,14 @@ struct DiscoveryHubView: View {
     }
 }
 
-private struct HomeNearbyPage {
+struct HomeNearbyPage {
     let items: [Components.Schemas.Show]
     let total: Int
     let zipCapTriggered: Bool
 }
 
 @MainActor
-private final class HomeNearbyDiscoveryModel: ObservableObject {
+final class HomeNearbyDiscoveryModel: ObservableObject {
     @Published var zipCodeDraft = ""
     @Published private(set) var activeNearbyPreference: NearbyPreference?
     @Published private(set) var phase: LoadPhase<HomeNearbyPage> = .idle
@@ -792,8 +792,6 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
         ) ?? false
         self.activeNearbyPreference = nearbyPreferenceStore.preference
         self.zipCodeDraft = nearbyPreferenceStore.preference?.zipCode ?? ""
-        self.locationMessage = nearbyLocationController.statusMessage
-        self.isResolvingLocation = nearbyLocationController.isResolvingCurrentLocation
 
         preferenceCancellable = nearbyPreferenceStore.$preference
             .sink { [weak self] preference in
@@ -896,7 +894,7 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
         zipCodeDraft = ""
         loadedPreference = nil
         setPromptDismissed(false)
-        nearbyPreferenceStore.clear()
+        nearbyLocationController.clear()
     }
 
     func applyManualZip() -> Bool {
