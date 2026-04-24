@@ -29,24 +29,61 @@ enum LoadPhase<Value> {
     case idle
     case loading
     case success(Value)
-    case failure(String)
+    case failure(LoadFailure)
 }
 
-struct LoadFailure: Error, Equatable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
-    let message: String
+enum LoadFailure: Error, Equatable, Sendable {
+    case network(String)
+    case badParams(String)
+    case unauthorized(String)
+    case serverError(status: Int, message: String?)
+    case unexpected(status: Int, message: String?)
 
-    init(_ message: String) {
-        self.message = message
+    var message: String {
+        switch self {
+        case .network(let message):
+            return message
+        case .badParams(let message):
+            return "\(message) (HTTP 400)"
+        case .unauthorized(let message):
+            return "\(message) (HTTP 401)"
+        case .serverError(let status, let message):
+            let base = message ?? "LaughTrack hit a server error. Please retry in a moment."
+            return "\(base) (HTTP \(status))"
+        case .unexpected(let status, let message):
+            let base = message ?? "LaughTrack returned an unexpected response."
+            return status > 0 ? "\(base) (HTTP \(status))" : base
+        }
     }
 
-    init(stringLiteral value: StringLiteralType) {
-        self.message = value
+    var defaultTitle: String {
+        switch self {
+        case .network:
+            return "No connection"
+        case .badParams:
+            return "Check these filters"
+        case .unauthorized:
+            return "Sign in required"
+        case .serverError:
+            return "Server hiccup"
+        case .unexpected:
+            return "Unexpected response"
+        }
     }
-
-    var description: String { message }
 }
 
-typealias LoadResult<Value> = Result<Value, LoadFailure>
+func classifyUndocumented(status: Int, context: String) -> LoadFailure {
+    switch status {
+    case 401:
+        return .unauthorized("Sign in to load \(context).")
+    case 400:
+        return .badParams("LaughTrack could not apply those \(context) filters.")
+    case 500..<600:
+        return .serverError(status: status, message: nil)
+    default:
+        return .unexpected(status: status, message: "LaughTrack returned an unexpected \(context) response.")
+    }
+}
 
 struct DiscoverySearchPage<Item> {
     let items: [Item]
@@ -67,7 +104,7 @@ struct DiscoverySearchResponse<Item> {
 class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Item>> = .idle
     @Published private(set) var isLoadingMore = false
-    @Published private(set) var paginationMessage: String?
+    @Published private(set) var paginationFailure: LoadFailure?
 
     private var loadedQuery: Query?
     private var loadingQuery: Query?
@@ -75,7 +112,7 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
     func reload(
         query: Query,
         shouldDebounce: Bool = false,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>
+        fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
         if loadedQuery == query, case .success = phase {
             return
@@ -90,7 +127,7 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
 
     func loadMore(
         query: Query,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>
+        fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
         guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
         await load(page: current.page + 1, query: query, shouldDebounce: false, fetch: fetch, resetResults: false)
@@ -112,11 +149,11 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
         page: Int,
         query: Query,
         shouldDebounce: Bool,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>,
+        fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>,
         resetResults: Bool
     ) async {
         let existingItems = currentItems
-        paginationMessage = nil
+        paginationFailure = nil
 
         if resetResults {
             loadingQuery = query
@@ -137,40 +174,30 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
             }
         }
 
-        do {
-            let result = try await fetch(page, query)
-            switch result {
-            case .success(let response):
-                phase = .success(
-                    .init(
-                        items: resetResults ? response.items : existingItems + response.items,
-                        total: response.total,
-                        page: page
-                    )
+        switch await fetch(page, query) {
+        case .success(let response):
+            phase = .success(
+                .init(
+                    items: resetResults ? response.items : existingItems + response.items,
+                    total: response.total,
+                    page: page
                 )
-                loadedQuery = query
-            case .failure(let error):
-                handleFailure(message: error.message, existingItems: existingItems, resetResults: resetResults)
-            }
-        } catch {
-            guard !Task.isCancelled else { return }
-            handleFailure(
-                message: "LaughTrack could not reach this service. Check your connection and try again.",
-                existingItems: existingItems,
-                resetResults: resetResults
             )
+            loadedQuery = query
+        case .failure(let failure):
+            handleFailure(failure: failure, existingItems: existingItems, resetResults: resetResults)
         }
     }
 
     private func handleFailure(
-        message: String,
+        failure: LoadFailure,
         existingItems: [Item],
         resetResults: Bool
     ) {
         if resetResults || existingItems.isEmpty {
-            phase = .failure(message)
+            phase = .failure(failure)
         } else if case .success(let current) = phase {
-            paginationMessage = message
+            paginationFailure = failure
             phase = .success(current)
         }
     }
@@ -181,33 +208,21 @@ class EntityDetailModel<Value>: ObservableObject {
     @Published private(set) var phase: LoadPhase<Value> = .idle
 
     func loadIfNeeded(
-        using request: @escaping () async -> LoadResult<Value>
+        using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
         guard case .idle = phase else { return }
         await reload(using: request)
     }
 
     func reload(
-        using request: @escaping () async -> LoadResult<Value>
+        using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
         phase = .loading
-        phase = await request().fold(
-            onSuccess: { .success($0) },
-            onFailure: { .failure($0.message) }
-        )
-    }
-}
-
-private extension Result {
-    func fold<T>(
-        onSuccess: (Success) -> T,
-        onFailure: (Failure) -> T
-    ) -> T {
-        switch self {
-        case .success(let success):
-            return onSuccess(success)
+        switch await request() {
+        case .success(let value):
+            phase = .success(value)
         case .failure(let failure):
-            return onFailure(failure)
+            phase = .failure(failure)
         }
     }
 }

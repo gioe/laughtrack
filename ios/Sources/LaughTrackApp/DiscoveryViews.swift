@@ -239,7 +239,7 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
         query: String,
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>> {
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>, LoadFailure> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listComedians(
@@ -272,11 +272,11 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                         )
                     )
                 case .badRequest(let badRequest):
-                    return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now."))
+                    return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those comedian filters."))
                 case .internalServerError(let serverError):
-                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now."))
+                    return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
                 case .undocumented(let status, _):
-                    return .failure(.init("LaughTrack returned an unexpected comedians response (\(status))."))
+                    return .failure(classifyUndocumented(status: status, context: "comedians"))
                 }
             } else {
                 let output = try await apiClient.searchComedians(
@@ -304,16 +304,13 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                         )
                     )
                 case .internalServerError(let serverError):
-                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now."))
+                    return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
                 case .undocumented(let status, _):
-                    return .failure(.init("LaughTrack returned an unexpected comedians response (\(status))."))
+                    return .failure(classifyUndocumented(status: status, context: "comedians"))
                 }
             }
         } catch {
-            guard !Task.isCancelled else {
-                return .failure(.init("LaughTrack could not load comedians right now."))
-            }
-            return .failure(.init("LaughTrack could not reach the comedians service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the comedians service. Check your connection and try again."))
         }
     }
 }
@@ -349,7 +346,7 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
         page: Int,
         query: String,
         apiClient: Client
-    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>> {
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>, LoadFailure> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listClubs(
@@ -388,13 +385,13 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                         )
                     )
                 case .badRequest(let badRequest):
-                    return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now."))
+                    return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those club filters."))
                 case .tooManyRequests(let tooManyRequests):
-                    return .failure(.init((try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now."))
+                    return .failure(.unexpected(status: 429, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now."))
                 case .internalServerError(let serverError):
-                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now."))
+                    return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
                 case .undocumented(let status, _):
-                    return .failure(.init("LaughTrack returned an unexpected clubs response (\(status))."))
+                    return .failure(classifyUndocumented(status: status, context: "clubs"))
                 }
             } else {
                 let output = try await apiClient.searchClubs(
@@ -418,16 +415,13 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                         )
                     )
                 case .internalServerError(let serverError):
-                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now."))
+                    return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
                 case .undocumented(let status, _):
-                    return .failure(.init("LaughTrack returned an unexpected clubs response (\(status))."))
+                    return .failure(classifyUndocumented(status: status, context: "clubs"))
                 }
             }
         } catch {
-            guard !Task.isCancelled else {
-                return .failure(.init("LaughTrack could not load clubs right now."))
-            }
-            return .failure(.init("LaughTrack could not reach the clubs service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the clubs service. Check your connection and try again."))
         }
     }
 }
@@ -575,14 +569,14 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     func reload(apiClient: Client) async {
         let query = requestKey
         await super.reload(query: query, shouldDebounce: query.hasActiveFilters) { [weak self] page, query in
-            guard let self else { return .failure(.init("LaughTrack could not load shows right now.")) }
+            guard let self else { return .failure(.unexpected(status: 0, message: "LaughTrack could not load shows right now.")) }
             return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
     }
 
     func loadMore(apiClient: Client) async {
         await super.loadMore(query: requestKey) { [weak self] page, query in
-            guard let self else { return .failure(.init("LaughTrack could not load shows right now.")) }
+            guard let self else { return .failure(.unexpected(status: 0, message: "LaughTrack could not load shows right now.")) }
             return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
     }
@@ -618,7 +612,7 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         page: Int,
         query: ShowsDiscoveryQuery,
         apiClient: Client
-    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.Show>> {
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, LoadFailure> {
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -648,17 +642,14 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
                     )
                 )
             case .badRequest(let badRequest):
-                return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))
+                return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))
             case .internalServerError(let serverError):
-                return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load shows right now."))
+                return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
             case .undocumented(let status, _):
-                return .failure(.init("LaughTrack returned an unexpected response (\(status))."))
+                return .failure(classifyUndocumented(status: status, context: "shows"))
             }
         } catch {
-            guard !Task.isCancelled else {
-                return .failure(.init("LaughTrack could not load shows right now."))
-            }
-            return .failure(.init("LaughTrack could not reach the shows search service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the shows search service. Check your connection and try again."))
         }
     }
 
@@ -859,19 +850,19 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
                 loadedPreference = preference
             case .badRequest(let badRequest):
                 phase = .failure(
-                    (try? badRequest.body.json.error) ?? "LaughTrack could not apply those nearby filters."
+                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those nearby filters.")
                 )
             case .internalServerError(let serverError):
                 phase = .failure(
-                    (try? serverError.body.json.error) ?? "LaughTrack could not load nearby shows right now."
+                    .serverError(status: 500, message: (try? serverError.body.json.error))
                 )
             case .undocumented(let status, _):
-                phase = .failure("LaughTrack returned an unexpected response (\(status)).")
+                phase = .failure(classifyUndocumented(status: status, context: "nearby shows"))
             }
         } catch {
             guard !Task.isCancelled else { return }
             phase = .failure(
-                "LaughTrack could not reach the nearby shows service. Check your connection and try again."
+                .network("LaughTrack couldn't reach the nearby shows service. Check your connection and try again.")
             )
         }
     }
@@ -1072,10 +1063,12 @@ struct HomeNearbyDiscoverySection: View {
             switch model.phase {
             case .idle, .loading:
                 LoadingCard()
-            case .failure(let message):
-                ErrorCard(message: message) {
-                    await model.refresh(apiClient: apiClient)
-                }
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: { await model.refresh(apiClient: apiClient) },
+                    signIn: { coordinator.push(.settings) }
+                )
             case .success(let result):
                 if result.items.isEmpty {
                     EmptyCard(message: "No nearby shows matched this ZIP yet. Broaden the radius below or clear nearby filters.")
@@ -1198,12 +1191,12 @@ struct ShowsDiscoveryView: View {
                 switch model.phase {
                 case .idle, .loading:
                     LoadingCard(title: "Loading shows")
-                case .failure(let message):
-                    ErrorCard(title: "Couldn’t load shows", message: message) {
-                        Task {
-                            await model.reload(apiClient: apiClient)
-                        }
-                    }
+                case .failure(let failure):
+                    FailureCard(
+                        failure: failure,
+                        retry: { await model.reload(apiClient: apiClient) },
+                        signIn: { coordinator.push(.settings) }
+                    )
                 case .success(let result):
                     if result.items.isEmpty {
                         EmptyCard(title: "No shows yet", message: emptyMessage)
@@ -1222,8 +1215,8 @@ struct ShowsDiscoveryView: View {
                                 .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
                             }
 
-                            if let paginationMessage = model.paginationMessage {
-                                InlineStatusMessage(message: paginationMessage)
+                            if let paginationFailure = model.paginationFailure {
+                                InlineStatusMessage(message: paginationFailure.message)
                             }
 
                             if result.canLoadMore {
@@ -1289,12 +1282,12 @@ struct ComediansDiscoveryView: View {
                 switch model.phase {
                 case .idle, .loading:
                     LoadingCard(title: "Loading comedians")
-                case .failure(let message):
-                    ErrorCard(title: "Couldn’t load comedians", message: message) {
-                        Task {
-                            await model.reload(apiClient: apiClient, favorites: favorites)
-                        }
-                    }
+                case .failure(let failure):
+                    FailureCard(
+                        failure: failure,
+                        retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                        signIn: { coordinator.push(.settings) }
+                    )
                 case .success(let result):
                     if result.items.isEmpty {
                         EmptyCard(
@@ -1317,8 +1310,8 @@ struct ComediansDiscoveryView: View {
                                 .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchResultButton(comedian.id))
                             }
 
-                            if let paginationMessage = model.paginationMessage {
-                                InlineStatusMessage(message: paginationMessage)
+                            if let paginationFailure = model.paginationFailure {
+                                InlineStatusMessage(message: paginationFailure.message)
                             }
 
                             if result.canLoadMore {
@@ -1376,12 +1369,12 @@ struct ClubsDiscoveryView: View {
                 switch model.phase {
                 case .idle, .loading:
                     LoadingCard(title: "Loading clubs")
-                case .failure(let message):
-                    ErrorCard(title: "Couldn’t load clubs", message: message) {
-                        Task {
-                            await model.reload(apiClient: apiClient)
-                        }
-                    }
+                case .failure(let failure):
+                    FailureCard(
+                        failure: failure,
+                        retry: { await model.reload(apiClient: apiClient) },
+                        signIn: { coordinator.push(.settings) }
+                    )
                 case .success(let result):
                     if result.items.isEmpty {
                         EmptyCard(
@@ -1407,8 +1400,8 @@ struct ClubsDiscoveryView: View {
                                 .accessibilityIdentifier(club.id.map(LaughTrackViewTestID.clubsSearchResultButton) ?? "laughtrack.clubs-search.result-missing-id")
                             }
 
-                            if let paginationMessage = model.paginationMessage {
-                                InlineStatusMessage(message: paginationMessage)
+                            if let paginationFailure = model.paginationFailure {
+                                InlineStatusMessage(message: paginationFailure.message)
                             }
 
                             if result.canLoadMore {
@@ -1454,7 +1447,7 @@ private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDe
     private func fetch(
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> LoadResult<Components.Schemas.ShowDetailResponse> {
+    ) async -> Result<Components.Schemas.ShowDetailResponse, LoadFailure> {
         do {
             let output = try await apiClient.getShow(.init(path: .init(id: showID)))
             switch output {
@@ -1465,18 +1458,18 @@ private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDe
                 }
                 return .success(response)
             case .badRequest:
-                return .failure(.init("LaughTrack could not load this show right now."))
+                return .failure(.badParams("LaughTrack could not load this show right now."))
             case .notFound:
-                return .failure(.init("This show could not be found."))
+                return .failure(.unexpected(status: 404, message: "This show could not be found."))
             case .tooManyRequests:
-                return .failure(.init("LaughTrack is rate-limiting show details right now."))
+                return .failure(.unexpected(status: 429, message: "LaughTrack is rate-limiting show details right now."))
             case .internalServerError:
-                return .failure(.init("LaughTrack hit a server error while loading this show."))
+                return .failure(.serverError(status: 500, message: nil))
             case .undocumented(let status, _):
-                return .failure(.init("LaughTrack returned an unexpected show detail response (\(status))."))
+                return .failure(classifyUndocumented(status: status, context: "show details"))
             }
         } catch {
-            return .failure(.init("LaughTrack could not reach the show details service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the show details service. Check your connection and try again."))
         }
     }
 }
@@ -1519,7 +1512,7 @@ private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent
     private func fetch(
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> LoadResult<ComedianDetailContent> {
+    ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
             switch output {
@@ -1532,16 +1525,16 @@ private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent
                     favorites: favorites
                 )
             case .badRequest:
-                return .failure(.init("LaughTrack could not load this comedian right now."))
+                return .failure(.badParams("LaughTrack could not load this comedian right now."))
             case .notFound:
-                return .failure(.init("This comedian could not be found."))
+                return .failure(.unexpected(status: 404, message: "This comedian could not be found."))
             case .internalServerError:
-                return .failure(.init("LaughTrack hit a server error while loading this comedian."))
+                return .failure(.serverError(status: 500, message: nil))
             case .undocumented(let status, _):
-                return .failure(.init("LaughTrack returned an unexpected comedian detail response (\(status))."))
+                return .failure(classifyUndocumented(status: status, context: "comedian details"))
             }
         } catch {
-            return .failure(.init("LaughTrack could not reach the comedian details service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the comedian details service. Check your connection and try again."))
         }
     }
 
@@ -1549,7 +1542,7 @@ private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent
         for comedian: Components.Schemas.ComedianDetail,
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> LoadResult<ComedianDetailContent> {
+    ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -1659,30 +1652,30 @@ private final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
         }
     }
 
-    private func fetch(apiClient: Client) async -> LoadResult<ClubDetailContent> {
+    private func fetch(apiClient: Client) async -> Result<ClubDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
             switch output {
             case .ok(let ok):
                 return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient)
             case .badRequest:
-                return .failure(.init("LaughTrack could not load this club right now."))
+                return .failure(.badParams("LaughTrack could not load this club right now."))
             case .notFound:
-                return .failure(.init("This club could not be found."))
+                return .failure(.unexpected(status: 404, message: "This club could not be found."))
             case .internalServerError:
-                return .failure(.init("LaughTrack hit a server error while loading this club."))
+                return .failure(.serverError(status: 500, message: nil))
             case .undocumented(let status, _):
-                return .failure(.init("LaughTrack returned an unexpected club detail response (\(status))."))
+                return .failure(classifyUndocumented(status: status, context: "club details"))
             }
         } catch {
-            return .failure(.init("LaughTrack could not reach the club details service. Check your connection and try again."))
+            return .failure(.network("LaughTrack couldn't reach the club details service. Check your connection and try again."))
         }
     }
 
     private func loadRelatedContent(
         for club: Components.Schemas.ClubDetail,
         apiClient: Client
-    ) async -> LoadResult<ClubDetailContent> {
+    ) async -> Result<ClubDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -1784,10 +1777,12 @@ struct ShowDetailView: View {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
-            case .failure(let message):
-                ErrorCard(message: message) {
-                    await model.reload(apiClient: apiClient, favorites: favorites)
-                }
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                    signIn: { coordinator.push(.settings) }
+                )
                 .padding()
             case .success(let response):
                 let show = response.data
@@ -1969,10 +1964,12 @@ struct ComedianDetailView: View {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
-            case .failure(let message):
-                ErrorCard(message: message) {
-                    await model.reload(apiClient: apiClient, favorites: favorites)
-                }
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                    signIn: { coordinator.push(.settings) }
+                )
                 .padding()
             case .success(let content):
                 let comedian = content.comedian
@@ -2202,10 +2199,12 @@ struct ClubDetailView: View {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
-            case .failure(let message):
-                ErrorCard(message: message) {
-                    await model.reload(apiClient: apiClient)
-                }
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: { await model.reload(apiClient: apiClient) },
+                    signIn: { coordinator.push(.settings) }
+                )
                 .padding()
             case .success(let content):
                 let club = content.club
@@ -3146,31 +3145,51 @@ private struct EmptyCard: View {
     }
 }
 
-private struct ErrorCard: View {
-    let title: String
-    let message: String
+private struct FailureCard: View {
+    let failure: LoadFailure
     let retry: () async -> Void
+    let signIn: (() -> Void)?
 
     init(
-        title: String = "Couldn’t load this section",
-        message: String,
-        retry: @escaping () async -> Void
+        failure: LoadFailure,
+        retry: @escaping () async -> Void,
+        signIn: (() -> Void)? = nil
     ) {
-        self.title = title
-        self.message = message
+        self.failure = failure
         self.retry = retry
+        self.signIn = signIn
     }
 
     var body: some View {
         LaughTrackInlineStateCard(
             tone: .error,
-            title: title,
-            message: message,
-            actionTitle: "Try again"
+            title: failure.defaultTitle,
+            message: failure.message,
+            actionTitle: actionTitle
         ) {
-            Task {
-                await retry()
+            performAction()
+        }
+    }
+
+    private var actionTitle: String {
+        switch failure {
+        case .unauthorized:
+            return "Sign in"
+        default:
+            return "Try again"
+        }
+    }
+
+    private func performAction() {
+        switch failure {
+        case .unauthorized:
+            if let signIn {
+                signIn()
+            } else {
+                Task { await retry() }
             }
+        default:
+            Task { await retry() }
         }
     }
 }

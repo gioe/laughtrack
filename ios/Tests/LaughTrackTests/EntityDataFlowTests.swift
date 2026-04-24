@@ -55,7 +55,7 @@ struct EntityDataFlowTests {
         }
 
         await model.loadMore(query: "shows") { _, _ in
-            .failure("Timed out")
+            .failure(.network("Timed out"))
         }
 
         switch model.phase {
@@ -66,7 +66,48 @@ struct EntityDataFlowTests {
             Issue.record("Expected prior success page to remain after pagination failure")
         }
 
-        #expect(model.paginationMessage == "Timed out")
+        #expect(model.paginationFailure == .network("Timed out"))
+    }
+
+    @Test("failure messages include status codes and classify by case")
+    func loadFailureDisplay() {
+        #expect(LoadFailure.network("No signal").message == "No signal")
+        #expect(LoadFailure.network("No signal").defaultTitle == "No connection")
+
+        #expect(LoadFailure.unauthorized("Session expired").message == "Session expired (HTTP 401)")
+        #expect(LoadFailure.unauthorized("Session expired").defaultTitle == "Sign in required")
+
+        #expect(LoadFailure.badParams("Bad date").message == "Bad date (HTTP 400)")
+
+        let server = LoadFailure.serverError(status: 503, message: "Upstream down")
+        #expect(server.message == "Upstream down (HTTP 503)")
+        #expect(server.defaultTitle == "Server hiccup")
+
+        let serverNoMessage = LoadFailure.serverError(status: 500, message: nil)
+        #expect(serverNoMessage.message.contains("HTTP 500"))
+
+        #expect(LoadFailure.unexpected(status: 429, message: "Rate limited").message == "Rate limited (HTTP 429)")
+        #expect(LoadFailure.unexpected(status: 0, message: "Local-only note").message == "Local-only note")
+    }
+
+    @Test("undocumented statuses classify into the right case")
+    func classifyUndocumentedMaps() {
+        if case .unauthorized = classifyUndocumented(status: 401, context: "shows") {} else {
+            Issue.record("401 must map to .unauthorized")
+        }
+        if case .badParams = classifyUndocumented(status: 400, context: "shows") {} else {
+            Issue.record("400 must map to .badParams")
+        }
+        if case .serverError(let status, _) = classifyUndocumented(status: 502, context: "shows") {
+            #expect(status == 502)
+        } else {
+            Issue.record("5xx must map to .serverError")
+        }
+        if case .unexpected(let status, _) = classifyUndocumented(status: 418, context: "shows") {
+            #expect(status == 418)
+        } else {
+            Issue.record("Other statuses must map to .unexpected")
+        }
     }
 
     @Test("detail model only performs its first automatic load once")
