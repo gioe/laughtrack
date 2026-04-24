@@ -92,13 +92,18 @@ public struct AppBootstrap {
             )
         }
 
+        // OpenAPIRuntime wraps middlewares with `middlewares.reversed()`, so the first
+        // array element is outermost on the response path. Unauthorized must sit outside
+        // TokenRefresh so a successful 401 -> refresh -> retry cycle is invisible to it —
+        // otherwise it would clear the session before TokenRefresh had a chance to rescue
+        // the request.
         let apiClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),
-                tokenRefreshMiddleware,
                 unauthorizedMiddleware,
+                tokenRefreshMiddleware,
                 factory.authMiddleware,
                 factory.retryMiddleware,
                 factory.loggingMiddleware,

@@ -93,8 +93,8 @@ struct TokenRefreshMiddlewareIntegrationTests {
             transport: transport,
             middlewares: [
                 APIVersionPathMiddleware(),
-                tokenRefreshMiddleware,
                 unauthorizedMiddleware,
+                tokenRefreshMiddleware,
                 factory.authMiddleware,
                 factory.retryMiddleware,
                 factory.loggingMiddleware,
@@ -136,6 +136,133 @@ struct TokenRefreshMiddlewareIntegrationTests {
         #expect(await factory.authMiddleware.getAccessToken() == rotatedAccess)
         #expect(tokenManager.retrieveAccessToken() == rotatedAccess)
         #expect(tokenManager.retrieveRefreshToken() == rotatedRefresh)
+    }
+
+    // A successful 401 -> refresh -> 200 cycle must NOT drive
+    // UnauthorizedResponseMiddleware.onUnauthorized, because that callback clears the
+    // keychain and flips AuthManager to .signedOut. Regression anchor for TASK-1755:
+    // prior to the reorder, TokenRefreshMiddleware sat outside UnauthorizedResponseMiddleware,
+    // so the 401 reached UnauthorizedResponseMiddleware first and signed the user out even
+    // though the retry ultimately succeeded.
+    @Test("401 -> refresh -> 200 leaves AuthManager authenticated and keychain populated")
+    @MainActor
+    func successfulRefreshDoesNotTriggerUnauthorizedCallback() async throws {
+        let secureStorage = InMemorySecureStorage()
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let initialAccess = "stale-access-token-\(UUID().uuidString)"
+        let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
+        try tokenManager.storeTokens(accessToken: initialAccess, refreshToken: initialRefresh)
+
+        let suiteName = "TokenRefreshMiddlewareIntegrationTests.\(UUID().uuidString)"
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: suiteName)!)
+
+        let serverURL = URL(string: "https://test.example.com")!
+        let factory = APIClientFactory(
+            serverURL: serverURL,
+            retryConfiguration: .init(maxRetries: 0),
+            secureStorage: secureStorage
+        )
+
+        let authManager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: factory.authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: StubOAuthSessionRunner()
+        )
+        await authManager.restoreSession()
+
+        // Precondition: restoreSession flipped us to .authenticated.
+        guard case .authenticated = authManager.state else {
+            Issue.record("Expected AuthManager to be .authenticated after restoreSession, got \(authManager.state)")
+            return
+        }
+
+        let rotatedAccess = "rotated-access-token"
+        let rotatedRefresh = "rotated-refresh-token"
+        let transport = ScriptedTransport()
+        await transport.seed([
+            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            ScriptedResponse(
+                status: .ok,
+                bodyJSON: """
+                {"accessToken":"\(rotatedAccess)","refreshToken":"\(rotatedRefresh)","expiresIn":900}
+                """
+            ),
+            ScriptedResponse(status: .ok, bodyJSON: #"{"data":[]}"#),
+        ])
+
+        let refreshClient = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: [
+                APIVersionPathMiddleware(),
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
+        )
+
+        let tokenRefreshMiddleware = TokenRefreshMiddleware(
+            authMiddleware: factory.authMiddleware,
+            refreshEndpointOperationID: Operations.RefreshToken.id
+        ) { _ in
+            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
+            guard let refreshToken else {
+                await authManager.handleUnauthorizedResponse()
+                throw URLError(.userAuthenticationRequired)
+            }
+            let response = try await refreshClient.refreshToken(
+                body: .json(.init(refreshToken: refreshToken))
+            )
+            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
+                await authManager.handleUnauthorizedResponse()
+                throw URLError(.userAuthenticationRequired)
+            }
+            try? await MainActor.run {
+                try tokenManager.storeTokens(
+                    accessToken: body.accessToken,
+                    refreshToken: body.refreshToken
+                )
+            }
+            return TokenRefreshMiddleware.Tokens(
+                accessToken: body.accessToken,
+                refreshToken: body.refreshToken
+            )
+        }
+
+        // The real production callback — this is exactly what AppBootstrap wires up.
+        // The whole point of this test is that it must NOT fire when refresh recovers.
+        let unauthorizedMiddleware = UnauthorizedResponseMiddleware { [authManager] in
+            await authManager.handleUnauthorizedResponse()
+        }
+
+        let apiClient = Client(
+            serverURL: serverURL,
+            transport: transport,
+            middlewares: [
+                APIVersionPathMiddleware(),
+                unauthorizedMiddleware,
+                tokenRefreshMiddleware,
+                factory.authMiddleware,
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
+        )
+
+        _ = try await apiClient.getFavorites()
+
+        // Core assertion: AuthManager stayed .authenticated through the refresh cycle.
+        guard case .authenticated = authManager.state else {
+            Issue.record("Expected AuthManager to stay .authenticated after 401 -> refresh -> 200, got \(authManager.state)")
+            return
+        }
+        #expect(tokenManager.isAuthenticated)
+        #expect(tokenManager.retrieveAccessToken() == rotatedAccess)
+        #expect(tokenManager.retrieveRefreshToken() == rotatedRefresh)
+        #expect(await factory.authMiddleware.getAccessToken() == rotatedAccess)
+
+        // Sanity check: all three transport hops were observed (401, refresh, retry).
+        let recorded = await transport.recordedRequests
+        #expect(recorded.count == 3)
     }
 }
 
@@ -214,6 +341,12 @@ private final class ScriptedTransport: ClientTransport, @unchecked Sendable {
 }
 
 // MARK: - Test Fixtures
+
+private final class StubOAuthSessionRunner: OAuthSessionRunning {
+    func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
+        URL(string: "laughtrack://auth/callback")!
+    }
+}
 
 private final class InMemorySecureStorage: SecureStorageProtocol {
     private var values: [String: String] = [:]
