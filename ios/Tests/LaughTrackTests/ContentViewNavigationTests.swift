@@ -30,14 +30,13 @@ struct ContentViewNavigationTests {
     func homeSettingsButtonPushesSettingsRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-view")
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home"),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-controller")
-                ),
+                nearbyPreferenceStore: store,
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
                 locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
@@ -77,14 +76,13 @@ struct ContentViewNavigationTests {
         let coordinator = NavigationCoordinator<AppRoute>()
         let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-search")
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search"),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search-controller")
-                ),
+                nearbyPreferenceStore: store,
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
                 locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
@@ -103,14 +101,13 @@ struct ContentViewNavigationTests {
     func homeUsesCompactSearchEntryCopy() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-browse-redesign")
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign"),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign-controller")
-                ),
+                nearbyPreferenceStore: store,
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
                 locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
@@ -131,14 +128,13 @@ struct ContentViewNavigationTests {
         let coordinator = NavigationCoordinator<AppRoute>()
         let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-clubs-search")
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search"),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search-controller")
-                ),
+                nearbyPreferenceStore: store,
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
                 locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
@@ -158,14 +154,13 @@ struct ContentViewNavigationTests {
         let coordinator = NavigationCoordinator<AppRoute>()
         let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-comedians-search")
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search")
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search"),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search-controller")
-                ),
+                nearbyPreferenceStore: store,
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
                 locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
