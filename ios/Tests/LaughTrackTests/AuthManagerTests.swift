@@ -176,7 +176,7 @@ struct AuthManagerTests {
         let recorder = SignoutRecorder()
         manager.signoutRequest = { [authMiddleware] in
             let hadToken = await authMiddleware.hasAccessToken
-            await recorder.record(hadAccessToken: hadToken, shouldThrow: false)
+            await recorder.record(hadAccessToken: hadToken)
         }
 
         await manager.signOut()
@@ -212,7 +212,7 @@ struct AuthManagerTests {
 
         let recorder = SignoutRecorder()
         manager.signoutRequest = {
-            await recorder.record(hadAccessToken: true, shouldThrow: true)
+            await recorder.record(hadAccessToken: true)
             throw URLError(.networkConnectionLost)
         }
 
@@ -272,10 +272,9 @@ private actor SignoutRecorder {
     var callCount = 0
     var observedAccessToken = false
 
-    func record(hadAccessToken: Bool, shouldThrow: Bool) {
+    func record(hadAccessToken: Bool) {
         callCount += 1
         observedAccessToken = hadAccessToken
-        _ = shouldThrow
     }
 }
 
