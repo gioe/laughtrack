@@ -130,6 +130,36 @@ targets:
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_EMIT_LOC_STRINGS: "YES"
+    scheme:
+      testTargets:
+        - LaughTrackTests
+        - LaughTrackUITests
+  LaughTrackTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/LaughTrackTests
+        createIntermediateGroups: true
+        includes:
+          - LaughTrackTests.swift
+          - ServiceRegistrationTests.swift
+    dependencies:
+      - target: LaughTrack
+      - target: LaughTrackCore
+      - target: LaughTrackBridge
+      - target: LaughTrackAPIClient
+      - package: ios-libs
+        product: SharedKit
+      - package: ios-libs
+        product: APIClient
+      - package: swift-openapi-runtime
+        product: OpenAPIRuntime
+      - package: swift-http-types
+        product: HTTPTypes
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
+        GENERATE_INFOPLIST_FILE: "YES"
   LaughTrackUITests:
     type: bundle.ui-testing
     platform: iOS
