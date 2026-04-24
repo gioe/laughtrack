@@ -2813,10 +2813,7 @@ private struct SearchResultsSummary: View {
     let total: Int
 
     var body: some View {
-        Text("Showing \(count) of \(total)")
-            .font(theme.laughTrackTokens.typography.metadata)
-            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        LaughTrackContextRow(leading: "Showing \(count) of \(total)")
     }
 }
 

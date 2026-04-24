@@ -223,7 +223,7 @@ private struct HomeSearchEntryRail: View {
             LaughTrackShelfHeader(
                 eyebrow: "Search entry points",
                 title: "Open Search from a head start",
-                subtitle: "Pick what you're browsing first, then refine in place."
+                subtitle: "Pick what you’re browsing first, then refine in place."
             )
 
             VStack(spacing: theme.spacing.sm) {

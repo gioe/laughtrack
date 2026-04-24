@@ -254,7 +254,12 @@ struct LaughTrackContextRow: View {
     @Environment(\.appTheme) private var theme
 
     let leading: String
-    let trailing: String
+    let trailing: String?
+
+    init(leading: String, trailing: String? = nil) {
+        self.leading = leading
+        self.trailing = trailing
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -267,18 +272,20 @@ struct LaughTrackContextRow: View {
 
             Spacer(minLength: theme.spacing.sm)
 
-            Text(trailing)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .padding(.horizontal, laughTrack.browseDensity.chipHorizontalPadding)
-                .padding(.vertical, laughTrack.browseDensity.chipVerticalPadding)
-                .background(laughTrack.colors.highlight.opacity(0.95))
-                .overlay(
-                    Capsule(style: .continuous)
-                        .stroke(laughTrack.colors.borderStrong.opacity(0.45), lineWidth: 1)
-                )
-                .clipShape(Capsule(style: .continuous))
-                .lineLimit(1)
+            if let trailing {
+                Text(trailing)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .padding(.horizontal, laughTrack.browseDensity.chipHorizontalPadding)
+                    .padding(.vertical, laughTrack.browseDensity.chipVerticalPadding)
+                    .background(laughTrack.colors.highlight.opacity(0.95))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(laughTrack.colors.borderStrong.opacity(0.45), lineWidth: 1)
+                    )
+                    .clipShape(Capsule(style: .continuous))
+                    .lineLimit(1)
+            }
         }
     }
 }
