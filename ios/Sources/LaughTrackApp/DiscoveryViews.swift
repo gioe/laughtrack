@@ -772,28 +772,40 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
 
     private let nearbyPreferenceStore: NearbyPreferenceStore
     private let appStateStorage: AppStateStorageProtocol
-    private let locationResolver: any NearbyLocationResolving
+    private let nearbyLocationController: NearbyLocationController
     private var preferenceCancellable: AnyCancellable?
+    private var locationStatusCancellable: AnyCancellable?
+    private var locationLoadingCancellable: AnyCancellable?
     private var loadedPreference: NearbyPreference?
 
     init(
         nearbyPreferenceStore: NearbyPreferenceStore,
-        locationResolver: any NearbyLocationResolving,
+        nearbyLocationController: NearbyLocationController,
         appStateStorage: AppStateStorageProtocol = AppStateStorage()
     ) {
         self.nearbyPreferenceStore = nearbyPreferenceStore
         self.appStateStorage = appStateStorage
-        self.locationResolver = locationResolver
+        self.nearbyLocationController = nearbyLocationController
         self.isPromptDismissed = appStateStorage.getValue(
             forKey: StorageKey.promptDismissed,
             as: Bool.self
         ) ?? false
         self.activeNearbyPreference = nearbyPreferenceStore.preference
         self.zipCodeDraft = nearbyPreferenceStore.preference?.zipCode ?? ""
+        self.locationMessage = nearbyLocationController.statusMessage
+        self.isResolvingLocation = nearbyLocationController.isResolvingCurrentLocation
 
         preferenceCancellable = nearbyPreferenceStore.$preference
             .sink { [weak self] preference in
                 self?.applyNearbyPreference(preference)
+            }
+        locationStatusCancellable = nearbyLocationController.$statusMessage
+            .sink { [weak self] message in
+                self?.locationMessage = message
+            }
+        locationLoadingCancellable = nearbyLocationController.$isResolvingCurrentLocation
+            .sink { [weak self] isResolving in
+                self?.isResolvingLocation = isResolving
             }
     }
 
@@ -901,20 +913,14 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
     }
 
     func useCurrentLocation() async {
-        isResolvingLocation = true
         zipValidationMessage = nil
-        locationMessage = nil
-        defer { isResolvingLocation = false }
-
-        do {
-            let zipCode = try await locationResolver.requestCurrentZip()
-            nearbyPreferenceStore.setGeolocatedZip(
-                zipCode,
-                distanceMiles: activeNearbyPreference?.distanceMiles
-            )
+        let distanceMiles = activeNearbyPreference?.distanceMiles
+            ?? NearbyPreference.defaultDistanceMiles
+        let succeeded = await nearbyLocationController.useCurrentLocation(
+            distanceMiles: distanceMiles
+        )
+        if succeeded {
             isEditingZip = false
-        } catch {
-            locationMessage = error.localizedDescription
         }
     }
 
@@ -957,13 +963,13 @@ struct HomeNearbyDiscoverySection: View {
     init(
         apiClient: Client,
         nearbyPreferenceStore: NearbyPreferenceStore,
-        locationResolver: any NearbyLocationResolving
+        nearbyLocationController: NearbyLocationController
     ) {
         self.apiClient = apiClient
         _model = StateObject(
             wrappedValue: HomeNearbyDiscoveryModel(
                 nearbyPreferenceStore: nearbyPreferenceStore,
-                locationResolver: locationResolver
+                nearbyLocationController: nearbyLocationController
             )
         )
     }

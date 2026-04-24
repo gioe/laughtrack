@@ -18,8 +18,7 @@ struct AppShellViewTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver()
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .navigationCoordinator(coordinator)
@@ -44,7 +43,6 @@ struct AppShellViewTests {
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 initialTab: .search
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -67,8 +65,7 @@ struct AppShellViewTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver()
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .navigationCoordinator(coordinator)
@@ -92,8 +89,7 @@ struct AppShellViewTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver()
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -114,8 +110,7 @@ struct AppShellViewTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver()
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(coordinator)
@@ -137,7 +132,6 @@ struct AppShellViewTests {
                 favorites: ComedianFavoriteStore(),
                 nearbyPreferenceStore: nearbyStore,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 initialTab: .profile
             )
             .environment(\.appTheme, LaughTrackTheme())

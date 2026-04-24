@@ -37,7 +37,6 @@ struct ContentViewNavigationTests {
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -83,7 +82,6 @@ struct ContentViewNavigationTests {
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -108,7 +106,6 @@ struct ContentViewNavigationTests {
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -135,7 +132,6 @@ struct ContentViewNavigationTests {
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -161,7 +157,6 @@ struct ContentViewNavigationTests {
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())

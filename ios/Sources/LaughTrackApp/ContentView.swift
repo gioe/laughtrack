@@ -55,9 +55,6 @@ struct ContentView: View {
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
     }
-    private var locationResolver: any NearbyLocationResolving {
-        serviceContainer.resolve((any NearbyLocationResolving).self)
-    }
 
     var body: some View {
         Group {
@@ -89,7 +86,6 @@ struct ContentView: View {
                     favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     nearbyLocationController: nearbyLocationController,
-                    locationResolver: locationResolver,
                     initialTab: .home
                 )
             case .search:
@@ -99,7 +95,6 @@ struct ContentView: View {
                     favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     nearbyLocationController: nearbyLocationController,
-                    locationResolver: locationResolver,
                     initialTab: .search
                 )
             case .activity:
@@ -109,7 +104,6 @@ struct ContentView: View {
                     favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     nearbyLocationController: nearbyLocationController,
-                    locationResolver: locationResolver,
                     initialTab: .activity
                 )
             case .profile:
@@ -119,7 +113,6 @@ struct ContentView: View {
                     favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     nearbyLocationController: nearbyLocationController,
-                    locationResolver: locationResolver,
                     initialTab: .profile
                 )
             case .settings:
@@ -141,8 +134,7 @@ struct ContentView: View {
                 signedOutMessage: signedOutMessage,
                 favorites: favorites,
                 nearbyPreferenceStore: nearbyPreferenceStore,
-                nearbyLocationController: nearbyLocationController,
-                locationResolver: locationResolver
+                nearbyLocationController: nearbyLocationController
             )
         }
         .environmentObject(favorites)
@@ -154,7 +146,6 @@ struct HomeView: View {
     let signedOutMessage: String?
     let nearbyPreferenceStore: NearbyPreferenceStore
     let nearbyLocationController: NearbyLocationController
-    let locationResolver: any NearbyLocationResolving
     let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -197,7 +188,7 @@ struct HomeView: View {
                 HomeNearbyDiscoverySection(
                     apiClient: apiClient,
                     nearbyPreferenceStore: nearbyPreferenceStore,
-                    locationResolver: locationResolver
+                    nearbyLocationController: nearbyLocationController
                 )
 
                 DiscoveryHubView(

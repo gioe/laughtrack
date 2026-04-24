@@ -10,7 +10,6 @@ struct AppShellView: View {
     let favorites: ComedianFavoriteStore
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     let nearbyLocationController: NearbyLocationController
-    let locationResolver: any NearbyLocationResolving
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -23,7 +22,6 @@ struct AppShellView: View {
         favorites: ComedianFavoriteStore,
         nearbyPreferenceStore: NearbyPreferenceStore,
         nearbyLocationController: NearbyLocationController,
-        locationResolver: any NearbyLocationResolving,
         initialTab: AppTab = .home
     ) {
         self.apiClient = apiClient
@@ -31,7 +29,6 @@ struct AppShellView: View {
         self.favorites = favorites
         self._nearbyPreferenceStore = ObservedObject(wrappedValue: nearbyPreferenceStore)
         self.nearbyLocationController = nearbyLocationController
-        self.locationResolver = locationResolver
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -42,7 +39,6 @@ struct AppShellView: View {
                 signedOutMessage: signedOutMessage,
                 nearbyPreferenceStore: nearbyPreferenceStore,
                 nearbyLocationController: nearbyLocationController,
-                locationResolver: locationResolver,
                 searchNavigationBridge: searchNavigationBridge
             )
                 .tabItem { Label("Home", systemImage: "house.fill") }
