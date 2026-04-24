@@ -1,22 +1,25 @@
+import { randomBytes } from "crypto";
 import jwt from "jsonwebtoken";
 import { AuthToken } from "../../objects/interface";
 
 const secret = process.env.SECRET_KEY;
 if (!secret) throw new Error("SECRET_KEY environment variable is not set");
 
-export const generateToken = (
-    payload: object,
-    type: "access" | "refresh",
-): string => {
-    if (type === "access") {
-        return jwt.sign(payload, secret, {
-            expiresIn: "24h",
-        });
-    } else {
-        return jwt.sign(payload, secret, {
-            expiresIn: "30d",
-        });
-    }
+/** Short-lived access token lifetime, in seconds. */
+export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
+
+/** Long-lived refresh token lifetime, in seconds. */
+export const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+export const generateAccessToken = (payload: object): string => {
+    return jwt.sign(payload, secret, {
+        expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+    });
+};
+
+/** Opaque 64-char hex refresh token. Stored verbatim in refresh_tokens.token. */
+export const generateRefreshTokenString = (): string => {
+    return randomBytes(32).toString("hex");
 };
 
 export const verifyToken = (token: string) => {

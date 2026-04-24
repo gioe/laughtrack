@@ -35,14 +35,17 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const response = await fetch(`${req.nextUrl.origin}/api/v1/auth/token`, {
-            method: "POST",
-            headers: {
-                cookie: req.headers.get("cookie") ?? "",
-                origin: req.nextUrl.origin,
+        const response = await fetch(
+            `${req.nextUrl.origin}/api/v1/auth/token`,
+            {
+                method: "POST",
+                headers: {
+                    cookie: req.headers.get("cookie") ?? "",
+                    origin: req.nextUrl.origin,
+                },
+                cache: "no-store",
             },
-            cache: "no-store",
-        });
+        );
 
         if (!response.ok) {
             return NextResponse.redirect(
@@ -53,8 +56,12 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const body = (await response.json()) as { token?: string };
-        if (!body.token) {
+        const body = (await response.json()) as {
+            accessToken?: string;
+            refreshToken?: string;
+            expiresIn?: number;
+        };
+        if (!body.accessToken || !body.refreshToken) {
             return NextResponse.redirect(
                 buildCallbackURL({
                     provider,
@@ -66,7 +73,9 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(
             buildCallbackURL({
                 provider,
-                token: body.token,
+                accessToken: body.accessToken,
+                refreshToken: body.refreshToken,
+                expiresIn: body.expiresIn?.toString(),
             }),
         );
     } catch {

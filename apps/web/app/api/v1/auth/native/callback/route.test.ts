@@ -7,12 +7,19 @@ describe("GET /api/v1/auth/native/callback", () => {
         vi.restoreAllMocks();
     });
 
-    it("redirects back into the app with the exchanged token", async () => {
+    it("redirects back into the app with the exchanged tokens", async () => {
         vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(JSON.stringify({ token: "jwt-token" }), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-            }),
+            new Response(
+                JSON.stringify({
+                    accessToken: "access-jwt",
+                    refreshToken: "opaque-refresh",
+                    expiresIn: 900,
+                }),
+                {
+                    status: 200,
+                    headers: { "content-type": "application/json" },
+                },
+            ),
         );
 
         const response = await GET(
@@ -28,7 +35,7 @@ describe("GET /api/v1/auth/native/callback", () => {
 
         expect(response.status).toBe(307);
         expect(response.headers.get("location")).toBe(
-            "laughtrack://auth/callback?provider=google&token=jwt-token",
+            "laughtrack://auth/callback?provider=google&accessToken=access-jwt&refreshToken=opaque-refresh&expiresIn=900",
         );
         expect(global.fetch).toHaveBeenCalledWith(
             "https://laughtrack.app/api/v1/auth/token",

@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
-import { generateToken } from "@/util/token";
+import { db } from "@/lib/db";
+import { issueRefreshToken } from "@/lib/auth/refreshTokens";
+import { ACCESS_TOKEN_TTL_SECONDS, generateAccessToken } from "@/util/token";
 import { NextRequest, NextResponse } from "next/server";
 import {
     checkRateLimit,
@@ -20,8 +22,9 @@ const ALLOWED_ORIGINS = (
 
 /**
  * POST /api/v1/auth/token
- * Exchanges a valid NextAuth session cookie for a JWT Bearer token (24h).
- * iOS clients use this after completing OAuth via ASWebAuthenticationSession.
+ * Exchanges a valid NextAuth session cookie for a short-lived access JWT
+ * plus a long-lived opaque refresh token. iOS clients call this after
+ * completing OAuth via ASWebAuthenticationSession.
  * Browser cross-origin requests are rejected via Origin check to prevent CSRF.
  */
 export async function POST(req: NextRequest) {
@@ -31,8 +34,6 @@ export async function POST(req: NextRequest) {
     );
     if (!rl.allowed) return rateLimitResponse(rl);
 
-    // CSRF: if Origin header is present, it must match an allowed origin.
-    // Native iOS URLSession requests do not send Origin, so they pass through.
     const origin = req.headers.get("origin");
     if (origin && !ALLOWED_ORIGINS.includes(origin)) {
         return new NextResponse(null, { status: 403 });
@@ -43,7 +44,23 @@ export async function POST(req: NextRequest) {
         return new NextResponse(null, { status: 401 });
     }
 
-    const token = generateToken({ email: session.user.email }, "access");
+    const user = await db.user.findUnique({
+        where: { email: session.user.email },
+        select: { id: true },
+    });
+    if (!user) {
+        return new NextResponse(null, { status: 401 });
+    }
 
-    return NextResponse.json({ token }, { headers: rateLimitHeaders(rl) });
+    const accessToken = generateAccessToken({ email: session.user.email });
+    const { token: refreshToken } = await issueRefreshToken(user.id);
+
+    return NextResponse.json(
+        {
+            accessToken,
+            refreshToken,
+            expiresIn: ACCESS_TOKEN_TTL_SECONDS,
+        },
+        { headers: rateLimitHeaders(rl) },
+    );
 }
