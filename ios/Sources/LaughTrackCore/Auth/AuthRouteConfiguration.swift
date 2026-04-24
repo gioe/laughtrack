@@ -2,7 +2,7 @@ import Foundation
 
 public enum AuthRouteConfiguration {
     public static let callbackScheme = "laughtrack"
-    public static let websiteBaseURL = URL(string: "https://laughtrack.app")!
+    public static let websiteBaseURL = URL(string: "https://www.laugh-track.com")!
 
     public static func nativeCallbackURL(for provider: AuthProvider) -> URL {
         var components = URLComponents(

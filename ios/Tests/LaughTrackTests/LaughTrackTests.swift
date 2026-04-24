@@ -33,7 +33,7 @@ struct LaughTrackTests {
         let callbackURL = AuthRouteConfiguration.nativeCallbackURL(for: .google)
 
         #expect(AuthRouteConfiguration.callbackScheme == "laughtrack")
-        #expect(googleSignInURL.host == "laughtrack.app")
+        #expect(googleSignInURL.host == "www.laugh-track.com")
         #expect(googleSignInURL.path == "/api/auth/signin/google")
         #expect(appleSignInURL.path == "/api/auth/signin/apple")
         #expect(callbackURL.path == "/api/v1/auth/native/callback")
