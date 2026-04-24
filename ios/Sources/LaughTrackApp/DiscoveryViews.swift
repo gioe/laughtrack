@@ -2148,7 +2148,7 @@ private struct ShowLineupSection: View {
                 LaughTrackSectionHeader(
                     eyebrow: "Lineup",
                     title: "Tonight’s bill",
-                    subtitle: "Tap any comic to open their native detail page."
+                    subtitle: "Tap a comic to see their upcoming shows."
                 )
 
                 if lineup.isEmpty {
@@ -2178,7 +2178,7 @@ private struct RelatedShowsSection: View {
                 LaughTrackSectionHeader(
                     eyebrow: "Keep browsing",
                     title: "Related shows",
-                    subtitle: "More dates from nearby rooms and linked talent."
+                    subtitle: "More shows you might like."
                 )
 
                 if relatedShows.isEmpty {
@@ -2244,14 +2244,14 @@ struct ComedianDetailView: View {
                             LaughTrackSectionHeader(
                                 eyebrow: "Saved comics",
                                 title: "Favorite",
-                                subtitle: "Carry this comic back into discovery without leaving the detail flow."
+                                subtitle: "Save this comic to find them again later."
                             )
                             HStack {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(isFavorite ? "In your favorites" : "Not saved yet")
                                         .font(theme.laughTrackTokens.typography.cardTitle)
                                         .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                                    Text("Saved comedians stay consistent across discovery and show lineups.")
+                                    Text("Tap the heart to save or unsave this comic.")
                                         .font(theme.laughTrackTokens.typography.body)
                                         .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
                                 }
@@ -2268,8 +2268,8 @@ struct ComedianDetailView: View {
 
                     DetailInfoCard(
                         eyebrow: "Profile",
-                        title: "What LaughTrack knows",
-                        subtitle: "Live profile details come from the API contract and stay grounded in the comedian's active links.",
+                        title: "About this comedian",
+                        subtitle: "Basic info and links.",
                         rows: comedianProfileRows(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
                     )
 
@@ -2282,7 +2282,7 @@ struct ComedianDetailView: View {
                             LaughTrackSectionHeader(
                                 eyebrow: "Upcoming shows",
                                 title: "Catch them live",
-                                subtitle: "Every result here comes from the live shows search filtered to this comedian."
+                                subtitle: "Upcoming dates for this comedian."
                             )
 
                             if let relatedContentMessage = content.relatedContentMessage {
