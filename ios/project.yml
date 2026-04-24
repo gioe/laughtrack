@@ -140,6 +140,9 @@ targets:
     sources:
       - path: Tests/LaughTrackTests
         createIntermediateGroups: true
+        # Narrow allowlist: other files in Tests/LaughTrackTests/ have
+        # pre-existing compile errors. TASK-1740 tracks repairing them;
+        # add each file here as it becomes buildable.
         includes:
           - LaughTrackTests.swift
           - ServiceRegistrationTests.swift
