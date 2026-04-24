@@ -1,5 +1,4 @@
 import Combine
-import CoreLocation
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -757,130 +756,6 @@ struct DiscoveryHubView: View {
     }
 }
 
-private protocol CurrentLocationZipResolving {
-    func resolveZipCode() async throws -> String
-}
-
-private enum CurrentLocationZipResolverError: LocalizedError {
-    case disabled
-    case denied
-    case restricted
-    case unavailable
-    case missingPostalCode
-
-    var errorDescription: String? {
-        switch self {
-        case .disabled:
-            return "Location Services are disabled on this device."
-        case .denied:
-            return "LaughTrack does not have location access yet. Enable it in Settings or enter a ZIP instead."
-        case .restricted:
-            return "Location access is restricted on this device. Enter a ZIP instead."
-        case .unavailable:
-            return "LaughTrack could not determine your current location."
-        case .missingPostalCode:
-            return "LaughTrack found your location but could not resolve a nearby ZIP code."
-        }
-    }
-}
-
-@MainActor
-private final class CurrentLocationZipResolver: NSObject, @preconcurrency CLLocationManagerDelegate, CurrentLocationZipResolving {
-    private let locationManager = CLLocationManager()
-    private let geocoder = CLGeocoder()
-    private var authorizationContinuation: CheckedContinuation<Void, Error>?
-    private var locationContinuation: CheckedContinuation<CLLocation, Error>?
-
-    override init() {
-        super.init()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-    }
-
-    func resolveZipCode() async throws -> String {
-        guard CLLocationManager.locationServicesEnabled() else {
-            throw CurrentLocationZipResolverError.disabled
-        }
-
-        try await requestAuthorizationIfNeeded()
-        let location = try await requestLocation()
-        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-
-        guard
-            let postalCode = placemarks.first?.postalCode,
-            let normalized = NearbyPreferenceStore.validZip(from: postalCode)
-        else {
-            throw CurrentLocationZipResolverError.missingPostalCode
-        }
-
-        return normalized
-    }
-
-    private func requestAuthorizationIfNeeded() async throws {
-        switch locationManager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            return
-        case .notDetermined:
-            try await withCheckedThrowingContinuation { continuation in
-                authorizationContinuation = continuation
-                locationManager.requestWhenInUseAuthorization()
-            }
-        case .denied:
-            throw CurrentLocationZipResolverError.denied
-        case .restricted:
-            throw CurrentLocationZipResolverError.restricted
-        @unknown default:
-            throw CurrentLocationZipResolverError.unavailable
-        }
-    }
-
-    private func requestLocation() async throws -> CLLocation {
-        try await withCheckedThrowingContinuation { continuation in
-            locationContinuation = continuation
-            locationManager.requestLocation()
-        }
-    }
-
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        guard let continuation = authorizationContinuation else { return }
-
-        switch manager.authorizationStatus {
-        case .authorizedAlways, .authorizedWhenInUse:
-            authorizationContinuation = nil
-            continuation.resume()
-        case .denied:
-            authorizationContinuation = nil
-            continuation.resume(throwing: CurrentLocationZipResolverError.denied)
-        case .restricted:
-            authorizationContinuation = nil
-            continuation.resume(throwing: CurrentLocationZipResolverError.restricted)
-        case .notDetermined:
-            break
-        @unknown default:
-            authorizationContinuation = nil
-            continuation.resume(throwing: CurrentLocationZipResolverError.unavailable)
-        }
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let continuation = locationContinuation else { return }
-        locationContinuation = nil
-
-        guard let location = locations.last else {
-            continuation.resume(throwing: CurrentLocationZipResolverError.unavailable)
-            return
-        }
-
-        continuation.resume(returning: location)
-    }
-
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        guard let continuation = locationContinuation else { return }
-        locationContinuation = nil
-        continuation.resume(throwing: error)
-    }
-}
-
 private struct HomeNearbyPage {
     let items: [Components.Schemas.Show]
     let total: Int
@@ -900,18 +775,18 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
 
     private let nearbyPreferenceStore: NearbyPreferenceStore
     private let appStateStorage: AppStateStorageProtocol
-    private let locationResolver: any CurrentLocationZipResolving
+    private let locationResolver: any NearbyLocationResolving
     private var preferenceCancellable: AnyCancellable?
     private var loadedPreference: NearbyPreference?
 
     init(
         nearbyPreferenceStore: NearbyPreferenceStore,
         appStateStorage: AppStateStorageProtocol = AppStateStorage(),
-        locationResolver: (any CurrentLocationZipResolving)? = nil
+        locationResolver: (any NearbyLocationResolving)? = nil
     ) {
         self.nearbyPreferenceStore = nearbyPreferenceStore
         self.appStateStorage = appStateStorage
-        self.locationResolver = locationResolver ?? CurrentLocationZipResolver()
+        self.locationResolver = locationResolver ?? LaughTrackCore.CurrentLocationZipResolver()
         self.isPromptDismissed = appStateStorage.getValue(
             forKey: StorageKey.promptDismissed,
             as: Bool.self
@@ -1035,7 +910,7 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
         defer { isResolvingLocation = false }
 
         do {
-            let zipCode = try await locationResolver.resolveZipCode()
+            let zipCode = try await locationResolver.requestCurrentZip()
             nearbyPreferenceStore.setGeolocatedZip(
                 zipCode,
                 distanceMiles: activeNearbyPreference?.distanceMiles
