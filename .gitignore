@@ -46,3 +46,6 @@ tusk/laughtrack-dashboard.html
 ios/.build/
 ios/DerivedData/
 tusk/backups/
+
+# superpowers runtime artifacts (pid files, brainstorm HTML, server state)
+.superpowers/
