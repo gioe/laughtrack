@@ -10,7 +10,7 @@ import pytest
 from laughtrack.core.clients.tessera import client as tessera_module
 from laughtrack.core.clients.tessera.client import TesseraClient
 from laughtrack.core.clients.base import BaseApiClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http.client import HttpClient
 
 
@@ -42,11 +42,13 @@ def _club() -> Club:
         name="Broadway Comedy Club",
         address="318 W 53rd St",
         website="https://broadwaycomedyclub.com",
-        scraping_url="broadwaycomedyclub.com",
         popularity=1,
         zip_code="10019",
         phone_number="212-000-0000",
         visible=True,
+        scraping_sources=[
+            ScrapingSource(platform="tessera", scraper_key="tessera", source_url="broadwaycomedyclub.com"),
+        ],
     )
 
 

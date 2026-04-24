@@ -7,7 +7,7 @@ from laughtrack.core.clients.tixr import client as tixr_module
 from laughtrack.core.clients.tixr.client import TixrClient
 from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
 from laughtrack.core.clients.base import BaseApiClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.http.diagnostics import (
     ScrapeDiagnostics,
@@ -54,11 +54,13 @@ def _club() -> Club:
         name="Test Club",
         address="123 Main St",
         website="https://example.com",
-        scraping_url="example.com",
         popularity=1,
         zip_code="10001",
         phone_number="212-000-0000",
         visible=True,
+        scraping_sources=[
+            ScrapingSource(platform="tixr", scraper_key="tixr", source_url="example.com"),
+        ],
     )
 
 

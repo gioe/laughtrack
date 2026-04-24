@@ -4,7 +4,7 @@ import pytest
 
 from laughtrack.core.clients.venuepilot import client as vp_module
 from laughtrack.core.clients.venuepilot.client import VenuePilotClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 @pytest.fixture(autouse=True)
@@ -19,11 +19,13 @@ def _club() -> Club:
         name="Test Club",
         address="123 St",
         website="https://example.com",
-        scraping_url="https://example.com",
         popularity=1,
         zip_code="00000",
         phone_number="000-000-0000",
         visible=True,
+        scraping_sources=[
+            ScrapingSource(platform="venuepilot", scraper_key="venuepilot", source_url="https://example.com"),
+        ],
     )
 
 

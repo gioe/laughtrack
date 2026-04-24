@@ -3,7 +3,7 @@ import pytest
 from laughtrack.core.clients.seatengine import client as se_client_module
 from laughtrack.core.clients.seatengine.client import SeatEngineClient
 from laughtrack.core.clients.base import BaseApiClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 @pytest.fixture
@@ -21,12 +21,18 @@ def _club() -> Club:
         name="Test Club",
         address="123 St",
         website="https://example.com",
-        scraping_url="example.com",
         popularity=1,
         zip_code="00000",
         phone_number="000-000-0000",
         visible=True,
-        seatengine_id="venue-abc",
+        scraping_sources=[
+            ScrapingSource(
+                platform="seatengine",
+                scraper_key="seatengine",
+                source_url="example.com",
+                external_id="venue-abc",
+            ),
+        ],
     )
 
 

@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 from laughtrack.core.clients.ticketmaster import client as tm_module
 from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 async def _noop_rate_limit() -> None:
@@ -24,12 +24,18 @@ def _club() -> Club:
         name="Test Club",
         address="123 Main St",
         website="https://example.com",
-        scraping_url="example.com",
         popularity=1,
         zip_code="10001",
         phone_number="000-000-0000",
         visible=True,
-        ticketmaster_id="KovZ917ARvk",
+        scraping_sources=[
+            ScrapingSource(
+                platform="ticketmaster",
+                scraper_key="ticketmaster",
+                source_url="example.com",
+                external_id="KovZ917ARvk",
+            ),
+        ],
     )
 
 
