@@ -4,7 +4,7 @@ import pytest
 # Module under test
 from laughtrack.core.clients.eventbrite import client as eb_client_module
 from laughtrack.core.clients.eventbrite.client import EventbriteClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 @pytest.fixture(autouse=True)
@@ -38,12 +38,18 @@ def _club(eventbrite_id: str | None = None, scraping_url: str = "example.com") -
         name="Test Club",
         address="123 St",
         website="https://example.com",
-        scraping_url=scraping_url,
         popularity=1,
         zip_code="00000",
         phone_number="000-000-0000",
         visible=True,
-        eventbrite_id=eventbrite_id,
+        scraping_sources=[
+            ScrapingSource(
+                platform="eventbrite",
+                scraper_key="eventbrite",
+                source_url=scraping_url,
+                external_id=eventbrite_id,
+            ),
+        ],
     )
 
 
