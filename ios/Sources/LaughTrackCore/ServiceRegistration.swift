@@ -12,6 +12,21 @@ public enum ServiceRegistration {
         container.register(AppStateStorageProtocol.self, scope: .appLevel) { AppStateStorage() }
 
         container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel) { DataCache<LaughTrackCacheKey>() }
+
+        container.register(NearbyPreferenceStore.self, scope: .appLevel) {
+            NearbyPreferenceStore(
+                appStateStorage: container.resolve(AppStateStorageProtocol.self)
+            )
+        }
+        container.register((any NearbyLocationResolving).self, scope: .appLevel) {
+            CurrentLocationZipResolver()
+        }
+        container.register(NearbyLocationController.self, scope: .appLevel) {
+            NearbyLocationController(
+                store: container.resolve(NearbyPreferenceStore.self),
+                resolver: container.resolve((any NearbyLocationResolving).self)
+            )
+        }
     }
 
     @MainActor

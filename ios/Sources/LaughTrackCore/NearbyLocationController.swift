@@ -40,10 +40,6 @@ public final class NearbyLocationController: ObservableObject {
     private let resolver: NearbyLocationResolving
     private var preferenceCancellable: AnyCancellable?
 
-    public convenience init() {
-        self.init(store: NearbyPreferenceStore(), resolver: CurrentLocationZipResolver())
-    }
-
     public init(store: NearbyPreferenceStore, resolver: NearbyLocationResolving) {
         self.store = store
         self.resolver = resolver

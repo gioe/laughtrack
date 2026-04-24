@@ -92,6 +92,35 @@ struct ServiceRegistrationTests {
         #expect(container.resolveOptional(DataCache<LaughTrackCacheKey>.self) != nil)
     }
 
+    @Test("configure registers NearbyPreferenceStore, NearbyLocationResolving, and NearbyLocationController")
+    @MainActor
+    func configureRegistersNearbyLocationStack() {
+        let container = ServiceContainer()
+        ServiceRegistration.configure(container)
+
+        #expect(container.resolveOptional(NearbyPreferenceStore.self) != nil)
+        #expect(container.resolveOptional((any NearbyLocationResolving).self) != nil)
+        #expect(container.resolveOptional(NearbyLocationController.self) != nil)
+    }
+
+    @Test("NearbyPreferenceStore and NearbyLocationController are shared singletons across resolutions")
+    @MainActor
+    func nearbyLocationStackResolvesToSingletonInstances() {
+        let container = ServiceContainer()
+        ServiceRegistration.configure(container)
+
+        let storeA = container.resolve(NearbyPreferenceStore.self)
+        let storeB = container.resolve(NearbyPreferenceStore.self)
+        let controllerA = container.resolve(NearbyLocationController.self)
+        let controllerB = container.resolve(NearbyLocationController.self)
+        let resolverA = container.resolve((any NearbyLocationResolving).self)
+        let resolverB = container.resolve((any NearbyLocationResolving).self)
+
+        #expect(storeA === storeB)
+        #expect(controllerA === controllerB)
+        #expect(resolverA === resolverB)
+    }
+
     @Test("configureOfflineQueue registers OfflineOperationQueue")
     @MainActor
     func configureOfflineQueueRegistersQueue() {
