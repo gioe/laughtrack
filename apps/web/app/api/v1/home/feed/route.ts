@@ -8,26 +8,50 @@ import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
-import { CACHE } from "@/util/constants/cacheConstants";
-import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import {
+    RATE_LIMITS,
+    checkRateLimit,
+    getClientIp,
+    rateLimitHeaders,
+    rateLimitResponse,
+} from "@/lib/rateLimit";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
+// Personalized by session zipCode + Vercel geo-IP, so we opt out of shared
+// CDN caching. Short browser cache still absorbs rapid back-button refetches.
+const PRIVATE_CACHE_CONTROL = "private, max-age=60";
+
+function logSectionError(section: string) {
+    return (error: unknown) => {
+        console.error(`home-feed: ${section} failed`, error);
+        return [];
+    };
+}
 
 export async function GET(req: NextRequest) {
-    const rl = await applyPublicReadRateLimit(req, "home");
-    if (rl instanceof NextResponse) return rl;
+    // Resolve the session once — both the rate-limit tier and the zipCode
+    // derivation below key off it, and auth() isn't memoized per-request.
+    const session = await auth();
+    const isAuthenticated = !!session?.profile;
+    const rateLimitKey = isAuthenticated
+        ? `home:auth:${session!.profile!.userid}`
+        : `home:anon:${getClientIp(req)}`;
+    const rl = await checkRateLimit(
+        rateLimitKey,
+        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
 
     const zipParam = req.nextUrl.searchParams.get("zip");
     if (zipParam !== null && !ZIP_RE.test(zipParam)) {
         return NextResponse.json(
             { error: "zip must be a 5-digit US zip code" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
     try {
-        const session = await auth();
         const sessionZip = session?.profile?.zipCode ?? null;
         // Query ?zip= beats the session profile's stored zip; this lets
         // signed-out callers ask about a location and lets signed-in callers
@@ -43,20 +67,24 @@ export async function GET(req: NextRequest) {
             showsNearZip,
             trendingThisWeek,
         ] = await Promise.all([
-            getTrendingComedians().catch(() => []),
-            getClubs().catch(() => []),
+            getTrendingComedians().catch(
+                logSectionError("getTrendingComedians"),
+            ),
+            getClubs().catch(logSectionError("getClubs")),
             zipCode
                 ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
-                      () => [],
+                      logSectionError("getComediansByZip"),
                   )
                 : Promise.resolve([]),
-            getShowsTonight().catch(() => []),
+            getShowsTonight().catch(logSectionError("getShowsTonight")),
             zipCode
                 ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
-                      () => [],
+                      logSectionError("getShowsNearZip"),
                   )
                 : Promise.resolve([]),
-            getTrendingShowsThisWeek().catch(() => []),
+            getTrendingShowsThisWeek().catch(
+                logSectionError("getTrendingShowsThisWeek"),
+            ),
         ]);
 
         const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
@@ -82,7 +110,7 @@ export async function GET(req: NextRequest) {
             {
                 headers: {
                     ...rateLimitHeaders(rl),
-                    "Cache-Control": `public, s-maxage=${CACHE.home}, stale-while-revalidate=60`,
+                    "Cache-Control": PRIVATE_CACHE_CONTROL,
                 },
             },
         );
@@ -90,7 +118,7 @@ export async function GET(req: NextRequest) {
         console.error("GET /api/v1/home/feed error:", error);
         return NextResponse.json(
             { error: "Failed to fetch home feed" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }
