@@ -15,12 +15,12 @@
     "/auth/token": {
       "post": {
         "operationId": "exchangeToken",
-        "summary": "Exchange a session cookie for a JWT Bearer token",
-        "description": "iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a 24-hour JWT.",
+        "summary": "Exchange a session cookie for an access + refresh token pair",
+        "description": "iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a short-lived access JWT (15 minutes) plus a long-lived opaque refresh token (30 days). Store both in the keychain separately.",
         "tags": ["auth"],
         "responses": {
           "200": {
-            "description": "JWT issued successfully",
+            "description": "Token pair issued successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -39,6 +39,105 @@
           },
           "403": {
             "description": "Invalid origin (CSRF protection)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "refreshToken",
+        "summary": "Rotate a refresh token for a new access + refresh pair",
+        "description": "Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.",
+        "tags": ["auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New token pair issued; the submitted refresh token is now revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token is unknown, revoked, or expired",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/signout": {
+      "post": {
+        "operationId": "signout",
+        "summary": "Revoke every active refresh token for the authenticated user",
+        "description": "Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Tokens revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignoutResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -861,7 +960,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT",
-        "description": "24-hour JWT obtained from POST /auth/token"
+        "description": "Short-lived (15-minute) access JWT obtained from POST /auth/token or /auth/refresh"
       }
     },
     "schemas": {
@@ -874,11 +973,40 @@
       },
       "TokenResponse": {
         "type": "object",
-        "required": ["token"],
+        "required": ["accessToken", "refreshToken", "expiresIn"],
         "properties": {
-          "token": {
+          "accessToken": {
             "type": "string",
-            "description": "JWT Bearer token valid for 24 hours"
+            "description": "Short-lived JWT Bearer token (15 minutes)"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Opaque 64-char hex refresh token (30 days). Use against /auth/refresh to mint a new access+refresh pair."
+          },
+          "expiresIn": {
+            "type": "integer",
+            "description": "Access token lifetime in seconds.",
+            "example": 900
+          }
+        }
+      },
+      "RefreshTokenRequest": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "The refresh token previously issued by /auth/token or /auth/refresh."
+          }
+        }
+      },
+      "SignoutResponse": {
+        "type": "object",
+        "required": ["revoked"],
+        "properties": {
+          "revoked": {
+            "type": "integer",
+            "description": "Number of refresh tokens that were revoked."
           }
         }
       },
