@@ -43,7 +43,6 @@ tusk/laughtrack-dashboard.html
 .vercel
 
 # iOS / Xcode (generated)
-ios/LaughTrack.xcodeproj/
 ios/.build/
 ios/DerivedData/
 tusk/backups/
