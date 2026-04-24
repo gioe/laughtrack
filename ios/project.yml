@@ -71,18 +71,6 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
-  LaughTrackCore:
-    type: framework.static
-    platform: iOS
-    sources:
-      - path: Sources/LaughTrackCore
-    dependencies:
-      - target: LaughTrackBridge
-      - target: LaughTrackAPIClient
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
-        GENERATE_INFOPLIST_FILE: "YES"
   LaughTrack:
     type: application
     platform: iOS
