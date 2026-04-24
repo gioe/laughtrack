@@ -17,7 +17,7 @@ struct AuthManagerTests {
 
         try? tokenManager.storeTokens(
             accessToken: Self.jwt(expirationOffset: 3600),
-            refreshToken: Self.jwt(expirationOffset: 3600)
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
         )
 
         let manager = AuthManager(
@@ -38,7 +38,7 @@ struct AuthManagerTests {
         #expect(await authMiddleware.hasAccessToken)
     }
 
-    @Test("signIn stores the returned JWT and provider metadata")
+    @Test("signIn stores the returned access and refresh tokens as distinct values")
     @MainActor
     func signInStoresReturnedToken() async {
         let secureStorage = InMemorySecureStorage()
@@ -46,7 +46,11 @@ struct AuthManagerTests {
         let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let runner = MockOAuthSessionRunner()
-        runner.callbackURL = URL(string: "laughtrack://auth/callback?provider=google&token=\(Self.jwt(expirationOffset: 7200))")!
+        let accessToken = Self.jwt(expirationOffset: 7200)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        runner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
 
         let manager = AuthManager(
             tokenManager: tokenManager,
@@ -64,6 +68,64 @@ struct AuthManagerTests {
 
         #expect(session.provider == .google)
         #expect(tokenManager.isAuthenticated)
+        #expect(tokenManager.retrieveAccessToken() == accessToken)
+        #expect(tokenManager.retrieveRefreshToken() == refreshToken)
+        #expect(tokenManager.retrieveAccessToken() != tokenManager.retrieveRefreshToken())
+        #expect(await authMiddleware.hasAccessToken)
+    }
+
+    @Test("restoreSession clears legacy installs that stored the access token in both slots")
+    @MainActor
+    func restoreSessionClearsLegacyDualAccessTokenInstall() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.legacy.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        let accessToken = Self.jwt(expirationOffset: 3600)
+        try? tokenManager.storeTokens(accessToken: accessToken, refreshToken: accessToken)
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.restoreSession()
+
+        #expect(manager.state == .signedOut(message: nil))
+        #expect(!tokenManager.isAuthenticated)
+        #expect(!(await authMiddleware.hasAccessToken))
+    }
+
+    @Test("restoreSession keeps an authenticated session even when the access token is expired")
+    @MainActor
+    func restoreSessionKeepsAuthWhenAccessExpiredButRefreshExists() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.expiredAccess.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        let expiredAccess = Self.jwt(expirationOffset: -60)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        try? tokenManager.storeTokens(accessToken: expiredAccess, refreshToken: refreshToken)
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.restoreSession()
+
+        guard case .authenticated = manager.state else {
+            Issue.record("Expected authenticated state — refresh token should keep session alive even with expired access token")
+            return
+        }
         #expect(await authMiddleware.hasAccessToken)
     }
 
@@ -100,7 +162,7 @@ struct AuthManagerTests {
 
         try? tokenManager.storeTokens(
             accessToken: Self.jwt(expirationOffset: 3600),
-            refreshToken: Self.jwt(expirationOffset: 3600)
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
         )
 
         let manager = AuthManager(

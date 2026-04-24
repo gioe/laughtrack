@@ -49,12 +49,15 @@ public final class AuthManager: ObservableObject {
             return
         }
 
-        if let expirationDate = Self.extractExpirationDate(from: accessToken), expirationDate <= Date() {
-            await clearSession(message: "Your session expired. Sign in again.")
+        // Pre-rotation builds (TASK-1724) saved the access token in both keychain
+        // slots. Force re-auth for those installs rather than letting the access
+        // token be replayed against /auth/refresh.
+        guard let refreshToken = tokenManager.retrieveRefreshToken(),
+              refreshToken != accessToken else {
+            await clearSession(message: nil)
             return
         }
 
-        let refreshToken = tokenManager.retrieveRefreshToken() ?? accessToken
         await authMiddleware.setTokens(
             accessToken: accessToken,
             refreshToken: refreshToken
@@ -81,13 +84,16 @@ public final class AuthManager: ObservableObject {
                 callbackScheme: Self.callbackScheme
             )
 
-            guard let token = Self.extractQueryValue(named: "token", from: callbackURL) else {
+            guard
+                let accessToken = Self.extractQueryValue(named: "accessToken", from: callbackURL),
+                let refreshToken = Self.extractQueryValue(named: "refreshToken", from: callbackURL)
+            else {
                 let errorMessage = Self.extractQueryValue(named: "error", from: callbackURL)
                 state = .signedOut(message: Self.message(for: errorMessage))
                 return
             }
 
-            await storeSession(token: token, provider: provider)
+            await storeSession(accessToken: accessToken, refreshToken: refreshToken, provider: provider)
         } catch let error as AuthFlowError {
             state = .signedOut(message: error.errorDescription)
         } catch {
@@ -104,15 +110,15 @@ public final class AuthManager: ObservableObject {
         await clearSession(message: "Your session expired. Sign in again.")
     }
 
-    private func storeSession(token: String, provider: AuthProvider) async {
+    private func storeSession(accessToken: String, refreshToken: String, provider: AuthProvider) async {
         do {
-            try tokenManager.storeTokens(accessToken: token, refreshToken: token)
-            await authMiddleware.setTokens(accessToken: token, refreshToken: token)
+            try tokenManager.storeTokens(accessToken: accessToken, refreshToken: refreshToken)
+            await authMiddleware.setTokens(accessToken: accessToken, refreshToken: refreshToken)
 
             let metadata = AuthSessionMetadata(
                 provider: provider,
                 signedInAt: Date(),
-                expiresAt: Self.extractExpirationDate(from: token)
+                expiresAt: Self.extractExpirationDate(from: accessToken)
             )
             appStateStorage.setValue(metadata, forKey: StorageKey.sessionMetadata)
             state = .authenticated(metadata)
