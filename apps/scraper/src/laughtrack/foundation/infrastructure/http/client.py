@@ -284,7 +284,7 @@ class HttpClient:
                                 source="response_body",
                                 stage="direct_fetch",
                             )
-                    fallback_reason = bot_signature
+                        fallback_reason = bot_signature
         elif not response.text or not response.text.strip():
             # Caller has opted into empty-body-is-OK semantics (Tessera's
             # stale-event signal): short-circuit before the WARN and the
