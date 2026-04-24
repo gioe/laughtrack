@@ -71,34 +71,20 @@ describe("POST /api/v1/auth/refresh", () => {
         expect(body.error).toBe("missing_refresh_token");
     });
 
-    it("returns 401 when refresh token is not found", async () => {
-        mockConsume.mockResolvedValue("not_found");
+    it.each(["not_found", "revoked", "expired", "user_missing"] as const)(
+        "returns 401 with opaque error when consume returns %s",
+        async (reason) => {
+            mockConsume.mockResolvedValue(reason);
 
-        const res = await POST(makeRequest({ refreshToken: "abc" }));
-        expect(res.status).toBe(401);
-        const body = await res.json();
-        expect(body.error).toBe("not_found");
-    });
-
-    it("returns 401 when refresh token is revoked", async () => {
-        mockConsume.mockResolvedValue("revoked");
-
-        const res = await POST(makeRequest({ refreshToken: "abc" }));
-        expect(res.status).toBe(401);
-        const body = await res.json();
-        expect(body.error).toBe("revoked");
-    });
-
-    it("returns 401 when refresh token is expired", async () => {
-        mockConsume.mockResolvedValue("expired");
-
-        const res = await POST(makeRequest({ refreshToken: "abc" }));
-        expect(res.status).toBe(401);
-    });
+            const res = await POST(makeRequest({ refreshToken: "abc" }));
+            expect(res.status).toBe(401);
+            const body = await res.json();
+            expect(body.error).toBe("invalid_refresh_token");
+        },
+    );
 
     it("returns rotated access+refresh tokens on success", async () => {
         mockConsume.mockResolvedValue({
-            id: "rt-1",
             userId: "user-1",
             userEmail: "user@example.com",
         });

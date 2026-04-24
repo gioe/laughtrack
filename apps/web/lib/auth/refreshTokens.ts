@@ -21,7 +21,6 @@ export async function issueRefreshToken(
 }
 
 export interface ResolvedRefreshToken {
-    id: string;
     userId: string;
     userEmail: string;
 }
@@ -61,7 +60,6 @@ export async function consumeRefreshToken(
         });
 
         return {
-            id: record.id,
             userId: record.userId,
             userEmail: record.user.email,
         };

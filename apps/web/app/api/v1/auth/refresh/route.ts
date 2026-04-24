@@ -48,8 +48,11 @@ export async function POST(req: NextRequest) {
 
     const resolved = await consumeRefreshToken(refreshToken);
     if (typeof resolved === "string") {
+        console.info(
+            `[auth/refresh] rejected refresh token: reason=${resolved}`,
+        );
         return NextResponse.json(
-            { error: resolved },
+            { error: "invalid_refresh_token" },
             { status: 401, headers: rateLimitHeaders(rl) },
         );
     }
