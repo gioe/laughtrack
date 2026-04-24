@@ -3148,17 +3148,7 @@ private struct EmptyCard: View {
 private struct FailureCard: View {
     let failure: LoadFailure
     let retry: () async -> Void
-    let signIn: (() -> Void)?
-
-    init(
-        failure: LoadFailure,
-        retry: @escaping () async -> Void,
-        signIn: (() -> Void)? = nil
-    ) {
-        self.failure = failure
-        self.retry = retry
-        self.signIn = signIn
-    }
+    let signIn: () -> Void
 
     var body: some View {
         LaughTrackInlineStateCard(
@@ -3172,23 +3162,19 @@ private struct FailureCard: View {
     }
 
     private var actionTitle: String {
-        switch failure {
-        case .unauthorized:
+        switch failure.recoveryAction {
+        case .signIn:
             return "Sign in"
-        default:
+        case .retry:
             return "Try again"
         }
     }
 
     private func performAction() {
-        switch failure {
-        case .unauthorized:
-            if let signIn {
-                signIn()
-            } else {
-                Task { await retry() }
-            }
-        default:
+        switch failure.recoveryAction {
+        case .signIn:
+            signIn()
+        case .retry:
             Task { await retry() }
         }
     }

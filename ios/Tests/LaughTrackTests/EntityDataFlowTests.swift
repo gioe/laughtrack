@@ -90,6 +90,33 @@ struct EntityDataFlowTests {
         #expect(LoadFailure.unexpected(status: 0, message: "Local-only note").message == "Local-only note")
     }
 
+    @Test("recovery action routes unauthorized to signIn, everything else to retry")
+    func recoveryActionRouting() {
+        #expect(LoadFailure.unauthorized("x").recoveryAction == .signIn)
+        #expect(LoadFailure.network("y").recoveryAction == .retry)
+        #expect(LoadFailure.badParams("z").recoveryAction == .retry)
+        #expect(LoadFailure.serverError(status: 500, message: nil).recoveryAction == .retry)
+        #expect(LoadFailure.unexpected(status: 418, message: nil).recoveryAction == .retry)
+    }
+
+    @Test("cancelled reloads do not overwrite phase with failure")
+    func cancelledReloadKeepsPhase() async {
+        let model = EntitySearchModel<String, Int>()
+
+        let task = Task {
+            await model.reload(query: "shows") { _, _ in
+                try? await Task.sleep(for: .milliseconds(50))
+                return .failure(.network("Simulated cancellation"))
+            }
+        }
+        task.cancel()
+        await task.value
+
+        if case .failure = model.phase {
+            Issue.record("Cancelled reload must not surface a failure phase")
+        }
+    }
+
     @Test("undocumented statuses classify into the right case")
     func classifyUndocumentedMaps() {
         if case .unauthorized = classifyUndocumented(status: 401, context: "shows") {} else {

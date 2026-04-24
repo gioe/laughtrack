@@ -70,6 +70,20 @@ enum LoadFailure: Error, Equatable, Sendable {
             return "Unexpected response"
         }
     }
+
+    enum RecoveryAction: Equatable {
+        case retry
+        case signIn
+    }
+
+    var recoveryAction: RecoveryAction {
+        switch self {
+        case .unauthorized:
+            return .signIn
+        case .network, .badParams, .serverError, .unexpected:
+            return .retry
+        }
+    }
 }
 
 func classifyUndocumented(status: Int, context: String) -> LoadFailure {
@@ -174,7 +188,9 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
             }
         }
 
-        switch await fetch(page, query) {
+        let result = await fetch(page, query)
+        guard !Task.isCancelled else { return }
+        switch result {
         case .success(let response):
             phase = .success(
                 .init(
@@ -218,7 +234,9 @@ class EntityDetailModel<Value>: ObservableObject {
         using request: @escaping () async -> Result<Value, LoadFailure>
     ) async {
         phase = .loading
-        switch await request() {
+        let result = await request()
+        guard !Task.isCancelled else { return }
+        switch result {
         case .success(let value):
             phase = .success(value)
         case .failure(let failure):
