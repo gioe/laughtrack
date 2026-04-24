@@ -26,6 +26,55 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+## OpenAPI Client Regeneration
+
+The generated client lives at `Sources/LaughTrackAPIClient/GeneratedSources/Client.swift`
+and `Types.swift`. These files are committed and must be regenerated in lockstep with
+any edit to `Sources/LaughTrackAPIClient/openapi.json` — otherwise server contract
+changes are invisible to the iOS app (seen in TASK-1724 → TASK-1725, where the
+access/refresh token contract landed in the spec but the client kept returning the old
+single-`token` shape). Any task that edits `openapi.json` must ship both the spec
+edit and the regenerated Client/Types edit in the same PR — splitting them strands the
+iOS client behind the server contract.
+
+`swift-openapi-generator` is not a LaughTrack dependency — the build tool plugin was
+removed upstream to avoid Xcode validation prompts. To regenerate, stand up a throwaway
+SPM package that wires the plugin in, then copy the output back:
+
+```bash
+mkdir -p /tmp/openapi-regen/Sources/OpenAPIRegen && cd /tmp/openapi-regen
+cat > Package.swift <<'EOF'
+// swift-tools-version: 5.9
+import PackageDescription
+let package = Package(
+    name: "OpenAPIRegen",
+    platforms: [.macOS(.v13)],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-openapi-generator", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.9.0"),
+        .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
+    ],
+    targets: [.target(
+        name: "OpenAPIRegen",
+        dependencies: [
+            .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+            .product(name: "HTTPTypes", package: "swift-http-types"),
+        ],
+        plugins: [.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")],
+    )],
+)
+EOF
+touch Sources/OpenAPIRegen/empty.swift   # SPM requires at least one source file
+cp <repo>/ios/Sources/LaughTrackAPIClient/openapi.json Sources/OpenAPIRegen/
+cp <repo>/ios/Sources/LaughTrackAPIClient/openapi-generator-config.yaml Sources/OpenAPIRegen/
+swift build --target OpenAPIRegen
+cp .build/plugins/outputs/openapi-regen/OpenAPIRegen/destination/OpenAPIGenerator/GeneratedSources/{Client,Types}.swift \
+   <repo>/ios/Sources/LaughTrackAPIClient/GeneratedSources/
+```
+
+Then `cd <repo>/ios && swift build --target LaughTrackAPIClient` to verify the
+regenerated files compile.
+
 ## Architecture
 
 This project uses [ios-libs](https://github.com/gioe/ios-libs) for shared infrastructure.
