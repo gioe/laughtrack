@@ -687,15 +687,12 @@ struct DiscoveryHubView: View {
 
     init(
         apiClient: Client,
-        nearbyPreferenceStore: NearbyPreferenceStore
+        nearbyLocationController: NearbyLocationController
     ) {
         self.apiClient = apiClient
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
-                nearbyLocationController: NearbyLocationController(
-                    store: nearbyPreferenceStore,
-                    resolver: LaughTrackCore.CurrentLocationZipResolver()
-                )
+                nearbyLocationController: nearbyLocationController
             )
         )
     }
@@ -781,12 +778,12 @@ private final class HomeNearbyDiscoveryModel: ObservableObject {
 
     init(
         nearbyPreferenceStore: NearbyPreferenceStore,
-        appStateStorage: AppStateStorageProtocol = AppStateStorage(),
-        locationResolver: (any NearbyLocationResolving)? = nil
+        locationResolver: any NearbyLocationResolving,
+        appStateStorage: AppStateStorageProtocol = AppStateStorage()
     ) {
         self.nearbyPreferenceStore = nearbyPreferenceStore
         self.appStateStorage = appStateStorage
-        self.locationResolver = locationResolver ?? LaughTrackCore.CurrentLocationZipResolver()
+        self.locationResolver = locationResolver
         self.isPromptDismissed = appStateStorage.getValue(
             forKey: StorageKey.promptDismissed,
             as: Bool.self
@@ -959,12 +956,14 @@ struct HomeNearbyDiscoverySection: View {
 
     init(
         apiClient: Client,
-        nearbyPreferenceStore: NearbyPreferenceStore
+        nearbyPreferenceStore: NearbyPreferenceStore,
+        locationResolver: any NearbyLocationResolving
     ) {
         self.apiClient = apiClient
         _model = StateObject(
             wrappedValue: HomeNearbyDiscoveryModel(
-                nearbyPreferenceStore: nearbyPreferenceStore
+                nearbyPreferenceStore: nearbyPreferenceStore,
+                locationResolver: locationResolver
             )
         )
     }

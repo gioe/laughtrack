@@ -9,6 +9,8 @@ struct AppShellView: View {
     let signedOutMessage: String?
     let favorites: ComedianFavoriteStore
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let nearbyLocationController: NearbyLocationController
+    let locationResolver: any NearbyLocationResolving
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -20,12 +22,16 @@ struct AppShellView: View {
         signedOutMessage: String? = nil,
         favorites: ComedianFavoriteStore,
         nearbyPreferenceStore: NearbyPreferenceStore,
+        nearbyLocationController: NearbyLocationController,
+        locationResolver: any NearbyLocationResolving,
         initialTab: AppTab = .home
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.favorites = favorites
         self._nearbyPreferenceStore = ObservedObject(wrappedValue: nearbyPreferenceStore)
+        self.nearbyLocationController = nearbyLocationController
+        self.locationResolver = locationResolver
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -35,6 +41,8 @@ struct AppShellView: View {
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
                 nearbyPreferenceStore: nearbyPreferenceStore,
+                nearbyLocationController: nearbyLocationController,
+                locationResolver: locationResolver,
                 searchNavigationBridge: searchNavigationBridge
             )
                 .tabItem { Label("Home", systemImage: "house.fill") }
@@ -45,7 +53,7 @@ struct AppShellView: View {
                 favorites: favorites,
                 coordinator: coordinator,
                 searchNavigationBridge: searchNavigationBridge,
-                nearbyPreferenceStore: nearbyPreferenceStore
+                nearbyLocationController: nearbyLocationController
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)

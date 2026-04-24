@@ -25,6 +25,28 @@ enum LaughTrackHostedViewTestSupport {
         return NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
     }
 
+    static func makeNearbyLocationResolver() -> any NearbyLocationResolving {
+        StubNearbyLocationResolver()
+    }
+
+    static func makeNearbyLocationController(
+        store: NearbyPreferenceStore,
+        resolver: any NearbyLocationResolving = StubNearbyLocationResolver()
+    ) -> NearbyLocationController {
+        NearbyLocationController(store: store, resolver: resolver)
+    }
+
+    static func makeServiceContainer(name: String) -> ServiceContainer {
+        let store = makeNearbyPreferenceStore(name: name)
+        let resolver = makeNearbyLocationResolver()
+        let controller = NearbyLocationController(store: store, resolver: resolver)
+        let container = ServiceContainer()
+        container.register(NearbyPreferenceStore.self, scope: .appLevel, instance: store)
+        container.register((any NearbyLocationResolving).self, scope: .appLevel, instance: resolver)
+        container.register(NearbyLocationController.self, scope: .appLevel, instance: controller)
+        return container
+    }
+
     static func makeAuthManager(name: String) async -> AuthManager {
         let secureStorage = InMemorySecureStorage()
         let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
@@ -91,6 +113,13 @@ enum LaughTrackHostedViewTestSupport {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
+    }
+}
+
+@MainActor
+final class StubNearbyLocationResolver: NearbyLocationResolving {
+    func requestCurrentZip() async throws -> String {
+        throw NearbyLocationError.unavailable
     }
 }
 

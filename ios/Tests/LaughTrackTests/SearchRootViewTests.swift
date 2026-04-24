@@ -11,13 +11,14 @@ struct SearchRootViewTests {
     func searchRootShowsCompactChrome() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let favorites = ComedianFavoriteStore()
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
         let host = HostedView(
             SearchRootView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: favorites,
                 coordinator: coordinator,
                 searchNavigationBridge: SearchNavigationBridge(),
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store)
             )
             .environment(\.appTheme, LaughTrackTheme())
         )

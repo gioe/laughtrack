@@ -2,6 +2,7 @@
 import SwiftUI
 import Testing
 import LaughTrackBridge
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("ContentView navigation")
@@ -14,6 +15,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -33,6 +35,10 @@ struct ContentViewNavigationTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home"),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-controller")
+                ),
+                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -53,6 +59,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -75,6 +82,10 @@ struct ContentViewNavigationTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search"),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search-controller")
+                ),
+                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -97,6 +108,10 @@ struct ContentViewNavigationTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign"),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign-controller")
+                ),
+                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -121,6 +136,10 @@ struct ContentViewNavigationTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search"),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-clubs-search-controller")
+                ),
+                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -144,6 +163,10 @@ struct ContentViewNavigationTests {
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search"),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+                    store: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-comedians-search-controller")
+                ),
+                locationResolver: LaughTrackHostedViewTestSupport.makeNearbyLocationResolver(),
                 searchNavigationBridge: searchBridge
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -164,6 +187,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -181,6 +205,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -198,6 +223,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -215,6 +241,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -232,6 +259,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -249,6 +277,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )

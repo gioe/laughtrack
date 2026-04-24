@@ -8,7 +8,6 @@ struct SearchRootView: View {
     let favorites: ComedianFavoriteStore
     let coordinator: NavigationCoordinator<AppRoute>
     let searchNavigationBridge: SearchNavigationBridge
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @Environment(\.appTheme) private var theme
     @StateObject private var model = SearchRootModel()
@@ -21,19 +20,15 @@ struct SearchRootView: View {
         favorites: ComedianFavoriteStore,
         coordinator: NavigationCoordinator<AppRoute>,
         searchNavigationBridge: SearchNavigationBridge,
-        nearbyPreferenceStore: NearbyPreferenceStore
+        nearbyLocationController: NearbyLocationController
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
         self.coordinator = coordinator
         self.searchNavigationBridge = searchNavigationBridge
-        self.nearbyPreferenceStore = nearbyPreferenceStore
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
-                nearbyLocationController: NearbyLocationController(
-                    store: nearbyPreferenceStore,
-                    resolver: LaughTrackCore.CurrentLocationZipResolver()
-                )
+                nearbyLocationController: nearbyLocationController
             )
         )
     }
