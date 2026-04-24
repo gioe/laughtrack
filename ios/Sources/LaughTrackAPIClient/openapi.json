@@ -898,6 +898,64 @@
         }
       }
     },
+    "/home/feed": {
+      "get": {
+        "operationId": "getHomeFeed",
+        "summary": "Composite home-screen feed (hero + six curated sections)",
+        "description": "Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: public, s-maxage=3600, stale-while-revalidate=60.",
+        "tags": ["home"],
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "required": false,
+            "description": "Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "required": false,
+            "description": "IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Home feed payload",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HomeFeedResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid zip parameter",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/favorites": {
       "get": {
         "operationId": "getFavorites",
@@ -1531,6 +1589,68 @@
         "properties": {
           "city": { "type": "string" },
           "state": { "type": "string" }
+        }
+      },
+      "HomeFeedHero": {
+        "type": "object",
+        "required": ["shows"],
+        "properties": {
+          "zipCode": { "type": ["string", "null"] },
+          "city": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "shows": {
+            "type": "array",
+            "description": "Up to 3 shows near the hero zip, for the top-of-home carousel.",
+            "items": { "$ref": "#/components/schemas/Show" }
+          }
+        }
+      },
+      "HomeFeed": {
+        "type": "object",
+        "required": [
+          "hero",
+          "trendingComedians",
+          "comediansNearYou",
+          "showsTonight",
+          "moreNearYou",
+          "trendingThisWeek",
+          "popularClubs"
+        ],
+        "properties": {
+          "hero": { "$ref": "#/components/schemas/HomeFeedHero" },
+          "trendingComedians": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianListItem" }
+          },
+          "comediansNearYou": {
+            "type": "array",
+            "description": "Empty when no zipCode is resolved (no profile zip, no ?zip param, no geo-IP).",
+            "items": { "$ref": "#/components/schemas/ComedianListItem" }
+          },
+          "showsTonight": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "moreNearYou": {
+            "type": "array",
+            "description": "Shows near the hero zip beyond the first 3 surfaced in hero.shows.",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "trendingThisWeek": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "popularClubs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ClubListItem" }
+          }
+        }
+      },
+      "HomeFeedResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/HomeFeed" }
         }
       }
     }
