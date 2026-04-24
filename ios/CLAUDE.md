@@ -8,6 +8,24 @@ swift build --target LaughTrackApp     # Build app target only
 swift build --target LaughTrackBridge  # Build bridge target only
 ```
 
+## Testing
+
+iOS tests split across two runners:
+
+- **`swift test`** — runs pure Swift unit tests on macOS. Fast (~0.1s), but silently
+  skips any file guarded by `#if canImport(UIKit)` (e.g. `AppShellViewTests`,
+  `ContentViewNavigationTests`, and anything using `HostedView` from
+  `HostedViewTestSupport.swift`). A green `swift test` run does NOT prove those
+  test files were exercised.
+- **`test_sim`** via XcodeBuildMCP — runs the full Xcode test plan against an iOS
+  simulator. Required to cover HostedView integration tests, UI tests, and
+  anything depending on UIKit at runtime. Slower (~45s) but authoritative.
+
+For a refactor that touches code reachable from a HostedView test, always run
+`test_sim` before declaring the change verified. When UI-test failures appear,
+confirm pre-existing vs regression via `git stash push -u` + re-run against
+HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
+
 ## Architecture
 
 This project uses [ios-libs](https://github.com/gioe/ios-libs) for shared infrastructure.
