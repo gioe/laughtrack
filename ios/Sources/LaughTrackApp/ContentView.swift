@@ -609,7 +609,7 @@ private struct SavedFavoritesSection: View {
             LaughTrackSectionHeader(
                 eyebrow: "Favorites",
                 title: "Saved comedians",
-                subtitle: "This list comes from your signed-in account, not placeholder copy."
+                subtitle: "Comedians you've saved."
             )
 
             LaughTrackCard {
