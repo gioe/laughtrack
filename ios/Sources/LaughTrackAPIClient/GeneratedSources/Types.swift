@@ -11,13 +11,27 @@ import struct Foundation.Date
 #endif
 /// A type that performs HTTP operations defined by the OpenAPI document.
 public protocol APIProtocol: Sendable {
-    /// Exchange a session cookie for a JWT Bearer token
+    /// Exchange a session cookie for an access + refresh token pair
     ///
-    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a 24-hour JWT.
+    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a short-lived access JWT (15 minutes) plus a long-lived opaque refresh token (30 days). Store both in the keychain separately.
     ///
     /// - Remark: HTTP `POST /auth/token`.
     /// - Remark: Generated from `#/paths//auth/token/post(exchangeToken)`.
     func exchangeToken(_ input: Operations.ExchangeToken.Input) async throws -> Operations.ExchangeToken.Output
+    /// Rotate a refresh token for a new access + refresh pair
+    ///
+    /// Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.
+    ///
+    /// - Remark: HTTP `POST /auth/refresh`.
+    /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)`.
+    func refreshToken(_ input: Operations.RefreshToken.Input) async throws -> Operations.RefreshToken.Output
+    /// Revoke every active refresh token for the authenticated user
+    ///
+    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    ///
+    /// - Remark: HTTP `POST /auth/signout`.
+    /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
+    func signout(_ input: Operations.Signout.Input) async throws -> Operations.Signout.Output
     /// List active clubs with upcoming shows
     ///
     /// - Remark: HTTP `GET /clubs`.
@@ -53,11 +67,6 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows`.
     /// - Remark: Generated from `#/paths//shows/get(listShows)`.
     func listShows(_ input: Operations.ListShows.Input) async throws -> Operations.ListShows.Output
-    /// Get a single show by ID
-    ///
-    /// - Remark: HTTP `GET /shows/{id}`.
-    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
-    func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
     /// Search shows with flexible filters
     ///
     /// More flexible than /shows — ZIP is optional, supports club filter and sort.
@@ -65,6 +74,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/search`.
     /// - Remark: Generated from `#/paths//shows/search/get(searchShows)`.
     func searchShows(_ input: Operations.SearchShows.Input) async throws -> Operations.SearchShows.Output
+    /// Get a single show by ID
+    ///
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
     /// List the signed-in user’s saved favorite comedians
     ///
     /// - Remark: HTTP `GET /favorites`.
@@ -84,14 +98,38 @@ public protocol APIProtocol: Sendable {
 
 /// Convenience overloads for operation inputs.
 extension APIProtocol {
-    /// Exchange a session cookie for a JWT Bearer token
+    /// Exchange a session cookie for an access + refresh token pair
     ///
-    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a 24-hour JWT.
+    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a short-lived access JWT (15 minutes) plus a long-lived opaque refresh token (30 days). Store both in the keychain separately.
     ///
     /// - Remark: HTTP `POST /auth/token`.
     /// - Remark: Generated from `#/paths//auth/token/post(exchangeToken)`.
     public func exchangeToken(headers: Operations.ExchangeToken.Input.Headers = .init()) async throws -> Operations.ExchangeToken.Output {
         try await exchangeToken(Operations.ExchangeToken.Input(headers: headers))
+    }
+    /// Rotate a refresh token for a new access + refresh pair
+    ///
+    /// Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.
+    ///
+    /// - Remark: HTTP `POST /auth/refresh`.
+    /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)`.
+    public func refreshToken(
+        headers: Operations.RefreshToken.Input.Headers = .init(),
+        body: Operations.RefreshToken.Input.Body
+    ) async throws -> Operations.RefreshToken.Output {
+        try await refreshToken(Operations.RefreshToken.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Revoke every active refresh token for the authenticated user
+    ///
+    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    ///
+    /// - Remark: HTTP `POST /auth/signout`.
+    /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
+    public func signout(headers: Operations.Signout.Input.Headers = .init()) async throws -> Operations.Signout.Output {
+        try await signout(Operations.Signout.Input(headers: headers))
     }
     /// List active clubs with upcoming shows
     ///
@@ -184,19 +222,6 @@ extension APIProtocol {
             headers: headers
         ))
     }
-    /// Get a single show by ID
-    ///
-    /// - Remark: HTTP `GET /shows/{id}`.
-    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
-    public func getShow(
-        path: Operations.GetShow.Input.Path,
-        headers: Operations.GetShow.Input.Headers = .init()
-    ) async throws -> Operations.GetShow.Output {
-        try await getShow(Operations.GetShow.Input(
-            path: path,
-            headers: headers
-        ))
-    }
     /// Search shows with flexible filters
     ///
     /// More flexible than /shows — ZIP is optional, supports club filter and sort.
@@ -212,13 +237,24 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// Get a single show by ID
+    ///
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    public func getShow(
+        path: Operations.GetShow.Input.Path,
+        headers: Operations.GetShow.Input.Headers = .init()
+    ) async throws -> Operations.GetShow.Output {
+        try await getShow(Operations.GetShow.Input(
+            path: path,
+            headers: headers
+        ))
+    }
     /// List the signed-in user’s saved favorite comedians
     ///
     /// - Remark: HTTP `GET /favorites`.
     /// - Remark: Generated from `#/paths//favorites/get(getFavorites)`.
-    public func getFavorites(
-        headers: Operations.GetFavorites.Input.Headers = .init()
-    ) async throws -> Operations.GetFavorites.Output {
+    public func getFavorites(headers: Operations.GetFavorites.Input.Headers = .init()) async throws -> Operations.GetFavorites.Output {
         try await getFavorites(Operations.GetFavorites.Input(headers: headers))
     }
     /// Favorite a comedian
@@ -292,19 +328,71 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/TokenResponse`.
         public struct TokenResponse: Codable, Hashable, Sendable {
-            /// JWT Bearer token valid for 24 hours
+            /// Short-lived JWT Bearer token (15 minutes)
             ///
-            /// - Remark: Generated from `#/components/schemas/TokenResponse/token`.
-            public var token: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TokenResponse/accessToken`.
+            public var accessToken: Swift.String
+            /// Opaque 64-char hex refresh token (30 days). Use against /auth/refresh to mint a new access+refresh pair.
+            ///
+            /// - Remark: Generated from `#/components/schemas/TokenResponse/refreshToken`.
+            public var refreshToken: Swift.String
+            /// Access token lifetime in seconds.
+            ///
+            /// - Remark: Generated from `#/components/schemas/TokenResponse/expiresIn`.
+            public var expiresIn: Swift.Int
             /// Creates a new `TokenResponse`.
             ///
             /// - Parameters:
-            ///   - token: JWT Bearer token valid for 24 hours
-            public init(token: Swift.String) {
-                self.token = token
+            ///   - accessToken: Short-lived JWT Bearer token (15 minutes)
+            ///   - refreshToken: Opaque 64-char hex refresh token (30 days). Use against /auth/refresh to mint a new access+refresh pair.
+            ///   - expiresIn: Access token lifetime in seconds.
+            public init(
+                accessToken: Swift.String,
+                refreshToken: Swift.String,
+                expiresIn: Swift.Int
+            ) {
+                self.accessToken = accessToken
+                self.refreshToken = refreshToken
+                self.expiresIn = expiresIn
             }
             public enum CodingKeys: String, CodingKey {
-                case token
+                case accessToken
+                case refreshToken
+                case expiresIn
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/RefreshTokenRequest`.
+        public struct RefreshTokenRequest: Codable, Hashable, Sendable {
+            /// The refresh token previously issued by /auth/token or /auth/refresh.
+            ///
+            /// - Remark: Generated from `#/components/schemas/RefreshTokenRequest/refreshToken`.
+            public var refreshToken: Swift.String
+            /// Creates a new `RefreshTokenRequest`.
+            ///
+            /// - Parameters:
+            ///   - refreshToken: The refresh token previously issued by /auth/token or /auth/refresh.
+            public init(refreshToken: Swift.String) {
+                self.refreshToken = refreshToken
+            }
+            public enum CodingKeys: String, CodingKey {
+                case refreshToken
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/SignoutResponse`.
+        public struct SignoutResponse: Codable, Hashable, Sendable {
+            /// Number of refresh tokens that were revoked.
+            ///
+            /// - Remark: Generated from `#/components/schemas/SignoutResponse/revoked`.
+            public var revoked: Swift.Int
+            /// Creates a new `SignoutResponse`.
+            ///
+            /// - Parameters:
+            ///   - revoked: Number of refresh tokens that were revoked.
+            public init(revoked: Swift.Int) {
+                self.revoked = revoked
+            }
+            public enum CodingKeys: String, CodingKey {
+                case revoked
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.
@@ -1467,9 +1555,9 @@ public enum Components {
 
 /// API operations, with input and output types, generated from `#/paths` in the OpenAPI document.
 public enum Operations {
-    /// Exchange a session cookie for a JWT Bearer token
+    /// Exchange a session cookie for an access + refresh token pair
     ///
-    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a 24-hour JWT.
+    /// iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a short-lived access JWT (15 minutes) plus a long-lived opaque refresh token (30 days). Store both in the keychain separately.
     ///
     /// - Remark: HTTP `POST /auth/token`.
     /// - Remark: Generated from `#/paths//auth/token/post(exchangeToken)`.
@@ -1525,7 +1613,7 @@ public enum Operations {
                     self.body = body
                 }
             }
-            /// JWT issued successfully
+            /// Token pair issued successfully
             ///
             /// - Remark: Generated from `#/paths//auth/token/post(exchangeToken)/responses/200`.
             ///
@@ -1689,6 +1777,547 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.tooManyRequests`.
             /// - SeeAlso: `.tooManyRequests`.
             public var tooManyRequests: Operations.ExchangeToken.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Rotate a refresh token for a new access + refresh pair
+    ///
+    /// Atomically revokes the submitted refresh token and issues a new access+refresh pair. Revoked, expired, or unknown tokens return 401. No Bearer authentication required — the refresh token itself is the credential.
+    ///
+    /// - Remark: HTTP `POST /auth/refresh`.
+    /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)`.
+    public enum RefreshToken {
+        public static let id: Swift.String = "refreshToken"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/auth/refresh/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RefreshToken.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RefreshToken.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RefreshToken.Input.Headers
+            /// - Remark: Generated from `#/paths/auth/refresh/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.RefreshTokenRequest)
+            }
+            public var body: Operations.RefreshToken.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.RefreshToken.Input.Headers = .init(),
+                body: Operations.RefreshToken.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.TokenResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.TokenResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RefreshToken.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RefreshToken.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// New token pair issued; the submitted refresh token is now revoked.
+            ///
+            /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.RefreshToken.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.RefreshToken.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RefreshToken.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RefreshToken.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or malformed body
+            ///
+            /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.RefreshToken.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.RefreshToken.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RefreshToken.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RefreshToken.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Refresh token is unknown, revoked, or expired
+            ///
+            /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.RefreshToken.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.RefreshToken.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RefreshToken.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RefreshToken.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//auth/refresh/post(refreshToken)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.RefreshToken.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.RefreshToken.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Revoke every active refresh token for the authenticated user
+    ///
+    /// Requires a valid Bearer access token. Marks every non-revoked refresh_token row for the caller as revoked. iOS clients should still clear local keychain entries after the call completes.
+    ///
+    /// - Remark: HTTP `POST /auth/signout`.
+    /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
+    public enum Signout {
+        public static let id: Swift.String = "signout"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/auth/signout/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.Signout.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.Signout.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.Signout.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.Signout.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.SignoutResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.SignoutResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.Signout.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.Signout.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Tokens revoked
+            ///
+            /// - Remark: Generated from `#/paths//auth/signout/post(signout)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.Signout.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.Signout.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.Signout.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.Signout.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//auth/signout/post(signout)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.Signout.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.Signout.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.Signout.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.Signout.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//auth/signout/post(signout)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.Signout.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.Signout.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.Signout.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.Signout.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//auth/signout/post(signout)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.Signout.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.Signout.Output.TooManyRequests {
                 get throws {
                     switch self {
                     case let .tooManyRequests(response):
@@ -3666,283 +4295,6 @@ public enum Operations {
             }
         }
     }
-    /// Get a single show by ID
-    ///
-    /// - Remark: HTTP `GET /shows/{id}`.
-    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
-    public enum GetShow {
-        public static let id: Swift.String = "getShow"
-        public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/shows/{id}/GET/path`.
-            public struct Path: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/path/id`.
-                public var id: Swift.Int
-                /// Creates a new `Path`.
-                ///
-                /// - Parameters:
-                ///   - id:
-                public init(id: Swift.Int) {
-                    self.id = id
-                }
-            }
-            public var path: Operations.GetShow.Input.Path
-            /// - Remark: Generated from `#/paths/shows/{id}/GET/header`.
-            public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>]
-                /// Creates a new `Headers`.
-                ///
-                /// - Parameters:
-                ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>] = .defaultValues()) {
-                    self.accept = accept
-                }
-            }
-            public var headers: Operations.GetShow.Input.Headers
-            /// Creates a new `Input`.
-            ///
-            /// - Parameters:
-            ///   - path:
-            ///   - headers:
-            public init(
-                path: Operations.GetShow.Input.Path,
-                headers: Operations.GetShow.Input.Headers = .init()
-            ) {
-                self.path = path
-                self.headers = headers
-            }
-        }
-        @frozen public enum Output: Sendable, Hashable {
-            public struct Ok: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content/application\/json`.
-                    case json(Components.Schemas.ShowDetailResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.ShowDetailResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.GetShow.Output.Ok.Body
-                /// Creates a new `Ok`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.GetShow.Output.Ok.Body) {
-                    self.body = body
-                }
-            }
-            /// Show detail
-            ///
-            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/200`.
-            ///
-            /// HTTP response code: `200 ok`.
-            case ok(Operations.GetShow.Output.Ok)
-            /// The associated value of the enum case if `self` is `.ok`.
-            ///
-            /// - Throws: An error if `self` is not `.ok`.
-            /// - SeeAlso: `.ok`.
-            public var ok: Operations.GetShow.Output.Ok {
-                get throws {
-                    switch self {
-                    case let .ok(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct BadRequest: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                public var body: Operations.GetShow.Output.BadRequest.Body
-                public init(body: Operations.GetShow.Output.BadRequest.Body) {
-                    self.body = body
-                }
-            }
-            /// Non-numeric ID
-            ///
-            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/400`.
-            ///
-            /// HTTP response code: `400 badRequest`.
-            case badRequest(Operations.GetShow.Output.BadRequest)
-            public var badRequest: Operations.GetShow.Output.BadRequest {
-                get throws {
-                    switch self {
-                    case let .badRequest(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "badRequest",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct NotFound: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                public var body: Operations.GetShow.Output.NotFound.Body
-                public init(body: Operations.GetShow.Output.NotFound.Body) {
-                    self.body = body
-                }
-            }
-            /// Show not found or hidden
-            ///
-            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/404`.
-            ///
-            /// HTTP response code: `404 notFound`.
-            case notFound(Operations.GetShow.Output.NotFound)
-            public var notFound: Operations.GetShow.Output.NotFound {
-                get throws {
-                    switch self {
-                    case let .notFound(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "notFound",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct TooManyRequests: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                public var body: Operations.GetShow.Output.TooManyRequests.Body
-                public init(body: Operations.GetShow.Output.TooManyRequests.Body) {
-                    self.body = body
-                }
-            }
-            /// Rate limit exceeded
-            ///
-            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/429`.
-            ///
-            /// HTTP response code: `429 tooManyRequests`.
-            case tooManyRequests(Operations.GetShow.Output.TooManyRequests)
-            public var tooManyRequests: Operations.GetShow.Output.TooManyRequests {
-                get throws {
-                    switch self {
-                    case let .tooManyRequests(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "tooManyRequests",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct InternalServerError: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content/application\/json`.
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                public var body: Operations.GetShow.Output.InternalServerError.Body
-                public init(body: Operations.GetShow.Output.InternalServerError.Body) {
-                    self.body = body
-                }
-            }
-            /// Server error
-            ///
-            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/500`.
-            ///
-            /// HTTP response code: `500 internalServerError`.
-            case internalServerError(Operations.GetShow.Output.InternalServerError)
-            public var internalServerError: Operations.GetShow.Output.InternalServerError {
-                get throws {
-                    switch self {
-                    case let .internalServerError(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "internalServerError",
-                            response: self
-                        )
-                    }
-                }
-            }
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            public var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            public static var allCases: [Self] {
-                [
-                    .json
-                ]
-            }
-        }
-    }
     /// Search shows with flexible filters
     ///
     /// More flexible than /shows — ZIP is optional, supports club filter and sort.
@@ -4247,29 +4599,62 @@ public enum Operations {
             }
         }
     }
-    /// Favorite a comedian
+    /// Get a single show by ID
     ///
-    /// - Remark: HTTP `POST /favorites`.
-    /// - Remark: Generated from `#/paths//favorites/post(addFavorite)`.
-    public enum GetFavorites {
-        public static let id: Swift.String = "getFavorites"
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    public enum GetShow {
+        public static let id: Swift.String = "getShow"
         public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/shows/{id}/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/path/id`.
+                public var id: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.GetShow.Input.Path
+            /// - Remark: Generated from `#/paths/shows/{id}/GET/header`.
             public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>]
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>] = .defaultValues()) {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            public var headers: Operations.GetFavorites.Input.Headers
-            public init(headers: Operations.GetFavorites.Input.Headers = .init()) {
+            public var headers: Operations.GetShow.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetShow.Input.Path,
+                headers: Operations.GetShow.Input.Headers = .init()
+            ) {
+                self.path = path
                 self.headers = headers
             }
         }
         @frozen public enum Output: Sendable, Hashable {
             public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content`.
                 @frozen public enum Body: Sendable, Hashable {
-                    case json(Components.Schemas.FavoriteListResponse)
-                    public var json: Components.Schemas.FavoriteListResponse {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ShowDetailResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ShowDetailResponse {
                         get throws {
                             switch self {
                             case let .json(body):
@@ -4278,13 +4663,27 @@ public enum Operations {
                         }
                     }
                 }
-                public var body: Operations.GetFavorites.Output.Ok.Body
-                public init(body: Operations.GetFavorites.Output.Ok.Body) {
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.Ok.Body) {
                     self.body = body
                 }
             }
-            case ok(Operations.GetFavorites.Output.Ok)
-            public var ok: Operations.GetFavorites.Output.Ok {
+            /// Show detail
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetShow.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetShow.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -4297,9 +4696,15 @@ public enum Operations {
                     }
                 }
             }
-            public struct Unauthorized: Sendable, Hashable {
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content`.
                 @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content/application\/json`.
                     case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
                     public var json: Components.Schemas.ErrorResponse {
                         get throws {
                             switch self {
@@ -4309,28 +4714,48 @@ public enum Operations {
                         }
                     }
                 }
-                public var body: Operations.GetFavorites.Output.Unauthorized.Body
-                public init(body: Operations.GetFavorites.Output.Unauthorized.Body) {
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.BadRequest.Body) {
                     self.body = body
                 }
             }
-            case unauthorized(Operations.GetFavorites.Output.Unauthorized)
-            public var unauthorized: Operations.GetFavorites.Output.Unauthorized {
+            /// Non-numeric ID
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetShow.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetShow.Output.BadRequest {
                 get throws {
                     switch self {
-                    case let .unauthorized(response):
+                    case let .badRequest(response):
                         return response
                     default:
                         try throwUnexpectedResponseStatus(
-                            expectedStatus: "unauthorized",
+                            expectedStatus: "badRequest",
                             response: self
                         )
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content`.
                 @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content/application\/json`.
                     case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
                     public var json: Components.Schemas.ErrorResponse {
                         get throws {
                             switch self {
@@ -4340,28 +4765,99 @@ public enum Operations {
                         }
                     }
                 }
-                public var body: Operations.GetFavorites.Output.UnprocessableContent.Body
-                public init(body: Operations.GetFavorites.Output.UnprocessableContent.Body) {
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.NotFound.Body) {
                     self.body = body
                 }
             }
-            case unprocessableContent(Operations.GetFavorites.Output.UnprocessableContent)
-            public var unprocessableContent: Operations.GetFavorites.Output.UnprocessableContent {
+            /// Show not found or hidden
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.GetShow.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.GetShow.Output.NotFound {
                 get throws {
                     switch self {
-                    case let .unprocessableContent(response):
+                    case let .notFound(response):
                         return response
                     default:
                         try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetShow.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetShow.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
                 }
             }
             public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content`.
                 @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content/application\/json`.
                     case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
                     public var json: Components.Schemas.ErrorResponse {
                         get throws {
                             switch self {
@@ -4371,13 +4867,27 @@ public enum Operations {
                         }
                     }
                 }
-                public var body: Operations.GetFavorites.Output.InternalServerError.Body
-                public init(body: Operations.GetFavorites.Output.InternalServerError.Body) {
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.InternalServerError.Body) {
                     self.body = body
                 }
             }
-            case internalServerError(Operations.GetFavorites.Output.InternalServerError)
-            public var internalServerError: Operations.GetFavorites.Output.InternalServerError {
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetShow.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetShow.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):
@@ -4390,6 +4900,9 @@ public enum Operations {
                     }
                 }
             }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
         @frozen public enum AcceptableContentType: AcceptableProtocol {
@@ -4418,6 +4931,273 @@ public enum Operations {
             }
         }
     }
+    /// List the signed-in user’s saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorites`.
+    /// - Remark: Generated from `#/paths//favorites/get(getFavorites)`.
+    public enum GetFavorites {
+        public static let id: Swift.String = "getFavorites"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorites/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetFavorites.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetFavorites.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorites/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorites/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavorites.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavorites.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorite comedians
+            ///
+            /// - Remark: Generated from `#/paths//favorites/get(getFavorites)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetFavorites.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetFavorites.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorites/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorites/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavorites.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavorites.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorites/get(getFavorites)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetFavorites.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetFavorites.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorites/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorites/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavorites.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavorites.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorites/get(getFavorites)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetFavorites.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetFavorites.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorites/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorites/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavorites.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavorites.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorites/get(getFavorites)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetFavorites.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetFavorites.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Favorite a comedian
+    ///
+    /// - Remark: HTTP `POST /favorites`.
+    /// - Remark: Generated from `#/paths//favorites/post(addFavorite)`.
     public enum AddFavorite {
         public static let id: Swift.String = "addFavorite"
         public struct Input: Sendable, Hashable {
