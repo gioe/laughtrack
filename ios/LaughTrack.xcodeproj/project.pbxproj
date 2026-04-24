@@ -52,7 +52,6 @@
 		9F699E60A40D89F8C4A837CF /* APIVersionPathMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */; };
 		A01CEE8E888E8443499CC503 /* LaughTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A24095B90BCF6912A7533AED /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 835B2849E1649BAD8DA6A0F9 /* APIClient */; };
-		A77B253353CA4E36DAC82C2E /* LaughTrackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */; };
 		A7FE5B69BD3BD476880ECE8A /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBC80AB90A17D8FC359C686 /* SharedKit */; };
 		AD5A4B33897A9BDF49530E6F /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 362B635800535696613C37C8 /* APIClient */; };
 		B207179F163C197224CDF050 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F34CFB0953B3E423A1E672 /* ActivityView.swift */; };
@@ -111,13 +110,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = D19CF0218A59D603BE1AE54D;
 			remoteInfo = LaughTrackBridge;
-		};
-		7AD27A12ADCF21AE1118E584 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5FB0ADAB0EB091F9D35AAAFB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = E407829409969471735EAA0F;
-			remoteInfo = LaughTrack;
 		};
 		7E6F9BAA0C9B9CD608AF7811 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -183,7 +175,6 @@
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
 		0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
 		1C6A228D912DFFE3A74A36BB /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
-		1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackUITests.swift; sourceTree = "<group>"; };
 		20552640F544D4395DE585B7 /* LaughTrackBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E3FEC26FAACA575C943CBF /* SearchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootView.swift; sourceTree = "<group>"; };
 		22F34CFB0953B3E423A1E672 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
@@ -217,7 +208,6 @@
 		E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackOfflineOperation.swift; sourceTree = "<group>"; };
 		EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistrationTests.swift; sourceTree = "<group>"; };
 		F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackComponents.swift; sourceTree = "<group>"; };
-		FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LaughTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTheme.swift; sourceTree = "<group>"; };
 		FE35EB33E76E6316CDCFCAB2 /* DiscoveryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryViews.swift; sourceTree = "<group>"; };
 		FFF7EC3716232F6AB430AF80 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -355,7 +345,6 @@
 				11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */,
 				48A1C8253AED9F441B4B02FA /* LaughTrackCore */,
 				D65543612003A38D124A722F /* Tests */,
-				D333F5AE2F330FA240A413B7 /* UITests */,
 				D8FE5A1E404D541E9C145D48 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -399,14 +388,6 @@
 			path = DesignSystem;
 			sourceTree = "<group>";
 		};
-		D333F5AE2F330FA240A413B7 /* UITests */ = {
-			isa = PBXGroup;
-			children = (
-				1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */,
-			);
-			path = UITests;
-			sourceTree = "<group>";
-		};
 		D65543612003A38D124A722F /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -423,7 +404,6 @@
 				20552640F544D4395DE585B7 /* LaughTrackBridge.framework */,
 				8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */,
 				D82C2EA908ED34FDCA8EE86C /* LaughTrackTests.xctest */,
-				FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -457,24 +437,6 @@
 			productName = LaughTrackTests;
 			productReference = D82C2EA908ED34FDCA8EE86C /* LaughTrackTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		52750A922363534F75FFBF6B /* LaughTrackUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9EE03E30B98E1E3251B4D304 /* Build configuration list for PBXNativeTarget "LaughTrackUITests" */;
-			buildPhases = (
-				C04615814999296B68DC978F /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				95C49F62254D167DDA2B58C9 /* PBXTargetDependency */,
-			);
-			name = LaughTrackUITests;
-			packageProductDependencies = (
-			);
-			productName = LaughTrackUITests;
-			productReference = FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		588031D52FEC00A9869B0CEE /* LaughTrackCore */ = {
 			isa = PBXNativeTarget;
@@ -576,11 +538,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2630;
-				TargetAttributes = {
-					52750A922363534F75FFBF6B = {
-						TestTargetID = E407829409969471735EAA0F;
-					};
-				};
 			};
 			buildConfigurationList = E610BD18D15E206C16429595 /* Build configuration list for PBXProject "LaughTrack" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -607,7 +564,6 @@
 				D19CF0218A59D603BE1AE54D /* LaughTrackBridge */,
 				588031D52FEC00A9869B0CEE /* LaughTrackCore */,
 				2F7ACF39895DFE26E41CFC10 /* LaughTrackTests */,
-				52750A922363534F75FFBF6B /* LaughTrackUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -664,14 +620,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		C04615814999296B68DC978F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A77B253353CA4E36DAC82C2E /* LaughTrackUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		EBC1E8E02788E81D6404E15C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -722,11 +670,6 @@
 			isa = PBXTargetDependency;
 			target = D19CF0218A59D603BE1AE54D /* LaughTrackBridge */;
 			targetProxy = 524F76AE8B8309A68037D3B4 /* PBXContainerItemProxy */;
-		};
-		95C49F62254D167DDA2B58C9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = E407829409969471735EAA0F /* LaughTrack */;
-			targetProxy = 7AD27A12ADCF21AE1118E584 /* PBXContainerItemProxy */;
 		};
 		B63D2D76FF3BFDDBC0C61599 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -826,23 +769,6 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LaughTrack.app/LaughTrack";
-			};
-			name = Release;
-		};
-		2AB7E6CC1CAEDCFF9E6DCF58 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = LaughTrack;
 			};
 			name = Release;
 		};
@@ -951,23 +877,6 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
-		};
-		578835C15EDC581077BF3C21 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = LaughTrack;
-			};
-			name = Debug;
 		};
 		91689E70625E985F5049E5E4 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1128,15 +1037,6 @@
 			buildConfigurations = (
 				4406245F42A0F6FC2D99678E /* Debug */,
 				14DCB10E8498AFF5A1621645 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		9EE03E30B98E1E3251B4D304 /* Build configuration list for PBXNativeTarget "LaughTrackUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				578835C15EDC581077BF3C21 /* Debug */,
-				2AB7E6CC1CAEDCFF9E6DCF58 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

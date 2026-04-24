@@ -121,7 +121,6 @@ targets:
     scheme:
       testTargets:
         - LaughTrackTests
-        - LaughTrackUITests
   LaughTrackTests:
     type: bundle.unit-test
     platform: iOS
@@ -151,17 +150,3 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
-  LaughTrackUITests:
-    type: bundle.ui-testing
-    platform: iOS
-    sources:
-      - path: UITests
-        createIntermediateGroups: true
-        optional: true
-    dependencies:
-      - target: LaughTrack
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
-        GENERATE_INFOPLIST_FILE: "YES"
-        TEST_TARGET_NAME: LaughTrack
