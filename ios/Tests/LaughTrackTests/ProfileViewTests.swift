@@ -9,14 +9,14 @@ struct ProfileViewTests {
     @Test("profile keeps nearby defaults but adopts compact section framing")
     func profileUsesCompactSectionFraming() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-profile")
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-profile")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-profile")
         let host = HostedView(
             ProfileView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                signedOutMessage: nil,
-                nearbyPreferenceStore: nearbyStore
+                signedOutMessage: nil
             )
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, container)
                 .environmentObject(ComedianFavoriteStore())
                 .environmentObject(authManager)
         )

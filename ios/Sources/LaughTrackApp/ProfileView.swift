@@ -7,17 +7,15 @@ import LaughTrackCore
 struct ProfileView: View {
     let apiClient: Client
     let signedOutMessage: String?
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
 
     init(
         apiClient: Client,
-        signedOutMessage: String?,
-        nearbyPreferenceStore: NearbyPreferenceStore
+        signedOutMessage: String?
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
-        self._nearbyPreferenceStore = ObservedObject(wrappedValue: nearbyPreferenceStore)
     }
 
     var body: some View {
@@ -34,7 +32,7 @@ struct ProfileView: View {
                 SettingsView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
-                    nearbyPreferenceStore: nearbyPreferenceStore
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
             }
             .padding(.horizontal, theme.spacing.lg)

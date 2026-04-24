@@ -49,13 +49,6 @@ struct ContentView: View {
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
 
-    private var nearbyPreferenceStore: NearbyPreferenceStore {
-        serviceContainer.resolve(NearbyPreferenceStore.self)
-    }
-    private var nearbyLocationController: NearbyLocationController {
-        serviceContainer.resolve(NearbyLocationController.self)
-    }
-
     var body: some View {
         Group {
             switch authManager.state {
@@ -84,8 +77,6 @@ struct ContentView: View {
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
-                    nearbyPreferenceStore: nearbyPreferenceStore,
-                    nearbyLocationController: nearbyLocationController,
                     initialTab: .home
                 )
             case .search:
@@ -93,8 +84,6 @@ struct ContentView: View {
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
-                    nearbyPreferenceStore: nearbyPreferenceStore,
-                    nearbyLocationController: nearbyLocationController,
                     initialTab: .search
                 )
             case .activity:
@@ -102,8 +91,6 @@ struct ContentView: View {
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
-                    nearbyPreferenceStore: nearbyPreferenceStore,
-                    nearbyLocationController: nearbyLocationController,
                     initialTab: .activity
                 )
             case .profile:
@@ -111,15 +98,13 @@ struct ContentView: View {
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
-                    nearbyPreferenceStore: nearbyPreferenceStore,
-                    nearbyLocationController: nearbyLocationController,
                     initialTab: .profile
                 )
             case .settings:
                 SettingsView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
-                    nearbyPreferenceStore: nearbyPreferenceStore
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
@@ -132,9 +117,7 @@ struct ContentView: View {
             AppShellView(
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
-                favorites: favorites,
-                nearbyPreferenceStore: nearbyPreferenceStore,
-                nearbyLocationController: nearbyLocationController
+                favorites: favorites
             )
         }
         .environmentObject(favorites)
@@ -144,13 +127,12 @@ struct ContentView: View {
 struct HomeView: View {
     let apiClient: Client
     let signedOutMessage: String?
-    let nearbyPreferenceStore: NearbyPreferenceStore
-    let nearbyLocationController: NearbyLocationController
     let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -187,13 +169,13 @@ struct HomeView: View {
 
                 HomeNearbyDiscoverySection(
                     apiClient: apiClient,
-                    nearbyPreferenceStore: nearbyPreferenceStore,
-                    nearbyLocationController: nearbyLocationController
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
 
                 DiscoveryHubView(
                     apiClient: apiClient,
-                    nearbyLocationController: nearbyLocationController
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
             }
             .padding(.horizontal, theme.spacing.lg)

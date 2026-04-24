@@ -12,15 +12,14 @@ struct AppShellViewTests {
     func shellRendersTabs() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-tabs")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-tabs")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-tabs")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
+                favorites: ComedianFavoriteStore()
             )
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -36,16 +35,15 @@ struct AppShellViewTests {
     func shellCanStartOnSearchTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-search")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-search")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-search")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
                 initialTab: .search
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )
@@ -59,15 +57,14 @@ struct AppShellViewTests {
     func homeTabKeepsRealHomeAffordances() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
+                favorites: ComedianFavoriteStore()
             )
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
@@ -83,15 +80,14 @@ struct AppShellViewTests {
     func homeNearbySectionSurvivesRedesign() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-nearby")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home-nearby")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-nearby")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
+                favorites: ComedianFavoriteStore()
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )
@@ -104,15 +100,14 @@ struct AppShellViewTests {
     func homeSearchSeedStillOpensSearch() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-search-smoke")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home-search-smoke")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-search-smoke")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore)
+                favorites: ComedianFavoriteStore()
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )
@@ -125,16 +120,15 @@ struct AppShellViewTests {
     func shellCanStartOnProfileTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-profile")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-profile")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
-                nearbyPreferenceStore: nearbyStore,
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: nearbyStore),
                 initialTab: .profile
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )

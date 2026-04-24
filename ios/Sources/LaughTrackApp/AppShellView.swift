@@ -8,10 +8,9 @@ struct AppShellView: View {
     let apiClient: Client
     let signedOutMessage: String?
     let favorites: ComedianFavoriteStore
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
-    let nearbyLocationController: NearbyLocationController
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @State private var selectedTab: AppTab
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
@@ -20,15 +19,11 @@ struct AppShellView: View {
         apiClient: Client,
         signedOutMessage: String? = nil,
         favorites: ComedianFavoriteStore,
-        nearbyPreferenceStore: NearbyPreferenceStore,
-        nearbyLocationController: NearbyLocationController,
         initialTab: AppTab = .home
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.favorites = favorites
-        self._nearbyPreferenceStore = ObservedObject(wrappedValue: nearbyPreferenceStore)
-        self.nearbyLocationController = nearbyLocationController
         _selectedTab = State(initialValue: initialTab)
     }
 
@@ -37,8 +32,6 @@ struct AppShellView: View {
             HomeView(
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
-                nearbyPreferenceStore: nearbyPreferenceStore,
-                nearbyLocationController: nearbyLocationController,
                 searchNavigationBridge: searchNavigationBridge
             )
                 .tabItem { Label("Home", systemImage: "house.fill") }
@@ -49,7 +42,7 @@ struct AppShellView: View {
                 favorites: favorites,
                 coordinator: coordinator,
                 searchNavigationBridge: searchNavigationBridge,
-                nearbyLocationController: nearbyLocationController
+                nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
@@ -60,8 +53,7 @@ struct AppShellView: View {
 
             ProfileView(
                 apiClient: apiClient,
-                signedOutMessage: signedOutMessage,
-                nearbyPreferenceStore: nearbyPreferenceStore
+                signedOutMessage: signedOutMessage
             )
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
                 .tag(AppTab.profile)
