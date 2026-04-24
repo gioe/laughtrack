@@ -33,6 +33,19 @@ Extended user profile (role, zip code, notification preferences, favorite comedi
 ### Account
 OAuth account linked to a User (provider, tokens).
 
+### RefreshToken
+Long-lived refresh tokens issued to native clients (iOS). Supports rotation and revocation so an exfiltrated access token cannot be used to mint new sessions indefinitely.
+
+**Fields:**
+- `id` — primary key (cuid)
+- `token` — opaque 64-char hex string (unique); the value handed to the client
+- `userId` — FK to `User` (cascade on delete)
+- `expiresAt` — when the token stops being accepted (30 days after issue)
+- `revokedAt` — when the token was invalidated (nullable; set on rotation or sign-out)
+- `createdAt` — when the token was issued
+
+**Usage:** Issued alongside a short-lived access JWT by `POST /api/v1/auth/token`. Consumed by `POST /api/v1/auth/refresh` — the submitted token is atomically marked `revoked_at=NOW()` and a new access+refresh pair is returned. `POST /api/v1/auth/signout` revokes every active token for the caller.
+
 ### VerificationToken
 Email verification tokens for NextAuth.
 
