@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from laughtrack.core.clients.base import BaseApiClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 
 
@@ -23,11 +23,13 @@ def _make_club() -> Club:
         name="Test Club",
         address="123 St",
         website="https://example.com",
-        scraping_url="example.com",
         popularity=1,
         zip_code="00000",
         phone_number="000-000-0000",
         visible=True,
+        scraping_sources=[
+            ScrapingSource(platform="custom", scraper_key="custom", source_url="example.com"),
+        ],
     )
 
 
