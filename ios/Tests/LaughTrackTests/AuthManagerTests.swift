@@ -151,6 +151,79 @@ struct AuthManagerTests {
         #expect(!tokenManager.isAuthenticated)
     }
 
+    @Test("signOut calls the server signout before clearing the local keychain")
+    @MainActor
+    func signOutCallsServerSignoutBeforeClearingTokens() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.signOutHappy.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+        await manager.restoreSession()
+
+        let recorder = SignoutRecorder()
+        manager.signoutRequest = { [authMiddleware] in
+            let hadToken = await authMiddleware.hasAccessToken
+            await recorder.record(hadAccessToken: hadToken, shouldThrow: false)
+        }
+
+        await manager.signOut()
+
+        #expect(await recorder.callCount == 1)
+        #expect(await recorder.observedAccessToken == true)
+        #expect(manager.state == .signedOut(message: nil))
+        #expect(!tokenManager.isAuthenticated)
+        #expect(!(await authMiddleware.hasAccessToken))
+    }
+
+    @Test("signOut still clears local session when the server signout throws")
+    @MainActor
+    func signOutClearsLocalWhenServerSignoutFails() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.signOutFail.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+        await manager.restoreSession()
+
+        let recorder = SignoutRecorder()
+        manager.signoutRequest = {
+            await recorder.record(hadAccessToken: true, shouldThrow: true)
+            throw URLError(.networkConnectionLost)
+        }
+
+        await manager.signOut()
+
+        #expect(await recorder.callCount == 1)
+        #expect(manager.state == .signedOut(message: nil))
+        #expect(!tokenManager.isAuthenticated)
+        #expect(!(await authMiddleware.hasAccessToken))
+    }
+
     @Test("handleUnauthorizedResponse clears persisted auth state")
     @MainActor
     func unauthorizedResponseClearsAuth() async {
@@ -192,6 +265,17 @@ struct AuthManagerTests {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
+    }
+}
+
+private actor SignoutRecorder {
+    var callCount = 0
+    var observedAccessToken = false
+
+    func record(hadAccessToken: Bool, shouldThrow: Bool) {
+        callCount += 1
+        observedAccessToken = hadAccessToken
+        _ = shouldThrow
     }
 }
 
