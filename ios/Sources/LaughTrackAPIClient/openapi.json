@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://laughtrack.app/api/v1",
+      "url": "https://www.laugh-track.com/api/v1",
       "description": "Production"
     }
   ],

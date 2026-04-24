@@ -256,7 +256,7 @@ public enum Servers {
         /// Production
         public static func url() throws -> Foundation.URL {
             try Foundation.URL(
-                validatingOpenAPIServerURL: "https://laughtrack.app/api/v1",
+                validatingOpenAPIServerURL: "https://www.laugh-track.com/api/v1",
                 variables: []
             )
         }
@@ -265,7 +265,7 @@ public enum Servers {
     @available(*, deprecated, renamed: "Servers.Server1.url")
     public static func server1() throws -> Foundation.URL {
         try Foundation.URL(
-            validatingOpenAPIServerURL: "https://laughtrack.app/api/v1",
+            validatingOpenAPIServerURL: "https://www.laugh-track.com/api/v1",
             variables: []
         )
     }
