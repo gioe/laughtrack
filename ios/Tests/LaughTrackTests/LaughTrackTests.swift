@@ -35,7 +35,9 @@ struct LaughTrackTests {
         #expect(AuthRouteConfiguration.callbackScheme == "laughtrack")
         #expect(googleSignInURL.host == "www.laugh-track.com")
         #expect(googleSignInURL.path == "/api/auth/signin/google")
+        #expect(appleSignInURL.host == "www.laugh-track.com")
         #expect(appleSignInURL.path == "/api/auth/signin/apple")
+        #expect(callbackURL.host == "www.laugh-track.com")
         #expect(callbackURL.path == "/api/v1/auth/native/callback")
         #expect(URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "google")
     }
