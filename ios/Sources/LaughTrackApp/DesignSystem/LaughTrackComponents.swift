@@ -745,6 +745,7 @@ struct LaughTrackAuthProviderCard: View {
     }
 }
 
+#if DEBUG
 struct LaughTrackComponentGallery: View {
     @Environment(\.appTheme) private var theme
     @State private var favoriteSample = true
@@ -836,7 +837,6 @@ struct LaughTrackComponentGallery: View {
     }
 }
 
-#if DEBUG
 struct LaughTrackComponentGallery_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
