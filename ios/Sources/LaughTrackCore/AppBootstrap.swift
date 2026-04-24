@@ -30,8 +30,9 @@ public struct AppBootstrap {
             secureStorage: secureStorage
         )
 
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let authManager = AuthManager(
-            tokenManager: AuthTokenManager(secureStorage: secureStorage),
+            tokenManager: tokenManager,
             authMiddleware: factory.authMiddleware,
             appStateStorage: appStateStorage,
             oauthSessionRunner: oauthSessionRunner
@@ -42,12 +43,15 @@ public struct AppBootstrap {
             await authManager.handleUnauthorizedResponse()
         }
 
+        // The refresh client must NOT include factory.authMiddleware. The /auth/refresh
+        // contract carries the refresh token in the request body; signing the request
+        // with the (likely expired) access token would create a circular dependency
+        // between the very thing being refreshed and the request that refreshes it.
         let refreshClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),
-                factory.authMiddleware,
                 factory.retryMiddleware,
                 factory.loggingMiddleware,
             ]
@@ -55,15 +59,37 @@ public struct AppBootstrap {
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: "exchangeToken"
+            refreshEndpointOperationID: Operations.RefreshToken.id
         ) { _ in
-            let response = try await refreshClient.exchangeToken()
-            guard case .ok(let ok) = response else {
+            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
+            guard let refreshToken else {
                 await authManager.handleUnauthorizedResponse()
                 throw URLError(.userAuthenticationRequired)
             }
-            let token = try ok.body.json.token
-            return TokenRefreshMiddleware.Tokens(accessToken: token, refreshToken: token)
+
+            let response = try await refreshClient.refreshToken(
+                body: .json(.init(refreshToken: refreshToken))
+            )
+            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
+                await authManager.handleUnauthorizedResponse()
+                throw URLError(.userAuthenticationRequired)
+            }
+
+            // Persist the rotated pair to the keychain via AuthTokenManager so a cold
+            // restart sees the new tokens. AuthenticationMiddleware also persists via
+            // its own SecureStorage handle, but it bypasses AuthTokenManager's
+            // @Published isAuthenticated state — keep both in sync.
+            try? await MainActor.run {
+                try tokenManager.storeTokens(
+                    accessToken: body.accessToken,
+                    refreshToken: body.refreshToken
+                )
+            }
+
+            return TokenRefreshMiddleware.Tokens(
+                accessToken: body.accessToken,
+                refreshToken: body.refreshToken
+            )
         }
 
         let apiClient = Client(
