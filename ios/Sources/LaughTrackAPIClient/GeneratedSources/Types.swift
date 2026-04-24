@@ -86,6 +86,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/{id}`.
     /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
+    /// Composite home-screen feed (hero + six curated sections)
+    ///
+    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: public, s-maxage=3600, stale-while-revalidate=60.
+    ///
+    /// - Remark: HTTP `GET /home/feed`.
+    /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
+    func getHomeFeed(_ input: Operations.GetHomeFeed.Input) async throws -> Operations.GetHomeFeed.Output
     /// List the signed-in user’s saved favorite comedians
     ///
     /// - Remark: HTTP `GET /favorites`.
@@ -270,6 +277,21 @@ extension APIProtocol {
     ) async throws -> Operations.GetShow.Output {
         try await getShow(Operations.GetShow.Input(
             path: path,
+            headers: headers
+        ))
+    }
+    /// Composite home-screen feed (hero + six curated sections)
+    ///
+    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: public, s-maxage=3600, stale-while-revalidate=60.
+    ///
+    /// - Remark: HTTP `GET /home/feed`.
+    /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
+    public func getHomeFeed(
+        query: Operations.GetHomeFeed.Input.Query = .init(),
+        headers: Operations.GetHomeFeed.Input.Headers = .init()
+    ) async throws -> Operations.GetHomeFeed.Output {
+        try await getHomeFeed(Operations.GetHomeFeed.Input(
+            query: query,
             headers: headers
         ))
     }
@@ -1651,6 +1673,115 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case city
                 case state
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedHero`.
+        public struct HomeFeedHero: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedHero/zipCode`.
+            public var zipCode: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedHero/city`.
+            public var city: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedHero/state`.
+            public var state: Swift.String?
+            /// Up to 3 shows near the hero zip, for the top-of-home carousel.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeedHero/shows`.
+            public var shows: [Components.Schemas.Show]
+            /// Creates a new `HomeFeedHero`.
+            ///
+            /// - Parameters:
+            ///   - zipCode:
+            ///   - city:
+            ///   - state:
+            ///   - shows: Up to 3 shows near the hero zip, for the top-of-home carousel.
+            public init(
+                zipCode: Swift.String? = nil,
+                city: Swift.String? = nil,
+                state: Swift.String? = nil,
+                shows: [Components.Schemas.Show]
+            ) {
+                self.zipCode = zipCode
+                self.city = city
+                self.state = state
+                self.shows = shows
+            }
+            public enum CodingKeys: String, CodingKey {
+                case zipCode
+                case city
+                case state
+                case shows
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeed`.
+        public struct HomeFeed: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/hero`.
+            public var hero: Components.Schemas.HomeFeedHero
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingComedians`.
+            public var trendingComedians: [Components.Schemas.ComedianListItem]
+            /// Empty when no zipCode is resolved (no profile zip, no ?zip param, no geo-IP).
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/comediansNearYou`.
+            public var comediansNearYou: [Components.Schemas.ComedianListItem]
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/showsTonight`.
+            public var showsTonight: [Components.Schemas.Show]
+            /// Shows near the hero zip beyond the first 3 surfaced in hero.shows.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/moreNearYou`.
+            public var moreNearYou: [Components.Schemas.Show]
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingThisWeek`.
+            public var trendingThisWeek: [Components.Schemas.Show]
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/popularClubs`.
+            public var popularClubs: [Components.Schemas.ClubListItem]
+            /// Creates a new `HomeFeed`.
+            ///
+            /// - Parameters:
+            ///   - hero:
+            ///   - trendingComedians:
+            ///   - comediansNearYou: Empty when no zipCode is resolved (no profile zip, no ?zip param, no geo-IP).
+            ///   - showsTonight:
+            ///   - moreNearYou: Shows near the hero zip beyond the first 3 surfaced in hero.shows.
+            ///   - trendingThisWeek:
+            ///   - popularClubs:
+            public init(
+                hero: Components.Schemas.HomeFeedHero,
+                trendingComedians: [Components.Schemas.ComedianListItem],
+                comediansNearYou: [Components.Schemas.ComedianListItem],
+                showsTonight: [Components.Schemas.Show],
+                moreNearYou: [Components.Schemas.Show],
+                trendingThisWeek: [Components.Schemas.Show],
+                popularClubs: [Components.Schemas.ClubListItem]
+            ) {
+                self.hero = hero
+                self.trendingComedians = trendingComedians
+                self.comediansNearYou = comediansNearYou
+                self.showsTonight = showsTonight
+                self.moreNearYou = moreNearYou
+                self.trendingThisWeek = trendingThisWeek
+                self.popularClubs = popularClubs
+            }
+            public enum CodingKeys: String, CodingKey {
+                case hero
+                case trendingComedians
+                case comediansNearYou
+                case showsTonight
+                case moreNearYou
+                case trendingThisWeek
+                case popularClubs
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedResponse`.
+        public struct HomeFeedResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedResponse/data`.
+            public var data: Components.Schemas.HomeFeed
+            /// Creates a new `HomeFeedResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.HomeFeed) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
             }
         }
     }
@@ -5627,6 +5758,300 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.GetShow.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Composite home-screen feed (hero + six curated sections)
+    ///
+    /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: public, s-maxage=3600, stale-while-revalidate=60.
+    ///
+    /// - Remark: HTTP `GET /home/feed`.
+    /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
+    public enum GetHomeFeed {
+        public static let id: Swift.String = "getHomeFeed"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/home/feed/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
+                ///
+                /// - Remark: Generated from `#/paths/home/feed/GET/query/zip`.
+                public var zip: Swift.String?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - zip: Optional 5-digit US zip override. When supplied, beats the signed-in user's profile zipCode for this request — used for anonymous callers or profile-preview.
+                public init(zip: Swift.String? = nil) {
+                    self.zip = zip
+                }
+            }
+            public var query: Operations.GetHomeFeed.Input.Query
+            /// - Remark: Generated from `#/paths/home/feed/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                /// IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.
+                ///
+                /// - Remark: Generated from `#/paths/home/feed/GET/header/X-Timezone`.
+                public var xTimezone: Swift.String?
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetHomeFeed.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - xTimezone: IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.
+                ///   - accept:
+                public init(
+                    xTimezone: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetHomeFeed.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.xTimezone = xTimezone
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetHomeFeed.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.GetHomeFeed.Input.Query = .init(),
+                headers: Operations.GetHomeFeed.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/home/feed/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/home/feed/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.HomeFeedResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.HomeFeedResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetHomeFeed.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetHomeFeed.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Home feed payload
+            ///
+            /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetHomeFeed.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetHomeFeed.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/home/feed/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/home/feed/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetHomeFeed.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetHomeFeed.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid zip parameter
+            ///
+            /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetHomeFeed.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetHomeFeed.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/home/feed/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/home/feed/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetHomeFeed.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetHomeFeed.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetHomeFeed.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetHomeFeed.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/home/feed/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/home/feed/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetHomeFeed.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetHomeFeed.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetHomeFeed.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetHomeFeed.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):
