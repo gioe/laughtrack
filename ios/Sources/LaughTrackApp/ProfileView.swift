@@ -26,7 +26,7 @@ struct ProfileView: View {
                 LaughTrackHeroModule(
                     eyebrow: "Profile",
                     title: "Your comedy setup",
-                    subtitle: "Favorites, nearby defaults, and account controls live here."
+                    subtitle: "Favorites, nearby defaults, and account controls are all here."
                 )
 
                 SettingsView(

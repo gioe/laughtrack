@@ -30,7 +30,7 @@ struct LaughTrackBrowseComponentsTests {
             LaughTrackResultRow(
                 title: "Comedy Cellar",
                 subtitle: "New York, NY",
-                metadata: ["14 shows", "Live API"],
+                metadata: ["14 shows", "Open tonight"],
                 systemImage: "building.2"
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -38,7 +38,7 @@ struct LaughTrackBrowseComponentsTests {
 
         try host.requireText("Comedy Cellar")
         try host.requireText("New York, NY")
-        try host.requireText("14 shows • Live API")
+        try host.requireText("14 shows • Open tonight")
     }
 
     @Test("inline state card keeps retry affordance in compact chrome")

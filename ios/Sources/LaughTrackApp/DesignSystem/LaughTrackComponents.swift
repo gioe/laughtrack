@@ -758,7 +758,7 @@ struct LaughTrackComponentGallery: View {
                 LaughTrackSectionHeader(
                     eyebrow: "Preview",
                     title: "Shared component gallery",
-                    subtitle: "Representative auth, discovery, and detail states built from the reusable LaughTrack iOS kit."
+                    subtitle: "Representative auth, browse, and detail pages built from the reusable LaughTrack iOS kit."
                 )
 
                 LaughTrackCard(tone: .accent) {
@@ -777,7 +777,7 @@ struct LaughTrackComponentGallery: View {
                 }
 
                 LaughTrackSectionHeader(
-                    eyebrow: "Discovery",
+                    eyebrow: "Browse",
                     title: "Comedian card",
                     subtitle: "Avatar, metadata, and a saved-state affordance that feels native on iOS."
                 )

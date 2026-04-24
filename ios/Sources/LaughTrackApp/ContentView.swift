@@ -158,7 +158,7 @@ struct HomeView: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: theme.spacing.sm) {
                             LaughTrackBrowseChip("Near Me ready", systemImage: "location.fill", tone: .selected)
-                            LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+                            LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
                             LaughTrackBrowseChip("Favorites in profile", systemImage: "star.fill")
                         }
                         .padding(.horizontal, 1)
@@ -223,7 +223,7 @@ private struct HomeSearchEntryRail: View {
             LaughTrackShelfHeader(
                 eyebrow: "Search entry points",
                 title: "Open Search from a head start",
-                subtitle: "Pick the shape of discovery first, then refine in place."
+                subtitle: "Pick what you're browsing first, then refine in place."
             )
 
             VStack(spacing: theme.spacing.sm) {
@@ -442,7 +442,7 @@ struct SettingsView: View {
 
         return VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
             LaughTrackSectionHeader(
-                eyebrow: "Discovery",
+                eyebrow: "Browse",
                 title: "Nearby defaults",
                 subtitle: "Home and nearby results read from the same saved ZIP code and radius."
             )
@@ -489,7 +489,7 @@ struct SettingsView: View {
                         .font(laughTrack.typography.cardTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
 
-                    Text("The saved ZIP code and distance below are persisted on this device and used by the nearby discovery surfaces.")
+                    Text("The saved ZIP code and distance below are persisted on this device and used by the nearby sections.")
                         .font(laughTrack.typography.body)
                         .foregroundStyle(laughTrack.colors.textSecondary)
 
@@ -615,13 +615,13 @@ private struct SavedFavoritesSection: View {
                         LaughTrackStateView(
                             tone: .loading,
                             title: "Loading saved favorites",
-                            message: "LaughTrack is fetching your saved comedians from the live account API."
+                            message: "LaughTrack is fetching your saved comedians from your account."
                         )
                     case .empty:
                         LaughTrackStateView(
                             tone: .empty,
                             title: "No saved favorites yet",
-                            message: "Favorite a comedian from discovery or detail and it will appear here for this account."
+                            message: "Favorite a comedian anywhere in LaughTrack and it will appear here for this account."
                         )
                     case .failure(let message):
                         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
@@ -707,7 +707,7 @@ private struct SessionBannerCard: View {
                     .font(laughTrack.typography.body)
                     .foregroundStyle(laughTrack.colors.textSecondary)
                 } else {
-                    Text("Discovery stays open even when you’re signed out.")
+                    Text("Browsing stays open even when you’re signed out.")
                         .font(laughTrack.typography.cardTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
                     Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google, sync favorites, and recover quickly if sign-in is interrupted.")

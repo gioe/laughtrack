@@ -537,11 +537,11 @@ struct LaughTrackBrowseComponents_Previews: PreviewProvider {
                 LaughTrackResultRow(
                     title: "Comedy Cellar",
                     subtitle: "New York, NY",
-                    metadata: ["14 shows", "Live API"],
+                    metadata: ["14 shows", "Open tonight"],
                     systemImage: "building.2"
                 )
 
-                LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+                LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
             }
             .padding()
         }

@@ -21,7 +21,7 @@ private enum DiscoverySection: String, CaseIterable, Identifiable {
 
     var subtitle: String {
         switch self {
-        case .shows: return "Upcoming dates and live ticket CTAs."
+        case .shows: return "Upcoming dates and ticket links."
         case .comedians: return "Search talent and save favorites."
         case .clubs: return "Browse rooms and venue links."
         }
@@ -1099,7 +1099,7 @@ struct HomeNearbyDiscoverySection: View {
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
             LaughTrackSectionHeader(
                 eyebrow: "Nearby",
-                title: "Nearby discovery is paused",
+                title: "Nearby browsing is paused",
                 subtitle: "You can keep browsing nationally below, or turn nearby back on whenever you want."
             )
 
@@ -2149,7 +2149,7 @@ struct ComedianDetailView: View {
         upcomingShowCount: Int
     ) -> [DetailInfoRow] {
         [
-            DetailInfoRow(label: "Upcoming", value: upcomingShowCount == 0 ? "No live dates returned yet" : "\(upcomingShowCount) shows"),
+            DetailInfoRow(label: "Upcoming", value: upcomingShowCount == 0 ? "No upcoming dates yet" : "\(upcomingShowCount) shows"),
             DetailInfoRow(label: "Audience", value: audienceReachText(for: comedian.socialData)),
             DetailInfoRow(label: "Instagram", value: socialHandle(comedian.socialData.instagramAccount, prefix: "@")),
             DetailInfoRow(label: "TikTok", value: socialHandle(comedian.socialData.tiktokAccount, prefix: "@")),
@@ -2216,7 +2216,7 @@ struct ClubDetailView: View {
                         badges: clubHeroBadges(club: club, upcomingShowCount: content.upcomingShows.count, featuredComedianCount: content.featuredComedians.count)
                     )
 
-                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information comes directly from the live club endpoint.", rows: [
+                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information comes directly from the club.", rows: [
                         DetailInfoRow(label: "Address", value: club.address),
                         DetailInfoRow(label: "ZIP", value: club.zipCode),
                         DetailInfoRow(label: "Phone", value: club.phoneNumber)
@@ -2235,7 +2235,7 @@ struct ClubDetailView: View {
                             LaughTrackSectionHeader(
                                 eyebrow: "Upcoming shows",
                                 title: "What’s on at this room",
-                                subtitle: "Live show results are filtered to this club so you can jump straight into a date."
+                                subtitle: "Shows are filtered to this club so you can jump straight into a date."
                             )
 
                             if let relatedContentMessage = content.relatedContentMessage {
@@ -2374,7 +2374,7 @@ private struct ShowCTASection: View {
                 LaughTrackSectionHeader(
                     eyebrow: "Tickets",
                     title: show.cta.isSoldOut ? "Join the wait for the next one" : "Secure your seat",
-                    subtitle: show.cta.isSoldOut ? "This show is marked sold out, but the venue path still stays visible." : "Primary and fallback CTAs use the same branded button language as discovery."
+                    subtitle: show.cta.isSoldOut ? "This show is marked sold out, but the venue path still stays visible." : "Primary and fallback buttons use the same branded language as the rest of LaughTrack."
                 )
 
                 if let primaryURL {
@@ -2629,7 +2629,7 @@ private struct ShowFiltersPanel: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+                        LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
                         LaughTrackBrowseChip("Dense result rows", systemImage: "rectangle.grid.1x2", tone: .neutral)
                         LaughTrackBrowseChip("Nearby aware", systemImage: "location.fill", tone: .neutral)
                     }
@@ -2813,10 +2813,10 @@ private struct SearchResultsSummary: View {
     let total: Int
 
     var body: some View {
-        LaughTrackContextRow(
-            leading: "Showing \(count) of \(total)",
-            trailing: "Live"
-        )
+        Text("Showing \(count) of \(total)")
+            .font(theme.laughTrackTokens.typography.metadata)
+            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -2903,7 +2903,7 @@ private struct DiscoveryCard<Content: View>: View {
     var body: some View {
         LaughTrackCard {
             VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                LaughTrackSectionHeader(eyebrow: "Discovery", title: title)
+                LaughTrackSectionHeader(eyebrow: "Browse", title: title)
                 content
             }
         }
@@ -3344,7 +3344,7 @@ private enum DemoFixtures {
             name: "Mark Normand and Friends",
             socialData: nil,
             lineup: lineupForPrimaryShow,
-            description: "A demo lineup stitched from the generated API schema while the live backend is offline.",
+            description: "A demo lineup used for design-system previews.",
             address: "117 MacDougal St, New York, NY",
             room: "Main Room",
             imageUrl: stageImage,
