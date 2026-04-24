@@ -77,15 +77,46 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
     }
 
+    @Test("signOut() drains state to signedOut when the server returns 500")
+    @MainActor
+    func signOutClearsLocalStateEvenWhenServerReturns500() async throws {
+        let harness = try await AuthSignOutHarness.make()
+
+        // Covers the 500-specific path named in criterion 5853: the generated
+        // client decodes the response envelope and produces an .undocumented
+        // Output case (POST /auth/signout has no 5xx branch in the OpenAPI spec),
+        // which differs from the at-transport throw exercised by the sibling test.
+        await harness.transport.seed([
+            .response(status: .internalServerError, bodyJSON: #"{"error":"Server error"}"#)
+        ])
+
+        await harness.authManager.signOut()
+
+        let recorded = await harness.transport.recordedRequests
+        #expect(recorded.count == 1)
+
+        let request = try #require(recorded.first)
+        #expect(request.operationID == "signout")
+        #expect(request.headers[.authorization] == "Bearer \(harness.initialAccess)")
+
+        guard case .signedOut = harness.authManager.state else {
+            Issue.record("Expected AuthManager to be .signedOut after 500 signOut(), got \(harness.authManager.state)")
+            return
+        }
+        #expect(harness.tokenManager.retrieveAccessToken() == nil)
+        #expect(harness.tokenManager.retrieveRefreshToken() == nil)
+        #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
+    }
+
     @Test("handleUnauthorizedResponse() clears state without issuing POST /auth/signout")
     @MainActor
     func handleUnauthorizedResponseDoesNotHitSignoutEndpoint() async throws {
         let harness = try await AuthSignOutHarness.make()
 
-        // Seed nothing — any request that reaches the transport would be a
-        // test failure (the script is empty so handle() would also throw
-        // URLError(.badServerResponse), but we catch that via the count assertion
-        // below: we're proving no request left the client at all).
+        // handleUnauthorizedResponse() short-circuits before touching the apiClient
+        // at all — it only calls clearSession(). Seeding nothing and asserting
+        // recorded.isEmpty below proves that no /auth/signout request left the
+        // client, which is the invariant the path separation exists to protect.
         await harness.transport.seed([])
 
         await harness.authManager.handleUnauthorizedResponse()
@@ -127,8 +158,10 @@ private struct AuthSignOutHarness {
         let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: suiteName)!)
 
         let serverURL = URL(string: "https://test.example.com")!
-        // Disable retries so a single signout request isn't amplified by RetryMiddleware
-        // (a 5xx or transport error would otherwise be retried and inflate recorded.count).
+        // maxRetries: 0 is belt-and-suspenders — RetryMiddleware's default policy
+        // already skips POST and skips thrown transport errors, so a signout call
+        // would not retry. Pinning it here keeps the recorded-request count stable
+        // if RetryMiddleware's defaults ever broaden.
         let factory = APIClientFactory(
             serverURL: serverURL,
             retryConfiguration: .init(maxRetries: 0),
