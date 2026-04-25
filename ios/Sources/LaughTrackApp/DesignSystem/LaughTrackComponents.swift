@@ -511,6 +511,7 @@ struct LaughTrackAvatar: View {
     enum Style {
         case initials(String)
         case symbol(String)
+        case url(URL?, fallback: String)
     }
 
     let style: Style
@@ -555,6 +556,31 @@ struct LaughTrackAvatar: View {
             Image(systemName: value)
                 .font(.system(size: size * 0.4, weight: .semibold))
                 .foregroundStyle(laughTrack.colors.accentStrong)
+        case .url(let url, let fallback):
+            if let url {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: size, height: size)
+                            .clipShape(Circle())
+                    case .empty, .failure:
+                        Image(systemName: fallback)
+                            .font(.system(size: size * 0.4, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                    @unknown default:
+                        Image(systemName: fallback)
+                            .font(.system(size: size * 0.4, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                    }
+                }
+            } else {
+                Image(systemName: fallback)
+                    .font(.system(size: size * 0.4, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
         }
     }
 }

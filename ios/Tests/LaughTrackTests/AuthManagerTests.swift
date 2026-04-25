@@ -224,6 +224,113 @@ struct AuthManagerTests {
         #expect(!(await authMiddleware.hasAccessToken))
     }
 
+    @Test("restoreSession invokes loadUserRequest and publishes the returned user")
+    @MainActor
+    func restoreSessionLoadsCurrentUser() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.loadUser.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        let recorder = LoadUserRecorder()
+        let expected = AuthenticatedUser(
+            displayName: "Ada Lovelace",
+            email: "ada@example.com",
+            avatarURL: URL(string: "https://cdn.example.com/avatar.png")
+        )
+        manager.loadUserRequest = {
+            await recorder.record()
+            return expected
+        }
+
+        await manager.restoreSession()
+
+        #expect(await recorder.callCount == 1)
+        #expect(manager.currentUser == expected)
+    }
+
+    @Test("loadUserRequest failure leaves currentUser unchanged so the UI can fall back to provider info")
+    @MainActor
+    func loadUserRequestFailureKeepsPriorCurrentUser() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.loadUserFail.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        manager.loadUserRequest = {
+            throw URLError(.networkConnectionLost)
+        }
+
+        await manager.restoreSession()
+
+        #expect(manager.currentUser == nil)
+        guard case .authenticated = manager.state else {
+            Issue.record("Expected authenticated state — /me failure must not unauthenticate the session")
+            return
+        }
+    }
+
+    @Test("clearSession (sign out) resets currentUser back to nil")
+    @MainActor
+    func signOutResetsCurrentUser() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.clearUser.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        let user = AuthenticatedUser(
+            displayName: "X",
+            email: "x@example.com",
+            avatarURL: nil
+        )
+        manager.loadUserRequest = { user }
+        await manager.restoreSession()
+        #expect(manager.currentUser == user)
+
+        await manager.signOut()
+
+        #expect(manager.currentUser == nil)
+    }
+
     @Test("handleUnauthorizedResponse clears persisted auth state")
     @MainActor
     func unauthorizedResponseClearsAuth() async {
@@ -275,6 +382,14 @@ private actor SignoutRecorder {
     func record(hadAccessToken: Bool) {
         callCount += 1
         observedAccessToken = hadAccessToken
+    }
+}
+
+private actor LoadUserRecorder {
+    var callCount = 0
+
+    func record() {
+        callCount += 1
     }
 }
 

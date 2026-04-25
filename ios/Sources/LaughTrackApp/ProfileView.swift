@@ -12,6 +12,13 @@ struct ProfileView: View {
         return "Your \(providerName) account"
     }
 
+    static func heroTitle(for user: AuthenticatedUser?, provider: AuthProvider?) -> String {
+        if let displayName = user?.displayName, !displayName.isEmpty {
+            return "Welcome back, \(displayName)"
+        }
+        return heroTitle(for: provider)
+    }
+
     let apiClient: Client
     let signedOutMessage: String?
 
@@ -57,7 +64,7 @@ struct ProfileView: View {
     private func authenticatedHero(session: AuthSessionMetadata) -> some View {
         LaughTrackHeroModule(
             eyebrow: "Profile",
-            title: Self.heroTitle(for: session.provider),
+            title: Self.heroTitle(for: authManager.currentUser, provider: session.provider),
             subtitle: "Account-level controls live here. Browse defaults moved to Settings."
         )
     }
@@ -73,26 +80,41 @@ struct ProfileView: View {
     @ViewBuilder
     private func accountCard(session: AuthSessionMetadata) -> some View {
         let laughTrack = theme.laughTrackTokens
+        let user = authManager.currentUser
+        let providerSymbol = session.provider?.symbolName ?? "person.crop.circle"
+        let providerName = session.provider?.displayName ?? "Saved session"
+        let primaryName: String = {
+            if let displayName = user?.displayName, !displayName.isEmpty {
+                return displayName
+            }
+            return providerName
+        }()
 
         LaughTrackCard {
             VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
                 HStack(alignment: .top, spacing: laughTrack.spacing.itemGap) {
                     LaughTrackAvatar(
-                        style: .symbol(session.provider?.symbolName ?? "person.crop.circle")
+                        style: .url(user?.avatarURL, fallback: providerSymbol)
                     )
 
                     VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
-                        Text(session.provider?.displayName ?? "Saved session")
+                        Text(primaryName)
                             .font(laughTrack.typography.cardTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
 
-                        Text(
-                            session.expiresAt.map {
-                                "Session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
-                            } ?? "Session expiration is not available."
-                        )
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        if let email = user?.email {
+                            Text(email)
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                        } else {
+                            Text(
+                                session.expiresAt.map {
+                                    "Session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
+                                } ?? "Session expiration is not available."
+                            )
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                        }
                     }
                 }
 

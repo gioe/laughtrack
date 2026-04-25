@@ -115,6 +115,19 @@ public struct AppBootstrap {
             _ = try await apiClient.signout()
         }
 
+        authManager.loadUserRequest = { [apiClient] in
+            let response = try await apiClient.getMe()
+            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
+                return nil
+            }
+            let avatarURL = body.data.avatarUrl.flatMap { URL(string: $0) }
+            return AuthenticatedUser(
+                displayName: body.data.displayName,
+                email: body.data.email,
+                avatarURL: avatarURL
+            )
+        }
+
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
     }
 }

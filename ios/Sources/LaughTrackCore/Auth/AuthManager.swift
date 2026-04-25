@@ -14,8 +14,10 @@ public final class AuthManager: ObservableObject {
     }
 
     public typealias SignoutRequest = @Sendable () async throws -> Void
+    public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
 
     @Published public private(set) var state: State = .restoring
+    @Published public private(set) var currentUser: AuthenticatedUser?
 
     public var currentSession: AuthSessionMetadata? {
         guard case .authenticated(let session) = state else { return nil }
@@ -27,6 +29,10 @@ public final class AuthManager: ObservableObject {
     // middlewares capture authManager). Left nil in tests that don't exercise
     // the server sign-out path.
     public var signoutRequest: SignoutRequest?
+
+    // Bound after construction for the same reason as signoutRequest. Calls
+    // /v1/me to fetch the user's real display name, email, and avatar URL.
+    public var loadUserRequest: LoadUserRequest?
 
     private let tokenManager: AuthTokenManager
     private let authMiddleware: AuthenticationMiddleware
@@ -86,6 +92,18 @@ public final class AuthManager: ObservableObject {
         )
 
         state = .authenticated(storedSession)
+        await refreshCurrentUser()
+    }
+
+    public func refreshCurrentUser() async {
+        guard let loadUserRequest else { return }
+        do {
+            currentUser = try await loadUserRequest()
+        } catch {
+            Self.logger.error(
+                "/v1/me fetch failed; keeping prior currentUser: \(String(describing: error), privacy: .public)"
+            )
+        }
     }
 
     public func signIn(with provider: AuthProvider) async {
@@ -147,6 +165,7 @@ public final class AuthManager: ObservableObject {
             )
             appStateStorage.setValue(metadata, forKey: StorageKey.sessionMetadata)
             state = .authenticated(metadata)
+            await refreshCurrentUser()
         } catch {
             await authMiddleware.clearTokens()
             state = .signedOut(message: "LaughTrack couldn’t save your session securely. Please try again.")
@@ -162,6 +181,7 @@ public final class AuthManager: ObservableObject {
 
         await authMiddleware.clearTokens()
         appStateStorage.removeValue(forKey: StorageKey.sessionMetadata)
+        currentUser = nil
         state = .signedOut(message: message)
     }
 
