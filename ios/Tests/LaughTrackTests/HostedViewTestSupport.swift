@@ -81,8 +81,12 @@ enum LaughTrackHostedViewTestSupport {
             oauthSessionRunner: MockOAuthSessionRunner()
         )
 
-        let token = makeAccessToken(expiresAt: expiresAt)
-        try? tokenManager.storeTokens(accessToken: token, refreshToken: token)
+        let accessToken = makeAccessToken(expiresAt: expiresAt)
+        // AuthManager.restoreSession (post-TASK-1724) clears the session when access ==
+        // refresh, treating it as a pre-rotation install. Use distinct tokens so the
+        // restored state is .authenticated, not .signedOut.
+        let refreshToken = makeAccessToken(expiresAt: expiresAt.addingTimeInterval(60))
+        try? tokenManager.storeTokens(accessToken: accessToken, refreshToken: refreshToken)
         appStateStorage.setValue(
             AuthSessionMetadata(
                 provider: provider,
@@ -162,14 +166,29 @@ private final class InMemorySecureStorage: SecureStorageProtocol {
 
 @MainActor
 final class HostedView {
+    // Under iOS 26 / Xcode 26, only the *first* UIWindow that calls `makeKeyAndVisible`
+    // in a test process reliably wires SwiftUI's accessibility tree onto its hosting
+    // controller's UIView hierarchy. Subsequent fresh windows render visually but the
+    // accessibility identifiers and accessibility-element children never appear under
+    // UIView traversal — every assertion that depends on those reads then fails.
+    // Reuse the same UIWindow across tests, swapping in a fresh UIHostingController
+    // each time so each test gets an isolated SwiftUI environment but the accessibility
+    // wiring stays put.
+    private static var sharedWindow: UIWindow?
+
     private let window: UIWindow
     private let hostingController: UIHostingController<AnyView>
 
     init<Content: View>(_ rootView: Content) {
-        window = UIWindow(frame: UIScreen.main.bounds)
+        if let existingWindow = HostedView.sharedWindow {
+            window = existingWindow
+        } else {
+            window = UIWindow(frame: UIScreen.main.bounds)
+            HostedView.sharedWindow = window
+            window.makeKeyAndVisible()
+        }
         hostingController = UIHostingController(rootView: AnyView(rootView))
         window.rootViewController = hostingController
-        window.makeKeyAndVisible()
         render()
     }
 
@@ -184,15 +203,17 @@ final class HostedView {
         findView(in: hostingController.view, withIdentifier: identifier)
     }
 
+    @discardableResult
     func requireView(withIdentifier identifier: String) throws -> UIView {
         try waitUntil("Missing view with accessibility identifier '\(identifier)'") {
             findView(withIdentifier: identifier)
         }
     }
 
-    func requireLabel(_ text: String) throws -> UILabel {
+    @discardableResult
+    func requireLabel(_ text: String) throws -> UIView {
         try waitUntil("Missing label with text '\(text)'") {
-            findLabel(in: hostingController.view, text: text)
+            findText(in: hostingController.view, text: text)
         }
     }
 
@@ -242,22 +263,16 @@ final class HostedView {
             return root
         }
 
-        for subview in root.subviews {
-            if let match = findView(in: subview, withIdentifier: identifier) {
-                return match
+        if let elements = root.accessibilityElements {
+            for element in elements {
+                if (element as AnyObject).accessibilityIdentifier == identifier {
+                    return (element as? UIView) ?? root
+                }
             }
         }
 
-        return nil
-    }
-
-    private func findLabel(in root: UIView, text: String) -> UILabel? {
-        if let label = root as? UILabel, label.text == text {
-            return label
-        }
-
         for subview in root.subviews {
-            if let match = findLabel(in: subview, text: text) {
+            if let match = findView(in: subview, withIdentifier: identifier) {
                 return match
             }
         }
@@ -281,6 +296,18 @@ final class HostedView {
 
         if root.accessibilityLabel == text {
             return root
+        }
+
+        // SwiftUI on iOS 26 exposes Text() and Button labels through synthetic
+        // accessibility elements attached to a parent UIView's accessibilityElements
+        // array — they are not rendered as UILabel / UIButton subviews. Each synthetic
+        // element's accessibilityLabel carries the visible text.
+        if let elements = root.accessibilityElements {
+            for element in elements {
+                if (element as AnyObject).accessibilityLabel == text {
+                    return (element as? UIView) ?? root
+                }
+            }
         }
 
         for subview in root.subviews {

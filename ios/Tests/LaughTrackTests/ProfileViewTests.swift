@@ -5,7 +5,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("Profile view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Profile view")
 @MainActor
 struct ProfileViewTests {
     @Test("signed-out profile shows the sign-in CTA and a Settings link")

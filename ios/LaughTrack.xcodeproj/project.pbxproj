@@ -117,6 +117,7 @@
 		DF7B126737E6860FED878A59 /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = F6CD43913E8654A6A6A90389 /* SharedKit */; };
 		E2889930BEDFE54F911EC6D1 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8510FB22DBE58FC68078455A /* AppBootstrap.swift */; };
 		E3DDB8037254DC0B356EBBEB /* NearbyLocationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498BFB68E6063E822195D27C /* NearbyLocationController.swift */; };
+		E53D9089F62B10F23F0FEE0F /* AuthenticatedUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */; };
 		E566D7C39CD2A4613F1625A2 /* TokenRefreshMiddlewareIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3700564FAB149798B936D4CC /* TokenRefreshMiddlewareIntegrationTests.swift */; };
 		E719E86933DE95517DEC247A /* ContentViewNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BDD51643814940674250AA /* ContentViewNavigationTests.swift */; };
 		E86AD6D732F103EEFEDE11C2 /* AppShellViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A193324FDADD4539F7514E44 /* AppShellViewTests.swift */; };
@@ -243,6 +244,7 @@
 		1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPreferenceStoreTests.swift; sourceTree = "<group>"; };
 		20552640F544D4395DE585B7 /* LaughTrackBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E3FEC26FAACA575C943CBF /* SearchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootView.swift; sourceTree = "<group>"; };
+		23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedUser.swift; sourceTree = "<group>"; };
 		253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryView.swift; sourceTree = "<group>"; };
 		281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackApp.swift; sourceTree = "<group>"; };
 		2999A21D7D46B9697EEAB62F /* HomeSearchEntryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeSearchEntryCard.swift; sourceTree = "<group>"; };
@@ -492,6 +494,7 @@
 		45B8672F75E839F8520DD760 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */,
 				427388AED0335B0C7AC80040 /* AuthManager.swift */,
 				613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */,
 				585D8619C93C9C77641450CD /* AuthRouteConfiguration.swift */,
@@ -931,6 +934,7 @@
 				6345F1EA9EAEA2507D01175F /* AuthManager.swift in Sources */,
 				03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */,
 				79980C10F2F4DC91F9EAED6E /* AuthRouteConfiguration.swift in Sources */,
+				E53D9089F62B10F23F0FEE0F /* AuthenticatedUser.swift in Sources */,
 				34EBD60458D84264A2254D4D /* ComedianFavoriteStore.swift in Sources */,
 				F3010080CDE3E66A512F6423 /* CurrentLocationZipResolver.swift in Sources */,
 				2FDC04B26C9E078C0855E7FF /* LaughTrackCacheKey.swift in Sources */,
