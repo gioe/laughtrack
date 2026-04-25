@@ -25,8 +25,6 @@ _BASE_SHOW_ROW = {
     "name": "Tuesday Night Comedy",
     "club_id": 7,
     "club_name": "Test Comedy Club",
-    "scraper": "test_scraper",
-    "scraping_url": "https://example.com",
     "address": "123 Main St",
     "website": "https://example.com",
     "popularity": 50,
@@ -36,13 +34,23 @@ _BASE_SHOW_ROW = {
     "visible": True,
     "city": "New York",
     "state": "NY",
-    "eventbrite_id": None,
-    "ticketmaster_id": None,
-    "seatengine_id": None,
     "status": "active",
     "rate_limit": 1.0,
     "max_retries": 3,
     "timeout": 30,
+    "scraping_sources": [
+        {
+            "id": 1,
+            "club_id": 7,
+            "platform": "custom",
+            "scraper_key": "test_scraper",
+            "external_id": None,
+            "source_url": "https://example.com",
+            "priority": 0,
+            "enabled": True,
+            "metadata": {},
+        }
+    ],
 }
 
 
@@ -187,7 +195,7 @@ class TestAuditShowErrorCases:
     def test_club_missing_scraper_exits_1(self, capsys):
         """When the club has no scraper configured, sys.exit(1) is raised."""
         show_row = dict(_BASE_SHOW_ROW)
-        show_row["scraper"] = None
+        show_row["scraping_sources"] = []
 
         ctx = _make_conn(show_row, ["Alice"])
         with patch("laughtrack.app.commands.audit_show.db") as mock_db:
