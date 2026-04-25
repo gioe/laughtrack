@@ -2,18 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { SearchParams } from "@/objects/interface";
-import {
-    checkRateLimit,
-    getClientIp,
-    RATE_LIMITS,
-    rateLimitHeaders,
-    rateLimitResponse,
-} from "@/lib/rateLimit";
+import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
 
 export async function GET(req: NextRequest) {
+    const rl = await applyPublicReadRateLimit(req, "shows");
+    if (rl instanceof NextResponse) return rl;
+
     const searchParams = req.nextUrl.searchParams;
 
     const zip = searchParams.get("zip");
@@ -72,23 +69,8 @@ export async function GET(req: NextRequest) {
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
 
     try {
-        // resolveAuth handles both Bearer token (iOS) and session cookie auth,
-        // so the rate-limit tier correctly reflects the caller's identity.
         const rawAuthCtx = await resolveAuth(req);
-        // Treat PROFILE_MISSING as anonymous — shows route works without auth
         const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
-
-        const isAuthenticated = authCtx !== null;
-        const rateLimitKey = isAuthenticated
-            ? `shows:auth:${authCtx.profileId}`
-            : `shows:anon:${getClientIp(req)}`;
-        const rl = await checkRateLimit(
-            rateLimitKey,
-            isAuthenticated
-                ? RATE_LIMITS.publicReadAuth
-                : RATE_LIMITS.publicRead,
-        );
-        if (!rl.allowed) return rateLimitResponse(rl);
 
         const result = await getSearchedShows({
             params,
