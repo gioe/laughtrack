@@ -155,6 +155,49 @@
         }
       }
     },
+    "/me": {
+      "get": {
+        "operationId": "getMe",
+        "summary": "Get the authenticated user's identity (display name, email, avatar URL)",
+        "description": "Returns the User row backing the access token. iOS clients use this to render real account info on the Profile tab instead of the OAuth provider stub.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/clubs": {
       "get": {
         "operationId": "listClubs",
@@ -1007,6 +1050,33 @@
           "revoked": {
             "type": "integer",
             "description": "Number of refresh tokens that were revoked."
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/MeData" }
+        }
+      },
+      "MeData": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "User-facing display name from OAuth (User.name). May be null if the provider didn't supply one."
+          },
+          "email": {
+            "type": "string",
+            "description": "Unique email address (User.email)."
+          },
+          "avatar_url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Avatar/profile photo URL from OAuth (User.image). May be null."
           }
         }
       },

@@ -32,6 +32,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /auth/signout`.
     /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
     func signout(_ input: Operations.Signout.Input) async throws -> Operations.Signout.Output
+    /// Get the authenticated user's identity (display name, email, avatar URL)
+    ///
+    /// Returns the User row backing the access token. iOS clients use this to render real account info on the Profile tab instead of the OAuth provider stub.
+    ///
+    /// - Remark: HTTP `GET /me`.
+    /// - Remark: Generated from `#/paths//me/get(getMe)`.
+    func getMe(_ input: Operations.GetMe.Input) async throws -> Operations.GetMe.Output
     /// List active clubs with upcoming shows
     ///
     /// - Remark: HTTP `GET /clubs`.
@@ -130,6 +137,15 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//auth/signout/post(signout)`.
     public func signout(headers: Operations.Signout.Input.Headers = .init()) async throws -> Operations.Signout.Output {
         try await signout(Operations.Signout.Input(headers: headers))
+    }
+    /// Get the authenticated user's identity (display name, email, avatar URL)
+    ///
+    /// Returns the User row backing the access token. iOS clients use this to render real account info on the Profile tab instead of the OAuth provider stub.
+    ///
+    /// - Remark: HTTP `GET /me`.
+    /// - Remark: Generated from `#/paths//me/get(getMe)`.
+    public func getMe(headers: Operations.GetMe.Input.Headers = .init()) async throws -> Operations.GetMe.Output {
+        try await getMe(Operations.GetMe.Input(headers: headers))
     }
     /// List active clubs with upcoming shows
     ///
@@ -393,6 +409,56 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case revoked
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/MeResponse`.
+        public struct MeResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MeResponse/data`.
+            public var data: Components.Schemas.MeData
+            /// Creates a new `MeResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.MeData) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/MeData`.
+        public struct MeData: Codable, Hashable, Sendable {
+            /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/display_name`.
+            public var displayName: Swift.String?
+            /// Unique email address (User.email).
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/email`.
+            public var email: Swift.String
+            /// Avatar/profile photo URL from OAuth (User.image). May be null.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/avatar_url`.
+            public var avatarUrl: Swift.String?
+            /// Creates a new `MeData`.
+            ///
+            /// - Parameters:
+            ///   - displayName: User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
+            ///   - email: Unique email address (User.email).
+            ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
+            public init(
+                displayName: Swift.String? = nil,
+                email: Swift.String,
+                avatarUrl: Swift.String? = nil
+            ) {
+                self.displayName = displayName
+                self.email = email
+                self.avatarUrl = avatarUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case displayName = "display_name"
+                case email
+                case avatarUrl = "avatar_url"
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.
@@ -2318,6 +2384,271 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.tooManyRequests`.
             /// - SeeAlso: `.tooManyRequests`.
             public var tooManyRequests: Operations.Signout.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get the authenticated user's identity (display name, email, avatar URL)
+    ///
+    /// Returns the User row backing the access token. iOS clients use this to render real account info on the Profile tab instead of the OAuth provider stub.
+    ///
+    /// - Remark: HTTP `GET /me`.
+    /// - Remark: Generated from `#/paths//me/get(getMe)`.
+    public enum GetMe {
+        public static let id: Swift.String = "getMe"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetMe.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetMe.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetMe.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetMe.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MeResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.MeResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMe.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMe.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile
+            ///
+            /// - Remark: Generated from `#/paths//me/get(getMe)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetMe.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetMe.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMe.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMe.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/get(getMe)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetMe.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetMe.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMe.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMe.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/get(getMe)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetMe.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetMe.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetMe.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetMe.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/get(getMe)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetMe.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetMe.Output.TooManyRequests {
                 get throws {
                     switch self {
                     case let .tooManyRequests(response):
