@@ -8,6 +8,7 @@ Checks the tusk codebase against Key Conventions from CLAUDE.md.
 Prints results grouped by rule and exits with status 1 if any violations found.
 """
 
+import ast
 import json
 import os
 import re
@@ -517,7 +518,7 @@ def rule12_python_syntax(root):
         try:
             result = subprocess.run(
                 ["python3", "-m", "py_compile", full],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True, text=True, encoding="utf-8", timeout=5,
             )
             if result.returncode != 0:
                 err = result.stderr.strip()
@@ -605,7 +606,7 @@ def _version_bump_check(root, path_re, label):
     try:
         r = subprocess.run(
             ["git", "rev-parse", "--git-dir"],
-            capture_output=True, text=True, timeout=5, cwd=root,
+            capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
         )
         if r.returncode != 0:
             return []
@@ -625,7 +626,7 @@ def _version_bump_check(root, path_re, label):
     try:
         r = subprocess.run(
             ["git", "status", "--porcelain"],
-            capture_output=True, text=True, timeout=5, cwd=root,
+            capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
         )
         if r.returncode == 0:
             for line in r.stdout.splitlines():
@@ -655,13 +656,13 @@ def _version_bump_check(root, path_re, label):
         try:
             r = subprocess.run(
                 ["git", "log", "-1", "--format=%H", "--", "VERSION"],
-                capture_output=True, text=True, timeout=5, cwd=root,
+                capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
             )
             last_ver_commit = r.stdout.strip() if r.returncode == 0 else ""
             if last_ver_commit:
                 r2 = subprocess.run(
                     ["git", "diff", "--name-only", f"{last_ver_commit}..HEAD"],
-                    capture_output=True, text=True, timeout=5, cwd=root,
+                    capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
                 )
                 if r2.returncode == 0:
                     changed = r2.stdout.splitlines()
@@ -773,7 +774,7 @@ def _db_path_from_root(root):
     if not os.path.isfile(tusk_bin):
         tusk_bin = "tusk"
     try:
-        r = subprocess.run([tusk_bin, "path"], capture_output=True, text=True, timeout=5)
+        r = subprocess.run([tusk_bin, "path"], capture_output=True, text=True, encoding="utf-8", timeout=5)
         if r.returncode == 0:
             p = r.stdout.strip()
             if p and os.path.isfile(p):
@@ -824,7 +825,7 @@ def _run_lint_rules(root, rules):
             try:
                 result = subprocess.run(
                     ["grep", "-nE", pattern, filepath],
-                    capture_output=True, text=True, timeout=5,
+                    capture_output=True, text=True, encoding="utf-8", timeout=5,
                 )
                 if result.returncode == 0:
                     rel = os.path.relpath(filepath, root)
@@ -992,6 +993,75 @@ def rule23_claude_md_size(root):
     ]
 
 
+def rule24_subprocess_encoding(root):
+    """subprocess.run/check_output/Popen/check_call/call with text=True (or
+    universal_newlines=True) must also pass encoding='utf-8'.
+
+    Convention 25 — omitting encoding falls back to locale.getpreferredencoding(),
+    which raises UnicodeDecodeError on non-UTF-8 systems when output contains
+    non-ASCII bytes (e.g. emoji in git commit messages).
+
+    Source-repo guard: only scans bin/tusk-*.py inside the tusk source repo.
+    """
+    if not os.path.isfile(os.path.join(root, "bin", "tusk")):
+        return []
+
+    bin_dir = os.path.join(root, "bin")
+    if not os.path.isdir(bin_dir):
+        return []
+
+    try:
+        scripts = sorted(
+            f for f in os.listdir(bin_dir)
+            if re.match(r"^tusk-.+\.py$", f)
+        )
+    except OSError:
+        return []
+
+    violations = []
+    for script in scripts:
+        full = os.path.join(bin_dir, script)
+        rel = os.path.relpath(full, root)
+        try:
+            with open(full, encoding="utf-8") as f:
+                source = f.read()
+            tree = ast.parse(source, filename=full)
+        except (OSError, SyntaxError):
+            continue
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            if not (isinstance(func, ast.Attribute)
+                    and isinstance(func.value, ast.Name)
+                    and func.value.id == "subprocess"
+                    and func.attr in ("run", "check_output", "Popen", "check_call", "call")):
+                continue
+            kwargs = {kw.arg: kw for kw in node.keywords if kw.arg}
+            text_kw = kwargs.get("text")
+            un_kw = kwargs.get("universal_newlines")
+            trigger_kw = None
+            trigger_name = None
+            if text_kw is not None and isinstance(text_kw.value, ast.Constant) and text_kw.value.value is True:
+                trigger_kw = text_kw
+                trigger_name = "text=True"
+            elif un_kw is not None and isinstance(un_kw.value, ast.Constant) and un_kw.value.value is True:
+                trigger_kw = un_kw
+                trigger_name = "universal_newlines=True"
+            if trigger_kw is None:
+                continue
+            if "encoding" in kwargs:
+                continue
+            lineno = trigger_kw.value.lineno
+            violations.append(
+                f"  {rel}:{lineno}: subprocess.{func.attr}({trigger_name}) without encoding='utf-8' "
+                f"(Convention 25)"
+            )
+
+    return violations
+
+
 # Each entry: (display_name, check_function, advisory)
 # advisory=True  → violations are printed but do NOT count toward exit code
 # advisory=False → violations count toward the non-zero exit code
@@ -1019,6 +1089,7 @@ RULES = [
     ("Rule 21: Skill files with multiple trailing newlines", rule21_skills_trailing_newlines, False),
     ("Rule 22: Issue tasks missing a test-type criterion (advisory)", rule22_issue_tasks_missing_test_criterion, True),
     ("Rule 23: CLAUDE.md exceeds line limit (advisory)", rule23_claude_md_size, True),
+    ("Rule 24: subprocess.run/check_output/Popen text=True without encoding", rule24_subprocess_encoding, False),
 ]
 
 # Load project-specific rules from tusk-lint-extra.py if it exists alongside this script.
