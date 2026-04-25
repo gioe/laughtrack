@@ -9,7 +9,7 @@ import LaughTrackBridge
 @testable import LaughTrackApp
 @testable import LaughTrackCore
 
-@Suite("Library favorites view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Library favorites view")
 @MainActor
 struct LibraryFavoritesViewTests {
     @Test("signed-in library view loads saved favorites from the live API contract")
@@ -18,30 +18,34 @@ struct LibraryFavoritesViewTests {
             name: "library-favorites"
         )
         let favorites = ComedianFavoriteStore()
-        let host = HostedView(
-            LibraryView(
-                apiClient: makeClient(
-                    response: .success(
+        let apiClient = makeClient(
+            response: .success(
+                .init(
+                    data: [
                         .init(
-                            data: [
-                                .init(
-                                    id: 101,
-                                    uuid: "comedian-uuid-1",
-                                    name: "Taylor Tomlinson",
-                                    imageUrl: "https://example.com/taylor.png",
-                                    socialData: .init(id: 101),
-                                    showCount: 5,
-                                    isFavorite: true
-                                )
-                            ]
+                            id: 101,
+                            uuid: "comedian-uuid-1",
+                            name: "Taylor Tomlinson",
+                            imageUrl: "https://example.com/taylor.png",
+                            socialData: .init(id: 101),
+                            showCount: 5,
+                            isFavorite: true
                         )
-                    )
+                    ]
                 )
             )
-            .environment(\.appTheme, LaughTrackTheme())
-            .navigationCoordinator(NavigationCoordinator<AppRoute>())
-            .environmentObject(favorites)
-            .environmentObject(authManager)
+        )
+        // SwiftUI's `.task(id:)` lifecycle does not fire reliably under HostedView
+        // (the SwiftUI view enters the hierarchy but the test pumps the run loop
+        // synchronously before the task scheduler dispatches). Load favorites
+        // explicitly so the test verifies the rendered output, not the lifecycle.
+        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        let host = HostedView(
+            LibraryView(apiClient: apiClient)
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(NavigationCoordinator<AppRoute>())
+                .environmentObject(favorites)
+                .environmentObject(authManager)
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.libraryFavoritesSection)

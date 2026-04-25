@@ -294,17 +294,20 @@ final class HostedView {
             }
         }
 
-        if root.accessibilityLabel == text {
+        if Self.accessibilityLabel(root.accessibilityLabel, contains: text) {
             return root
         }
 
         // SwiftUI on iOS 26 exposes Text() and Button labels through synthetic
         // accessibility elements attached to a parent UIView's accessibilityElements
-        // array — they are not rendered as UILabel / UIButton subviews. Each synthetic
-        // element's accessibilityLabel carries the visible text.
+        // array — they are not rendered as UILabel / UIButton subviews. Buttons that
+        // wrap multiple Text() children produce a single comma-joined accessibility
+        // label (e.g. "Taylor Tomlinson, 5 tracked show appearances"), so match the
+        // requested text against any comma-separated phrase as well as the whole label.
         if let elements = root.accessibilityElements {
             for element in elements {
-                if (element as AnyObject).accessibilityLabel == text {
+                let label = (element as AnyObject).accessibilityLabel as String?
+                if Self.accessibilityLabel(label, contains: text) {
                     return (element as? UIView) ?? root
                 }
             }
@@ -317,6 +320,12 @@ final class HostedView {
         }
 
         return nil
+    }
+
+    private static func accessibilityLabel(_ label: String?, contains text: String) -> Bool {
+        guard let label else { return false }
+        if label == text { return true }
+        return label.split(separator: ",").contains { $0.trimmingCharacters(in: .whitespaces) == text }
     }
 }
 #endif
