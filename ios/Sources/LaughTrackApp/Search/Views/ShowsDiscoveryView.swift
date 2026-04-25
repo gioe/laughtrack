@@ -99,7 +99,7 @@ struct ShowsDiscoveryView: View {
     }
 }
 
-struct ShowFiltersPanel: View {
+private struct ShowFiltersPanel: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var model: ShowsDiscoveryModel
@@ -235,7 +235,7 @@ struct ShowFiltersPanel: View {
     }
 }
 
-struct ShowsSearchMeta: View {
+private struct ShowsSearchMeta: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var model: ShowsDiscoveryModel
@@ -294,7 +294,7 @@ struct ShowsSearchMeta: View {
     }
 }
 
-struct CurrentLocationButton: View {
+private struct CurrentLocationButton: View {
     let isLoading: Bool
     let action: () async -> Void
 

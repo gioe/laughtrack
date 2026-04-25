@@ -1,7 +1,7 @@
 import Foundation
 import LaughTrackAPIClient
 
-enum DemoFixtures {
+private enum DemoFixtures {
     static let primarySocial = Components.Schemas.SocialData(
         id: 500,
         instagramAccount: "marknormand",
