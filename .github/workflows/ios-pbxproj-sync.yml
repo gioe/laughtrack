@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "ios/Sources/**/*.swift"
+      - "ios/Tests/**/*.swift"
       - "ios/LaughTrack.xcodeproj/project.pbxproj"
       - "ios/bin/check-pbxproj-sync.sh"
       - ".github/workflows/ios-pbxproj-sync.yml"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "ios/Sources/**/*.swift"
+      - "ios/Tests/**/*.swift"
       - "ios/LaughTrack.xcodeproj/project.pbxproj"
       - "ios/bin/check-pbxproj-sync.sh"
       - ".github/workflows/ios-pbxproj-sync.yml"
@@ -23,5 +25,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify every ios/Sources/**/*.swift is wired into project.pbxproj
+      - name: Verify every ios/Sources/**/*.swift and ios/Tests/**/*.swift is wired into project.pbxproj
         run: ios/bin/check-pbxproj-sync.sh
