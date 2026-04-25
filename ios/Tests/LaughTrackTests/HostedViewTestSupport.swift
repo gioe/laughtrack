@@ -120,6 +120,44 @@ enum LaughTrackHostedViewTestSupport {
     }
 }
 
+/// Decode the routes currently in a NavigationCoordinator's path. Returns nil
+/// when the path is empty or contains a non-Codable element. NavigationPath
+/// erases element types, so reading the pushed *routes* (not just the depth)
+/// requires round-tripping through NavigationPath.codable. NavigationCoordinator
+/// is not `open`, so subclassing for interception isn't an option.
+@MainActor
+func decodedRoutes<Route: Hashable & Codable>(
+    in coordinator: NavigationCoordinator<Route>,
+    as type: Route.Type = Route.self
+) throws -> [Route] {
+    guard let codable = coordinator.path.codable else { return [] }
+    let data = try JSONEncoder().encode(codable)
+    // NavigationPath.CodableRepresentation encodes as a flat JSON array shaped
+    // [<typeName1>, <jsonElement1>, <typeName2>, <jsonElement2>, ...] in REVERSE
+    // push order. Each pair is one route encoded as a JSON string of its type
+    // followed by a JSON string of its Codable representation.
+    guard
+        let raw = try JSONSerialization.jsonObject(with: data) as? [String]
+    else { return [] }
+
+    let decoder = JSONDecoder()
+    var routes: [Route] = []
+    var index = raw.count - 1
+    while index > 0 {
+        let elementJSON = raw[index]
+        guard
+            let elementData = elementJSON.data(using: .utf8),
+            let route = try? decoder.decode(Route.self, from: elementData)
+        else {
+            index -= 2
+            continue
+        }
+        routes.append(route)
+        index -= 2
+    }
+    return routes
+}
+
 @MainActor
 final class StubNearbyLocationResolver: NearbyLocationResolving {
     func requestCurrentZip() async throws -> String {
@@ -179,15 +217,20 @@ final class HostedView {
     private let window: UIWindow
     private let hostingController: UIHostingController<AnyView>
 
-    init<Content: View>(_ rootView: Content) {
+    init<Content: View>(_ rootView: Content, freshWindow: Bool = false) {
+        // The shared-window default fixes the iOS 26 accessibility-tree wiring
+        // problem (see class doc above). The `freshWindow` opt-out is for tests
+        // that drive a SwiftUI `.toolbar` modifier through NavigationStack:
+        // replacing the rootViewController on a recycled window leaves SwiftUI's
+        // toolbar host wired to the previous controller, so the new toolbar
+        // never installs and `accessibilityActivate()` on the fresh button
+        // returns false.
+        if freshWindow {
+            HostedView.sharedWindow?.isHidden = true
+            HostedView.sharedWindow = nil
+        }
         if let existingWindow = HostedView.sharedWindow {
             window = existingWindow
-            // Clear the previous rootViewController and let the run loop drain its
-            // teardown (toolbar registries, etc.) before the next controller mounts.
-            // Without this, a fresh NavigationStack inside a fresh AppShellView
-            // sometimes inherits a stale empty toolbar from the prior test.
-            window.rootViewController = nil
-            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
         } else {
             window = UIWindow(frame: UIScreen.main.bounds)
             HostedView.sharedWindow = window
@@ -277,7 +320,7 @@ final class HostedView {
         if let elements = root.accessibilityElements {
             for element in elements {
                 if (element as AnyObject).accessibilityIdentifier == identifier {
-                    _ = (element as AnyObject).accessibilityActivate()
+                    _ = (element as AnyObject).accessibilityActivate?()
                     return true
                 }
             }

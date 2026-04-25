@@ -1,4 +1,4 @@
-enum AppRoute: Hashable {
+enum AppRoute: Hashable, Codable {
     case home
     case search
     case library
