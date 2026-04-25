@@ -31,9 +31,9 @@ enum LaughTrackHostedViewTestSupport {
 
     static func makeNearbyLocationController(
         store: NearbyPreferenceStore,
-        resolver: any NearbyLocationResolving = StubNearbyLocationResolver()
+        resolver: (any NearbyLocationResolving)? = nil
     ) -> NearbyLocationController {
-        NearbyLocationController(store: store, resolver: resolver)
+        NearbyLocationController(store: store, resolver: resolver ?? StubNearbyLocationResolver())
     }
 
     static func makeServiceContainer(name: String) -> ServiceContainer {
@@ -196,6 +196,13 @@ final class HostedView {
         }
     }
 
+    @discardableResult
+    func requireText(_ text: String) throws -> UIView {
+        try waitUntil("Missing text '\(text)'") {
+            findText(in: hostingController.view, text: text)
+        }
+    }
+
     func tapControl(withIdentifier identifier: String) throws {
         let view = try requireView(withIdentifier: identifier)
         guard
@@ -222,7 +229,7 @@ final class HostedView {
             }
             pumpRunLoop()
         }
-        Issue.record(message)
+        Issue.record("\(message)")
         throw NSError(domain: "HostedView", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
     }
 
@@ -251,6 +258,33 @@ final class HostedView {
 
         for subview in root.subviews {
             if let match = findLabel(in: subview, text: text) {
+                return match
+            }
+        }
+
+        return nil
+    }
+
+    private func findText(in root: UIView, text: String) -> UIView? {
+        if let label = root as? UILabel, label.text == text {
+            return label
+        }
+
+        if let button = root as? UIButton {
+            if button.titleLabel?.text == text {
+                return button
+            }
+            if #available(iOS 15.0, *), button.configuration?.title == text {
+                return button
+            }
+        }
+
+        if root.accessibilityLabel == text {
+            return root
+        }
+
+        for subview in root.subviews {
+            if let match = findText(in: subview, text: text) {
                 return match
             }
         }

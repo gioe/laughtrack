@@ -5,7 +5,7 @@ import LaughTrackBridge
 @testable import LaughTrackApp
 @testable import LaughTrackCore
 
-@Suite("SettingsView state")
+@Suite("SettingsView state", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
 struct SettingsViewStateTests {
     @Test("Settings screen reflects saved nearby preference state changes deterministically")

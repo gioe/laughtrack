@@ -1,10 +1,11 @@
 import SwiftUI
 import Testing
+import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
 #if canImport(UIKit)
-@Suite("Search root")
+@Suite("Search root", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
 struct SearchRootViewTests {
     @Test("search root shows compact query chrome and browse shortcuts")

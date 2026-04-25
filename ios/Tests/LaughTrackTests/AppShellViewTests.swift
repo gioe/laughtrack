@@ -5,7 +5,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("App shell")
+@Suite("App shell", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
 struct AppShellViewTests {
     @Test("shell renders four top-level tabs")

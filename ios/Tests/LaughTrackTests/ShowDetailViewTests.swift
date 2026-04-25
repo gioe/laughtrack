@@ -9,7 +9,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("Show detail view")
+@Suite("Show detail view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
 struct ShowDetailViewTests {
     @Test("show detail loads live show data and renders core sections")

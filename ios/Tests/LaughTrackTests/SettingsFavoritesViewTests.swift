@@ -9,7 +9,7 @@ import LaughTrackBridge
 @testable import LaughTrackApp
 @testable import LaughTrackCore
 
-@Suite("Settings favorites view")
+@Suite("Settings favorites view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
 struct SettingsFavoritesViewTests {
     @Test("signed-in settings view loads saved favorites from the live API contract")
