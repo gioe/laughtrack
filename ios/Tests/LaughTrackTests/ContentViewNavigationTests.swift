@@ -28,12 +28,18 @@ struct ContentViewNavigationTests {
 
     @Test("Settings entry point from home pushes the expected navigation intent")
     func homeSettingsButtonPushesSettingsRoute() async throws {
+        // The HomeView toolbar button's action calls
+        //   coordinator.push(AppRoute.homeToolbarTarget(isSignedIn: ...))
+        // (see Home/Views/HomeView.swift). Two assertions together cover the
+        // production wiring without depending on iOS 26's flaky toolbar
+        // accessibility activation:
+        //   1. the toolbar button is mounted with the expected accessibility id,
+        //   2. the route resolver returns `.settings` when signed-in (and
+        //      `.profile` when signed-out).
+        // If a regression changes either the action's resolver or the resolver's
+        // logic, one of the two assertions catches it.
         let coordinator = NavigationCoordinator<AppRoute>()
-        // The home toolbar button pushes `.profile` when signed-out and `.settings`
-        // when signed-in (HomeView toolbar action: see Home/Views/HomeView.swift).
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "home-view")
-        // Mount the actual HomeView so the toolbar button's existence and accessibility
-        // identifier are still verified.
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home")
         let host = HostedView(
             NavigationStack {
@@ -52,26 +58,15 @@ struct ContentViewNavigationTests {
         await host.settle()
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeSettingsButton)
 
-        // SwiftUI .toolbar items don't activate reliably via accessibility under
-        // HostedView once the test process has hosted other controllers — see
-        // HostedView.init's freshWindow doc. Replicate the production button action
-        // (HomeView.swift: `coordinator.push(authManager.currentSession == nil ?
-        // .profile : .settings)`) by pushing onto the same path.
-        //
-        // We deliberately call `path.append(_:)` directly instead of
-        // `coordinator.push(_:)` — NavigationCoordinator is constrained
-        // `Route: Hashable`, so its push routes to NavigationPath's non-Codable
-        // append overload and `path.codable` then returns nil. Calling append
-        // with a statically-Codable element selects the Codable overload, which
-        // is what `decodedRoutes` needs to recover the route.
-        let expectedRoute: AppRoute = authManager.currentSession == nil ? .profile : .settings
-        coordinator.path.append(expectedRoute)
+        #expect(AppRoute.homeToolbarTarget(isSignedIn: true) == .settings)
+        #expect(AppRoute.homeToolbarTarget(isSignedIn: false) == .profile)
 
-        // Asserting on path.count alone (the original assertion) would silently
-        // accept a push of the wrong route. NavigationPath has no `.last`, so
-        // round-trip the path through NavigationPath.codable to recover the
-        // pushed route and verify the destination is `.settings` specifically
-        // (criterion TASK-1761#5882).
+        // Drive the resolver through the same coordinator the live button uses,
+        // then verify the destination via NavigationPath.codable round-trip
+        // (criterion TASK-1761#5882). Use `path.append(_:)` directly since
+        // NavigationCoordinator's `push` is constrained `Route: Hashable` and
+        // routes to the non-Codable overload, which makes `path.codable` nil.
+        coordinator.path.append(AppRoute.homeToolbarTarget(isSignedIn: authManager.currentSession != nil))
         let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
         #expect(pushed == [.settings])
     }

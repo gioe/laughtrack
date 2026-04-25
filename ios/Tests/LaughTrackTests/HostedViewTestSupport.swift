@@ -120,11 +120,15 @@ enum LaughTrackHostedViewTestSupport {
     }
 }
 
-/// Decode the routes currently in a NavigationCoordinator's path. Returns nil
-/// when the path is empty or contains a non-Codable element. NavigationPath
-/// erases element types, so reading the pushed *routes* (not just the depth)
-/// requires round-tripping through NavigationPath.codable. NavigationCoordinator
-/// is not `open`, so subclassing for interception isn't an option.
+/// Decode the routes currently in a NavigationCoordinator's path, in push
+/// order. Returns an empty array when the path is empty or its codable
+/// representation is unavailable; throws when an element fails to decode (so
+/// fixture mistakes surface as test failures, not silent empties).
+///
+/// NavigationPath erases element types, so reading the pushed *routes* (not
+/// just the depth) requires round-tripping through NavigationPath.codable.
+/// NavigationCoordinator is not `open`, so subclassing for interception isn't
+/// an option.
 @MainActor
 func decodedRoutes<Route: Hashable & Codable>(
     in coordinator: NavigationCoordinator<Route>,
@@ -145,13 +149,11 @@ func decodedRoutes<Route: Hashable & Codable>(
     var index = raw.count - 1
     while index > 0 {
         let elementJSON = raw[index]
-        guard
-            let elementData = elementJSON.data(using: .utf8),
-            let route = try? decoder.decode(Route.self, from: elementData)
-        else {
+        guard let elementData = elementJSON.data(using: .utf8) else {
             index -= 2
             continue
         }
+        let route = try decoder.decode(Route.self, from: elementData)
         routes.append(route)
         index -= 2
     }
@@ -417,6 +419,21 @@ final class HostedView {
         return nil
     }
 
+    /// Match `text` against an accessibility label using two strategies:
+    ///   1. Exact whole-label equality — the precise contract findText would
+    ///      have honored before iOS 26 surfaced grouped Button labels.
+    ///   2. Per-comma-segment equality — SwiftUI on iOS 26 joins a Button's
+    ///      child Text() labels into a single comma-separated string (e.g.
+    ///      "Taylor Tomlinson, 5 tracked show appearances"), so individual
+    ///      phrases the test author typed must match a segment to be found.
+    ///
+    /// Trade-off: per-segment matching can match unintended phrases when a
+    /// caller passes a *very* short token that happens to also appear as a
+    /// segment of a longer composite label (e.g. requireText("5") would match
+    /// "Section, Title, 5"). Tests in this codebase always pass full visible
+    /// phrases, so the broadening is acceptable here. If you ever need strict
+    /// whole-label matching, add a sibling `requireExactText` helper rather
+    /// than threading a flag through this one.
     private static func accessibilityLabel(_ label: String?, contains text: String) -> Bool {
         guard let label else { return false }
         if label == text { return true }

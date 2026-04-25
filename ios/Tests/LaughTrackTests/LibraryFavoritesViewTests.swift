@@ -39,7 +39,6 @@ struct LibraryFavoritesViewTests {
         // (the SwiftUI view enters the hierarchy but the test pumps the run loop
         // synchronously before the task scheduler dispatches). Load favorites
         // explicitly so the test verifies the rendered output, not the lifecycle.
-        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
         let host = HostedView(
             LibraryView(apiClient: apiClient)
                 .environment(\.appTheme, LaughTrackTheme())
@@ -47,6 +46,10 @@ struct LibraryFavoritesViewTests {
                 .environmentObject(favorites)
                 .environmentObject(authManager)
         )
+        // Drive LibraryView's `.task(id:)` lifecycle to completion — the test
+        // exercises both that the view kicks off the fetch and that the rendered
+        // tree reflects the favorites that come back.
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.libraryFavoritesSection)
         try host.requireLabel("Taylor Tomlinson")
