@@ -9,18 +9,17 @@ import LaughTrackBridge
 @testable import LaughTrackApp
 @testable import LaughTrackCore
 
-@Suite("Settings favorites view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Library favorites view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
 @MainActor
-struct SettingsFavoritesViewTests {
-    @Test("signed-in settings view loads saved favorites from the live API contract")
-    func signedInSettingsLoadsSavedFavorites() async throws {
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "settings-favorites")
+struct LibraryFavoritesViewTests {
+    @Test("signed-in library view loads saved favorites from the live API contract")
+    func signedInLibraryLoadsSavedFavorites() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
-            name: "settings-favorites"
+            name: "library-favorites"
         )
         let favorites = ComedianFavoriteStore()
         let host = HostedView(
-            SettingsView(
+            LibraryView(
                 apiClient: makeClient(
                     response: .success(
                         .init(
@@ -37,9 +36,7 @@ struct SettingsFavoritesViewTests {
                             ]
                         )
                     )
-                ),
-                signedOutMessage: nil,
-                nearbyPreferenceStore: nearbyStore
+                )
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(NavigationCoordinator<AppRoute>())
@@ -47,23 +44,19 @@ struct SettingsFavoritesViewTests {
             .environmentObject(authManager)
         )
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
-        try host.requireText("Nearby defaults")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.libraryFavoritesSection)
         try host.requireLabel("Taylor Tomlinson")
         try host.requireLabel("5 tracked show appearances")
     }
 
-    @Test("signed-out settings view reaches auth UI before any favorites fetch runs")
-    func signedOutSettingsSkipsFavoritesFetch() async throws {
-        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "settings-signed-out")
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "settings-signed-out")
+    @Test("signed-out library view shows sign-in CTA and skips the favorites fetch")
+    func signedOutLibrarySkipsFavoritesFetch() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "library-signed-out")
         let favorites = ComedianFavoriteStore()
         let recorder = FavoritesRequestRecorder()
         let host = HostedView(
-            SettingsView(
-                apiClient: makeClient(response: .recorder(recorder)),
-                signedOutMessage: nil,
-                nearbyPreferenceStore: nearbyStore
+            LibraryView(
+                apiClient: makeClient(response: .recorder(recorder))
             )
             .environment(\.appTheme, LaughTrackTheme())
             .navigationCoordinator(NavigationCoordinator<AppRoute>())
@@ -71,15 +64,14 @@ struct SettingsFavoritesViewTests {
             .environmentObject(authManager)
         )
 
-        try host.requireLabel("Sign in to sync your favorites.")
-        try host.requireText("Nearby defaults")
+        try host.requireText("Sign in to see your saved comedians")
         #expect(recorder.getFavoritesCalls == 0)
     }
 
-    private func makeClient(response: MockSettingsFavoritesTransport.Response) -> Client {
+    private func makeClient(response: MockLibraryFavoritesTransport.Response) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
-            transport: MockSettingsFavoritesTransport(response: response)
+            transport: MockLibraryFavoritesTransport(response: response)
         )
     }
 }
@@ -88,7 +80,7 @@ private final class FavoritesRequestRecorder: @unchecked Sendable {
     var getFavoritesCalls = 0
 }
 
-private struct MockSettingsFavoritesTransport: ClientTransport {
+private struct MockLibraryFavoritesTransport: ClientTransport {
     enum Response {
         case success(Components.Schemas.FavoriteListResponse)
         case recorder(FavoritesRequestRecorder)

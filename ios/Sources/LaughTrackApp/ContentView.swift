@@ -25,7 +25,7 @@ enum LaughTrackViewTestID {
     static let settingsDistancePicker = "laughtrack.settings.distance-picker"
     static let settingsSaveButton = "laughtrack.settings.save-button"
     static let settingsClearButton = "laughtrack.settings.clear-button"
-    static let settingsFavoritesSection = "laughtrack.settings.favorites-section"
+    static let libraryFavoritesSection = "laughtrack.library.favorites-section"
 
     static func showsSearchResultButton(_ id: Int) -> String {
         "laughtrack.shows-search.result-\(id)"

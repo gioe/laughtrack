@@ -26,7 +26,6 @@ struct ProfileViewTests {
         try host.requireText("Your comedy setup")
         try host.requireText("Profile")
         try host.requireText("Nearby defaults")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
     }
 }
 #endif

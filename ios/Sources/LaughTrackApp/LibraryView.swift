@@ -9,6 +9,8 @@ struct LibraryView: View {
 
     let apiClient: Client
 
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
 
     var body: some View {
@@ -22,11 +24,15 @@ struct LibraryView: View {
                     subtitle: "Saved comedians, recent shows, and your tracked plans live here."
                 )
 
-                LaughTrackInlineStateCard(
-                    tone: .empty,
-                    title: "Library is filling in",
-                    message: "Saved comedians arrive here next. For now, follow comics from anywhere in the app."
-                )
+                if authManager.currentSession != nil {
+                    SavedFavoritesSection(apiClient: apiClient)
+                } else {
+                    LaughTrackInlineStateCard(
+                        tone: .empty,
+                        title: "Sign in to see your saved comedians",
+                        message: "Open Profile to sign in. Your saved comedians follow your account, not the device."
+                    )
+                }
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.vertical, tokens.browseDensity.heroPadding)
@@ -35,5 +41,15 @@ struct LibraryView: View {
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle(Self.title)
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .task(id: authManager.currentSession == nil) {
+            if authManager.currentSession == nil {
+                favorites.resetSavedFavorites()
+            } else {
+                await favorites.loadSavedFavorites(
+                    apiClient: apiClient,
+                    authManager: authManager
+                )
+            }
+        }
     }
 }

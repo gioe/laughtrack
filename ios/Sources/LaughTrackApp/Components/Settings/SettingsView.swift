@@ -9,7 +9,6 @@ struct SettingsView: View {
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
     @StateObject private var model: SettingsNearbyPreferenceModel
 
@@ -80,8 +79,6 @@ struct SettingsView: View {
                             }
                         }
                     }
-
-                    SavedFavoritesSection(apiClient: apiClient)
                 } else {
                     LaughTrackSectionHeader(
                         eyebrow: "Sign in",
@@ -133,16 +130,6 @@ struct SettingsView: View {
         .accessibilityIdentifier(LaughTrackViewTestID.settingsScreen)
         .background(laughTrack.colors.canvas.ignoresSafeArea())
         .navigationTitle("Settings")
-        .task(id: authManager.currentSession == nil) {
-            if authManager.currentSession == nil {
-                favorites.resetSavedFavorites()
-            } else {
-                await favorites.loadSavedFavorites(
-                    apiClient: apiClient,
-                    authManager: authManager
-                )
-            }
-        }
     }
 
     private var nearbyPreferencesSection: some View {

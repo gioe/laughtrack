@@ -88,6 +88,6 @@ struct SavedFavoritesSection: View {
                 }
             }
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.settingsFavoritesSection)
+        .accessibilityIdentifier(LaughTrackViewTestID.libraryFavoritesSection)
     }
 }

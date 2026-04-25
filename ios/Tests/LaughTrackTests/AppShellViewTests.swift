@@ -135,7 +135,6 @@ struct AppShellViewTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
         try host.requireText("Nearby defaults")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.profileTabScreen) == nil)
     }
 }

@@ -270,7 +270,6 @@ struct ContentViewNavigationTests {
         host.render()
 
         try host.requireText("Nearby defaults")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
     }
 }
 #endif
