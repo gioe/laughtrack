@@ -27,7 +27,7 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
         try host.requireText("Home")
         try host.requireText("Search")
-        try host.requireText("Activity")
+        try host.requireText("Library")
         try host.requireText("Profile")
     }
 

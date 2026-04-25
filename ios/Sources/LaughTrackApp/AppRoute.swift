@@ -1,7 +1,7 @@
 enum AppRoute: Hashable {
     case home
     case search
-    case activity
+    case library
     case profile
     case settings
     case showDetail(Int)

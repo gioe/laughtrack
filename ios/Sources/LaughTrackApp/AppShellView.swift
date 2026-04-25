@@ -47,9 +47,9 @@ struct AppShellView: View {
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
-            ActivityView()
-                .tabItem { Label("Activity", systemImage: "bell.fill") }
-                .tag(AppTab.activity)
+            LibraryView(apiClient: apiClient)
+                .tabItem { Label("Library", systemImage: "books.vertical.fill") }
+                .tag(AppTab.library)
 
             ProfileView(
                 apiClient: apiClient,

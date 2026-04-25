@@ -3,7 +3,7 @@ import Foundation
 enum AppTab: Hashable, CaseIterable {
     case home
     case search
-    case activity
+    case library
     case profile
 
     var title: String {
@@ -12,8 +12,8 @@ enum AppTab: Hashable, CaseIterable {
             return "Home"
         case .search:
             return "Search"
-        case .activity:
-            return "Activity"
+        case .library:
+            return "Library"
         case .profile:
             return "Profile"
         }

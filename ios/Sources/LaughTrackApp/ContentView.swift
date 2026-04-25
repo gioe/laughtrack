@@ -6,7 +6,7 @@ import LaughTrackAPIClient
 enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let searchTabScreen = "laughtrack.search-tab.screen"
-    static let activityTabScreen = "laughtrack.activity-tab.screen"
+    static let libraryTabScreen = "laughtrack.library-tab.screen"
     static let profileTabScreen = "laughtrack.profile-tab.screen"
     static let homeSettingsButton = "laughtrack.home.settings-button"
     static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
@@ -86,12 +86,12 @@ struct ContentView: View {
                     favorites: favorites,
                     initialTab: .search
                 )
-            case .activity:
+            case .library:
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     favorites: favorites,
-                    initialTab: .activity
+                    initialTab: .library
                 )
             case .profile:
                 AppShellView(
