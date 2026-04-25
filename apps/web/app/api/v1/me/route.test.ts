@@ -9,8 +9,8 @@ vi.mock("@/lib/rateLimit", () => ({
         resetAt: 0,
     })),
     getClientIp: vi.fn(() => "127.0.0.1"),
-    RATE_LIMITS: { authenticated: {} },
-    rateLimitHeaders: vi.fn(() => ({})),
+    RATE_LIMITS: { authenticated: {}, authToken: {} },
+    rateLimitHeaders: vi.fn(() => ({ "X-RateLimit-Remaining": "99" })),
     rateLimitResponse: vi.fn(() => new Response(null, { status: 429 }) as any),
 }));
 
@@ -29,11 +29,12 @@ vi.mock("@/lib/db", () => ({
 
 import { GET } from "./route";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
-import { checkRateLimit } from "@/lib/rateLimit";
+import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
+const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockFindUser = vi.mocked(db.user.findUnique);
 
 function makeRequest(): NextRequest {
@@ -48,6 +49,7 @@ beforeEach(() => {
         remaining: 99,
         resetAt: 0,
     });
+    mockRateLimitHeaders.mockReturnValue({ "X-RateLimit-Remaining": "99" });
 });
 
 describe("GET /api/v1/me", () => {
@@ -58,6 +60,7 @@ describe("GET /api/v1/me", () => {
 
         expect(res.status).toBe(401);
         expect(mockFindUser).not.toHaveBeenCalled();
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
     });
 
     it("returns 422 when authenticated user has no UserProfile row", async () => {
@@ -69,19 +72,42 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body).toEqual({ error: "profile_missing" });
         expect(mockFindUser).not.toHaveBeenCalled();
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
     });
 
-    it("returns 429 when rate-limited", async () => {
+    it("returns 429 when the pre-auth IP rate limit is exceeded", async () => {
+        mockCheckRateLimit.mockResolvedValueOnce({
+            allowed: false,
+            limit: 10,
+            remaining: 0,
+            resetAt: 0,
+        });
+
+        const res = await GET(makeRequest());
+
+        expect(res.status).toBe(429);
+        expect(mockResolveAuth).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 when the per-user rate limit is exceeded", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-123",
             profileId: "profile-123",
         });
-        mockCheckRateLimit.mockResolvedValue({
-            allowed: false,
-            limit: 100,
-            remaining: 0,
-            resetAt: 0,
-        });
+        // First call (IP) allowed, second call (user) blocked.
+        mockCheckRateLimit
+            .mockResolvedValueOnce({
+                allowed: true,
+                limit: 10,
+                remaining: 9,
+                resetAt: 0,
+            })
+            .mockResolvedValueOnce({
+                allowed: false,
+                limit: 100,
+                remaining: 0,
+                resetAt: 0,
+            });
 
         const res = await GET(makeRequest());
 
@@ -99,6 +125,7 @@ describe("GET /api/v1/me", () => {
         const res = await GET(makeRequest());
 
         expect(res.status).toBe(401);
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
     });
 
     it("returns 200 with display_name, email, and avatar_url on success", async () => {
@@ -123,6 +150,7 @@ describe("GET /api/v1/me", () => {
                 avatar_url: "https://cdn.example.com/avatar.png",
             },
         });
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
         expect(mockFindUser).toHaveBeenCalledWith({
             where: { id: "user-123" },
             select: { name: true, email: true, image: true },
@@ -153,7 +181,7 @@ describe("GET /api/v1/me", () => {
         });
     });
 
-    it("keys the rate limit by userId", async () => {
+    it("keys rate limits by IP first, then by userId after auth resolves", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-abc",
             profileId: "profile-abc",
@@ -166,7 +194,13 @@ describe("GET /api/v1/me", () => {
 
         await GET(makeRequest());
 
-        expect(mockCheckRateLimit).toHaveBeenCalledWith(
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            1,
+            "me-ip:127.0.0.1",
+            expect.any(Object),
+        );
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            2,
             "me:user-abc",
             expect.any(Object),
         );

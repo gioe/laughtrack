@@ -3,18 +3,33 @@ import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import {
     checkRateLimit,
+    getClientIp,
     RATE_LIMITS,
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
 
 export async function GET(req: NextRequest) {
+    // Pre-auth IP rate limit protects resolveAuth() / auth() from
+    // unauthenticated probes — matches the /auth/signout pattern.
+    const ipRl = await checkRateLimit(
+        `me-ip:${getClientIp(req)}`,
+        RATE_LIMITS.authToken,
+    );
+    if (!ipRl.allowed) return rateLimitResponse(ipRl);
+
     const authCtx = await resolveAuth(req);
     if (authCtx === PROFILE_MISSING) {
-        return NextResponse.json({ error: "profile_missing" }, { status: 422 });
+        return NextResponse.json(
+            { error: "profile_missing" },
+            { status: 422, headers: rateLimitHeaders(ipRl) },
+        );
     }
     if (!authCtx) {
-        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+        return NextResponse.json(
+            { error: "unauthorized" },
+            { status: 401, headers: rateLimitHeaders(ipRl) },
+        );
     }
 
     const rl = await checkRateLimit(

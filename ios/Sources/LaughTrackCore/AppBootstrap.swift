@@ -117,8 +117,11 @@ public struct AppBootstrap {
 
         authManager.loadUserRequest = { [apiClient] in
             let response = try await apiClient.getMe()
+            // Throw on non-200 so AuthManager.refreshCurrentUser keeps the
+            // previously-loaded user instead of clobbering it on a transient
+            // 401/422/429 (e.g. on a refetch after sign-in).
             guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                return nil
+                throw URLError(.badServerResponse)
             }
             let avatarURL = body.data.avatarUrl.flatMap { URL(string: $0) }
             return AuthenticatedUser(
