@@ -4,7 +4,7 @@ import Testing
 import LaughTrackBridge
 @testable import LaughTrackApp
 
-@Suite("Browse components", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Browse components")
 @MainActor
 struct LaughTrackBrowseComponentsTests {
     @Test("hero module uses compact browse copy hierarchy")
@@ -48,7 +48,8 @@ struct LaughTrackBrowseComponentsTests {
                 tone: .error,
                 title: "Couldn't load this section",
                 message: "Try refreshing this shelf.",
-                actionTitle: "Try again"
+                actionTitle: "Try again",
+                action: {}
             )
             .environment(\.appTheme, LaughTrackTheme())
         )
