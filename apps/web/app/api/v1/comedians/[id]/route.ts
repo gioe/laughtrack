@@ -11,9 +11,9 @@ export async function GET(
     if (rl instanceof NextResponse) return rl;
 
     const { id } = await params;
-    const numericId = parseInt(id, 10);
+    const numericId = Number(id);
 
-    if (isNaN(numericId)) {
+    if (!Number.isInteger(numericId)) {
         return NextResponse.json(
             { error: "Invalid id" },
             { status: 400, headers: rateLimitHeaders(rl) },
