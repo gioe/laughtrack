@@ -26,6 +26,60 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+### HostedView Quirks Under iOS 26 / Xcode 26
+
+SwiftUI's accessibility-tree wiring under iOS 26 has three behaviors that catch
+HostedView-based UI tests by surprise (TASK-1761). HostedView already mitigates
+them, but tests built on top of it inherit the constraints.
+
+1. **Only the *first* `UIWindow.makeKeyAndVisible()` per process wires the
+   SwiftUI accessibility tree.** Subsequent fresh windows render visually but
+   their hosting controller never exposes `accessibilityIdentifier` or
+   `accessibilityElements` to UIView traversal. HostedView reuses a static
+   `UIWindow` across instances and swaps in a fresh `UIHostingController` per
+   test. Tests that need a clean window (toolbar-driven assertions, etc.) can
+   pass `freshWindow: true` to opt out at the cost of losing the accessibility
+   wiring on subsequent suite tests.
+
+2. **`Text()` and `Button` labels surface as `AccessibilityNode` in the parent
+   UIView's `accessibilityElements`, not as `UILabel` / `UIButton` subviews.**
+   `findText` / `requireLabel` traverse `accessibilityElements` at every level
+   to find them. Buttons that wrap multiple `Text()` children produce a single
+   comma-joined accessibility label (e.g. `"Taylor Tomlinson, 5 tracked show
+   appearances"`), so per-segment matching is part of the contract.
+
+3. **`.toolbar` items don't activate reliably via `accessibilityActivate()`
+   once the test process has hosted other controllers** — `tapControl` returns
+   `false` and the SwiftUI Button action never fires. The workaround pattern
+   is to extract the toolbar action's decision logic into a pure helper
+   (e.g. `AppRoute.homeToolbarTarget(isSignedIn:)`) and unit-test that
+   directly. The integration test still asserts the button exists with its
+   accessibility identifier, but does not depend on tap activation.
+
+### Async Lifecycle in HostedView Tests
+
+SwiftUI's `.task` / `.task(id:)` modifiers don't fire reliably while
+`HostedView` is pumping the run loop synchronously — the Swift Concurrency
+runtime needs explicit yields to schedule the work. Use `await host.settle()`
+after construction in any test whose view loads data via `.task`. If the test
+fixture can be pre-populated (e.g. an `@EnvironmentObject` store), prefer
+pre-loading: it both avoids the lifecycle dependency and makes the rendering
+assertion stand alone.
+
+### NavigationPath Route Inspection
+
+`NavigationPath` erases element types and has no `.last`. To assert *which*
+route was pushed (not just the depth), routes must be Codable and the
+pushed-by-coordinator path must round-trip through `NavigationPath.codable`.
+
+Two gotchas:
+- `NavigationCoordinator.push(_:)` is constrained `Route: Hashable` (not
+  `Hashable & Codable`), so it routes to `NavigationPath.append`'s non-Codable
+  overload and `path.codable` returns nil. Tests verifying a destination must
+  call `coordinator.path.append(_:)` directly with a statically-Codable value.
+- The `decodedRoutes(in:as:)` helper in `HostedViewTestSupport.swift` reverses
+  the codable representation back into `[Route]` in push order.
+
 ## OpenAPI Client Regeneration
 
 The generated client lives at `Sources/LaughTrackAPIClient/GeneratedSources/Client.swift`
