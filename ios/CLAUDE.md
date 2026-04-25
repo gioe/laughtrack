@@ -26,6 +26,28 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
+
+When a `requireView` / `requireText` / `tapControl` assertion fails in a way
+the source doesn't immediately explain, the **first step** is to dump the
+hosted view's accessibility tree:
+
+```swift
+let host = HostedView(MyView())
+print(host.dumpAccessibilityTree())
+// or persist for inspection from outside the test process:
+host.dumpAccessibilityTree(writingTo: "/tmp/dump.txt")
+```
+
+The dump walks both `subviews` and `accessibilityElements` at every level,
+showing the underlying type, `accessibilityIdentifier`, and
+`accessibilityLabel` for each node. Under iOS 26 SwiftUI surfaces `Text()`
+and `Button` labels as synthetic accessibility-element nodes that never
+appear as UIView subviews — any debugging approach that walks only
+`subviews` (e.g. `po hostingController.view.recursiveDescription`) will
+miss them and produce a misleading picture. Reach for
+`dumpAccessibilityTree` before writing throw-away inline probes.
+
 ### HostedView Quirks Under iOS 26 / Xcode 26
 
 SwiftUI's accessibility-tree wiring under iOS 26 has three behaviors that catch
