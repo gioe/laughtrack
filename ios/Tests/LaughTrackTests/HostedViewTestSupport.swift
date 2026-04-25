@@ -182,6 +182,12 @@ final class HostedView {
     init<Content: View>(_ rootView: Content) {
         if let existingWindow = HostedView.sharedWindow {
             window = existingWindow
+            // Clear the previous rootViewController and let the run loop drain its
+            // teardown (toolbar registries, etc.) before the next controller mounts.
+            // Without this, a fresh NavigationStack inside a fresh AppShellView
+            // sometimes inherits a stale empty toolbar from the prior test.
+            window.rootViewController = nil
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
         } else {
             window = UIWindow(frame: UIScreen.main.bounds)
             HostedView.sharedWindow = window
@@ -238,6 +244,19 @@ final class HostedView {
     }
 
     func tapControl(withIdentifier identifier: String) throws {
+        // Under iOS 26 / Xcode 26, SwiftUI Buttons no longer materialize as UIButton
+        // / UIControl in the rendered subview tree — they appear only as
+        // AccessibilityNodes in the parent UIView's `accessibilityElements`.
+        // Try the accessibility activation path first, then fall back to UIControl
+        // for the few cases that are still backed by real UIKit controls.
+        if try activateAccessibilityElement(
+            in: hostingController.view,
+            withIdentifier: identifier
+        ) {
+            render()
+            return
+        }
+
         let view = try requireView(withIdentifier: identifier)
         guard
             let control = (view as? UIControl) ??
@@ -249,6 +268,26 @@ final class HostedView {
 
         control.sendActions(for: .touchUpInside)
         render()
+    }
+
+    private func activateAccessibilityElement(
+        in root: UIView,
+        withIdentifier identifier: String
+    ) throws -> Bool {
+        if let elements = root.accessibilityElements {
+            for element in elements {
+                if (element as AnyObject).accessibilityIdentifier == identifier {
+                    _ = (element as AnyObject).accessibilityActivate()
+                    return true
+                }
+            }
+        }
+        for subview in root.subviews {
+            if try activateAccessibilityElement(in: subview, withIdentifier: identifier) {
+                return true
+            }
+        }
+        return false
     }
 
     private func waitUntil<T>(
