@@ -9,7 +9,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("Club detail view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Club detail view")
 @MainActor
 struct ClubDetailViewTests {
     @Test("club detail loads live venue data and related content")
@@ -24,6 +24,7 @@ struct ClubDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.clubDetailScreen)
         try host.requireLabel("Comedy Cellar")
@@ -43,8 +44,12 @@ struct ClubDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
-        try host.requireLabel("This club could not be found.")
+        // LoadFailure.unexpected(status:) renders as "<message> (HTTP <status>)" via
+        // LoadFailure.message — the suffix is part of every documented-status error
+        // surface, not just this one.
+        try host.requireLabel("This club could not be found. (HTTP 404)")
     }
 
     @Test("club detail renders explicit empty states for missing related content")
@@ -59,6 +64,7 @@ struct ClubDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireLabel("No upcoming shows are available for this club right now.")
         try host.requireLabel("No featured comedians are available for this club yet.")
@@ -76,6 +82,7 @@ struct ClubDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireLabel("Comedy Cellar")
         try host.requireLabel("LaughTrack hit a server error while loading this club’s related content.")
@@ -197,12 +204,16 @@ private struct MockClubDetailTransport: ClientTransport {
                 HTTPBody(try encoder.encode(payload))
             )
         case .status(let status):
+            // The OpenAPI spec models error responses (404 / 500) with an
+            // ErrorResponse body whose `error` field is required. An empty `{}`
+            // body fails decoding and the call throws, dropping the model into
+            // its network-error branch instead of the documented status branch.
             return (
                 HTTPResponse(
                     status: status,
                     headerFields: [.contentType: "application/json"]
                 ),
-                HTTPBody("{}")
+                HTTPBody(#"{"error":"mock"}"#)
             )
         }
     }

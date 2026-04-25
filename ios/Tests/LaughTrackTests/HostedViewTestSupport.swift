@@ -199,6 +199,19 @@ final class HostedView {
         pumpRunLoop()
     }
 
+    /// Yields the actor and pumps the run loop repeatedly so SwiftUI `.task` and
+    /// `.onAppear` lifecycle hooks have a chance to dispatch and complete. Pure
+    /// run-loop pumping during synchronous waitUntil is not always enough — the
+    /// Swift Concurrency runtime needs explicit yields to schedule async work that
+    /// SwiftUI kicked off when the view appeared.
+    func settle(iterations: Int = 20, sleep: UInt64 = 25_000_000) async {
+        for _ in 0..<iterations {
+            await Task.yield()
+            try? await Task.sleep(nanoseconds: sleep)
+            render()
+        }
+    }
+
     func findView(withIdentifier identifier: String) -> UIView? {
         findView(in: hostingController.view, withIdentifier: identifier)
     }
