@@ -2,6 +2,7 @@
 import SwiftUI
 import Testing
 import LaughTrackBridge
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Profile view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
