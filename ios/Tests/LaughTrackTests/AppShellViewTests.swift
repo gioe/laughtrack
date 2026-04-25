@@ -116,7 +116,7 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
     }
 
-    @Test("shell can start on the profile tab and shows real settings content")
+    @Test("shell can start on the profile tab and shows the profile surface, not Settings")
     func shellCanStartOnProfileTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")
         let coordinator = NavigationCoordinator<AppRoute>()
@@ -133,9 +133,9 @@ struct AppShellViewTests {
             .environmentObject(authManager)
         )
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
-        try host.requireText("Nearby defaults")
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.profileTabScreen) == nil)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
+        try host.requireLabel("Open Settings")
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.settingsScreen) == nil)
     }
 }
 #endif

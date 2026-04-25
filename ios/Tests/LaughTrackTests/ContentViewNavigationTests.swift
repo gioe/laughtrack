@@ -269,7 +269,8 @@ struct ContentViewNavigationTests {
         coordinator.push(.profile)
         host.render()
 
-        try host.requireText("Nearby defaults")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
+        try host.requireLabel("Open Settings")
     }
 }
 #endif
