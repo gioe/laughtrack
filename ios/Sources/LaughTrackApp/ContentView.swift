@@ -102,7 +102,6 @@ struct ContentView: View {
                 )
             case .settings:
                 SettingsView(
-                    apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )

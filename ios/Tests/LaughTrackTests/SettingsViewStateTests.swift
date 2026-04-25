@@ -16,7 +16,6 @@ struct SettingsViewStateTests {
         let favorites = ComedianFavoriteStore()
         let host = HostedView(
             SettingsView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 model: model

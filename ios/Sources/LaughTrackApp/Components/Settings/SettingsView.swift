@@ -1,10 +1,8 @@
 import SwiftUI
-import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
 struct SettingsView: View {
-    let apiClient: Client
     let signedOutMessage: String?
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
@@ -12,12 +10,10 @@ struct SettingsView: View {
     @StateObject private var model: SettingsNearbyPreferenceModel
 
     init(
-        apiClient: Client,
         signedOutMessage: String?,
         nearbyPreferenceStore: NearbyPreferenceStore,
         model: SettingsNearbyPreferenceModel? = nil
     ) {
-        self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.nearbyPreferenceStore = nearbyPreferenceStore
         let resolvedModel = model ?? SettingsNearbyPreferenceModel(
