@@ -9,7 +9,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("Comedian detail view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Comedian detail view")
 @MainActor
 struct ComedianDetailViewTests {
     @Test("comedian detail loads live profile and related content")
@@ -33,6 +33,7 @@ struct ComedianDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.comedianDetailScreen)
         try host.requireLabel("Mark Normand")
@@ -52,8 +53,9 @@ struct ComedianDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
-        try host.requireLabel("This comedian could not be found.")
+        try host.requireLabel("This comedian could not be found. (HTTP 404)")
     }
 
     @Test("comedian detail renders explicit empty states for missing related content")
@@ -68,6 +70,7 @@ struct ComedianDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireLabel("No upcoming shows are available for this comedian right now.")
         try host.requireLabel("No related comedians are available yet.")
@@ -85,6 +88,7 @@ struct ComedianDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireLabel("Mark Normand")
         try host.requireLabel("LaughTrack hit a server error while loading related shows.")
@@ -203,12 +207,15 @@ private struct MockComedianDetailTransport: ClientTransport {
                 HTTPBody(try encoder.encode(payload))
             )
         case .status(let status):
+            // Error responses must conform to ErrorResponse schema (required `error`
+            // field) — without it, the OpenAPI client throws and the model falls
+            // through to its network catch instead of the documented status branch.
             return (
                 HTTPResponse(
                     status: status,
                     headerFields: [.contentType: "application/json"]
                 ),
-                HTTPBody("{}")
+                HTTPBody(#"{"error":"mock"}"#)
             )
         }
     }

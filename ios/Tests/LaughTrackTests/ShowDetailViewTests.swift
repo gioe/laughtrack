@@ -9,7 +9,7 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-@Suite("Show detail view", .disabled("TASK-1761: HostedView UI assertions need refresh — see TASK-1740 follow-up"))
+@Suite("Show detail view")
 @MainActor
 struct ShowDetailViewTests {
     @Test("show detail loads live show data and renders core sections")
@@ -25,6 +25,7 @@ struct ShowDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.showDetailScreen)
         try host.requireLabel("Mark Normand and Friends")
@@ -41,8 +42,9 @@ struct ShowDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
-        try host.requireLabel("This show could not be found.")
+        try host.requireLabel("This show could not be found. (HTTP 404)")
     }
 
     @Test("show detail renders explicit empty states for missing optional sections")
@@ -52,6 +54,11 @@ struct ShowDetailViewTests {
         response.data.lineup = nil
         response.relatedShows = []
         response.data.tickets = nil
+        // Clear both ticket URL surfaces so the view renders the empty-tickets card.
+        // ShowDetailView falls back from cta.url to showPageUrl; if either is set,
+        // the rendered tree shows a "Buy tickets" / "Open show page" button instead.
+        response.data.cta = .init(url: nil, label: "Buy tickets", isSoldOut: false)
+        response.data.showPageUrl = ""
 
         let host = HostedView(
             makeView(
@@ -59,6 +66,7 @@ struct ShowDetailViewTests {
                 authManager: authManager
             )
         )
+        await host.settle()
 
         try host.requireLabel("Lineup details are not available yet.")
         try host.requireLabel("No related shows are available yet.")
@@ -111,12 +119,14 @@ private struct MockShowDetailTransport: ClientTransport {
                 HTTPBody(try encoder.encode(payload))
             )
         case .status(let status):
+            // ErrorResponse schema requires `error` — empty `{}` makes the OpenAPI
+            // decoder throw and the model falls into the network catch.
             return (
                 HTTPResponse(
                     status: status,
                     headerFields: [.contentType: "application/json"]
                 ),
-                HTTPBody("{}")
+                HTTPBody(#"{"error":"mock"}"#)
             )
         }
     }
