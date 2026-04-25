@@ -73,33 +73,62 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Install dir is parent of bin/
 INSTALL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Detect install mode (claude vs codex) so gitignore and agent-doc updates
+# target the right locations. Driven by the install-mode marker stamped by
+# install.sh / tusk-upgrade.py. Absent marker → claude (legacy installs and
+# tusk's own source-repo dev env).
+if [[ -f "$SCRIPT_DIR/install-mode" ]]; then
+  INSTALL_MODE="$(tr -d '[:space:]' < "$SCRIPT_DIR/install-mode")"
+else
+  INSTALL_MODE="claude"
+fi
+case "$INSTALL_MODE" in claude|codex) ;; *) INSTALL_MODE="claude" ;; esac
+
 find_repo_root() {
   local dir="$PWD"
   while [[ "$dir" != "/" ]]; do
-    [[ -d "$dir/.git" ]] && echo "$dir" && return
+    [[ -e "$dir/.git" ]] && echo "$dir" && return
     dir="$(dirname "$dir")"
   done
   echo "$PWD"
 }
 
 CWD_REPO_ROOT="$(find_repo_root)"
+
+resolve_project_root() {
+  local worktree_root="$1"
+  local git_dir common_dir candidate
+  git_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-dir 2>/dev/null || true)"
+  common_dir="$(git -C "$worktree_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+  if [[ -n "$git_dir" && -n "$common_dir" && "$git_dir" != "$common_dir" ]]; then
+    candidate="$(cd "$common_dir/.." 2>/dev/null && pwd -P)" || candidate=""
+    if [[ -n "$candidate" && -d "$candidate" ]]; then
+      echo "$candidate"
+      return
+    fi
+  fi
+  echo "$worktree_root"
+}
+
+CWD_PROJECT_ROOT="$(resolve_project_root "$CWD_REPO_ROOT")"
 if [[ -n "${TUSK_PROJECT:-}" ]]; then
   if [[ ! -d "$TUSK_PROJECT" ]]; then
     echo "Error: TUSK_PROJECT=$TUSK_PROJECT is not a directory" >&2
     exit 2
   fi
-  REPO_ROOT="$(cd "$TUSK_PROJECT" && pwd -P)"
+  PROJECT_ROOT="$(cd "$TUSK_PROJECT" && pwd -P)"
 else
-  REPO_ROOT="$CWD_REPO_ROOT"
+  PROJECT_ROOT="$CWD_PROJECT_ROOT"
 fi
+REPO_ROOT="$CWD_REPO_ROOT"
 if [[ -n "${TUSK_DB:-}" ]]; then
   DB_PATH="$TUSK_DB"
   DB_DIR="$(dirname "$DB_PATH")"
 else
-  DB_DIR="$REPO_ROOT/tusk"
+  DB_DIR="$PROJECT_ROOT/tusk"
   DB_PATH="$DB_DIR/tasks.db"
 fi
-PROJECT_CONFIG="$REPO_ROOT/tusk/config.json"
+PROJECT_CONFIG="$PROJECT_ROOT/tusk/config.json"
 
 # ── Active-projects registry ─────────────────────────────────────────
 # Tracks projects with open sessions so tusk can warn when the CWD resolves
@@ -108,7 +137,7 @@ TUSK_STATE_DIR="${TUSK_STATE_DIR:-$HOME/.tusk}"
 ACTIVE_PROJECTS_FILE="$TUSK_STATE_DIR/active-projects"
 export TUSK_STATE_DIR
 export TUSK_ACTIVE_PROJECTS_FILE="$ACTIVE_PROJECTS_FILE"
-export TUSK_REPO_ROOT="$REPO_ROOT"
+export TUSK_REPO_ROOT="$PROJECT_ROOT"
 
 # Warn when a pinned project differs from the CWD-resolved repo, and neither
 # TUSK_PROJECT nor TUSK_DB is set (explicit pins suppress the warning).
@@ -124,7 +153,7 @@ maybe_warn_cross_repo_drift() {
   [[ -z "${TUSK_FORCE_WARN:-}" && ! -t 2 ]] && return 0
   [[ ! -s "$ACTIVE_PROJECTS_FILE" ]] && return 0
   local current_real others=() pinned seen=""
-  current_real="$(cd "$CWD_REPO_ROOT" 2>/dev/null && pwd -P)" || return 0
+  current_real="$(cd "$CWD_PROJECT_ROOT" 2>/dev/null && pwd -P)" || return 0
   while IFS= read -r pinned; do
     [[ -z "$pinned" ]] && continue
     [[ "$pinned" = "$current_real" ]] && continue
@@ -286,14 +315,23 @@ update_gitignore() {
     ".claude/skills/"
   )
   local -a tusk_ignores=(
-    ".claude/bin/"
-    ".claude/settings.json"
-    ".claude/tusk-manifest.json"
     "tusk/tasks.db"
     "tusk/tasks.db-wal"
     "tusk/tasks.db-shm"
     "tusk/backups/"
   )
+  if [[ "$INSTALL_MODE" == "codex" ]]; then
+    tusk_ignores+=(
+      "tusk/bin/"
+      "tusk/tusk-manifest.json"
+    )
+  else
+    tusk_ignores+=(
+      ".claude/bin/"
+      ".claude/settings.json"
+      ".claude/tusk-manifest.json"
+    )
+  fi
   # Remove deprecated entries added by older versions of tusk
   for deprecated in "${deprecated_ignores[@]}"; do
     if grep -qxF "$deprecated" "$gitignore" 2>/dev/null; then
@@ -326,15 +364,33 @@ cmd_update_gitignore() {
 }
 
 update_claude_md() {
-  local claude_md="$REPO_ROOT/CLAUDE.md"
+  # Resolve target agent-instructions file based on install mode. Prefer the
+  # existing file when present; otherwise create the mode-default (CLAUDE.md
+  # in claude mode, AGENTS.md in codex mode). Using >> auto-creates the file,
+  # preserving the long-standing behavior where tusk init creates CLAUDE.md
+  # when absent (issue #322).
   local sentinel="<!-- tusk-task-tools -->"
-  if grep -qF "$sentinel" "$claude_md" 2>/dev/null; then
-    echo "  CLAUDE.md already contains tusk task tool guidance."
+  local claude_md="$REPO_ROOT/CLAUDE.md"
+  local agents_md="$REPO_ROOT/AGENTS.md"
+  local target="" label=""
+  if [[ "$INSTALL_MODE" == "codex" ]]; then
+    if [[ -f "$agents_md" ]]; then target="$agents_md"; label="AGENTS.md"
+    elif [[ -f "$claude_md" ]]; then target="$claude_md"; label="CLAUDE.md"
+    else target="$agents_md"; label="AGENTS.md"
+    fi
+  else
+    if [[ -f "$claude_md" ]]; then target="$claude_md"; label="CLAUDE.md"
+    elif [[ -f "$agents_md" ]]; then target="$agents_md"; label="AGENTS.md"
+    else target="$claude_md"; label="CLAUDE.md"
+    fi
+  fi
+  if grep -qF "$sentinel" "$target" 2>/dev/null; then
+    echo "  $label already contains tusk task tool guidance."
     return
   fi
-  printf '\n%s\n## Tusk Task Lookup\n\n**Do NOT use Claude Code'\''s built-in `TaskList`, `TaskGet`, or `TaskUpdate` tools to look up or manage tasks.** Those tools manage background agent subprocesses, not tusk tasks.\n\nUse the tusk CLI instead:\n- `tusk task-list` — list tasks\n- `tusk task-get <id>` — get a task by ID (accepts `506` or `TASK-506`)\n- `tusk task-update <id>` — update a task\n' \
-    "$sentinel" >> "$claude_md"
-  echo "  Updated CLAUDE.md with tusk task tool guidance."
+  printf '\n%s\n## Tusk Task Lookup\n\n**Do NOT use your agent'\''s built-in `TaskList`, `TaskGet`, or `TaskUpdate` tools to look up or manage tasks.** Those tools manage background agent subprocesses, not tusk tasks.\n\nUse the tusk CLI instead:\n- `tusk task-list` — list tasks\n- `tusk task-get <id>` — get a task by ID (accepts `506` or `TASK-506`)\n- `tusk task-update <id>` — update a task\n' \
+    "$sentinel" >> "$target"
+  echo "  Updated $label with tusk task tool guidance."
 }
 
 cmd_init() {
@@ -349,6 +405,12 @@ cmd_init() {
 
   mkdir -p "$DB_DIR"
 
+  # Decide whether we're recreating an existing DB, but defer the destructive
+  # cp/rm until every preflight step (config copy, gitignore/CLAUDE.md update,
+  # validate_config) has succeeded — otherwise a preflight failure after `rm`
+  # would leave the live DB gone with no automatic restore from the backup
+  # (issue #533).
+  local recreate=0
   if [[ -f "$DB_PATH" ]]; then
     echo "Database already exists at $DB_PATH"
     echo "Use 'tusk init --force' to recreate (existing data will be lost)."
@@ -365,9 +427,7 @@ cmd_init() {
           ;;
       esac
     fi
-    echo "Recreating database..."
-    cp "$DB_PATH" "${DB_PATH}.bak.$(date +%s)"
-    rm "$DB_PATH"
+    recreate=1
   fi
 
   # Copy default config if no project config exists
@@ -386,6 +446,13 @@ cmd_init() {
 
   # Validate config before proceeding
   validate_config
+
+  # All preflight passed — safe to back up and remove the live DB now.
+  if [[ $recreate -eq 1 ]]; then
+    echo "Recreating database..."
+    cp "$DB_PATH" "${DB_PATH}.bak.$(date +%s)"
+    rm "$DB_PATH"
+  fi
 
   # Base schema
   sqlite3 "$DB_PATH" <<'SCHEMA'
@@ -410,7 +477,9 @@ CREATE TABLE tasks (
     updated_at TEXT DEFAULT (datetime('now')),
     started_at TEXT,
     closed_at TEXT,
-    fixes_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL
+    fixes_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+    bakeoff_id INTEGER,
+    bakeoff_shadow INTEGER NOT NULL DEFAULT 0 CHECK (bakeoff_shadow IN (0, 1))
 );
 
 -- task_dependencies
@@ -505,6 +574,7 @@ SELECT t.*,
       WHERE tst.task_id = t.id AND tst.to_status = 'To Do') as reopen_count
 FROM tasks t
 LEFT JOIN task_sessions s ON t.id = s.task_id
+WHERE t.bakeoff_shadow = 0
 GROUP BY t.id;
 
 -- v_ready_tasks view: canonical ready-to-work definition
@@ -512,6 +582,8 @@ CREATE VIEW v_ready_tasks AS
 SELECT t.*
 FROM tasks t
 WHERE t.status = 'To Do'
+  AND t.bakeoff_shadow = 0
+  AND (t.is_deferred = 0 OR t.is_deferred IS NULL)
   AND NOT EXISTS (
     SELECT 1 FROM task_dependencies d
     JOIN tasks blocker ON d.depends_on_id = blocker.id
@@ -527,6 +599,8 @@ CREATE VIEW v_chain_heads AS
 SELECT t.*
 FROM tasks t
 WHERE t.status <> 'Done'
+  AND t.bakeoff_shadow = 0
+  AND (t.is_deferred = 0 OR t.is_deferred IS NULL)
   AND EXISTS (
     SELECT 1 FROM task_dependencies d
     JOIN tasks downstream ON d.task_id = downstream.id
@@ -551,7 +625,7 @@ SELECT t.id, t.summary, t.status, t.priority, t.domain, t.assignee,
 FROM tasks t
 JOIN task_dependencies d ON d.task_id = t.id
 JOIN tasks blocker ON d.depends_on_id = blocker.id
-WHERE t.status <> 'Done' AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+WHERE t.status <> 'Done' AND t.bakeoff_shadow = 0 AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
 UNION ALL
 SELECT t.id, t.summary, t.status, t.priority, t.domain, t.assignee,
        'external_blocker' AS block_reason,
@@ -559,7 +633,7 @@ SELECT t.id, t.summary, t.status, t.priority, t.domain, t.assignee,
        eb.description AS blocking_summary
 FROM tasks t
 JOIN external_blockers eb ON eb.task_id = t.id
-WHERE t.status <> 'Done' AND eb.is_resolved = 0;
+WHERE t.status <> 'Done' AND t.bakeoff_shadow = 0 AND eb.is_resolved = 0;
 
 -- v_criteria_coverage view: per-task total vs completed criteria count (excludes deferred criteria)
 CREATE VIEW v_criteria_coverage AS
@@ -570,6 +644,7 @@ SELECT t.id AS task_id,
        COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) - COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS remaining_criteria
 FROM tasks t
 LEFT JOIN acceptance_criteria ac ON ac.task_id = t.id
+WHERE t.bakeoff_shadow = 0
 GROUP BY t.id, t.summary;
 
 -- v_velocity view: completed tasks grouped by calendar week (Mon-start, %Y-W%W) with throughput and cost metrics
@@ -824,7 +899,7 @@ PILLARS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 57;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 59;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -906,8 +981,8 @@ candidates = [
   'lint','lint-rule','dupes','criteria','dashboard','chain','blockers',
   'review','deps','session-stats','session-recalc','skill-run',
   'call-breakdown','session-close','task-get','task-get-multi','task-select','task-start',
-  'task-done','task-insert','task-update','task-reopen','task-list',
-  'audit','autoclose','backlog-scan','test-detect','test-precheck','init-scan-codebase','init-scan-todos','review-check-perms','loop','merge','progress',
+  'task-done','task-insert','task-update','task-reopen','task-list','task-summary',
+  'audit','autoclose','backlog-scan','test-detect','test-precheck','init-scan-codebase','init-scan-todos','init-fetch-bootstrap','init-write-config','init-wizard','review-check-perms','loop','merge','progress',
   'setup','token-audit','sync-skills','generate-manifest','pricing-update','wsjf','shell',
   'version','version-bump','changelog-add','migrate','regen-triggers','upgrade',
 ]
@@ -1035,7 +1110,7 @@ cmd_upgrade() {
 
 cmd_active_project() {
   local subcmd="${1:-}"
-  local path_arg="${2:-$REPO_ROOT}"
+  local path_arg="${2:-$PROJECT_ROOT}"
   case "$subcmd" in
     add)
       mkdir -p "$TUSK_STATE_DIR"
@@ -1125,8 +1200,8 @@ cmd_session_close() {
     echo "Closed $count open session(s) for task $task_id (lines: +$lines_added/-$lines_removed)"
     local remaining
     remaining="$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM task_sessions WHERE ended_at IS NULL" 2>/dev/null || echo 0)"
-    if [[ "$remaining" = "0" && -d "$REPO_ROOT" ]]; then
-      cmd_active_project remove "$REPO_ROOT" 2>/dev/null || true
+    if [[ "$remaining" = "0" && -d "$PROJECT_ROOT" ]]; then
+      cmd_active_project remove "$PROJECT_ROOT" 2>/dev/null || true
     fi
     return 0
   fi
@@ -1190,8 +1265,8 @@ cmd_session_close() {
   # Deregister REPO_ROOT if no open sessions remain (cross-repo drift tracking)
   local remaining
   remaining="$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM task_sessions WHERE ended_at IS NULL" 2>/dev/null || echo 0)"
-  if [[ "$remaining" = "0" && -d "$REPO_ROOT" && -z "${TUSK_DB:-}" ]]; then
-    cmd_active_project remove "$REPO_ROOT" 2>/dev/null || true
+  if [[ "$remaining" = "0" && -d "$PROJECT_ROOT" && -z "${TUSK_DB:-}" ]]; then
+    cmd_active_project remove "$PROJECT_ROOT" 2>/dev/null || true
   fi
 }
 
@@ -1247,7 +1322,7 @@ is_readonly_subcmd() {
     ""|path|config|validate|sql-quote|version|version-bump|\
     git-default-branch|branch-parse|report-issue|\
     sync-skills|generate-manifest|pricing-update|token-audit|\
-    task-get|task-get-multi|task-list|task-select|setup|\
+    task-get|task-get-multi|task-list|task-select|task-summary|setup|\
     backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|\
     init-fetch-bootstrap|init-scan-codebase|init-scan-todos)
       return 0 ;;
@@ -1307,6 +1382,7 @@ case "${1:-}" in
   review-final-summary) shift; exec python3 "$SCRIPT_DIR/tusk-review-final-summary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   review-diff-range) shift; exec python3 "$SCRIPT_DIR/tusk-review-diff-range.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   review-defer) shift; exec python3 "$SCRIPT_DIR/tusk-review-defer.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  review-wait) shift; exec python3 "$SCRIPT_DIR/tusk-review-wait.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   deps) shift; exec python3 "$SCRIPT_DIR/tusk-deps.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-stats) shift; exec python3 "$SCRIPT_DIR/tusk-session-stats.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-recalc) shift; exec python3 "$SCRIPT_DIR/tusk-session-recalc.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1325,9 +1401,11 @@ case "${1:-}" in
   task-update) shift; exec python3 "$SCRIPT_DIR/tusk-task-update.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-reopen) shift; exec python3 "$SCRIPT_DIR/tusk-task-reopen.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-list) shift; exec python3 "$SCRIPT_DIR/tusk-task-list.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  task-summary) shift; exec python3 "$SCRIPT_DIR/tusk-task-summary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   audit) shift; exec python3 "$SCRIPT_DIR/tusk-audit.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   autoclose) shift; exec python3 "$SCRIPT_DIR/tusk-autoclose.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   backlog-scan) shift; exec python3 "$SCRIPT_DIR/tusk-backlog-scan.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  groom) shift; exec python3 "$SCRIPT_DIR/tusk-groom.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   check-deliverables) shift; exec python3 "$SCRIPT_DIR/tusk-check-deliverables.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-signals) shift; exec python3 "$SCRIPT_DIR/tusk-retro-signals.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-themes) shift; exec python3 "$SCRIPT_DIR/tusk-retro-themes.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1339,10 +1417,12 @@ case "${1:-}" in
   init-scan-todos) shift; exec python3 "$SCRIPT_DIR/tusk-init-scan-todos.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   init-fetch-bootstrap) shift; exec python3 "$SCRIPT_DIR/tusk-init-fetch-bootstrap.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   init-write-config) shift; exec python3 "$SCRIPT_DIR/tusk-init-write-config.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  init-wizard) shift; exec python3 "$SCRIPT_DIR/tusk-init-wizard.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   review-check-perms) shift; exec python3 "$SCRIPT_DIR/tusk-review-check-perms.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   loop) shift; exec python3 "$SCRIPT_DIR/tusk-loop.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   merge) shift; exec python3 "$SCRIPT_DIR/tusk-merge.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   abandon) shift; exec python3 "$SCRIPT_DIR/tusk-abandon.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  bakeoff) shift; exec python3 "$SCRIPT_DIR/tusk-bakeoff.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   progress) shift; exec python3 "$SCRIPT_DIR/tusk-progress.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   setup) shift; exec python3 "$SCRIPT_DIR/tusk-setup.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   token-audit) shift; exec python3 "$SCRIPT_DIR/tusk-token-audit.py" "$REPO_ROOT" "$@" ;;
@@ -1359,6 +1439,6 @@ case "${1:-}" in
   update-gitignore) cmd_update_gitignore ;;
   regen-triggers) cmd_regen_triggers ;;
   upgrade) shift; cmd_upgrade "$@" ;;
-  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|conventions|pillars|criteria|dag|dashboard|wsjf|audit|setup|autoclose|backlog-scan|init-scan-codebase|review-check-perms|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|branch-parse|skill-run|call-breakdown|task-get|task-get-multi|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|merge|abandon|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
+  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|conventions|pillars|criteria|dag|dashboard|wsjf|audit|setup|autoclose|backlog-scan|init-scan-codebase|review-check-perms|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|branch-parse|skill-run|call-breakdown|task-get|task-get-multi|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|task-summary|merge|abandon|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
   *)      cmd_query "$@" ;;
 esac

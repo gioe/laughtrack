@@ -90,7 +90,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    tusk check-deliverables <id>
    ```
    (Replace `<id>` with the actual task ID.) This command checks all branches for commits referencing the task and, if none are found, scans the task description and criteria for referenced file paths and tests whether they exist on disk. Act on the `recommendation` field:
-   - **`"commits_found"`** — commits exist on another branch. Switch to it or cherry-pick the relevant commits before proceeding to Explore.
+   - **`"commits_found"`** — `[TASK-<id>]` commits exist on a non-default branch (typically a stale feature branch from a prior session). Switch to it or cherry-pick the relevant commits before proceeding to Explore.
+   - **`"merged_not_closed"`** — `[TASK-<id>]` commits already exist on the default branch (orphaned-task case: work was merged without being finalized through `tusk merge`). The SHAs are listed in `default_branch_commits`. Skip implementation entirely. Mark all criteria done with `--skip-verify`, then jump straight to step 12 to close out the session — `tusk merge` will detect the already-merged state and finalize without re-merging.
    - **`"mark_done"`** — no commits, but deliverable files listed in `files` already exist on disk. Mark all criteria done with `--skip-verify` and proceed directly to step 9 (commit + merge) without reimplementing.
    - **`"implement_fresh"`** — no commits and no deliverable files found. The criteria completions were marked without corresponding code — proceed normally and implement from scratch.
 
@@ -280,6 +281,13 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```bash
     tusk skill-run finish <run_id>
     ```
+
+    Then emit the canonical end-of-run summary before handing off to /retro:
+    ```bash
+    tusk task-summary <id> --format markdown
+    ```
+
+    This prints a single markdown block with the task identity, closed reason, total cost, wall/active duration, diff stats (files changed, lines added/removed, commit count), criteria counts, review pass count, and reopen count. Show it verbatim to the user — do not re-render or summarize it. Runs on both the merge and abandon paths; diff stats are filtered to commits that reference `[TASK-<id>]` so shared-branch pollution never appears in the numbers.
 
     Then run `/retro` immediately — do not ask "shall I run retro?". Invoke it to review the session, surface process improvements, and create follow-up tasks.
 

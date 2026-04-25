@@ -14,13 +14,15 @@ Output JSON:
         "commits_found": bool,
         "files_found": bool,
         "files": ["path/that/exists", ...],
-        "recommendation": "commits_found" | "mark_done" | "implement_fresh"
+        "default_branch_commits": ["sha1", ...],
+        "recommendation": "commits_found" | "merged_not_closed" | "mark_done" | "implement_fresh"
     }
 
 Recommendations:
-    "commits_found"    — commits referencing this task exist on some branch — normal path
-    "mark_done"        — no commits, but deliverable files found on disk — mark criteria done and merge
-    "implement_fresh"  — no commits, no files found — proceed with implementation
+    "commits_found"      — commits referencing this task exist on a non-default branch — normal path
+    "merged_not_closed"  — commits already on the default branch (orphaned-task case) — skip implementation, go straight to finalize
+    "mark_done"          — no commits, but deliverable files found on disk — mark criteria done and merge
+    "implement_fresh"    — no commits, no files found — proceed with implementation
 
 Exit codes:
     0 — success (always, even if no commits/files)
@@ -35,12 +37,14 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-db-lib.py
+import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-git-helpers.py
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 _json_lib = tusk_loader.load("tusk-json-lib")
+_git_helpers = tusk_loader.load("tusk-git-helpers")
 dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
+find_task_commits = _git_helpers.find_task_commits
 
 # Regex to extract candidate file paths from unstructured text.
 # Matches tokens that start with a path-like prefix and contain at least one dot
@@ -69,16 +73,40 @@ def _extract_paths(text: str) -> list:
     return paths
 
 
-def check_commits(task_id: int, repo_root: str) -> bool:
-    """Return True if any commits reference [TASK-<id>] on any branch."""
+def _default_branch(repo_root: str) -> str:
+    """Detect the default branch: symbolic-ref → gh fallback → 'main'.
+
+    Mirrors cmd_git_default_branch in bin/tusk.
+    """
     result = subprocess.run(
-        ["git", "log", "--all", "--oneline", f"--grep=[TASK-{task_id}]"],
+        ["git", "symbolic-ref", "refs/remotes/origin/HEAD"],
         capture_output=True,
         text=True,
         encoding="utf-8",
         cwd=repo_root,
     )
-    return bool(result.stdout.strip())
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip().removeprefix("refs/remotes/origin/")
+    result = subprocess.run(
+        ["gh", "repo", "view", "--json", "defaultBranchRef", "-q", ".defaultBranchRef.name"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        cwd=repo_root,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip()
+    return "main"
+
+
+def check_commits(task_id: int, repo_root: str) -> bool:
+    """Return True if any commits reference [TASK-<id>] on any branch."""
+    return bool(find_task_commits(task_id, repo_root, ["--all"]))
+
+
+def check_default_branch_commits(task_id: int, repo_root: str) -> list:
+    """Return commit SHAs on the default branch that reference [TASK-<id>]."""
+    return find_task_commits(task_id, repo_root, [_default_branch(repo_root)])
 
 
 def find_existing_files(task_id: int, conn: sqlite3.Connection, repo_root: str) -> list:
@@ -139,13 +167,21 @@ def main(argv: list) -> int:
             print(f"Task {task_id} not found", file=sys.stderr)
             return 1
 
-        commits_found = check_commits(task_id, repo_root)
-
-        if commits_found:
+        default_commits = check_default_branch_commits(task_id, repo_root)
+        if default_commits:
             output = {
                 "commits_found": True,
                 "files_found": False,
                 "files": [],
+                "default_branch_commits": default_commits,
+                "recommendation": "merged_not_closed",
+            }
+        elif check_commits(task_id, repo_root):
+            output = {
+                "commits_found": True,
+                "files_found": False,
+                "files": [],
+                "default_branch_commits": [],
                 "recommendation": "commits_found",
             }
         else:
@@ -155,6 +191,7 @@ def main(argv: list) -> int:
                 "commits_found": False,
                 "files_found": files_found,
                 "files": files,
+                "default_branch_commits": [],
                 "recommendation": "mark_done" if files_found else "implement_fresh",
             }
 
