@@ -315,6 +315,66 @@ final class HostedView {
         render()
     }
 
+    /// Returns a formatted dump of the UIView hierarchy and accessibility-element
+    /// tree rooted at the hosted view. Each line shows the underlying type, its
+    /// `accessibilityIdentifier` (when present), and its `accessibilityLabel`
+    /// (when present). Recursion walks both `subviews` and `accessibilityElements`
+    /// at every level — under iOS 26 SwiftUI surfaces Text() and Button labels as
+    /// synthetic accessibility-element nodes that never appear as UIView subviews,
+    /// so a dump that ignores them tells half the truth.
+    ///
+    /// Reach for this first when a `requireView` / `requireText` assertion fails
+    /// in a way the source doesn't explain — it shows exactly what the
+    /// accessibility tree looks like at that frame, including the synthetic
+    /// nodes the test helpers traverse.
+    ///
+    /// Pass `writingTo:` to also write the dump to a file path, handy for
+    /// inspection from outside the test process (e.g. `tail -f` while running).
+    @discardableResult
+    func dumpAccessibilityTree(writingTo path: String? = nil) -> String {
+        var lines: [String] = []
+        // hostingController.view is an IUO (UIView!); cast it to a non-optional
+        // UIView before passing through the Any-typed `node` parameter so the
+        // implicit unwrap happens here instead of producing a coercion warning.
+        let root: UIView = hostingController.view
+        appendDump(of: root, depth: 0, kind: "view", into: &lines)
+        let dump = lines.joined(separator: "\n")
+        if let path {
+            try? dump.write(toFile: path, atomically: true, encoding: .utf8)
+        }
+        return dump
+    }
+
+    private func appendDump(
+        of node: Any,
+        depth: Int,
+        kind: String,
+        into lines: inout [String]
+    ) {
+        let object = node as AnyObject
+        let indent = String(repeating: "  ", count: depth)
+        let typeName = String(describing: type(of: node))
+        var line = "\(indent)<\(kind)> \(typeName)"
+        if let identifier = object.accessibilityIdentifier as String?, !identifier.isEmpty {
+            line += " id='\(identifier)'"
+        }
+        if let label = object.accessibilityLabel as String?, !label.isEmpty {
+            line += " label='\(label)'"
+        }
+        lines.append(line)
+
+        guard let view = node as? UIView else { return }
+
+        if let elements = view.accessibilityElements {
+            for element in elements {
+                appendDump(of: element, depth: depth + 1, kind: "element", into: &lines)
+            }
+        }
+        for subview in view.subviews {
+            appendDump(of: subview, depth: depth + 1, kind: "view", into: &lines)
+        }
+    }
+
     private func activateAccessibilityElement(
         in root: UIView,
         withIdentifier identifier: String
