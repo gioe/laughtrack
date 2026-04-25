@@ -6,6 +6,7 @@ import LaughTrackCore
 @MainActor
 struct LibraryView: View {
     static let title = "Library"
+    static let signedOutPromptTitle = "Sign in to see your saved comedians"
 
     let apiClient: Client
 
@@ -29,7 +30,7 @@ struct LibraryView: View {
                 } else {
                     LaughTrackInlineStateCard(
                         tone: .empty,
-                        title: "Sign in to see your saved comedians",
+                        title: Self.signedOutPromptTitle,
                         message: "Open Profile to sign in. Your saved comedians follow your account, not the device."
                     )
                 }

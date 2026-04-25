@@ -8,4 +8,9 @@ struct LibraryViewTests {
     func libraryUsesProductCopy() async throws {
         #expect(LibraryView.title == "Library")
     }
+
+    @Test("library signed-out branch surfaces a sign-in prompt copy")
+    func librarySignedOutPromptCopy() async throws {
+        #expect(LibraryView.signedOutPromptTitle == "Sign in to see your saved comedians")
+    }
 }

@@ -32,7 +32,7 @@ struct ShowDetailView: View {
                 FailureCard(
                     failure: failure,
                     retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
-                    signIn: { coordinator.push(.settings) }
+                    signIn: { coordinator.push(.profile) }
                 )
                 .padding()
             case .success(let response):

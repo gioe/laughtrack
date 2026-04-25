@@ -128,7 +128,7 @@ struct HomeNearbyDiscoverySection: View {
                 FailureCard(
                     failure: failure,
                     retry: { await model.refresh(apiClient: apiClient) },
-                    signIn: { coordinator.push(.settings) }
+                    signIn: { coordinator.push(.profile) }
                 )
             case .success(let result):
                 if result.items.isEmpty {

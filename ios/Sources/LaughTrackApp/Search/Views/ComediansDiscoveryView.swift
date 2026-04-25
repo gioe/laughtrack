@@ -37,7 +37,7 @@ struct ComediansDiscoveryView: View {
                     FailureCard(
                         failure: failure,
                         retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
-                        signIn: { coordinator.push(.settings) }
+                        signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
                     if result.items.isEmpty {

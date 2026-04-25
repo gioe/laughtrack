@@ -72,11 +72,11 @@ struct HomeView: View {
         .toolbar {
             ToolbarItem(placement: toolbarPlacement) {
                 Button {
-                    coordinator.push(.settings)
+                    coordinator.push(authManager.currentSession == nil ? .profile : .settings)
                 } label: {
                     Image(systemName: authManager.currentSession == nil ? "person.crop.circle.badge.plus" : "gearshape")
                 }
-                .accessibilityLabel("Settings")
+                .accessibilityLabel(authManager.currentSession == nil ? "Sign in" : "Settings")
                 .accessibilityIdentifier(LaughTrackViewTestID.homeSettingsButton)
             }
         }

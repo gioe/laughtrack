@@ -31,7 +31,7 @@ struct ClubDetailView: View {
                 FailureCard(
                     failure: failure,
                     retry: { await model.reload(apiClient: apiClient) },
-                    signIn: { coordinator.push(.settings) }
+                    signIn: { coordinator.push(.profile) }
                 )
                 .padding()
             case .success(let content):

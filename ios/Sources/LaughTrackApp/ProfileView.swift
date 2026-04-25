@@ -5,6 +5,13 @@ import LaughTrackCore
 
 @MainActor
 struct ProfileView: View {
+    static let signedOutHeroTitle = "Sign in to LaughTrack"
+
+    static func heroTitle(for provider: AuthProvider?) -> String {
+        let providerName = provider?.displayName ?? "Saved session"
+        return "Your \(providerName) account"
+    }
+
     let apiClient: Client
     let signedOutMessage: String?
 
@@ -27,19 +34,15 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
                 if let session = authManager.currentSession {
                     authenticatedHero(session: session)
-                    if let signedOutMessage {
-                        LaughTrackAuthMessageCard(message: signedOutMessage)
-                    }
                     accountCard(session: session)
-                    settingsLinkSection
                 } else {
                     signedOutHero
                     if let signedOutMessage {
                         LaughTrackAuthMessageCard(message: signedOutMessage)
                     }
                     signInProvidersSection
-                    settingsLinkSection
                 }
+                settingsLinkSection
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.vertical, tokens.browseDensity.heroPadding)
@@ -52,10 +55,9 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func authenticatedHero(session: AuthSessionMetadata) -> some View {
-        let providerName = session.provider?.displayName ?? "Saved session"
         LaughTrackHeroModule(
             eyebrow: "Profile",
-            title: "Your \(providerName) account",
+            title: Self.heroTitle(for: session.provider),
             subtitle: "Account-level controls live here. Browse defaults moved to Settings."
         )
     }
@@ -63,7 +65,7 @@ struct ProfileView: View {
     private var signedOutHero: some View {
         LaughTrackHeroModule(
             eyebrow: "Profile",
-            title: "Sign in to LaughTrack",
+            title: Self.signedOutHeroTitle,
             subtitle: "Save favorites across devices and recover cleanly when sign-in is interrupted."
         )
     }
