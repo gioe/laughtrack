@@ -71,7 +71,7 @@ describe("POST /api/v1/auth/refresh", () => {
         expect(body.error).toBe("missing_refresh_token");
     });
 
-    it.each(["not_found", "revoked", "expired", "user_missing"] as const)(
+    it.each(["not_found", "expired", "user_missing"] as const)(
         "returns 401 with opaque error when consume returns %s",
         async (reason) => {
             mockConsume.mockResolvedValue(reason);
@@ -82,6 +82,29 @@ describe("POST /api/v1/auth/refresh", () => {
             expect(body.error).toBe("invalid_refresh_token");
         },
     );
+
+    it("returns 401 and logs a reuse warning when consume returns revoked_reuse", async () => {
+        mockConsume.mockResolvedValue({
+            status: "revoked_reuse",
+            userId: "user-42",
+            familyRevokedCount: 3,
+        });
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+        const res = await POST(makeRequest({ refreshToken: "stolen" }));
+        expect(res.status).toBe(401);
+        const body = await res.json();
+        expect(body.error).toBe("invalid_refresh_token");
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        const logged = String(warnSpy.mock.calls[0]?.[0] ?? "");
+        expect(logged).toContain("reuse detected");
+        expect(logged).toContain("user-42");
+        expect(logged).toContain("3");
+        expect(mockIssue).not.toHaveBeenCalled();
+
+        warnSpy.mockRestore();
+    });
 
     it("returns rotated access+refresh tokens on success", async () => {
         mockConsume.mockResolvedValue({

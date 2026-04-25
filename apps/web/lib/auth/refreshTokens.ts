@@ -25,19 +25,30 @@ export interface ResolvedRefreshToken {
     userEmail: string;
 }
 
-export type RefreshTokenError =
-    | "not_found"
-    | "revoked"
-    | "expired"
-    | "user_missing";
+export type RefreshTokenError = "not_found" | "expired" | "user_missing";
+
+export interface RefreshTokenReuse {
+    status: "revoked_reuse";
+    userId: string;
+    familyRevokedCount: number;
+}
+
+export type ConsumeRefreshTokenResult =
+    | ResolvedRefreshToken
+    | RefreshTokenReuse
+    | RefreshTokenError;
 
 /**
  * Atomically consume a refresh token: verify it is active, then mark it revoked.
  * Uses an interactive transaction so concurrent refresh attempts can't both succeed.
+ *
+ * If the presented token is already revoked, treat the call as a reuse attempt
+ * (evidence of theft) and revoke the user's entire active refresh-token family
+ * inside the same transaction — siblings can't outlive the detection window.
  */
 export async function consumeRefreshToken(
     token: string,
-): Promise<ResolvedRefreshToken | RefreshTokenError> {
+): Promise<ConsumeRefreshTokenResult> {
     return db.$transaction(async (tx) => {
         const record = await tx.refreshToken.findUnique({
             where: { token },
@@ -50,7 +61,17 @@ export async function consumeRefreshToken(
             },
         });
         if (!record) return "not_found" as const;
-        if (record.revokedAt) return "revoked" as const;
+        if (record.revokedAt) {
+            const { count } = await tx.refreshToken.updateMany({
+                where: { userId: record.userId, revokedAt: null },
+                data: { revokedAt: new Date() },
+            });
+            return {
+                status: "revoked_reuse" as const,
+                userId: record.userId,
+                familyRevokedCount: count,
+            };
+        }
         if (record.expiresAt.getTime() <= Date.now()) return "expired" as const;
         if (!record.user?.email) return "user_missing" as const;
 

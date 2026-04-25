@@ -56,6 +56,15 @@ export async function POST(req: NextRequest) {
             { status: 401, headers: rateLimitHeaders(rl) },
         );
     }
+    if ("status" in resolved) {
+        console.warn(
+            `[auth/refresh] refresh token reuse detected userId=${resolved.userId}; revoked ${resolved.familyRevokedCount} sibling token(s)`,
+        );
+        return NextResponse.json(
+            { error: "invalid_refresh_token" },
+            { status: 401, headers: rateLimitHeaders(rl) },
+        );
+    }
 
     const accessToken = generateAccessToken({ email: resolved.userEmail });
     const { token: newRefreshToken } = await issueRefreshToken(resolved.userId);
