@@ -6,6 +6,7 @@
 swift build                            # Build all targets
 swift build --target LaughTrackApp     # Build app target only
 swift build --target LaughTrackBridge  # Build bridge target only
+make -C ios check-pbxproj              # Verify every Sources/*.swift is wired into LaughTrack.xcodeproj (run before push)
 ```
 
 ## Testing
