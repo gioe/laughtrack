@@ -1,4 +1,9 @@
+import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import Testing
+import LaughTrackAPIClient
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Entity data flow")
@@ -151,6 +156,28 @@ struct EntityDataFlowTests {
         }
     }
 
+    @Test("show detail surfaces a non-nil retryAfter from the 429 Retry-After header")
+    func showDetailRateLimitedExtractsRetryAfterFromHeader() async {
+        let transport = StubRateLimitedShowTransport(retryAfter: 12)
+        let client = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+        let model = ShowDetailModel(showID: 301)
+        await model.loadIfNeeded(apiClient: client, favorites: ComedianFavoriteStore())
+
+        guard case .failure(let failure) = model.phase else {
+            Issue.record("Expected ShowDetailModel to surface a failure phase for 429")
+            return
+        }
+        guard case .rateLimited(let retryAfter, _) = failure else {
+            Issue.record("Expected .rateLimited failure, got \(failure)")
+            return
+        }
+        #expect(retryAfter == 12)
+        #expect(failure.message.contains("Please try again in 12 seconds."))
+    }
+
     @Test("detail model only performs its first automatic load once")
     func detailModelOnlyLoadsOnceWhenIdle() async {
         let model = EntityDetailModel<Int>()
@@ -174,5 +201,25 @@ struct EntityDataFlowTests {
         default:
             Issue.record("Expected detail model to hold onto its first loaded value")
         }
+    }
+}
+
+private struct StubRateLimitedShowTransport: ClientTransport {
+    let retryAfter: Int
+
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let response = HTTPResponse(
+            status: .tooManyRequests,
+            headerFields: [
+                .contentType: "application/json",
+                .retryAfter: String(retryAfter),
+            ]
+        )
+        return (response, HTTPBody(#"{"error":"slow down"}"#))
     }
 }
