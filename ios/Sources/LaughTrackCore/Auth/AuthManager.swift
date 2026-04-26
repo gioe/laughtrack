@@ -15,6 +15,7 @@ public final class AuthManager: ObservableObject {
 
     public typealias SignoutRequest = @Sendable () async throws -> Void
     public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
+    public typealias SignoutErrorObserver = (Error) -> Void
 
     @Published public private(set) var state: State = .restoring
     @Published public private(set) var currentUser: AuthenticatedUser?
@@ -33,6 +34,12 @@ public final class AuthManager: ObservableObject {
     // Bound after construction for the same reason as signoutRequest. Calls
     // /v1/me to fetch the user's real display name, email, and avatar URL.
     public var loadUserRequest: LoadUserRequest?
+
+    // Invoked when signoutRequest throws. Defaults to emitting via the production
+    // os.Logger. Tests replace this to verify the catch block was reached with the
+    // expected error — without that hook, a regression that silently swallowed the
+    // error would still satisfy the post-condition assertions on cleared state.
+    public var signoutErrorObserver: SignoutErrorObserver
 
     private let tokenManager: AuthTokenManager
     private let authMiddleware: AuthenticationMiddleware
@@ -54,6 +61,11 @@ public final class AuthManager: ObservableObject {
         self.authMiddleware = authMiddleware
         self.appStateStorage = appStateStorage
         self.oauthSessionRunner = oauthSessionRunner
+        self.signoutErrorObserver = { error in
+            Self.logger.error(
+                "Server sign-out failed; clearing local session anyway: \(String(describing: error), privacy: .public)"
+            )
+        }
     }
 
     public func restoreSessionIfNeeded() async {
@@ -140,9 +152,7 @@ public final class AuthManager: ObservableObject {
             do {
                 try await signoutRequest()
             } catch {
-                Self.logger.error(
-                    "Server sign-out failed; clearing local session anyway: \(String(describing: error), privacy: .public)"
-                )
+                signoutErrorObserver(error)
             }
         }
         await clearSession(message: nil)

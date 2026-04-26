@@ -54,6 +54,15 @@ struct AuthManagerSignOutIntegrationTests {
 
         await harness.transport.seed([.transportError(URLError(.notConnectedToInternet))])
 
+        // Install a recording observer on AuthManager.signoutErrorObserver before
+        // signOut() so the catch-block emission can be asserted directly. Without
+        // this hook, a regression that silently swallowed the thrown error would
+        // still pass the post-condition assertions below.
+        let errorRecorder = IntegrationSignoutErrorRecorder()
+        harness.authManager.signoutErrorObserver = { error in
+            Task { await errorRecorder.record(error: error) }
+        }
+
         await harness.authManager.signOut()
 
         // The server call still went out — it just failed in flight. Verifying the
@@ -75,6 +84,15 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(harness.tokenManager.retrieveAccessToken() == nil)
         #expect(harness.tokenManager.retrieveRefreshToken() == nil)
         #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
+
+        // Drain the Task that hands the error to the recorder before asserting,
+        // then verify the catch block was reached exactly once with a non-nil error.
+        // The exact error type may be wrapped by middleware on its way up the stack,
+        // so we don't pin the kind — the count + non-nil shape is enough to catch a
+        // regression that silently swallowed the throw.
+        await Task.yield()
+        #expect(await errorRecorder.callCount == 1)
+        #expect(await errorRecorder.lastError != nil)
     }
 
     @Test("signOut() drains state to signedOut when the server returns 500")
@@ -244,6 +262,16 @@ private struct AuthSignOutHarness {
 private struct HarnessSetupError: Error, CustomStringConvertible {
     let description: String
     init(_ description: String) { self.description = description }
+}
+
+private actor IntegrationSignoutErrorRecorder {
+    var callCount = 0
+    var lastError: Error?
+
+    func record(error: Error) {
+        callCount += 1
+        lastError = error
+    }
 }
 
 // Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,

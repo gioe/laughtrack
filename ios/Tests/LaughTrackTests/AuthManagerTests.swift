@@ -216,12 +216,26 @@ struct AuthManagerTests {
             throw URLError(.networkConnectionLost)
         }
 
+        // Pin the catch-block log emission to a recorder so a regression that
+        // silently swallowed the thrown error (without calling the seam) would
+        // be caught in addition to the post-condition assertions below.
+        let errorRecorder = SignoutErrorRecorder()
+        manager.signoutErrorObserver = { error in
+            Task { await errorRecorder.record(error: error) }
+        }
+
         await manager.signOut()
 
         #expect(await recorder.callCount == 1)
         #expect(manager.state == .signedOut(message: nil))
         #expect(!tokenManager.isAuthenticated)
         #expect(!(await authMiddleware.hasAccessToken))
+
+        // Drain the Task that hands the error to the recorder before asserting.
+        await Task.yield()
+        #expect(await errorRecorder.callCount == 1)
+        let observed = await errorRecorder.lastError as? URLError
+        #expect(observed?.code == .networkConnectionLost)
     }
 
     @Test("restoreSession invokes loadUserRequest and publishes the returned user")
@@ -382,6 +396,16 @@ private actor SignoutRecorder {
     func record(hadAccessToken: Bool) {
         callCount += 1
         observedAccessToken = hadAccessToken
+    }
+}
+
+private actor SignoutErrorRecorder {
+    var callCount = 0
+    var lastError: Error?
+
+    func record(error: Error) {
+        callCount += 1
+        lastError = error
     }
 }
 
