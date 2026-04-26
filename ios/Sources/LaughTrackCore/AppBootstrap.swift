@@ -112,7 +112,15 @@ public struct AppBootstrap {
         self.apiClient = apiClient
 
         authManager.signoutRequest = { [apiClient] in
-            _ = try await apiClient.signout()
+            // Throw on any non-OK response so AuthManager.signOut()'s catch
+            // block fires and signoutErrorObserver receives the error. The
+            // OpenAPI spec has no 5xx branch for POST /auth/signout, so a 500
+            // decodes as Output.undocumented and would otherwise return
+            // silently — leaving the observer blind to server-side failures.
+            let response = try await apiClient.signout()
+            guard case .ok = response else {
+                throw URLError(.badServerResponse)
+            }
         }
 
         authManager.loadUserRequest = { [apiClient] in
