@@ -512,10 +512,8 @@ struct TokenRefreshMiddlewareIntegrationTests {
         // Drop just the refresh token after AuthManager has already entered .authenticated.
         // restoreSession would have force-cleared the access token if the refresh entry
         // were missing at restore time, so this models a refresh entry that disappeared
-        // mid-session (corruption, external wipe). Key string mirrors
-        // SharedKit.AuthStorageKeys.refreshToken — that namespace is not re-exported via
-        // LaughTrackBridge, so the literal is the load-bearing dependency here.
-        try secureStorage.delete(forKey: "auth_refresh_token")
+        // mid-session (corruption, external wipe).
+        try secureStorage.delete(forKey: AuthStorageKeys.refreshToken)
         #expect(tokenManager.retrieveRefreshToken() == nil)
 
         let transport = ScriptedTransport()
