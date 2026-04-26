@@ -40,7 +40,7 @@ const FooterComponent = () => {
     };
 
     return (
-        <footer className="bg-gradient-to-b from-coconut-cream to-cream-100">
+        <footer className="bg-gradient-to-b from-coconut-cream to-coconut-cream/70">
             {/* Copper accent strip */}
             <div className="h-1 bg-gradient-to-r from-transparent via-copper to-transparent opacity-60" />
 
