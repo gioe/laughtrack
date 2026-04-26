@@ -103,7 +103,7 @@ struct ContentView: View {
             case .settings:
                 SettingsView(
                     signedOutMessage: signedOutMessage,
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)

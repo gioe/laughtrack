@@ -55,14 +55,20 @@ struct LaughTrackTests {
 
     @Test("settings preferences model saves and clears the nearby preference used by discovery")
     @MainActor
-    func settingsPreferencesModelPersistsNearbyPreference() {
+    func settingsPreferencesModelPersistsNearbyPreference() async {
         let defaults = UserDefaults(suiteName: "SettingsPreferencesModel.\(UUID().uuidString)")!
         let store = NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
-        let model = SettingsNearbyPreferenceModel(nearbyPreferenceStore: store)
+        let controller = NearbyLocationController(
+            store: store,
+            resolver: FailingNearbyLocationResolver(),
+            zipLocationResolver: FailingZipLocationResolver()
+        )
+        let model = SettingsNearbyPreferenceModel(nearbyLocationController: controller)
 
         model.zipCodeDraft = "10012-1234"
         model.distanceMiles = 50
         model.saveNearbyPreference()
+        await controller.pendingZipRefinement?.value
 
         #expect(model.validationMessage == nil)
         #expect(model.nearbyPreference == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 50))

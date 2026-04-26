@@ -4,20 +4,20 @@ import LaughTrackCore
 
 struct SettingsView: View {
     let signedOutMessage: String?
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    @ObservedObject var nearbyLocationController: NearbyLocationController
 
     @Environment(\.appTheme) private var theme
     @StateObject private var model: SettingsNearbyPreferenceModel
 
     init(
         signedOutMessage: String?,
-        nearbyPreferenceStore: NearbyPreferenceStore,
+        nearbyLocationController: NearbyLocationController,
         model: SettingsNearbyPreferenceModel? = nil
     ) {
         self.signedOutMessage = signedOutMessage
-        self.nearbyPreferenceStore = nearbyPreferenceStore
+        self.nearbyLocationController = nearbyLocationController
         let resolvedModel = model ?? SettingsNearbyPreferenceModel(
-            nearbyPreferenceStore: nearbyPreferenceStore
+            nearbyLocationController: nearbyLocationController
         )
         _model = StateObject(
             wrappedValue: resolvedModel

@@ -29,20 +29,35 @@ enum LaughTrackHostedViewTestSupport {
         StubNearbyLocationResolver()
     }
 
+    static func makeZipLocationResolver() -> any ZipLocationResolving {
+        StubZipLocationResolver()
+    }
+
     static func makeNearbyLocationController(
         store: NearbyPreferenceStore,
-        resolver: (any NearbyLocationResolving)? = nil
+        resolver: (any NearbyLocationResolving)? = nil,
+        zipLocationResolver: (any ZipLocationResolving)? = nil
     ) -> NearbyLocationController {
-        NearbyLocationController(store: store, resolver: resolver ?? StubNearbyLocationResolver())
+        NearbyLocationController(
+            store: store,
+            resolver: resolver ?? StubNearbyLocationResolver(),
+            zipLocationResolver: zipLocationResolver ?? StubZipLocationResolver()
+        )
     }
 
     static func makeServiceContainer(name: String) -> ServiceContainer {
         let store = makeNearbyPreferenceStore(name: name)
         let resolver = makeNearbyLocationResolver()
-        let controller = NearbyLocationController(store: store, resolver: resolver)
+        let zipLocationResolver = makeZipLocationResolver()
+        let controller = NearbyLocationController(
+            store: store,
+            resolver: resolver,
+            zipLocationResolver: zipLocationResolver
+        )
         let container = ServiceContainer()
         container.register(NearbyPreferenceStore.self, scope: .appLevel, instance: store)
         container.register((any NearbyLocationResolving).self, scope: .appLevel, instance: resolver)
+        container.register((any ZipLocationResolving).self, scope: .appLevel, instance: zipLocationResolver)
         container.register(NearbyLocationController.self, scope: .appLevel, instance: controller)
         return container
     }
@@ -164,6 +179,19 @@ func decodedRoutes<Route: Hashable & Codable>(
 final class StubNearbyLocationResolver: NearbyLocationResolving {
     func requestCurrentZip() async throws -> String {
         throw NearbyLocationError.unavailable
+    }
+}
+
+@MainActor
+final class StubZipLocationResolver: ZipLocationResolving {
+    var result: Result<ResolvedNearbyLocation, Error>
+
+    init(result: Result<ResolvedNearbyLocation, Error> = .failure(ZipLocationLookupError.unknownZip)) {
+        self.result = result
+    }
+
+    func resolveLocation(forZip zipCode: String) async throws -> ResolvedNearbyLocation {
+        try result.get()
     }
 }
 

@@ -55,13 +55,21 @@ public final class NearbyLocationController: ObservableObject {
     @Published public private(set) var statusMessage: String?
     @Published public private(set) var isResolvingCurrentLocation = false
 
+    public private(set) var pendingZipRefinement: Task<Void, Never>?
+
     private let store: NearbyPreferenceStore
     private let resolver: NearbyLocationResolving
+    private let zipLocationResolver: any ZipLocationResolving
     private var preferenceCancellable: AnyCancellable?
 
-    public init(store: NearbyPreferenceStore, resolver: NearbyLocationResolving) {
+    public init(
+        store: NearbyPreferenceStore,
+        resolver: NearbyLocationResolving,
+        zipLocationResolver: any ZipLocationResolving
+    ) {
         self.store = store
         self.resolver = resolver
+        self.zipLocationResolver = zipLocationResolver
         self.preference = store.preference
         preferenceCancellable = store.$preference
             .sink { [weak self] preference in
@@ -71,17 +79,46 @@ public final class NearbyLocationController: ObservableObject {
 
     @discardableResult
     public func applyManualZip(_ zipCode: String, distanceMiles: Int) -> Bool {
-        guard store.setManualZip(zipCode, distanceMiles: distanceMiles) != nil else {
+        guard let saved = store.setManualZip(zipCode, distanceMiles: distanceMiles) else {
             statusMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
             return false
         }
 
         statusMessage = nil
+        pendingZipRefinement?.cancel()
+        pendingZipRefinement = Task { [weak self] in
+            await self?.refineManualZipLocation(baseline: saved)
+        }
         return true
+    }
+
+    private func refineManualZipLocation(baseline: NearbyPreference) async {
+        guard
+            let resolved = try? await zipLocationResolver.resolveLocation(forZip: baseline.zipCode),
+            let city = resolved.city, !city.isEmpty
+        else {
+            return
+        }
+        // Only update if the user hasn't moved on (different ZIP, geolocation, or cleared).
+        guard
+            let current = store.preference,
+            current.zipCode == baseline.zipCode,
+            current.source == .manual
+        else {
+            return
+        }
+        _ = store.setManualZip(
+            current.zipCode,
+            distanceMiles: current.distanceMiles,
+            city: resolved.city,
+            state: resolved.state
+        )
     }
 
     public func clear() {
         statusMessage = nil
+        pendingZipRefinement?.cancel()
+        pendingZipRefinement = nil
         store.clear()
     }
 

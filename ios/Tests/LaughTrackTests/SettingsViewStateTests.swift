@@ -11,13 +11,14 @@ struct SettingsViewStateTests {
     @Test("Settings screen reflects saved nearby preference state changes deterministically")
     func settingsStateUpdatesAreDeterministic() async throws {
         let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "settings")
-        let model = SettingsNearbyPreferenceModel(nearbyPreferenceStore: store)
+        let controller = LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store)
+        let model = SettingsNearbyPreferenceModel(nearbyLocationController: controller)
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "settings-view")
         let favorites = ComedianFavoriteStore()
         let host = HostedView(
             SettingsView(
                 signedOutMessage: nil,
-                nearbyPreferenceStore: store,
+                nearbyLocationController: controller,
                 model: model
             )
             .environment(\.appTheme, LaughTrackTheme())

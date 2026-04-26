@@ -12,7 +12,8 @@ struct HomeNearbyDiscoveryModelTests {
         let store = makeStore(name: "denied")
         let controller = NearbyLocationController(
             store: store,
-            resolver: MockNearbyLocationResolver(result: .failure(NearbyLocationError.denied))
+            resolver: MockNearbyLocationResolver(result: .failure(NearbyLocationError.denied)),
+            zipLocationResolver: NoOpZipLocationResolver()
         )
         let model = HomeNearbyDiscoveryModel(
             nearbyPreferenceStore: store,
@@ -32,7 +33,8 @@ struct HomeNearbyDiscoveryModelTests {
         let store = makeStore(name: "success")
         let controller = NearbyLocationController(
             store: store,
-            resolver: MockNearbyLocationResolver(result: .success("10012"))
+            resolver: MockNearbyLocationResolver(result: .success("10012")),
+            zipLocationResolver: NoOpZipLocationResolver()
         )
         let model = HomeNearbyDiscoveryModel(
             nearbyPreferenceStore: store,
@@ -70,5 +72,12 @@ private final class MockNearbyLocationResolver: NearbyLocationResolving {
 
     func requestCurrentZip() async throws -> String {
         try result.get()
+    }
+}
+
+@MainActor
+private final class NoOpZipLocationResolver: ZipLocationResolving {
+    func resolveLocation(forZip zipCode: String) async throws -> ResolvedNearbyLocation {
+        throw ZipLocationLookupError.unknownZip
     }
 }

@@ -191,31 +191,30 @@ public final class SettingsNearbyPreferenceModel: ObservableObject {
     @Published public private(set) var nearbyPreference: NearbyPreference?
     @Published public private(set) var validationMessage: String?
 
-    private let nearbyPreferenceStore: NearbyPreferenceStore
+    private let nearbyLocationController: NearbyLocationController
     private var preferenceCancellable: AnyCancellable?
 
-    public init(nearbyPreferenceStore: NearbyPreferenceStore) {
-        self.nearbyPreferenceStore = nearbyPreferenceStore
-        applyPreference(nearbyPreferenceStore.preference)
-        preferenceCancellable = nearbyPreferenceStore.$preference
+    public init(nearbyLocationController: NearbyLocationController) {
+        self.nearbyLocationController = nearbyLocationController
+        applyPreference(nearbyLocationController.preference)
+        preferenceCancellable = nearbyLocationController.$preference
             .sink { [weak self] preference in
                 self?.applyPreference(preference)
             }
     }
 
     public func saveNearbyPreference() {
-        guard let preference = nearbyPreferenceStore.setManualZip(zipCodeDraft, distanceMiles: distanceMiles) else {
+        guard nearbyLocationController.applyManualZip(zipCodeDraft, distanceMiles: distanceMiles) else {
             validationMessage = "Enter a valid 5-digit ZIP code before saving this nearby preference."
             return
         }
 
         validationMessage = nil
-        applyPreference(preference)
     }
 
     public func clearNearbyPreference() {
         validationMessage = nil
-        nearbyPreferenceStore.clear()
+        nearbyLocationController.clear()
     }
 
     private func applyPreference(_ preference: NearbyPreference?) {
