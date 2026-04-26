@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockFindUnique, mockUpdate, mockUpdateMany, mockCreate } = vi.hoisted(
-    () => ({
-        mockFindUnique: vi.fn(),
-        mockUpdate: vi.fn(),
-        mockUpdateMany: vi.fn(),
-        mockCreate: vi.fn(),
-    }),
-);
+const {
+    mockFindUnique,
+    mockUpdate,
+    mockUpdateMany,
+    mockCreate,
+    mockDeleteMany,
+} = vi.hoisted(() => ({
+    mockFindUnique: vi.fn(),
+    mockUpdate: vi.fn(),
+    mockUpdateMany: vi.fn(),
+    mockCreate: vi.fn(),
+    mockDeleteMany: vi.fn(),
+}));
 
 vi.mock("@/lib/db", () => ({
     db: {
@@ -32,6 +37,7 @@ vi.mock("@/lib/db", () => ({
         refreshToken: {
             create: mockCreate,
             updateMany: mockUpdateMany,
+            deleteMany: mockDeleteMany,
         },
     },
 }));
@@ -42,7 +48,9 @@ vi.mock("@/util/token", () => ({
 }));
 
 import {
+    cleanupExpiredRefreshTokens,
     consumeRefreshToken,
+    REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS,
     revokeAllRefreshTokens,
 } from "@/lib/auth/refreshTokens";
 
@@ -171,5 +179,58 @@ describe("revokeAllRefreshTokens", () => {
             where: { userId: "user-9", revokedAt: null },
             data: { revokedAt: expect.any(Date) },
         });
+    });
+});
+
+describe("cleanupExpiredRefreshTokens", () => {
+    it("deletes tokens past expiry or revoked beyond the default grace window", async () => {
+        mockDeleteMany.mockResolvedValue({ count: 12 });
+
+        const before = Date.now();
+        const result = await cleanupExpiredRefreshTokens();
+        const after = Date.now();
+
+        expect(result).toEqual({ deleted: 12 });
+        expect(mockDeleteMany).toHaveBeenCalledTimes(1);
+
+        const args = mockDeleteMany.mock.calls[0][0];
+        expect(args.where.OR).toHaveLength(2);
+
+        const expiresClause = args.where.OR[0].expiresAt.lt as Date;
+        const revokedClause = args.where.OR[1].revokedAt.lt as Date;
+        const expectedRevokedCutoffMin =
+            before -
+            REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS * 24 * 60 * 60 * 1000;
+        const expectedRevokedCutoffMax =
+            after -
+            REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS * 24 * 60 * 60 * 1000;
+
+        expect(expiresClause.getTime()).toBeGreaterThanOrEqual(before);
+        expect(expiresClause.getTime()).toBeLessThanOrEqual(after);
+        expect(revokedClause.getTime()).toBeGreaterThanOrEqual(
+            expectedRevokedCutoffMin,
+        );
+        expect(revokedClause.getTime()).toBeLessThanOrEqual(
+            expectedRevokedCutoffMax,
+        );
+    });
+
+    it("honors a custom revoked retention window", async () => {
+        mockDeleteMany.mockResolvedValue({ count: 0 });
+
+        const before = Date.now();
+        await cleanupExpiredRefreshTokens(30);
+        const after = Date.now();
+
+        const args = mockDeleteMany.mock.calls[0][0];
+        const revokedClause = args.where.OR[1].revokedAt.lt as Date;
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+        expect(revokedClause.getTime()).toBeGreaterThanOrEqual(
+            before - thirtyDaysMs,
+        );
+        expect(revokedClause.getTime()).toBeLessThanOrEqual(
+            after - thirtyDaysMs,
+        );
     });
 });

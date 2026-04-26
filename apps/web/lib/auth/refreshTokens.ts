@@ -95,3 +95,34 @@ export async function revokeAllRefreshTokens(userId: string): Promise<number> {
     });
     return result.count;
 }
+
+/** Default grace window before a revoked token is purged from the table. */
+export const REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS = 7;
+
+export interface CleanupExpiredRefreshTokensResult {
+    deleted: number;
+}
+
+/**
+ * Delete refresh tokens that are no longer useful: expired by TTL, or revoked
+ * more than `revokedRetentionDays` ago. The grace window keeps recently-revoked
+ * rows around long enough that the reuse-detection path in `consumeRefreshToken`
+ * can still trip when a stolen token shows up shortly after sign-out.
+ */
+export async function cleanupExpiredRefreshTokens(
+    revokedRetentionDays: number = REFRESH_TOKEN_CLEANUP_REVOKED_GRACE_DAYS,
+): Promise<CleanupExpiredRefreshTokensResult> {
+    const now = new Date();
+    const revokedCutoff = new Date(
+        now.getTime() - revokedRetentionDays * 24 * 60 * 60 * 1000,
+    );
+    const result = await db.refreshToken.deleteMany({
+        where: {
+            OR: [
+                { expiresAt: { lt: now } },
+                { revokedAt: { lt: revokedCutoff } },
+            ],
+        },
+    });
+    return { deleted: result.count };
+}
