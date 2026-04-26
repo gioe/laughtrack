@@ -18,7 +18,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 on a protected call drives /auth/refresh and rotates tokens in authMiddleware and keychain")
     @MainActor
     func refreshOn401RotatesTokensInAuthMiddlewareAndKeychain() async throws {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -37,14 +37,14 @@ struct TokenRefreshMiddlewareIntegrationTests {
         let rotatedRefresh = "rotated-refresh-token"
         let transport = ScriptedTransport()
         await transport.seed([
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
-            ScriptedResponse(
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(
                 status: .ok,
                 bodyJSON: """
                 {"accessToken":"\(rotatedAccess)","refreshToken":"\(rotatedRefresh)","expiresIn":900}
                 """
             ),
-            ScriptedResponse(status: .ok, bodyJSON: #"{"data":[]}"#),
+            .response(status: .ok, bodyJSON: #"{"data":[]}"#),
         ])
 
         // refreshClient intentionally omits factory.authMiddleware — see AppBootstrap.
@@ -58,34 +58,19 @@ struct TokenRefreshMiddlewareIntegrationTests {
             ]
         )
 
+        // This test exercises TokenRefreshMiddleware's rotation contract, not the
+        // signed-out notification plumbing, so the refresh closure's unauthorized
+        // handler and UnauthorizedResponseMiddleware's callback are both no-ops.
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: Operations.RefreshToken.id
-        ) { _ in
-            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
-            guard let refreshToken else {
-                throw URLError(.userAuthenticationRequired)
-            }
-            let response = try await refreshClient.refreshToken(
-                body: .json(.init(refreshToken: refreshToken))
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { }
             )
-            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                throw URLError(.userAuthenticationRequired)
-            }
-            try? await MainActor.run {
-                try tokenManager.storeTokens(
-                    accessToken: body.accessToken,
-                    refreshToken: body.refreshToken
-                )
-            }
-            return TokenRefreshMiddleware.Tokens(
-                accessToken: body.accessToken,
-                refreshToken: body.refreshToken
-            )
-        }
+        )
 
-        // This test exercises TokenRefreshMiddleware's rotation contract, not the
-        // signed-out notification plumbing, so the unauthorized callback is a no-op.
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware { }
 
         let apiClient = Client(
@@ -147,7 +132,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 -> refresh -> 200 leaves AuthManager authenticated and keychain populated")
     @MainActor
     func successfulRefreshDoesNotTriggerUnauthorizedCallback() async throws {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -181,14 +166,14 @@ struct TokenRefreshMiddlewareIntegrationTests {
         let rotatedRefresh = "rotated-refresh-token"
         let transport = ScriptedTransport()
         await transport.seed([
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
-            ScriptedResponse(
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(
                 status: .ok,
                 bodyJSON: """
                 {"accessToken":"\(rotatedAccess)","refreshToken":"\(rotatedRefresh)","expiresIn":900}
                 """
             ),
-            ScriptedResponse(status: .ok, bodyJSON: #"{"data":[]}"#),
+            .response(status: .ok, bodyJSON: #"{"data":[]}"#),
         ])
 
         let refreshClient = Client(
@@ -203,31 +188,15 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: Operations.RefreshToken.id
-        ) { _ in
-            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
-            guard let refreshToken else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            let response = try await refreshClient.refreshToken(
-                body: .json(.init(refreshToken: refreshToken))
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { [authManager] in
+                    await authManager.handleUnauthorizedResponse()
+                }
             )
-            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            try? await MainActor.run {
-                try tokenManager.storeTokens(
-                    accessToken: body.accessToken,
-                    refreshToken: body.refreshToken
-                )
-            }
-            return TokenRefreshMiddleware.Tokens(
-                accessToken: body.accessToken,
-                refreshToken: body.refreshToken
-            )
-        }
+        )
 
         // The real production callback — this is exactly what AppBootstrap wires up.
         // The whole point of this test is that it must NOT fire when refresh recovers.
@@ -274,7 +243,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 from /auth/refresh signs the user out and does not retry the original request")
     @MainActor
     func refreshEndpoint401DoesNotLoopAndSignsOut() async throws {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "expired-refresh-token-\(UUID().uuidString)"
@@ -305,8 +274,8 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let transport = ScriptedTransport()
         await transport.seed([
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Refresh token expired."}"#),
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Refresh token expired."}"#),
         ])
 
         let refreshClient = Client(
@@ -321,31 +290,15 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: Operations.RefreshToken.id
-        ) { _ in
-            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
-            guard let refreshToken else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            let response = try await refreshClient.refreshToken(
-                body: .json(.init(refreshToken: refreshToken))
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { [authManager] in
+                    await authManager.handleUnauthorizedResponse()
+                }
             )
-            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            try? await MainActor.run {
-                try tokenManager.storeTokens(
-                    accessToken: body.accessToken,
-                    refreshToken: body.refreshToken
-                )
-            }
-            return TokenRefreshMiddleware.Tokens(
-                accessToken: body.accessToken,
-                refreshToken: body.refreshToken
-            )
-        }
+        )
 
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware { [authManager] in
             await authManager.handleUnauthorizedResponse()
@@ -403,7 +356,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("Refresh closure throws — TRM propagates the error and does not mutate token state")
     @MainActor
     func refreshClosureThrowingPreservesTokenState() async throws {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -418,7 +371,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let transport = ScriptedTransport()
         await transport.seed([
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
         ])
 
         struct SimulatedRefreshFailure: Error {}
@@ -480,7 +433,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("Missing refresh token in keychain on 401 signs the user out without calling /auth/refresh")
     @MainActor
     func missingRefreshTokenSignsOutWithoutHittingRefreshEndpoint() async throws {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -518,7 +471,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let transport = ScriptedTransport()
         await transport.seed([
-            ScriptedResponse(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
+            .response(status: .unauthorized, bodyJSON: #"{"error":"Session expired."}"#),
         ])
 
         let refreshClient = Client(
@@ -533,31 +486,15 @@ struct TokenRefreshMiddlewareIntegrationTests {
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: Operations.RefreshToken.id
-        ) { _ in
-            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
-            guard let refreshToken else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            let response = try await refreshClient.refreshToken(
-                body: .json(.init(refreshToken: refreshToken))
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { [authManager] in
+                    await authManager.handleUnauthorizedResponse()
+                }
             )
-            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            try? await MainActor.run {
-                try tokenManager.storeTokens(
-                    accessToken: body.accessToken,
-                    refreshToken: body.refreshToken
-                )
-            }
-            return TokenRefreshMiddleware.Tokens(
-                accessToken: body.accessToken,
-                refreshToken: body.refreshToken
-            )
-        }
+        )
 
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware { [authManager] in
             await authManager.handleUnauthorizedResponse()
@@ -602,110 +539,6 @@ struct TokenRefreshMiddlewareIntegrationTests {
     }
 }
 
-// MARK: - Scripted Transport
-
-private struct RecordedRequest: Sendable {
-    let method: HTTPRequest.Method
-    let path: String?
-    let headers: HTTPFields
-    let operationID: String
-    let bodyData: Data?
-}
-
-private struct ScriptedResponse: Sendable {
-    let status: HTTPResponse.Status
-    let bodyJSON: String?
-}
-
-private actor ScriptedTransportState {
-    private var script: [ScriptedResponse] = []
-    private(set) var recordedRequests: [RecordedRequest] = []
-
-    func seed(_ script: [ScriptedResponse]) {
-        self.script = script
-        self.recordedRequests = []
-    }
-
-    func handle(_ request: RecordedRequest) -> ScriptedResponse? {
-        recordedRequests.append(request)
-        guard !script.isEmpty else { return nil }
-        return script.removeFirst()
-    }
-}
-
-private final class ScriptedTransport: ClientTransport, @unchecked Sendable {
-    private let state = ScriptedTransportState()
-
-    var recordedRequests: [RecordedRequest] {
-        get async { await state.recordedRequests }
-    }
-
-    func seed(_ script: [ScriptedResponse]) async {
-        await state.seed(script)
-    }
-
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        var collected: Data?
-        if let body {
-            collected = try await Data(collecting: body, upTo: 1_048_576)
-        }
-        let recorded = RecordedRequest(
-            method: request.method,
-            path: request.path,
-            headers: request.headerFields,
-            operationID: operationID,
-            bodyData: collected
-        )
-        guard let scripted = await state.handle(recorded) else {
-            throw URLError(.badServerResponse)
-        }
-        var response = HTTPResponse(status: scripted.status)
-        let responseBody: HTTPBody?
-        if let json = scripted.bodyJSON {
-            response.headerFields[.contentType] = "application/json"
-            responseBody = HTTPBody(Data(json.utf8))
-        } else {
-            responseBody = nil
-        }
-        return (response, responseBody)
-    }
-}
-
-// MARK: - Test Fixtures
-
-private final class StubOAuthSessionRunner: OAuthSessionRunning {
-    func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
-        URL(string: "laughtrack://auth/callback")!
-    }
-}
-
-private final class InMemorySecureStorage: SecureStorageProtocol {
-    private var values: [String: String] = [:]
-
-    func save(_ value: String, forKey key: String) throws {
-        values[key] = value
-    }
-
-    func retrieve(forKey key: String) throws -> String? {
-        values[key]
-    }
-
-    func delete(forKey key: String) throws {
-        values[key] = nil
-    }
-
-    func deleteAll() throws {
-        values.removeAll()
-    }
-}
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
+// Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
+// InMemorySecureStorage, StubOAuthSessionRunner, the production-style refresh
+// closure, and the safe-subscript helper) live in MiddlewareIntegrationTestSupport.swift.

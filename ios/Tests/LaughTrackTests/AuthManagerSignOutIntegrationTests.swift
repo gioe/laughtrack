@@ -148,7 +148,7 @@ private struct AuthSignOutHarness {
     /// routed through a scripted transport, with a test session already restored to
     /// `.authenticated`. The signoutRequest binding exactly mirrors AppBootstrap.swift:114.
     static func make() async throws -> AuthSignOutHarness {
-        let secureStorage = InMemorySecureStorage()
+        let secureStorage = IntegrationInMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-\(UUID().uuidString)"
@@ -199,31 +199,15 @@ private struct AuthSignOutHarness {
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
             authMiddleware: factory.authMiddleware,
-            refreshEndpointOperationID: Operations.RefreshToken.id
-        ) { _ in
-            let refreshToken = await MainActor.run { tokenManager.retrieveRefreshToken() }
-            guard let refreshToken else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            let response = try await refreshClient.refreshToken(
-                body: .json(.init(refreshToken: refreshToken))
+            refreshEndpointOperationID: Operations.RefreshToken.id,
+            refreshHandler: makeProductionStyleRefreshClosure(
+                tokenManager: tokenManager,
+                refreshClient: refreshClient,
+                unauthorizedHandler: { [authManager] in
+                    await authManager.handleUnauthorizedResponse()
+                }
             )
-            guard case .ok(let ok) = response, case .json(let body) = ok.body else {
-                await authManager.handleUnauthorizedResponse()
-                throw URLError(.userAuthenticationRequired)
-            }
-            try? await MainActor.run {
-                try tokenManager.storeTokens(
-                    accessToken: body.accessToken,
-                    refreshToken: body.refreshToken
-                )
-            }
-            return TokenRefreshMiddleware.Tokens(
-                accessToken: body.accessToken,
-                refreshToken: body.refreshToken
-            )
-        }
+        )
 
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware { [authManager] in
             await authManager.handleUnauthorizedResponse()
@@ -262,109 +246,6 @@ private struct HarnessSetupError: Error, CustomStringConvertible {
     init(_ description: String) { self.description = description }
 }
 
-// MARK: - Scripted Transport
-
-private struct RecordedRequest: Sendable {
-    let method: HTTPRequest.Method
-    let path: String?
-    let headers: HTTPFields
-    let operationID: String
-    let bodyData: Data?
-}
-
-private enum ScriptedResponse: Sendable {
-    case response(status: HTTPResponse.Status, bodyJSON: String?)
-    case transportError(URLError)
-}
-
-private actor ScriptedTransportState {
-    private var script: [ScriptedResponse] = []
-    private(set) var recordedRequests: [RecordedRequest] = []
-
-    func seed(_ script: [ScriptedResponse]) {
-        self.script = script
-        self.recordedRequests = []
-    }
-
-    func handle(_ request: RecordedRequest) -> ScriptedResponse? {
-        recordedRequests.append(request)
-        guard !script.isEmpty else { return nil }
-        return script.removeFirst()
-    }
-}
-
-private final class ScriptedTransport: ClientTransport, @unchecked Sendable {
-    private let state = ScriptedTransportState()
-
-    var recordedRequests: [RecordedRequest] {
-        get async { await state.recordedRequests }
-    }
-
-    func seed(_ script: [ScriptedResponse]) async {
-        await state.seed(script)
-    }
-
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        var collected: Data?
-        if let body {
-            collected = try await Data(collecting: body, upTo: 1_048_576)
-        }
-        let recorded = RecordedRequest(
-            method: request.method,
-            path: request.path,
-            headers: request.headerFields,
-            operationID: operationID,
-            bodyData: collected
-        )
-        guard let scripted = await state.handle(recorded) else {
-            throw URLError(.badServerResponse)
-        }
-        switch scripted {
-        case .transportError(let error):
-            throw error
-        case .response(let status, let bodyJSON):
-            var response = HTTPResponse(status: status)
-            let responseBody: HTTPBody?
-            if let json = bodyJSON {
-                response.headerFields[.contentType] = "application/json"
-                responseBody = HTTPBody(Data(json.utf8))
-            } else {
-                responseBody = nil
-            }
-            return (response, responseBody)
-        }
-    }
-}
-
-// MARK: - Test Fixtures
-
-private final class StubOAuthSessionRunner: OAuthSessionRunning {
-    func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
-        URL(string: "laughtrack://auth/callback")!
-    }
-}
-
-private final class InMemorySecureStorage: SecureStorageProtocol {
-    private var values: [String: String] = [:]
-
-    func save(_ value: String, forKey key: String) throws {
-        values[key] = value
-    }
-
-    func retrieve(forKey key: String) throws -> String? {
-        values[key]
-    }
-
-    func delete(forKey key: String) throws {
-        values[key] = nil
-    }
-
-    func deleteAll() throws {
-        values.removeAll()
-    }
-}
+// Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
+// InMemorySecureStorage, StubOAuthSessionRunner, the production-style refresh
+// closure) live in MiddlewareIntegrationTestSupport.swift.
