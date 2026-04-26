@@ -1,20 +1,24 @@
 import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import Testing
+import LaughTrackAPIClient
 @testable import LaughTrackCore
+
+private let baseURL = URL(string: "https://test.example.com")!
 
 @Suite("APIZipLocationResolver", .serialized)
 struct APIZipLocationResolverTests {
-    private static let baseURL = URL(string: "https://test.example.com")!
 
     @Test("200 with valid payload decodes city and state into ResolvedNearbyLocation")
     @MainActor
     func successDecodesCityAndState() async throws {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 200), Data(#"{"city":"Chicago","state":"IL"}"#.utf8))
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 200, body: #"{"city":"Chicago","state":"IL"}"#)
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
         let result = try await resolver.resolveLocation(forZip: "60614")
 
         #expect(result.zipCode == "60614")
@@ -25,12 +29,12 @@ struct APIZipLocationResolverTests {
     @Test("200 with malformed JSON throws lookupFailed")
     @MainActor
     func malformedJSONFailsLookup() async {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 200), Data("{not json".utf8))
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 200, body: "{not json")
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
 
         await #expect(throws: ZipLocationLookupError.lookupFailed) {
             _ = try await resolver.resolveLocation(forZip: "60614")
@@ -40,12 +44,12 @@ struct APIZipLocationResolverTests {
     @Test("400 response throws invalidZip")
     @MainActor
     func status400ThrowsInvalidZip() async {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 400), Data())
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 400, body: #"{"error":"bad zip"}"#)
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
 
         await #expect(throws: ZipLocationLookupError.invalidZip) {
             _ = try await resolver.resolveLocation(forZip: "60614")
@@ -55,27 +59,27 @@ struct APIZipLocationResolverTests {
     @Test("404 response throws unknownZip")
     @MainActor
     func status404ThrowsUnknownZip() async {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 404), Data())
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 404, body: #"{"error":"unknown"}"#)
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
 
         await #expect(throws: ZipLocationLookupError.unknownZip) {
             _ = try await resolver.resolveLocation(forZip: "99999")
         }
     }
 
-    @Test("non-2xx response (500) throws lookupFailed")
+    @Test("undocumented response (500) throws lookupFailed")
     @MainActor
     func nonSuccessStatusThrowsLookupFailed() async {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 500), Data())
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 500, body: #"{"error":"server error"}"#)
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
 
         await #expect(throws: ZipLocationLookupError.lookupFailed) {
             _ = try await resolver.resolveLocation(forZip: "60614")
@@ -85,81 +89,88 @@ struct APIZipLocationResolverTests {
     @Test("Request URL is composed as <baseURL>/api/v1/zip-lookup?zip=<zip>")
     @MainActor
     func requestURLComposition() async throws {
-        StubURLProtocol.setHandler { request in
-            (response(for: request, status: 200), Data(#"{"city":"Chicago","state":"IL"}"#.utf8))
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 200, body: #"{"city":"Chicago","state":"IL"}"#)
         }
-        defer { StubURLProtocol.reset() }
 
-        let resolver = APIZipLocationResolver(baseURL: Self.baseURL, session: makeStubbedSession())
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
         _ = try await resolver.resolveLocation(forZip: "10012")
 
-        let captured = StubURLProtocol.capturedRequests
+        let captured = transport.capturedRequests
         #expect(captured.count == 1)
-        #expect(captured.first?.url?.absoluteString == "https://test.example.com/api/v1/zip-lookup?zip=10012")
-        #expect(captured.first?.httpMethod == "GET")
+        let first = try #require(captured.first)
+        #expect(first.method == .get)
+        let path = try #require(first.path)
+        #expect(path == "/api/v1/zip-lookup?zip=10012")
+        #expect(first.baseURL == baseURL)
     }
 }
 
-private func makeStubbedSession() -> URLSession {
-    let config = URLSessionConfiguration.ephemeral
-    config.protocolClasses = [StubURLProtocol.self]
-    return URLSession(configuration: config)
+@MainActor
+private func makeClient(transport: any ClientTransport) -> Client {
+    Client(
+        serverURL: baseURL,
+        transport: transport,
+        middlewares: [APIVersionPathMiddleware()]
+    )
 }
 
-private func response(for request: URLRequest, status: Int) -> HTTPURLResponse {
-    HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: "HTTP/1.1", headerFields: nil)!
+private func jsonResponse(status: Int, body: String) -> (HTTPResponse, HTTPBody?) {
+    var response = HTTPResponse(status: .init(code: status))
+    response.headerFields[.contentType] = "application/json"
+    return (response, HTTPBody(body))
 }
 
-/// Static-handler URLProtocol stub. The owning suite runs `.serialized`, so
-/// only one test mutates the handler at a time.
-final class StubURLProtocol: URLProtocol {
-    private static let lock = NSLock()
-    private static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
-    private static var requests: [URLRequest] = []
+/// In-process `ClientTransport` stub that lets each test inject a deterministic
+/// response without spinning up a real network. The owning suite runs
+/// `.serialized`, so handler swaps don't race across tests.
+final class StubClientTransport: ClientTransport, @unchecked Sendable {
+    typealias Handler = @Sendable (HTTPRequest, HTTPBody?, URL, String) async throws -> (HTTPResponse, HTTPBody?)
 
-    static func setHandler(_ handler: @escaping (URLRequest) throws -> (HTTPURLResponse, Data)) {
-        lock.lock()
-        defer { lock.unlock() }
-        Self.handler = handler
-        Self.requests = []
+    struct CapturedRequest {
+        let method: HTTPRequest.Method
+        let path: String?
+        let baseURL: URL
+        let operationID: String
     }
 
-    static func reset() {
-        lock.lock()
-        defer { lock.unlock() }
-        handler = nil
-        requests = []
-    }
+    private let lock = NSLock()
+    private var handler: Handler?
+    private var requests: [CapturedRequest] = []
 
-    static var capturedRequests: [URLRequest] {
-        lock.lock()
-        defer { lock.unlock() }
-        return requests
-    }
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        Self.lock.lock()
-        Self.requests.append(request)
-        let handler = Self.handler
-        Self.lock.unlock()
-
-        guard let handler else {
-            client?.urlProtocol(self, didFailWithError: URLError(.unknown))
-            return
-        }
-
-        do {
-            let (response, data) = try handler(request)
-            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-            client?.urlProtocol(self, didLoad: data)
-            client?.urlProtocolDidFinishLoading(self)
-        } catch {
-            client?.urlProtocol(self, didFailWithError: error)
+    func setHandler(_ handler: @escaping Handler) {
+        lock.withLock {
+            self.handler = handler
+            self.requests = []
         }
     }
 
-    override func stopLoading() {}
+    var capturedRequests: [CapturedRequest] {
+        lock.withLock { requests }
+    }
+
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let captured: Handler? = lock.withLock {
+            requests.append(
+                CapturedRequest(
+                    method: request.method,
+                    path: request.path,
+                    baseURL: baseURL,
+                    operationID: operationID
+                )
+            )
+            return handler
+        }
+
+        guard let captured else {
+            throw URLError(.unknown)
+        }
+        return try await captured(request, body, baseURL, operationID)
+    }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackAPIClient
 
 public enum ZipLocationLookupError: Error, Equatable {
     case invalidZip
@@ -13,12 +14,10 @@ public protocol ZipLocationResolving: AnyObject {
 
 @MainActor
 public final class APIZipLocationResolver: ZipLocationResolving {
-    private let baseURL: URL
-    private let session: URLSession
+    private let apiClient: Client
 
-    public init(baseURL: URL = AppConfiguration.apiBaseURL, session: URLSession = .shared) {
-        self.baseURL = baseURL
-        self.session = session
+    public init(apiClient: Client) {
+        self.apiClient = apiClient
     }
 
     public func resolveLocation(forZip zipCode: String) async throws -> ResolvedNearbyLocation {
@@ -26,54 +25,29 @@ public final class APIZipLocationResolver: ZipLocationResolving {
             throw ZipLocationLookupError.invalidZip
         }
 
-        var components = URLComponents(
-            url: baseURL.appendingPathComponent("api/v1/zip-lookup"),
-            resolvingAgainstBaseURL: false
-        )
-        components?.queryItems = [URLQueryItem(name: "zip", value: normalized)]
-        guard let url = components?.url else {
-            throw ZipLocationLookupError.lookupFailed
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-
-        let data: Data
-        let response: URLResponse
+        let output: Operations.LookupZip.Output
         do {
-            (data, response) = try await session.data(for: request)
+            output = try await apiClient.lookupZip(.init(query: .init(zip: normalized)))
         } catch {
             throw ZipLocationLookupError.lookupFailed
         }
 
-        guard let http = response as? HTTPURLResponse else {
-            throw ZipLocationLookupError.lookupFailed
-        }
-
-        switch http.statusCode {
-        case 200:
-            let payload: Payload
-            do {
-                payload = try JSONDecoder().decode(Payload.self, from: data)
-            } catch {
-                throw ZipLocationLookupError.lookupFailed
+        switch output {
+        case .ok(let ok):
+            switch ok.body {
+            case .json(let body):
+                return ResolvedNearbyLocation(
+                    zipCode: normalized,
+                    city: body.city,
+                    state: body.state
+                )
             }
-            return ResolvedNearbyLocation(
-                zipCode: normalized,
-                city: payload.city,
-                state: payload.state
-            )
-        case 400:
+        case .badRequest:
             throw ZipLocationLookupError.invalidZip
-        case 404:
+        case .notFound:
             throw ZipLocationLookupError.unknownZip
-        default:
+        case .tooManyRequests, .undocumented:
             throw ZipLocationLookupError.lookupFailed
         }
-    }
-
-    private struct Payload: Decodable {
-        let city: String
-        let state: String
     }
 }

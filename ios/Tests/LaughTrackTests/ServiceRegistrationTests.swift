@@ -92,14 +92,16 @@ struct ServiceRegistrationTests {
         #expect(container.resolveOptional(DataCache<LaughTrackCacheKey>.self) != nil)
     }
 
-    @Test("configure registers NearbyPreferenceStore, NearbyLocationResolving, and NearbyLocationController")
+    @Test("configure plus configureZipLocationResolver registers the full nearby-location stack")
     @MainActor
     func configureRegistersNearbyLocationStack() {
         let container = ServiceContainer()
         ServiceRegistration.configure(container)
+        ServiceRegistration.configureZipLocationResolver(container, apiClient: makeStubClient())
 
         #expect(container.resolveOptional(NearbyPreferenceStore.self) != nil)
         #expect(container.resolveOptional((any NearbyLocationResolving).self) != nil)
+        #expect(container.resolveOptional((any ZipLocationResolving).self) != nil)
         #expect(container.resolveOptional(NearbyLocationController.self) != nil)
     }
 
@@ -108,6 +110,7 @@ struct ServiceRegistrationTests {
     func nearbyLocationStackResolvesToSingletonInstances() {
         let container = ServiceContainer()
         ServiceRegistration.configure(container)
+        ServiceRegistration.configureZipLocationResolver(container, apiClient: makeStubClient())
 
         let storeA = container.resolve(NearbyPreferenceStore.self)
         let storeB = container.resolve(NearbyPreferenceStore.self)
@@ -121,18 +124,31 @@ struct ServiceRegistrationTests {
         #expect(resolverA === resolverB)
     }
 
+    @Test("configureZipLocationResolver registers ZipLocationResolving backed by APIZipLocationResolver")
+    @MainActor
+    func configureZipLocationResolverRegistersResolver() {
+        let container = ServiceContainer()
+        ServiceRegistration.configureZipLocationResolver(container, apiClient: makeStubClient())
+
+        let resolved = container.resolveOptional((any ZipLocationResolving).self)
+        #expect(resolved is APIZipLocationResolver)
+    }
+
     @Test("configureOfflineQueue registers OfflineOperationQueue")
     @MainActor
     func configureOfflineQueueRegistersQueue() {
         let container = ServiceContainer()
-        let client = Client(
-            serverURL: URL(string: "https://test.example.com")!,
-            transport: MockTransport()
-        )
-        ServiceRegistration.configureOfflineQueue(container, apiClient: client)
+        ServiceRegistration.configureOfflineQueue(container, apiClient: makeStubClient())
         let resolved = container.resolveOptional(OfflineOperationQueue<LaughTrackOfflineOperation>.self)
         #expect(resolved != nil)
     }
+}
+
+private func makeStubClient() -> Client {
+    Client(
+        serverURL: URL(string: "https://test.example.com")!,
+        transport: MockTransport()
+    )
 }
 
 // MARK: - AppConfiguration Tests

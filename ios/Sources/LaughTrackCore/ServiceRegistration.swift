@@ -21,15 +21,19 @@ public enum ServiceRegistration {
         container.register((any NearbyLocationResolving).self, scope: .appLevel) {
             CurrentLocationZipResolver()
         }
-        container.register((any ZipLocationResolving).self, scope: .appLevel) {
-            APIZipLocationResolver()
-        }
         container.register(NearbyLocationController.self, scope: .appLevel) {
             NearbyLocationController(
                 store: container.resolve(NearbyPreferenceStore.self),
                 resolver: container.resolve((any NearbyLocationResolving).self),
                 zipLocationResolver: container.resolve((any ZipLocationResolving).self)
             )
+        }
+    }
+
+    @MainActor
+    public static func configureZipLocationResolver(_ container: ServiceContainer, apiClient: Client) {
+        container.register((any ZipLocationResolving).self, scope: .appLevel) {
+            APIZipLocationResolver(apiClient: apiClient)
         }
     }
 

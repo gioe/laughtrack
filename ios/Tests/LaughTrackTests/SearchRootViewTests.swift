@@ -102,7 +102,7 @@ struct SearchRootModelTests {
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
-                zipLocationResolver: APIZipLocationResolver()
+                zipLocationResolver: StubZipLocationResolver()
             )
         )
         let now = Date(timeIntervalSince1970: 1_710_000_000)
@@ -125,7 +125,7 @@ struct SearchRootModelTests {
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
-                zipLocationResolver: APIZipLocationResolver()
+                zipLocationResolver: StubZipLocationResolver()
             )
         )
         let clubsModel = ClubsDiscoveryModel()
@@ -171,7 +171,7 @@ struct SearchRootModelTests {
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
-                zipLocationResolver: APIZipLocationResolver()
+                zipLocationResolver: StubZipLocationResolver()
             )
         )
 

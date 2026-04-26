@@ -131,6 +131,7 @@ public struct AppBootstrap {
             )
         }
 
+        ServiceRegistration.configureZipLocationResolver(container, apiClient: apiClient)
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
     }
 }
