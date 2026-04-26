@@ -15,7 +15,7 @@ public final class AuthManager: ObservableObject {
 
     public typealias SignoutRequest = @Sendable () async throws -> Void
     public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
-    public typealias SignoutErrorObserver = (Error) -> Void
+    public typealias SignoutErrorObserver = @Sendable (Error) async -> Void
 
     @Published public private(set) var state: State = .restoring
     @Published public private(set) var currentUser: AuthenticatedUser?
@@ -46,7 +46,7 @@ public final class AuthManager: ObservableObject {
     private let appStateStorage: AppStateStorageProtocol
     private let oauthSessionRunner: any OAuthSessionRunning
     private var hasRestoredSession = false
-    private static let logger = Logger(
+    nonisolated private static let logger = Logger(
         subsystem: "com.laughtrack.auth",
         category: "AuthManager"
     )
@@ -152,7 +152,7 @@ public final class AuthManager: ObservableObject {
             do {
                 try await signoutRequest()
             } catch {
-                signoutErrorObserver(error)
+                await signoutErrorObserver(error)
             }
         }
         await clearSession(message: nil)

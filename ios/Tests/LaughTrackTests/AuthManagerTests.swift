@@ -221,7 +221,7 @@ struct AuthManagerTests {
         // be caught in addition to the post-condition assertions below.
         let errorRecorder = SignoutErrorRecorder()
         manager.signoutErrorObserver = { error in
-            Task { await errorRecorder.record(error: error) }
+            await errorRecorder.record(error: error)
         }
 
         await manager.signOut()
@@ -231,8 +231,6 @@ struct AuthManagerTests {
         #expect(!tokenManager.isAuthenticated)
         #expect(!(await authMiddleware.hasAccessToken))
 
-        // Drain the Task that hands the error to the recorder before asserting.
-        await Task.yield()
         #expect(await errorRecorder.callCount == 1)
         let observed = await errorRecorder.lastError as? URLError
         #expect(observed?.code == .networkConnectionLost)

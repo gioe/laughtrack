@@ -60,7 +60,7 @@ struct AuthManagerSignOutIntegrationTests {
         // still pass the post-condition assertions below.
         let errorRecorder = IntegrationSignoutErrorRecorder()
         harness.authManager.signoutErrorObserver = { error in
-            Task { await errorRecorder.record(error: error) }
+            await errorRecorder.record(error: error)
         }
 
         await harness.authManager.signOut()
@@ -85,12 +85,10 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(harness.tokenManager.retrieveRefreshToken() == nil)
         #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
 
-        // Drain the Task that hands the error to the recorder before asserting,
-        // then verify the catch block was reached exactly once with a non-nil error.
+        // Verify the catch block was reached exactly once with a non-nil error.
         // The exact error type may be wrapped by middleware on its way up the stack,
         // so we don't pin the kind — the count + non-nil shape is enough to catch a
         // regression that silently swallowed the throw.
-        await Task.yield()
         #expect(await errorRecorder.callCount == 1)
         #expect(await errorRecorder.lastError != nil)
     }
