@@ -143,6 +143,9 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
                 )
             case .badRequest(let badRequest):
                 return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))
+            case .tooManyRequests(let tooManyRequests):
+                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                return .failure(.rateLimited(retryAfter: retryAfter, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting show results right now."))
             case .internalServerError(let serverError):
                 return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
             case .undocumented(let status, _):

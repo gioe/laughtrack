@@ -178,6 +178,15 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                         relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now."
                     )
                 )
+            case .tooManyRequests:
+                return .success(
+                    .init(
+                        comedian: comedian,
+                        upcomingShows: [],
+                        relatedComedians: [],
+                        relatedContentMessage: "LaughTrack is rate-limiting related shows right now. Please try again in a moment."
+                    )
+                )
             case .internalServerError:
                 return .success(
                     .init(
@@ -297,6 +306,15 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
                         upcomingShows: [],
                         featuredComedians: [],
                         relatedContentMessage: "LaughTrack could not load this club’s upcoming shows right now."
+                    )
+                )
+            case .tooManyRequests:
+                return .success(
+                    .init(
+                        club: club,
+                        upcomingShows: [],
+                        featuredComedians: [],
+                        relatedContentMessage: "LaughTrack is rate-limiting this club’s related content right now. Please try again in a moment."
                     )
                 )
             case .internalServerError:

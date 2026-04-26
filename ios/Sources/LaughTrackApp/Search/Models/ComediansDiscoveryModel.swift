@@ -98,6 +98,9 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                             total: response.total
                         )
                     )
+                case .tooManyRequests(let tooManyRequests):
+                    let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                    return .failure(.rateLimited(retryAfter: retryAfter, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting comedian results right now."))
                 case .internalServerError(let serverError):
                     return .failure(.serverError(status: 500, message: (try? serverError.body.json.error)))
                 case .undocumented(let status, _):

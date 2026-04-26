@@ -112,6 +112,11 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
                 phase = .failure(
                     .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those nearby filters.")
                 )
+            case .tooManyRequests(let tooManyRequests):
+                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                phase = .failure(
+                    .rateLimited(retryAfter: retryAfter, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting nearby shows right now.")
+                )
             case .internalServerError(let serverError):
                 phase = .failure(
                     .serverError(status: 500, message: (try? serverError.body.json.error))
