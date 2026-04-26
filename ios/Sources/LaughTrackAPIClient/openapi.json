@@ -995,6 +995,57 @@
           }
         }
       }
+    },
+    "/zip-lookup": {
+      "get": {
+        "operationId": "lookupZip",
+        "summary": "Resolve a US ZIP code to its city and state",
+        "description": "Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.",
+        "tags": ["geo"],
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "required": true,
+            "description": "5-digit US ZIP code",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ZIP resolved",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ZipLookupResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed ZIP",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "ZIP not found in the dataset",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1382,6 +1433,14 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/Filter" }
           }
+        }
+      },
+      "ZipLookupResponse": {
+        "type": "object",
+        "required": ["city", "state"],
+        "properties": {
+          "city": { "type": "string" },
+          "state": { "type": "string" }
         }
       }
     }

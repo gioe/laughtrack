@@ -101,6 +101,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /favorites/{comedianId}`.
     /// - Remark: Generated from `#/paths//favorites/{comedianId}/delete(removeFavorite)`.
     func removeFavorite(_ input: Operations.RemoveFavorite.Input) async throws -> Operations.RemoveFavorite.Output
+    /// Resolve a US ZIP code to its city and state
+    ///
+    /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
+    ///
+    /// - Remark: HTTP `GET /zip-lookup`.
+    /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)`.
+    func lookupZip(_ input: Operations.LookupZip.Input) async throws -> Operations.LookupZip.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -296,6 +303,21 @@ extension APIProtocol {
     ) async throws -> Operations.RemoveFavorite.Output {
         try await removeFavorite(Operations.RemoveFavorite.Input(
             path: path,
+            headers: headers
+        ))
+    }
+    /// Resolve a US ZIP code to its city and state
+    ///
+    /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
+    ///
+    /// - Remark: HTTP `GET /zip-lookup`.
+    /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)`.
+    public func lookupZip(
+        query: Operations.LookupZip.Input.Query,
+        headers: Operations.LookupZip.Input.Headers = .init()
+    ) async throws -> Operations.LookupZip.Output {
+        try await lookupZip(Operations.LookupZip.Input(
+            query: query,
             headers: headers
         ))
     }
@@ -1606,6 +1628,29 @@ public enum Components {
                 case data
                 case total
                 case filters
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ZipLookupResponse`.
+        public struct ZipLookupResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ZipLookupResponse/city`.
+            public var city: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ZipLookupResponse/state`.
+            public var state: Swift.String
+            /// Creates a new `ZipLookupResponse`.
+            ///
+            /// - Parameters:
+            ///   - city:
+            ///   - state:
+            public init(
+                city: Swift.String,
+                state: Swift.String
+            ) {
+                self.city = city
+                self.state = state
+            }
+            public enum CodingKeys: String, CodingKey {
+                case city
+                case state
             }
         }
     }
@@ -6267,6 +6312,291 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Resolve a US ZIP code to its city and state
+    ///
+    /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
+    ///
+    /// - Remark: HTTP `GET /zip-lookup`.
+    /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)`.
+    public enum LookupZip {
+        public static let id: Swift.String = "lookupZip"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/zip-lookup/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// 5-digit US ZIP code
+                ///
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/query/zip`.
+                public var zip: Swift.String
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - zip: 5-digit US ZIP code
+                public init(zip: Swift.String) {
+                    self.zip = zip
+                }
+            }
+            public var query: Operations.LookupZip.Input.Query
+            /// - Remark: Generated from `#/paths/zip-lookup/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.LookupZip.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.LookupZip.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.LookupZip.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.LookupZip.Input.Query,
+                headers: Operations.LookupZip.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ZipLookupResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ZipLookupResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.LookupZip.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.LookupZip.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// ZIP resolved
+            ///
+            /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.LookupZip.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.LookupZip.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.LookupZip.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.LookupZip.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or malformed ZIP
+            ///
+            /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.LookupZip.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.LookupZip.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.LookupZip.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.LookupZip.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// ZIP not found in the dataset
+            ///
+            /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.LookupZip.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.LookupZip.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.LookupZip.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.LookupZip.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.LookupZip.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.LookupZip.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
                             response: self
                         )
                     }
