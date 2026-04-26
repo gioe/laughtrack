@@ -93,6 +93,52 @@ class _FakeVenue:
         self.address = address
 
 
+def _scraping_sources_entry(*, platform, scraper_key="", source_url="",
+                             external_id=None, club_id=None, source_id=1):
+    """Build one element of the scraping_sources list as produced by the
+    json_agg LATERAL in ClubQueries — the shape Club.from_db_row consumes."""
+    return {
+        "id": source_id,
+        "club_id": club_id,
+        "platform": platform,
+        "scraper_key": scraper_key or "",
+        "external_id": external_id,
+        "source_url": source_url or "",
+        "priority": 0,
+        "enabled": True,
+        "metadata": {},
+    }
+
+
+def _row_with_source(defaults, *, platform, legacy):
+    """Take a defaults dict for a club row plus the platform + legacy field
+    overrides, and attach the scraping_sources list that Club.from_db_row
+    will read."""
+    defaults["scraping_sources"] = [
+        _scraping_sources_entry(
+            platform=platform,
+            scraper_key=legacy.get("scraper", "") or "",
+            source_url=legacy.get("scraping_url", "") or "",
+            external_id=legacy.get("external_id"),
+            club_id=defaults.get("id"),
+        )
+    ]
+    return defaults
+
+
+_LEGACY_KEYS = ("scraper", "scraping_url", "eventbrite_id",
+                "ticketmaster_id", "seatengine_id")
+
+
+def _split_legacy(overrides, defaults_legacy):
+    """Pop legacy fields out of overrides; merge with helper-level defaults."""
+    legacy = dict(defaults_legacy)
+    for key in _LEGACY_KEYS:
+        if key in overrides:
+            legacy[key] = overrides.pop(key)
+    return legacy
+
+
 def _make_club_row(**overrides):
     """Return a dict that Club.from_db_row() can consume."""
     defaults = {
@@ -100,7 +146,6 @@ def _make_club_row(**overrides):
         "name": "Test Club",
         "address": "123 Main St, New York, NY",
         "website": "",
-        "scraping_url": "www.eventbrite.com",
         "popularity": 0,
         "zip_code": "10001",
         "city": "New York",
@@ -108,16 +153,21 @@ def _make_club_row(**overrides):
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
-        "scraper": "eventbrite",
-        "eventbrite_id": "venue-abc",
-        "ticketmaster_id": None,
-        "seatengine_id": None,
         "rate_limit": 1.0,
         "max_retries": 3,
         "timeout": 30,
     }
+    legacy = _split_legacy(overrides, {
+        "scraper": "eventbrite",
+        "scraping_url": "www.eventbrite.com",
+        "eventbrite_id": "venue-abc",
+    })
     defaults.update(overrides)
-    return defaults
+    return _row_with_source(defaults, platform="eventbrite", legacy={
+        "scraper": legacy["scraper"],
+        "scraping_url": legacy["scraping_url"],
+        "external_id": legacy["eventbrite_id"],
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -170,9 +220,10 @@ class TestUpsertForEventbriteVenueHappyPath:
         mock_exec.assert_called_once()
         call_args = mock_exec.call_args
         params = call_args[0][1]  # second positional arg is the params tuple
+        # New CTE shape: (name, address, zip_code, city, state, venue_id)
         assert params[0] == "Gotham Comedy Club"   # name
-        assert params[2] == "venue-xyz"            # eventbrite_id
-        assert params[3] == "10011"                # zip_code
+        assert params[2] == "10011"                # zip_code
+        assert params[5] == "venue-xyz"            # venue_id (scraping_sources.external_id)
 
     def test_address_concatenated_from_parts(self):
         """Address is joined from address_1, city, region with ', '."""
@@ -201,7 +252,7 @@ class TestUpsertForEventbriteVenueHappyPath:
             handler.upsert_for_eventbrite_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[3] == ""   # zip_code
+        assert params[2] == ""   # zip_code (new CTE shape)
         assert params[1] == ""   # address
 
 
@@ -247,9 +298,12 @@ class TestUpsertForEventbriteVenueConflict:
         assert "SCRAPER" in sql
 
     def test_sql_uses_coalesce_for_eventbrite_id(self):
-        """SQL contract: UPSERT_CLUB_BY_EVENTBRITE_VENUE must use COALESCE for eventbrite_id."""
+        """SQL contract: UPSERT_CLUB_BY_EVENTBRITE_VENUE must COALESCE the
+        scraping_sources.external_id (the Eventbrite venue id) so existing
+        rows are preserved on conflict."""
         sql = ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE.upper()
-        assert "EVENTBRITE_ID" in sql
+        assert "SCRAPING_SOURCES" in sql
+        assert "EXTERNAL_ID" in sql
 
 
 class TestUpsertForEventbriteVenueInvalidInput:
@@ -314,7 +368,6 @@ def _make_seatengine_club_row(**overrides):
         "name": "Test Club",
         "address": "123 Main St, New York, NY",
         "website": "https://testclub.com",
-        "scraping_url": "www.seatengine.com",
         "popularity": 0,
         "zip_code": "10001",
         "city": "New York",
@@ -322,16 +375,21 @@ def _make_seatengine_club_row(**overrides):
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
-        "scraper": "seatengine",
-        "eventbrite_id": None,
-        "ticketmaster_id": None,
-        "seatengine_id": "458",
         "rate_limit": 1.0,
         "max_retries": 3,
         "timeout": 30,
     }
+    legacy = _split_legacy(overrides, {
+        "scraper": "seatengine",
+        "scraping_url": "www.seatengine.com",
+        "seatengine_id": "458",
+    })
     defaults.update(overrides)
-    return defaults
+    return _row_with_source(defaults, platform="seatengine", legacy={
+        "scraper": legacy["scraper"],
+        "scraping_url": legacy["scraping_url"],
+        "external_id": legacy["seatengine_id"],
+    })
 
 
 class TestUpsertForSeatEngineVenueHappyPath:
@@ -361,12 +419,14 @@ class TestUpsertForSeatEngineVenueHappyPath:
 
         mock_exec.assert_called_once()
         params = mock_exec.call_args[0][1]
+        # New CTE shape:
+        # (name, address, website, zip_code, city, state, venue_id, website-as-source_url)
         assert params[0] == "Brokerage Comedy Club"   # name
         assert params[1] == "200 Elm St"              # address
         assert params[2] == "https://brokerage.com"   # website
-        assert params[3] == "https://brokerage.com"   # scraping_url (same as website)
-        assert params[4] == "457"                     # venue_id (stringified)
-        assert params[5] == "11795"                   # zip_code
+        assert params[3] == "11795"                   # zip_code
+        assert params[6] == "457"                     # venue_id (external_id, stringified)
+        assert params[7] == "https://brokerage.com"   # source_url (mirrors website)
 
     def test_venue_id_stringified(self):
         """Numeric id in the dict is converted to string for the DB param."""
@@ -378,7 +438,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] == "325"
+        assert params[6] == "325"
 
     def test_postal_code_fallback(self):
         """zip_code is read from 'postal_code' key when 'zip' is absent."""
@@ -390,7 +450,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[5] == "11520"
+        assert params[3] == "11520"  # zip_code (new CTE shape)
 
 
 class TestUpsertForSeatEngineVenueConflict:
@@ -428,10 +488,12 @@ class TestUpsertForSeatEngineVenueConflict:
         assert result.seatengine_id == "original-se-id"
 
     def test_sql_uses_coalesce_for_seatengine_id(self):
-        """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must use COALESCE for seatengine_id."""
+        """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must COALESCE the
+        scraping_sources.external_id (the SeatEngine venue id)."""
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE.upper()
         assert "COALESCE" in sql
-        assert "SEATENGINE_ID" in sql
+        assert "SCRAPING_SOURCES" in sql
+        assert "EXTERNAL_ID" in sql
 
     def test_sql_uses_coalesce_for_scraper(self):
         """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must use COALESCE for scraper."""
@@ -506,8 +568,9 @@ class TestEventbriteVenueCityStateExtraction:
             handler.upsert_for_eventbrite_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] == "New York"  # city
-        assert params[5] == "NY"        # state
+        # New CTE shape: (name, address, zip_code, city, state, venue_id)
+        assert params[3] == "New York"  # city
+        assert params[4] == "NY"        # state
 
     def test_city_state_none_when_no_address(self):
         venue = _FakeVenue(id="v2", name="Club No Address", address=None)
@@ -517,8 +580,8 @@ class TestEventbriteVenueCityStateExtraction:
             handler.upsert_for_eventbrite_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] is None  # city
-        assert params[5] is None  # state
+        assert params[3] is None  # city
+        assert params[4] is None  # state
 
 
 # ---------------------------------------------------------------------------
@@ -536,8 +599,9 @@ class TestSeatEngineVenueCityStateExtraction:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[6] == "Newark"  # city
-        assert params[7] == "NJ"      # state
+        # New CTE shape: (name, address, website, zip_code, city, state, venue_id, source_url)
+        assert params[4] == "Newark"  # city
+        assert params[5] == "NJ"      # state
 
     def test_city_state_none_when_address_unparseable(self):
         """No city/state when address has only one segment."""
@@ -548,8 +612,8 @@ class TestSeatEngineVenueCityStateExtraction:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[6] is None  # city
-        assert params[7] is None  # state
+        assert params[4] is None  # city
+        assert params[5] is None  # state
 
 
 # ---------------------------------------------------------------------------
@@ -563,7 +627,6 @@ def _make_ticketmaster_club_row(**overrides):
         "name": "Test Club",
         "address": "123 Main St, New York, NY",
         "website": "",
-        "scraping_url": "www.ticketmaster.com",
         "popularity": 0,
         "zip_code": "10001",
         "city": "New York",
@@ -571,16 +634,21 @@ def _make_ticketmaster_club_row(**overrides):
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
-        "scraper": "live_nation",
-        "eventbrite_id": None,
-        "ticketmaster_id": "tm-001",
-        "seatengine_id": None,
         "rate_limit": 1.0,
         "max_retries": 3,
         "timeout": 30,
     }
+    legacy = _split_legacy(overrides, {
+        "scraper": "live_nation",
+        "scraping_url": "www.ticketmaster.com",
+        "ticketmaster_id": "tm-001",
+    })
     defaults.update(overrides)
-    return defaults
+    return _row_with_source(defaults, platform="ticketmaster", legacy={
+        "scraper": legacy["scraper"],
+        "scraping_url": legacy["scraping_url"],
+        "external_id": legacy["ticketmaster_id"],
+    })
 
 
 class TestTicketmasterVenueCityStateExtraction:
@@ -602,8 +670,9 @@ class TestTicketmasterVenueCityStateExtraction:
             handler.upsert_for_ticketmaster_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] == "New York"  # city
-        assert params[5] == "NY"        # state
+        # New CTE shape: (name, address, zip_code, city, state, timezone, venue_id)
+        assert params[3] == "New York"  # city
+        assert params[4] == "NY"        # state
 
     def test_city_state_none_when_absent_from_venue(self):
         """City and state default to None when not present in venue dict."""
@@ -614,8 +683,8 @@ class TestTicketmasterVenueCityStateExtraction:
             handler.upsert_for_ticketmaster_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] is None  # city
-        assert params[5] is None  # state
+        assert params[3] is None  # city
+        assert params[4] is None  # state
 
 
 # ---------------------------------------------------------------------------
@@ -629,7 +698,6 @@ def _make_backfill_club_row(**overrides):
         "name": "Test Club",
         "address": "117 MacDougal St, New York, NY",
         "website": "",
-        "scraping_url": "www.test.com",
         "popularity": 0,
         "zip_code": "10012",
         "city": None,
@@ -637,16 +705,20 @@ def _make_backfill_club_row(**overrides):
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
-        "scraper": "eventbrite",
-        "eventbrite_id": None,
-        "ticketmaster_id": None,
-        "seatengine_id": None,
         "rate_limit": 1.0,
         "max_retries": 3,
         "timeout": 30,
     }
+    legacy = _split_legacy(overrides, {
+        "scraper": "eventbrite",
+        "scraping_url": "www.test.com",
+    })
     defaults.update(overrides)
-    return defaults
+    return _row_with_source(defaults, platform="eventbrite", legacy={
+        "scraper": legacy["scraper"],
+        "scraping_url": legacy["scraping_url"],
+        "external_id": None,
+    })
 
 
 class TestBackfillCityState:
@@ -750,7 +822,6 @@ def _make_seatengine_v3_club_row(**overrides):
         "name": "Test Club",
         "address": "123 Main St, Cambridge, MA",
         "website": "https://testclub.com",
-        "scraping_url": f"https://v-{_V3_UUID}.seatengine.net",
         "popularity": 0,
         "zip_code": "02139",
         "city": "Cambridge",
@@ -758,16 +829,21 @@ def _make_seatengine_v3_club_row(**overrides):
         "phone_number": "",
         "timezone": None,
         "visible": True,
-        "scraper": "seatengine_v3",
-        "eventbrite_id": None,
-        "ticketmaster_id": None,
-        "seatengine_id": _V3_UUID,
         "rate_limit": 1.0,
         "max_retries": 3,
         "timeout": 30,
     }
+    legacy = _split_legacy(overrides, {
+        "scraper": "seatengine_v3",
+        "scraping_url": f"https://v-{_V3_UUID}.seatengine.net",
+        "seatengine_id": _V3_UUID,
+    })
     defaults.update(overrides)
-    return defaults
+    return _row_with_source(defaults, platform="seatengine_v3", legacy={
+        "scraper": legacy["scraper"],
+        "scraping_url": legacy["scraping_url"],
+        "external_id": legacy["seatengine_id"],
+    })
 
 
 class TestUpsertForSeatEngineV3VenueHappyPath:
@@ -787,7 +863,7 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
         assert result.name == "The Comedy Studio"
 
     def test_scraping_url_constructed_from_uuid(self):
-        """scraping_url param must be https://v-{uuid}.seatengine.net."""
+        """source_url param must be https://v-{uuid}.seatengine.net."""
         venue = {"uuid": _V3_UUID, "name": "The Comedy Studio", "address": ""}
 
         handler = ClubHandler()
@@ -795,10 +871,11 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
             handler.upsert_for_seatengine_v3_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[3] == f"https://v-{_V3_UUID}.seatengine.net"
+        # New CTE shape: (name, address, website, zip_code, city, state, venue_uuid, source_url)
+        assert params[7] == f"https://v-{_V3_UUID}.seatengine.net"
 
     def test_venue_uuid_stored_as_seatengine_id(self):
-        """UUID is passed as the seatengine_id column value."""
+        """UUID is passed as the scraping_sources.external_id column value."""
         venue = {"uuid": _V3_UUID, "name": "The Comedy Studio", "address": ""}
 
         handler = ClubHandler()
@@ -806,7 +883,7 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
             handler.upsert_for_seatengine_v3_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] == _V3_UUID
+        assert params[6] == _V3_UUID
 
     def test_zip_code_from_zipCode_key(self):
         """zipCode (camelCase) is the primary zip_code source."""
@@ -817,7 +894,7 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
             handler.upsert_for_seatengine_v3_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[5] == "02139"
+        assert params[3] == "02139"  # zip_code (new CTE shape)
 
     def test_zip_code_fallback_to_zip_key(self):
         """Falls back to 'zip' key when 'zipCode' is absent."""
@@ -828,7 +905,7 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
             handler.upsert_for_seatengine_v3_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[5] == "02139"
+        assert params[3] == "02139"  # zip_code (new CTE shape)
 
     def test_explicit_city_state_from_api_take_priority(self):
         """city/state from the venue dict are used before address parsing."""
@@ -845,8 +922,8 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
             handler.upsert_for_seatengine_v3_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[6] == "Cambridge"  # city
-        assert params[7] == "MA"         # state
+        assert params[4] == "Cambridge"  # city (new CTE shape)
+        assert params[5] == "MA"         # state
 
 
 class TestUpsertForSeatEngineV3VenueConflict:
@@ -876,17 +953,19 @@ class TestUpsertForSeatEngineV3VenueConflict:
     def test_sql_uses_coalesce_for_seatengine_id(self):
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE.upper()
         assert "COALESCE" in sql
-        assert "SEATENGINE_ID" in sql
+        assert "SCRAPING_SOURCES" in sql
+        assert "EXTERNAL_ID" in sql
 
     def test_sql_uses_coalesce_for_scraper(self):
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE.upper()
         assert "COALESCE" in sql
-        assert "SCRAPER" in sql
+        assert "SCRAPER_KEY" in sql
 
     def test_sql_uses_coalesce_for_scraping_url(self):
-        """scraping_url must be preserved for existing clubs via COALESCE."""
+        """source_url (the v-{uuid}.seatengine.net URL) must be preserved for
+        existing clubs via COALESCE."""
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE.upper()
-        assert "SCRAPING_URL" in sql
+        assert "SOURCE_URL" in sql
 
 
 class TestUpsertForSeatEngineV3VenueInvalidInput:
