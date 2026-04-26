@@ -8,11 +8,15 @@ public enum NearbyPreferenceSource: String, Codable, Equatable {
     case geolocated
 }
 
-// City/state strategy (TASK-1793): the geolocation path harvests `locality` /
+// City/state strategy: the geolocation path (TASK-1793) harvests `locality` /
 // `administrativeArea` from the same `CLPlacemark` that already produces the
-// ZIP, so they cost nothing extra. The manual-ZIP path leaves them nil — we
-// don't bundle a US ZIP→city dataset on iOS or call out to a network resolver,
-// so manual-entry users see the static header until their next geolocation.
+// ZIP, so they cost nothing extra. The manual-ZIP path (TASK-1795) refines
+// city/state asynchronously via the `/api/v1/zip-lookup` endpoint after the
+// ZIP is saved — chosen over bundling a ~1 MB US ZIP→city dataset on iOS so
+// the dataset stays under web's existing `zipcodes` package and updates ride
+// along with web releases. Refinement is best-effort; if the network call
+// fails, the header falls back to the static "Comedy worth noticing nearby"
+// copy until the next save or geolocation.
 public struct NearbyPreference: Codable, Equatable {
     public let zipCode: String
     public let source: NearbyPreferenceSource
