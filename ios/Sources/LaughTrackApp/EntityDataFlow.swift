@@ -36,6 +36,7 @@ enum LoadFailure: Error, Equatable, Sendable {
     case network(String)
     case badParams(String)
     case unauthorized(String)
+    case rateLimited(retryAfter: TimeInterval?, message: String?)
     case serverError(status: Int, message: String?)
     case unexpected(status: Int, message: String?)
 
@@ -47,6 +48,16 @@ enum LoadFailure: Error, Equatable, Sendable {
             return "\(message) (HTTP 400)"
         case .unauthorized(let message):
             return "\(message) (HTTP 401)"
+        case .rateLimited(let retryAfter, let message):
+            let base = message ?? "LaughTrack is busy right now."
+            let hint: String
+            if let retryAfter, retryAfter > 0 {
+                let seconds = Int(retryAfter.rounded(.up))
+                hint = "Please try again in \(seconds) second\(seconds == 1 ? "" : "s")."
+            } else {
+                hint = "Please try again in a moment."
+            }
+            return "\(base) \(hint) (HTTP 429)"
         case .serverError(let status, let message):
             let base = message ?? "LaughTrack hit a server error. Please retry in a moment."
             return "\(base) (HTTP \(status))"
@@ -64,6 +75,8 @@ enum LoadFailure: Error, Equatable, Sendable {
             return "Check these filters"
         case .unauthorized:
             return "Sign in required"
+        case .rateLimited:
+            return "Too many requests"
         case .serverError:
             return "Server hiccup"
         case .unexpected:
@@ -80,7 +93,7 @@ enum LoadFailure: Error, Equatable, Sendable {
         switch self {
         case .unauthorized:
             return .signIn
-        case .network, .badParams, .serverError, .unexpected:
+        case .network, .badParams, .rateLimited, .serverError, .unexpected:
             return .retry
         }
     }
@@ -92,6 +105,8 @@ func classifyUndocumented(status: Int, context: String) -> LoadFailure {
         return .unauthorized("Sign in to load \(context).")
     case 400:
         return .badParams("LaughTrack could not apply those \(context) filters.")
+    case 429:
+        return .rateLimited(retryAfter: nil, message: "LaughTrack is rate-limiting \(context) right now.")
     case 500..<600:
         return .serverError(status: status, message: nil)
     default:

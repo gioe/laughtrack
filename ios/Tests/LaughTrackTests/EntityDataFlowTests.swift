@@ -88,6 +88,16 @@ struct EntityDataFlowTests {
 
         #expect(LoadFailure.unexpected(status: 429, message: "Rate limited").message == "Rate limited (HTTP 429)")
         #expect(LoadFailure.unexpected(status: 0, message: "Local-only note").message == "Local-only note")
+
+        let limited = LoadFailure.rateLimited(retryAfter: nil, message: "Slowing things down.")
+        #expect(limited.message == "Slowing things down. Please try again in a moment. (HTTP 429)")
+        #expect(limited.defaultTitle == "Too many requests")
+
+        let limitedWithRetry = LoadFailure.rateLimited(retryAfter: 12, message: nil)
+        #expect(limitedWithRetry.message == "LaughTrack is busy right now. Please try again in 12 seconds. (HTTP 429)")
+
+        let limitedSingleSecond = LoadFailure.rateLimited(retryAfter: 1, message: nil)
+        #expect(limitedSingleSecond.message.contains("1 second."))
     }
 
     @Test("recovery action routes unauthorized to signIn, everything else to retry")
@@ -95,6 +105,7 @@ struct EntityDataFlowTests {
         #expect(LoadFailure.unauthorized("x").recoveryAction == .signIn)
         #expect(LoadFailure.network("y").recoveryAction == .retry)
         #expect(LoadFailure.badParams("z").recoveryAction == .retry)
+        #expect(LoadFailure.rateLimited(retryAfter: nil, message: nil).recoveryAction == .retry)
         #expect(LoadFailure.serverError(status: 500, message: nil).recoveryAction == .retry)
         #expect(LoadFailure.unexpected(status: 418, message: nil).recoveryAction == .retry)
     }
@@ -129,6 +140,9 @@ struct EntityDataFlowTests {
             #expect(status == 502)
         } else {
             Issue.record("5xx must map to .serverError")
+        }
+        if case .rateLimited = classifyUndocumented(status: 429, context: "shows") {} else {
+            Issue.record("429 must map to .rateLimited")
         }
         if case .unexpected(let status, _) = classifyUndocumented(status: 418, context: "shows") {
             #expect(status == 418)

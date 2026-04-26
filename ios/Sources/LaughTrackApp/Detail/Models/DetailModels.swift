@@ -40,7 +40,7 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
             case .notFound:
                 return .failure(.unexpected(status: 404, message: "This show could not be found."))
             case .tooManyRequests:
-                return .failure(.unexpected(status: 429, message: "LaughTrack is rate-limiting show details right now."))
+                return .failure(.rateLimited(retryAfter: nil, message: "LaughTrack is rate-limiting show details right now."))
             case .internalServerError:
                 return .failure(.serverError(status: 500, message: nil))
             case .undocumented(let status, _):
