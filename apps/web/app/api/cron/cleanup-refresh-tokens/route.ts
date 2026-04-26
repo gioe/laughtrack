@@ -18,16 +18,30 @@ export async function POST(req: NextRequest) {
         : null;
 
     const cronSecret = process.env.CRON_SECRET;
-    const hasValidBearer =
-        bearerToken &&
-        cronSecret &&
-        bearerToken.length === cronSecret.length &&
-        timingSafeEqual(Buffer.from(bearerToken), Buffer.from(cronSecret));
+    let hasValidBearer = false;
+    if (bearerToken && cronSecret) {
+        // Compare byte lengths, not JS string lengths — multi-byte UTF-8 chars
+        // can encode to different byte counts at equal code-unit lengths, which
+        // would crash timingSafeEqual with a RangeError.
+        const bearerBuf = Buffer.from(bearerToken);
+        const secretBuf = Buffer.from(cronSecret);
+        if (bearerBuf.length === secretBuf.length) {
+            hasValidBearer = timingSafeEqual(bearerBuf, secretBuf);
+        }
+    }
 
     if (!hasValidBearer) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { deleted } = await cleanupExpiredRefreshTokens();
-    return NextResponse.json({ deleted });
+    try {
+        const { deleted } = await cleanupExpiredRefreshTokens();
+        console.info(
+            `[cron/cleanup-refresh-tokens] deleted ${deleted} refresh tokens`,
+        );
+        return NextResponse.json({ deleted });
+    } catch (err) {
+        console.error("[cron/cleanup-refresh-tokens] failed:", err);
+        return NextResponse.json({ error: "cleanup_failed" }, { status: 500 });
+    }
 }

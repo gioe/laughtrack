@@ -21,6 +21,11 @@ jobs:
             echo "::error::CRON_SECRET is not configured in repository secrets"
             exit 1
           fi
+          # --retry 3 is safe here: the cleanup endpoint is idempotent —
+          # deleting already-deleted refresh tokens is a no-op, and the OR
+          # predicate over (expiresAt, revokedAt) is monotonic, so a retry
+          # after a partial server-side delete still converges to the same
+          # final state.
           curl -fsS --retry 3 --max-time 30 \
             -X POST https://laugh-track.com/api/cron/cleanup-refresh-tokens \
             -H "Authorization: Bearer $CRON_SECRET"

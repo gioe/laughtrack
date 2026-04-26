@@ -65,4 +65,22 @@ describe("POST /api/cron/cleanup-refresh-tokens", () => {
         expect(body).toEqual({ deleted: 42 });
         expect(mockCleanup).toHaveBeenCalledTimes(1);
     });
+
+    it("returns 500 with cleanup_failed when the cleanup throws", async () => {
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+        mockCleanup.mockRejectedValue(new Error("db unavailable"));
+
+        const res = await POST(
+            makeRequest({ authorization: "Bearer test-secret-value" }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(500);
+        expect(body).toEqual({ error: "cleanup_failed" });
+        expect(mockCleanup).toHaveBeenCalledTimes(1);
+        expect(errorSpy).toHaveBeenCalled();
+        errorSpy.mockRestore();
+    });
 });
