@@ -151,6 +151,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk criteria done <cid> --skip-verify
     ```
 
+    **If a criterion requires filing follow-up tasks** (typical for investigation/triage tasks whose criteria read "file focused follow-up tasks covering each distinct break"), do NOT call `tusk task-insert` directly. Dupe-check first so a freshly-filed sibling task isn't immediately superseded by an existing one:
+    ```bash
+    tusk dupes check "<proposed summary>"
+    ```
+    If the check returns a match, amend the existing task (e.g., `tusk criteria add <id> "<criterion>"` or `tusk task-update <id>`) instead of creating a new one. If no match is found, prefer `/create-task` over a raw `tusk task-insert` — `/create-task` runs the same dedup check, decomposes scope, and applies the project's task conventions in one call. Use `tusk task-insert` only when scripting bulk inserts where the dedup step has already been done.
+
     **After each `tusk commit` in foreground mode**, run `git status --short` to confirm your files were staged and committed — a zero-exit commit that produced no diff (e.g. all files were already tracked with no changes) will silently succeed without staging anything.
 
     **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria), or whether the file was removed via `git rm` (which stages the deletion — `tusk commit` then can't find the path to re-add). In either case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
@@ -185,6 +191,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk commit <id> "<message>" "<file>" --skip-lint --criteria <cid>
     ```
     Lint output during commit is now filtered: only rules with violations print — passing rules are suppressed. If the last lint pass was clean, you won't see any lint output at all.
+
+    **If `tusk commit` exits 5 (test_command timeout)** — the configured `test_command` exceeded its timeout and was killed before producing an exit code. The stderr message names the resolved timeout and source. The resolution chain is `TUSK_TEST_COMMAND_TIMEOUT` env var > `config.test_command_timeout_sec` in `tusk/config.json` > default (240s). If the failure is just slow first-run compilation (cold xcodebuild, Bazel cold cache, large Rust compile), retry with a per-invocation override:
+    ```bash
+    TUSK_TEST_COMMAND_TIMEOUT=600 tusk commit <id> "<message>" "<file>" --criteria <cid>
+    ```
+    If the slow path is permanent for this project, raise `test_command_timeout_sec` in `tusk/config.json` instead of overriding on every call. **Do not blindly raise the timeout** when the command genuinely hangs (e.g. waiting on interactive input or a missing dependency) — make the command non-interactive and fix the underlying hang first.
 
     **If `tusk commit` hard-fails because tests fail** (exit code 2 — `test_command` is set and returned non-zero), **first verify the failure is not pre-existing** before entering the diagnosis loop:
 
