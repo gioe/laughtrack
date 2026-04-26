@@ -77,6 +77,26 @@ struct NearbyLocationControllerTests {
         ))
     }
 
+    @Test("manual ZIP refinement does not overwrite the store after the user clears the preference")
+    @MainActor
+    func manualZipRefinementDroppedAfterClear() async {
+        let store = makeStore(name: "manual-cleared")
+        let controller = makeController(
+            store: store,
+            zipLocationResolver: MockZipLocationResolver(
+                result: .success(ResolvedNearbyLocation(zipCode: "60614", city: "Chicago", state: "IL"))
+            )
+        )
+
+        _ = controller.applyManualZip("60614", distanceMiles: 25)
+        let inflight = controller.pendingZipRefinement
+        controller.clear()
+        await inflight?.value
+
+        #expect(controller.preference == nil)
+        #expect(store.preference == nil)
+    }
+
     @Test("manual ZIP refinement is silent when the lookup resolver fails")
     @MainActor
     func manualZipRefinementSilentOnLookupFailure() async {
