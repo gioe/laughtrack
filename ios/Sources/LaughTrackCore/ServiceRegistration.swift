@@ -46,14 +46,26 @@ public enum ServiceRegistration {
                     let payload = try JSONDecoder().decode(ToggleFavoritePayload.self, from: op.payload)
                     switch op.type {
                     case .toggleFavorite:
+                        // Throw on any non-OK response so OfflineOperationQueue's retry/
+                        // backoff path fires and persistent failures land in
+                        // failedOperations. The OpenAPI spec has no 5xx branch for these
+                        // operations, so a 500 decodes as Output.undocumented and would
+                        // otherwise be treated as success — silently dropping the queued
+                        // favorite toggle.
                         if payload.isFavorite {
-                            _ = try await apiClient.addFavorite(
+                            let response = try await apiClient.addFavorite(
                                 .init(body: .json(.init(comedianId: payload.comedianId)))
                             )
+                            guard case .ok = response else {
+                                throw URLError(.badServerResponse)
+                            }
                         } else {
-                            _ = try await apiClient.removeFavorite(
+                            let response = try await apiClient.removeFavorite(
                                 .init(path: .init(comedianId: payload.comedianId))
                             )
+                            guard case .ok = response else {
+                                throw URLError(.badServerResponse)
+                            }
                         }
                     }
                 }
