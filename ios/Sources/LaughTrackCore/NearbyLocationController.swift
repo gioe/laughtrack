@@ -25,9 +25,28 @@ public enum NearbyLocationError: Error, Equatable {
     }
 }
 
+public struct ResolvedNearbyLocation: Equatable {
+    public let zipCode: String
+    public let city: String?
+    public let state: String?
+
+    public init(zipCode: String, city: String? = nil, state: String? = nil) {
+        self.zipCode = zipCode
+        self.city = city
+        self.state = state
+    }
+}
+
 @MainActor
 public protocol NearbyLocationResolving: AnyObject {
     func requestCurrentZip() async throws -> String
+    func requestCurrentLocation() async throws -> ResolvedNearbyLocation
+}
+
+extension NearbyLocationResolving {
+    public func requestCurrentLocation() async throws -> ResolvedNearbyLocation {
+        ResolvedNearbyLocation(zipCode: try await requestCurrentZip())
+    }
 }
 
 @MainActor
@@ -77,8 +96,15 @@ public final class NearbyLocationController: ObservableObject {
         defer { isResolvingCurrentLocation = false }
 
         do {
-            let zipCode = try await resolver.requestCurrentZip()
-            guard store.setGeolocatedZip(zipCode, distanceMiles: distanceMiles) != nil else {
+            let resolved = try await resolver.requestCurrentLocation()
+            guard
+                store.setGeolocatedZip(
+                    resolved.zipCode,
+                    distanceMiles: distanceMiles,
+                    city: resolved.city,
+                    state: resolved.state
+                ) != nil
+            else {
                 statusMessage = NearbyLocationError.zipUnavailable.recoveryMessage
                 return false
             }

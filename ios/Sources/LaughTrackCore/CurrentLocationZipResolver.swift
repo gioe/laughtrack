@@ -20,6 +20,10 @@ public final class CurrentLocationZipResolver: NSObject, NearbyLocationResolving
     }
 
     public func requestCurrentZip() async throws -> String {
+        try await requestCurrentLocation().zipCode
+    }
+
+    public func requestCurrentLocation() async throws -> ResolvedNearbyLocation {
         guard CLLocationManager.locationServicesEnabled() else {
             throw NearbyLocationError.servicesDisabled
         }
@@ -42,15 +46,21 @@ public final class CurrentLocationZipResolver: NSObject, NearbyLocationResolving
         let placemarks = try await geocoder.reverseGeocodeLocation(location)
 
         guard
-            let postalCode = placemarks
-                .compactMap(\.postalCode)
-                .map({ String($0.filter(\.isNumber).prefix(5)) })
-                .first(where: { $0.count == 5 })
+            let zipPlacemark = placemarks.first(where: { placemark in
+                guard let postalCode = placemark.postalCode else { return false }
+                return String(postalCode.filter(\.isNumber).prefix(5)).count == 5
+            }),
+            let rawPostalCode = zipPlacemark.postalCode
         else {
             throw NearbyLocationError.zipUnavailable
         }
 
-        return postalCode
+        let postalCode = String(rawPostalCode.filter(\.isNumber).prefix(5))
+        return ResolvedNearbyLocation(
+            zipCode: postalCode,
+            city: zipPlacemark.locality,
+            state: zipPlacemark.administrativeArea
+        )
     }
 
     private func resolveAuthorizationStatus() async throws -> CLAuthorizationStatus {

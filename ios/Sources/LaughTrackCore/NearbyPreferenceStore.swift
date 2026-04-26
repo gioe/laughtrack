@@ -8,19 +8,30 @@ public enum NearbyPreferenceSource: String, Codable, Equatable {
     case geolocated
 }
 
+// City/state strategy (TASK-1793): the geolocation path harvests `locality` /
+// `administrativeArea` from the same `CLPlacemark` that already produces the
+// ZIP, so they cost nothing extra. The manual-ZIP path leaves them nil — we
+// don't bundle a US ZIP→city dataset on iOS or call out to a network resolver,
+// so manual-entry users see the static header until their next geolocation.
 public struct NearbyPreference: Codable, Equatable {
     public let zipCode: String
     public let source: NearbyPreferenceSource
     public let distanceMiles: Int
+    public let city: String?
+    public let state: String?
 
     public init(
         zipCode: String,
         source: NearbyPreferenceSource,
-        distanceMiles: Int = Self.defaultDistanceMiles
+        distanceMiles: Int = Self.defaultDistanceMiles,
+        city: String? = nil,
+        state: String? = nil
     ) {
         self.zipCode = NearbyPreferenceStore.normalize(zipCode)
         self.source = source
         self.distanceMiles = Self.normalize(distanceMiles)
+        self.city = Self.sanitize(city)
+        self.state = Self.sanitize(state)
     }
 
     public init(from decoder: any Decoder) throws {
@@ -30,8 +41,10 @@ public struct NearbyPreference: Codable, Equatable {
         let savedDistanceMiles = try container.decodeIfPresent(Int.self, forKey: .distanceMiles)
         let legacyRadiusMiles = try container.decodeIfPresent(Int.self, forKey: .radiusMiles)
         let distanceMiles = savedDistanceMiles ?? legacyRadiusMiles ?? Self.defaultDistanceMiles
+        let city = try container.decodeIfPresent(String.self, forKey: .city)
+        let state = try container.decodeIfPresent(String.self, forKey: .state)
 
-        self.init(zipCode: zipCode, source: source, distanceMiles: distanceMiles)
+        self.init(zipCode: zipCode, source: source, distanceMiles: distanceMiles, city: city, state: state)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -39,6 +52,8 @@ public struct NearbyPreference: Codable, Equatable {
         try container.encode(zipCode, forKey: .zipCode)
         try container.encode(source, forKey: .source)
         try container.encode(distanceMiles, forKey: .distanceMiles)
+        try container.encodeIfPresent(city, forKey: .city)
+        try container.encodeIfPresent(state, forKey: .state)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -46,12 +61,21 @@ public struct NearbyPreference: Codable, Equatable {
         case source
         case distanceMiles
         case radiusMiles
+        case city
+        case state
     }
 
     public static let defaultDistanceMiles = 25
 
     private static func normalize(_ distanceMiles: Int) -> Int {
         max(1, distanceMiles)
+    }
+
+    private static func sanitize(_ value: String?) -> String? {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return trimmed
     }
 }
 
@@ -76,13 +100,17 @@ public final class NearbyPreferenceStore: ObservableObject {
     @discardableResult
     public func setManualZip(
         _ zipCode: String,
-        distanceMiles: Int? = nil
+        distanceMiles: Int? = nil,
+        city: String? = nil,
+        state: String? = nil
     ) -> NearbyPreference? {
         guard let normalized = Self.validZip(from: zipCode) else { return nil }
         let preference = NearbyPreference(
             zipCode: normalized,
             source: .manual,
-            distanceMiles: normalizedDistance(distanceMiles)
+            distanceMiles: normalizedDistance(distanceMiles),
+            city: city,
+            state: state
         )
         setPreference(preference)
         return preference
@@ -91,13 +119,17 @@ public final class NearbyPreferenceStore: ObservableObject {
     @discardableResult
     public func setGeolocatedZip(
         _ zipCode: String,
-        distanceMiles: Int? = nil
+        distanceMiles: Int? = nil,
+        city: String? = nil,
+        state: String? = nil
     ) -> NearbyPreference? {
         guard let normalized = Self.validZip(from: zipCode) else { return nil }
         let preference = NearbyPreference(
             zipCode: normalized,
             source: .geolocated,
-            distanceMiles: normalizedDistance(distanceMiles)
+            distanceMiles: normalizedDistance(distanceMiles),
+            city: city,
+            state: state
         )
         setPreference(preference)
         return preference
@@ -110,7 +142,9 @@ public final class NearbyPreferenceStore: ObservableObject {
             NearbyPreference(
                 zipCode: preference.zipCode,
                 source: preference.source,
-                distanceMiles: distanceMiles
+                distanceMiles: distanceMiles,
+                city: preference.city,
+                state: preference.state
             )
         )
     }
