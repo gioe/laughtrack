@@ -540,5 +540,14 @@ struct TokenRefreshMiddlewareIntegrationTests {
 }
 
 // Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
-// InMemorySecureStorage, StubOAuthSessionRunner, the production-style refresh
-// closure, and the safe-subscript helper) live in MiddlewareIntegrationTestSupport.swift.
+// IntegrationInMemorySecureStorage, StubOAuthSessionRunner, and the
+// production-style refresh closure) live in MiddlewareIntegrationTestSupport.swift.
+
+// Kept fileprivate (rather than module-internal in the support file) so the
+// generic Array helper doesn't bleed into the rest of the test target —
+// TokenRefreshMiddlewareIntegrationTests is the only file that uses it.
+fileprivate extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}

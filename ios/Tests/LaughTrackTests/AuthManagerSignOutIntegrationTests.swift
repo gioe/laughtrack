@@ -247,5 +247,5 @@ private struct HarnessSetupError: Error, CustomStringConvertible {
 }
 
 // Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
-// InMemorySecureStorage, StubOAuthSessionRunner, the production-style refresh
-// closure) live in MiddlewareIntegrationTestSupport.swift.
+// IntegrationInMemorySecureStorage, StubOAuthSessionRunner, and the
+// production-style refresh closure) live in MiddlewareIntegrationTestSupport.swift.
