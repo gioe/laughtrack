@@ -485,6 +485,25 @@ class TestScrapeClubsWithMetrics:
         assert len(summary_warn) == 1, f"Expected one summary warning, got: {warn_calls}"
         assert "2" in summary_warn[0]
 
+    @pytest.mark.asyncio
+    async def test_unresolvable_scraper_key_emits_error_result(self):
+        """A club with an enabled ScrapingSource whose scraper_key the resolver can't
+        resolve falls through scrape_one's source loop and produces a
+        ClubScrapingResult(error='no enabled scraping source could be resolved')
+        plus matching error metrics — separate from the no-source skip path."""
+        svc = self._make_service()
+
+        # Build a club with a real enabled source, but an unresolvable scraper_key.
+        club = self._make_club(name="Bad Key Club", scraper_key="unknown")
+        svc._scraping_resolver.get.return_value = None
+
+        results, summary, _ = await svc._scrape_clubs_concurrently([club])
+
+        assert len(results) == 1
+        assert results[0].error == "no enabled scraping source could be resolved"
+        assert len(summary.per_club) == 1
+        assert summary.per_club[0].error == 1
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os

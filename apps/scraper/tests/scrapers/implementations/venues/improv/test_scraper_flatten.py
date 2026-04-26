@@ -45,7 +45,7 @@ def _make_event(label: str) -> ImprovEvent:
 async def test_improv_scraper_flattens_batch_results(monkeypatch):
     # Arrange: club and scraper
     club = Club(id=29, name='Addison Improv', address='123 St', website='https://example.com', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='UTC', rate_limit=1.0, max_retries=1, timeout=5)
-    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='eventbrite', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
+    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='improv', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
     club.scraping_sources = [club.active_scraping_source]
     scraper = ImprovScraper(club)
 
@@ -84,7 +84,7 @@ async def test_improv_scraper_flattens_batch_results(monkeypatch):
 def test_improv_event_transformer_can_transform_improv_event():
     """Regression: ImprovEventTransformer.can_transform() must return True for ImprovEvent."""
     club = Club(id=1, name='Test Club', address='123 St', website='https://example.com', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='UTC', rate_limit=1.0, max_retries=1, timeout=5)
-    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='eventbrite', scraper_key='improv', source_url='https://improv.test/calendar', external_id=None)
+    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='improv', scraper_key='improv', source_url='https://improv.test/calendar', external_id=None)
     club.scraping_sources = [club.active_scraping_source]
     transformer = ImprovEventTransformer(club)
     event = _make_event("X")
@@ -94,7 +94,7 @@ def test_improv_event_transformer_can_transform_improv_event():
 @pytest.mark.asyncio
 async def test_improv_scraper_filters_cross_venue_events(monkeypatch):
     club = Club(id=29, name='Addison Improv', address='123 St', website='https://example.com', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='UTC', rate_limit=1.0, max_retries=1, timeout=5)
-    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='eventbrite', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
+    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='improv', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
     club.scraping_sources = [club.active_scraping_source]
     scraper = ImprovScraper(club)
 
@@ -160,7 +160,7 @@ async def test_improv_scraper_filters_cross_venue_events(monkeypatch):
 
 def test_improv_scraper_url_fallback_rejects_other_club_ticketweb_urls():
     club = Club(id=29, name='Addison Improv', address='123 St', website='https://example.com', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='UTC', rate_limit=1.0, max_retries=1, timeout=5)
-    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='eventbrite', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
+    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='improv', scraper_key='improv', source_url='https://improvtx.com/addison/calendar', external_id=None)
     club.scraping_sources = [club.active_scraping_source]
     scraper = ImprovScraper(club)
 

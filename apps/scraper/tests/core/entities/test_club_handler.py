@@ -127,7 +127,8 @@ def _row_with_source(defaults, *, platform, legacy):
 
 
 _LEGACY_KEYS = ("scraper", "scraping_url", "eventbrite_id",
-                "ticketmaster_id", "seatengine_id")
+                "ticketmaster_id", "seatengine_id",
+                "ovationtix_client_id", "wix_comp_id", "squadup_user_id")
 
 
 def _split_legacy(overrides, defaults_legacy):

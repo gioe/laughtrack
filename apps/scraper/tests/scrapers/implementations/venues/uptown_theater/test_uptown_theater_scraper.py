@@ -22,7 +22,7 @@ from laughtrack.scrapers.implementations.venues.uptown_theater.scraper import Up
 
 def _make_club() -> Club:
     _c = Club(id=80, name='Uptown Theater', address='270 Broadway', website='https://www.uptownpvd.com', popularity=0, zip_code='02903', phone_number='', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='uptown_theater', source_url='www.uptownpvd.com/events', external_id=None)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='uptown_theater', scraper_key='uptown_theater', source_url='www.uptownpvd.com/events', external_id=None)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 

@@ -28,7 +28,7 @@ from laughtrack.scrapers.implementations.venues.improv.scraper import ImprovScra
 
 def _club() -> Club:
     _c = Club(id=1, name='Test Improv Club', address='123 Comedy St', website='https://improv.test', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='improv', source_url='https://improv.test/calendar', external_id=None)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='improv', scraper_key='improv', source_url='https://improv.test/calendar', external_id=None)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
