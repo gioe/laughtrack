@@ -1,0 +1,26 @@
+name: Cleanup Refresh Tokens
+
+on:
+  schedule:
+    # Daily at 09:00 UTC — well after the nightly scraper run (06:00 UTC,
+    # ~90 min budget) so the two jobs don't compete for DB resources.
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Delete expired and long-revoked refresh tokens
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET is not configured in repository secrets"
+            exit 1
+          fi
+          curl -fsS --retry 3 --max-time 30 \
+            -X POST https://laugh-track.com/api/cron/cleanup-refresh-tokens \
+            -H "Authorization: Bearer $CRON_SECRET"
