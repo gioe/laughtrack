@@ -18,10 +18,8 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
-                LaughTrackSectionHeader(
-                    eyebrow: "Home",
-                    title: "Comedy worth noticing nearby",
-                    subtitle: "Browse local momentum, featured shows, and venue spotlights before dropping into Search."
+                HomeHeroHeader(
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
 
                 SessionBannerCard(signedOutMessage: signedOutMessage)
@@ -84,6 +82,28 @@ struct HomeView: View {
         #else
         .primaryAction
         #endif
+    }
+}
+
+struct HomeHeroHeader: View {
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+
+    var body: some View {
+        LaughTrackSectionHeader(
+            eyebrow: "Home",
+            title: title,
+            subtitle: "Browse local momentum, featured shows, and venue spotlights before dropping into Search."
+        )
+    }
+
+    var title: String {
+        guard let city = nearbyPreferenceStore.preference?.city, !city.isEmpty else {
+            return "Comedy worth noticing nearby"
+        }
+        if let state = nearbyPreferenceStore.preference?.state, !state.isEmpty {
+            return "What's funny near \(city), \(state)?"
+        }
+        return "What's funny near \(city)?"
     }
 }
 
