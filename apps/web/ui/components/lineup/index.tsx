@@ -102,15 +102,15 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
 
             {/* Gradient Overlays */}
             {showLeftScroll && (
-                <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-cream-100/60 to-transparent pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-coconut-cream/60 to-transparent pointer-events-none" />
             )}
             {/* Desktop: gated on scroll state */}
             {showRightScroll && (
-                <div className="hidden lg:block absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-cream-100/60 to-transparent pointer-events-none" />
+                <div className="hidden lg:block absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-coconut-cream/60 to-transparent pointer-events-none" />
             )}
             {/* Mobile: always-visible right gradient (gated: only when content overflows right) */}
             {showRightScroll && (
-                <div className="lg:hidden absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-cream-100/80 to-transparent pointer-events-none" />
+                <div className="lg:hidden absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-coconut-cream/80 to-transparent pointer-events-none" />
             )}
 
             {/* Scroll Buttons */}
