@@ -39,8 +39,6 @@ const brandColors = {
     copper: "#B87333",
     "copper-bright": "#CD6837",
     "cedar-dark": "#2D1810",
-    "cream-50": "#FDF8EF",
-    "cream-100": "#F5E6D3",
     "soft-charcoal": "#4A4A4A",
     champagne: "#F7E7CE",
 };
