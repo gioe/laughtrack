@@ -7,7 +7,7 @@ import LaughTrackAPIClient
 
 private let baseURL = URL(string: "https://test.example.com")!
 
-@Suite("APIZipLocationResolver", .serialized)
+@Suite("APIZipLocationResolver")
 struct APIZipLocationResolverTests {
 
     @Test("200 with valid payload decodes city and state into ResolvedNearbyLocation")
@@ -86,6 +86,21 @@ struct APIZipLocationResolverTests {
         }
     }
 
+    @Test("429 rate-limit response throws lookupFailed")
+    @MainActor
+    func rateLimitedStatusThrowsLookupFailed() async {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            jsonResponse(status: 429, body: #"{"error":"rate limited"}"#)
+        }
+
+        let resolver = APIZipLocationResolver(apiClient: makeClient(transport: transport))
+
+        await #expect(throws: ZipLocationLookupError.lookupFailed) {
+            _ = try await resolver.resolveLocation(forZip: "60614")
+        }
+    }
+
     @Test("Request URL is composed as <baseURL>/api/v1/zip-lookup?zip=<zip>")
     @MainActor
     func requestURLComposition() async throws {
@@ -123,8 +138,8 @@ private func jsonResponse(status: Int, body: String) -> (HTTPResponse, HTTPBody?
 }
 
 /// In-process `ClientTransport` stub that lets each test inject a deterministic
-/// response without spinning up a real network. The owning suite runs
-/// `.serialized`, so handler swaps don't race across tests.
+/// response without spinning up a real network. Each test instantiates its own
+/// transport, so the handler is per-instance and never shared across tests.
 final class StubClientTransport: ClientTransport, @unchecked Sendable {
     typealias Handler = @Sendable (HTTPRequest, HTTPBody?, URL, String) async throws -> (HTTPResponse, HTTPBody?)
 
