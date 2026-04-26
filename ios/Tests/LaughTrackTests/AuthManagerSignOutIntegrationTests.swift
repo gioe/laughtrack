@@ -106,6 +106,16 @@ struct AuthManagerSignOutIntegrationTests {
             .response(status: .internalServerError, bodyJSON: #"{"error":"Server error"}"#)
         ])
 
+        // Install a recording observer before signOut() so the server-side
+        // failure branch can be asserted directly. Before AppBootstrap's
+        // signoutRequest closure was updated to throw on non-OK Output, the
+        // .undocumented case returned silently and the observer never fired —
+        // this assertion locks in the new contract.
+        let errorRecorder = IntegrationSignoutErrorRecorder()
+        harness.authManager.signoutErrorObserver = { error in
+            await errorRecorder.record(error: error)
+        }
+
         await harness.authManager.signOut()
 
         let recorded = await harness.transport.recordedRequests
@@ -122,6 +132,14 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(harness.tokenManager.retrieveAccessToken() == nil)
         #expect(harness.tokenManager.retrieveRefreshToken() == nil)
         #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
+
+        // Verify the catch block was reached exactly once with a non-nil error.
+        // The closure throws URLError(.badServerResponse) directly, but middleware
+        // may wrap it on the way up the stack, so we don't pin the kind — count
+        // and non-nil shape are enough to catch a regression that swallows the
+        // .undocumented branch.
+        #expect(await errorRecorder.callCount == 1)
+        #expect(await errorRecorder.lastError != nil)
     }
 
     @Test("handleUnauthorizedResponse() clears state without issuing POST /auth/signout")
@@ -243,7 +261,10 @@ private struct AuthSignOutHarness {
         )
 
         authManager.signoutRequest = { [apiClient] in
-            _ = try await apiClient.signout()
+            let response = try await apiClient.signout()
+            guard case .ok = response else {
+                throw URLError(.badServerResponse)
+            }
         }
 
         return AuthSignOutHarness(
