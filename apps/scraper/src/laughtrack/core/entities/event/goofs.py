@@ -65,7 +65,7 @@ class GoofsEvent(ShowConvertible):
             date=data.get("date", ""),
             time=_normalize_time(data.get("time", "")),
             display_title=data.get("computedDisplayTitle") or data.get("title") or "",
-            headliner_name=data.get("headlinerName") or None,
+            headliner_name=data.get("headlinerName"),
             price_ga_cents=int(raw_price) if raw_price is not None else None,
         )
 
