@@ -32,5 +32,27 @@ struct HomeHeroHeaderTests {
 
         try host.requireText("Comedy worth noticing nearby")
     }
+
+    @Test("renders 'What's funny near {City, ST}?' after manual-ZIP refinement resolves city/state")
+    func locationAwareHeaderAfterManualZipRefinement() async throws {
+        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "hero-manual-refined")
+        let zipResolver = StubZipLocationResolver(
+            result: .success(ResolvedNearbyLocation(zipCode: "60614", city: "Chicago", state: "IL"))
+        )
+        let controller = LaughTrackHostedViewTestSupport.makeNearbyLocationController(
+            store: store,
+            zipLocationResolver: zipResolver
+        )
+
+        _ = controller.applyManualZip("60614", distanceMiles: 25)
+        await controller.pendingZipRefinement?.value
+
+        let host = HostedView(
+            HomeHeroHeader(nearbyPreferenceStore: store)
+                .environment(\.appTheme, LaughTrackTheme())
+        )
+
+        try host.requireText("What's funny near Chicago, IL?")
+    }
 }
 #endif
