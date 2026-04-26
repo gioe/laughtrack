@@ -4,8 +4,9 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
 
+import pytz
+
 try:
-    import pytz
     from dateutil.relativedelta import relativedelta
 
     HAS_DATEUTIL = True
