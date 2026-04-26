@@ -89,8 +89,9 @@ public final class ComedianFavoriteStore: ObservableObject {
                 ))
             case .unprocessableContent(let invalidProfile):
                 resetSavedFavorites()
-                savedFavoritesPhase = .failure(.unauthorized(
-                    (try? invalidProfile.body.json.error) ??
+                savedFavoritesPhase = .failure(.unexpected(
+                    status: 422,
+                    message: (try? invalidProfile.body.json.error) ??
                         "Your account needs to sign in again before loading favorites."
                 ))
             case .internalServerError(let serverError):
