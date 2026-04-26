@@ -1,8 +1,5 @@
-"""Utilities package exports.
+"""Utilities package marker.
 
-Dashboard generation now lives in `laughtrack.core.dashboard`. We re-export it
-here temporarily for backward compatibility.
+Dashboard generation lives in `laughtrack.core.dashboard`. Import it directly
+from there rather than from this package.
 """
-from laughtrack.core.dashboard import generate_html_dashboard  # type: ignore
-
-__all__ = ["generate_html_dashboard"]
