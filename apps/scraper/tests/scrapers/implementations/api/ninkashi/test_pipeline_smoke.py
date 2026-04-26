@@ -17,7 +17,7 @@ import pytest
 from datetime import datetime, timedelta, timezone
 
 from laughtrack.core.clients.ninkashi.client import NinkashiClient
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.ninkashi import NinkashiEvent, NinkashiTicket
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.ninkashi.scraper import NinkashiScraper
@@ -40,18 +40,10 @@ _BEYOND_HORIZON = "2099-01-01 19:00:00 +0000"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Cheaper Than Therapy",
-        address="533 Sutter St",
-        website="https://cttcomedy.com",
-        scraping_url=URL_SITE,
-        popularity=0,
-        zip_code="94102",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=99, name='Cheaper Than Therapy', address='533 Sutter St', website='https://cttcomedy.com', popularity=0, zip_code='94102', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=URL_SITE, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_event(

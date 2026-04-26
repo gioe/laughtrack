@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.scrapers.implementations.json_ld.data import JsonLdPageData
 
@@ -32,18 +32,10 @@ SCRAPING_URL = "https://events.humanitix.com/host/stomping-ground-comedy"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Stomping Ground Comedy Theater",
-        address="1350 Manufacturing St #109",
-        website="https://stompinggroundcomedy.org",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="75207",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=99, name='Stomping Ground Comedy Theater', address='1350 Manufacturing St #109', website='https://stompinggroundcomedy.org', popularity=0, zip_code='75207', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _humanitix_host_html(events: list[dict] | None = None) -> str:

@@ -1,20 +1,13 @@
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent
 from laughtrack.foundation.models.api.comedy_cellar.models import ShowInfoData
 
 
 def _club():
-    return Club(
-        id=1,
-        name="Comedy Cellar",
-        address="",
-        website="https://www.comedycellar.com",
-        scraping_url="https://www.comedycellar.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=1, name='Comedy Cellar', address='', website='https://www.comedycellar.com', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.comedycellar.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def test_event_to_show_maps_room_and_lineup():

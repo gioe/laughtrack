@@ -14,7 +14,7 @@ normalises to IANA equivalents before storing.
 import pytest
 
 import laughtrack.scrapers.implementations.venues.logan_square_improv.scraper as _scraper_mod
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.scrapers.implementations.venues.logan_square_improv.scraper import LoganSquareImprovScraper
@@ -25,18 +25,10 @@ API_URL = "https://crowdwork.com/api/v2/lsi/shows"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Logan Square Improv",
-        address="2825 W Diversey Ave",
-        website="https://logansquareimprov.com",
-        scraping_url=API_URL,
-        popularity=0,
-        zip_code="60647",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='Logan Square Improv', address='2825 W Diversey Ave', website='https://logansquareimprov.com', popularity=0, zip_code='60647', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=API_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _show_entry(

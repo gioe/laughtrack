@@ -8,7 +8,7 @@ SportsDrinkEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.sports_drink import SportsDrinkEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.sports_drink.scraper import (
@@ -22,18 +22,10 @@ LISTING_URL = "https://app.opendate.io/v/sports-drink-1939?per_page=500"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Sports Drink",
-        address="1042 Toledano St",
-        website="https://www.sportsdrink.org",
-        scraping_url=LISTING_URL,
-        popularity=0,
-        zip_code="70115",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='Sports Drink', address='1042 Toledano St', website='https://www.sportsdrink.org', popularity=0, zip_code='70115', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=LISTING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _card_html(

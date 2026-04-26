@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -16,17 +16,10 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 
 def _make_club() -> Club:
-    return Club(
-        id=1,
-        name="Test Club",
-        address="",
-        website="https://example.com",
-        scraping_url="https://example.com/events",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=1, name='Test Club', address='', website='https://example.com', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://example.com/events', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_proxy_pool(proxy_url: Optional[str] = "http://proxy.example.com:8080") -> ProxyPool:

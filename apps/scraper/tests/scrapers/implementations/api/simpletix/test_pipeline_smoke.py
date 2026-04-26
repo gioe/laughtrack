@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Optional
 from unittest.mock import patch
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.simpletix.scraper import SimpleTixScraper
 from laughtrack.scrapers.implementations.api.simpletix.data import SimpleTixPageData
 from laughtrack.scrapers.implementations.api.simpletix.extractor import SimpleTixExtractor
@@ -20,18 +20,10 @@ SCRAPING_URL = "https://www.simpletix.com/e/comedy-night-tickets-123456"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Test Comedy Club",
-        address="123 Main St",
-        website="https://testcomedyclub.com",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=999, name='Test Comedy Club', address='123 Main St', website='https://testcomedyclub.com', popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

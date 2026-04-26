@@ -17,7 +17,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.event.grove34 import Grove34Event
 from laughtrack.foundation.exceptions import NetworkError
@@ -30,18 +30,10 @@ LISTING_URL = "https://grove34.com"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Grove 34",
-        address="",
-        website="https://grove34.com",
-        scraping_url=LISTING_URL,
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='Grove 34', address='', website='https://grove34.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=LISTING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _listing_html() -> str:

@@ -17,25 +17,16 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.squadup import scraper as squadup_module
 from laughtrack.scrapers.implementations.api.squadup.scraper import SquadUpScraper
 
 
 def _club() -> Club:
-    return Club(
-        id=42,
-        name="Test SquadUp Venue",
-        address="123 Main St",
-        website="https://example.com",
-        scraping_url="https://example.com",
-        popularity=0,
-        zip_code="90001",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-        squadup_user_id="7408591",
-    )
+    _c = Club(id=42, name='Test SquadUp Venue', address='123 Main St', website='https://example.com', popularity=0, zip_code='90001', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='squadup', scraper_key='', source_url='https://example.com', external_id='7408591')
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 class _FakeSession:

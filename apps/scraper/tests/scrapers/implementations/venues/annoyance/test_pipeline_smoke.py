@@ -7,7 +7,7 @@ matching the ThunderTix calendar API response structure.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.annoyance.scraper import AnnoyanceTheatreScraper
 from laughtrack.scrapers.implementations.venues.annoyance.data import AnnoyancePageData
 
@@ -16,18 +16,10 @@ CALENDAR_URL = "https://theannoyance.thundertix.com/reports/calendar?week=0&star
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="The Annoyance Theatre",
-        address="851 W. Belmont Ave",
-        website="https://www.theannoyance.com",
-        scraping_url="https://theannoyance.thundertix.com/reports/calendar",
-        popularity=0,
-        zip_code="60657",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='The Annoyance Theatre', address='851 W. Belmont Ave', website='https://www.theannoyance.com', popularity=0, zip_code='60657', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://theannoyance.thundertix.com/reports/calendar', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _performance_dict(

@@ -20,24 +20,16 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.comedy_key_west.scraper import ComedyKeyWestScraper
 from laughtrack.scrapers.implementations.venues.comedy_key_west.data import ComedyKeyWestPageData
 
 
 def _club() -> Club:
-    return Club(
-        id=98,
-        name="Comedy Key West",
-        address="",
-        website="https://comedykeywest.com",
-        scraping_url="comedykeywest.com/shows",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=98, name='Comedy Key West', address='', website='https://comedykeywest.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='comedykeywest.com/shows', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _build_show_html() -> str:

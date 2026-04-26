@@ -8,7 +8,7 @@ the ZaniesEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.zanies import ZaniesEvent
 from laughtrack.scrapers.implementations.venues.zanies.data import ZaniesPageData
 from laughtrack.scrapers.implementations.venues.zanies.extractor import ZaniesExtractor
@@ -26,18 +26,10 @@ SHOW_URL = (
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Zanies Comedy Club",
-        address="1548 N Wells St",
-        website="https://chicago.zanies.com",
-        scraping_url=HOMEPAGE_URL,
-        popularity=0,
-        zip_code="60610",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='Zanies Comedy Club', address='1548 N Wells St', website='https://chicago.zanies.com', popularity=0, zip_code='60610', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=HOMEPAGE_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _homepage_html(

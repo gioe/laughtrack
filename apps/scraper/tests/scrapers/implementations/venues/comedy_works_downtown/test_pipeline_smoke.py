@@ -6,7 +6,7 @@ ComedyWorksDowntownEvent.to_show() against sample HTML matching the
 actual comedyworks.com structure.
 """
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_works_downtown import (
     ComedyWorksDowntownEvent,
     ComedyWorksDowntownShowtime,
@@ -17,18 +17,10 @@ from laughtrack.scrapers.implementations.venues.comedy_works_downtown.extractor 
 
 
 def _club() -> Club:
-    return Club(
-        id=300,
-        name="Comedy Works Downtown",
-        address="1226 15th St",
-        website="https://www.comedyworks.com",
-        scraping_url="https://www.comedyworks.com/events?downtown=1",
-        popularity=0,
-        zip_code="80202",
-        phone_number="",
-        visible=True,
-        timezone="America/Denver",
-    )
+    _c = Club(id=300, name='Comedy Works Downtown', address='1226 15th St', website='https://www.comedyworks.com', popularity=0, zip_code='80202', phone_number='', visible=True, timezone='America/Denver')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.comedyworks.com/events?downtown=1', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

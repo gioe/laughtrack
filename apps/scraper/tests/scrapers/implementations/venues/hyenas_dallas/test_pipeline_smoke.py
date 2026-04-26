@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.scrapers.implementations.json_ld.data import JsonLdPageData
 
@@ -33,18 +33,10 @@ SCRAPING_URL = "https://www.prekindle.com/events/hyenasdallas"
 
 
 def _club() -> Club:
-    return Club(
-        id=649,
-        name="Hyena's Comedy Nightclub",
-        address="5321 East Mockingbird",
-        website="https://www.hyenascomedynightclub.com/dallas",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="75206",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=649, name="Hyena's Comedy Nightclub", address='5321 East Mockingbird', website='https://www.hyenascomedynightclub.com/dallas', popularity=0, zip_code='75206', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _prekindle_html(events: list[dict] | None = None) -> str:

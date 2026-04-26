@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.gotham import GothamEvent
 from laughtrack.scrapers.implementations.venues.gotham.scraper import GothamComedyClubScraper
 from laughtrack.scrapers.implementations.venues.gotham.data import GothamPageData
@@ -23,18 +23,10 @@ from laughtrack.scrapers.implementations.venues.gotham.extractor import GothamEv
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Gotham Comedy Club",
-        address="",
-        website="https://www.gothamcomedyclub.com",
-        scraping_url="https://www.gothamcomedyclub.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='Gotham Comedy Club', address='', website='https://www.gothamcomedyclub.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.gothamcomedyclub.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _fake_gotham_event() -> GothamEvent:

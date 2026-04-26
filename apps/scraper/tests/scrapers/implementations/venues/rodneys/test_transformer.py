@@ -5,25 +5,17 @@ from unittest.mock import patch
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.venues.rodneys.transformer import RodneyEventTransformer
 
 
 def _club() -> Club:
-    return Club(
-        id=42,
-        name="Rodney's Comedy Club",
-        address="311 W 35th St, New York, NY 10001",
-        website="https://rodneyscomedyclub.com",
-        scraping_url="https://rodneyscomedyclub.com",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=42, name="Rodney's Comedy Club", address='311 W 35th St, New York, NY 10001', website='https://rodneyscomedyclub.com', popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://rodneyscomedyclub.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _transformer() -> RodneyEventTransformer:

@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.eventbrite.data import EventbriteVenueData
@@ -30,20 +30,10 @@ EVENTBRITE_ID = "253402413"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Comic Strip Live",
-        address="1568 2nd Avenue, New York, NY",
-        website="https://www.comicstriplive.com",
-        scraping_url="comicstriplive.com",
-        popularity=0,
-        zip_code="10028",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-        eventbrite_id=EVENTBRITE_ID,
-        scraper="eventbrite",
-    )
+    _c = Club(id=999, name='Comic Strip Live', address='1568 2nd Avenue, New York, NY', website='https://www.comicstriplive.com', popularity=0, zip_code='10028', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='eventbrite', source_url='comicstriplive.com', external_id=EVENTBRITE_ID)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_domain_event(

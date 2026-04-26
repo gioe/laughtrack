@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.improv import ImprovEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.improv.data import ImprovPageData
@@ -27,25 +27,10 @@ from laughtrack.scrapers.implementations.venues.improv.scraper import ImprovScra
 
 
 def _club() -> Club:
-    return Club(
-        id=1,
-        name="Test Improv Club",
-        address="123 Comedy St",
-        website="https://improv.test",
-        scraping_url="https://improv.test/calendar",
-        popularity=0,
-        zip_code="00000",
-        phone_number="000-0000",
-        visible=True,
-        timezone="America/New_York",
-        scraper="improv",
-        eventbrite_id=None,
-        ticketmaster_id=None,
-        seatengine_id=None,
-        rate_limit=1.0,
-        max_retries=1,
-        timeout=5,
-    )
+    _c = Club(id=1, name='Test Improv Club', address='123 Comedy St', website='https://improv.test', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='improv', source_url='https://improv.test/calendar', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_event(name: str, url: str = "https://improv.test/show/1") -> ImprovEvent:

@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.jetbook import JetBookEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.jetbook.data import JetBookPageData
@@ -40,18 +40,10 @@ FAR_FUTURE_MS = int(
 
 
 def _club() -> Club:
-    return Club(
-        id=794,
-        name="The Improv Collective",
-        address="1215 Baker Street",
-        website="https://improvcollective.fun",
-        scraping_url=IFRAME_URL,
-        popularity=0,
-        zip_code="92626",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=794, name='The Improv Collective', address='1215 Baker Street', website='https://improvcollective.fun', popularity=0, zip_code='92626', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=IFRAME_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _event_source(

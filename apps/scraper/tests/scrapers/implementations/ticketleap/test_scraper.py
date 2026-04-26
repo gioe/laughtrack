@@ -13,27 +13,16 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.ticketleap.scraper import TicketleapScraper
 
 
 @pytest.fixture
 def club() -> Club:
-    return Club(
-        id=837,
-        name="Mesquite St. Comedy Club",
-        address="617 Mesquite Street",
-        website="https://www.mesquitestreet.com",
-        scraping_url="https://events.ticketleap.com/events/funny",
-        popularity=0,
-        zip_code="78401",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-        city="Corpus Christi",
-        state="TX",
-        scraper="ticketleap",
-    )
+    _c = Club(id=837, name='Mesquite St. Comedy Club', address='617 Mesquite Street', website='https://www.mesquitestreet.com', popularity=0, zip_code='78401', phone_number='', visible=True, timezone='America/Chicago', city='Corpus Christi', state='TX')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketleap', scraper_key='ticketleap', source_url='https://events.ticketleap.com/events/funny', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _listing_html(event_ids: List[int]) -> str:

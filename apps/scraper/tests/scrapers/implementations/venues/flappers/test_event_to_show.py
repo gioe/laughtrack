@@ -11,25 +11,17 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.flappers import FlappersEvent, FlappersTicketTier
 
 TZ = "America/Los_Angeles"
 
 
 def _club() -> Club:
-    return Club(
-        id=42,
-        name="Flappers Comedy Club",
-        address="102 E Magnolia Blvd",
-        website="https://www.flapperscomedy.com",
-        scraping_url="https://www.flapperscomedy.com/site/shows.php",
-        popularity=0,
-        zip_code="91502",
-        phone_number="",
-        visible=True,
-        timezone=TZ,
-    )
+    _c = Club(id=42, name='Flappers Comedy Club', address='102 E Magnolia Blvd', website='https://www.flapperscomedy.com', popularity=0, zip_code='91502', phone_number='', visible=True, timezone=TZ)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.flapperscomedy.com/site/shows.php', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _event(**overrides) -> FlappersEvent:

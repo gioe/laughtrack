@@ -11,7 +11,7 @@ import json
 import pytest
 
 from laughtrack.core.clients.punchup.extractor import PunchupShow
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.comedy_key_west.data import ComedyKeyWestShow
 from laughtrack.scrapers.implementations.venues.comedy_key_west.transformer import (
     ComedyKeyWestEventTransformer,
@@ -24,18 +24,10 @@ from laughtrack.scrapers.implementations.venues.west_side.transformer import Wes
 
 
 def _club():
-    return Club(
-        id=8,
-        name="West Side Comedy Club",
-        address="",
-        website="https://westsidecomedyclub.com",
-        scraping_url="westsidecomedyclub.com/calendar",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=8, name='West Side Comedy Club', address='', website='https://westsidecomedyclub.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='westsidecomedyclub.com/calendar', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

@@ -19,23 +19,15 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine_national.scraper import SeatEngineNationalScraper
 
 
 def _platform_club() -> Club:
-    return Club(
-        id=999,
-        name="SeatEngine National",
-        address="",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_national",
-    )
+    _c = Club(id=999, name='SeatEngine National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_national', scraper_key='seatengine_national', source_url='www.seatengine.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _venue_dict(venue_id: int = 42, name: str = "Joe's Comedy Club") -> dict:
@@ -43,19 +35,10 @@ def _venue_dict(venue_id: int = 42, name: str = "Joe's Comedy Club") -> dict:
 
 
 def _upserted_club(seatengine_id: str = "42") -> Club:
-    return Club(
-        id=1,
-        name="Joe's Comedy Club",
-        address="123 Main St",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        scraper="seatengine",
-        seatengine_id=seatengine_id,
-    )
+    _c = Club(id=1, name="Joe's Comedy Club", address='123 Main St', website='', popularity=0, zip_code='10001', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='seatengine', source_url='www.seatengine.com', external_id=seatengine_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_scraper() -> SeatEngineNationalScraper:

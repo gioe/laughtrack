@@ -9,7 +9,7 @@ unit-tests the PhillyImprovShow.to_show() transformation path.
 import pytest
 
 import laughtrack.scrapers.implementations.venues.philly_improv_theater.scraper as _scraper_mod
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.scrapers.implementations.venues.philly_improv_theater.scraper import PhillyImprovTheaterScraper
@@ -20,18 +20,10 @@ API_URL = "https://crowdwork.com/api/v2/phillyimprovtheater/shows"
 
 
 def _club() -> Club:
-    return Club(
-        id=300,
-        name="Philly Improv Theater",
-        address="62 N 2nd St",
-        website="https://www.phillyimprovtheater.com",
-        scraping_url=API_URL,
-        popularity=0,
-        zip_code="19106",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=300, name='Philly Improv Theater', address='62 N 2nd St', website='https://www.phillyimprovtheater.com', popularity=0, zip_code='19106', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=API_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _show_entry(

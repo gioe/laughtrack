@@ -226,19 +226,11 @@ def test_get_next_page_url_returns_url_when_pagination_present_strengthened():
 # ---------------------------------------------------------------------------
 
 def _make_club():
-    from laughtrack.core.entities.club.model import Club
-    return Club(
-        id=1,
-        name="Grove 34",
-        address="34 Grove St, New York, NY",
-        website="https://grove34.com",
-        scraping_url="https://grove34.com/",
-        popularity=50,
-        zip_code="10014",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    from laughtrack.core.entities.club.model import Club, ScrapingSource
+    _c = Club(id=1, name='Grove 34', address='34 Grove St, New York, NY', website='https://grove34.com', popularity=50, zip_code='10014', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://grove34.com/', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def test_grove34_event_to_show_with_milliseconds():
@@ -289,22 +281,11 @@ def test_grove34_event_to_show_returns_none_with_bad_date():
 
 @pytest.fixture
 def grove34_club():
-    from laughtrack.core.entities.club.model import Club
-    return Club(
-        id=2,
-        name="Grove 34",
-        address="34 Grove St, New York, NY",
-        website="https://grove34.com",
-        scraping_url="https://grove34.com/",
-        popularity=50,
-        zip_code="10014",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-        rate_limit=1.0,
-        max_retries=1,
-        timeout=5,
-    )
+    from laughtrack.core.entities.club.model import Club, ScrapingSource
+    _c = Club(id=2, name='Grove 34', address='34 Grove St, New York, NY', website='https://grove34.com', popularity=50, zip_code='10014', phone_number='', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://grove34.com/', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 async def test_collect_scraping_targets_pagination_and_deduplication(monkeypatch, grove34_club):

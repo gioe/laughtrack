@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent
 from laughtrack.foundation.models.api.comedy_cellar.models import (
     ComedyCellarLineupAPIResponse,
@@ -35,18 +35,10 @@ API_DATE = "2026-04-15"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Comedy Cellar",
-        address="",
-        website="https://www.comedycellar.com",
-        scraping_url="https://www.comedycellar.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='Comedy Cellar', address='', website='https://www.comedycellar.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.comedycellar.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_lineup(api_date: str = API_DATE) -> ComedyCellarLineupAPIResponse:

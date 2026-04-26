@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.vivenu import VivenuEvent
 from laughtrack.scrapers.implementations.venues.third_coast_comedy.scraper import VivenuScraper
 from laughtrack.scrapers.implementations.venues.third_coast_comedy.data import VivenuPageData
@@ -24,18 +24,10 @@ _PAST_START = "2020-01-01T00:00:00.000Z"
 
 
 def _club() -> Club:
-    return Club(
-        id=200,
-        name="Third Coast Comedy Club",
-        address="1310 Clinton Street, Suite 121",
-        website="https://www.thirdcoastcomedy.club",
-        scraping_url="https://tickets.thirdcoastcomedy.club/",
-        popularity=0,
-        zip_code="37203",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=200, name='Third Coast Comedy Club', address='1310 Clinton Street, Suite 121', website='https://www.thirdcoastcomedy.club', popularity=0, zip_code='37203', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://tickets.thirdcoastcomedy.club/', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_event(

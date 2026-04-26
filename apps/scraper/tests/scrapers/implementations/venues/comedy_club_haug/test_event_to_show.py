@@ -11,7 +11,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_club_haug import ComedyClubHaugEvent
 
 TZ = "Europe/Amsterdam"
@@ -23,15 +23,21 @@ def _club(**overrides) -> Club:
         name="Comedy Club Haug",
         address="Nieuwe Binnenweg 19",
         website="https://comedyclubhaug.com",
-        scraping_url="https://comedyclubhaug.com/shows",
         popularity=0,
         zip_code="3014 GA",
         phone_number="",
         visible=True,
         timezone=TZ,
     )
+    scraping_url = overrides.pop("scraping_url", "https://comedyclubhaug.com/shows")
     defaults.update(overrides)
-    return Club(**defaults)
+    club = Club(**defaults)
+    club.active_scraping_source = ScrapingSource(
+        id=1, club_id=club.id, platform="custom",
+        scraper_key="comedy_club_haug", source_url=scraping_url, external_id=None,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
 
 
 def _event(**overrides) -> ComedyClubHaugEvent:

@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -33,18 +33,10 @@ EVENT_URL = "https://www.tixr.com/groups/houseofcomedymn/events/comedy-night-178
 
 
 def _club() -> Club:
-    return Club(
-        id=300,
-        name="House of Comedy Bloomington",
-        address="60 E Broadway Ave",
-        website="https://moa.houseofcomedy.net",
-        scraping_url=VENUE_URL,
-        popularity=0,
-        zip_code="55425",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=300, name='House of Comedy Bloomington', address='60 E Broadway Ave', website='https://moa.houseofcomedy.net', popularity=0, zip_code='55425', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=VENUE_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _tixr_event() -> TixrEvent:

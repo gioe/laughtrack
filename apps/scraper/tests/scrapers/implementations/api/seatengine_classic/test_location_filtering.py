@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine_classic.scraper import SeatEngineClassicScraper
 from laughtrack.scrapers.implementations.api.seatengine_classic.data import SeatEngineClassicPageData
 
@@ -31,18 +31,10 @@ SCRAPING_URL = f"{BASE_URL}/events"
 
 
 def _club(scraping_url: str = SCRAPING_URL) -> Club:
-    return Club(
-        id=999,
-        name="Test Venue",
-        address="123 Main St",
-        website="https://example.com",
-        scraping_url=scraping_url,
-        popularity=0,
-        zip_code="00000",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=999, name='Test Venue', address='123 Main St', website='https://example.com', popularity=0, zip_code='00000', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=scraping_url, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _html_with_labels(*labels: str, event_name: str = "Comedy Night") -> str:

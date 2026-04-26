@@ -8,7 +8,7 @@ SquarespaceEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
 from laughtrack.scrapers.implementations.api.squarespace.scraper import SquarespaceScraper
 from laughtrack.scrapers.implementations.api.squarespace.data import SquarespacePageData
@@ -21,18 +21,10 @@ SCRAPING_URL = f"{BASE_DOMAIN}/api/open/GetItemsByMonth?collectionId={COLLECTION
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="The Den Theatre",
-        address="1331 N Milwaukee Ave",
-        website=BASE_DOMAIN,
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="60622",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=99, name='The Den Theatre', address='1331 N Milwaukee Ave', website=BASE_DOMAIN, popularity=0, zip_code='60622', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_event(

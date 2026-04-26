@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.scrapers.implementations.venues.standup_ny.scraper import StandupNYScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.data import StandupNYPageData
@@ -29,18 +29,10 @@ VENUEPILOT_URL = "https://tickets.venuepilot.com/e/standup-night-1"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="StandUp NY",
-        address="",
-        website="https://standupny.com",
-        scraping_url="https://api.showtix4u.com/graphql",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='StandUp NY', address='', website='https://standupny.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://api.showtix4u.com/graphql', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _fake_event() -> StandupNYEvent:

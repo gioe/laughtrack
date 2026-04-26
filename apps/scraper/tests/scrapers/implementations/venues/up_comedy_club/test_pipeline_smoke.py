@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.up_comedy_club import UPComedyClubEvent
 from laughtrack.scrapers.implementations.venues.up_comedy_club.scraper import UPComedyClubScraper
 from laughtrack.scrapers.implementations.venues.up_comedy_club.data import UPComedyClubPageData
@@ -33,18 +33,10 @@ SCRAPING_URL = "https://www.secondcity.com/shows/chicago/"
 
 
 def _club(timezone: str = "America/Chicago") -> Club:
-    return Club(
-        id=999,
-        name="UP Comedy Club",
-        address="230 W North Ave",
-        website="https://www.secondcity.com/shows/chicago/",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="60610",
-        phone_number="",
-        visible=True,
-        timezone=timezone,
-    )
+    _c = Club(id=999, name='UP Comedy Club', address='230 W North Ave', website='https://www.secondcity.com/shows/chicago/', popularity=0, zip_code='60610', phone_number='', visible=True, timezone=timezone)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _graphql_response(include_up_show: bool = True) -> Dict[str, Any]:

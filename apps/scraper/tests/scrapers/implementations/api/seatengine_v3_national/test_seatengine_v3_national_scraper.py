@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from laughtrack.scrapers.implementations.api.seatengine_v3_national.scraper import (
     SeatEngineV3NationalScraper,
 )
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 _V3_UUID = "cf2b1561-bf36-40b8-8380-9c2a3bd0e4e3"
@@ -64,18 +64,10 @@ _VENUE_RESPONSE_2 = {
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal 'platform' club row that triggers the v3 national scraper."""
-    return Club(
-        id=999,
-        name="SeatEngine V3 National",
-        address="",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_v3_national",
-    )
+    _c = Club(id=999, name='SeatEngine V3 National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_v3_national', scraper_key='seatengine_v3_national', source_url='www.seatengine.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_venue_dict(uuid=_V3_UUID, name="The Comedy Studio"):
@@ -91,19 +83,10 @@ def _make_venue_dict(uuid=_V3_UUID, name="The Comedy Studio"):
 
 
 def _make_club(club_id=42, name="The Comedy Studio", seatengine_id=_V3_UUID):
-    return Club(
-        id=club_id,
-        name=name,
-        address="5 John F. Kennedy St",
-        website="https://thecomedystudio.com",
-        scraping_url=f"https://v-{seatengine_id}.seatengine.net",
-        popularity=0,
-        zip_code="02138",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_v3",
-        seatengine_id=seatengine_id,
-    )
+    _c = Club(id=club_id, name=name, address='5 John F. Kennedy St', website='https://thecomedystudio.com', popularity=0, zip_code='02138', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_v3', scraper_key='seatengine_v3', source_url=f'https://v-{seatengine_id}.seatengine.net', external_id=seatengine_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ------------------------------------------------------------------ #

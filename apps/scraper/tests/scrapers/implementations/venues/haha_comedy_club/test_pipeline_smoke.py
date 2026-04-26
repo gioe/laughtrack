@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.venues.haha_comedy_club.scraper import HahaComedyClubScraper
 
@@ -63,18 +63,10 @@ _ONE_EVENT_HTML = """
 
 
 def _club() -> Club:
-    return Club(
-        id=163,
-        name="HAHA Comedy Club",
-        address="4712 Lankershim Blvd",
-        website="https://www.hahacomedyclub.com",
-        scraping_url=CALENDAR_URL,
-        popularity=0,
-        zip_code="91602",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=163, name='HAHA Comedy Club', address='4712 Lankershim Blvd', website='https://www.hahacomedyclub.com', popularity=0, zip_code='91602', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=CALENDAR_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

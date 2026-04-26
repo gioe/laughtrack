@@ -8,23 +8,15 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 @pytest.fixture
 def club() -> Club:
-    return Club(
-        id=1,
-        name="Test Venue",
-        address="",
-        website="https://example.com",
-        scraping_url="example.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        eventbrite_id="VENUE123",
-    )
+    _c = Club(id=1, name='Test Venue', address='', website='https://example.com', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='', source_url='example.com', external_id='VENUE123')
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 @pytest.mark.asyncio
@@ -36,7 +28,11 @@ async def test_collect_targets_returns_venue_id(club):
 
 @pytest.mark.asyncio
 async def test_collect_targets_empty_when_missing_id(club):
-    club.eventbrite_id = None
+    # Clear the scraping source's external_id (formerly clubs.eventbrite_id).
+    if club.active_scraping_source is not None:
+        club.active_scraping_source.external_id = None
+    for source in club.scraping_sources:
+        source.external_id = None
     with pytest.raises(ValueError):
         EventbriteScraper(club)
 

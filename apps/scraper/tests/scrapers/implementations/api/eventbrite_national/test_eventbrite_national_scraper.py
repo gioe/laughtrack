@@ -14,25 +14,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from laughtrack.scrapers.implementations.api.eventbrite_national.scraper import (
     EventbriteNationalScraper,
 )
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 
 
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal 'platform' club row that triggers the national scraper."""
-    return Club(
-        id=999,
-        name="Eventbrite National",
-        address="",
-        website="",
-        scraping_url="www.eventbrite.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="eventbrite_national",
-    )
+    _c = Club(id=999, name='Eventbrite National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite_national', scraper_key='eventbrite_national', source_url='www.eventbrite.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_api_event(venue_id="V1", venue_name="Test Club", event_url="https://eb.com/e/1"):
@@ -59,19 +51,10 @@ def _make_api_event(venue_id="V1", venue_name="Test Club", event_url="https://eb
 
 
 def _make_club(club_id=42, name="Test Club", eventbrite_id="V1"):
-    return Club(
-        id=club_id,
-        name=name,
-        address="123 Main St, New York, NY",
-        website="",
-        scraping_url="www.eventbrite.com",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        scraper="eventbrite",
-        eventbrite_id=eventbrite_id,
-    )
+    _c = Club(id=club_id, name=name, address='123 Main St, New York, NY', website='', popularity=0, zip_code='10001', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='eventbrite', source_url='www.eventbrite.com', external_id=eventbrite_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ------------------------------------------------------------------ #

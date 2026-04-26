@@ -20,6 +20,7 @@ from _entities_test_helpers import _load_module, _stub
 
 # Non-foundation stubs (foundation modules are registered by conftest.py)
 from typing import TypeVar as _TypeVar
+from laughtrack.core.entities.club.model import ScrapingSource
 _T = _TypeVar("T")
 _stub("laughtrack.foundation.models.types", T=_T, JSONDict=dict)
 _stub("laughtrack.foundation.models", as_package=True, T=_T)
@@ -58,17 +59,10 @@ ClubService = _club_service_mod.ClubService
 # ---------------------------------------------------------------------------
 
 def _make_club(id: int, name: str) -> Club:
-    return Club(
-        id=id,
-        name=name,
-        address="123 Main St",
-        website="",
-        scraping_url="",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=id, name=name, address='123 Main St', website='', popularity=0, zip_code='10001', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_service(clubs=None, db_error=None) -> ClubService:

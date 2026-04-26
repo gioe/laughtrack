@@ -5,23 +5,15 @@ from datetime import datetime
 
 import pytz
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.revolution_hall import RevolutionHallEvent
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Revolution Hall",
-        address="1300 SE Stark St, Portland, OR 97214",
-        website="https://www.revolutionhallpdx.com",
-        scraping_url="https://www.revolutionhallpdx.com",
-        popularity=0,
-        zip_code="97214",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=99, name='Revolution Hall', address='1300 SE Stark St, Portland, OR 97214', website='https://www.revolutionhallpdx.com', popularity=0, zip_code='97214', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.revolutionhallpdx.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _event(**overrides) -> RevolutionHallEvent:

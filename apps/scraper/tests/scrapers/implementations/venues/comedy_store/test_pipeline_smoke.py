@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.comedy_store.scraper import (
     ComedyStoreScraper,
     _SCRAPE_WINDOW_DAYS,
@@ -35,18 +35,10 @@ LA_JOLLA_CALENDAR_BASE = "https://thecomedystore.com/la-jolla/calendar"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="The Comedy Store",
-        address="8433 W Sunset Blvd",
-        website="https://thecomedystore.com",
-        scraping_url=f"{CALENDAR_BASE}",
-        popularity=0,
-        zip_code="90069",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=99, name='The Comedy Store', address='8433 W Sunset Blvd', website='https://thecomedystore.com', popularity=0, zip_code='90069', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=f'{CALENDAR_BASE}', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _day_html(shows: list[dict]) -> str:
@@ -116,18 +108,10 @@ def _day_html(shows: list[dict]) -> str:
 
 
 def _la_jolla_club() -> Club:
-    return Club(
-        id=200,
-        name="The Comedy Store La Jolla",
-        address="8971 Villa La Jolla Dr",
-        website="https://thecomedystore.com/la-jolla",
-        scraping_url=LA_JOLLA_CALENDAR_BASE,
-        popularity=0,
-        zip_code="92037",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=200, name='The Comedy Store La Jolla', address='8971 Villa La Jolla Dr', website='https://thecomedystore.com/la-jolla', popularity=0, zip_code='92037', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=LA_JOLLA_CALENDAR_BASE, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _la_jolla_day_html(shows: list[dict]) -> str:

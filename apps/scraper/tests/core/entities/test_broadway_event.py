@@ -1,22 +1,15 @@
 import pytest
 
 from laughtrack.core.entities.event.broadway import BroadwayEvent
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.ticket.model import Ticket
 
 
 def make_club() -> Club:
-    return Club(
-        id=1,
-        name="Broadway Comedy Club",
-        address="318 W 53rd St, New York, NY 10019",
-        website="https://www.broadwaycomedyclub.com",
-        scraping_url="https://www.broadwaycomedyclub.com",
-        popularity=10,
-        zip_code="10019",
-        phone_number="(212) 757-2323",
-        visible=True,
-    )
+    _c = Club(id=1, name='Broadway Comedy Club', address='318 W 53rd St, New York, NY 10019', website='https://www.broadwaycomedyclub.com', popularity=10, zip_code='10019', phone_number='(212) 757-2323', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.broadwaycomedyclub.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def test_from_dict_and_to_show_success():

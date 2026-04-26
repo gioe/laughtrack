@@ -8,24 +8,15 @@ returns JsonLdScraper for a club whose scraper field is 'json_ld'.
 
 from unittest.mock import patch
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 
 
 def _club() -> Club:
-    return Club(
-        id=1,
-        name="Test JSON-LD Club",
-        address="",
-        website="https://example.com",
-        scraping_url="https://example.com/events",
-        scraper="json_ld",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=1, name='Test JSON-LD Club', address='', website='https://example.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='json_ld', scraper_key='json_ld', source_url='https://example.com/events', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_mapping():

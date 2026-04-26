@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngineScraper
 from laughtrack.scrapers.implementations.api.seatengine.data import SeatEnginePageData
 
@@ -31,19 +31,10 @@ VENUE_WEBSITE = "https://joes-comedy.com"
 
 
 def _club(seatengine_id: str = VENUE_ID) -> Club:
-    return Club(
-        id=999,
-        name="Joe's Comedy Club",
-        address="123 Laugh Lane",
-        website=VENUE_WEBSITE,
-        scraping_url="https://joes-comedy.com/shows",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-        seatengine_id=seatengine_id,
-    )
+    _c = Club(id=999, name="Joe's Comedy Club", address='123 Laugh Lane', website=VENUE_WEBSITE, popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='', source_url='https://joes-comedy.com/shows', external_id=seatengine_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _show_dict(show_id: int = 101, comedian_name: str = "Alice Smith") -> dict:

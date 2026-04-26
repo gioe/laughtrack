@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.ticketmaster_national.scraper import (
     TicketmasterNationalScraper,
@@ -29,18 +29,10 @@ from laughtrack.scrapers.implementations.api.ticketmaster_national.scraper impor
 
 def _club() -> Club:
     """Minimal platform club row that triggers the national scraper."""
-    return Club(
-        id=999,
-        name="Ticketmaster National",
-        address="",
-        website="",
-        scraping_url="www.ticketmaster.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="ticketmaster_national",
-    )
+    _c = Club(id=999, name='Ticketmaster National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster_national', scraper_key='ticketmaster_national', source_url='www.ticketmaster.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_show(name: str = "Comedy Night") -> Show:

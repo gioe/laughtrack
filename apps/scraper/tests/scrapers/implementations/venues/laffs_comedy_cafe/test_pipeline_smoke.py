@@ -8,7 +8,7 @@ LaffsComedyCafeEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.laffs_comedy_cafe import LaffsComedyCafeEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.scraper import (
@@ -22,18 +22,10 @@ PAGE_URL = "https://www.laffstucson.com/coming-soon.html"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Laffs Comedy Cafe",
-        address="2900 E Broadway Blvd",
-        website="https://www.laffstucson.com",
-        scraping_url=PAGE_URL,
-        popularity=0,
-        zip_code="85716",
-        phone_number="",
-        visible=True,
-        timezone="America/Phoenix",
-    )
+    _c = Club(id=999, name='Laffs Comedy Cafe', address='2900 E Broadway Blvd', website='https://www.laffstucson.com', popularity=0, zip_code='85716', phone_number='', visible=True, timezone='America/Phoenix')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=PAGE_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _form_html(

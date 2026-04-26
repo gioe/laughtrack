@@ -3,23 +3,15 @@ Unit tests for StandupNY ticket extraction — specifically the empty/None price
 """
 
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.standup_ny.transformer import StandupNYEventTransformer
 
 
 def _make_club() -> Club:
-    return Club(
-        id=1,
-        name="StandUp NY",
-        address="",
-        zip_code="10023",
-        website="https://standupny.com",
-        timezone="America/New_York",
-        scraping_url="https://standupny.com/events",
-        popularity=0,
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=1, name='StandUp NY', address='', zip_code='10023', website='https://standupny.com', timezone='America/New_York', popularity=0, phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://standupny.com/events', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_event(**kwargs) -> StandupNYEvent:

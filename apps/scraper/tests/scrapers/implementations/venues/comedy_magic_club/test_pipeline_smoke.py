@@ -8,7 +8,7 @@ ComedyMagicClubEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_magic_club import ComedyMagicClubEvent
 from laughtrack.scrapers.implementations.venues.comedy_magic_club.scraper import (
     ComedyMagicClubScraper,
@@ -21,18 +21,10 @@ LISTING_URL = "https://thecomedyandmagicclub.com/events/"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="The Comedy & Magic Club",
-        address="1018 Hermosa Ave",
-        website="https://thecomedyandmagicclub.com",
-        scraping_url=LISTING_URL,
-        popularity=0,
-        zip_code="90254",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=999, name='The Comedy & Magic Club', address='1018 Hermosa Ave', website='https://thecomedyandmagicclub.com', popularity=0, zip_code='90254', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=LISTING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _event_card(

@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.goofs.scraper import GoofsComedyClubScraper
 from laughtrack.scrapers.implementations.venues.goofs.data import GoofsPageData
 
@@ -18,18 +18,10 @@ SHOWS_URL = "https://goofscomedy.com/p/shows"
 
 
 def _club() -> Club:
-    return Club(
-        id=142,
-        name="Goofs Comedy Club",
-        address="432 McGrath Highway, Somerville, MA",
-        website="https://goofscomedy.com",
-        scraping_url="goofscomedy.com/p/shows",
-        popularity=0,
-        zip_code="02143",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=142, name='Goofs Comedy Club', address='432 McGrath Highway, Somerville, MA', website='https://goofscomedy.com', popularity=0, zip_code='02143', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='goofscomedy.com/p/shows', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_rsc_html(shows: list) -> str:

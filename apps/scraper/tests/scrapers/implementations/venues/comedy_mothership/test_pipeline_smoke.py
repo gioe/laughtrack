@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_mothership import ComedyMothershipEvent
 from laughtrack.scrapers.implementations.venues.comedy_mothership.extractor import (
     ComedyMothershipEventExtractor,
@@ -34,18 +34,10 @@ SHOWS_URL = "https://comedymothership.com/shows"
 
 
 def _club() -> Club:
-    return Club(
-        id=1,
-        name="Comedy Mothership",
-        address="320 E 6th St",
-        website="https://comedymothership.com",
-        scraping_url=SHOWS_URL,
-        popularity=0,
-        zip_code="78701",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=1, name='Comedy Mothership', address='320 E 6th St', website='https://comedymothership.com', popularity=0, zip_code='78701', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SHOWS_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _fixture_html() -> str:

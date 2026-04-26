@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.madrid_comedy_lab import MadridComedyLabEvent
 from laughtrack.scrapers.implementations.venues.madrid_comedy_lab.scraper import (
     MadridComedyLabScraper,
@@ -29,18 +29,10 @@ from laughtrack.scrapers.implementations.venues.madrid_comedy_lab.extractor impo
 
 
 def _club() -> Club:
-    return Club(
-        id=200,
-        name="Madrid Comedy Lab",
-        address="Calle del Amor de Dios 13",
-        website="https://madridcomedylab.com",
-        scraping_url="https://fienta.com/api/v1/public/events?organizer=24814",
-        popularity=0,
-        zip_code="28014",
-        phone_number="",
-        visible=True,
-        timezone="Europe/Madrid",
-    )
+    _c = Club(id=200, name='Madrid Comedy Lab', address='Calle del Amor de Dios 13', website='https://madridcomedylab.com', popularity=0, zip_code='28014', phone_number='', visible=True, timezone='Europe/Madrid')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://fienta.com/api/v1/public/events?organizer=24814', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _api_event(

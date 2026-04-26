@@ -8,7 +8,7 @@ transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.ice_house import IceHouseEvent, _normalize_showclix_url
 from laughtrack.scrapers.implementations.venues.ice_house.scraper import IceHouseScraper
 from laughtrack.scrapers.implementations.venues.ice_house.data import IceHousePageData
@@ -16,18 +16,10 @@ from laughtrack.scrapers.implementations.venues.ice_house.extractor import IceHo
 
 
 def _club() -> Club:
-    return Club(
-        id=210,
-        name="Ice House Comedy Club",
-        address="24 N Mentor Ave",
-        website="https://icehousecomedy.com",
-        scraping_url="https://tockify.com/api/ngevent?calname=theicehouse&max=200",
-        popularity=0,
-        zip_code="91106",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=210, name='Ice House Comedy Club', address='24 N Mentor Ave', website='https://icehousecomedy.com', popularity=0, zip_code='91106', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://tockify.com/api/ngevent?calname=theicehouse&max=200', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_event(

@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.csz_philadelphia.scraper import (
     CszPhiladelphiaScraper,
 )
@@ -49,18 +49,10 @@ DATE_SLIDER_URL_PREFIX = "https://plugin.vbotickets.com/v5.0/controls/events.asp
 # ---------------------------------------------------------------------------
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="CSz Philadelphia",
-        address="2030 Sansom Street",
-        website="https://www.comedysportzphilly.com",
-        scraping_url=f"https://plugin.vbotickets.com/Plugin/events?s={SESSION_KEY}",
-        popularity=0,
-        zip_code="19103",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='CSz Philadelphia', address='2030 Sansom Street', website='https://www.comedysportzphilly.com', popularity=0, zip_code='19103', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=f'https://plugin.vbotickets.com/Plugin/events?s={SESSION_KEY}', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 _FRESH_SESSION_KEY = "a1b2c3d4-0000-0000-0000-111122223333"

@@ -1,24 +1,16 @@
 import pytest
 
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.models.api.eventbrite import EventbriteTicket
 from laughtrack.core.entities.ticket.model import Ticket
 
 
 def make_club() -> Club:
-    return Club(
-        id=1,
-        name="Eventbrite Venue",
-        address="",
-        website="https://example.com",
-        scraping_url="example.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=1, name='Eventbrite Venue', address='', website='https://example.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='example.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def test_to_show_with_performers_and_ticket_offers_parses_prices_and_sold_out():

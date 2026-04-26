@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.setup import SetupEvent
 from laughtrack.scrapers.implementations.venues.setup.data import SetupPageData
 from laughtrack.scrapers.implementations.venues.setup.extractor import SetupExtractor
@@ -24,18 +24,10 @@ _CSV_URL = (
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="The Setup SF",
-        address="630 Broadway",
-        website="https://setupcomedy.com",
-        scraping_url=_CSV_URL,
-        popularity=0,
-        zip_code="94133",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=999, name='The Setup SF', address='630 Broadway', website='https://setupcomedy.com', popularity=0, zip_code='94133', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=_CSV_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _csv_rows(*rows: tuple) -> str:

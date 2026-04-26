@@ -5,25 +5,17 @@ GothamEvent.to_show(club, enhanced=True) without raising a TypeError
 (i.e., respects the ShowConvertible protocol signature).
 """
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.gotham import GothamEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.gotham.transformer import GothamEventTransformer
 
 
 def _club() -> Club:
-    return Club(
-        id=2,
-        name="Gotham Comedy Club",
-        address="208 W 23rd St, New York, NY 10011",
-        website="https://www.gothamcomedy.com",
-        scraping_url="https://www.gothamcomedy.com",
-        popularity=80,
-        zip_code="10011",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=2, name='Gotham Comedy Club', address='208 W 23rd St, New York, NY 10011', website='https://www.gothamcomedy.com', popularity=80, zip_code='10011', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.gothamcomedy.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _event(**overrides) -> GothamEvent:

@@ -6,7 +6,7 @@ override scrape_async and bypass the pipeline) are excluded.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 # ---------------------------------------------------------------------------
 # Scrapers under test
@@ -37,6 +37,11 @@ from laughtrack.scrapers.implementations.venues.west_side.scraper import WestSid
 # ---------------------------------------------------------------------------
 
 
+_LEGACY_KWARGS = ("scraping_url", "scraper", "eventbrite_id", "seatengine_id",
+                  "ticketmaster_id", "ovationtix_client_id", "wix_comp_id",
+                  "squadup_user_id")
+
+
 def _base_club(**overrides) -> Club:
     """Return a minimal valid Club stub, optionally overriding fields."""
     defaults = dict(
@@ -44,14 +49,51 @@ def _base_club(**overrides) -> Club:
         name="Test Club",
         address="",
         website="https://example.com",
-        scraping_url="https://example.com/events",
         popularity=0,
         zip_code="",
         phone_number="",
         visible=True,
     )
+    legacy = {"scraping_url": "https://example.com/events"}
+    for k in _LEGACY_KWARGS:
+        if k in overrides:
+            legacy[k] = overrides.pop(k)
     defaults.update(overrides)
-    return Club(**defaults)
+    club = Club(**defaults)
+
+    # Resolve platform from the external-id legacy kwarg present in `legacy`.
+    eventbrite_id = legacy.get("eventbrite_id")
+    seatengine_id = legacy.get("seatengine_id")
+    ticketmaster_id = legacy.get("ticketmaster_id")
+    ovationtix_client_id = legacy.get("ovationtix_client_id")
+    wix_comp_id = legacy.get("wix_comp_id")
+    squadup_user_id = legacy.get("squadup_user_id")
+    scraper = legacy.get("scraper")
+    if eventbrite_id is not None:
+        platform, external_id = "eventbrite", eventbrite_id
+    elif seatengine_id is not None:
+        platform = "seatengine_v3" if scraper == "seatengine_v3" else "seatengine"
+        external_id = seatengine_id
+    elif ticketmaster_id is not None:
+        platform, external_id = "ticketmaster", ticketmaster_id
+    elif ovationtix_client_id is not None:
+        platform, external_id = "ovationtix", ovationtix_client_id
+    elif wix_comp_id is not None:
+        platform, external_id = "wix_events", wix_comp_id
+    elif squadup_user_id is not None:
+        platform, external_id = "squadup", squadup_user_id
+    elif scraper:
+        platform, external_id = scraper, None
+    else:
+        platform, external_id = "custom", None
+    club.active_scraping_source = ScrapingSource(
+        id=1, club_id=club.id, platform=platform,
+        scraper_key=scraper or "",
+        source_url=legacy.get("scraping_url"),
+        external_id=external_id,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
 
 
 # Each entry: (ScraperClass, club_kwargs_overrides)

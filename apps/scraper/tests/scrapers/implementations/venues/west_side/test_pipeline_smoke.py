@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.west_side.scraper import WestSideScraper
 from laughtrack.scrapers.implementations.venues.west_side.data import WestSidePageData
 
@@ -23,18 +23,10 @@ SCRAPING_URL = "westsidecomedyclub.com/calendar"
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="West Side Comedy Club",
-        address="",
-        website="https://westsidecomedyclub.com",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name='West Side Comedy Club', address='', website='https://westsidecomedyclub.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _punchup_html() -> str:

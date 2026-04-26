@@ -7,7 +7,7 @@ unit-tests the EastAustinComedyEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.east_austin_comedy import EastAustinComedyEvent
 from laughtrack.scrapers.implementations.venues.east_austin_comedy.data import (
     EastAustinComedyPageData,
@@ -24,18 +24,10 @@ _SCRAPING_URL = "https://eastaustincomedy.com/"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="East Austin Comedy",
-        address="2505 East 6th St. Suite D",
-        website="https://eastaustincomedy.com",
-        scraping_url=_SCRAPING_URL,
-        popularity=0,
-        zip_code="78702",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='East Austin Comedy', address='2505 East 6th St. Suite D', website='https://eastaustincomedy.com', popularity=0, zip_code='78702', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=_SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _availability_response(*show_times: str, date: str = "2026-04-04") -> dict:

@@ -8,7 +8,7 @@ against EmpireEvent objects, and get_data() against mocked HTML responses.
 import pytest
 from datetime import datetime
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.empire import EmpireEvent
 from laughtrack.scrapers.implementations.venues.empire_comedy_club.scraper import EmpireComedyClubScraper
 from laughtrack.scrapers.implementations.venues.empire_comedy_club.data import EmpirePageData
@@ -20,18 +20,10 @@ SCRAPING_URL = "https://empirecomedyme.com/shows/"
 
 
 def _club() -> Club:
-    return Club(
-        id=819,
-        name="Empire Comedy Club",
-        address="575 Congress St",
-        website="https://empirecomedyme.com",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="04101",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=819, name='Empire Comedy Club', address='575 Congress St', website='https://empirecomedyme.com', popularity=0, zip_code='04101', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

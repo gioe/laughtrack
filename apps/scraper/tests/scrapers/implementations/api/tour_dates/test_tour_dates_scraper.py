@@ -7,41 +7,24 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from laughtrack.scrapers.implementations.api.tour_dates.scraper import TourDatesScraper
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 
 
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal platform club that triggers TourDatesScraper."""
-    return Club(
-        id=999,
-        name="Tour Dates",
-        address="",
-        website="",
-        scraping_url="tour_dates",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=False,
-        scraper="tour_dates",
-    )
+    _c = Club(id=999, name='Tour Dates', address='', website='', popularity=0, zip_code='', phone_number='', visible=False)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tour_dates', scraper_key='tour_dates', source_url='tour_dates', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_venue_club(club_id: int = 1, name: str = "Madison Square Garden") -> Club:
-    return Club(
-        id=club_id,
-        name=name,
-        address="New York, NY",
-        website="",
-        scraping_url="tour_dates",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        scraper="tour_dates",
-        timezone="America/New_York",
-    )
+    _c = Club(id=club_id, name=name, address='New York, NY', website='', popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tour_dates', scraper_key='tour_dates', source_url='tour_dates', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ------------------------------------------------------------------ #

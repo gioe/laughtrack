@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine_v3_national.scraper import SeatEngineV3NationalScraper
 
 
@@ -28,18 +28,10 @@ _UUID_B = "e7ea1e53-8a31-48b6-bfe4-fd9672791615"
 
 
 def _platform_club() -> Club:
-    return Club(
-        id=999,
-        name="SeatEngine V3 National",
-        address="",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_v3_national",
-    )
+    _c = Club(id=999, name='SeatEngine V3 National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_v3_national', scraper_key='seatengine_v3_national', source_url='www.seatengine.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _venue_dict(uuid: str = _UUID_A, name: str = "The Comedy Studio") -> dict:
@@ -55,19 +47,10 @@ def _venue_dict(uuid: str = _UUID_A, name: str = "The Comedy Studio") -> dict:
 
 
 def _upserted_club(uuid: str = _UUID_A) -> Club:
-    return Club(
-        id=1,
-        name="The Comedy Studio",
-        address="5 John F. Kennedy St",
-        website="https://thecomedystudio.com",
-        scraping_url=f"https://v-{uuid}.seatengine.net",
-        popularity=0,
-        zip_code="02138",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_v3",
-        seatengine_id=uuid,
-    )
+    _c = Club(id=1, name='The Comedy Studio', address='5 John F. Kennedy St', website='https://thecomedystudio.com', popularity=0, zip_code='02138', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_v3', scraper_key='seatengine_v3', source_url=f'https://v-{uuid}.seatengine.net', external_id=uuid)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

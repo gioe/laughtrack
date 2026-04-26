@@ -14,24 +14,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from laughtrack.scrapers.implementations.api.seatengine_national.scraper import (
     SeatEngineNationalScraper,
 )
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal 'platform' club row that triggers the national scraper."""
-    return Club(
-        id=999,
-        name="SeatEngine National",
-        address="",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="seatengine_national",
-    )
+    _c = Club(id=999, name='SeatEngine National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_national', scraper_key='seatengine_national', source_url='www.seatengine.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_venue_dict(venue_id=458, name="McGuire's Comedy Club", address="123 Main St", zip_code="10001"):
@@ -39,19 +31,10 @@ def _make_venue_dict(venue_id=458, name="McGuire's Comedy Club", address="123 Ma
 
 
 def _make_club(club_id=42, name="McGuire's Comedy Club", seatengine_id="458"):
-    return Club(
-        id=club_id,
-        name=name,
-        address="123 Main St",
-        website="",
-        scraping_url="www.seatengine.com",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        scraper="seatengine",
-        seatengine_id=seatengine_id,
-    )
+    _c = Club(id=club_id, name=name, address='123 Main St', website='', popularity=0, zip_code='10001', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='seatengine', source_url='www.seatengine.com', external_id=seatengine_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ------------------------------------------------------------------ #

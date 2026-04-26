@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.ticketmaster.data import TicketmasterPageData
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
@@ -108,20 +108,10 @@ _VENUES = [
 
 def _club(v):
     # type: (_VenueFixture) -> Club
-    return Club(
-        id=999,
-        name=v.name,
-        address=v.address,
-        website=v.website,
-        scraping_url=f"ticketmaster/{v.venue_id}",
-        popularity=0,
-        zip_code=v.zip_code,
-        phone_number="",
-        visible=True,
-        timezone=v.tz,
-        ticketmaster_id=v.venue_id,
-        scraper="live_nation",
-    )
+    _c = Club(id=999, name=v.name, address=v.address, website=v.website, popularity=0, zip_code=v.zip_code, phone_number='', visible=True, timezone=v.tz)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster', scraper_key='live_nation', source_url=f'ticketmaster/{v.venue_id}', external_id=v.venue_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_api_event(v, name=None):

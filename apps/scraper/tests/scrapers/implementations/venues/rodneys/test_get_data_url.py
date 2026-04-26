@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.venues.rodneys.scraper import (
     RodneysComedyClubScraper,
 )
@@ -22,18 +22,10 @@ from laughtrack.scrapers.implementations.venues.rodneys.data import RodneyPageDa
 
 
 def _club() -> Club:
-    return Club(
-        id=99,
-        name="Rodney's Comedy Club",
-        address="",
-        website="https://rodneysnewyorkcomedyclub.com",
-        scraping_url="rodneysnewyorkcomedyclub.com/shows",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=99, name="Rodney's Comedy Club", address='', website='https://rodneysnewyorkcomedyclub.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='rodneysnewyorkcomedyclub.com/shows', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _show_page_html() -> str:

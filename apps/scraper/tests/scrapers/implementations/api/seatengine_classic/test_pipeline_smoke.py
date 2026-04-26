@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.implementations.api.seatengine_classic.scraper import SeatEngineClassicScraper
 from laughtrack.scrapers.implementations.api.seatengine_classic.data import SeatEngineClassicPageData
 
@@ -32,18 +32,10 @@ BASE_URL = "https://newbrunswick.stressfactory.com"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Stress Factory Comedy Club",
-        address="23 Livingston Ave",
-        website="https://stressfactory.com",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="08901",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=999, name='Stress Factory Comedy Club', address='23 Livingston Ave', website='https://stressfactory.com', popularity=0, zip_code='08901', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _classic_html(
@@ -150,20 +142,10 @@ THE_FUNCTION_BASE = "https://the-function.seatengine-sites.com"
 
 
 def _the_function_club() -> Club:
-    return Club(
-        id=192,
-        name="The Function SF",
-        address="1414 Market Street",
-        website="https://www.thefunctionsf.com",
-        scraping_url=THE_FUNCTION_URL,
-        popularity=0,
-        zip_code="94102",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-        seatengine_id="540",
-        scraper="seatengine_classic",
-    )
+    _c = Club(id=192, name='The Function SF', address='1414 Market Street', website='https://www.thefunctionsf.com', popularity=0, zip_code='94102', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='seatengine_classic', source_url=THE_FUNCTION_URL, external_id='540')
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _the_function_html() -> str:

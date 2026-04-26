@@ -9,7 +9,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.event import JsonLdEvent, Place, PostalAddress
 from laughtrack.scrapers.implementations.venues.uptown_theater import scraper as uptown_module
 from laughtrack.scrapers.implementations.venues.uptown_theater.data import UptownTheaterPageData
@@ -21,25 +21,10 @@ from laughtrack.scrapers.implementations.venues.uptown_theater.scraper import Up
 # ---------------------------------------------------------------------------
 
 def _make_club() -> Club:
-    return Club(
-        id=80,
-        name="Uptown Theater",
-        address="270 Broadway",
-        website="https://www.uptownpvd.com",
-        scraping_url="www.uptownpvd.com/events",
-        popularity=0,
-        zip_code="02903",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-        scraper="uptown_theater",
-        eventbrite_id=None,
-        ticketmaster_id=None,
-        seatengine_id=None,
-        rate_limit=1.0,
-        max_retries=1,
-        timeout=5,
-    )
+    _c = Club(id=80, name='Uptown Theater', address='270 Broadway', website='https://www.uptownpvd.com', popularity=0, zip_code='02903', phone_number='', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='uptown_theater', source_url='www.uptownpvd.com/events', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_event(label: str) -> JsonLdEvent:

@@ -1,6 +1,43 @@
 """Unit tests for Club.to_tuple()."""
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
+
+
+_LEGACY_KWARGS = {"scraping_url", "scraper", "eventbrite_id", "seatengine_id",
+                  "ticketmaster_id", "ovationtix_client_id", "wix_comp_id",
+                  "squadup_user_id"}
+
+
+def _attach_source(club: Club, *, scraping_url=None, scraper=None,
+                    eventbrite_id=None, seatengine_id=None,
+                    ticketmaster_id=None, ovationtix_client_id=None,
+                    wix_comp_id=None, squadup_user_id=None) -> None:
+    if not any((scraping_url, scraper, eventbrite_id, seatengine_id,
+                ticketmaster_id, ovationtix_client_id, wix_comp_id,
+                squadup_user_id)):
+        return
+    if eventbrite_id is not None:
+        platform, external_id = "eventbrite", eventbrite_id
+    elif seatengine_id is not None:
+        platform = "seatengine_v3" if scraper == "seatengine_v3" else "seatengine"
+        external_id = seatengine_id
+    elif ticketmaster_id is not None:
+        platform, external_id = "ticketmaster", ticketmaster_id
+    elif ovationtix_client_id is not None:
+        platform, external_id = "ovationtix", ovationtix_client_id
+    elif wix_comp_id is not None:
+        platform, external_id = "wix_events", wix_comp_id
+    elif squadup_user_id is not None:
+        platform, external_id = "squadup", squadup_user_id
+    elif scraper:
+        platform, external_id = scraper, None
+    else:
+        platform, external_id = "custom", None
+    club.active_scraping_source = ScrapingSource(
+        id=1, club_id=club.id, platform=platform,
+        scraper_key=scraper or "", source_url=scraping_url, external_id=external_id,
+    )
+    club.scraping_sources = [club.active_scraping_source]
 
 
 def _make_club(**kwargs) -> Club:
@@ -9,14 +46,18 @@ def _make_club(**kwargs) -> Club:
         name="Test Club",
         address="123 Main St",
         website="https://testclub.com",
-        scraping_url="https://testclub.com/events",
         popularity=5,
         zip_code="10001",
         phone_number="555-1234",
         visible=True,
     )
+    legacy_defaults = {"scraping_url": "https://testclub.com/events"}
+    legacy = {k: kwargs.pop(k, legacy_defaults.get(k))
+              for k in _LEGACY_KWARGS if k in kwargs or k in legacy_defaults}
     defaults.update(kwargs)
-    return Club(**defaults)
+    club = Club(**defaults)
+    _attach_source(club, **legacy)
+    return club
 
 
 class TestClubScrapingDomain:

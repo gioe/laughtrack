@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.email_show_event import EmailShowEvent
 from laughtrack.scrapers.base.email_base_scraper import EmailBaseScraper
 from laughtrack.scrapers.implementations.email.gotham.extractor import GothamEmailExtractor
@@ -28,17 +28,10 @@ def _load_fixture(name: str) -> str:
 
 
 def _make_club() -> Club:
-    return Club(
-        id=2,
-        name="Gotham Comedy Club",
-        address="208 W 23rd St, New York, NY 10011",
-        website="https://www.gothamcomedy.com",
-        scraping_url="gothamcomedy.com",
-        popularity=80,
-        zip_code="10011",
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=2, name='Gotham Comedy Club', address='208 W 23rd St, New York, NY 10011', website='https://www.gothamcomedy.com', popularity=80, zip_code='10011', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='gothamcomedy.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.email_show_event import EmailShowEvent
 from laughtrack.scrapers.base.email_base_scraper import EmailBaseScraper
 from laughtrack.scrapers.implementations.email.comedy_cellar.extractor import (
@@ -34,17 +34,10 @@ def _load_fixture(name: str) -> str:
 
 
 def _make_club() -> Club:
-    return Club(
-        id=1,
-        name="Comedy Cellar",
-        address="117 MacDougal St, New York, NY 10012",
-        website="https://www.comedycellar.com",
-        scraping_url="comedycellar.com",
-        popularity=100,
-        zip_code="10012",
-        phone_number="",
-        visible=True,
-    )
+    _c = Club(id=1, name='Comedy Cellar', address='117 MacDougal St, New York, NY 10012', website='https://www.comedycellar.com', popularity=100, zip_code='10012', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='comedycellar.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

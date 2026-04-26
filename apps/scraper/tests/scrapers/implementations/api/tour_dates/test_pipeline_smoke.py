@@ -22,25 +22,17 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.tour_dates.scraper import TourDatesScraper
 
 
 def _club() -> Club:
     """Minimal platform club row that triggers the tour_dates scraper."""
-    return Club(
-        id=999,
-        name="Tour Dates",
-        address="",
-        website="",
-        scraping_url="tour_dates",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="tour_dates",
-    )
+    _c = Club(id=999, name='Tour Dates', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tour_dates', scraper_key='tour_dates', source_url='tour_dates', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_show(name: str = "Tom Segura at Punch Line Philly") -> Show:

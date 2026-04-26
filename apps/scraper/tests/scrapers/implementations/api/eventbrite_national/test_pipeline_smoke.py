@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.eventbrite_national.scraper import (
     EventbriteNationalScraper,
@@ -29,18 +29,10 @@ from laughtrack.scrapers.implementations.api.eventbrite_national.scraper import 
 
 def _club() -> Club:
     """Minimal platform club row that triggers the national scraper."""
-    return Club(
-        id=999,
-        name="Eventbrite National",
-        address="",
-        website="",
-        scraping_url="www.eventbrite.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="eventbrite_national",
-    )
+    _c = Club(id=999, name='Eventbrite National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite_national', scraper_key='eventbrite_national', source_url='www.eventbrite.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_show(name: str = "Comedy Night") -> Show:

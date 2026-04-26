@@ -14,25 +14,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from laughtrack.scrapers.implementations.api.ticketmaster_national.scraper import (
     TicketmasterNationalScraper,
 )
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 
 
 @pytest.fixture
 def platform_club() -> Club:
     """Minimal 'platform' club row that triggers the national scraper."""
-    return Club(
-        id=999,
-        name="Ticketmaster National",
-        address="",
-        website="",
-        scraping_url="www.ticketmaster.com",
-        popularity=0,
-        zip_code="",
-        phone_number="",
-        visible=True,
-        scraper="ticketmaster_national",
-    )
+    _c = Club(id=999, name='Ticketmaster National', address='', website='', popularity=0, zip_code='', phone_number='', visible=True)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster_national', scraper_key='ticketmaster_national', source_url='www.ticketmaster.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_api_event(
@@ -75,20 +67,10 @@ def _make_club(
     ticketmaster_id="KovZpZAEAaEA",
     timezone="America/Los_Angeles",
 ):
-    return Club(
-        id=club_id,
-        name=name,
-        address="8433 Sunset Blvd, West Hollywood, CA",
-        website="",
-        scraping_url="www.ticketmaster.com",
-        popularity=0,
-        zip_code="90069",
-        phone_number="",
-        visible=True,
-        scraper="live_nation",
-        ticketmaster_id=ticketmaster_id,
-        timezone=timezone,
-    )
+    _c = Club(id=club_id, name=name, address='8433 Sunset Blvd, West Hollywood, CA', website='', popularity=0, zip_code='90069', phone_number='', visible=True, timezone=timezone)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='ticketmaster', scraper_key='live_nation', source_url='www.ticketmaster.com', external_id=ticketmaster_id)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 _CONFIG_PATCH = "laughtrack.scrapers.implementations.api.ticketmaster_national.scraper.ConfigManager.get_config"

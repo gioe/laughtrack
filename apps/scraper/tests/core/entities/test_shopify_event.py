@@ -16,24 +16,16 @@ from laughtrack.core.entities.event.shopify import (
     parse_variant_datetime,
     parse_product_title_datetime,
 )
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 
 TZ = "America/Los_Angeles"
 
 
 def make_club() -> Club:
-    return Club(
-        id=99,
-        name="American Comedy Co.",
-        address="818 Sixth Ave, San Diego, CA 92101",
-        website="https://www.americancomedyco.com",
-        scraping_url="https://www.americancomedyco.com",
-        popularity=10,
-        zip_code="92101",
-        phone_number="",
-        visible=True,
-        timezone=TZ,
-    )
+    _c = Club(id=99, name='American Comedy Co.', address='818 Sixth Ave, San Diego, CA 92101', website='https://www.americancomedyco.com', popularity=10, zip_code='92101', phone_number='', visible=True, timezone=TZ)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://www.americancomedyco.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------

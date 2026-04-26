@@ -18,7 +18,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.eventbrite.data import EventbriteVenueData
@@ -30,20 +30,10 @@ EVENT_URL = "https://www.eventbrite.com/e/saturday-night-standup-comedy-showcase
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="The Riot Comedy Club",
-        address="2010 Waugh Drive",
-        website="https://theriothtx.com",
-        scraping_url=f"https://www.eventbrite.com/o/the-riot-comedy-club-{ORGANIZER_ID}",
-        popularity=0,
-        zip_code="77006",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-        eventbrite_id=ORGANIZER_ID,
-        scraper="eventbrite",
-    )
+    _c = Club(id=999, name='The Riot Comedy Club', address='2010 Waugh Drive', website='https://theriothtx.com', popularity=0, zip_code='77006', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='eventbrite', source_url=f'https://www.eventbrite.com/o/the-riot-comedy-club-{ORGANIZER_ID}', external_id=ORGANIZER_ID)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _make_eventbrite_event(

@@ -18,23 +18,15 @@ _infra_stub.__path__ = [str(_SCRAPER_SRC / "laughtrack/utilities/infrastructure"
 _infra_stub.__package__ = "laughtrack.utilities.infrastructure"
 sys.modules.setdefault("laughtrack.utilities.infrastructure", _infra_stub)
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.utilities.infrastructure.pipeline import ShowTransformationPipeline
 
 
 def _club() -> Club:
-    return Club(
-        id=1,
-        name="Test Club",
-        address="123 Main St",
-        website="https://testclub.example.com",
-        scraping_url="https://testclub.example.com",
-        popularity=0,
-        zip_code="10001",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=1, name='Test Club', address='123 Main St', website='https://testclub.example.com', popularity=0, zip_code='10001', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://testclub.example.com', external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_data(events):

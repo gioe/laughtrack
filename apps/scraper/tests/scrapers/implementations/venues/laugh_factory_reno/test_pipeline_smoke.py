@@ -18,7 +18,7 @@ pytestmark = pytest.mark.skipif(
     reason="curl_cffi not installed",
 )
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixologi import TixologiEvent
 from laughtrack.scrapers.implementations.venues.laugh_factory_reno.scraper import LaughFactoryRenoScraper
 from laughtrack.scrapers.implementations.venues.laugh_factory_reno.data import LaughFactoryRenoPageData
@@ -31,18 +31,10 @@ TICKET_URL = "https://www.laughfactory.club/checkout/show/abc-123-uuid"
 
 
 def _club() -> Club:
-    return Club(
-        id=210,
-        name="Laugh Factory Reno",
-        address="407 N Virginia St",
-        website="https://www.laughfactory.com/reno",
-        scraping_url=SCRAPING_URL,
-        popularity=0,
-        zip_code="89501",
-        phone_number="",
-        visible=True,
-        timezone="America/Los_Angeles",
-    )
+    _c = Club(id=210, name='Laugh Factory Reno', address='407 N Virginia St', website='https://www.laughfactory.com/reno', popularity=0, zip_code='89501', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _show_html(date: str = "Wed\xa0Apr 10", time: str = "7:00 PM") -> str:

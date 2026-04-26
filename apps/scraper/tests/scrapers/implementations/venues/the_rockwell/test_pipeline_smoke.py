@@ -8,7 +8,7 @@ RockwellEvent.to_show() transformation path.
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.rockwell import RockwellEvent
 from laughtrack.scrapers.implementations.venues.the_rockwell.scraper import TheRockwellScraper
 from laughtrack.scrapers.implementations.venues.the_rockwell.data import RockwellPageData
@@ -18,18 +18,10 @@ API_URL = "https://therockwell.org/wp-json/tribe/events/v1/events"
 
 
 def _club() -> Club:
-    return Club(
-        id=200,
-        name="The Rockwell",
-        address="255 Elm St",
-        website="https://therockwell.org",
-        scraping_url=API_URL,
-        popularity=0,
-        zip_code="02144",
-        phone_number="",
-        visible=True,
-        timezone="America/New_York",
-    )
+    _c = Club(id=200, name='The Rockwell', address='255 Elm St', website='https://therockwell.org', popularity=0, zip_code='02144', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=API_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _raw_event(

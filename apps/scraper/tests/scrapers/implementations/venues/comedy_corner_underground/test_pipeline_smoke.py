@@ -8,7 +8,7 @@ actual StageTime (ccu.stageti.me) RSC wire format.
 import json
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.comedy_corner_underground import ComedyCornerEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.comedy_corner_underground.scraper import (
@@ -25,18 +25,10 @@ LISTING_URL = "https://ccu.stageti.me"
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="The Comedy Corner Underground",
-        address="400 E Hennepin Ave",
-        website="https://www.comedycornerunderground.com",
-        scraping_url=LISTING_URL,
-        popularity=0,
-        zip_code="55414",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name='The Comedy Corner Underground', address='400 E Hennepin Ave', website='https://www.comedycornerunderground.com', popularity=0, zip_code='55414', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=LISTING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 def _listing_html(slugs: list[str]) -> str:

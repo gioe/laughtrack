@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.esthers_follies import EsthersFolliesEvent
 from laughtrack.scrapers.implementations.venues.esthers_follies.data import (
     EsthersFolliesPageData,
@@ -74,18 +74,10 @@ def _date_slider_html(*shows) -> str:
 
 
 def _club() -> Club:
-    return Club(
-        id=999,
-        name="Esther's Follies",
-        address="525 E. 6th Street",
-        website="https://www.esthersfollies.com",
-        scraping_url=_SCRAPING_URL,
-        popularity=0,
-        zip_code="78701",
-        phone_number="",
-        visible=True,
-        timezone="America/Chicago",
-    )
+    _c = Club(id=999, name="Esther's Follies", address='525 E. 6th Street', website='https://www.esthersfollies.com', popularity=0, zip_code='78701', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=_SCRAPING_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
 
 
 # ---------------------------------------------------------------------------
