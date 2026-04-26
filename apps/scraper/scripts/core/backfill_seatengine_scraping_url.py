@@ -30,9 +30,7 @@ import os
 
 from dotenv import load_dotenv
 
-from laughtrack.foundation.utilities.path.utils import ProjectPaths  # noqa: E402
-
-load_dotenv(ProjectPaths.get_project_root() / ".env")
+load_dotenv(_root / ".env")
 
 import requests
 from laughtrack.adapters.db import get_connection

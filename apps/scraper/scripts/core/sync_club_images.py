@@ -22,6 +22,7 @@ from pathlib import Path
 import psycopg2
 from dotenv import dotenv_values
 
+# Ensure local 'src' takes precedence over any installed laughtrack package.
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 _src = _root / "src"
 if str(_src) not in sys.path:

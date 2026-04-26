@@ -36,10 +36,9 @@ import psycopg2.extras
 import requests
 from dotenv import load_dotenv
 
-from laughtrack.foundation.utilities.path.utils import ProjectPaths
 from laughtrack.infrastructure.database.connection import get_transaction
 
-load_dotenv(ProjectPaths.get_project_root() / ".env")
+load_dotenv(_root / ".env")
 
 # SeatEngine CDN URLs embed the numeric venue ID, e.g.:
 #   files.seatengine.com/styles/logos/359/original/logo.png
