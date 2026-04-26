@@ -23,14 +23,17 @@ export async function POST(req: NextRequest) {
         : null;
 
     const revalidateSecret = process.env.REVALIDATE_SECRET;
-    const hasValidBearer =
-        bearerToken &&
-        revalidateSecret &&
-        bearerToken.length === revalidateSecret.length &&
-        timingSafeEqual(
-            Buffer.from(bearerToken),
-            Buffer.from(revalidateSecret),
-        );
+    let hasValidBearer = false;
+    if (bearerToken && revalidateSecret) {
+        // Compare byte lengths, not JS string lengths — multi-byte UTF-8 chars
+        // can encode to different byte counts at equal code-unit lengths, which
+        // would crash timingSafeEqual with a RangeError.
+        const bearerBuf = Buffer.from(bearerToken);
+        const secretBuf = Buffer.from(revalidateSecret);
+        if (bearerBuf.length === secretBuf.length) {
+            hasValidBearer = timingSafeEqual(bearerBuf, secretBuf);
+        }
+    }
 
     if (!hasValidBearer) {
         const session = await auth();
