@@ -63,6 +63,42 @@ ON CONFLICT (user_id, comedian_id, show_id, notification_type) DO NOTHING
 """
 
 
+# %-formatted (not f-string) so DB-sourced values can only enter the template
+# through the explicit html.escape()-wrapped substitution dict below.
+_EMAIL_HTML_TEMPLATE = """<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2 style="color: #1a1a1a;">%(e_comedian)s is performing near you!</h2>
+  <p>Great news — one of your favorite comedians has an upcoming show in your area.</p>
+  <table style="width:100%%; border-collapse:collapse; margin: 16px 0;">
+    <tr>
+      <td style="padding: 8px 0; font-weight: bold; width: 120px;">Comedian:</td>
+      <td style="padding: 8px 0;">%(e_comedian)s</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px 0; font-weight: bold;">Date:</td>
+      <td style="padding: 8px 0;">%(e_date_str)s</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px 0; font-weight: bold;">Venue:</td>
+      <td style="padding: 8px 0;">%(e_club)s</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px 0; font-weight: bold;">Location:</td>
+      <td style="padding: 8px 0;">%(e_location)s</td>
+    </tr>
+  </table>
+  %(ticket_line)s
+  <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
+  <p style="color: #666; font-size: 12px;">
+    You're receiving this email because you follow %(e_comedian)s on LaughTrack and have
+    enabled show notifications. To unsubscribe, visit your account settings at
+    <a href="https://laugh-track.com">laugh-track.com</a>.
+  </p>
+</body>
+</html>"""
+
+
 def _build_email_html(
     comedian_name: str,
     show_date: object,
@@ -75,43 +111,20 @@ def _build_email_html(
     e_comedian = html_module.escape(comedian_name)
     e_club = html_module.escape(club_name)
     e_location = html_module.escape(", ".join(filter(None, [club_city, club_state])))
+    e_date_str = html_module.escape(date_str)
     ticket_line = (
-        f'<p><a href="{html_module.escape(show_page_url)}" style="color:#1a73e8;">View show and buy tickets</a></p>'
+        '<p><a href="%s" style="color:#1a73e8;">View show and buy tickets</a></p>'
+        % html_module.escape(show_page_url)
         if show_page_url
         else ""
     )
-    return f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <h2 style="color: #1a1a1a;">{e_comedian} is performing near you!</h2>
-  <p>Great news — one of your favorite comedians has an upcoming show in your area.</p>
-  <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
-    <tr>
-      <td style="padding: 8px 0; font-weight: bold; width: 120px;">Comedian:</td>
-      <td style="padding: 8px 0;">{e_comedian}</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px 0; font-weight: bold;">Date:</td>
-      <td style="padding: 8px 0;">{date_str}</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px 0; font-weight: bold;">Venue:</td>
-      <td style="padding: 8px 0;">{e_club}</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px 0; font-weight: bold;">Location:</td>
-      <td style="padding: 8px 0;">{e_location}</td>
-    </tr>
-  </table>
-  {ticket_line}
-  <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-  <p style="color: #666; font-size: 12px;">
-    You're receiving this email because you follow {e_comedian} on LaughTrack and have
-    enabled show notifications. To unsubscribe, visit your account settings at
-    <a href="https://laugh-track.com">laugh-track.com</a>.
-  </p>
-</body>
-</html>"""
+    return _EMAIL_HTML_TEMPLATE % {
+        "e_comedian": e_comedian,
+        "e_club": e_club,
+        "e_location": e_location,
+        "e_date_str": e_date_str,
+        "ticket_line": ticket_line,
+    }
 
 
 def _build_email_text(
@@ -197,7 +210,7 @@ class ComedianArrivalNotificationService:
             if distance > radius_miles:
                 Logger.info(
                     f"ComedianArrivalNotificationService: skipping user={user_id} show={show_id} "
-                    f"comedian={comedian_name!r} — distance {distance:.1f} miles > radius {radius_miles} miles"
+                    f"comedian={comedian_name!r} — distance {distance:.1f} miles exceeds radius {radius_miles} miles"
                 )
                 summary["distance_filtered"] += 1
                 continue
