@@ -51,11 +51,6 @@ struct HomeView: View {
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
                     nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
-
-                DiscoveryHubView(
-                    apiClient: apiClient,
-                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
-                )
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.vertical, laughTrack.browseDensity.heroPadding)
