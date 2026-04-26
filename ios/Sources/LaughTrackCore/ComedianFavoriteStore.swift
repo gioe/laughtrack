@@ -15,7 +15,7 @@ public final class ComedianFavoriteStore: ObservableObject {
         case loading
         case loaded
         case empty
-        case failure(String)
+        case failure(LoadFailure)
     }
 
     @Published private var values: [String: Bool] = [:]
@@ -83,31 +83,29 @@ public final class ComedianFavoriteStore: ObservableObject {
                 savedFavoritesPhase = response.data.isEmpty ? .empty : .loaded
             case .unauthorized(let unauthorized):
                 resetSavedFavorites()
-                savedFavoritesPhase = .failure(
+                savedFavoritesPhase = .failure(.unauthorized(
                     (try? unauthorized.body.json.error) ??
                         "Your session expired. Sign in again to load favorites."
-                )
+                ))
             case .unprocessableContent(let invalidProfile):
                 resetSavedFavorites()
-                savedFavoritesPhase = .failure(
+                savedFavoritesPhase = .failure(.unauthorized(
                     (try? invalidProfile.body.json.error) ??
                         "Your account needs to sign in again before loading favorites."
-                )
+                ))
             case .internalServerError(let serverError):
-                savedFavoritesPhase = .failure(
-                    (try? serverError.body.json.error) ??
-                        "LaughTrack hit a server error while loading favorites."
-                )
+                savedFavoritesPhase = .failure(.serverError(
+                    status: 500,
+                    message: (try? serverError.body.json.error)
+                ))
             case .undocumented(let status, _):
-                savedFavoritesPhase = .failure(
-                    "LaughTrack returned an unexpected favorites response (\(status))."
-                )
+                savedFavoritesPhase = .failure(classifyUndocumented(status: status, context: "favorites"))
             }
         } catch {
             guard !Task.isCancelled else { return }
-            savedFavoritesPhase = .failure(
+            savedFavoritesPhase = .failure(.network(
                 "LaughTrack couldn’t reach the favorites service. Please try again."
-            )
+            ))
         }
     }
 

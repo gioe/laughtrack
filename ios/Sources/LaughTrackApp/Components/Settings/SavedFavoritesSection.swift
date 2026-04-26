@@ -36,12 +36,12 @@ struct SavedFavoritesSection: View {
                             title: "No saved favorites yet",
                             message: "Favorite a comedian anywhere in LaughTrack and it will appear here for this account."
                         )
-                    case .failure(let message):
+                    case .failure(let failure):
                         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
                             LaughTrackStateView(
                                 tone: .error,
                                 title: "Couldn’t load saved favorites",
-                                message: message
+                                message: failure.message
                             )
                             LaughTrackButton(
                                 "Retry favorites",

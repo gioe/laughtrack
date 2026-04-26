@@ -1,5 +1,6 @@
 import SwiftUI
 import LaughTrackBridge
+import LaughTrackCore
 
 struct LoadingCard: View {
     let title: String

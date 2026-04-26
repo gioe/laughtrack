@@ -1,5 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackCore
 
 @MainActor
 final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.ClubSearchItem>, SearchRootQueryReceivable {
