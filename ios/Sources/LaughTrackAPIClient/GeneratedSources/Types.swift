@@ -1850,6 +1850,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/token/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/auth/token/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.ExchangeToken.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/auth/token/POST/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/auth/token/POST/responses/429/content/application\/json`.
@@ -1872,8 +1888,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.ExchangeToken.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.ExchangeToken.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.ExchangeToken.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -2126,6 +2147,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.RefreshToken.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/auth/refresh/POST/responses/429/content/application\/json`.
@@ -2148,8 +2185,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.RefreshToken.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.RefreshToken.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.RefreshToken.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -2391,6 +2433,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.Signout.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/auth/signout/POST/responses/429/content/application\/json`.
@@ -2413,8 +2471,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.Signout.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.Signout.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.Signout.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -2656,6 +2719,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetMe.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/me/GET/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/me/GET/responses/429/content/application\/json`.
@@ -2678,8 +2757,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.GetMe.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.GetMe.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetMe.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -2908,6 +2992,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/clubs/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/clubs/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.ListClubs.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/clubs/GET/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/clubs/GET/responses/429/content/application\/json`.
@@ -2930,8 +3030,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.ListClubs.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.ListClubs.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.ListClubs.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -4539,6 +4644,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/shows/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.ListShows.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/shows/GET/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/shows/GET/responses/429/content/application\/json`.
@@ -4561,8 +4682,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.ListShows.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.ListShows.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.ListShows.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -5175,6 +5301,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetShow.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content/application\/json`.
@@ -5197,8 +5339,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.GetShow.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.GetShow.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetShow.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }
@@ -6552,6 +6699,22 @@ public enum Operations {
                 }
             }
             public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.LookupZip.Output.TooManyRequests.Headers
                 /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/content`.
                 @frozen public enum Body: Sendable, Hashable {
                     /// - Remark: Generated from `#/paths/zip-lookup/GET/responses/429/content/application\/json`.
@@ -6574,8 +6737,13 @@ public enum Operations {
                 /// Creates a new `TooManyRequests`.
                 ///
                 /// - Parameters:
+                ///   - headers: Received HTTP response headers
                 ///   - body: Received HTTP response body
-                public init(body: Operations.LookupZip.Output.TooManyRequests.Body) {
+                public init(
+                    headers: Operations.LookupZip.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.LookupZip.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
                     self.body = body
                 }
             }

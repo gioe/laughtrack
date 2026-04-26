@@ -133,6 +133,11 @@ public struct Client: APIProtocol {
                     }
                     return .forbidden(.init(body: body))
                 case 429:
+                    let headers: Operations.ExchangeToken.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.ExchangeToken.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -153,7 +158,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
@@ -270,6 +278,11 @@ public struct Client: APIProtocol {
                     }
                     return .unauthorized(.init(body: body))
                 case 429:
+                    let headers: Operations.RefreshToken.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.RefreshToken.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -290,7 +303,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
@@ -398,6 +414,11 @@ public struct Client: APIProtocol {
                     }
                     return .unprocessableContent(.init(body: body))
                 case 429:
+                    let headers: Operations.Signout.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.Signout.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -418,7 +439,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
@@ -526,6 +550,11 @@ public struct Client: APIProtocol {
                     }
                     return .unprocessableContent(.init(body: body))
                 case 429:
+                    let headers: Operations.GetMe.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetMe.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -546,7 +575,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
@@ -644,6 +676,11 @@ public struct Client: APIProtocol {
                     }
                     return .badRequest(.init(body: body))
                 case 429:
+                    let headers: Operations.ListClubs.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.ListClubs.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -664,7 +701,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 case 500:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.ListClubs.Output.InternalServerError.Body
@@ -1463,6 +1503,11 @@ public struct Client: APIProtocol {
                     }
                     return .badRequest(.init(body: body))
                 case 429:
+                    let headers: Operations.ListShows.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.ListShows.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -1483,7 +1528,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 case 500:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.ListShows.Output.InternalServerError.Body
@@ -1794,6 +1842,11 @@ public struct Client: APIProtocol {
                     }
                     return .notFound(.init(body: body))
                 case 429:
+                    let headers: Operations.GetShow.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShow.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -1814,7 +1867,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 case 500:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShow.Output.InternalServerError.Body
@@ -2428,6 +2484,11 @@ public struct Client: APIProtocol {
                     }
                     return .notFound(.init(body: body))
                 case 429:
+                    let headers: Operations.LookupZip.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.LookupZip.Output.TooManyRequests.Body
                     let chosenContentType = try converter.bestContentType(
@@ -2448,7 +2509,10 @@ public struct Client: APIProtocol {
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
