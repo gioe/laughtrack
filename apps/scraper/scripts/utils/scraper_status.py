@@ -6,6 +6,13 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_src = _root / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
+
+from laughtrack.foundation.utilities.path.utils import ProjectPaths  # noqa: E402
+
 
 def find_latest_metrics(metrics_dir: Path) -> Path | None:
     if not metrics_dir.exists():
@@ -79,8 +86,7 @@ def print_summary(data: dict) -> None:
 
 
 def main() -> None:
-    repo_root = Path(__file__).resolve().parents[4]  # apps/scraper/scripts/utils -> repo root
-    metrics_dir = repo_root / "apps" / "scraper" / "metrics"
+    metrics_dir = ProjectPaths.get_metrics_dir(create=False)
 
     # Also check relative to cwd for flexibility
     if not metrics_dir.exists():

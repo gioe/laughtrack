@@ -20,10 +20,10 @@ from pathlib import Path
 import psycopg2
 from dotenv import dotenv_values
 
-_repo_root = Path(__file__).resolve().parents[2]
-_src_path = _repo_root / "src"
-if str(_src_path) not in sys.path:
-    sys.path.insert(0, str(_src_path))
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_src = _root / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
 
 from laughtrack.infrastructure.database.connection import get_transaction  # noqa: E402
 

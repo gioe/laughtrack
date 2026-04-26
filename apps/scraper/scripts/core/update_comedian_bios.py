@@ -25,12 +25,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import quote
 
-_repo_root = Path(__file__).resolve().parents[2]
-_src_path = _repo_root / "src"
-if str(_src_path) not in sys.path:
-    sys.path.insert(0, str(_src_path))
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+for _path in (_root / "src", _root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 from curl_cffi.requests import AsyncSession
 from psycopg2.extras import execute_values

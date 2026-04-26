@@ -26,19 +26,20 @@ from collections import Counter
 from pathlib import Path
 from typing import Optional
 
-_repo_root = Path(__file__).resolve().parents[2]
-_src_path = _repo_root / "src"
-if str(_src_path) not in sys.path:
-    sys.path.insert(0, str(_src_path))
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_src = _root / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
 
 import psycopg2
 import psycopg2.extras
 import requests
 from dotenv import load_dotenv
 
+from laughtrack.foundation.utilities.path.utils import ProjectPaths
 from laughtrack.infrastructure.database.connection import get_transaction
 
-load_dotenv(_repo_root / ".env")
+load_dotenv(ProjectPaths.get_project_root() / ".env")
 
 # SeatEngine CDN URLs embed the numeric venue ID, e.g.:
 #   files.seatengine.com/styles/logos/359/original/logo.png

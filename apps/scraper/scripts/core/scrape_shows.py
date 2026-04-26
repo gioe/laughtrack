@@ -24,14 +24,12 @@ import os
 import sys
 from pathlib import Path
 
-# Ensure local 'src' package path takes precedence over any installed package
-_repo_root = Path(__file__).resolve().parents[2]
-_src_path = _repo_root / "src"
-if str(_src_path) not in sys.path:
-    sys.path.insert(0, str(_src_path))
-# Also add the repository root so we can import from the local 'scripts' package
-if str(_repo_root) not in sys.path:
-    sys.path.insert(0, str(_repo_root))
+# Locate scraper root (apps/scraper/) by walking up to pyproject.toml, then
+# put src/ + scraper root on sys.path so laughtrack and 'scripts' package imports resolve.
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+for _path in (_root / "src", _root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 from laughtrack.core.entities.club.service import ClubService
 from laughtrack.core.entities.scraper.service import ScraperService

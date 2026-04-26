@@ -21,16 +21,18 @@ import time
 from pathlib import Path
 from typing import Optional
 
-_repo_root = Path(__file__).resolve().parents[2]
-_src_path = _repo_root / "src"
-if str(_src_path) not in sys.path:
-    sys.path.insert(0, str(_src_path))
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_src = _root / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
 
 import os
 
 from dotenv import load_dotenv
 
-load_dotenv(_repo_root / ".env")
+from laughtrack.foundation.utilities.path.utils import ProjectPaths  # noqa: E402
+
+load_dotenv(ProjectPaths.get_project_root() / ".env")
 
 import requests
 from laughtrack.adapters.db import get_connection
