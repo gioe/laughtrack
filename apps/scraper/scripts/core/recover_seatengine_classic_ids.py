@@ -36,6 +36,8 @@ import psycopg2.extras
 import requests
 from dotenv import load_dotenv
 
+from laughtrack.infrastructure.database.connection import get_transaction
+
 load_dotenv(_repo_root / ".env")
 
 # SeatEngine CDN URLs embed the numeric venue ID, e.g.:
@@ -110,13 +112,13 @@ def _fetch_clubs(conn, club_id: Optional[int] = None) -> list[dict]:
         return [dict(row) for row in cur.fetchall()]
 
 
-def _update_seatengine_id(conn, club_id: int, seatengine_id: str) -> None:
-    with conn.cursor() as cur:
-        cur.execute(
-            "UPDATE clubs SET seatengine_id = %s WHERE id = %s",
-            (seatengine_id, club_id),
-        )
-    conn.commit()
+def _update_seatengine_id(club_id: int, seatengine_id: str) -> None:
+    with get_transaction() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE clubs SET seatengine_id = %s WHERE id = %s",
+                (seatengine_id, club_id),
+            )
 
 
 def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
@@ -138,7 +140,7 @@ def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
             )
             matched.append((club, venue_id))
             if not dry_run:
-                _update_seatengine_id(conn, club["id"], venue_id)
+                _update_seatengine_id(club["id"], venue_id)
         else:
             print(
                 f"{status} NO MATCH  id={club['id']:3d} '{club['name']:<42}'"

@@ -17,9 +17,17 @@ import sys
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
 import psycopg2
 from dotenv import dotenv_values
+
+_repo_root = Path(__file__).resolve().parents[2]
+_src_path = _repo_root / "src"
+if str(_src_path) not in sys.path:
+    sys.path.insert(0, str(_src_path))
+
+from laughtrack.infrastructure.database.connection import get_transaction  # noqa: E402
 
 CDN_HOST = "laughtrack.b-cdn.net"
 
@@ -100,17 +108,17 @@ def main():
             print(f"    - {n}")
 
     if args.update and (newly_found or newly_missing):
-        if newly_found:
-            placeholders = ", ".join(["%s"] * len(newly_found))
-            cur.execute(f"UPDATE clubs SET has_image = true WHERE name IN ({placeholders})", tuple(newly_found))
-            print(f"\nUpdated {cur.rowcount} rows to has_image=true")
+        with get_transaction() as wconn:
+            with wconn.cursor() as wcur:
+                if newly_found:
+                    placeholders = ", ".join(["%s"] * len(newly_found))
+                    wcur.execute(f"UPDATE clubs SET has_image = true WHERE name IN ({placeholders})", tuple(newly_found))
+                    print(f"\nUpdated {wcur.rowcount} rows to has_image=true")
 
-        if newly_missing:
-            placeholders = ", ".join(["%s"] * len(newly_missing))
-            cur.execute(f"UPDATE clubs SET has_image = false WHERE name IN ({placeholders})", tuple(newly_missing))
-            print(f"Updated {cur.rowcount} rows to has_image=false")
-
-        conn.commit()
+                if newly_missing:
+                    placeholders = ", ".join(["%s"] * len(newly_missing))
+                    wcur.execute(f"UPDATE clubs SET has_image = false WHERE name IN ({placeholders})", tuple(newly_missing))
+                    print(f"Updated {wcur.rowcount} rows to has_image=false")
         print("Changes committed to DB.")
     elif args.update:
         print("\nNo changes needed — DB is already up to date.")

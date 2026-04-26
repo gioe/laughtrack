@@ -32,6 +32,7 @@ from dotenv import dotenv_values
 
 from laughtrack.core.services.image_sourcing import source_comedian_image
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.infrastructure.database.connection import get_transaction
 
 # Delay between per-comedian requests (Wikidata + TMDb rate limits)
 _IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
@@ -128,12 +129,12 @@ def main():
 
         # Batch-update has_image every 50 successful uploads
         if len(sourced) > 0 and len(sourced) % 50 == 0:
-            _update_has_image(conn, sourced[-50:])
+            _update_has_image(sourced[-50:])
 
     # Final batch update for remaining
     remainder = len(sourced) % 50
     if remainder > 0:
-        _update_has_image(conn, sourced[-remainder:])
+        _update_has_image(sourced[-remainder:])
 
     print(f"\n=== Image Sourcing Complete ===")
     print(f"Processed: {len(names)}")
@@ -143,18 +144,19 @@ def main():
     conn.close()
 
 
-def _update_has_image(conn, names):
+def _update_has_image(names):
     """Set has_image=true for a batch of comedian names."""
     if not names:
         return
-    cur = conn.cursor()
     placeholders = ", ".join(["%s"] * len(names))
-    cur.execute(
-        f"UPDATE comedians SET has_image = true WHERE name IN ({placeholders})",
-        tuple(names),
-    )
-    conn.commit()
-    Logger.info(f"source_comedian_images: set has_image=true for {cur.rowcount} comedians")
+    with get_transaction() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"UPDATE comedians SET has_image = true WHERE name IN ({placeholders})",
+                tuple(names),
+            )
+            rowcount = cur.rowcount
+    Logger.info(f"source_comedian_images: set has_image=true for {rowcount} comedians")
 
 
 if __name__ == "__main__":

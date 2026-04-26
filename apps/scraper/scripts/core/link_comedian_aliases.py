@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
-from laughtrack.infrastructure.database.connection import get_connection  # noqa: E402
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Inline normalize_name — mirrors ComedianUtils.normalize_name exactly so we
@@ -169,10 +169,9 @@ def main() -> None:
         print("\nDry-run: pass --confirm to apply.")
         return
 
-    with get_connection() as conn:
+    with get_transaction() as conn:
         with conn.cursor() as cur:
             updated = _apply_links(cur, links)
-        conn.commit()
 
     print(f"\nLinked {updated} alias record(s) to their canonical parent.")
 

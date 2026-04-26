@@ -66,7 +66,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
-from laughtrack.infrastructure.database.connection import get_connection  # noqa: E402
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Name extraction patterns
@@ -608,10 +608,9 @@ def main() -> None:
         print(f"\nDry-run: pass --confirm to apply {len(aliasable)} alias(es).")
         return
 
-    with get_connection() as conn:
+    with get_transaction() as conn:
         with conn.cursor() as cur:
             aliases_created, deny_removed = _apply_aliases(cur, aliasable)
-        conn.commit()
 
     print(f"\nCreated {aliases_created} alias comedian record(s).")
     print(f"Removed {deny_removed} entries from deny list.")
