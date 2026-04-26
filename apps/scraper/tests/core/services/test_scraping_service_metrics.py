@@ -321,6 +321,19 @@ class TestScrapeClubsWithMetrics:
         club.scraper = scraper_key
         club.id = 1
         club.as_context.return_value = {}
+        # Provide an enabled ScrapingSource so _sorted_enabled_sources returns it,
+        # mirroring how production Club entities are constructed from scraping_sources.
+        if scraper_key:
+            source = MagicMock()
+            source.scraper_key = scraper_key
+            source.enabled = True
+            source.priority = 0
+            source.id = 1
+            club.scraping_sources = [source]
+            club.scraping_source = source
+        else:
+            club.scraping_sources = []
+            club.scraping_source = None
         return club
 
     @pytest.mark.asyncio
@@ -450,17 +463,17 @@ class TestScrapeClubsWithMetrics:
 
     @pytest.mark.asyncio
     async def test_skipped_clubs_emit_warning(self):
-        """Clubs with no scraper key or no matching scraper class emit a summary warning."""
+        """Clubs with no enabled scraping_sources are skipped and emit a summary warning."""
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
 
-        # Club with no scraper key
+        # Both clubs have no scraping_sources, so _sorted_enabled_sources returns
+        # an empty list and scrape_one short-circuits to the (None, None) skip path.
         no_key_club = self._make_club(name="No Key Club", scraper_key=None)
         no_key_club.scraper = None
 
-        # Club with unresolvable scraper key
-        svc._scraping_resolver.get.return_value = None
-        bad_key_club = self._make_club(name="Bad Key Club", scraper_key="unknown")
+        bad_key_club = self._make_club(name="Bad Key Club", scraper_key=None)
+        bad_key_club.scraper = None
 
         with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
             results, summary, _ = await svc._scrape_clubs_concurrently([no_key_club, bad_key_club])
