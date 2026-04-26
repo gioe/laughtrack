@@ -44,8 +44,12 @@ def _load_real_utils() -> type:
     # Save existing modules so we can restore after loading
     _saved = {name: sys.modules.get(name) for name in _stub_names}
 
-    def _stub(name, **attrs):
+    def _stub(name, as_package=False, **attrs):
         m = ModuleType(name)
+        if as_package:
+            pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
+            m.__path__ = [pkg_path]
+            m.__package__ = name
         for k, v in attrs.items():
             setattr(m, k, v)
         sys.modules[name] = m
@@ -65,7 +69,7 @@ def _load_real_utils() -> type:
         _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
         _stub("laughtrack.foundation.utilities.string", StringUtils=string_utils_stub)
         _stub("laughtrack.foundation.utilities", StringUtils=string_utils_stub)
-        _stub("laughtrack.foundation", DatabaseEntity=object)
+        _stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
         _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
         _stub("laughtrack.foundation.protocols", DatabaseEntity=object)
         _stub("laughtrack.core.entities.comedian.model", Comedian=MagicMock())
