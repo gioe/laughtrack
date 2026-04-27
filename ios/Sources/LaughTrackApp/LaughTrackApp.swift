@@ -32,6 +32,7 @@ struct LaughTrackApp: App {
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         }
     }
 
