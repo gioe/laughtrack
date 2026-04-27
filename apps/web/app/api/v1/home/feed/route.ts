@@ -56,7 +56,12 @@ export async function GET(req: NextRequest) {
         // Query ?zip= beats the session profile's stored zip; this lets
         // signed-out callers ask about a location and lets signed-in callers
         // preview a different region without updating their profile.
-        const hero = await getHeroContext(zipParam ?? sessionZip);
+        const hero = await getHeroContext(zipParam ?? sessionZip).catch(
+            (error) => {
+                console.error("home-feed: getHeroContext failed", error);
+                return { zipCode: null, city: null, state: null };
+            },
+        );
         const zipCode = hero.zipCode;
 
         const [

@@ -42,6 +42,11 @@ vi.mock("@/lib/data/home/getTrendingShowsThisWeek", () => ({
 
 import { GET } from "./route";
 import { auth } from "@/auth";
+import {
+    checkRateLimit,
+    rateLimitResponse,
+    RATE_LIMITS,
+} from "@/lib/rateLimit";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
@@ -51,6 +56,8 @@ import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 
 const mockAuth = vi.mocked(auth);
+const mockCheckRateLimit = vi.mocked(checkRateLimit);
+const mockRateLimitResponse = vi.mocked(rateLimitResponse);
 const mockGetHeroContext = vi.mocked(getHeroContext);
 const mockGetTrendingComedians = vi.mocked(getTrendingComedians);
 const mockGetClubs = vi.mocked(getClubs);
@@ -230,6 +237,48 @@ describe("GET /api/v1/home/feed", () => {
 
             expect(res.status).toBe(200);
             expect(res.headers.get("Cache-Control")).toContain("private");
+        });
+    });
+
+    describe("rate limiting", () => {
+        it("returns the rateLimitResponse when checkRateLimit denies the request", async () => {
+            const denied = {
+                allowed: false,
+                limit: 100,
+                remaining: 0,
+                resetAt: 0,
+            };
+            mockCheckRateLimit.mockResolvedValueOnce(denied);
+            const fakeResponse = new Response(null, { status: 429 });
+            mockRateLimitResponse.mockReturnValueOnce(fakeResponse as any);
+
+            const res = await GET(makeRequest());
+
+            expect(mockRateLimitResponse).toHaveBeenCalledWith(denied);
+            expect(res).toBe(fakeResponse);
+            expect(mockGetHeroContext).not.toHaveBeenCalled();
+        });
+
+        it("uses the authenticated tier and userid-keyed bucket when a session profile exists", async () => {
+            mockAuth.mockResolvedValue({
+                profile: { zipCode: "10001", userid: "user-1" },
+            } as any);
+
+            await GET(makeRequest());
+
+            expect(mockCheckRateLimit).toHaveBeenCalledWith(
+                "home:auth:user-1",
+                RATE_LIMITS.publicReadAuth,
+            );
+        });
+
+        it("uses the anon tier and ip-keyed bucket when no session profile exists", async () => {
+            await GET(makeRequest());
+
+            expect(mockCheckRateLimit).toHaveBeenCalledWith(
+                "home:anon:127.0.0.1",
+                RATE_LIMITS.publicRead,
+            );
         });
     });
 });
