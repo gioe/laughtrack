@@ -7,7 +7,7 @@ options:
 packages:
   ios-libs:
     url: https://github.com/gioe/ios-libs.git
-    revision: 8fc3189e4a0a2210bcf383417c2b49aac18379fe
+    revision: 88cc4ddf96ab4719dce62c0c64cfabc6c8cae271
   swift-openapi-runtime:
     url: https://github.com/apple/swift-openapi-runtime
     from: "1.9.0"

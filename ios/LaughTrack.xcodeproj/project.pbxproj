@@ -1471,7 +1471,7 @@
 			repositoryURL = "https://github.com/gioe/ios-libs.git";
 			requirement = {
 				kind = revision;
-				revision = 8fc3189e4a0a2210bcf383417c2b49aac18379fe;
+				revision = 88cc4ddf96ab4719dce62c0c64cfabc6c8cae271;
 			};
 		};
 		84B17814638981A8256A1360 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */ = {
