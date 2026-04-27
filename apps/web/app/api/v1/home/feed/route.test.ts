@@ -44,6 +44,7 @@ import { GET } from "./route";
 import { auth } from "@/auth";
 import {
     checkRateLimit,
+    rateLimitHeaders,
     rateLimitResponse,
     RATE_LIMITS,
 } from "@/lib/rateLimit";
@@ -57,6 +58,7 @@ import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWe
 
 const mockAuth = vi.mocked(auth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
+const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockRateLimitResponse = vi.mocked(rateLimitResponse);
 const mockGetHeroContext = vi.mocked(getHeroContext);
 const mockGetTrendingComedians = vi.mocked(getTrendingComedians);
@@ -103,6 +105,18 @@ describe("GET /api/v1/home/feed", () => {
             expect(res.status).toBe(400);
             expect(body.error).toMatch(/zip/i);
             expect(mockGetHeroContext).not.toHaveBeenCalled();
+        });
+
+        it("attaches rateLimitHeaders to the 400 response", async () => {
+            mockRateLimitHeaders.mockReturnValueOnce({
+                "X-RateLimit-Remaining": "42",
+            });
+
+            const res = await GET(makeRequest({ zip: "abc" }));
+
+            expect(res.status).toBe(400);
+            expect(mockRateLimitHeaders).toHaveBeenCalled();
+            expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         });
 
         it("accepts a valid 5-digit zip", async () => {
@@ -206,6 +220,25 @@ describe("GET /api/v1/home/feed", () => {
             expect(
                 body.data.hero.shows.map((s: { id: number }) => s.id),
             ).toEqual([1, 2]);
+            expect(body.data.moreNearYou).toEqual([]);
+        });
+    });
+
+    describe("getHeroContext rejection", () => {
+        it("falls back to a null hero and still returns 200", async () => {
+            mockGetHeroContext.mockRejectedValueOnce(new Error("hero boom"));
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.hero).toEqual({
+                zipCode: null,
+                city: null,
+                state: null,
+                shows: [],
+            });
+            expect(body.data.comediansNearYou).toEqual([]);
             expect(body.data.moreNearYou).toEqual([]);
         });
     });
