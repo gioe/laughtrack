@@ -236,10 +236,32 @@ final class HostedView {
         // never installs and `accessibilityActivate()` on the fresh button
         // returns false.
         if freshWindow {
-            HostedView.sharedWindow?.isHidden = true
+            // Tear down the prior shared window's hosting controller before
+            // discarding the window, for the same reason the shared-window
+            // path tears down its predecessor below: ARC alone doesn't give
+            // SwiftUI a runloop pass to propagate view disappearance and
+            // cancel `.task`-spawned Tasks before this test starts.
+            if let oldWindow = HostedView.sharedWindow {
+                oldWindow.rootViewController = nil
+                RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+                oldWindow.isHidden = true
+            }
             HostedView.sharedWindow = nil
         }
         if let existingWindow = HostedView.sharedWindow {
+            // Drop the predecessor hosting controller (if any) before
+            // installing the new one, then pump the runloop so SwiftUI sees
+            // the view disappearance and cancels `.task` modifiers' Tasks
+            // captured by the prior view. Without this teardown step those
+            // Tasks continue running on the MainActor — held alive by ARC
+            // through window.rootViewController until the swap statement
+            // executes — and may write to shared state (AuthManager state,
+            // ServiceContainer caches, etc.) during the next test, a likely
+            // source of order-dependent flakiness.
+            if existingWindow.rootViewController != nil {
+                existingWindow.rootViewController = nil
+                RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+            }
             window = existingWindow
         } else {
             window = UIWindow(frame: UIScreen.main.bounds)
