@@ -1,3 +1,5 @@
+/// <reference types="react/canary" />
+import { cache } from "react";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
@@ -30,7 +32,7 @@ declare module "next-auth" {
 
 const adapter = PrismaAdapter(prisma);
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const _nextAuth = NextAuth({
     adapter,
     providers: [
         Google,
@@ -122,3 +124,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: "/",
     },
 });
+
+export const handlers = _nextAuth.handlers;
+export const signIn = _nextAuth.signIn;
+export const signOut = _nextAuth.signOut;
+// React cache() request-scopes the no-arg result so multiple `await auth()`
+// calls in the same request reuse the resolved session — avoiding duplicate
+// session-callback runs and (on a cold JWT) duplicate userProfile lookups.
+export const auth = cache(_nextAuth.auth);
