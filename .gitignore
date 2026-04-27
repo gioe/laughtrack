@@ -26,10 +26,15 @@ apps/scraper/.env
 *.pem
 .venv/
 
+# Stray root node_modules — there is no root package.json; this only
+# appears when a tool is accidentally run from the repo root.
+/node_modules/
+
 # tusk install files
 .claude/bin/
 .claude/settings.json
 .claude/tusk-manifest.json
+.claude/scheduled_tasks.lock
 .mcp.json
 
 # tusk database
