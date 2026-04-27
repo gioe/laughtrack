@@ -11,26 +11,18 @@ Flags mismatches with *** MISMATCH ***.
 With --fix-sql, also prints a SQL migration for all confirmed mismatches.
 """
 
+import argparse
 import asyncio
+import os
 import re
 import sys
-import argparse
-from pathlib import Path
 
-import psycopg2
-from dotenv import dotenv_values
 from curl_cffi.requests import AsyncSession
 
+from laughtrack.infrastructure.database.connection import get_connection
 
-ENV_PATH = Path(__file__).parent / ".env"
+
 SEATENGINE_BASE = "https://services.seatengine.com/api/v1"
-
-
-def build_db_url(v: dict) -> str:
-    return (
-        f"postgresql://{v['DATABASE_USER']}:{v['DATABASE_PASSWORD']}"
-        f"@{v['DATABASE_HOST']}:{v.get('DATABASE_PORT', '5432')}/{v['DATABASE_NAME']}?sslmode=require"
-    )
 
 
 def loose_match(db_name: str, api_name: str) -> bool:
@@ -64,20 +56,14 @@ async def fetch_venue(session: AsyncSession, venue_id: str, token: str) -> dict 
 
 
 async def run_audit(fix_sql: bool = False):
-    v = dotenv_values(ENV_PATH)
-    token = v["SEATENGINE_AUTH_TOKEN"]
-    db_url = build_db_url(v)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, name, seatengine_id FROM clubs WHERE scraper = 'seatengine_classic' ORDER BY id"
+            )
+            clubs = cur.fetchall()
 
-    conn = psycopg2.connect(db_url)
-    try:
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id, name, seatengine_id FROM clubs WHERE scraper = 'seatengine_classic' ORDER BY id"
-        )
-        clubs = cur.fetchall()
-        cur.close()
-    finally:
-        conn.close()
+    token = os.environ["SEATENGINE_AUTH_TOKEN"]
 
     print(f"Auditing {len(clubs)} SeatEngine Classic clubs...\n")
     print(f"{'ClubID':>6}  {'DB Name':<40}  {'SE ID':>6}  {'API Venue Name':<40}  {'Status'}")
