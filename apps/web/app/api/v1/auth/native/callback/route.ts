@@ -6,6 +6,9 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 
+// The redirect base is hard-coded — `deep_link` / `callbackUrl` query params
+// are ignored entirely so an attacker cannot smuggle a foreign host, extra
+// query params, a fragment, or userinfo into the token-bearing redirect.
 const CANONICAL_DEEP_LINK = "laughtrack://auth/callback";
 const ALLOWED_PROVIDERS = new Set(["apple", "google"]);
 
@@ -13,34 +16,8 @@ function safeProvider(raw: string | null): string | null {
     return raw && ALLOWED_PROVIDERS.has(raw) ? raw : null;
 }
 
-// Restricts the redirect base to the exact canonical host+path so an
-// attacker-supplied laughtrack://other-host cannot exfiltrate the token.
-function resolveDeepLinkBase(req: NextRequest): URL {
-    const raw =
-        req.nextUrl.searchParams.get("deep_link") ??
-        req.nextUrl.searchParams.get("callbackUrl");
-    if (raw) {
-        try {
-            const candidate = new URL(raw);
-            if (
-                candidate.protocol === "laughtrack:" &&
-                candidate.host === "auth" &&
-                candidate.pathname === "/callback"
-            ) {
-                return candidate;
-            }
-        } catch {
-            // malformed URL — fall through to canonical
-        }
-    }
-    return new URL(CANONICAL_DEEP_LINK);
-}
-
-function buildCallbackURL(
-    base: URL,
-    params: Record<string, string | null | undefined>,
-) {
-    const url = new URL(base.toString());
+function buildCallbackURL(params: Record<string, string | null | undefined>) {
+    const url = new URL(CANONICAL_DEEP_LINK);
 
     Object.entries(params).forEach(([key, value]) => {
         if (value) {
@@ -65,13 +42,12 @@ export async function GET(req: NextRequest) {
     );
     if (!rl.allowed) return rateLimitResponse(rl);
 
-    const base = resolveDeepLinkBase(req);
     const provider = safeProvider(req.nextUrl.searchParams.get("provider"));
     const oauthError = req.nextUrl.searchParams.get("error");
 
     if (oauthError) {
         return NextResponse.redirect(
-            buildCallbackURL(base, {
+            buildCallbackURL({
                 provider,
                 error: oauthError,
             }),
@@ -93,7 +69,7 @@ export async function GET(req: NextRequest) {
 
         if (!response.ok) {
             return NextResponse.redirect(
-                buildCallbackURL(base, {
+                buildCallbackURL({
                     provider,
                     error: `token_exchange_failed_${response.status}`,
                 }),
@@ -107,7 +83,7 @@ export async function GET(req: NextRequest) {
         };
         if (!body.accessToken || !body.refreshToken) {
             return NextResponse.redirect(
-                buildCallbackURL(base, {
+                buildCallbackURL({
                     provider,
                     error: "missing_token",
                 }),
@@ -115,7 +91,7 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.redirect(
-            buildCallbackURL(base, {
+            buildCallbackURL({
                 provider,
                 accessToken: body.accessToken,
                 refreshToken: body.refreshToken,
@@ -124,7 +100,7 @@ export async function GET(req: NextRequest) {
         );
     } catch {
         return NextResponse.redirect(
-            buildCallbackURL(base, {
+            buildCallbackURL({
                 provider,
                 error: "token_exchange_failed",
             }),

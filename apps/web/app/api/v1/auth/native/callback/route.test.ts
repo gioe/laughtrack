@@ -179,6 +179,50 @@ describe("GET /api/v1/auth/native/callback", () => {
         );
     });
 
+    // Even when the deep_link's scheme/host/path matches canonical, query
+    // params, fragments, and userinfo on the supplied URL must be stripped —
+    // the redirect base is hard-coded and never reflects user input.
+    it.each([
+        [
+            "smuggled query params on a canonical-looking deep_link",
+            "deep_link=laughtrack%3A%2F%2Fauth%2Fcallback%3Fevil%3D1",
+        ],
+        [
+            "smuggled fragment on a canonical-looking deep_link",
+            "deep_link=laughtrack%3A%2F%2Fauth%2Fcallback%23frag%3Devil",
+        ],
+        [
+            "smuggled userinfo on a canonical-looking deep_link",
+            "deep_link=laughtrack%3A%2F%2Fevil%40auth%2Fcallback",
+        ],
+    ])("strips %s", async (_label, queryFragment) => {
+        vi.spyOn(global, "fetch").mockResolvedValue(
+            new Response(
+                JSON.stringify({
+                    accessToken: "access-jwt",
+                    refreshToken: "opaque-refresh",
+                    expiresIn: 900,
+                }),
+                {
+                    status: 200,
+                    headers: { "content-type": "application/json" },
+                },
+            ),
+        );
+
+        const { GET } = await import("./route");
+        const response = await GET(
+            new NextRequest(
+                `https://laughtrack.app/api/v1/auth/native/callback?provider=google&${queryFragment}`,
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+            "laughtrack://auth/callback?provider=google&accessToken=access-jwt&refreshToken=opaque-refresh&expiresIn=900",
+        );
+    });
+
     it("drops unknown provider values from the redirect", async () => {
         vi.spyOn(global, "fetch").mockResolvedValue(
             new Response(
