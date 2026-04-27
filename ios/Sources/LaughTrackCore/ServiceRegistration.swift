@@ -46,24 +46,46 @@ public enum ServiceRegistration {
                     let payload = try JSONDecoder().decode(ToggleFavoritePayload.self, from: op.payload)
                     switch op.type {
                     case .toggleFavorite:
-                        // Throw on any non-OK response so OfflineOperationQueue's retry/
-                        // backoff path fires and persistent failures land in
-                        // failedOperations. The OpenAPI spec has no 5xx branch for these
-                        // operations, so a 500 decodes as Output.undocumented and would
-                        // otherwise be treated as success — silently dropping the queued
-                        // favorite toggle.
+                        // 4xx responses (badRequest/unauthorized/notFound/unprocessableContent) are
+                        // terminal — retrying will never succeed, so throw OfflineOperationError.terminal
+                        // so the queue's fail-fast path routes the op straight to failedOperations
+                        // instead of burning the 30s retry/backoff budget.
+                        // Anything else (.undocumented for 5xx, .internalServerError on removeFavorite)
+                        // throws URLError(.badServerResponse) so the queue retries with backoff.
                         if payload.isFavorite {
                             let response = try await apiClient.addFavorite(
                                 .init(body: .json(.init(comedianId: payload.comedianId)))
                             )
-                            guard case .ok = response else {
+                            switch response {
+                            case .ok:
+                                break
+                            case .badRequest:
+                                throw OfflineOperationError.terminal(reason: "addFavorite returned 400 Bad Request")
+                            case .unauthorized:
+                                throw OfflineOperationError.terminal(reason: "addFavorite returned 401 Unauthorized")
+                            case .notFound:
+                                throw OfflineOperationError.terminal(reason: "addFavorite returned 404 Not Found")
+                            case .unprocessableContent:
+                                throw OfflineOperationError.terminal(reason: "addFavorite returned 422 Unprocessable Content")
+                            case .internalServerError, .undocumented:
                                 throw URLError(.badServerResponse)
                             }
                         } else {
                             let response = try await apiClient.removeFavorite(
                                 .init(path: .init(comedianId: payload.comedianId))
                             )
-                            guard case .ok = response else {
+                            switch response {
+                            case .ok:
+                                break
+                            case .badRequest:
+                                throw OfflineOperationError.terminal(reason: "removeFavorite returned 400 Bad Request")
+                            case .unauthorized:
+                                throw OfflineOperationError.terminal(reason: "removeFavorite returned 401 Unauthorized")
+                            case .notFound:
+                                throw OfflineOperationError.terminal(reason: "removeFavorite returned 404 Not Found")
+                            case .unprocessableContent:
+                                throw OfflineOperationError.terminal(reason: "removeFavorite returned 422 Unprocessable Content")
+                            case .internalServerError, .undocumented:
                                 throw URLError(.badServerResponse)
                             }
                         }
