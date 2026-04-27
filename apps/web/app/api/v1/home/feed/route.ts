@@ -35,6 +35,8 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    const timezone = req.headers.get("X-Timezone") ?? "UTC";
+
     try {
         const session = await auth();
         const sessionZip = session?.profile?.zipCode ?? null;
@@ -66,13 +68,13 @@ export async function GET(req: NextRequest) {
                       logSectionError("getComediansByZip"),
                   )
                 : Promise.resolve([]),
-            getShowsTonight().catch(logSectionError("getShowsTonight")),
+            getShowsTonight(timezone).catch(logSectionError("getShowsTonight")),
             zipCode
                 ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
                       logSectionError("getShowsNearZip"),
                   )
                 : Promise.resolve([]),
-            getTrendingShowsThisWeek().catch(
+            getTrendingShowsThisWeek(timezone).catch(
                 logSectionError("getTrendingShowsThisWeek"),
             ),
         ]);

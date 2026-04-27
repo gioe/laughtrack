@@ -5827,7 +5827,7 @@ public enum Operations {
             public var query: Operations.GetHomeFeed.Input.Query
             /// - Remark: Generated from `#/paths/home/feed/GET/header`.
             public struct Headers: Sendable, Hashable {
-                /// IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.
+                /// IANA timezone identifier (defaults to UTC)
                 ///
                 /// - Remark: Generated from `#/paths/home/feed/GET/header/X-Timezone`.
                 public var xTimezone: Swift.String?
@@ -5835,7 +5835,7 @@ public enum Operations {
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
-                ///   - xTimezone: IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.
+                ///   - xTimezone: IANA timezone identifier (defaults to UTC)
                 ///   - accept:
                 public init(
                     xTimezone: Swift.String? = nil,

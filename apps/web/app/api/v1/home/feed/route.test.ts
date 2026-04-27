@@ -59,12 +59,15 @@ const mockGetShowsTonight = vi.mocked(getShowsTonight);
 const mockGetShowsNearZip = vi.mocked(getShowsNearZip);
 const mockGetTrendingShowsThisWeek = vi.mocked(getTrendingShowsThisWeek);
 
-function makeRequest(params: Record<string, string> = {}): NextRequest {
+function makeRequest(
+    params: Record<string, string> = {},
+    headers: Record<string, string> = {},
+): NextRequest {
     const url = new URL("http://localhost/api/v1/home/feed");
     for (const [k, v] of Object.entries(params)) {
         url.searchParams.set(k, v);
     }
-    return new NextRequest(url.toString());
+    return new NextRequest(url.toString(), { headers });
 }
 
 function primeHappyPath() {
@@ -261,6 +264,26 @@ describe("GET /api/v1/home/feed", () => {
 
             expect(res.status).toBe(200);
             expect(res.headers.get("Cache-Control")).toContain("private");
+        });
+    });
+
+    describe("X-Timezone forwarding", () => {
+        it("forwards the X-Timezone header to getShowsTonight and getTrendingShowsThisWeek", async () => {
+            await GET(makeRequest({}, { "X-Timezone": "America/Los_Angeles" }));
+
+            expect(mockGetShowsTonight).toHaveBeenCalledWith(
+                "America/Los_Angeles",
+            );
+            expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith(
+                "America/Los_Angeles",
+            );
+        });
+
+        it("defaults to UTC when X-Timezone is absent", async () => {
+            await GET(makeRequest());
+
+            expect(mockGetShowsTonight).toHaveBeenCalledWith("UTC");
+            expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith("UTC");
         });
     });
 

@@ -915,9 +915,8 @@
           {
             "name": "X-Timezone",
             "in": "header",
-            "required": false,
-            "description": "IANA timezone (e.g. America/New_York) for advisory date framing by the client. Server-side date windows are currently evaluated in UTC.",
-            "schema": { "type": "string" }
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
           }
         ],
         "responses": {
