@@ -10,7 +10,7 @@ from __future__ import annotations
 import html as html_module
 from typing import Dict
 
-from laughtrack.core.data.db_connection import get_connection
+from laughtrack.infrastructure.database.connection import get_connection
 from laughtrack.core.entities.email.local.email_models import EmailMessage
 from laughtrack.core.services.notification.geo import ZipCodeDistance
 from laughtrack.foundation.infrastructure.logger.logger import Logger
