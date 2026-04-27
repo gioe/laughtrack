@@ -43,6 +43,7 @@ public final class ComedianFavoriteStore: ObservableObject {
         hasLoadedSavedFavorites = false
         savedFavoriteComedians = []
         savedFavoritesPhase = .idle
+        values = [:]
     }
 
     public func seed(uuid: String, value: Bool?) {
