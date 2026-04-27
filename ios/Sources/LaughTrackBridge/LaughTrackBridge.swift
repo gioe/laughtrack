@@ -49,7 +49,6 @@ public typealias ToastManagerProtocol = SharedKit.ToastManagerProtocol
 public typealias OfflineOperationQueue = SharedKit.OfflineOperationQueue
 public typealias QueuedOperation = SharedKit.QueuedOperation
 public typealias OfflineOperationError = SharedKit.OfflineOperationError
-public typealias RetryableError = SharedKit.RetryableError
 
 // MARK: - DataCache + ImageCache
 

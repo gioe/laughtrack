@@ -49,9 +49,9 @@ public enum ServiceRegistration {
                         // 4xx responses (badRequest/unauthorized/notFound/unprocessableContent) are
                         // terminal — retrying will never succeed, so throw OfflineOperationError.terminal
                         // so the queue's fail-fast path routes the op straight to failedOperations
-                        // instead of burning the 30s retry/backoff budget.
-                        // Anything else (.undocumented for 5xx, .internalServerError on removeFavorite)
-                        // throws URLError(.badServerResponse) so the queue retries with backoff.
+                        // instead of burning the 30s retry/backoff budget. 5xx (.internalServerError) and
+                        // unknown statuses (.undocumented) throw URLError(.badServerResponse) so the queue
+                        // retries with backoff.
                         if payload.isFavorite {
                             let response = try await apiClient.addFavorite(
                                 .init(body: .json(.init(comedianId: payload.comedianId)))
