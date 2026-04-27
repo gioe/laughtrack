@@ -20,6 +20,57 @@ Future Logger-migration tasks must **not** require that all `print()` calls be r
 
 See [`src/laughtrack/utilities/domain/club/selector.py`](src/laughtrack/utilities/domain/club/selector.py) for a concrete example of a module that correctly mixes both — `print()` for menu rendering and `Logger` for structured event emission.
 
+## Script Bootstrap (`scripts/core/`, `scripts/utils/`)
+
+Every shebang-executable Python script under `apps/scraper/scripts/` opens with the
+same `sys.path` bootstrap block:
+
+```python
+import sys
+from pathlib import Path
+
+# Locate scraper root (apps/scraper/) by walking up to pyproject.toml, then
+# put src/ + scraper root on sys.path so laughtrack and 'scripts' package imports resolve.
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+for _path in (_root / "src", _root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
+```
+
+A `_root / "src"`-only variant is also valid for scripts that don't need to import
+from the `scripts.*` package (i.e., scripts that only `import laughtrack.…`):
+
+```python
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+_src = _root / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
+```
+
+**Copy the block verbatim into any new script** in `scripts/core/` or `scripts/utils/`,
+above the first `from laughtrack…` import. The marker-walk to `pyproject.toml` is
+intentional — never replace it with `parents[N]` indexing, which silently breaks
+when the script is moved or the directory layout changes.
+
+### Why this isn't extracted to a shared helper
+
+A `scripts/_bootstrap.py` that scripts could `import _bootstrap` looks tempting but
+hits a chicken-and-egg problem:
+
+- Scripts run as `__main__` (e.g., `./scrape_shows.py`), so Python adds the script's
+  *own* directory (`scripts/core/` or `scripts/utils/`) to `sys.path[0]` — not
+  `scripts/`. `import _bootstrap` from a script in `scripts/core/` would not find
+  a `_bootstrap.py` placed in `scripts/`.
+- The bootstrap itself is what puts `scripts/` on `sys.path`, so by the time
+  `import _bootstrap` could resolve, the bootstrap has already done its job.
+- Relative imports (`from .. import _bootstrap`) require running as a package
+  (`python -m scripts.core.scrape_shows`), but the scripts are designed for
+  shebang execution.
+
+The duplicated 4–6 line block is a deliberate trade-off — small enough to copy,
+robust to refactoring, and avoids hardcoded `parents[N]` indices. See TASK-1789
+for the full rationale.
+
 ## Testing Patterns
 
 These patterns apply whenever writing or modifying test files in `apps/scraper/tests/`.
