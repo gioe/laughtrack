@@ -16,7 +16,7 @@ from laughtrack.core.clients.google.custom_search import (
     GoogleCustomSearchClient,
     SearchResult,
 )
-from laughtrack.core.data.db_connection import create_connection
+from laughtrack.infrastructure.database.connection import create_connection
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
