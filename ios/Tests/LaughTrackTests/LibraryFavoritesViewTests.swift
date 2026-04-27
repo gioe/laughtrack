@@ -12,7 +12,7 @@ import LaughTrackBridge
 @Suite("Library favorites view")
 @MainActor
 struct LibraryFavoritesViewTests {
-    @Test("signed-in library view loads saved favorites from the live API contract")
+    @Test("signed-in library view renders saved favorites populated by the shell load")
     func signedInLibraryLoadsSavedFavorites() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "library-favorites"
@@ -35,10 +35,11 @@ struct LibraryFavoritesViewTests {
                 )
             )
         )
-        // SwiftUI's `.task(id:)` lifecycle does not fire reliably under HostedView
-        // (the SwiftUI view enters the hierarchy but the test pumps the run loop
-        // synchronously before the task scheduler dispatches). Load favorites
-        // explicitly so the test verifies the rendered output, not the lifecycle.
+        // The favorites load lives on AppShellView, not LibraryView, so the store
+        // is already populated by the time LibraryView appears in production. Mirror
+        // that by loading directly before mounting — pre-population also dodges the
+        // HostedView/`.task(id:)` scheduling flakiness called out in ios/CLAUDE.md.
+        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
         let host = HostedView(
             LibraryView(apiClient: apiClient)
                 .environment(\.appTheme, LaughTrackTheme())
@@ -46,10 +47,6 @@ struct LibraryFavoritesViewTests {
                 .environmentObject(favorites)
                 .environmentObject(authManager)
         )
-        // Drive LibraryView's `.task(id:)` lifecycle to completion — the test
-        // exercises both that the view kicks off the fetch and that the rendered
-        // tree reflects the favorites that come back.
-        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.libraryFavoritesSection)
         try host.requireLabel("Taylor Tomlinson")

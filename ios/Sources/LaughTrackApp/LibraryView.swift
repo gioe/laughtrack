@@ -42,15 +42,5 @@ struct LibraryView: View {
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle(Self.title)
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
-        .task(id: authManager.currentSession == nil) {
-            if authManager.currentSession == nil {
-                favorites.resetSavedFavorites()
-            } else {
-                await favorites.loadSavedFavorites(
-                    apiClient: apiClient,
-                    authManager: authManager
-                )
-            }
-        }
     }
 }

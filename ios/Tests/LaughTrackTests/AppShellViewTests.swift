@@ -1,6 +1,10 @@
 #if canImport(UIKit)
+import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import SwiftUI
 import Testing
+import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -122,6 +126,38 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
     }
 
+    @Test("authenticated shell triggers favorites fetch without visiting the Library tab")
+    func authenticatedShellTriggersFavoritesFetch() async throws {
+        // Regression guard for TASK-1762. The favorites load used to live on
+        // SettingsView (and briefly on LibraryView), so heart-state on Search and
+        // detail surfaces went stale until the user happened to open Library.
+        // Hosting the `.task(id:)` on AppShellView means the load fires as soon
+        // as the authenticated shell appears, before any tab is opened.
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
+            name: "shell-favorites-load"
+        )
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-favorites-load")
+        let recorder = ShellFavoritesRequestRecorder()
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: MockShellFavoritesTransport(recorder: recorder)
+        )
+        let host = HostedView(
+            AppShellView(
+                apiClient: apiClient,
+                favorites: ComedianFavoriteStore()
+            )
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, container)
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+        await host.settle()
+
+        #expect(recorder.getFavoritesCalls >= 1)
+    }
+
     @Test("shell can start on the profile tab and shows the profile surface, not Settings")
     func shellCanStartOnProfileTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")
@@ -142,6 +178,33 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
         try host.requireLabel("Open Settings")
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.settingsScreen) == nil)
+    }
+}
+
+private final class ShellFavoritesRequestRecorder: @unchecked Sendable {
+    var getFavoritesCalls = 0
+}
+
+private struct MockShellFavoritesTransport: ClientTransport {
+    let recorder: ShellFavoritesRequestRecorder
+
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        if operationID == "getFavorites" {
+            recorder.getFavoritesCalls += 1
+        }
+
+        return (
+            HTTPResponse(
+                status: .internalServerError,
+                headerFields: [.contentType: "application/json"]
+            ),
+            HTTPBody(#"{"error":"unexpected operation"}"#)
+        )
     }
 }
 #endif

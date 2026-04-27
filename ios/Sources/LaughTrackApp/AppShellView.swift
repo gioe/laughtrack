@@ -12,6 +12,7 @@ struct AppShellView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
     @State private var selectedTab: AppTab
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
 
@@ -62,6 +63,16 @@ struct AppShellView: View {
         .tint(theme.colors.primary)
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             selectedTab = .search
+        }
+        .task(id: authManager.currentSession == nil) {
+            if authManager.currentSession == nil {
+                favorites.resetSavedFavorites()
+            } else {
+                await favorites.loadSavedFavorites(
+                    apiClient: apiClient,
+                    authManager: authManager
+                )
+            }
         }
     }
 }
