@@ -4,20 +4,6 @@ import LaughTrackCore
 import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIRuntime
-import HTTPTypes
-
-// MARK: - Mock Transport
-
-private struct MockTransport: ClientTransport {
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        (HTTPResponse(status: .ok), nil)
-    }
-}
 
 // MARK: - ServiceRegistration Tests
 
@@ -147,7 +133,7 @@ struct ServiceRegistrationTests {
 private func makeStubClient() -> Client {
     Client(
         serverURL: URL(string: "https://test.example.com")!,
-        transport: MockTransport()
+        transport: StubClientTransport.alwaysSucceeds()
     )
 }
 

@@ -14,7 +14,7 @@ enum LaughTrackHostedViewTestSupport {
     static func makeClient() -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
-            transport: FailingTransport()
+            transport: StubClientTransport.alwaysFails()
         )
     }
 
@@ -173,17 +173,6 @@ func decodedRoutes<Route: Hashable & Codable>(
         index -= 2
     }
     return routes
-}
-
-private struct FailingTransport: ClientTransport {
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        throw URLError(.notConnectedToInternet)
-    }
 }
 
 private final class MockOAuthSessionRunner: OAuthSessionRunning {
