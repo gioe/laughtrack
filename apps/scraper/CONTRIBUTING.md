@@ -61,8 +61,10 @@ hits a chicken-and-egg problem:
   *own* directory (`scripts/core/` or `scripts/utils/`) to `sys.path[0]` — not
   `scripts/`. `import _bootstrap` from a script in `scripts/core/` would not find
   a `_bootstrap.py` placed in `scripts/`.
-- The bootstrap itself is what puts `scripts/` on `sys.path`, so by the time
-  `import _bootstrap` could resolve, the bootstrap has already done its job.
+- The bootstrap puts the scraper root (`apps/scraper/`) on `sys.path`, which makes
+  `scripts.*` importable as a package — but the only way to reach a helper would
+  be `from scripts import _bootstrap`, which can only run *after* the bootstrap
+  has already done its job, defeating the purpose.
 - Relative imports (`from .. import _bootstrap`) require running as a package
   (`python -m scripts.core.scrape_shows`), but the scripts are designed for
   shebang execution.
