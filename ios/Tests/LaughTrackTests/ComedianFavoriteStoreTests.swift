@@ -16,4 +16,15 @@ struct ComedianFavoriteStoreTests {
         #expect(store.value(for: "comedian-uuid-1", fallback: false) == false)
         #expect(store.storedValue(for: "comedian-uuid-1") == nil)
     }
+
+    @Test("resetSavedFavorites clears the pending set so prior-session in-flight toggle spinners do not leak across sign-outs")
+    func resetSavedFavoritesClearsPending() {
+        let store = ComedianFavoriteStore()
+        store.pending.insert("comedian-uuid-1")
+        #expect(store.isPending("comedian-uuid-1") == true)
+
+        store.resetSavedFavorites()
+
+        #expect(store.isPending("comedian-uuid-1") == false)
+    }
 }

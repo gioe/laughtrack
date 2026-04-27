@@ -19,7 +19,7 @@ public final class ComedianFavoriteStore: ObservableObject {
     }
 
     @Published private var values: [String: Bool] = [:]
-    @Published private var pending: Set<String> = []
+    @Published var pending: Set<String> = []
     @Published public private(set) var savedFavoriteComedians: [Components.Schemas.ComedianSearchItem] = []
     @Published public private(set) var savedFavoritesPhase: SavedFavoritesPhase = .idle
 
@@ -44,6 +44,7 @@ public final class ComedianFavoriteStore: ObservableObject {
         savedFavoriteComedians = []
         savedFavoritesPhase = .idle
         values = [:]
+        pending = []
     }
 
     public func seed(uuid: String, value: Bool?) {
