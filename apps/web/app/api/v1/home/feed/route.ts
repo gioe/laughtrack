@@ -8,13 +8,7 @@ import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
-import {
-    RATE_LIMITS,
-    checkRateLimit,
-    getClientIp,
-    rateLimitHeaders,
-    rateLimitResponse,
-} from "@/lib/rateLimit";
+import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
@@ -30,18 +24,8 @@ function logSectionError(section: string) {
 }
 
 export async function GET(req: NextRequest) {
-    // Resolve the session once — both the rate-limit tier and the zipCode
-    // derivation below key off it, and auth() isn't memoized per-request.
-    const session = await auth();
-    const isAuthenticated = !!session?.profile;
-    const rateLimitKey = isAuthenticated
-        ? `home:auth:${session!.profile!.userid}`
-        : `home:anon:${getClientIp(req)}`;
-    const rl = await checkRateLimit(
-        rateLimitKey,
-        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
-    );
-    if (!rl.allowed) return rateLimitResponse(rl);
+    const rl = await applyPublicReadRateLimit(req, "home");
+    if (rl instanceof NextResponse) return rl;
 
     const zipParam = req.nextUrl.searchParams.get("zip");
     if (zipParam !== null && !ZIP_RE.test(zipParam)) {
@@ -52,6 +36,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
+        const session = await auth();
         const sessionZip = session?.profile?.zipCode ?? null;
         // Query ?zip= beats the session profile's stored zip; this lets
         // signed-out callers ask about a location and lets signed-in callers
