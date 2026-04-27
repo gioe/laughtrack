@@ -299,6 +299,14 @@ struct AuthManagerTests {
             throw URLError(.networkConnectionLost)
         }
 
+        // Pin the catch-block log emission to a recorder so a regression that
+        // silently swallowed the thrown error (without calling the seam) would
+        // be caught in addition to the post-condition assertions below.
+        let errorRecorder = LoadUserErrorRecorder()
+        manager.loadUserErrorObserver = { error in
+            await errorRecorder.record(error: error)
+        }
+
         await manager.restoreSession()
 
         #expect(manager.currentUser == nil)
@@ -306,6 +314,10 @@ struct AuthManagerTests {
             Issue.record("Expected authenticated state — /me failure must not unauthenticate the session")
             return
         }
+
+        #expect(await errorRecorder.callCount == 1)
+        let observed = await errorRecorder.lastError as? URLError
+        #expect(observed?.code == .networkConnectionLost)
     }
 
     @Test("clearSession (sign out) resets currentUser back to nil")
@@ -412,6 +424,16 @@ private actor LoadUserRecorder {
 
     func record() {
         callCount += 1
+    }
+}
+
+private actor LoadUserErrorRecorder {
+    var callCount = 0
+    var lastError: Error?
+
+    func record(error: Error) {
+        callCount += 1
+        lastError = error
     }
 }
 
