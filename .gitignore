@@ -45,6 +45,8 @@ tusk/laughtrack-dashboard.html
 # iOS / Xcode (generated)
 ios/.build/
 ios/DerivedData/
+ios/build/
+ios/**/xcuserdata/
 tusk/backups/
 
 # superpowers runtime artifacts (pid files, brainstorm HTML, server state)
