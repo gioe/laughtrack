@@ -104,6 +104,34 @@ Two gotchas:
 - The `decodedRoutes(in:as:)` helper in `HostedViewTestSupport.swift` reverses
   the codable representation back into `[Route]` in push order.
 
+## Launch Screen Iteration
+
+iOS caches the launch screen on the simulator (and on devices). After editing
+`UILaunchScreen` plist values, `LaunchBackground.colorset`, or
+`LaunchLogo.imageset`, a fresh build + relaunch is **not** sufficient — the
+simulator keeps serving the cached splash. To verify launch-screen changes,
+wipe the simulator first:
+
+```bash
+xcrun simctl shutdown <UDID>
+xcrun simctl erase <UDID>
+xcrun simctl boot <UDID>
+# then install + launch as usual
+```
+
+TASK-1823 burned ~10 minutes diagnosing a "blank logo" splash that was
+actually a stale cache — the new asset was correctly in `Assets.car` (verify
+via `xcrun assetutil --info <app>/Assets.car`), but the simulator kept
+serving the prior PDF-era render until `simctl erase`.
+
+Also: `UILaunchScreen` image lookup does **not** fall back from a dark-mode
+device to the light asset when the imageset declares only light variants. If
+`LaunchLogo.imageset/Contents.json` lists `.png` files but no
+`appearances: [{appearance: luminosity, value: dark}]` entries, dark-mode
+cold launch renders the background color with no logo. The
+`bin/generate-launch-logo.swift` script writes PNGs but does not manage
+Contents.json — keep them aligned by hand.
+
 ## OpenAPI Client Regeneration
 
 The generated client lives at `Sources/LaughTrackAPIClient/GeneratedSources/Client.swift`

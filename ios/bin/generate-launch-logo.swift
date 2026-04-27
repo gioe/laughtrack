@@ -13,6 +13,13 @@
 // versions and devices.
 //
 // Run from repo root: swift ios/bin/generate-launch-logo.swift
+//
+// Important: this script writes PNG files only — Contents.json is hand-edited.
+// If you add or rename a -Dark variant here, also update
+// LaunchLogo.imageset/Contents.json with a matching
+// `appearances: [{appearance: luminosity, value: dark}]` entry, otherwise the
+// PNG ships in the imageset but iOS never picks it up at cold launch. See
+// ios/CLAUDE.md "Launch Screen Iteration" for the wider gotcha.
 
 import AppKit
 import CoreGraphics
