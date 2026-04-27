@@ -32,7 +32,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>LaughTrack uses your location to find nearby comedy shows without forcing manual ZIP entry.</string>
+	<string>LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -40,10 +40,8 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.</string>
-	<key>UILaunchScreen</key>
-	<dict/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

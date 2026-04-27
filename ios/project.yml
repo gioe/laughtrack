@@ -76,6 +76,7 @@ targets:
     platform: iOS
     sources:
       - path: Sources/LaughTrackApp
+      - path: Resources
     info:
       path: Sources/LaughTrackApp/Info.plist
       properties:
@@ -89,7 +90,7 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true
         NSLocationWhenInUseUsageDescription: LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.
-        UILaunchScreen: {}
+        UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown

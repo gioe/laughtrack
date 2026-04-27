@@ -44,6 +44,7 @@
 		3C04CC92EAE644A28B724B92 /* HomeNearbyDiscoveryModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E599CC70AC17C3B34F045FE /* HomeNearbyDiscoveryModelTests.swift */; };
 		3CEBAA68984331D050F4088C /* UnauthorizedResponseMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */; };
 		3F8E5733305A73D0F92BD5C6 /* SearchField.swift in Sources */ = {isa = PBXBuildFile; fileRef = B567539F4B8C5140CCA80BFC /* SearchField.swift */; };
+		41DC07457C594E4BA82A70E8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 412E08B18318996CA4DB94CD /* Assets.xcassets */; };
 		41F25FA51A32EFBC75B3B7B7 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C30ED4B343F94BCD7B193 /* ProfileView.swift */; };
 		42424F768696DC2F72FF6B9E /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
 		464D53193F4769A1BD73A7A3 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */; };
@@ -52,6 +53,7 @@
 		50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */; };
 		511FC6C382C4400C100D1495 /* ClubsDiscoveryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */; };
 		5518B3838A0551BE0358E7FA /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 3EE680D7B2961BCF494CE024 /* HTTPTypes */; };
+		58EE58B2C13997CDAFD9D86C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 104F04E413B91EEB9AD4CF22 /* LaunchScreen.storyboard */; };
 		59D54B2C3A5ED9E1E0A54795 /* ShowsDiscoveryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2C00B3ADBB171919FC3B6D /* ShowsDiscoveryModel.swift */; };
 		5C3CAA72E332C5CE372BEA93 /* ComedianDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */; };
 		5FECACC3A16CCB6448BADCF3 /* DetailHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32660C7210ED82ACF6884F4 /* DetailHero.swift */; };
@@ -244,6 +246,7 @@
 		08CEF5393B8FF037B2C6A9FF /* ProfileViewBranchingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewBranchingTests.swift; sourceTree = "<group>"; };
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
 		0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
+		104F04E413B91EEB9AD4CF22 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		10BDD51643814940674250AA /* ContentViewNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewNavigationTests.swift; sourceTree = "<group>"; };
 		11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubsDiscoveryModel.swift; sourceTree = "<group>"; };
 		1384478A2C1BDEDDA8C64200 /* DetailModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailModels.swift; sourceTree = "<group>"; };
@@ -265,6 +268,7 @@
 		373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailView.swift; sourceTree = "<group>"; };
 		392FD90AD816C46171226847 /* LaughTrackBrowseComponentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBrowseComponentsTests.swift; sourceTree = "<group>"; };
 		3F5A63806BF28FA2458ABDA5 /* APIZipLocationResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIZipLocationResolverTests.swift; sourceTree = "<group>"; };
+		412E08B18318996CA4DB94CD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		41925ABE34C9D35C075C67AA /* SearchOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchOptions.swift; sourceTree = "<group>"; };
 		427388AED0335B0C7AC80040 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		42E7556F23D24DC31A2A1FF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -558,6 +562,7 @@
 				60D274A90614E6596D6F336D /* LaughTrackApp */,
 				11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */,
 				48A1C8253AED9F441B4B02FA /* LaughTrackCore */,
+				8EB150A6A4FC547F0915F95F /* Resources */,
 				D65543612003A38D124A722F /* Tests */,
 				D8FE5A1E404D541E9C145D48 /* Products */,
 			);
@@ -630,6 +635,15 @@
 				B567539F4B8C5140CCA80BFC /* SearchField.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		8EB150A6A4FC547F0915F95F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				412E08B18318996CA4DB94CD /* Assets.xcassets */,
+				104F04E413B91EEB9AD4CF22 /* LaunchScreen.storyboard */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		972D4E3777C6BD77ECF7577D /* DesignSystem */ = {
@@ -824,6 +838,7 @@
 			buildConfigurationList = 8554C3F4C5FA71D5F8D90DA5 /* Build configuration list for PBXNativeTarget "LaughTrack" */;
 			buildPhases = (
 				08CC6FAA7FD758ED8CC803EC /* Sources */,
+				BB6E4AE57D6B2801E1F53FA4 /* Resources */,
 				79CB179671AEFAFA805BEAD0 /* Frameworks */,
 				FCB232C13A5BE6125D562EF3 /* Embed Frameworks */,
 			);
@@ -883,6 +898,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BB6E4AE57D6B2801E1F53FA4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				41DC07457C594E4BA82A70E8 /* Assets.xcassets in Resources */,
+				58EE58B2C13997CDAFD9D86C /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		08CC6FAA7FD758ED8CC803EC /* Sources */ = {
