@@ -1,0 +1,29 @@
+name: iOS ios-libs pin sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/project.yml"
+      - "ios/Package.resolved"
+      - "ios/LaughTrack.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+      - "ios/bin/check-ios-libs-pin.sh"
+      - ".github/workflows/ios-libs-pin-sync.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "ios/project.yml"
+      - "ios/Package.resolved"
+      - "ios/LaughTrack.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+      - "ios/bin/check-ios-libs-pin.sh"
+      - ".github/workflows/ios-libs-pin-sync.yml"
+
+jobs:
+  check-ios-libs-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify ios-libs revision matches across project.yml and both Package.resolved files
+        run: ios/bin/check-ios-libs-pin.sh
