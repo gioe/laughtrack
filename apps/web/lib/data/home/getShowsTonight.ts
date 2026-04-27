@@ -4,9 +4,9 @@ import { findShowsForHome } from "./findShowsForHome";
 export async function getShowsTonight(): Promise<ShowDTO[]> {
     const now = new Date();
     const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
+    startOfDay.setUTCHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
     return findShowsForHome(
         { date: { gte: startOfDay, lte: endOfDay }, club: { visible: true } },
