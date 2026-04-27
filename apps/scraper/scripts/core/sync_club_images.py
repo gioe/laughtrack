@@ -11,7 +11,6 @@ Usage:
 """
 
 import argparse
-import os
 import ssl
 import sys
 import urllib.parse
@@ -19,30 +18,15 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-import psycopg2
-from dotenv import dotenv_values
-
 # Ensure local 'src' takes precedence over any installed laughtrack package.
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 _src = _root / "src"
 if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
-from laughtrack.infrastructure.database.connection import get_transaction  # noqa: E402
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 
 CDN_HOST = "laughtrack.b-cdn.net"
-
-
-def get_connection():
-    v = {**dotenv_values(".env"), **os.environ}
-    return psycopg2.connect(
-        dbname=v["DATABASE_NAME"],
-        user=v["DATABASE_USER"],
-        password=v["DATABASE_PASSWORD"],
-        host=v["DATABASE_HOST"],
-        port=v.get("DATABASE_PORT", "5432"),
-        sslmode="require",
-    )
 
 
 def check_image(name: str) -> tuple[str, bool]:
@@ -67,11 +51,10 @@ def main():
     )
     args = parser.parse_args()
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("SELECT name, has_image FROM clubs ORDER BY name")
-    rows = cur.fetchall()
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT name, has_image FROM clubs ORDER BY name")
+            rows = cur.fetchall()
     names = [r[0] for r in rows]
     current_state = {r[0]: r[1] for r in rows}
 
@@ -123,8 +106,6 @@ def main():
         print("Changes committed to DB.")
     elif args.update:
         print("\nNo changes needed — DB is already up to date.")
-
-    conn.close()
 
 
 if __name__ == "__main__":

@@ -26,27 +26,14 @@ for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
-import psycopg2
 from dotenv import dotenv_values
 
 from laughtrack.core.services.image_sourcing import source_comedian_image
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.infrastructure.database.connection import get_transaction
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction
 
 # Delay between per-comedian requests (Wikidata + TMDb rate limits)
 _IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
-
-
-def get_connection():
-    v = {**dotenv_values(".env"), **os.environ}
-    return psycopg2.connect(
-        dbname=v["DATABASE_NAME"],
-        user=v["DATABASE_USER"],
-        password=v["DATABASE_PASSWORD"],
-        host=v["DATABASE_HOST"],
-        port=v.get("DATABASE_PORT", "5432"),
-        sslmode="require",
-    )
 
 
 def get_missing_image_comedians(conn, limit=None):
@@ -91,19 +78,17 @@ def main():
             print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
             sys.exit(1)
 
-    conn = get_connection()
-    names = get_missing_image_comedians(conn, limit=args.limit)
+    with get_connection() as conn:
+        names = get_missing_image_comedians(conn, limit=args.limit)
     print(f"Found {len(names)} comedians with has_image=false")
 
     if not names:
         print("Nothing to do.")
-        conn.close()
         return
 
     if args.dry_run:
         for name in names:
             print(f"  {name}")
-        conn.close()
         return
 
     sourced = []
@@ -139,8 +124,6 @@ def main():
     print(f"Processed: {len(names)}")
     print(f"Sourced:   {len(sourced)} ({100 * len(sourced) / len(names):.1f}%)")
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(names):.1f}%)")
-
-    conn.close()
 
 
 def _update_has_image(names):

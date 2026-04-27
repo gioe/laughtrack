@@ -13,7 +13,6 @@ Usage:
 """
 
 import argparse
-import os
 import re
 import sys
 import time
@@ -26,11 +25,10 @@ _src = _root / "src"
 if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
-import psycopg2
 import psycopg2.extras
 import requests
 
-from laughtrack.infrastructure.database.connection import get_transaction
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction
 
 # ── SeatEngine venue ID extraction ──────────────────────────────────────────
 
@@ -86,20 +84,8 @@ def _fetch_venue_id(club: dict, timeout: int = 20) -> Optional[str]:
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
 
-def _get_connection():
-    return psycopg2.connect(
-        dbname=os.environ.get("DATABASE_NAME", "neondb"),
-        user=os.environ.get("DATABASE_USER", "neondb_owner"),
-        host=os.environ.get("DATABASE_HOST", "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech"),
-        password=os.environ.get("DATABASE_PASSWORD", ""),
-        port=int(os.environ.get("DATABASE_PORT", 5432)),
-        cursor_factory=psycopg2.extras.RealDictCursor,
-        sslmode="require",
-    )
-
-
 def _fetch_clubs_needing_id(conn, club_id: Optional[int] = None) -> list[dict]:
-    with conn.cursor() as cur:
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         if club_id:
             cur.execute(
                 "SELECT id, name, scraping_url, website FROM clubs "
@@ -127,8 +113,8 @@ def _update_seatengine_id(club_id: int, seatengine_id: str) -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
-    conn = _get_connection()
-    clubs = _fetch_clubs_needing_id(conn, club_id=club_id)
+    with get_connection() as conn:
+        clubs = _fetch_clubs_needing_id(conn, club_id=club_id)
     print(f"Clubs needing seatengine_id: {len(clubs)}\n")
 
     matched: list[tuple[dict, str]] = []
@@ -152,8 +138,6 @@ def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
         # Polite delay between requests
         if i < len(clubs):
             time.sleep(0.5)
-
-    conn.close()
 
     print(f"\n{'─'*70}")
     print(f"Matched  : {len(matched)}")
