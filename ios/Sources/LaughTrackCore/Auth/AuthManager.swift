@@ -16,6 +16,7 @@ public final class AuthManager: ObservableObject {
     public typealias SignoutRequest = @Sendable () async throws -> Void
     public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
     public typealias SignoutErrorObserver = @Sendable (Error) async -> Void
+    public typealias LoadUserErrorObserver = @Sendable (Error) async -> Void
 
     @Published public private(set) var state: State = .restoring
     @Published public private(set) var currentUser: AuthenticatedUser?
@@ -41,6 +42,12 @@ public final class AuthManager: ObservableObject {
     // error would still satisfy the post-condition assertions on cleared state.
     public var signoutErrorObserver: SignoutErrorObserver
 
+    // Invoked when loadUserRequest throws inside refreshCurrentUser(). Same
+    // rationale as signoutErrorObserver — the post-condition (currentUser
+    // unchanged, state still .authenticated) is preserved even if the catch
+    // block is silently bypassed, so tests need a seam to pin the log emission.
+    public var loadUserErrorObserver: LoadUserErrorObserver
+
     private let tokenManager: AuthTokenManager
     private let authMiddleware: AuthenticationMiddleware
     private let appStateStorage: AppStateStorageProtocol
@@ -64,6 +71,11 @@ public final class AuthManager: ObservableObject {
         self.signoutErrorObserver = { error in
             Self.logger.error(
                 "Server sign-out failed; clearing local session anyway: \(String(describing: error), privacy: .public)"
+            )
+        }
+        self.loadUserErrorObserver = { error in
+            Self.logger.error(
+                "/v1/me fetch failed; keeping prior currentUser: \(String(describing: error), privacy: .public)"
             )
         }
     }
@@ -112,9 +124,7 @@ public final class AuthManager: ObservableObject {
         do {
             currentUser = try await loadUserRequest()
         } catch {
-            Self.logger.error(
-                "/v1/me fetch failed; keeping prior currentUser: \(String(describing: error), privacy: .public)"
-            )
+            await loadUserErrorObserver(error)
         }
     }
 
