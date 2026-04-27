@@ -51,6 +51,9 @@ final class StubClientTransport: ClientTransport, @unchecked Sendable {
         }
     }
 
+    /// Replaces the active handler and clears any previously captured requests
+    /// so the transport behaves as if freshly constructed. Tests that swap
+    /// behavior mid-flight should snapshot `capturedRequests` first.
     func setHandler(_ handler: @escaping Handler) {
         lock.withLock {
             self.handler = handler

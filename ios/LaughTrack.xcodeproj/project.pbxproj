@@ -114,7 +114,6 @@
 		CF5C6C3A8C12A2BAFC1FBFD3 /* FavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8BA3B55591C23E4463A3C08 /* FavoriteButton.swift */; };
 		D122A8C095CAFEAFAF6ECC91 /* SessionBannerCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A24C1071F5E8BF76882EC9 /* SessionBannerCard.swift */; };
 		D2E096BC01B6363AC5C2DCBC /* ShowRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD82EBB1E7139CBE01CC82 /* ShowRow.swift */; };
-		1A1798B017985760D7A0FACE /* StubClientTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1798B017985760D7A0BEEF /* StubClientTransport.swift */; };
 		D53DDEF7B72376F2B46B2FF6 /* StubLocationResolvers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B790E6CA653AB5CC278F718D /* StubLocationResolvers.swift */; };
 		D8230A7E91161475D358210D /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 02C7C5A65A09BD0E6A833275 /* HTTPTypes */; };
 		D9DE226178A12B65ADAEDC5A /* LaughTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; };
@@ -135,6 +134,7 @@
 		F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */; };
 		F2F81216C8A86112F5D53B3D /* AuthManagerSignOutIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9FBF9E6CD8A67F17A979D0 /* AuthManagerSignOutIntegrationTests.swift */; };
 		F3010080CDE3E66A512F6423 /* CurrentLocationZipResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */; };
+		F5512524B05FB4BDF6E3F33B /* StubClientTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170739BCDBB962D8D115F8B /* StubClientTransport.swift */; };
 		F6A2A20C8459B6D3D685D19C /* TestResolverStubs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */; };
 		F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */; };
 		FA4FC7D3B905C1516EFDFED2 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 4472C700BD5B0922771D56BB /* OpenAPIRuntime */; };
@@ -291,6 +291,7 @@
 		8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLoadingView.swift; sourceTree = "<group>"; };
 		8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootViewTests.swift; sourceTree = "<group>"; };
+		9170739BCDBB962D8D115F8B /* StubClientTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubClientTransport.swift; sourceTree = "<group>"; };
 		92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthorizedResponseMiddleware.swift; sourceTree = "<group>"; };
 		92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPreferenceStore.swift; sourceTree = "<group>"; };
 		98FC93EDB4A27FDCCB09F568 /* LaughTrackAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIClient.swift; sourceTree = "<group>"; };
@@ -314,7 +315,6 @@
 		B5E043BF19430E526D649ECA /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
 		B705EA400FAD98C582CD61E6 /* SavedFavoritesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFavoritesSection.swift; sourceTree = "<group>"; };
 		B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestResolverStubs.swift; sourceTree = "<group>"; };
-		2B1798B017985760D7A0BEEF /* StubClientTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubClientTransport.swift; sourceTree = "<group>"; };
 		B790E6CA653AB5CC278F718D /* StubLocationResolvers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubLocationResolvers.swift; sourceTree = "<group>"; };
 		B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianFavoriteStoreTests.swift; sourceTree = "<group>"; };
 		BD8C61D54D21DB28D76A55E0 /* ShowsDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsDiscoveryView.swift; sourceTree = "<group>"; };
@@ -444,7 +444,7 @@
 				EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */,
 				ECED0A3A8EEF5B333E588DB8 /* SettingsViewStateTests.swift */,
 				B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */,
-				2B1798B017985760D7A0BEEF /* StubClientTransport.swift */,
+				9170739BCDBB962D8D115F8B /* StubClientTransport.swift */,
 				B790E6CA653AB5CC278F718D /* StubLocationResolvers.swift */,
 				B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */,
 				3700564FAB149798B936D4CC /* TokenRefreshMiddlewareIntegrationTests.swift */,
@@ -1006,7 +1006,7 @@
 				8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */,
 				4E555BF23B469378A967859A /* SettingsViewStateTests.swift in Sources */,
 				81438189E9144731336F4867 /* ShowDetailViewTests.swift in Sources */,
-				1A1798B017985760D7A0FACE /* StubClientTransport.swift in Sources */,
+				F5512524B05FB4BDF6E3F33B /* StubClientTransport.swift in Sources */,
 				D53DDEF7B72376F2B46B2FF6 /* StubLocationResolvers.swift in Sources */,
 				F6A2A20C8459B6D3D685D19C /* TestResolverStubs.swift in Sources */,
 				E566D7C39CD2A4613F1625A2 /* TokenRefreshMiddlewareIntegrationTests.swift in Sources */,
