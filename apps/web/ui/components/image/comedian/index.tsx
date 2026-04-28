@@ -12,7 +12,7 @@ import ComedianAvatarFallback from "./fallback";
 interface ComedianHeadshotProps {
     comedian: Comedian;
     sizes?: string;
-    variant?: "grid" | "lineup";
+    variant?: "grid" | "compactGrid" | "lineup";
     className?: string;
 }
 
@@ -22,12 +22,24 @@ const variantStyles = {
         link: "block w-full h-full relative rounded-full overflow-hidden",
         image: "object-cover object-center",
         favoriteButton: "absolute top-[10%] right-[10%]",
+        favoriteButtonPadding: "p-2.5",
+        favoriteIcon: "w-6 h-6",
+    },
+    compactGrid: {
+        container: "relative w-full aspect-square",
+        link: "block w-full h-full relative rounded-full overflow-hidden",
+        image: "object-cover object-center",
+        favoriteButton: "absolute top-1 right-1",
+        favoriteButtonPadding: "p-1.5",
+        favoriteIcon: "w-4 h-4",
     },
     lineup: {
         container: "relative h-[136px] w-[136px]",
         link: "block w-full h-full relative",
         image: "object-cover object-center rounded-xl",
         favoriteButton: "absolute top-1 right-1",
+        favoriteButtonPadding: "p-2.5",
+        favoriteIcon: "w-6 h-6",
     },
 };
 
@@ -48,7 +60,7 @@ const ComedianHeadshot = ({
     const styles = variantStyles[variant];
     const showFallback = !comedian.hasImage || !comedian.imageUrl || error;
 
-    const buttonBaseClasses = `${styles.favoriteButton} p-2.5 bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`;
+    const buttonBaseClasses = `${styles.favoriteButton} ${styles.favoriteButtonPadding} bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`;
     const buttonClasses = isAuthenticated
         ? buttonBaseClasses
         : `${buttonBaseClasses} border border-dashed border-white/70`;
@@ -64,7 +76,7 @@ const ComedianHeadshot = ({
                 {showFallback ? (
                     <ComedianAvatarFallback
                         name={comedian.name}
-                        variant={variant}
+                        variant={variant === "compactGrid" ? "grid" : variant}
                     />
                 ) : (
                     <Image
@@ -88,10 +100,12 @@ const ComedianHeadshot = ({
                     className={buttonClasses}
                 >
                     {isFavorite ? (
-                        <SolidHeart className="w-6 h-6 text-red-500 drop-shadow-sm" />
+                        <SolidHeart
+                            className={`${styles.favoriteIcon} text-red-500 drop-shadow-sm`}
+                        />
                     ) : (
                         <OutlineHeart
-                            className={`w-6 h-6 hover:text-red-500 drop-shadow-sm ${
+                            className={`${styles.favoriteIcon} hover:text-red-500 drop-shadow-sm ${
                                 isAuthenticated ? "text-white" : "text-white/80"
                             }`}
                         />

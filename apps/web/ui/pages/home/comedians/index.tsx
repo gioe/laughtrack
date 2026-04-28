@@ -8,25 +8,26 @@ interface TrendingComedianGridProps {
 }
 const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
     return (
-        <div className="max-w-7xl w-full mx-auto py-16 px-4 sm:px-6">
-            <div className="text-center mb-12 animate-fadeIn">
-                <h2 className="text-4xl sm:text-5xl font-bold font-gilroy-bold mb-4 text-cedar">
-                    Trending Comedians
+        <div className="max-w-7xl w-full mx-auto py-14 px-4 sm:px-6">
+            <div className="mb-8 animate-fadeIn">
+                <h2 className="text-3xl sm:text-4xl font-bold font-gilroy-bold mb-3 text-cedar">
+                    Comics on the rise this week
                 </h2>
-                <p className="text-gray-600 font-dmSans text-lg sm:text-xl max-w-2xl mx-auto">
-                    Catch the comedians everyone's talking about.
+                <p className="text-gray-600 font-dmSans text-base sm:text-lg max-w-2xl">
+                    Catch the comedians showing up on more lineups right now.
                 </p>
             </div>
 
             <div className="animate-slideUp">
                 <ComedianGrid
                     comedians={comedians}
-                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8"
+                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-x-4 gap-y-7"
                     isTrending={true}
+                    cardVariant="compact"
                 />
             </div>
 
-            <div className="text-center pt-12 mt-8 animate-fadeIn">
+            <div className="pt-10 mt-6 animate-fadeIn">
                 <Button asChild variant="roundedShimmer">
                     <Link href={`/comedian/search`}>See All Comedians</Link>
                 </Button>
