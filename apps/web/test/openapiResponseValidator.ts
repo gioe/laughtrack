@@ -61,6 +61,13 @@ function validateType(value: unknown, type: string): boolean {
     return typeof value === type;
 }
 
+function schemaHasType(schema: JsonSchema, type: string): boolean {
+    if (!schema.type) return false;
+    return Array.isArray(schema.type)
+        ? schema.type.includes(type)
+        : schema.type === type;
+}
+
 function validateSchema(
     value: unknown,
     schema: JsonSchema,
@@ -82,7 +89,7 @@ function validateSchema(
     if (value === null) return errors;
 
     if (
-        resolved.type === "object" ||
+        schemaHasType(resolved, "object") ||
         resolved.properties ||
         resolved.required
     ) {
@@ -113,7 +120,11 @@ function validateSchema(
         }
     }
 
-    if (resolved.type === "array" && Array.isArray(value) && resolved.items) {
+    if (
+        schemaHasType(resolved, "array") &&
+        Array.isArray(value) &&
+        resolved.items
+    ) {
         value.forEach((item, index) => {
             errors.push(
                 ...validateSchema(item, resolved.items!, `${path}[${index}]`),
