@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
         console.error("GET /api/v1/comedians/past-shows error:", error);
         return NextResponse.json(
             { error: "Failed to fetch past shows" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }
