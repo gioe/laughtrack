@@ -99,7 +99,7 @@ export async function getTrendingComedians(
         SELECT *
         FROM comedian_counts
         WHERE show_count > ${MIN_UPCOMING_SHOWS}
-        ORDER BY show_count DESC
+        ORDER BY has_image DESC, show_count DESC
         LIMIT ${fetchLimit}
         OFFSET ${fetchOffset}
     `;
@@ -118,7 +118,12 @@ export async function getTrendingComedians(
                 const j = Math.floor(Math.random() * (i + 1));
                 [rows[i], rows[j]] = [rows[j], rows[i]];
             }
-            selected = rows.slice(0, safeLimit);
+            const rowsWithImages = rows.filter((row) => row.has_image);
+            const rowsWithoutImages = rows.filter((row) => !row.has_image);
+            selected = [...rowsWithImages, ...rowsWithoutImages].slice(
+                0,
+                safeLimit,
+            );
         } else {
             // For paginated requests the shuffle is incompatible with stable paging,
             // so fetch exactly what the caller asked for at the given offset.

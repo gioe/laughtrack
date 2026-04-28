@@ -28,6 +28,7 @@ function makeRow(
         website: string | null;
         popularity: number;
         linktree: string | null;
+        has_image: boolean | null;
         show_count: number;
     }> = {},
 ) {
@@ -44,6 +45,7 @@ function makeRow(
         website: "https://alice.example.com",
         popularity: 95,
         linktree: null,
+        has_image: true,
         show_count: 5,
         ...overrides,
     };
@@ -285,6 +287,33 @@ describe("getTrendingComedians", () => {
             expect(result.length).toBe(limit);
             const inputIds = new Set(rows.map((r) => r.id));
             result.forEach((c) => expect(inputIds.has(c.id!)).toBe(true));
+        });
+
+        it("selects photo-backed comedians before monogram fallbacks on the first page", async () => {
+            const rows = [
+                ...Array.from({ length: 4 }, (_, i) =>
+                    makeRow({
+                        id: i + 1,
+                        uuid: `fallback-${i + 1}`,
+                        name: `Fallback ${i + 1}`,
+                        has_image: false,
+                    }),
+                ),
+                ...Array.from({ length: 8 }, (_, i) =>
+                    makeRow({
+                        id: i + 10,
+                        uuid: `photo-${i + 1}`,
+                        name: `Photo ${i + 1}`,
+                        has_image: true,
+                    }),
+                ),
+            ];
+            mockQueryRaw.mockResolvedValue(rows);
+
+            const result = await getTrendingComedians(8, 0);
+
+            expect(result).toHaveLength(8);
+            expect(result.every((comedian) => comedian.hasImage)).toBe(true);
         });
 
         it("skips shuffle and fetches exact offset slice for paginated requests", async () => {
