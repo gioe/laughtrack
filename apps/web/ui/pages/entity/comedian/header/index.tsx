@@ -13,9 +13,14 @@ import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
 import { Button } from "@/ui/components/ui/button";
+import {
+    COMEDIAN_HERO_DEFAULTS,
+    ComedianHeroPalette,
+} from "@/lib/data/comedian/detail/heroPalette";
 
 interface ComedianDetailHeaderProps {
     comedian: ComedianDTO;
+    heroPalette?: ComedianHeroPalette | null;
 }
 
 const compactNumber = new Intl.NumberFormat("en-US", {
@@ -62,6 +67,7 @@ function formatFollowerStat(totalFollowers: number) {
 
 const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
+    heroPalette,
 }) => {
     const { mv, mp, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
@@ -177,8 +183,44 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         ].filter((link) => Boolean(link.account));
     }, [social]);
 
+    const palette = heroPalette ?? COMEDIAN_HERO_DEFAULTS;
+    const heroStyle = {
+        "--comedian-hero-accent": palette.accent,
+        "--comedian-hero-accent-soft": palette.accentSoft,
+        "--comedian-hero-cta": palette.cta,
+        "--comedian-hero-cta-hover": palette.ctaHover,
+    } as React.CSSProperties;
+
+    const backdropGradient = {
+        backgroundImage:
+            "linear-gradient(135deg, rgba(54, 30, 20, 0.86) 0%, rgba(54, 30, 20, 0.74) 52%, var(--comedian-hero-accent-soft) 100%)",
+    } as React.CSSProperties;
+
+    const fallbackGradient = {
+        backgroundImage:
+            "linear-gradient(135deg, #361E14 0%, var(--comedian-hero-accent-soft) 48%, #361E14 100%)",
+    } as React.CSSProperties;
+
+    const imageBottomGradient = {
+        backgroundImage:
+            "linear-gradient(to top, #361E14 0%, rgba(54, 30, 20, 0.65) 45%, transparent 100%)",
+    } as React.CSSProperties;
+
+    const imageSideGradient = {
+        backgroundImage:
+            "linear-gradient(to right, #361E14 0%, rgba(54, 30, 20, 0.48) 54%, color-mix(in srgb, var(--comedian-hero-accent) 35%, transparent) 100%)",
+    } as React.CSSProperties;
+
+    const imageTopGradient = {
+        backgroundImage:
+            "linear-gradient(to bottom, rgba(54, 30, 20, 0.35) 0%, transparent 100%)",
+    } as React.CSSProperties;
+
     return (
-        <section className="relative w-full overflow-hidden bg-cedar">
+        <section
+            className="relative w-full overflow-hidden bg-cedar"
+            style={heroStyle}
+        >
             {/* Blurred backdrop (uses headshot when present, else warm gradient) */}
             <div className="absolute inset-0">
                 {showImage ? (
@@ -192,10 +234,16 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                             sizes="100vw"
                             priority
                         />
-                        <div className="absolute inset-0 bg-gradient-to-br from-cedar/80 via-cedar/70 to-paarl/50" />
+                        <div
+                            className="absolute inset-0"
+                            style={backdropGradient}
+                        />
                     </>
                 ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-cedar via-paarl/40 to-cedar" />
+                    <div
+                        className="absolute inset-0"
+                        style={fallbackGradient}
+                    />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
@@ -218,9 +266,18 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         priority
                         sizes="100vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-cedar via-cedar/65 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-cedar/90 via-cedar/45 to-cedar/10" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-cedar/35 via-transparent to-transparent" />
+                    <div
+                        className="absolute inset-0"
+                        style={imageBottomGradient}
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={imageSideGradient}
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={imageTopGradient}
+                    />
                 </motion.div>
             )}
 
@@ -336,7 +393,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                             <Button
                                 asChild
                                 variant="roundedShimmer"
-                                className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                className="min-h-12 gap-2 rounded-full bg-[var(--comedian-hero-cta)] px-7 py-3 text-base shadow-lg hover:bg-[var(--comedian-hero-cta-hover)]"
                             >
                                 <a href="#comedian-upcoming-shows">
                                     <Calendar
@@ -353,7 +410,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 onClick={handleNotifyClick}
                                 disabled={isFavorite}
                                 aria-pressed={isFavorite}
-                                className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                className="min-h-12 gap-2 rounded-full bg-[var(--comedian-hero-cta)] px-7 py-3 text-base shadow-lg hover:bg-[var(--comedian-hero-cta-hover)]"
                             >
                                 <Bell className="h-5 w-5" aria-hidden="true" />
                                 {isFavorite

@@ -16,6 +16,7 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import { readTimezoneCookie } from "@/util/timezone";
+import { getComedianHeroPalette } from "@/lib/data/comedian/detail/getComedianHeroPalette";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -115,6 +116,11 @@ export default async function ComedianDetailsPage(props: {
     }
 
     const { data, shows, total, relatedComedians, filters } = result;
+    const heroPalette = await getComedianHeroPalette({
+        comedianId: data.id,
+        imageUrl: data.imageUrl,
+        hasImage: data.hasImage,
+    });
 
     const jsonLdData = [
         buildComedianJsonLd(data),
@@ -125,7 +131,7 @@ export default async function ComedianDetailsPage(props: {
         <>
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
-            <ComedianDetailHeader comedian={data} />
+            <ComedianDetailHeader comedian={data} heroPalette={heroPalette} />
             <ComedianDetailTabs
                 shows={shows}
                 total={total}
