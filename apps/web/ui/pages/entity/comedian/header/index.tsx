@@ -68,12 +68,14 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     const [showConfetti, setShowConfetti] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const imageRef = useRef<HTMLImageElement | null>(null);
+    const showImage = !error && !!comedian.imageUrl;
 
     useEffect(() => {
-        if (imageRef.current?.complete) {
+        setImageLoaded(false);
+        if (imageRef.current?.complete && showImage) {
             setImageLoaded(true);
         }
-    }, [comedian.imageUrl]);
+    }, [comedian.imageUrl, showImage]);
 
     const parsedComedian = new Comedian(comedian);
     const social = parsedComedian.socialData;
@@ -96,7 +98,6 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         await handleFavoriteWithAnimation(e);
     };
 
-    const showImage = !error && !!comedian.imageUrl;
     const hasUpcomingShows = comedian.show_count > 0;
 
     const totalFollowers =
@@ -199,17 +200,41 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
 
+            {showImage && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: imageLoaded ? 1 : 0 }}
+                    transition={mt({ duration: 0.5 })}
+                    className="absolute inset-0 z-0"
+                >
+                    <Image
+                        ref={imageRef}
+                        src={comedian.imageUrl}
+                        alt={parsedComedian.name}
+                        fill
+                        className="object-cover object-top"
+                        onError={() => setError(true)}
+                        onLoad={() => setImageLoaded(true)}
+                        priority
+                        sizes="100vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-cedar via-cedar/65 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-cedar/90 via-cedar/45 to-cedar/10" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-cedar/35 via-transparent to-transparent" />
+                </motion.div>
+            )}
+
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14"
+                className="relative z-10 max-w-7xl mx-auto min-h-[28rem] md:min-h-[34rem] lg:min-h-[38rem] px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14 flex flex-col justify-end"
             >
                 {/* Favorite button — pinned to top-right of the hero */}
                 <motion.div
                     whileHover={mp({ scale: 1.1 })}
                     whileTap={mp({ scale: 0.9 })}
-                    className="absolute top-4 right-4 sm:top-6 sm:right-6"
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20"
                 >
                     <button
                         onClick={handleFavoriteWithAnimation}
@@ -232,203 +257,171 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                     </button>
                 </motion.div>
 
-                <div className="flex flex-col md:flex-row lg:flex-row items-center md:items-stretch lg:items-stretch gap-6 md:gap-8 lg:gap-10">
-                    {/* Headshot */}
+                <div className="w-full max-w-4xl text-center md:text-left lg:text-left">
+                    {!showImage && (
+                        /* Fallback remains contained only when no usable hero headshot exists. */
+                        <div className="mx-auto md:mx-0 mb-6 relative h-44 w-44 sm:h-56 sm:w-56 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-2xl">
+                            <ComedianAvatarFallback
+                                name={parsedComedian.name}
+                                variant="hero"
+                            />
+                        </div>
+                    )}
+
                     <motion.div
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={mt({ duration: 0.4 })}
-                        className="relative flex-shrink-0 w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-2xl"
+                        transition={mt({ duration: 0.3, delay: mv(0.05) })}
+                        className="max-w-4xl"
                     >
-                        {showImage ? (
-                            <>
-                                <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
-                                <Image
-                                    ref={imageRef}
-                                    src={comedian.imageUrl}
-                                    alt={parsedComedian.name}
-                                    fill
-                                    className={`object-cover object-top transition-opacity duration-500 ${
-                                        imageLoaded
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                    }`}
-                                    onError={() => setError(true)}
-                                    onLoad={() => setImageLoaded(true)}
-                                    priority
-                                    sizes="(max-width: 768px) 240px, 288px"
-                                />
-                                {!imageLoaded && (
-                                    <div
-                                        className={`absolute inset-0 bg-slate-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                        <h1 className="text-h1 sm:text-display md:text-display lg:text-hero font-chivo font-bold text-white drop-shadow-md leading-tight">
+                            {parsedComedian.name}
+                        </h1>
+                    </motion.div>
+
+                    {signatureStat && (
+                        <motion.p
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.1),
+                            })}
+                            className="mt-3 text-lead font-dmSans text-white/75 drop-shadow"
+                        >
+                            {signatureStat.label}
+                        </motion.p>
+                    )}
+
+                    {secondaryStats.length > 0 && (
+                        <motion.ul
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.12),
+                            })}
+                            className="mt-2 flex flex-wrap justify-center md:justify-start lg:justify-start gap-x-4 gap-y-1 text-caption font-dmSans text-white/60 drop-shadow"
+                        >
+                            {secondaryStats.map((stat) => {
+                                const Icon =
+                                    stat.kind === "shows" ? Calendar : Users;
+
+                                return (
+                                    <li
+                                        key={stat.kind}
+                                        className="inline-flex items-center gap-1.5"
+                                    >
+                                        <Icon
+                                            className="w-3.5 h-3.5"
+                                            aria-hidden="true"
+                                        />
+                                        {stat.label}
+                                    </li>
+                                );
+                            })}
+                        </motion.ul>
+                    )}
+
+                    <motion.div
+                        initial={{ opacity: 0, y: mv(10) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={mt({
+                            duration: 0.3,
+                            delay: mv(0.15),
+                        })}
+                        className="mt-5 flex justify-center md:justify-start lg:justify-start"
+                    >
+                        {hasUpcomingShows ? (
+                            <Button
+                                asChild
+                                variant="roundedShimmer"
+                                className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                            >
+                                <a href="#comedian-upcoming-shows">
+                                    <Calendar
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
                                     />
-                                )}
-                            </>
+                                    See next show
+                                </a>
+                            </Button>
                         ) : (
-                            <div className="absolute inset-0">
-                                <ComedianAvatarFallback
-                                    name={parsedComedian.name}
-                                    variant="hero"
-                                />
-                            </div>
+                            <Button
+                                type="button"
+                                variant="roundedShimmer"
+                                onClick={handleNotifyClick}
+                                disabled={isFavorite}
+                                aria-pressed={isFavorite}
+                                className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                            >
+                                <Bell className="h-5 w-5" aria-hidden="true" />
+                                {isFavorite
+                                    ? "Notifications on"
+                                    : "Notify me about shows"}
+                            </Button>
                         )}
                     </motion.div>
 
-                    {/* Info column */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-center text-center md:text-left lg:text-left">
-                        <motion.h1
-                            initial={{ opacity: 0, y: mv(20) }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={mt({ duration: 0.3, delay: mv(0.05) })}
-                            className="text-h1 sm:text-display md:text-display lg:text-hero font-chivo font-bold text-white drop-shadow-md leading-tight"
-                        >
-                            {parsedComedian.name}
-                        </motion.h1>
-
-                        {signatureStat && (
-                            <motion.p
-                                initial={{ opacity: 0, y: mv(10) }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={mt({
-                                    duration: 0.3,
-                                    delay: mv(0.1),
-                                })}
-                                className="mt-3 text-lead font-dmSans text-white/70"
-                            >
-                                {signatureStat.label}
-                            </motion.p>
-                        )}
-
-                        {secondaryStats.length > 0 && (
-                            <motion.ul
-                                initial={{ opacity: 0, y: mv(10) }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={mt({
-                                    duration: 0.3,
-                                    delay: mv(0.12),
-                                })}
-                                className="mt-2 flex flex-wrap justify-center md:justify-start lg:justify-start gap-x-4 gap-y-1 text-caption font-dmSans text-white/55"
-                            >
-                                {secondaryStats.map((stat) => {
-                                    const Icon =
-                                        stat.kind === "shows"
-                                            ? Calendar
-                                            : Users;
-
-                                    return (
-                                        <li
-                                            key={stat.kind}
-                                            className="inline-flex items-center gap-1.5"
-                                        >
-                                            <Icon
-                                                className="w-3.5 h-3.5"
-                                                aria-hidden="true"
-                                            />
-                                            {stat.label}
-                                        </li>
-                                    );
-                                })}
-                            </motion.ul>
-                        )}
-
-                        <motion.div
+                    {/* Bio */}
+                    {comedian.bio && (
+                        <motion.p
                             initial={{ opacity: 0, y: mv(10) }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={mt({
                                 duration: 0.3,
                                 delay: mv(0.15),
                             })}
-                            className="mt-5 flex justify-center md:justify-start lg:justify-start"
+                            className="mt-4 text-lead font-dmSans text-white/90 whitespace-pre-line max-w-2xl mx-auto md:mx-0 lg:mx-0 drop-shadow"
                         >
-                            {hasUpcomingShows ? (
-                                <Button
-                                    asChild
-                                    variant="roundedShimmer"
-                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
-                                >
-                                    <a href="#comedian-upcoming-shows">
-                                        <Calendar
-                                            className="h-5 w-5"
-                                            aria-hidden="true"
-                                        />
-                                        See next show
-                                    </a>
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="roundedShimmer"
-                                    onClick={handleNotifyClick}
-                                    disabled={isFavorite}
-                                    aria-pressed={isFavorite}
-                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
-                                >
-                                    <Bell
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                    />
-                                    {isFavorite
-                                        ? "Notifications on"
-                                        : "Notify me about shows"}
-                                </Button>
-                            )}
-                        </motion.div>
+                            {comedian.bio}
+                        </motion.p>
+                    )}
 
-                        {/* Bio */}
-                        {comedian.bio && (
-                            <motion.p
-                                initial={{ opacity: 0, y: mv(10) }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={mt({
-                                    duration: 0.3,
-                                    delay: mv(0.15),
-                                })}
-                                className="mt-4 text-lead font-dmSans text-white/90 whitespace-pre-line max-w-2xl mx-auto md:mx-0 lg:mx-0"
-                            >
-                                {comedian.bio}
-                            </motion.p>
-                        )}
-
-                        {/* Social row */}
-                        {socialLinks.length > 0 && (
-                            <motion.ul
-                                initial={{ opacity: 0, y: mv(10) }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={mt({
-                                    duration: 0.3,
-                                    delay: mv(0.2),
-                                })}
-                                className="mt-5 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
-                            >
-                                {socialLinks.map((link) => {
-                                    const { Icon, platform, account, href } =
-                                        link;
-                                    return (
-                                        <li key={platform}>
-                                            <a
-                                                href={href}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                aria-label={`${parsedComedian.name} on ${platform}`}
-                                                className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-cedar px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
-                                            >
-                                                <Icon
-                                                    className="w-4 h-4"
-                                                    aria-hidden="true"
-                                                />
-                                                <span className="truncate max-w-[10rem]">
-                                                    {platform === "Website"
-                                                        ? platform
-                                                        : `@${account}`}
-                                                </span>
-                                            </a>
-                                        </li>
-                                    );
-                                })}
-                            </motion.ul>
-                        )}
-                    </div>
+                    {/* Social row */}
+                    {socialLinks.length > 0 && (
+                        <motion.ul
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.2),
+                            })}
+                            className="mt-5 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
+                        >
+                            {socialLinks.map((link) => {
+                                const { Icon, platform, account, href } = link;
+                                return (
+                                    <li key={platform}>
+                                        <a
+                                            href={href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={`${parsedComedian.name} on ${platform}`}
+                                            className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-cedar px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
+                                        >
+                                            <Icon
+                                                className="w-4 h-4"
+                                                aria-hidden="true"
+                                            />
+                                            <span className="truncate max-w-[10rem]">
+                                                {platform === "Website"
+                                                    ? platform
+                                                    : `@${account}`}
+                                            </span>
+                                        </a>
+                                    </li>
+                                );
+                            })}
+                        </motion.ul>
+                    )}
                 </div>
+
+                {showImage && !imageLoaded && (
+                    <div
+                        className={`absolute inset-0 -z-10 bg-cedar${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                    />
+                )}
 
                 {/* Confetti burst */}
                 <AnimatePresence>
