@@ -59,7 +59,7 @@ export async function GET(
         console.error("GET /api/v1/clubs/[id] error:", error);
         return NextResponse.json(
             { error: "Failed to fetch club" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
         console.error("GET /api/v1/clubs error:", error);
         return NextResponse.json(
             { error: "Failed to fetch clubs" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }

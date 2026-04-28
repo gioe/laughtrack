@@ -77,7 +77,7 @@ export async function GET(
         console.error("GET /api/v1/comedians/[id] error:", error);
         return NextResponse.json(
             { error: "Failed to fetch comedian" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }

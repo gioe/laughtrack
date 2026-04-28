@@ -96,7 +96,7 @@ export async function GET(req: NextRequest) {
         console.error("GET /api/v1/shows error:", error);
         return NextResponse.json(
             { error: "Failed to fetch shows" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }
