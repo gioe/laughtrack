@@ -17,15 +17,22 @@ vi.mock("@/lib/rateLimit", () => ({
             resetAt: 0,
         }),
     ),
-    rateLimitHeaders: vi.fn(() => ({})),
+    rateLimitHeaders: vi.fn(),
 }));
 
 import { GET } from "./route";
 import { findRelatedShowsForShow } from "@/lib/data/show/detail/findRelatedShowsForShow";
 import { findShowById } from "@/lib/data/show/detail/findShowById";
+import { rateLimitHeaders } from "@/lib/rateLimit";
+import {
+    RATE_LIMIT_SENTINEL_HEADER,
+    RATE_LIMIT_SENTINEL_HEADERS,
+    RATE_LIMIT_SENTINEL_VALUE,
+} from "@/test/rateLimitSentinel";
 
 const mockFindShowById = vi.mocked(findShowById);
 const mockFindRelatedShowsForShow = vi.mocked(findRelatedShowsForShow);
+const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 type FindShowByIdResult = Awaited<ReturnType<typeof findShowById>>;
 type RelatedShowsResult = Awaited<ReturnType<typeof findRelatedShowsForShow>>;
 
@@ -35,6 +42,7 @@ function makeRequest(): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
 });
 
 describe("GET /api/v1/shows/[id]", () => {
@@ -138,5 +146,8 @@ describe("GET /api/v1/shows/[id]", () => {
 
         expect(res.status).toBe(500);
         expect(body).toEqual({ error: "Failed to fetch show" });
+        expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+            RATE_LIMIT_SENTINEL_VALUE,
+        );
     });
 });

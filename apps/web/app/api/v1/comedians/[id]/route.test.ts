@@ -10,7 +10,7 @@ vi.mock("@/lib/rateLimit", () => ({
             resetAt: 0,
         }),
     ),
-    rateLimitHeaders: vi.fn(() => ({})),
+    rateLimitHeaders: vi.fn(),
 }));
 vi.mock("@/lib/db", () => ({
     db: {
@@ -27,8 +27,15 @@ vi.mock("@/util/imageUtil", () => ({
 
 import { GET } from "./route";
 import { db } from "@/lib/db";
+import { rateLimitHeaders } from "@/lib/rateLimit";
+import {
+    RATE_LIMIT_SENTINEL_HEADER,
+    RATE_LIMIT_SENTINEL_HEADERS,
+    RATE_LIMIT_SENTINEL_VALUE,
+} from "@/test/rateLimitSentinel";
 
 const mockFindUnique = vi.mocked(db.comedian.findUnique);
+const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 
 function makeRequest(): NextRequest {
     return new NextRequest("http://localhost/api/v1/comedians/226475");
@@ -36,6 +43,7 @@ function makeRequest(): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
 });
 
 describe("GET /api/v1/comedians/[id]", () => {
@@ -79,5 +87,20 @@ describe("GET /api/v1/comedians/[id]", () => {
             website: "https://marcusdwiley.com/",
             popularity: 0.6,
         });
+    });
+
+    it("returns 500 with rate-limit headers when the detail lookup fails unexpectedly", async () => {
+        mockFindUnique.mockRejectedValue(new Error("DB unavailable"));
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(500);
+        expect(body).toEqual({ error: "Failed to fetch comedian" });
+        expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+            RATE_LIMIT_SENTINEL_VALUE,
+        );
     });
 });

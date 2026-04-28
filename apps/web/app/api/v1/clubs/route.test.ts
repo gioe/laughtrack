@@ -14,12 +14,17 @@ vi.mock("@/lib/rateLimit", () => ({
         }),
     ),
     parseLimitParam: vi.fn(() => 8),
-    rateLimitHeaders: vi.fn(() => ({ "X-RateLimit-Remaining": "42" })),
+    rateLimitHeaders: vi.fn(),
 }));
 
 import { GET } from "./route";
 import { getClubs } from "@/lib/data/home/getClubs";
 import { rateLimitHeaders } from "@/lib/rateLimit";
+import {
+    RATE_LIMIT_SENTINEL_HEADER,
+    RATE_LIMIT_SENTINEL_HEADERS,
+    RATE_LIMIT_SENTINEL_VALUE,
+} from "@/test/rateLimitSentinel";
 
 const mockGetClubs = vi.mocked(getClubs);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
@@ -34,6 +39,7 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
 });
 
 describe("GET /api/v1/clubs", () => {
@@ -47,8 +53,25 @@ describe("GET /api/v1/clubs", () => {
                 error: "offset must be a non-negative integer",
             });
             expect(mockRateLimitHeaders).toHaveBeenCalled();
-            expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
+            expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+                RATE_LIMIT_SENTINEL_VALUE,
+            );
             expect(mockGetClubs).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("unexpected failures", () => {
+        it("returns 500 with rate-limit headers when getClubs rejects", async () => {
+            mockGetClubs.mockRejectedValue(new Error("DB unavailable"));
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(500);
+            expect(body).toEqual({ error: "Failed to fetch clubs" });
+            expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+                RATE_LIMIT_SENTINEL_VALUE,
+            );
         });
     });
 });

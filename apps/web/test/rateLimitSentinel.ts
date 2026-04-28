@@ -1,0 +1,5 @@
+export const RATE_LIMIT_SENTINEL_HEADER = "X-RateLimit-Sentinel";
+export const RATE_LIMIT_SENTINEL_VALUE = "present";
+export const RATE_LIMIT_SENTINEL_HEADERS = {
+    [RATE_LIMIT_SENTINEL_HEADER]: RATE_LIMIT_SENTINEL_VALUE,
+};

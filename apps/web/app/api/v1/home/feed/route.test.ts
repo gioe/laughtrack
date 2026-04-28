@@ -13,7 +13,7 @@ vi.mock("@/lib/rateLimit", () => ({
             resetAt: 0,
         }),
     ),
-    rateLimitHeaders: vi.fn(() => ({})),
+    rateLimitHeaders: vi.fn(),
 }));
 vi.mock("@/lib/data/home/getHeroContext", () => ({
     getHeroContext: vi.fn(),
@@ -47,6 +47,11 @@ import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
+import {
+    RATE_LIMIT_SENTINEL_HEADER,
+    RATE_LIMIT_SENTINEL_HEADERS,
+    RATE_LIMIT_SENTINEL_VALUE,
+} from "@/test/rateLimitSentinel";
 
 const mockAuth = vi.mocked(auth);
 const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
@@ -81,6 +86,7 @@ function primeHappyPath() {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
     mockAuth.mockResolvedValue(null as any);
     mockGetHeroContext.mockResolvedValue({
         zipCode: null,
@@ -102,15 +108,13 @@ describe("GET /api/v1/home/feed", () => {
         });
 
         it("attaches rateLimitHeaders to the 400 response", async () => {
-            mockRateLimitHeaders.mockReturnValueOnce({
-                "X-RateLimit-Remaining": "42",
-            });
-
             const res = await GET(makeRequest({ zip: "abc" }));
 
             expect(res.status).toBe(400);
             expect(mockRateLimitHeaders).toHaveBeenCalled();
-            expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
+            expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+                RATE_LIMIT_SENTINEL_VALUE,
+            );
         });
 
         it("accepts a valid 5-digit zip", async () => {
@@ -319,6 +323,21 @@ describe("GET /api/v1/home/feed", () => {
             expect(mockApplyPublicReadRateLimit).toHaveBeenCalledWith(
                 expect.any(NextRequest),
                 "home",
+            );
+        });
+    });
+
+    describe("unexpected failures", () => {
+        it("returns 500 with rate-limit headers when auth fails unexpectedly", async () => {
+            mockAuth.mockRejectedValue(new Error("auth unavailable"));
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(500);
+            expect(body).toEqual({ error: "Failed to fetch home feed" });
+            expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
+                RATE_LIMIT_SENTINEL_VALUE,
             );
         });
     });
