@@ -1,6 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { isValidTimezone, readTimezoneHeader } from "./timezoneHeader";
+import {
+    isValidTimezone,
+    readTimezoneCookie,
+    readTimezoneHeader,
+} from "./timezoneHeader";
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {
     return new NextRequest("http://localhost/test", { headers });
@@ -52,5 +56,41 @@ describe("readTimezoneHeader", () => {
         // empty header reaches the route as a present-but-invalid value.
         const result = readTimezoneHeader(makeRequest({ "X-Timezone": "" }));
         expect(result.ok).toBe(false);
+    });
+});
+
+describe("readTimezoneCookie", () => {
+    it("returns UTC when the cookie is undefined", () => {
+        expect(readTimezoneCookie(undefined)).toBe("UTC");
+    });
+
+    it("returns UTC for an empty string without warning", () => {
+        // cookieStore.get('timezone')?.value can plausibly produce '' under
+        // edge cases — treat it the same as 'absent' rather than a corrupted
+        // value worth logging.
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            expect(readTimezoneCookie("")).toBe("UTC");
+            expect(warn).not.toHaveBeenCalled();
+        } finally {
+            warn.mockRestore();
+        }
+    });
+
+    it("returns the cookie value when it is a real IANA zone", () => {
+        expect(readTimezoneCookie("America/Chicago")).toBe("America/Chicago");
+    });
+
+    it("falls back to UTC and warns when the cookie is invalid", () => {
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+        try {
+            expect(readTimezoneCookie("Not/Real")).toBe("UTC");
+            expect(warn).toHaveBeenCalledTimes(1);
+            const message = warn.mock.calls[0][0];
+            expect(message).toMatch(/timezone/);
+            expect(message).toMatch(/Not\/Real/);
+        } finally {
+            warn.mockRestore();
+        }
     });
 });

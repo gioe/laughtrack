@@ -13,6 +13,7 @@ import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { readTimezoneCookie } from "@/util/timezoneHeader";
 
 export async function generateMetadata(props: {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -80,7 +81,7 @@ export default async function ComedianSearchPage(
 
     const requestData = {
         params: toSearchParams(searchParams),
-        timezone: cookieStore.get("timezone")?.value || "UTC",
+        timezone: readTimezoneCookie(cookieStore.get("timezone")?.value),
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,
         isAdmin,

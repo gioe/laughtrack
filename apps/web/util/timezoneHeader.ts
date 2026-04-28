@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 const HEADER_NAME = "X-Timezone";
+const COOKIE_NAME = "timezone";
 const DEFAULT_TIMEZONE = "UTC";
 
 /**
@@ -50,4 +51,26 @@ export function readTimezoneHeader(req: NextRequest): ReadTimezoneResult {
         };
     }
     return { ok: true, timezone: raw };
+}
+
+/**
+ * Resolves a 'timezone' cookie value to a validated IANA zone, falling back
+ * to UTC on missing or invalid input.
+ *
+ * SSR pages don't have an iOS caller, so an invalid cookie shouldn't 400 — it
+ * should keep the page alive on a sane default. Pre-TASK-1834 the call sites
+ * passed cookieStore.get('timezone')?.value straight into date-fns-tz; an
+ * invalid value (e.g. 'Not/Real', a manually-edited or corrupted cookie) made
+ * tzParseTimezone return NaN, producing Invalid Date for Prisma's gte/lte
+ * bounds and silently degrading the route to an empty result.
+ */
+export function readTimezoneCookie(rawValue: string | undefined): string {
+    if (rawValue === undefined || rawValue === "") return DEFAULT_TIMEZONE;
+    if (!isValidTimezone(rawValue)) {
+        console.warn(
+            `[timezoneHeader] Rejecting invalid ${COOKIE_NAME} cookie: ${JSON.stringify(rawValue)}; falling back to ${DEFAULT_TIMEZONE}`,
+        );
+        return DEFAULT_TIMEZONE;
+    }
+    return rawValue;
 }

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { toZonedTime, format } from "date-fns-tz";
 import { CACHE } from "@/util/constants/cacheConstants";
+import { readTimezoneCookie } from "@/util/timezoneHeader";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
@@ -74,7 +75,7 @@ export default async function HomePage() {
     }
 
     const [session, cookieStore] = await Promise.all([auth(), cookies()]);
-    const timezone = cookieStore.get("timezone")?.value || "UTC";
+    const timezone = readTimezoneCookie(cookieStore.get("timezone")?.value);
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
 

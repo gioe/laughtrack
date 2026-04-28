@@ -22,6 +22,7 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
+import { readTimezoneCookie } from "@/util/timezoneHeader";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -81,7 +82,7 @@ export default async function ClubDetailPage(props: {
 
     const requestData = {
         params: toSearchParams(searchParams),
-        timezone: cookieStore.get("timezone")?.value || "UTC",
+        timezone: readTimezoneCookie(cookieStore.get("timezone")?.value),
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,
         slug: slug?.name,

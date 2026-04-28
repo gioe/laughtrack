@@ -19,6 +19,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
+import { readTimezoneCookie } from "@/util/timezoneHeader";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -81,7 +82,7 @@ export default async function ComedianDetailsPage(props: {
 
     const requestData = {
         params: toSearchParams(searchParams),
-        timezone: cookieStore.get("timezone")?.value || "UTC",
+        timezone: readTimezoneCookie(cookieStore.get("timezone")?.value),
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,
         slug: slug?.name,
