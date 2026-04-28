@@ -34,6 +34,52 @@ struct EntityDataFlowTests {
         #expect(railItems.allSatisfy { !$0.imageUrl.isEmpty })
     }
 
+    @Test("home favorite shows model matches shows by favorited lineup identity")
+    func homeFavoriteShowsMatchFavoritedLineupIdentity() {
+        let favorite = Components.Schemas.ComedianSearchItem(
+            id: 501,
+            uuid: "comedian-taylor",
+            name: "Taylor Tomlinson",
+            imageUrl: "https://example.com/taylor.png",
+            socialData: .init(id: 501),
+            showCount: 4,
+            isFavorite: true
+        )
+        let matchingShow = makeShow(
+            id: 901,
+            lineup: [
+                .init(
+                    name: "Taylor Tomlinson",
+                    imageUrl: "https://example.com/taylor.png",
+                    uuid: "comedian-taylor",
+                    id: 501,
+                    userId: nil,
+                    socialData: .init(id: 501),
+                    isFavorite: true,
+                    showCount: 4
+                ),
+            ]
+        )
+        let unrelatedShow = makeShow(
+            id: 902,
+            lineup: [
+                .init(
+                    name: "Different Comic",
+                    imageUrl: "https://example.com/different.png",
+                    uuid: "comedian-different",
+                    id: 777,
+                    userId: nil,
+                    socialData: .init(id: 777),
+                    isFavorite: false,
+                    showCount: 1
+                ),
+            ]
+        )
+
+        #expect(HomeFavoriteShowsModel.show(matchingShow, matches: favorite))
+        #expect(!HomeFavoriteShowsModel.show(unrelatedShow, matches: favorite))
+    }
+
     @Test("search model standardizes reload and load more pagination")
     func searchModelReloadAndLoadMore() async {
         let model = EntitySearchModel<String, Int>()
@@ -271,6 +317,27 @@ private func makeTrendingComedians(
             showCount: 3
         )
     ]
+}
+
+private func makeShow(
+    id: Int,
+    lineup: [Components.Schemas.ComedianLineup]
+) -> Components.Schemas.Show {
+    .init(
+        id: id,
+        clubName: "The Stand",
+        date: Date().addingTimeInterval(60 * 60 * 24),
+        tickets: [],
+        name: "Favorite comic showcase",
+        socialData: nil,
+        lineup: lineup,
+        description: "A test show.",
+        address: "116 E 16th St, New York, NY",
+        room: "Main Room",
+        imageUrl: "https://example.com/show.png",
+        soldOut: false,
+        distanceMiles: nil
+    )
 }
 
 private struct StubRateLimitedShowTransport: ClientTransport {

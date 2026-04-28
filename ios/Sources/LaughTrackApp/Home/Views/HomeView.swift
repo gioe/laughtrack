@@ -44,6 +44,8 @@ struct HomeView: View {
 
                 HomeSearchEntryRail(searchNavigationBridge: searchNavigationBridge)
 
+                HomeFavoriteShowsRail(apiClient: apiClient)
+
                 HomeTrendingComediansRail(
                     apiClient: apiClient,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
@@ -109,6 +111,149 @@ struct HomeHeroHeader: View {
             return "What's funny near \(city), \(state)?"
         }
         return "What's funny near \(city)?"
+    }
+}
+
+private struct HomeFavoriteShowsRail: View {
+    let apiClient: Client
+
+    @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @StateObject private var model = HomeFavoriteShowsModel()
+
+    private var favoriteComedians: [Components.Schemas.ComedianSearchItem] {
+        guard authManager.currentSession != nil,
+              favorites.savedFavoritesPhase == .loaded
+        else { return [] }
+
+        return favorites.savedFavoriteComedians
+    }
+
+    private var requestKey: String {
+        favoriteComedians.map(\.uuid).joined(separator: "|")
+    }
+
+    var body: some View {
+        Group {
+            switch model.phase {
+            case .success(let shows) where !shows.isEmpty:
+                favoriteShowsContent(shows)
+            default:
+                EmptyView()
+            }
+        }
+        .task(id: requestKey) {
+            await model.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians)
+        }
+    }
+
+    private func favoriteShowsContent(_ shows: [Components.Schemas.Show]) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackShelfHeader(
+                eyebrow: "Favorites",
+                title: "Your favorites are touring",
+                subtitle: "Upcoming shows featuring comedians you saved."
+            )
+
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                ForEach(shows.prefix(4), id: \.id) { show in
+                    Button {
+                        coordinator.open(.show(show.id))
+                    } label: {
+                        ShowRow(show: show)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowButton(show.id))
+                }
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+        .accessibilityIdentifier(LaughTrackViewTestID.homeFavoriteShowsRail)
+    }
+}
+
+@MainActor
+final class HomeFavoriteShowsModel: ObservableObject {
+    private static let maxFavoriteQueries = 5
+    private static let showsPerFavorite = 3
+
+    @Published private(set) var phase: LoadPhase<[Components.Schemas.Show]> = .idle
+
+    private var loadedRequestKey: String?
+
+    func refresh(
+        apiClient: Client,
+        favoriteComedians: [Components.Schemas.ComedianSearchItem]
+    ) async {
+        let requestKey = Self.requestKey(for: favoriteComedians)
+        guard !requestKey.isEmpty else {
+            loadedRequestKey = nil
+            phase = .idle
+            return
+        }
+        if loadedRequestKey == requestKey, case .success = phase {
+            return
+        }
+
+        phase = .loading
+
+        var showsByID: [Int: Components.Schemas.Show] = [:]
+
+        for comedian in favoriteComedians.prefix(Self.maxFavoriteQueries) {
+            do {
+                let output = try await apiClient.searchShows(
+                    .init(
+                        query: .init(
+                            from: ShowFormatting.apiDate(Date()),
+                            page: 0,
+                            size: Self.showsPerFavorite,
+                            comedian: comedian.name,
+                            sort: ShowSortOption.earliest.rawValue
+                        ),
+                        headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                    )
+                )
+
+                guard case .ok(let ok) = output else { continue }
+                let response = try ok.body.json
+                for show in response.data where Self.show(show, matches: comedian) {
+                    showsByID[show.id] = show
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                continue
+            }
+        }
+
+        phase = .success(showsByID.values.sorted { $0.date < $1.date })
+        loadedRequestKey = requestKey
+    }
+
+    static func requestKey(for favoriteComedians: [Components.Schemas.ComedianSearchItem]) -> String {
+        favoriteComedians.map(\.uuid).joined(separator: "|")
+    }
+
+    static func show(
+        _ show: Components.Schemas.Show,
+        matches favorite: Components.Schemas.ComedianSearchItem
+    ) -> Bool {
+        guard let lineup = show.lineup, !lineup.isEmpty else { return true }
+        return lineup.contains { comedian in
+            comedian.uuid == favorite.uuid ||
+                comedian.id == favorite.id ||
+                comedian.name.localizedCaseInsensitiveCompare(favorite.name) == .orderedSame
+        }
     }
 }
 

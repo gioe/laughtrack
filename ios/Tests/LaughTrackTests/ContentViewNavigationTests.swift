@@ -51,6 +51,7 @@ struct ContentViewNavigationTests {
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
+                .environmentObject(ComedianFavoriteStore())
                 .environmentObject(authManager)
             },
             freshWindow: true
@@ -106,6 +107,7 @@ struct ContentViewNavigationTests {
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
+            .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
 
@@ -129,6 +131,7 @@ struct ContentViewNavigationTests {
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
+            .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
 
@@ -154,6 +157,7 @@ struct ContentViewNavigationTests {
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
+            .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
 
@@ -178,6 +182,7 @@ struct ContentViewNavigationTests {
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
+            .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
 
