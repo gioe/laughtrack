@@ -71,27 +71,48 @@ Scan the issue body for a `## Failing Test` section. If present:
 
 2. **Validate the extracted spec** — the spec is arbitrary shell code from a GitHub issue body and must be treated as untrusted. Show it to the user for approval, then run it in a sandbox so it cannot reach the host tusk repo (which is one `tusk`/`git` walk-up away), read environment secrets, or invoke project-installed tools.
 
-   **a. Pre-flight: skip approval + sandbox when the spec's first token is off the sandbox PATH.**
+   **a. Pre-flight: skip approval + sandbox when the spec's effective first token is off the sandbox PATH.**
 
-   Before showing the approval prompt, inspect the spec's first whitespace-delimited token. The sandbox below runs under `PATH=/usr/bin:/bin`, so any spec whose first token is a project tool (`tusk`, `pytest`, a venv-installed binary) is guaranteed to exit 127 — both the approval prompt and the sandbox run produce no information beyond what we already know. Skip them deterministically:
+   Before showing the approval prompt, identify the spec's *effective* first token — the executable that will actually run. For most specs this is just the first whitespace-delimited token. But specs wrapped in `bash -c '<body>'` or `sh -c '<body>'` are a recurring pattern in tusk's own issue templates (any regression spec that chains `tusk init && tusk task-insert ...` ends up wrapped this way), and the outer `bash`/`sh` is always on `/usr/bin:/bin` — checking it would always pass the fast-path and force the sandbox to run a wrapper whose inner project-tool calls would just exit 127. When the wrapper pattern is detected, peel it off and check the wrapper body's first token instead:
 
    ```bash
-   FIRST_TOKEN=$(printf '%s' "$TEST_SPEC" | awk '{print $1; exit}')
-   if ! PATH=/usr/bin:/bin command -v "$FIRST_TOKEN" >/dev/null 2>&1; then
-     # First token is unreachable on the sandbox PATH; the sandbox would exit 127.
-     # Skip the approval prompt and the sandbox run; treat as no failing test.
+   FIRST_TOKEN=$(printf '%s' "$TEST_SPEC" | awk '!/^[[:space:]]*#/ {print $1; exit}')
+   SECOND_TOKEN=$(printf '%s' "$TEST_SPEC" | awk '!/^[[:space:]]*#/ {print $2; exit}')
+   if [[ ("$FIRST_TOKEN" == "bash" || "$FIRST_TOKEN" == "sh") && "$SECOND_TOKEN" == "-c" ]]; then
+     # Wrapper detected. The body is the third positional arg, normally surrounded
+     # by single or double quotes; strip them, then take its first token.
+     WRAPPER_BODY=$(printf '%s' "$TEST_SPEC" | awk '{$1=""; $2=""; sub(/^ +/, ""); print}')
+     WRAPPER_BODY=${WRAPPER_BODY#[\'\"]}
+     WRAPPER_BODY=${WRAPPER_BODY%[\'\"]}
+     CHECK_TOKEN=$(printf '%s' "$WRAPPER_BODY" | awk '!/^[[:space:]]*#/ {print $1; exit}')
+   else
+     CHECK_TOKEN="$FIRST_TOKEN"
+   fi
+   # GOTCHA (Issue #589): `command -v` special-cases path-containing names
+   # (anything with a `/`) by checking the file relative to cwd — bypassing PATH
+   # entirely. For relative paths like `bin/tusk`, `command -v` resolves against
+   # the orchestrator's cwd (the project root) and reports success, but the
+   # sandbox tempdir won't have that file and would exit 127. Short-circuit any
+   # `/`-containing token to skip the sandbox directly without consulting
+   # `command -v`.
+   if [[ "$CHECK_TOKEN" == */* ]] || ! PATH=/usr/bin:/bin command -v "$CHECK_TOKEN" >/dev/null 2>&1; then
+     # Effective token is unreachable on the sandbox PATH; the sandbox would exit 127.
+     # Skip the approval prompt and the sandbox run, but score as "unverifiable" — the
+     # author still supplied a concrete reproducer; we just can't validate it here.
      test_spec=null
-     test_present="no"
+     test_present="unverifiable"
    fi
    ```
 
-   The check is a pure path-resolution lookup — `command -v` reports whether `<token>` exists on `PATH=/usr/bin:/bin` without invoking it, so the spec is never executed at this stage.
+   The check is a pure path-resolution lookup. The `*/*` glob short-circuits any token containing `/` (relative path like `bin/tusk` or absolute path) before invoking `command -v` — without it, `command -v bin/tusk` from the project root would report success against the cwd-relative file and bypass PATH entirely, even though the sandbox tempdir cannot reach that path (Issue #589). For bare command names, `command -v` reports whether `<token>` exists on `PATH=/usr/bin:/bin` without invoking it, so the spec is never executed at this stage.
 
-   On skip, set `test_spec = null`, score `test_present` as `"no"`, surface this one-line note, and proceed as if no `## Failing Test` section were found (item 3 below):
+   On skip, set `test_spec = null`, score `test_present` as `"unverifiable"`, do not add a test criterion in Step 6, and surface this one-line note. Do **not** route to item 3 below — that path is reserved for the section-absent case (`test_present="no"`). The `"unverifiable"` value exists because the author still supplied a concrete reproducer; we just can't run it under the sandbox's safety constraints, so the score sits between `"yes"` and `"no"` in `config.default.json` (`issue_scoring.factors.test_present`).
 
-   > Spec invokes a non-PATH tool (`<token>`); skipping sandbox (would exit 127). Failing-test verification deferred to `tusk criteria done` after task creation.
+   > Spec invokes a non-PATH tool or path-referenced executable (`<token>`); skipping sandbox (would exit 127). Scoring `test_present` as `unverifiable` (the spec exists but can't be validated here). Failing-test verification deferred to `tusk criteria done` after task creation.
 
-   If the first token DOES resolve on `/usr/bin:/bin` (e.g. `bash`, `grep`, `python3`, `sh`, `find`), fall through to sub-item **b** below — the existing approval + sandbox flow runs unchanged. The fast-path is an addition, not a replacement.
+   When the wrapper-detection branch fires, `<token>` is the *inner* token (e.g. `tusk`) — not `bash`/`sh` — so the note correctly points at the actual unreachable executable.
+
+   If the effective token DOES resolve on `/usr/bin:/bin` (e.g. `grep`, `python3`, `find`, or a `bash -c '<on-PATH-cmd> ...'` wrapper whose body's first token is itself on PATH), fall through to sub-item **b** below — the existing approval + sandbox flow runs unchanged. The fast-path is an addition, not a replacement.
 
    **b. Display the spec and request approval:**
 
@@ -101,7 +122,7 @@ Scan the issue body for a `## Failing Test` section. If present:
    > ```
    > **Options:** `run` (execute in sandbox), `skip` (do not execute — treat as `test_spec = null`).
 
-   Wait for the user's response. Treat anything other than an explicit `run` as `skip`. On skip, set `test_spec = null`, score `test_present` as `"no"`, and proceed as if no `## Failing Test` section were found (item 3 below) — do not run the command.
+   Wait for the user's response. Treat anything other than an explicit `run` as `skip`. On skip, set `test_spec = null`, score `test_present` as `"unverifiable"`, do not add a test criterion in Step 6, and do not run the command. The `"unverifiable"` value applies because the `## Failing Test` section was syntactically present in the issue body — the user simply chose not to sandbox-validate it; the score (defined in `config.default.json` `issue_scoring.factors.test_present`) sits between `"yes"` (sandbox-validated) and `"no"` (section absent). Do **not** route to item 3 below — that path is reserved for the section-absent case (`test_present="no"`).
 
    **c. On approval, execute the spec in an isolated sandbox:**
 
@@ -128,10 +149,10 @@ Scan the issue body for a `## Failing Test` section. If present:
    Interpret the result:
 
    - **Exit nonzero, no command error** — spec fails as expected. Store as `test_spec` and proceed. (Before storing, verify the spec calls into the project under test — runs a CLI, imports a project module, references a real file. Self-contained specs with inline logic may exit nonzero yet pass trivially once that inline logic is fixed; surface this in Step 7 so the implementer validates manually.)
-   - **Exit 0** — spec passes before any fix (self-contained demo or already-resolved issue). Ask the implementer: discard (`test_spec=null`, `test_present="no"`) or keep with a `(warning: passed before fix)` note appended?
+   - **Exit 0** — spec passes before any fix (self-contained demo, already-resolved issue, or a self-skip guard fired in the sandbox — e.g. `git diff` against a missing `.git` parent). Ask the implementer: discard (`test_spec=null`, score `test_present="no"`) or keep with a `(warning: passed before fix)` note appended (score `test_present="unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `test_present="yes"` means the bug was observed to fail under our own execution; this rule is also recorded in the Step 4.7 `test_present` table to keep the two locations aligned)?
    - **Command error** (exit 126/127, or stderr contains "command not found" / "syntax error") — not a runnable shell command. Set `test_spec=null`, score `test_present="no"`, and inform: > The `## Failing Test` spec produced a command error (`<first line of SPEC_STDERR>`). Treating as no failing test.
 
-3. **If no `## Failing Test` section is found**, set `test_spec = null`. No test criterion is added in Step 6. For `bug`/`defect` task types, this biases the Step 4.7 verdict toward Defer via `test_present`; for other task types, `test_present` is N/A.
+3. **If no `## Failing Test` section is found**, set `test_spec = null`. No test criterion is added in Step 6. For `bug`/`defect` task types, this lowers the Step 4.7 score via `test_present`; for other task types, `test_present` is N/A.
 
 ## Step 4.5: Optional Codebase Investigation
 
@@ -178,7 +199,7 @@ Evaluate each factor and look up its score contribution from `factors`:
 
 | Factor key | Condition to evaluate | Value key |
 |---|---|---|
-| `test_present` | Was a `## Failing Test` section found in Step 4.1? **Only evaluate for `bug` and `defect` task types.** For all other task types (`docs`, `feature`, `refactor`, etc.), treat as N/A: contribution = 0 regardless of presence or absence. | `"yes"` / `"no"` |
+| `test_present` | Result from Step 4.1. Section absent → `"no"`. Section present and the spec was sandbox-executed to a non-zero exit (without a command-error signature) → `"yes"`. Section present but the spec was *not* sandbox-executed (Step 4.1.a fast-path skip for an off-PATH effective first token, or Step 4.1.b user-typed skip) → `"unverifiable"` — the issue author supplied a concrete reproducer but it can't be validated under the sandbox's safety constraints. Section present and the spec was sandbox-executed to exit 0 with the implementer choosing `keep` (the spec's self-skip guard fired in the sandbox tempdir — typically `git diff` against a missing `.git` parent — and the implementer kept the spec rather than discarding) → `"unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `"yes"` means we observed the bug fail under our own execution. (Step 4.1.c's exit-0 `discard` branch sets `test_present="no"` and is unaffected by this rule.) Section present and the spec was sandbox-executed but produced a command error (exit 126/127 from inside the body, or stderr containing `command not found` / `syntax error`) → `"no"` — distinct from the skip path because the spec was actually run and demonstrably malformed, not merely unsandboxable. **Only evaluate for `bug` and `defect` task types.** For all other task types (`docs`, `feature`, `refactor`, etc.), treat as N/A: contribution = 0 regardless of value. | `"yes"` / `"no"` / `"unverifiable"` |
 | `pillar_aligned` | Does the issue align with the project pillars (run `tusk pillars list` to fetch `[{id, name, core_claim}]`)? If the list is empty, skip (contribution = 0). | `"yes"` / `"no"` |
 | `duplicate` | Is an open task already covering this issue (from Step 3 backlog)? Include the task ID in the rationale if yes. | `"yes"` / `"no"` |
 | `in_scope` | Does the issue fit the project's stated purpose? | `"yes"` / `"no"` |
@@ -192,7 +213,7 @@ Compute: `total = sum of all factor contributions`
 Assign verdict from thresholds:
 - `total >= thresholds["address"]` → **Address**
 - `total <= thresholds["decline"]` → **Decline**
-- Otherwise → **Defer**
+- Otherwise → **Address** (borderline — still create and work the task; the score breakdown surfaces the uncertainty for the user)
 
 Record the verdict, per-factor contributions, total, and a 1–2 sentence rationale for display in Step 5.
 
@@ -203,9 +224,11 @@ Open with a **Model Recommendation** block (including the score breakdown from S
 ```markdown
 ### Model Recommendation
 
-> **Recommendation: <Address / Defer / Decline>** — <1–2 sentence rationale from Step 4.7>
+> **Recommendation: <Address / Decline>** — <1–2 sentence rationale from Step 4.7>
 >
 > **Score:** test_present: <±N>, pillar_aligned: <±N>, duplicate: <±N>, in_scope: <±N>, severity_high: <±N>, issue_quality: <±N> → **total: <N>** (Address ≥ <thresholds.address>, Decline ≤ <thresholds.decline>)
+
+When `test_present` is `"unverifiable"`, suffix that contribution with the value key in the rendered Score line — e.g. `test_present: +1 (unverifiable)` — so readers can tell it apart from the binary `"yes"` (+2) and `"no"` (-1) cases. The other factors are binary and need no annotation.
 
 ## Proposed Task from Issue #<N>
 
@@ -220,13 +243,13 @@ Open with a **Model Recommendation** block (including the score breakdown from S
 
 Then ask the user to choose, **bolding the option that matches the Model Recommendation**. For a Decline recommendation, replace "confirm" with "proceed anyway" in the prompt:
 
-> Create this task? You can confirm (implement now), defer (add to backlog, no immediate work), edit (e.g., "change priority to High"), decline (close the issue without creating a task), or cancel.
+> Create this task? You can confirm (implement now), edit (e.g., "change priority to High"), decline (close the issue without creating a task), or cancel.
 
 The user retains full veto power — any option may be chosen regardless of the recommendation. Wait for explicit approval before inserting.
 
 ### Shared gh Failure Handling
 
-Referenced by the Decline Path, Defer Path, and Step 9. When a `gh issue close` or `gh issue comment` call fails:
+Referenced by the Decline Path and Step 9. When a `gh issue close` or `gh issue comment` call fails:
 
 1. If the error contains `already in a 'closed'` state, retry the action as `gh issue comment <number> --repo <owner/repo> --body "<same body>"`.
 2. If the retry also fails, or the original error was something else (permissions, locked issue, etc.), surface the manual URL and the message to paste:
@@ -248,29 +271,6 @@ If the user types **decline** (optionally followed by an inline rationale, e.g. 
    - Failure → apply **Shared gh Failure Handling**; on the already-closed retry path, the summary becomes: > Issue #<N> is already closed. Reason recorded: <rationale>. No task created.
 
 3. **Do NOT insert a task.** Stop — do not proceed to Step 6.
-
-### Defer Path
-
-If the user types **defer**:
-
-1. Proceed to Step 6 to deduplicate and insert the task (same insert flow as the implement-now path). Do NOT call `tusk task-start` or create a branch after insertion.
-
-2. After insertion, try to apply the `accepted` label so the decision is visible in the issue list:
-   ```bash
-   gh label list --repo <owner/repo> --json name   # check availability
-   gh issue edit <number> --repo <owner/repo> --add-label "accepted"   # only if label exists
-   ```
-   If the label is missing or either call fails, skip silently — labeling is advisory.
-
-3. Post a comment on the issue:
-   ```bash
-   gh issue comment <number> --repo <owner/repo> --body "Tracked as tusk task #<task_id>. No timeline yet — will be addressed in a future session."
-   ```
-   On failure, apply **Shared gh Failure Handling**.
-
-4. End with: > **Deferred** — tusk task #<task_id> created. Issue #<N> commented (and labeled `accepted` if the label exists). No work started yet.
-
-5. **Do NOT proceed to Step 7.** Stop after the comment.
 
 ## Step 6: Deduplicate and Insert
 
@@ -321,9 +321,7 @@ This criterion will be validated by running the spec as a shell command when `tu
 
 **Exit code 2** — error. Report and stop.
 
-## Step 7: Begin Work (Steps 1–11 Only — implement-now path only)
-
-**Skip this step entirely if the user chose defer.** Only proceed here when the user chose confirm (implement now).
+## Step 7: Begin Work (Steps 1–11 Only)
 
 Immediately invoke the `/tusk` workflow for the newly created task. Follow the "Begin Work on a Task" instructions from the tusk skill:
 

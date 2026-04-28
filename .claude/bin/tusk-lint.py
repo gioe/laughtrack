@@ -327,28 +327,6 @@ def rule6_done_incomplete_criteria(root):
     ]
 
 
-def rule9_deferred_missing_expiry(root):
-    """Deferred tasks (is_deferred=1) with no expires_at set."""
-    db_path = _db_path_from_root(root)
-    if not db_path:
-        return []
-    try:
-        conn = tusk_loader.load("tusk-db-lib").get_connection(db_path)
-        try:
-            rows = conn.execute(
-                "SELECT id, summary FROM tasks"
-                " WHERE is_deferred = 1 AND expires_at IS NULL AND status <> 'Done'"
-                " ORDER BY id"
-            ).fetchall()
-        except sqlite3.OperationalError:
-            return []
-        finally:
-            conn.close()
-    except Exception:
-        return []
-    return [f"  TASK-{row[0]}  {row[1]}" for row in rows]
-
-
 def rule10_criteria_type_mismatch(root):
     """acceptance_criteria with verification_spec set but criterion_type='manual'."""
     db_path = _db_path_from_root(root)
@@ -369,6 +347,107 @@ def rule10_criteria_type_mismatch(root):
     except Exception:
         return []
     return [f"  criterion {row[0]} (task {row[1]}): {row[2]}" for row in rows]
+
+
+def rule25_subcommand_dispatcher_drift(root):
+    """Subcommand drift between dispatcher case, `candidates = [...]`, and Usage message in bin/tusk.
+
+    bin/tusk maintains three parallel lists of subcommand names: the dispatcher
+    `case "${1:-}" in ... esac` block, the `candidates = [...]` Python list used
+    by the "did you mean?" fuzzy matcher, and the Usage message printed in the
+    empty-input case. Rule 8 catches `tusk-*.py` scripts orphaned from the
+    dispatcher; this rule catches the inverse — dispatcher entries missing from
+    `candidates` or Usage, and stale entries present in `candidates`/Usage but
+    no longer wired into the dispatcher.
+    """
+    violations = []
+    tusk_path = os.path.join(root, "bin", "tusk")
+    if not os.path.isfile(tusk_path):
+        return []
+    try:
+        with open(tusk_path, encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return []
+
+    # Locate the dispatch block: `case "${1:-}" in` ... matching `esac`.
+    dispatch_start = None
+    dispatch_end = None
+    for i, line in enumerate(lines):
+        if dispatch_start is None and re.match(r'^case "\$\{1:-\}" in\b', line):
+            dispatch_start = i
+            continue
+        if dispatch_start is not None and re.match(r'^esac\b', line):
+            dispatch_end = i
+            break
+    if dispatch_start is None or dispatch_end is None:
+        return []
+
+    dispatcher_set = set()
+    for line in lines[dispatch_start + 1 : dispatch_end]:
+        m = re.match(r'^  ([a-z][a-z0-9-]*)\)', line)
+        if m:
+            dispatcher_set.add(m.group(1))
+
+    # Locate the candidates list: `candidates = [` ... matching `]`.
+    cand_start = None
+    cand_end = None
+    for i, line in enumerate(lines):
+        if cand_start is None and re.match(r'^\s*candidates\s*=\s*\[', line):
+            cand_start = i
+            continue
+        if cand_start is not None and re.match(r'^\s*\]\s*$', line):
+            cand_end = i
+            break
+    candidates_set = set()
+    if cand_start is not None and cand_end is not None:
+        block = "".join(lines[cand_start : cand_end + 1])
+        for m in re.finditer(r"'([a-z][a-z0-9-]*)'", block):
+            candidates_set.add(m.group(1))
+
+    # Locate the Usage message: the line containing `Usage: tusk {...}`.
+    # If the captured group contains a `$` (shell parameter expansion), the
+    # Usage message is built dynamically from the dispatcher at runtime — the
+    # Usage leg of the drift triangle is structurally eliminated, so skip both
+    # Usage-direction checks (TASK-233).
+    usage_set = set()
+    usage_dynamic = False
+    for line in lines:
+        m = re.search(r'Usage: tusk \{([^}]*)\}', line)
+        if m:
+            if '$' in m.group(1):
+                usage_dynamic = True
+                break
+            for token in m.group(1).split('|'):
+                token = token.strip().strip('\\').strip('"').strip()
+                if re.fullmatch(r'[a-z][a-z0-9-]*', token):
+                    usage_set.add(token)
+            break
+
+    if not dispatcher_set:
+        return []
+
+    for s in sorted(dispatcher_set - candidates_set):
+        violations.append(
+            f"  bin/tusk: subcommand '{s}' in dispatcher but missing from candidates = [...] (fuzzy-match list)"
+        )
+    if not usage_dynamic:
+        for s in sorted(dispatcher_set - usage_set):
+            violations.append(
+                f"  bin/tusk: subcommand '{s}' in dispatcher but missing from Usage message (empty/default case)"
+            )
+    if candidates_set:
+        for s in sorted(candidates_set - dispatcher_set):
+            violations.append(
+                f"  bin/tusk: '{s}' in candidates = [...] but not in dispatcher case statement (stale entry)"
+            )
+    if usage_set:
+        for s in sorted(usage_set - dispatcher_set):
+            violations.append(
+                f"  bin/tusk: '{s}' in Usage message but not in dispatcher case statement (stale entry)"
+            )
+
+    return violations
 
 
 def rule8_orphaned_python_scripts(root):
@@ -568,30 +647,6 @@ def rule12_python_syntax(root):
     return violations
 
 
-def rule14_deferred_prefix_mismatch(root):
-    """Open tasks where is_deferred flag and [Deferred] summary prefix disagree."""
-    db_path = _db_path_from_root(root)
-    if not db_path:
-        return []
-    try:
-        conn = tusk_loader.load("tusk-db-lib").get_connection(db_path)
-        try:
-            rows = conn.execute(
-                "SELECT id, is_deferred, summary FROM tasks "
-                "WHERE status <> 'Done' AND ("
-                "  (summary LIKE '[Deferred]%' AND is_deferred = 0) OR "
-                "  (summary NOT LIKE '[Deferred]%' AND is_deferred = 1)"
-                ") ORDER BY id"
-            ).fetchall()
-        except sqlite3.OperationalError:
-            return []
-        finally:
-            conn.close()
-    except Exception:
-        return []
-    return [f"  TASK-{row[0]}  is_deferred={row[1]}  {row[2]}" for row in rows]
-
-
 def rule15_big_bang_commits(root):
     """In Progress tasks where all completed non-deferred criteria share one commit_hash.
 
@@ -717,11 +772,15 @@ def _version_bump_check(root, path_re, label):
 
 
 def rule13_version_bump_missing(root):
-    """bin/tusk-*.py modified in working tree or recent commits without VERSION bump.
+    """bin/tusk or bin/tusk-*.py modified in working tree or recent commits without VERSION bump.
+
+    The bash dispatcher `bin/tusk` is distributed alongside its Python helpers
+    (copied into `.claude/bin/` on install), so dispatcher-only changes must
+    also bump VERSION or `tusk upgrade`'s local-vs-remote gate goes blind.
 
     Advisory only — violations are printed but do not contribute to the exit code.
     """
-    return _version_bump_check(root, re.compile(r"^bin/tusk-.+\.py$"), "script")
+    return _version_bump_check(root, re.compile(r"^bin/tusk(?:-.+\.py)?$"), "script")
 
 
 def rule20_skills_version_bump_missing(root):
@@ -1121,12 +1180,10 @@ RULES = [
     ("Rule 6: Done with incomplete acceptance criteria", rule6_done_incomplete_criteria, False),
     ("Rule 7: config.default.json keys match KNOWN_KEYS", rule7_config_keys_match_known_keys, False),
     ("Rule 8: Orphaned tusk-*.py scripts (in bin/ but not in dispatcher)", rule8_orphaned_python_scripts, False),
-    ("Rule 9: Deferred tasks missing expires_at", rule9_deferred_missing_expiry, False),
     ("Rule 10: acceptance_criteria with verification_spec but criterion_type='manual'", rule10_criteria_type_mismatch, False),
     ("Rule 11: SKILL.md frontmatter validation", rule11_skill_frontmatter, False),
     ("Rule 12: Python syntax check (py_compile) for bin/tusk-*.py", rule12_python_syntax, False),
-    ("Rule 13: bin/tusk-*.py modified without VERSION bump (advisory)", rule13_version_bump_missing, True),
-    ("Rule 14: is_deferred flag / [Deferred] prefix mismatch (advisory)", rule14_deferred_prefix_mismatch, True),
+    ("Rule 13: bin/tusk or bin/tusk-*.py modified without VERSION bump (advisory)", rule13_version_bump_missing, True),
     ("Rule 15: Big-bang commits (all criteria on one commit) (advisory)", rule15_big_bang_commits, True),
     ("Rule 16: DB-backed blocking lint rules", rule16_db_rules_blocking, False),
     ("Rule 17: DB-backed advisory lint rules (advisory)", rule17_db_rules_advisory, True),
@@ -1137,6 +1194,7 @@ RULES = [
     ("Rule 22: Issue tasks missing a test-type criterion (advisory)", rule22_issue_tasks_missing_test_criterion, True),
     ("Rule 23: CLAUDE.md exceeds line limit (advisory)", rule23_claude_md_size, True),
     ("Rule 24: subprocess.run/check_output/Popen text=True without encoding", rule24_subprocess_encoding, False),
+    ("Rule 25: bin/tusk subcommand drift across dispatcher, candidates list, and Usage message", rule25_subcommand_dispatcher_drift, False),
 ]
 
 # Load project-specific rules from tusk-lint-extra.py if it exists alongside this script.
