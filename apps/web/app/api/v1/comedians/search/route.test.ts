@@ -29,6 +29,7 @@ import {
     RATE_LIMIT_SENTINEL_HEADERS,
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
+import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockGetSearchedComedians = vi.mocked(getSearchedComedians);
@@ -43,9 +44,30 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
 }
 
 const mockSearchResult = {
-    data: [{ id: 1, name: "Taylor Tomlinson", isFavorite: true }],
+    data: [
+        {
+            id: 1,
+            uuid: "comedian-uuid",
+            name: "Taylor Tomlinson",
+            imageUrl: "https://cdn.example.com/taylor.jpg",
+            social_data: {
+                id: 1,
+                instagram_account: "taylortomlinson",
+                instagram_followers: 1000000,
+                tiktok_account: null,
+                tiktok_followers: null,
+                youtube_account: null,
+                youtube_followers: null,
+                website: "https://ttomcomedy.com/",
+                popularity: 0.95,
+                linktree: null,
+            },
+            show_count: 4,
+            isFavorite: true,
+        },
+    ],
     total: 1,
-    filters: [],
+    filters: [{ id: 9, slug: "stand-up", name: "Stand-up", selected: false }],
 };
 
 beforeEach(() => {
@@ -66,6 +88,7 @@ describe("GET /api/v1/comedians/search", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/search", 200, body);
         expect(mockGetSearchedComedians).toHaveBeenCalledWith(
             expect.objectContaining({
                 profileId: "profile-abc",

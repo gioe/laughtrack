@@ -29,6 +29,7 @@ import {
     RATE_LIMIT_SENTINEL_HEADERS,
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
+import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
 
 const mockFindShowById = vi.mocked(findShowById);
 const mockFindRelatedShowsForShow = vi.mocked(findRelatedShowsForShow);
@@ -91,6 +92,7 @@ describe("GET /api/v1/shows/[id]", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expectOpenApiResponse("/shows/{id}", 200, body);
         expect(mockFindShowById).toHaveBeenCalledWith(42);
         expect(mockFindRelatedShowsForShow).toHaveBeenCalledWith(42, 7);
         expect(body.data.club).toEqual({

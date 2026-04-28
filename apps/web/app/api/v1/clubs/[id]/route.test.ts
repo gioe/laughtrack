@@ -33,6 +33,7 @@ import {
     RATE_LIMIT_SENTINEL_HEADERS,
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
+import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
 
 const mockFindUnique = vi.mocked(db.club.findUnique);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
@@ -47,6 +48,26 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/clubs/[id]", () => {
+    it("returns club detail data matching the iOS OpenAPI contract", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 7,
+            name: "Comedy Cellar",
+            website: "https://www.comedycellar.com/",
+            address: "117 Macdougal St",
+            zipCode: "10012",
+            phoneNumber: "212-254-3480",
+            hasImage: true,
+        } as any);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "7" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expectOpenApiResponse("/clubs/{id}", 200, body);
+    });
+
     it("returns 500 with rate-limit headers when the detail lookup fails unexpectedly", async () => {
         mockFindUnique.mockRejectedValue(new Error("DB unavailable"));
 

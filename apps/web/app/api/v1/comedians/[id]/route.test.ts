@@ -33,6 +33,7 @@ import {
     RATE_LIMIT_SENTINEL_HEADERS,
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
+import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
 
 const mockFindUnique = vi.mocked(db.comedian.findUnique);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
@@ -82,11 +83,31 @@ describe("GET /api/v1/comedians/[id]", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/{id}", 200, body);
         expect(body.data.social_data).toMatchObject({
             id: 226475,
             website: "https://marcusdwiley.com/",
             popularity: 0.6,
         });
+    });
+
+    it("fails the OpenAPI contract when required social data id is omitted", async () => {
+        const body = {
+            data: {
+                id: 226475,
+                uuid: "comedian-uuid",
+                name: "Marcus D. Wiley",
+                imageUrl: "https://cdn.example.com/Marcus D. Wiley.jpg",
+                social_data: {
+                    website: "https://marcusdwiley.com/",
+                    popularity: 0.6,
+                },
+            },
+        };
+
+        expect(() => {
+            expectOpenApiResponse("/comedians/{id}", 200, body);
+        }).toThrow("$.data.social_data.id is required");
     });
 
     it("returns 500 with rate-limit headers when the detail lookup fails unexpectedly", async () => {
