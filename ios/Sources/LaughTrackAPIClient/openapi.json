@@ -548,6 +548,7 @@
         "operationId": "searchComedians",
         "summary": "Search comedians with filters and pagination",
         "tags": ["comedians"],
+        "security": [{ "bearerAuth": [] }, {}],
         "parameters": [
           {
             "name": "comedian",

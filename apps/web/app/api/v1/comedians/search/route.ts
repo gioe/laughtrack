@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
-import { auth } from "@/auth";
+import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { UserRole } from "@/objects/enum/userRole";
 
 export async function GET(req: NextRequest) {
@@ -27,10 +27,9 @@ export async function GET(req: NextRequest) {
     const timezone = tzResult.timezone;
 
     try {
-        const session = await auth();
-        const profileId = session?.profile?.id;
-        const userId = session?.profile?.userid;
-        const isAdmin = session?.profile?.role === UserRole.Admin;
+        const rawAuthCtx = await resolveAuth(req);
+        const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
+        const isAdmin = authCtx?.role === UserRole.Admin;
 
         const result = await getSearchedComedians({
             params: {
@@ -46,7 +45,9 @@ export async function GET(req: NextRequest) {
                 size,
             },
             timezone,
-            ...(profileId ? { profileId, userId } : {}),
+            ...(authCtx
+                ? { profileId: authCtx.profileId, userId: authCtx.userId }
+                : {}),
             isAdmin,
         });
 

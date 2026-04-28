@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 export interface AuthContext {
     profileId: string;
     userId: string;
+    role?: string;
 }
 
 /** Sentinel returned when the user IS authenticated but has no UserProfile row. */
@@ -27,11 +28,18 @@ export async function resolveAuth(
             const decoded = verifyToken(authHeader.slice(7));
             const user = await db.user.findUnique({
                 where: { email: decoded.email },
-                select: { id: true, profile: { select: { id: true } } },
+                select: {
+                    id: true,
+                    profile: { select: { id: true, role: true } },
+                },
             });
             if (!user) return null;
             if (!user.profile?.id) return PROFILE_MISSING;
-            return { profileId: user.profile.id, userId: user.id };
+            return {
+                profileId: user.profile.id,
+                userId: user.id,
+                role: user.profile.role,
+            };
         } catch (error) {
             console.warn(
                 "Bearer token auth failed:",
@@ -45,5 +53,9 @@ export async function resolveAuth(
     if (!session) return null;
     if (!session.profile?.id || !session.profile?.userid)
         return PROFILE_MISSING;
-    return { profileId: session.profile.id, userId: session.profile.userid };
+    return {
+        profileId: session.profile.id,
+        userId: session.profile.userid,
+        role: session.profile.role,
+    };
 }
