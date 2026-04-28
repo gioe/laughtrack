@@ -2,13 +2,14 @@
 
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
-import ShowCard from "@/ui/components/cards/show";
+import ShowCard, { ShowCardContext } from "@/ui/components/cards/show";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface PastShowsSectionProps {
     shows?: ShowDTO[];
     total?: number;
     comedianName: string;
+    showCardContext?: ShowCardContext;
 }
 
 const PAGE_SIZE = 20;
@@ -17,6 +18,7 @@ const PastShowsSection = ({
     shows = [],
     total = 0,
     comedianName,
+    showCardContext,
 }: PastShowsSectionProps) => {
     const {
         data,
@@ -58,7 +60,12 @@ const PastShowsSection = ({
             >
                 <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
                     {data.map((show) => (
-                        <ShowCard key={show.id} show={show} variant="past" />
+                        <ShowCard
+                            key={show.id}
+                            show={show}
+                            variant="past"
+                            context={showCardContext}
+                        />
                     ))}
                 </div>
             </SearchClientShell>

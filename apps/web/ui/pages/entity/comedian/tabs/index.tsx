@@ -94,7 +94,7 @@ const ComedianDetailTabs = ({
                         total={total}
                         filterData={filters}
                     />
-                    <ShowTable shows={shows} />
+                    <ShowTable shows={shows} cardContext="comedian-detail" />
                 </div>
             </div>
 
@@ -106,7 +106,10 @@ const ComedianDetailTabs = ({
                     hidden={activeTab !== "past"}
                     className={panelClasses}
                 >
-                    <PastShowsSection comedianName={comedianName} />
+                    <PastShowsSection
+                        comedianName={comedianName}
+                        showCardContext="comedian-detail"
+                    />
                 </div>
             )}
 

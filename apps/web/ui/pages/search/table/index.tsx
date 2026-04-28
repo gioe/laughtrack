@@ -1,5 +1,5 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import ShowCard from "@/ui/components/cards/show";
+import ShowCard, { ShowCardContext } from "@/ui/components/cards/show";
 import EmptyState from "@/ui/components/emptyState";
 import { Calendar, MapPin, Ticket } from "lucide-react";
 import { ReactNode } from "react";
@@ -9,6 +9,7 @@ interface ShowTableProps {
     errorMessage?: string;
     hideClubName?: boolean;
     emptyAction?: ReactNode;
+    cardContext?: ShowCardContext;
 }
 
 const ShowTable = ({
@@ -16,6 +17,7 @@ const ShowTable = ({
     errorMessage = "Try updating your search or check back later",
     hideClubName,
     emptyAction,
+    cardContext,
 }: ShowTableProps) => {
     return (
         <section className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10 px-4 sm:px-6 md:px-8 mb-10">
@@ -26,6 +28,7 @@ const ShowTable = ({
                             key={show.id}
                             show={show}
                             hideClubName={hideClubName}
+                            context={cardContext}
                         />
                     );
                 })

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/ui/components/ui/button";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
@@ -30,17 +31,28 @@ import { formatShowDate } from "@/util/dateUtil";
 // is not justified for this UX improvement given that the suppress-on-return behavior
 // is acceptable and consistent with common list animation patterns.
 const seenShowIds = new Set<number>();
+const CLUB_PLACEHOLDER = "/placeholders/club-placeholder.svg";
+const ARTWORK_PLACEHOLDER_THEMES = [
+    "radial-gradient(circle at 20% 20%, rgba(246,205,166,0.36), transparent 28%), linear-gradient(135deg, #2f3a34 0%, #704932 55%, #c17f53 100%)",
+    "radial-gradient(circle at 78% 18%, rgba(255,244,214,0.3), transparent 30%), linear-gradient(135deg, #5a2430 0%, #8b5f3d 52%, #d39a64 100%)",
+    "radial-gradient(circle at 28% 74%, rgba(244,191,111,0.32), transparent 28%), linear-gradient(135deg, #263f48 0%, #79543f 58%, #d08a55 100%)",
+    "radial-gradient(circle at 72% 70%, rgba(255,225,184,0.34), transparent 30%), linear-gradient(135deg, #3c3145 0%, #76503f 54%, #ba724c 100%)",
+];
+
+export type ShowCardContext = "default" | "comedian-detail";
 
 interface ShowCardProps {
     show: ShowDTO;
     hideClubName?: boolean;
     variant?: "default" | "past";
+    context?: ShowCardContext;
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({
     show,
     hideClubName,
     variant = "default",
+    context = "default",
 }: ShowCardProps) => {
     const distanceMiles = show.distanceMiles ?? null;
     const parsedShow = new Show(show);
@@ -62,6 +74,12 @@ const ShowCard: React.FC<ShowCardProps> = ({
     const ticketLabel = stillOnSale
         ? `Get tickets for ${showDescriptor}`
         : `${showDescriptor} is sold out`;
+    const renderVisualPanel = () =>
+        context === "comedian-detail" ? (
+            <ShowCardArtwork show={parsedShow} />
+        ) : (
+            <LineupGrid lineup={parsedShow.lineup} />
+        );
 
     return (
         <EntityCard
@@ -155,16 +173,62 @@ const ShowCard: React.FC<ShowCardProps> = ({
                     <div className="lg:hidden relative z-[2]">
                         <Divider />
                         <div className="pt-2 sm:pt-4">
-                            <LineupGrid lineup={parsedShow.lineup} />
+                            {renderVisualPanel()}
                         </div>
                     </div>
                 </div>
 
                 <div className="hidden lg:block lg:w-[65%] relative z-[2]">
-                    <LineupGrid lineup={parsedShow.lineup} />
+                    {renderVisualPanel()}
                 </div>
             </div>
         </EntityCard>
+    );
+};
+
+const ShowCardArtwork = ({ show }: { show: Show }) => {
+    const [imageError, setImageError] = useState(false);
+    const hasArtwork = !!show.imageUrl && show.imageUrl !== CLUB_PLACEHOLDER;
+    const showImage = hasArtwork && !imageError;
+    const formattedDate = formatShowDate(show.date.toString(), show.timezone);
+    const altText = show.clubName
+        ? `${show.clubName} venue artwork`
+        : "Comedy venue artwork";
+    const dateForTheme = new Date(show.date);
+    const placeholderTheme =
+        ARTWORK_PLACEHOLDER_THEMES[
+            Math.abs(show.id + dateForTheme.getUTCDate()) %
+                ARTWORK_PLACEHOLDER_THEMES.length
+        ];
+
+    return (
+        <div className="pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/10 bg-cedar text-coconut-cream shadow-inner sm:min-h-[220px] lg:min-h-[248px]">
+            {showImage ? (
+                <Image
+                    src={show.imageUrl}
+                    onError={() => setImageError(true)}
+                    alt={altText}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1199px) 100vw, 65vw"
+                />
+            ) : (
+                <div
+                    aria-label={altText}
+                    className="absolute inset-0"
+                    role="img"
+                    style={{ background: placeholderTheme }}
+                />
+            )}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-cedar/85 via-cedar/45 to-transparent p-4 sm:p-5">
+                <p className="font-dmSans text-sm font-semibold uppercase tracking-[0.12em] text-coconut-cream/80">
+                    {formattedDate}
+                </p>
+                <p className="mt-1 font-gilroy-bold text-xl font-bold text-white sm:text-2xl">
+                    {show.clubName ?? "Comedy show"}
+                </p>
+            </div>
+        </div>
     );
 };
 
