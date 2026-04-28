@@ -26,14 +26,14 @@ export async function GET(req: NextRequest) {
     if (from && (!ISO_DATE_RE.test(from) || isNaN(new Date(from).getTime()))) {
         return NextResponse.json(
             { error: "from must be a valid date in YYYY-MM-DD format" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
     if (to && (!ISO_DATE_RE.test(to) || isNaN(new Date(to).getTime()))) {
         return NextResponse.json(
             { error: "to must be a valid date in YYYY-MM-DD format" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         if (isNaN(distanceNum) || distanceNum < 1 || distanceNum > 500) {
             return NextResponse.json(
                 { error: "distance must be a number between 1 and 500 miles" },
-                { status: 400 },
+                { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
     }
