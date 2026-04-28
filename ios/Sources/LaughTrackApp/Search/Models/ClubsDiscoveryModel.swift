@@ -102,6 +102,8 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                             total: response.total
                         )
                     )
+                case .badRequest(let badRequest):
+                    return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those club filters."))
                 case .tooManyRequests(let tooManyRequests):
                     let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
                     return .failure(.rateLimited(retryAfter: retryAfter, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now."))

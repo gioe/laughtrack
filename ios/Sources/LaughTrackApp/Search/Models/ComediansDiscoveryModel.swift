@@ -98,6 +98,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                             total: response.total
                         )
                     )
+                case .badRequest(let badRequest):
+                    return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those comedian filters."))
                 case .tooManyRequests(let tooManyRequests):
                     let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
                     return .failure(.rateLimited(retryAfter: retryAfter, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting comedian results right now."))

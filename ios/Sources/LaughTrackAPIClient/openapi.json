@@ -401,6 +401,14 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid X-Timezone header (non-IANA value)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
           "429": {
             "description": "Rate limit exceeded",
             "headers": {
@@ -588,6 +596,14 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ComedianSearchResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid X-Timezone header (non-IANA value)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
               }
             }
           },
