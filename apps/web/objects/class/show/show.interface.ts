@@ -22,6 +22,8 @@ export interface ShowInterface extends Entity, SocialDiscoverable {
 export interface ShowDTO {
     id: number;
     clubName?: string;
+    clubCity?: string | null;
+    clubState?: string | null;
     date: Date;
     tickets?: TicketDTO[];
     name: string | null;

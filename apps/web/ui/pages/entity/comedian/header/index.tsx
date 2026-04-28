@@ -23,6 +23,43 @@ const compactNumber = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 1,
 });
 
+interface HeaderStat {
+    kind: "shows" | "followers";
+    value: number;
+    label: string;
+}
+
+function getUpcomingCityCount(comedian: ComedianDTO) {
+    const cities = new Set(
+        (comedian.dates ?? [])
+            .map((show) => {
+                const city = show.clubCity?.trim();
+                if (!city) return null;
+                const state = show.clubState?.trim();
+                return state ? `${city}, ${state}` : city;
+            })
+            .filter(Boolean),
+    );
+
+    return cities.size;
+}
+
+function formatUpcomingShowsStat(showCount: number, cityCount: number) {
+    const showText = `${showCount.toLocaleString()} upcoming ${
+        showCount === 1 ? "show" : "shows"
+    }`;
+
+    if (cityCount === 0) return showText;
+
+    return `${showText} in ${cityCount.toLocaleString()} ${
+        cityCount === 1 ? "city" : "cities"
+    }`;
+}
+
+function formatFollowerStat(totalFollowers: number) {
+    return `${compactNumber.format(totalFollowers)} social followers`;
+}
+
 const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
 }) => {
@@ -66,6 +103,38 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         (social?.instagram.following ?? 0) +
         (social?.tiktok.following ?? 0) +
         (social?.youtube.following ?? 0);
+
+    const upcomingCityCount = getUpcomingCityCount(comedian);
+    const stats: HeaderStat[] = [
+        ...(comedian.show_count > 0
+            ? [
+                  {
+                      kind: "shows" as const,
+                      value: comedian.show_count,
+                      label: formatUpcomingShowsStat(
+                          comedian.show_count,
+                          upcomingCityCount,
+                      ),
+                  },
+              ]
+            : []),
+        ...(totalFollowers > 0
+            ? [
+                  {
+                      kind: "followers" as const,
+                      value: totalFollowers,
+                      label: formatFollowerStat(totalFollowers),
+                  },
+              ]
+            : []),
+    ];
+    const signatureStat = stats.reduce<HeaderStat | null>(
+        (best, stat) => (!best || stat.value > best.value ? stat : best),
+        null,
+    );
+    const secondaryStats = stats.filter(
+        (stat) => stat.kind !== signatureStat?.kind,
+    );
 
     const socialLinks = useMemo(() => {
         const stripAt = (s: string | null | undefined) =>
@@ -216,40 +285,49 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                             {parsedComedian.name}
                         </motion.h1>
 
-                        {/* Stats chips */}
-                        {(comedian.show_count > 0 || totalFollowers > 0) && (
-                            <motion.ul
+                        {signatureStat && (
+                            <motion.p
                                 initial={{ opacity: 0, y: mv(10) }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={mt({
                                     duration: 0.3,
                                     delay: mv(0.1),
                                 })}
-                                className="mt-3 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
+                                className="mt-3 text-lead font-dmSans text-white/70"
                             >
-                                {comedian.show_count > 0 && (
-                                    <li className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 text-caption font-dmSans text-white">
-                                        <Calendar
-                                            className="w-3.5 h-3.5"
-                                            aria-hidden="true"
-                                        />
-                                        {comedian.show_count.toLocaleString()}{" "}
-                                        upcoming{" "}
-                                        {comedian.show_count === 1
-                                            ? "show"
-                                            : "shows"}
-                                    </li>
-                                )}
-                                {totalFollowers > 0 && (
-                                    <li className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 text-caption font-dmSans text-white">
-                                        <Users
-                                            className="w-3.5 h-3.5"
-                                            aria-hidden="true"
-                                        />
-                                        {compactNumber.format(totalFollowers)}{" "}
-                                        followers
-                                    </li>
-                                )}
+                                {signatureStat.label}
+                            </motion.p>
+                        )}
+
+                        {secondaryStats.length > 0 && (
+                            <motion.ul
+                                initial={{ opacity: 0, y: mv(10) }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={mt({
+                                    duration: 0.3,
+                                    delay: mv(0.12),
+                                })}
+                                className="mt-2 flex flex-wrap justify-center md:justify-start lg:justify-start gap-x-4 gap-y-1 text-caption font-dmSans text-white/55"
+                            >
+                                {secondaryStats.map((stat) => {
+                                    const Icon =
+                                        stat.kind === "shows"
+                                            ? Calendar
+                                            : Users;
+
+                                    return (
+                                        <li
+                                            key={stat.kind}
+                                            className="inline-flex items-center gap-1.5"
+                                        >
+                                            <Icon
+                                                className="w-3.5 h-3.5"
+                                                aria-hidden="true"
+                                            />
+                                            {stat.label}
+                                        </li>
+                                    );
+                                })}
                             </motion.ul>
                         )}
 

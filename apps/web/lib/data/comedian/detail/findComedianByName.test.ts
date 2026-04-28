@@ -53,7 +53,19 @@ function makeComedianRow(
         websiteScrapingUrl: string | null;
         websiteConfidence: string | null;
         websiteScrapingUrlConfidence: string | null;
-        lineupItems: { id: number }[];
+        lineupItems: {
+            id: number;
+            show: {
+                id: number;
+                date: Date;
+                name: string | null;
+                club: {
+                    name: string;
+                    city: string | null;
+                    state: string | null;
+                };
+            };
+        }[];
         favoriteComedians: { id: number }[];
     }> = {},
 ) {
@@ -83,7 +95,47 @@ function makeComedianRow(
         websiteScrapingUrl: null,
         websiteConfidence: null,
         websiteScrapingUrlConfidence: null,
-        lineupItems: [{ id: 10 }, { id: 11 }, { id: 12 }],
+        lineupItems: [
+            {
+                id: 10,
+                show: {
+                    id: 101,
+                    date: new Date("2026-05-01T20:00:00.000Z"),
+                    name: "Friday Night",
+                    club: {
+                        name: "Comedy Club",
+                        city: "Austin",
+                        state: "TX",
+                    },
+                },
+            },
+            {
+                id: 11,
+                show: {
+                    id: 102,
+                    date: new Date("2026-05-02T20:00:00.000Z"),
+                    name: null,
+                    club: {
+                        name: "Laugh Room",
+                        city: "Dallas",
+                        state: "TX",
+                    },
+                },
+            },
+            {
+                id: 12,
+                show: {
+                    id: 103,
+                    date: new Date("2026-05-03T20:00:00.000Z"),
+                    name: "Late Show",
+                    club: {
+                        name: "Comedy Club",
+                        city: "Austin",
+                        state: "TX",
+                    },
+                },
+            },
+        ],
         favoriteComedians: [],
         ...overrides,
     };
@@ -98,11 +150,33 @@ describe("findComedianByName", () => {
         it("equals lineupItems.length from the mocked Prisma response", async () => {
             const row = makeComedianRow({
                 lineupItems: [
-                    { id: 1 },
-                    { id: 2 },
-                    { id: 3 },
-                    { id: 4 },
-                    { id: 5 },
+                    ...makeComedianRow().lineupItems,
+                    {
+                        id: 4,
+                        show: {
+                            id: 104,
+                            date: new Date("2026-05-04T20:00:00.000Z"),
+                            name: "Fourth Show",
+                            club: {
+                                name: "Fourth Club",
+                                city: "Houston",
+                                state: "TX",
+                            },
+                        },
+                    },
+                    {
+                        id: 5,
+                        show: {
+                            id: 105,
+                            date: new Date("2026-05-05T20:00:00.000Z"),
+                            name: "Fifth Show",
+                            club: {
+                                name: "Fifth Club",
+                                city: "San Antonio",
+                                state: "TX",
+                            },
+                        },
+                    },
                 ],
             });
             mockFindFirst.mockResolvedValue(row);
@@ -119,6 +193,43 @@ describe("findComedianByName", () => {
             const result = await findComedianByName(makeHelper());
 
             expect(result.show_count).toBe(0);
+        });
+
+        it("maps upcoming show city data into dates for header city counts", async () => {
+            const row = makeComedianRow();
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.dates).toEqual([
+                {
+                    id: 101,
+                    date: new Date("2026-05-01T20:00:00.000Z"),
+                    name: "Friday Night",
+                    clubName: "Comedy Club",
+                    clubCity: "Austin",
+                    clubState: "TX",
+                    imageUrl: "https://cdn.example.com/Alice Smith.png",
+                },
+                {
+                    id: 102,
+                    date: new Date("2026-05-02T20:00:00.000Z"),
+                    name: null,
+                    clubName: "Laugh Room",
+                    clubCity: "Dallas",
+                    clubState: "TX",
+                    imageUrl: "https://cdn.example.com/Alice Smith.png",
+                },
+                {
+                    id: 103,
+                    date: new Date("2026-05-03T20:00:00.000Z"),
+                    name: "Late Show",
+                    clubName: "Comedy Club",
+                    clubCity: "Austin",
+                    clubState: "TX",
+                    imageUrl: "https://cdn.example.com/Alice Smith.png",
+                },
+            ]);
         });
     });
 

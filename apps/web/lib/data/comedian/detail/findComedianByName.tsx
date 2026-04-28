@@ -24,6 +24,20 @@ function buildComedianSelect() {
         lineupItems: {
             select: {
                 id: true,
+                show: {
+                    select: {
+                        id: true,
+                        date: true,
+                        name: true,
+                        club: {
+                            select: {
+                                name: true,
+                                city: true,
+                                state: true,
+                            },
+                        },
+                    },
+                },
             },
             where: {
                 show: {
@@ -84,6 +98,18 @@ export async function findComedianByName(
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
             show_count: comedianData.lineupItems.length,
+            dates: comedianData.lineupItems.map((item) => ({
+                id: item.show.id,
+                date: item.show.date,
+                name: item.show.name,
+                clubName: item.show.club.name,
+                clubCity: item.show.club.city,
+                clubState: item.show.club.state,
+                imageUrl: buildComedianImageUrl(
+                    comedianData.name,
+                    comedianData.hasImage,
+                ),
+            })),
             bio: comedianData.bio,
             social_data: {
                 id: comedianData.id,
