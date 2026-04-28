@@ -38,6 +38,12 @@ export function readTimezoneHeader(req: NextRequest): ReadTimezoneResult {
     const raw = req.headers.get(HEADER_NAME);
     if (raw === null) return { ok: true, timezone: DEFAULT_TIMEZONE };
     if (!isValidTimezone(raw)) {
+        // Pre-TASK-1829 a malformed value silently fell through to an empty list,
+        // so a sudden spike of 400s on these routes would read as a mystery
+        // regression. Log so an operator can attribute it to the offending client.
+        console.warn(
+            `[timezoneHeader] Rejecting invalid ${HEADER_NAME} header: ${JSON.stringify(raw)}`,
+        );
         return {
             ok: false,
             error: `${HEADER_NAME} must be a valid IANA timezone identifier (e.g. America/New_York)`,
