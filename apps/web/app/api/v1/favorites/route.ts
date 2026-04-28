@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const favoriteComedianSelect = {
     id: true,
@@ -25,6 +26,9 @@ const favoriteComedianSelect = {
 } as const;
 
 export async function GET(req: NextRequest) {
+    const rl = await applyPublicReadRateLimit(req, "favorites");
+    if (rl instanceof NextResponse) return rl;
+
     try {
         const authCtx = await resolveAuth(req);
         if (authCtx === PROFILE_MISSING) {
@@ -32,13 +36,13 @@ export async function GET(req: NextRequest) {
                 {
                     error: "User profile not found. Please sign out and sign in again.",
                 },
-                { status: 422 },
+                { status: 422, headers: rateLimitHeaders(rl) },
             );
         }
         if (!authCtx) {
             return NextResponse.json(
                 { error: "Authentication required" },
-                { status: 401 },
+                { status: 401, headers: rateLimitHeaders(rl) },
             );
         }
 
@@ -52,41 +56,47 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        return NextResponse.json({
-            data: favorites.map(({ comedian }) => ({
-                id: comedian.id,
-                uuid: comedian.uuid,
-                name: comedian.name,
-                imageUrl: buildComedianImageUrl(
-                    comedian.name,
-                    comedian.hasImage,
-                ),
-                social_data: {
+        return NextResponse.json(
+            {
+                data: favorites.map(({ comedian }) => ({
                     id: comedian.id,
-                    instagram_account: comedian.instagramAccount,
-                    instagram_followers: comedian.instagramFollowers,
-                    tiktok_account: comedian.tiktokAccount,
-                    tiktok_followers: comedian.tiktokFollowers,
-                    youtube_account: comedian.youtubeAccount,
-                    youtube_followers: comedian.youtubeFollowers,
-                    website: comedian.website,
-                    popularity: comedian.popularity,
-                    linktree: comedian.linktree,
-                },
-                show_count: comedian._count.lineupItems,
-                isFavorite: true,
-            })),
-        });
+                    uuid: comedian.uuid,
+                    name: comedian.name,
+                    imageUrl: buildComedianImageUrl(
+                        comedian.name,
+                        comedian.hasImage,
+                    ),
+                    social_data: {
+                        id: comedian.id,
+                        instagram_account: comedian.instagramAccount,
+                        instagram_followers: comedian.instagramFollowers,
+                        tiktok_account: comedian.tiktokAccount,
+                        tiktok_followers: comedian.tiktokFollowers,
+                        youtube_account: comedian.youtubeAccount,
+                        youtube_followers: comedian.youtubeFollowers,
+                        website: comedian.website,
+                        popularity: comedian.popularity,
+                        linktree: comedian.linktree,
+                    },
+                    show_count: comedian._count.lineupItems,
+                    isFavorite: true,
+                })),
+            },
+            { headers: rateLimitHeaders(rl) },
+        );
     } catch (error) {
         console.error("GET /api/v1/favorites error:", error);
         return NextResponse.json(
             { error: "Failed to fetch favorites" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }
 
 export async function POST(req: NextRequest) {
+    const rl = await applyPublicReadRateLimit(req, "favorites");
+    if (rl instanceof NextResponse) return rl;
+
     try {
         const authCtx = await resolveAuth(req);
         if (authCtx === PROFILE_MISSING) {
@@ -94,11 +104,14 @@ export async function POST(req: NextRequest) {
                 {
                     error: "User profile not found. Please sign out and sign in again.",
                 },
-                { status: 422 },
+                { status: 422, headers: rateLimitHeaders(rl) },
             );
         }
         if (!authCtx) {
-            return new NextResponse(null, { status: 401 });
+            return new NextResponse(null, {
+                status: 401,
+                headers: rateLimitHeaders(rl),
+            });
         }
         const { profileId } = authCtx;
 
@@ -108,14 +121,14 @@ export async function POST(req: NextRequest) {
         } catch {
             return NextResponse.json(
                 { error: "Invalid request body" },
-                { status: 400 },
+                { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
         const comedianId = (body as Record<string, unknown>)?.comedianId;
         if (!comedianId || typeof comedianId !== "string") {
             return NextResponse.json(
                 { error: "comedianId is required" },
-                { status: 400 },
+                { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
 
@@ -126,7 +139,7 @@ export async function POST(req: NextRequest) {
         if (!comedian) {
             return NextResponse.json(
                 { error: "Comedian not found" },
-                { status: 404 },
+                { status: 404, headers: rateLimitHeaders(rl) },
             );
         }
 
@@ -136,12 +149,15 @@ export async function POST(req: NextRequest) {
             update: {},
         });
 
-        return NextResponse.json({ data: { isFavorited: true } });
+        return NextResponse.json(
+            { data: { isFavorited: true } },
+            { headers: rateLimitHeaders(rl) },
+        );
     } catch (error) {
         console.error("POST /api/v1/favorites error:", error);
         return NextResponse.json(
             { error: "Failed to add favorite" },
-            { status: 500 },
+            { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
 }

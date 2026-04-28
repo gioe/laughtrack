@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 vi.mock("@/lib/auth/resolveAuth", () => ({
     resolveAuth: vi.fn(),
@@ -21,13 +21,27 @@ vi.mock("@prisma/client", () => ({
         },
     },
 }));
+vi.mock("@/lib/rateLimit", () => ({
+    applyPublicReadRateLimit: vi.fn(() =>
+        Promise.resolve({
+            allowed: true,
+            limit: 60,
+            remaining: 59,
+            resetAt: 0,
+        }),
+    ),
+    rateLimitHeaders: vi.fn(() => ({ "X-RateLimit-Remaining": "42" })),
+}));
 
 import { DELETE } from "./route";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { db } from "@/lib/db";
+import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockDelete = vi.mocked(db.favoriteComedian.delete);
+const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
+const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 
 function makeRequest(
     comedianId = "comedian-uuid-1",
@@ -44,6 +58,36 @@ beforeEach(() => {
 });
 
 describe("DELETE /api/v1/favorites/[comedianId]", () => {
+    it('invokes applyPublicReadRateLimit with the "favorites" route prefix', async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockDelete.mockResolvedValue({} as any);
+
+        const [req, ctx] = makeRequest();
+        await DELETE(req, ctx);
+
+        expect(mockApplyPublicReadRateLimit).toHaveBeenCalledWith(
+            expect.any(NextRequest),
+            "favorites",
+        );
+    });
+
+    it("returns the helper's NextResponse when the rate limit is exceeded", async () => {
+        const fakeResponse = NextResponse.json(
+            { error: "Too Many Requests" },
+            { status: 429 },
+        );
+        mockApplyPublicReadRateLimit.mockResolvedValueOnce(fakeResponse);
+
+        const [req, ctx] = makeRequest();
+        const res = await DELETE(req, ctx);
+
+        expect(res).toBe(fakeResponse);
+        expect(mockResolveAuth).not.toHaveBeenCalled();
+    });
+
     it("returns 422 when resolveAuth returns PROFILE_MISSING", async () => {
         mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
 
@@ -53,6 +97,8 @@ describe("DELETE /api/v1/favorites/[comedianId]", () => {
 
         expect(res.status).toBe(422);
         expect(body.error).toMatch(/profile not found/i);
+        expect(mockRateLimitHeaders).toHaveBeenCalled();
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
     });
 
     it("returns 401 when resolveAuth returns null", async () => {
@@ -76,6 +122,7 @@ describe("DELETE /api/v1/favorites/[comedianId]", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         expect(body).toEqual({ data: { isFavorited: false } });
     });
 });
