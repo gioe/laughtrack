@@ -123,6 +123,7 @@ export default async function HomePage() {
                 city={heroContext.city}
                 state={heroContext.state}
                 heroShows={heroShows}
+                hasLocalShows={hasLocalShows}
             />
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />

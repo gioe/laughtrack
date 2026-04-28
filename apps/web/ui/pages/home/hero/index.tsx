@@ -15,6 +15,7 @@ interface HeroComponentProps {
     city?: string | null;
     state?: string | null;
     heroShows?: ShowDTO[];
+    hasLocalShows?: boolean;
 }
 
 function buildHeadline(city: string | null, state: string | null): string {
@@ -95,8 +96,8 @@ const HeroComponent = ({
     city = null,
     state = null,
     heroShows = [],
+    hasLocalShows = false,
 }: HeroComponentProps) => {
-    const hasLocalShows = heroShows.length > 0;
     const headline = buildHeadline(city, state);
     const subtitle = buildSubtitle(city, hasLocalShows);
 
