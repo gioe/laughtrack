@@ -16,6 +16,24 @@ struct EntityDataFlowTests {
         #expect(EntityNavigationTarget.club(9).route == .clubDetail(9))
     }
 
+    @Test("home trending comedians keeps no-photo entries behind ten photo-backed entries")
+    func homeTrendingComediansPrioritizesPhotoBackedEntries() {
+        let comedians = makeTrendingComedians(photoCount: 10, includesNoPhoto: true)
+        let railItems = HomeTrendingComediansModel.railItems(from: comedians)
+
+        #expect(railItems.prefix(10).allSatisfy { !$0.imageUrl.isEmpty })
+        #expect(railItems[10].imageUrl.isEmpty)
+    }
+
+    @Test("home trending comedians with fewer than ten photos hides no-photo entries")
+    func homeTrendingComediansHidesNoPhotoEntriesBeforeFirstPageIsFull() {
+        let comedians = makeTrendingComedians(photoCount: 9, includesNoPhoto: true)
+        let railItems = HomeTrendingComediansModel.railItems(from: comedians)
+
+        #expect(railItems.count == 9)
+        #expect(railItems.allSatisfy { !$0.imageUrl.isEmpty })
+    }
+
     @Test("search model standardizes reload and load more pagination")
     func searchModelReloadAndLoadMore() async {
         let model = EntitySearchModel<String, Int>()
@@ -202,6 +220,57 @@ struct EntityDataFlowTests {
             Issue.record("Expected detail model to hold onto its first loaded value")
         }
     }
+}
+
+private func makeTrendingComedians(
+    photoCount: Int,
+    includesNoPhoto: Bool
+) -> [Components.Schemas.ComedianListItem] {
+    let photoBacked = (1...photoCount).map { index in
+        Components.Schemas.ComedianListItem(
+            id: 1000 + index,
+            uuid: "trending-comedian-\(index)",
+            name: "Comic \(index)",
+            imageUrl: "https://example.com/comic-\(index).jpg",
+            socialData: .init(
+                id: 2000 + index,
+                instagramAccount: nil,
+                instagramFollowers: nil,
+                tiktokAccount: nil,
+                tiktokFollowers: nil,
+                youtubeAccount: nil,
+                youtubeFollowers: nil,
+                website: nil,
+                popularity: nil,
+                linktree: nil
+            ),
+            showCount: 11 - index
+        )
+    }
+
+    guard includesNoPhoto else { return photoBacked }
+
+    return photoBacked + [
+        .init(
+            id: 2001,
+            uuid: "trending-comedian-no-photo",
+            name: "No Photo Comic",
+            imageUrl: "",
+            socialData: .init(
+                id: 3001,
+                instagramAccount: nil,
+                instagramFollowers: nil,
+                tiktokAccount: nil,
+                tiktokFollowers: nil,
+                youtubeAccount: nil,
+                youtubeFollowers: nil,
+                website: nil,
+                popularity: nil,
+                linktree: nil
+            ),
+            showCount: 3
+        )
+    ]
 }
 
 private struct StubRateLimitedShowTransport: ClientTransport {
