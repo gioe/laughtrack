@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
         if (!Number.isInteger(offset) || offset < 0) {
             return NextResponse.json(
                 { error: "offset must be a non-negative integer" },
-                { status: 400 },
+                { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
         const clubs = await getClubs(limit, offset);
