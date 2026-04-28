@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { readTimezoneHeader } from "@/util/timezoneHeader";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import {
     findPastShowsForComedian,
@@ -49,7 +50,14 @@ export async function GET(req: NextRequest) {
         size = Math.min(MAX_PAGE_SIZE, parsed);
     }
 
-    const timezone = req.headers.get("X-Timezone") ?? "UTC";
+    const tzResult = readTimezoneHeader(req);
+    if (!tzResult.ok) {
+        return NextResponse.json(
+            { error: tzResult.error },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+    const timezone = tzResult.timezone;
 
     try {
         const rawAuthCtx = await resolveAuth(req);

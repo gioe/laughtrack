@@ -9,6 +9,7 @@ import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWe
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { readTimezoneHeader } from "@/util/timezoneHeader";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
@@ -35,7 +36,14 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const timezone = req.headers.get("X-Timezone") ?? "UTC";
+    const tzResult = readTimezoneHeader(req);
+    if (!tzResult.ok) {
+        return NextResponse.json(
+            { error: tzResult.error },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+    const timezone = tzResult.timezone;
 
     try {
         const session = await auth();

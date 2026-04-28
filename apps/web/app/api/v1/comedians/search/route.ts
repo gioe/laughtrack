@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { readTimezoneHeader } from "@/util/timezoneHeader";
 import { auth } from "@/auth";
 import { UserRole } from "@/objects/enum/userRole";
 
@@ -16,7 +17,14 @@ export async function GET(req: NextRequest) {
     const size = sp.get("size") ?? undefined;
     const includeEmpty = sp.get("includeEmpty") ?? undefined;
 
-    const timezone = req.headers.get("X-Timezone") ?? "UTC";
+    const tzResult = readTimezoneHeader(req);
+    if (!tzResult.ok) {
+        return NextResponse.json(
+            { error: tzResult.error },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
+    const timezone = tzResult.timezone;
 
     try {
         const session = await auth();

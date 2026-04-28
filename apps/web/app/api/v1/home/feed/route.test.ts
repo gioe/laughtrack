@@ -285,6 +285,18 @@ describe("GET /api/v1/home/feed", () => {
             expect(mockGetShowsTonight).toHaveBeenCalledWith("UTC");
             expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith("UTC");
         });
+
+        it("returns 400 when X-Timezone is not a valid IANA zone", async () => {
+            const res = await GET(
+                makeRequest({}, { "X-Timezone": "Not/Real" }),
+            );
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/X-Timezone/);
+            expect(mockGetShowsTonight).not.toHaveBeenCalled();
+            expect(mockGetTrendingShowsThisWeek).not.toHaveBeenCalled();
+        });
     });
 
     describe("rate limiting", () => {
