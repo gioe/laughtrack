@@ -52,6 +52,7 @@ public struct AppBootstrap {
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),
+                XTimezoneHeaderNormalizationMiddleware(),
                 factory.retryMiddleware,
                 factory.loggingMiddleware,
             ]
@@ -102,6 +103,7 @@ public struct AppBootstrap {
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),
+                XTimezoneHeaderNormalizationMiddleware(),
                 unauthorizedMiddleware,
                 tokenRefreshMiddleware,
                 factory.authMiddleware,
