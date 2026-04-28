@@ -44,7 +44,11 @@ describe("GET /api/v1/comedians/[id]", () => {
             id: 226475,
             uuid: "comedian-uuid",
             name: "Marcus D. Wiley",
+            totalShows: 0,
+            soldOutShows: 0,
             linktree: null,
+            songkickId: null,
+            bandsintownId: null,
             instagramAccount: null,
             instagramFollowers: null,
             tiktokAccount: null,
@@ -52,8 +56,16 @@ describe("GET /api/v1/comedians/[id]", () => {
             youtubeAccount: null,
             youtubeFollowers: null,
             website: "https://marcusdwiley.com/",
+            websiteDiscoverySource: null,
+            websiteLastScraped: null,
+            websiteScrapeStrategy: null,
+            websiteScrapingUrl: null,
+            websiteConfidence: null,
+            websiteScrapingUrlConfidence: null,
             popularity: 0.6,
             hasImage: false,
+            bio: null,
+            parentComedianId: null,
         });
 
         const res = await GET(makeRequest(), {
