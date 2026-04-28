@@ -253,6 +253,49 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                             </motion.ul>
                         )}
 
+                        <motion.div
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.15),
+                            })}
+                            className="mt-5 flex justify-center md:justify-start lg:justify-start"
+                        >
+                            {hasUpcomingShows ? (
+                                <Button
+                                    asChild
+                                    variant="roundedShimmer"
+                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                >
+                                    <a href="#comedian-upcoming-shows">
+                                        <Calendar
+                                            className="h-5 w-5"
+                                            aria-hidden="true"
+                                        />
+                                        See next show
+                                    </a>
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="roundedShimmer"
+                                    onClick={handleNotifyClick}
+                                    disabled={isFavorite}
+                                    aria-pressed={isFavorite}
+                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                >
+                                    <Bell
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                    />
+                                    {isFavorite
+                                        ? "Notifications on"
+                                        : "Notify me about shows"}
+                                </Button>
+                            )}
+                        </motion.div>
+
                         {/* Bio */}
                         {comedian.bio && (
                             <motion.p
@@ -306,49 +349,6 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 })}
                             </motion.ul>
                         )}
-
-                        <motion.div
-                            initial={{ opacity: 0, y: mv(10) }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={mt({
-                                duration: 0.3,
-                                delay: mv(0.25),
-                            })}
-                            className="mt-6 flex justify-center md:justify-start lg:justify-start"
-                        >
-                            {hasUpcomingShows ? (
-                                <Button
-                                    asChild
-                                    variant="roundedShimmer"
-                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
-                                >
-                                    <a href="#comedian-upcoming-shows">
-                                        <Calendar
-                                            className="h-5 w-5"
-                                            aria-hidden="true"
-                                        />
-                                        See next show
-                                    </a>
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="roundedShimmer"
-                                    onClick={handleNotifyClick}
-                                    disabled={isFavorite}
-                                    aria-pressed={isFavorite}
-                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
-                                >
-                                    <Bell
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                    />
-                                    {isFavorite
-                                        ? "Notifications on"
-                                        : "Notify me about shows"}
-                                </Button>
-                            )}
-                        </motion.div>
                     </div>
                 </div>
 
