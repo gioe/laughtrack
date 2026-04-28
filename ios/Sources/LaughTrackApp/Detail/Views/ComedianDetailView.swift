@@ -42,7 +42,7 @@ struct ComedianDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
                         title: comedian.name,
-                        subtitle: content.upcomingShows.isEmpty ? "Comedian detail" : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
+                        subtitle: content.upcomingShows.isEmpty ? "No upcoming shows" : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
                         imageURL: comedian.imageUrl,
                         badges: comedianHeroBadges(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
                     )
@@ -176,7 +176,7 @@ struct ComedianDetailView: View {
         comedian: Components.Schemas.ComedianDetail,
         upcomingShowCount: Int
     ) -> [DetailHeroBadge] {
-        var badges = [DetailHeroBadge(title: "Comedian detail", systemImage: "music.mic", tone: .highlight)]
+        var badges: [DetailHeroBadge] = []
 
         if upcomingShowCount > 0 {
             badges.append(
