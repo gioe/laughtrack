@@ -2,6 +2,49 @@ import Foundation
 import LaughTrackAPIClient
 import LaughTrackCore
 
+func classifyDetailFetchError(_ error: Error, context: String) -> LoadFailure {
+    guard let urlError = error as? URLError else {
+        return .network("LaughTrack couldn't reach the \(context) service. Check your connection and try again.")
+    }
+    switch urlError.code {
+    case .notConnectedToInternet:
+        return .network("You appear to be offline. Check your connection and try again.")
+    case .timedOut:
+        return .network("LaughTrack timed out while loading \(context). Please try again.")
+    case .cannotFindHost:
+        return .network("LaughTrack couldn't find the \(context) service. Please try again in a moment.")
+    default:
+        return .network("LaughTrack couldn't reach the \(context) service. Check your connection and try again.")
+    }
+}
+
+func isTransientDetailFetchError(_ error: URLError) -> Bool {
+    switch error.code {
+    case .timedOut,
+         .cannotFindHost,
+         .cannotConnectToHost,
+         .dnsLookupFailed,
+         .networkConnectionLost,
+         .notConnectedToInternet:
+        return true
+    default:
+        return false
+    }
+}
+
+@MainActor
+func withDetailFetchRetry<T>(
+    backoff: Duration = .milliseconds(300),
+    operation: @MainActor () async throws -> T
+) async throws -> T {
+    do {
+        return try await operation()
+    } catch let error as URLError where isTransientDetailFetchError(error) {
+        try? await Task.sleep(for: backoff)
+        return try await operation()
+    }
+}
+
 @MainActor
 final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResponse> {
     let showID: Int
@@ -93,7 +136,9 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
         favorites: ComedianFavoriteStore
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
-            let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
+            let output = try await withDetailFetchRetry {
+                try await apiClient.getComedian(.init(path: .init(id: comedianID)))
+            }
             switch output {
             case .ok(let ok):
                 let comedian = try ok.body.json.data
@@ -113,7 +158,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .failure(classifyUndocumented(status: status, context: "comedian details"))
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the comedian details service. Check your connection and try again."))
+            return .failure(classifyDetailFetchError(error, context: "comedian details"))
         }
     }
 
@@ -242,7 +287,9 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
 
     private func fetch(apiClient: Client) async -> Result<ClubDetailContent, LoadFailure> {
         do {
-            let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
+            let output = try await withDetailFetchRetry {
+                try await apiClient.getClub(.init(path: .init(id: clubID)))
+            }
             switch output {
             case .ok(let ok):
                 return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient)
@@ -256,7 +303,7 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
                 return .failure(classifyUndocumented(status: status, context: "club details"))
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the club details service. Check your connection and try again."))
+            return .failure(classifyDetailFetchError(error, context: "club details"))
         }
     }
 
