@@ -102,6 +102,29 @@ describe("useInfiniteSearch", () => {
 
             expect(result.current.hasMore).toBe(true);
         });
+
+        it("fetches page 0 on mount when requested", async () => {
+            mockFetch.mockResolvedValue(makeJsonResponse([{ id: 1 }], 1));
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: { q: "comedy" },
+                    initialData: [],
+                    initialTotal: 0,
+                    fetchInitialPage: true,
+                }),
+            );
+
+            await waitFor(() => {
+                expect(result.current.data).toEqual([{ id: 1 }]);
+            });
+
+            expect(mockFetch).toHaveBeenCalledOnce();
+            const url: string = mockFetch.mock.calls[0][0] as string;
+            expect(url).toContain("page=0");
+            expect(url).toContain("q=comedy");
+        });
     });
 
     describe("param change", () => {

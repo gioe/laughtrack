@@ -1,6 +1,5 @@
 import { findShowsWithCount } from "../../show/search/findShowsWithCount";
 import { findComedianByName } from "./findComedianByName";
-import { findPastShowsForComedian } from "./findPastShowsForComedian";
 import { findRelatedComedians } from "./findRelatedComedians";
 import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
@@ -18,20 +17,16 @@ export async function getComedianDetailPageData(
 
         const comedianData = await findComedianByName(helper);
 
-        const [showsWithCount, pastShows, relatedComedians, filters] =
-            await Promise.all([
-                findShowsWithCount(helper),
-                findPastShowsForComedian(helper),
-                findRelatedComedians(comedianData.uuid),
-                getFilters(EntityType.Show, requestData.params.filters),
-            ]);
+        const [showsWithCount, relatedComedians, filters] = await Promise.all([
+            findShowsWithCount(helper),
+            findRelatedComedians(comedianData.uuid),
+            getFilters(EntityType.Show, requestData.params.filters),
+        ]);
 
         return {
             data: comedianData,
             shows: showsWithCount.shows,
             total: showsWithCount.totalCount,
-            pastShows: pastShows.shows,
-            pastShowsTotal: pastShows.totalCount,
             relatedComedians,
             filters,
         };

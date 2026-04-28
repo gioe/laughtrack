@@ -6,16 +6,16 @@ import ShowCard from "@/ui/components/cards/show";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface PastShowsSectionProps {
-    shows: ShowDTO[];
-    total: number;
+    shows?: ShowDTO[];
+    total?: number;
     comedianName: string;
 }
 
 const PAGE_SIZE = 20;
 
 const PastShowsSection = ({
-    shows,
-    total,
+    shows = [],
+    total = 0,
     comedianName,
 }: PastShowsSectionProps) => {
     const {
@@ -33,10 +33,11 @@ const PastShowsSection = ({
         initialData: shows,
         initialTotal: total,
         pageSize: PAGE_SIZE,
+        fetchInitialPage: shows.length === 0 && total === 0,
         getItemKey: (s) => s.id,
     });
 
-    if (liveTotal === 0) return null;
+    if (!isLoading && liveTotal === 0) return null;
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-10">

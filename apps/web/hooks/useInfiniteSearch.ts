@@ -9,6 +9,7 @@ interface UseInfiniteSearchOptions<T> {
     initialData: T[];
     initialTotal: number;
     pageSize?: number;
+    fetchInitialPage?: boolean;
     initialZipCapTriggered?: boolean;
     /**
      * Optional extractor for a stable item key. When provided, merged pages are deduped
@@ -38,6 +39,7 @@ export function useInfiniteSearch<T>({
     initialData,
     initialTotal,
     pageSize = 25,
+    fetchInitialPage = false,
     initialZipCapTriggered = false,
     getItemKey,
 }: UseInfiniteSearchOptions<T>): UseInfiniteSearchResult<T> {
@@ -53,16 +55,18 @@ export function useInfiniteSearch<T>({
     const [errorMessage, setErrorMessage] = useState<string | undefined>(
         undefined,
     );
-    const [hasMore, setHasMore] = useState(initialData.length < initialTotal);
+    const initialHasMore =
+        fetchInitialPage || initialData.length < initialTotal;
+    const [hasMore, setHasMore] = useState(initialHasMore);
     const [zipCapTriggered, setZipCapTriggered] = useState(
         initialZipCapTriggered,
     );
 
     // Refs avoid stale closure issues inside the observer callback
-    const nextPageRef = useRef(1); // page 0 already served by SSR
+    const nextPageRef = useRef(fetchInitialPage ? 0 : 1);
     const loadedCountRef = useRef(initialData.length);
     const isLoadingRef = useRef(false);
-    const hasMoreRef = useRef(initialData.length < initialTotal);
+    const hasMoreRef = useRef(initialHasMore);
     const paramsRef = useRef(params);
     paramsRef.current = params;
 
@@ -142,6 +146,11 @@ export function useInfiniteSearch<T>({
             setIsLoading(false);
         }
     }, [endpoint, pageSize]);
+
+    useEffect(() => {
+        if (!fetchInitialPage) return;
+        loadMore();
+    }, [fetchInitialPage, loadMore]);
 
     // When params change (sort/filter/search-text), reset to page 0
     useEffect(() => {

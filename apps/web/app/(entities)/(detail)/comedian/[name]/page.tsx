@@ -8,12 +8,10 @@ import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedia
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
-import PastShowsSection from "@/ui/pages/entity/comedian/pastShows";
-import RelatedComediansSection from "@/ui/pages/entity/comedian/related";
+import ComedianDetailTabs from "@/ui/pages/entity/comedian/tabs";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
-import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
@@ -118,15 +116,7 @@ export default async function ComedianDetailsPage(props: {
         throw error;
     }
 
-    const {
-        data,
-        shows,
-        total,
-        pastShows,
-        pastShowsTotal,
-        relatedComedians,
-        filters,
-    } = result;
+    const { data, shows, total, relatedComedians, filters } = result;
 
     const jsonLdData = [
         buildComedianJsonLd(data),
@@ -143,17 +133,10 @@ export default async function ComedianDetailsPage(props: {
                 total={total}
                 filterData={filters}
             />
-            <div id="comedian-upcoming-shows">
-                <ShowTable shows={shows} />
-            </div>
-            <PastShowsSection
-                shows={pastShows}
-                total={pastShowsTotal}
+            <ComedianDetailTabs
+                shows={shows}
                 comedianName={data.name}
-            />
-            <RelatedComediansSection
-                comedians={relatedComedians}
-                subjectName={data.name}
+                relatedComedians={relatedComedians}
             />
         </>
     );

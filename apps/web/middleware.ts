@@ -32,6 +32,8 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 // Patterns for routes that require authentication.
 // Add new protected route prefixes here as the app grows.
 const PROTECTED_ROUTE_PATTERNS: RegExp[] = [/^\/profile(\/|$)/];
+const DEFAULT_PAGE_SIZE = "10";
+const COMEDIAN_DETAIL_PAGE_SIZE = "5";
 
 function isProtectedRoute(pathname: string): boolean {
     return PROTECTED_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
@@ -124,7 +126,7 @@ export function setParamDefaults(
         params.set(QueryProperty.Page, "1");
     }
     if (!params.has(QueryProperty.Size)) {
-        params.set(QueryProperty.Size, "10");
+        params.set(QueryProperty.Size, getSizeParamDefaultFromPath(path));
     }
     if (!params.has(QueryProperty.Direction)) {
         params.set(QueryProperty.Direction, "asc");
@@ -143,6 +145,13 @@ export function setParamDefaults(
     }
 
     return params;
+}
+
+function getSizeParamDefaultFromPath(path: string): string {
+    if (path.startsWith("/comedian/") && !path.startsWith("/comedian/search")) {
+        return COMEDIAN_DETAIL_PAGE_SIZE;
+    }
+    return DEFAULT_PAGE_SIZE;
 }
 
 function getSortParamDefaultFromPath(
