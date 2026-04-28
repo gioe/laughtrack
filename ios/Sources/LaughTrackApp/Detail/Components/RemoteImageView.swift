@@ -7,6 +7,7 @@ struct RemoteImageView: View {
 
     let urlString: String
     let aspectRatio: CGFloat
+    var alignment: Alignment = .center
 
     var body: some View {
         AsyncImage(url: URL.normalizedExternalURL(urlString)) { phase in
@@ -21,6 +22,7 @@ struct RemoteImageView: View {
                 image
                     .resizable()
                     .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
             case .failure:
                 Rectangle()
                     .fill(theme.laughTrackTokens.colors.surfaceElevated)
