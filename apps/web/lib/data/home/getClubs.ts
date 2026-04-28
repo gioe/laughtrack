@@ -4,11 +4,23 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 
 const MAX_CLUBS_LIMIT = 100;
 
-export async function getClubs(limit = 8, offset = 0): Promise<ClubDTO[]> {
+interface GetClubsOptions {
+    requireImage?: boolean;
+}
+
+export async function getClubs(
+    limit = 8,
+    offset = 0,
+    options: GetClubsOptions = {},
+): Promise<ClubDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
+    const where = options.requireImage
+        ? { status: "active", hasImage: true }
+        : { status: "active" };
+
     return db.club
         .findMany({
-            where: { status: "active", hasImage: true },
+            where,
             orderBy: { id: "asc" }, // stable insertion-order sort for offset pagination
             select: {
                 id: true,

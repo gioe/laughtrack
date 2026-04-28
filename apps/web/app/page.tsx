@@ -34,7 +34,7 @@ async function getHomePageData(): Promise<HomePageData> {
     try {
         const [comedians, clubs] = await Promise.all([
             getTrendingComedians(),
-            getClubs(),
+            getClubs(8, 0, { requireImage: true }),
         ]);
         return { comedians, clubs };
     } catch (error) {

@@ -70,7 +70,9 @@ export async function GET(req: NextRequest) {
             getTrendingComedians().catch(
                 logSectionError("getTrendingComedians"),
             ),
-            getClubs().catch(logSectionError("getClubs")),
+            getClubs(8, 0, { requireImage: true }).catch(
+                logSectionError("getClubs"),
+            ),
             zipCode
                 ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
                       logSectionError("getComediansByZip"),

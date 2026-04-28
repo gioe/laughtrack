@@ -75,10 +75,22 @@ describe("getClubs", () => {
             await expect(getClubs()).rejects.toThrow("DB unavailable");
         });
 
-        it("only requests clubs with venue images for the home carousel", async () => {
+        it("requests all active clubs by default for non-home callers", async () => {
             mockFindMany.mockResolvedValue([] as any);
 
             await getClubs();
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { status: "active" },
+                }),
+            );
+        });
+
+        it("can require venue images for the home carousel", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+
+            await getClubs(8, 0, { requireImage: true });
 
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({
