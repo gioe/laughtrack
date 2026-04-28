@@ -1,4 +1,5 @@
 import { auth } from "../auth";
+import { cookies } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
@@ -71,7 +72,8 @@ export default async function HomePage() {
         return <FixtureHomePage />;
     }
 
-    const session = await auth();
+    const [session, cookieStore] = await Promise.all([auth(), cookies()]);
+    const timezone = cookieStore.get("timezone")?.value || "UTC";
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
 
@@ -94,13 +96,13 @@ export default async function HomePage() {
                   () => [],
               )
             : Promise.resolve([]),
-        getShowsTonight().catch(() => []),
+        getShowsTonight(timezone).catch(() => []),
         zipCode
             ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
                   () => [],
               )
             : Promise.resolve([]),
-        getTrendingShowsThisWeek().catch(() => []),
+        getTrendingShowsThisWeek(timezone).catch(() => []),
     ]);
 
     const heroShows = showsNearYou.slice(0, 3);
