@@ -20,6 +20,7 @@ function makeClubRow(
         address: string;
         zipCode: string | null;
         name: string;
+        hasImage: boolean;
         shows: { lineupItems: { comedianId: number }[] }[];
     }> = {},
 ) {
@@ -28,6 +29,7 @@ function makeClubRow(
         address: "123 Main St",
         zipCode: "10001",
         name: "Laughs Club",
+        hasImage: true,
         shows: [],
         ...overrides,
     };
@@ -71,6 +73,18 @@ describe("getClubs", () => {
         it("passes DB errors through as unhandled rejections", async () => {
             mockFindMany.mockRejectedValue(new Error("DB unavailable"));
             await expect(getClubs()).rejects.toThrow("DB unavailable");
+        });
+
+        it("only requests clubs with venue images for the home carousel", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+
+            await getClubs();
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: { status: "active", hasImage: true },
+                }),
+            );
         });
     });
 
