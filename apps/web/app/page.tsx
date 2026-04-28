@@ -1,6 +1,7 @@
 import { auth } from "../auth";
 import { cookies } from "next/headers";
 import { unstable_cache } from "next/cache";
+import { toZonedTime, format } from "date-fns-tz";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
@@ -77,11 +78,13 @@ export default async function HomePage() {
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
 
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const weekLater = new Date(now);
-    weekLater.setDate(weekLater.getDate() + 6);
-    const weekStr = weekLater.toISOString().split("T")[0];
+    // Anchor on the caller's wallclock date (not UTC) so a West Coast user at
+    // 10pm PST links to today's calendar date, not UTC tomorrow.
+    const nowInTz = toZonedTime(new Date(), timezone);
+    const todayStr = format(nowInTz, "yyyy-MM-dd");
+    const weekLaterInTz = new Date(nowInTz);
+    weekLaterInTz.setDate(weekLaterInTz.getDate() + 6);
+    const weekStr = format(weekLaterInTz, "yyyy-MM-dd");
 
     const [
         { comedians, clubs },
