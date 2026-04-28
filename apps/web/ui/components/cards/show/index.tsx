@@ -9,6 +9,7 @@ import LineupGrid from "@/ui/components/lineup";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
 import EntityCard from "../entity";
+import { formatShowDate } from "@/util/dateUtil";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -33,14 +34,17 @@ const seenShowIds = new Set<number>();
 interface ShowCardProps {
     show: ShowDTO;
     hideClubName?: boolean;
+    variant?: "default" | "past";
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({
     show,
     hideClubName,
+    variant = "default",
 }: ShowCardProps) => {
     const distanceMiles = show.distanceMiles ?? null;
     const parsedShow = new Show(show);
+    const isPast = variant === "past";
     const stillOnSale =
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
     // Read before useEffect so first render always animates, remounts skip it
@@ -63,8 +67,12 @@ const ShowCard: React.FC<ShowCardProps> = ({
         <EntityCard
             as="article"
             chrome="warm"
-            className="relative p-4 sm:p-6 overflow-hidden w-full hover:shadow-xl"
-            animateEntryY={20}
+            className={
+                isPast
+                    ? "relative p-4 sm:p-6 overflow-hidden w-full shadow-sm hover:shadow-md border-white/10 bg-gradient-to-br from-stone-50 to-coconut-cream/45"
+                    : "relative p-4 sm:p-6 overflow-hidden w-full hover:shadow-xl"
+            }
+            animateEntryY={isPast ? undefined : 20}
             alreadySeen={alreadySeen}
         >
             {/* Stretched-link overlay: whole card navigates to the internal show detail.
@@ -86,10 +94,20 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                 show={parsedShow}
                                 distanceMiles={distanceMiles}
                                 hideClubName={hideClubName}
+                                variant={variant}
                             />
                         </div>
 
-                        {parsedShow.tickets.length > 0 &&
+                        {isPast ? (
+                            <p className="sm:self-start relative z-[2] rounded-full border border-copper/15 bg-white/55 px-3 py-1.5 text-sm font-dmSans text-gray-500">
+                                Performed on{" "}
+                                {formatShowDate(
+                                    parsedShow.date.toString(),
+                                    parsedShow.timezone,
+                                )}
+                            </p>
+                        ) : (
+                            parsedShow.tickets.length > 0 &&
                             (() => {
                                 const purchaseUrl =
                                     parsedShow.tickets[0].purchaseUrl;
@@ -130,7 +148,8 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                         )}
                                     </div>
                                 );
-                            })()}
+                            })()
+                        )}
                     </div>
 
                     <div className="lg:hidden relative z-[2]">

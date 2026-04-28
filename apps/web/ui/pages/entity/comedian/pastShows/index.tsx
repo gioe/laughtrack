@@ -57,7 +57,7 @@ const PastShowsSection = ({
             >
                 <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
                     {data.map((show) => (
-                        <ShowCard key={show.id} show={show} />
+                        <ShowCard key={show.id} show={show} variant="past" />
                     ))}
                 </div>
             </SearchClientShell>

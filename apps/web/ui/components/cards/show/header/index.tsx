@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
+import { cn } from "@/lib/utils";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -13,14 +14,17 @@ interface ShowCardHeaderProps {
     show: Show;
     distanceMiles?: number | null;
     hideClubName?: boolean;
+    variant?: "default" | "past";
 }
 
 const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
     distanceMiles,
     hideClubName,
+    variant = "default",
 }: ShowCardHeaderProps) => {
     const [error, setError] = useState(false);
+    const isPast = variant === "past";
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -37,12 +41,22 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
             <div>
                 {!hideClubName && (
-                    <h2 className="text-xl sm:text-2xl md:text-h3 font-gilroy-bold font-bold text-cedar-dark mb-1">
+                    <h2
+                        className={cn(
+                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-cedar-dark mb-1",
+                            isPast ? "font-semibold" : "font-bold",
+                        )}
+                    >
                         {show.clubName ?? ""}
                     </h2>
                 )}
                 {show.name && (
-                    <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1">
+                    <p
+                        className={cn(
+                            "text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1",
+                            isPast && "font-normal",
+                        )}
+                    >
                         {`${show.name}`}
                     </p>
                 )}
@@ -63,7 +77,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                             : `${Math.round(distanceMiles)} miles away`}
                     </p>
                 )}
-                {!show.soldOut && (
+                {!isPast && !show.soldOut && (
                     <p className="text-lg sm:text-xl md:text-lead text-copper font-semibold mt-1 font-dmSans">
                         {formatTicketString(
                             show.tickets.filter((ticket) => !ticket.soldOut),
