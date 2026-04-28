@@ -50,6 +50,7 @@ struct ContentView: View {
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
@@ -70,6 +71,16 @@ struct ContentView: View {
         .tint(theme.colors.primary)
         .task {
             await authManager.restoreSessionIfNeeded()
+        }
+        .onReceive(authManager.$state) { state in
+            guard case .signedOut(let message) = state,
+                  message?.localizedCaseInsensitiveContains("session expired") == true
+            else { return }
+
+            loginModalPresenter.present()
+        }
+        .sheet(isPresented: $loginModalPresenter.isPresented) {
+            LaughTrackLoginModalView()
         }
     }
 

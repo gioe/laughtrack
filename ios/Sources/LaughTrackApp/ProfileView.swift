@@ -24,6 +24,7 @@ struct ProfileView: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
 
     init(
@@ -47,7 +48,7 @@ struct ProfileView: View {
                     if let signedOutMessage {
                         LaughTrackAuthMessageCard(message: signedOutMessage)
                     }
-                    signInProvidersSection
+                    signInCTASection
                 }
                 settingsLinkSection
             }
@@ -150,7 +151,7 @@ struct ProfileView: View {
         }
     }
 
-    private var signInProvidersSection: some View {
+    private var signInCTASection: some View {
         let laughTrack = theme.laughTrackTokens
 
         return VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
@@ -160,14 +161,12 @@ struct ProfileView: View {
                 subtitle: "Sign in when you want synced favorite comedians and recovery messaging tied to a real account."
             )
 
-            VStack(spacing: laughTrack.spacing.itemGap) {
-                ForEach(AuthProvider.allCases, id: \.self) { provider in
-                    LaughTrackAuthProviderCard(provider: provider) {
-                        Task {
-                            await authManager.signIn(with: provider)
-                        }
-                    }
-                }
+            LaughTrackButton(
+                "Sign in",
+                systemImage: "person.crop.circle.badge.plus",
+                tone: .primary
+            ) {
+                loginModalPresenter.present()
             }
         }
     }

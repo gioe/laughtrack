@@ -100,6 +100,7 @@ struct ComedianRow: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
 
     var body: some View {
@@ -131,7 +132,9 @@ struct ComedianRow: View {
                 switch result {
                 case .updated(let next):
                     feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                case .signInRequired(let message), .failure(let message):
+                case .signInRequired:
+                    loginModalPresenter.present()
+                case .failure(let message):
                     feedbackMessage = message
                 }
             }

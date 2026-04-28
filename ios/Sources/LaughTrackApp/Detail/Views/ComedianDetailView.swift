@@ -10,6 +10,7 @@ struct ComedianDetailView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
 
@@ -164,7 +165,9 @@ struct ComedianDetailView: View {
         switch result {
         case .updated(let next):
             feedbackMessage = FavoriteFeedback.message(for: name, isFavorite: next)
-        case .signInRequired(let message), .failure(let message):
+        case .signInRequired:
+            loginModalPresenter.present()
+        case .failure(let message):
             feedbackMessage = message
         }
     }
