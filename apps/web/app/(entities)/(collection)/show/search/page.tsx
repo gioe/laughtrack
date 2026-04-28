@@ -12,7 +12,7 @@ import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { readTimezoneCookie } from "@/util/timezoneHeader";
+import { readTimezoneCookie } from "@/util/timezone";
 
 export async function generateMetadata(props: {
     searchParams: Promise<Record<string, string | string[] | undefined>>;

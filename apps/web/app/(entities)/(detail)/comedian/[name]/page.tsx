@@ -19,7 +19,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
-import { readTimezoneCookie } from "@/util/timezoneHeader";
+import { readTimezoneCookie } from "@/util/timezone";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;

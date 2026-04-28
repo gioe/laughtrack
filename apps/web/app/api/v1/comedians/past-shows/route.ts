@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { readTimezoneHeader } from "@/util/timezoneHeader";
+import { readTimezoneHeader } from "@/util/timezone";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import {
     findPastShowsForComedian,

@@ -43,7 +43,7 @@ export function readTimezoneHeader(req: NextRequest): ReadTimezoneResult {
         // so a sudden spike of 400s on these routes would read as a mystery
         // regression. Log so an operator can attribute it to the offending client.
         console.warn(
-            `[timezoneHeader] Rejecting invalid ${HEADER_NAME} header: ${JSON.stringify(raw)}`,
+            `[timezone] Rejecting invalid ${HEADER_NAME} header: ${JSON.stringify(raw)}`,
         );
         return {
             ok: false,
@@ -68,7 +68,7 @@ export function readTimezoneCookie(rawValue: string | undefined): string {
     if (rawValue === undefined || rawValue === "") return DEFAULT_TIMEZONE;
     if (!isValidTimezone(rawValue)) {
         console.warn(
-            `[timezoneHeader] Rejecting invalid ${COOKIE_NAME} cookie: ${JSON.stringify(rawValue)}; falling back to ${DEFAULT_TIMEZONE}`,
+            `[timezone] Rejecting invalid ${COOKIE_NAME} cookie: ${JSON.stringify(rawValue)}; falling back to ${DEFAULT_TIMEZONE}`,
         );
         return DEFAULT_TIMEZONE;
     }

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { toZonedTime, format } from "date-fns-tz";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { readTimezoneCookie } from "@/util/timezoneHeader";
+import { readTimezoneCookie } from "@/util/timezone";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";

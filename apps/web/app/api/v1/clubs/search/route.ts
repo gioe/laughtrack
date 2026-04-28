@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { readTimezoneHeader } from "@/util/timezoneHeader";
+import { readTimezoneHeader } from "@/util/timezone";
 import { auth } from "@/auth";
 
 export async function GET(req: NextRequest) {

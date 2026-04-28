@@ -4,7 +4,7 @@ import {
     isValidTimezone,
     readTimezoneCookie,
     readTimezoneHeader,
-} from "./timezoneHeader";
+} from "./timezone";
 
 function makeRequest(headers: Record<string, string> = {}): NextRequest {
     return new NextRequest("http://localhost/test", { headers });

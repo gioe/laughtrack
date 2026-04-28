@@ -9,7 +9,7 @@ import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWe
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { readTimezoneHeader } from "@/util/timezoneHeader";
+import { readTimezoneHeader } from "@/util/timezone";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;

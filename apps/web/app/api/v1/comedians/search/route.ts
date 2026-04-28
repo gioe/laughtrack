@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { readTimezoneHeader } from "@/util/timezoneHeader";
+import { readTimezoneHeader } from "@/util/timezone";
 import { auth } from "@/auth";
 import { UserRole } from "@/objects/enum/userRole";
 

@@ -3,7 +3,7 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { SearchParams } from "@/objects/interface";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { readTimezoneHeader } from "@/util/timezoneHeader";
+import { readTimezoneHeader } from "@/util/timezone";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";

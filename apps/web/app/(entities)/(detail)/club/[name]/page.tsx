@@ -22,7 +22,7 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
-import { readTimezoneCookie } from "@/util/timezoneHeader";
+import { readTimezoneCookie } from "@/util/timezone";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;

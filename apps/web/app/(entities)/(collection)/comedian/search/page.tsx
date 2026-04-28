@@ -13,7 +13,7 @@ import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { readTimezoneCookie } from "@/util/timezoneHeader";
+import { readTimezoneCookie } from "@/util/timezone";
 
 export async function generateMetadata(props: {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
