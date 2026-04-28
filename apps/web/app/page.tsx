@@ -11,6 +11,7 @@ import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
+import { getFavoriteComedianShows } from "@/lib/data/home/getFavoriteComedianShows";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
@@ -93,6 +94,7 @@ export default async function HomePage() {
         showsTonight,
         showsNearYou,
         trendingShowsThisWeek,
+        favoriteComedianShows,
     ] = await Promise.all([
         getCachedHomePageData(),
         zipCode
@@ -107,6 +109,9 @@ export default async function HomePage() {
               )
             : Promise.resolve([]),
         getTrendingShowsThisWeek(timezone).catch(() => []),
+        session?.profile?.id
+            ? getFavoriteComedianShows(session.profile.id).catch(() => [])
+            : Promise.resolve([]),
     ]);
 
     const hasLocalShows = showsNearYou.length > 0;
@@ -125,6 +130,17 @@ export default async function HomePage() {
                 heroShows={heroShows}
                 hasLocalShows={hasLocalShows}
             />
+            {favoriteComedianShows.length > 0 && (
+                <section className="w-full bg-coconut-cream">
+                    <ShowDiscoverySection
+                        title="Your favorites are touring"
+                        subtitle="Upcoming shows from comedians you follow"
+                        shows={favoriteComedianShows}
+                        seeAllHref="/show/search"
+                        testId="favorite-comedian-shows"
+                    />
+                </section>
+            )}
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />
             </section>
