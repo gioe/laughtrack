@@ -632,6 +632,92 @@
         }
       }
     },
+    "/comedians/past-shows": {
+      "get": {
+        "operationId": "getComedianPastShows",
+        "summary": "List past shows for a comedian",
+        "description": "Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.",
+        "tags": ["comedians"],
+        "parameters": [
+          {
+            "name": "comedian",
+            "in": "query",
+            "required": true,
+            "description": "Comedian name to match against lineup items",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number (defaults to 0)",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size (1-50, defaults to 20)",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }, {}],
+        "responses": {
+          "200": {
+            "description": "Past shows for the comedian",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data", "total"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Show" }
+                    },
+                    "total": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing comedian, invalid page/size, or invalid X-Timezone",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/shows": {
       "get": {
         "operationId": "listShows",

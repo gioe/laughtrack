@@ -69,6 +69,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /comedians/search`.
     /// - Remark: Generated from `#/paths//comedians/search/get(searchComedians)`.
     func searchComedians(_ input: Operations.SearchComedians.Input) async throws -> Operations.SearchComedians.Output
+    /// List past shows for a comedian
+    ///
+    /// Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.
+    ///
+    /// - Remark: HTTP `GET /comedians/past-shows`.
+    /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)`.
+    func getComedianPastShows(_ input: Operations.GetComedianPastShows.Input) async throws -> Operations.GetComedianPastShows.Output
     /// List shows near a ZIP code
     ///
     /// - Remark: HTTP `GET /shows`.
@@ -235,6 +242,21 @@ extension APIProtocol {
         headers: Operations.SearchComedians.Input.Headers = .init()
     ) async throws -> Operations.SearchComedians.Output {
         try await searchComedians(Operations.SearchComedians.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// List past shows for a comedian
+    ///
+    /// Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.
+    ///
+    /// - Remark: HTTP `GET /comedians/past-shows`.
+    /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)`.
+    public func getComedianPastShows(
+        query: Operations.GetComedianPastShows.Input.Query,
+        headers: Operations.GetComedianPastShows.Input.Headers = .init()
+    ) async throws -> Operations.GetComedianPastShows.Output {
+        try await getComedianPastShows(Operations.GetComedianPastShows.Input(
             query: query,
             headers: headers
         ))
@@ -4769,6 +4791,360 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.SearchComedians.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List past shows for a comedian
+    ///
+    /// Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.
+    ///
+    /// - Remark: HTTP `GET /comedians/past-shows`.
+    /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)`.
+    public enum GetComedianPastShows {
+        public static let id: Swift.String = "getComedianPastShows"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/comedians/past-shows/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// Comedian name to match against lineup items
+                ///
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/query/comedian`.
+                public var comedian: Swift.String
+                /// Zero-indexed page number (defaults to 0)
+                ///
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/query/page`.
+                public var page: Swift.Int?
+                /// Page size (1-50, defaults to 20)
+                ///
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/query/size`.
+                public var size: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - comedian: Comedian name to match against lineup items
+                ///   - page: Zero-indexed page number (defaults to 0)
+                ///   - size: Page size (1-50, defaults to 20)
+                public init(
+                    comedian: Swift.String,
+                    page: Swift.Int? = nil,
+                    size: Swift.Int? = nil
+                ) {
+                    self.comedian = comedian
+                    self.page = page
+                    self.size = size
+                }
+            }
+            public var query: Operations.GetComedianPastShows.Input.Query
+            /// - Remark: Generated from `#/paths/comedians/past-shows/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                /// IANA timezone identifier (defaults to UTC)
+                ///
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/header/X-Timezone`.
+                public var xTimezone: Swift.String?
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianPastShows.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - xTimezone: IANA timezone identifier (defaults to UTC)
+                ///   - accept:
+                public init(
+                    xTimezone: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianPastShows.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.xTimezone = xTimezone
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetComedianPastShows.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.GetComedianPastShows.Input.Query,
+                headers: Operations.GetComedianPastShows.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/200/content/json`.
+                    public struct JsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/200/content/json/data`.
+                        public var data: [Components.Schemas.Show]
+                        /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/200/content/json/total`.
+                        public var total: Swift.Int
+                        /// Creates a new `JsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        ///   - total:
+                        public init(
+                            data: [Components.Schemas.Show],
+                            total: Swift.Int
+                        ) {
+                            self.data = data
+                            self.total = total
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case data
+                            case total
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/200/content/application\/json`.
+                    case json(Operations.GetComedianPastShows.Output.Ok.Body.JsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Operations.GetComedianPastShows.Output.Ok.Body.JsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianPastShows.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianPastShows.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Past shows for the comedian
+            ///
+            /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetComedianPastShows.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetComedianPastShows.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianPastShows.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianPastShows.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing comedian, invalid page/size, or invalid X-Timezone
+            ///
+            /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetComedianPastShows.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetComedianPastShows.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetComedianPastShows.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianPastShows.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetComedianPastShows.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetComedianPastShows.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetComedianPastShows.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetComedianPastShows.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/past-shows/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianPastShows.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianPastShows.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//comedians/past-shows/get(getComedianPastShows)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetComedianPastShows.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetComedianPastShows.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):
