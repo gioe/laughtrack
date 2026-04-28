@@ -56,3 +56,6 @@ tusk/backups/
 
 # superpowers runtime artifacts (pid files, brainstorm HTML, server state)
 .superpowers/
+
+# Playwright MCP scratch output (timestamped page/console dumps)
+.playwright-mcp/
