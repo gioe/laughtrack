@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Heart, Sparkles, Calendar, Users } from "lucide-react";
+import { Heart, Sparkles, Calendar, Users, Bell, Globe } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { useFavorite } from "@/hooks/useFavorite";
@@ -12,7 +12,7 @@ import ComedianAvatarFallback from "@/ui/components/image/comedian/fallback";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
-import { Globe } from "lucide-react";
+import { Button } from "@/ui/components/ui/button";
 
 interface ComedianDetailHeaderProps {
     comedian: ComedianDTO;
@@ -54,7 +54,13 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         await handleFavoriteClick(e);
     };
 
+    const handleNotifyClick = async (e: React.MouseEvent) => {
+        if (isFavorite) return;
+        await handleFavoriteWithAnimation(e);
+    };
+
     const showImage = !error && !!comedian.imageUrl;
+    const hasUpcomingShows = comedian.show_count > 0;
 
     const totalFollowers =
         (social?.instagram.following ?? 0) +
@@ -144,11 +150,11 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 : "Add to favorites"
                         }
                         aria-pressed={isFavorite}
-                        className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                        className="p-2.5 bg-white/75 backdrop-blur-sm rounded-full shadow-md hover:bg-white/90 hover:shadow-lg transition"
                     >
                         <Heart
                             aria-hidden="true"
-                            className={`w-6 h-6 ${
+                            className={`w-5 h-5 ${
                                 isFavorite
                                     ? "text-red-500 fill-current"
                                     : "text-gray-700"
@@ -300,6 +306,49 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 })}
                             </motion.ul>
                         )}
+
+                        <motion.div
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.25),
+                            })}
+                            className="mt-6 flex justify-center md:justify-start lg:justify-start"
+                        >
+                            {hasUpcomingShows ? (
+                                <Button
+                                    asChild
+                                    variant="roundedShimmer"
+                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                >
+                                    <a href="#comedian-upcoming-shows">
+                                        <Calendar
+                                            className="h-5 w-5"
+                                            aria-hidden="true"
+                                        />
+                                        See next show
+                                    </a>
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="roundedShimmer"
+                                    onClick={handleNotifyClick}
+                                    disabled={isFavorite}
+                                    aria-pressed={isFavorite}
+                                    className="min-h-12 gap-2 rounded-full px-7 py-3 text-base shadow-lg"
+                                >
+                                    <Bell
+                                        className="h-5 w-5"
+                                        aria-hidden="true"
+                                    />
+                                    {isFavorite
+                                        ? "Notifications on"
+                                        : "Notify me about shows"}
+                                </Button>
+                            )}
+                        </motion.div>
                     </div>
                 </div>
 

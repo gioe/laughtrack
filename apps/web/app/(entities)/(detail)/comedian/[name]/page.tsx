@@ -143,7 +143,9 @@ export default async function ComedianDetailsPage(props: {
                 total={total}
                 filterData={filters}
             />
-            <ShowTable shows={shows} />
+            <div id="comedian-upcoming-shows">
+                <ShowTable shows={shows} />
+            </div>
             <PastShowsSection
                 shows={pastShows}
                 total={pastShowsTotal}
