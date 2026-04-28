@@ -70,7 +70,9 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
         favorites: ComedianFavoriteStore
     ) async -> Result<Components.Schemas.ShowDetailResponse, LoadFailure> {
         do {
-            let output = try await apiClient.getShow(.init(path: .init(id: showID)))
+            let output = try await withDetailFetchRetry {
+                try await apiClient.getShow(.init(path: .init(id: showID)))
+            }
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
@@ -91,7 +93,7 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
                 return .failure(classifyUndocumented(status: status, context: "show details"))
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the show details service. Check your connection and try again."))
+            return .failure(classifyDetailFetchError(error, context: "show details"))
         }
     }
 }
