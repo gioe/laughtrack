@@ -2,14 +2,12 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { auth } from "@/auth";
-import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import ComedianDetailTabs from "@/ui/pages/entity/comedian/tabs";
-import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
@@ -128,13 +126,10 @@ export default async function ComedianDetailsPage(props: {
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} />
-            <FilterBar
-                variant={SearchVariant.ComedianDetail}
-                total={total}
-                filterData={filters}
-            />
             <ComedianDetailTabs
                 shows={shows}
+                total={total}
+                filters={filters}
                 comedianName={data.name}
                 relatedComedians={relatedComedians}
             />

@@ -14,6 +14,10 @@ vi.mock("@/ui/pages/search/table", () => ({
     default: () => <div data-testid="upcoming-shows">Upcoming shows</div>,
 }));
 
+vi.mock("@/ui/pages/search/filterBar", () => ({
+    default: () => <div data-testid="filter-bar">Filters</div>,
+}));
+
 vi.mock("@/ui/pages/entity/comedian/pastShows", () => ({
     default: function MockPastShowsSection() {
         useEffect(() => {
@@ -32,6 +36,8 @@ const renderTabs = () =>
     render(
         <ComedianDetailTabs
             shows={[{ id: 1 } as ShowDTO]}
+            total={1}
+            filters={[]}
             comedianName="Jane Comic"
             relatedComedians={[{ id: 2 } as ComedianDTO]}
         />,
@@ -51,6 +57,9 @@ describe("ComedianDetailTabs", () => {
 
         expect(
             container.querySelector('[data-testid="upcoming-shows"]'),
+        ).not.toBeNull();
+        expect(
+            container.querySelector('[data-testid="filter-bar"]'),
         ).not.toBeNull();
         expect(
             container.querySelector('[data-testid="past-shows"]'),

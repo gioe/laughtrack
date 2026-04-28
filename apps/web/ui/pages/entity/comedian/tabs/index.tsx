@@ -3,6 +3,9 @@
 import { useState } from "react";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
+import type { FilterDTO } from "@/objects/interface";
+import { SearchVariant } from "@/objects/enum/searchVariant";
+import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import PastShowsSection from "@/ui/pages/entity/comedian/pastShows";
 import RelatedComediansSection from "@/ui/pages/entity/comedian/related";
@@ -11,6 +14,8 @@ type ComedianDetailTab = "upcoming" | "past" | "related";
 
 interface ComedianDetailTabsProps {
     shows: ShowDTO[];
+    total: number;
+    filters: FilterDTO[];
     comedianName: string;
     relatedComedians: ComedianDTO[];
 }
@@ -25,6 +30,8 @@ const panelClasses = "max-w-7xl mx-auto pt-6";
 
 const ComedianDetailTabs = ({
     shows,
+    total,
+    filters,
     comedianName,
     relatedComedians,
 }: ComedianDetailTabsProps) => {
@@ -82,6 +89,11 @@ const ComedianDetailTabs = ({
                 className={panelClasses}
             >
                 <div id="comedian-upcoming-shows">
+                    <FilterBar
+                        variant={SearchVariant.ComedianDetail}
+                        total={total}
+                        filterData={filters}
+                    />
                     <ShowTable shows={shows} />
                 </div>
             </div>
