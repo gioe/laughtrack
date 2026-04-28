@@ -109,8 +109,11 @@ export default async function HomePage() {
         getTrendingShowsThisWeek(timezone).catch(() => []),
     ]);
 
-    const heroShows = showsNearYou.slice(0, 3);
-    const remainingNearYou = showsNearYou.slice(3);
+    const hasLocalShows = showsNearYou.length > 0;
+    const heroShows = (
+        hasLocalShows ? showsNearYou : trendingShowsThisWeek
+    ).slice(0, 6);
+    const remainingNearYou = showsNearYou.slice(6);
 
     return (
         <main id="main-content" className="min-h-screen w-full">
