@@ -69,10 +69,8 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch authManager.state {
-            case .restoring:
-                AuthLoadingView(message: "Restoring your LaughTrack session…")
-            case .signingIn(let provider):
-                AuthLoadingView(message: "Finishing \(provider.displayName) sign-in…")
+            case .restoring, .signingIn:
+                AuthLoadingView()
             case .signedOut(let message):
                 appShell(signedOutMessage: message)
             case .authenticated:
