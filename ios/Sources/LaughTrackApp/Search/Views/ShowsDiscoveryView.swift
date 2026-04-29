@@ -119,7 +119,17 @@ private struct ShowFiltersPanel: View {
                     .foregroundStyle(laughTrack.colors.textSecondary)
                     .textCase(.uppercase)
 
-                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft)
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                    Button {
+                        _ = model.applyManualZip()
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Apply ZIP")
+                }
                     .modifier(SearchFieldInputBehavior())
                     #if os(iOS)
                     .keyboardType(UIKeyboardType.numberPad)
