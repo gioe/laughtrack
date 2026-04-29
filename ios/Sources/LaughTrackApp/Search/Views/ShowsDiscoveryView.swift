@@ -124,14 +124,13 @@ private struct ShowFiltersPanel: View {
                     #if os(iOS)
                     .keyboardType(UIKeyboardType.numberPad)
                     #endif
+                    .onSubmit {
+                        _ = model.applyManualZip()
+                    }
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: theme.spacing.sm) {
-                        LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, density: .compact, fullWidth: false) {
-                            _ = model.applyManualZip()
-                        }
-
-                        if model.activeNearbyPreference != nil {
+                if model.activeNearbyPreference != nil {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
                             LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
                                 model.clearLocation()
                             }
@@ -173,7 +172,6 @@ private struct ShowFiltersPanel: View {
                                 } label: {
                                     LaughTrackBrowseChip(
                                         option.title,
-                                        systemImage: "location.north.line",
                                         tone: model.distance == option ? .selected : .neutral
                                     )
                                 }
@@ -185,16 +183,10 @@ private struct ShowFiltersPanel: View {
             }
 
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                HStack {
-                    Text("Dates")
-                        .font(laughTrack.typography.eyebrow)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .textCase(.uppercase)
-                    Spacer()
-                    Text(model.useDateRange ? "Custom window" : "Upcoming by default")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                }
+                Text("Dates")
+                    .font(laughTrack.typography.eyebrow)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
 
                 Toggle("Use date range", isOn: $model.useDateRange)
                     .font(laughTrack.typography.body)

@@ -56,19 +56,6 @@ struct SearchRootModelTests {
         #expect(SearchRootModel.Pivot.shows.queryHelpText == "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.")
     }
 
-    @Test("context summary reflects active shortcut framing")
-    func contextSummaryReflectsShortcut() async throws {
-        let model = SearchRootModel()
-
-        #expect(model.contextSummary == "Nearby results first")
-
-        model.selectShortcut("Tonight")
-        #expect(model.contextSummary == "Local dates tonight")
-
-        model.selectShortcut("This Week")
-        #expect(model.contextSummary == "Local dates this week")
-    }
-
     @Test("search seeds update pivot query and shortcut")
     func searchSeedsUpdatePivotQueryAndShortcut() async throws {
         let model = SearchRootModel()

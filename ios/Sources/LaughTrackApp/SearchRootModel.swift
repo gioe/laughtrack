@@ -48,17 +48,6 @@ final class SearchRootModel: ObservableObject {
         let shortcut: String?
     }
 
-    var contextSummary: String {
-        switch selectedShortcut {
-        case "Tonight":
-            return "Local dates tonight"
-        case "This Week":
-            return "Local dates this week"
-        default:
-            return "Nearby results first"
-        }
-    }
-
     func applySeed(_ seed: Seed) {
         activePivot = seed.pivot
         query = seed.query

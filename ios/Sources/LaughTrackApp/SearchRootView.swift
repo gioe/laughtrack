@@ -51,11 +51,6 @@ struct SearchRootView: View {
                             text: $model.query
                         )
 
-                        LaughTrackContextRow(
-                            leading: model.contextSummary,
-                            trailing: model.selectedShortcut ?? "Custom"
-                        )
-
                         shortcutRow
                         pivotRow
                     }
