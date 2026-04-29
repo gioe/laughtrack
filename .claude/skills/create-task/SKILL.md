@@ -219,15 +219,25 @@ Wait for explicit user approval before proceeding. Do NOT insert anything until 
 
 ## Step 5: Deduplicate, Insert, and Generate Criteria
 
-For each approved task, generate **2–5 acceptance criteria** — concrete, testable conditions that define "done." **Prefer typed criteria** over manual ones whenever the check is mechanical. Typed criteria auto-verify on `tusk criteria done`, removing reasoning cost from /tusk's output tokens; fewer-but-sharper typed criteria beat long manual checklists.
+For each approved task, generate **2–5 acceptance criteria** — concrete, testable conditions that define "done."
 
-### Type-inference rubric (apply this first)
+### Test-first default
 
-For each criterion you draft, ask: *can this be checked mechanically?* If yes, give it a `type` and a `spec`. Default to `manual` only when none of the rules below fit.
+**Default to `criterion_type=test` with a proposed pytest node ID** (e.g. `tests/integration/test_foo.py::TestBar::test_baz`) for any criterion that names a behavior, output shape, edge case, or invariant. The test does not need to exist yet — pinning the node ID at planning time forces the author to enumerate input cases before any code is written, and the criterion's contract becomes executable rather than prose.
+
+Prose criteria can be satisfied by partial implementations that match the wording but miss edge cases. Pinning a test name forecloses that gap: `/tusk` cannot mark the criterion done until the named pytest invocation exits 0, so the implementer either writes the test or amends the criterion deliberately. There is no quiet path from "looks plausible" to "marked done."
+
+The only criteria that should remain `manual` are genuine judgment calls: exploratory spikes, prose/UX/visual review, PR-description quality, design tradeoffs, and one-off manual operations. The **Manual fallback** subsection below enumerates these in detail.
+
+Other typed criteria — `code` (presence/absence grep) and `file` (path glob) — remain useful for non-behavioral checks. All typed criteria auto-verify on `tusk criteria done`, removing reasoning cost from /tusk's output tokens; fewer-but-sharper typed criteria beat long manual checklists.
+
+### Type-inference rubric
+
+After drafting each criterion, pick its verification type. Most criteria become `test` (per the test-first default above) — the table below covers the remaining cases. Default to `manual` only when none of the rows fit *and* the criterion belongs in the Manual fallback list.
 
 | Signal in the criterion text | Type | `spec` is | How verification runs |
 |---|---|---|---|
-| Mentions a **test command, test file, or test name** (e.g. "tests/integration/test_foo.py passes", "the auth pytest suite passes") | `test` | The exact shell command that runs the test | Runs `spec`; pass = exit 0; 300s timeout |
+| Names a **behavior, output shape, edge case, or invariant** that could be expressed as a pytest assertion (default per the test-first rule above) — or already mentions a test command, file, or name | `test` | The exact shell command that runs the test, typically a pytest node ID like `python3 -m pytest tests/foo/test_bar.py::TestBaz::test_quux -q` | Runs `spec`; pass = exit 0; 300s timeout |
 | Mentions a **file path that should exist** (e.g. "CHANGELOG.md has an entry", "migration file in bin/ exists") | `file` | A glob pattern matching the expected path | Pass if **any** file matches |
 | Mentions a **code symbol, string, or pattern that must (or must not) appear** (e.g. "`PRAGMA user_version = 56` stamped in cmd_init", "no raw `sqlite3` call in skills/") | `code` | A shell command (typically `grep -q …` or `! grep -q …`) whose exit code answers the question | Runs `spec`; pass = exit 0; 120s timeout |
 | Anything else — visual review, design judgment, prose correctness, behavior in a UI | `manual` | — | None; /tusk asserts it during work |
@@ -252,10 +262,22 @@ For `test` and `code`, `spec` is a shell command — exit 0 = pass; use `! …` 
 
 ### Manual fallback
 
-Use plain `--criteria` for things that genuinely need human judgment — visual review, design correctness, prose quality:
+Reach for plain `--criteria` only when the check requires genuine human judgment and cannot be encoded as a test, code grep, or file glob. The test-first default does **not** apply in these cases:
+
+- **Exploratory spikes / investigations** — the deliverable is a written takeaway, recommendation, or decision document, not code. There is nothing to assert on. The criterion is "the writeup answers the question" and only a human can judge that.
+- **Prose / UX / visual review** — e.g. "the error message reads naturally to a non-technical user", "the screenshot looks right on mobile at 320px", "the README explains the migration clearly to someone seeing it for the first time". Wording quality and visual fidelity have no automated proxy.
+- **PR descriptions and other prose deliverables** — the bar is the quality of the writing itself; no test substitutes for a careful read.
+- **Design judgment calls** — whether an architectural choice is the right tradeoff, whether an API shape feels idiomatic, whether a refactor's diff size is justified by the win.
+- **One-off manual operations** — a one-time DB inspection, environment check, or vendor-portal click-through that won't recur in CI.
+
+For everything else — behaviors, output shapes, edge cases, regression coverage, file presence, code patterns, schema invariants — pin a test name (or a `code` / `file` spec). If a check feels like it should be manual but the *consequence* of getting it wrong is a recurring bug, write the test instead.
+
+Examples:
 
 ```bash
 --criteria "DOMAIN.md updated with schema entry for <table_name>"
+--criteria "Error message in confirm dialog reads naturally to a non-technical user"
+--criteria "PR description summarizes the migration steps and rollback plan"
 ```
 
 For **bug** tasks, include a criterion that the failure case is resolved (often expressible as a typed `test` criterion — the failing test now passes). For **feature** tasks, include the happy path and at least one edge case. For any task that creates a new database table (or is in a schema-related domain), always include the manual criterion: "DOMAIN.md updated with schema entry for `<table_name>`".
