@@ -347,7 +347,14 @@ private struct RawShowRailTransport: ClientTransport {
                         "clubName": "New York Comedy Club",
                         "imageUrl": "https://example.com/show.png",
                         "lineup": [],
-                        "tickets": []
+                        "tickets": [
+                          {
+                            "price": 9.0,
+                            "purchaseUrl": "https://example.com/tickets",
+                            "type": "General Admission",
+                            "soldOut": false
+                          }
+                        ]
                       }
                     ],
                     "moreNearYou": [],
