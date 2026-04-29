@@ -58,6 +58,5 @@ struct DetailHero: View {
             }
             .padding(laughTrack.spacing.heroPadding)
         }
-        .padding(.horizontal, -theme.spacing.md)
     }
 }
