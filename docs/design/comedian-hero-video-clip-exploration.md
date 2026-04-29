@@ -35,3 +35,26 @@ Sources:
 
 - YouTube embedded player parameters: https://developers.google.com/youtube/player_parameters
 - Current app model checked in `apps/web/prisma/schema.prisma` and `apps/web/objects/class/comedian/comedian.interface.ts`
+
+## Licensing Decision
+
+Only feature clips that are explicitly rights-cleared for LaughTrack use. For MVP, that means one of:
+
+- The comedian or their representative submitted/approved the exact clip URL for use on their LaughTrack profile.
+- The clip is from the comedian's own official YouTube channel and the comedian has opted into profile enrichment.
+- The clip is from a venue, label, publisher, or podcast channel where LaughTrack has written permission or a documented partnership allowing profile-page embeds.
+
+Do not automatically scrape and feature arbitrary YouTube Shorts, Instagram Reels, TikToks, or fan uploads based only on matching a comedian name. Name matching is too error-prone, and public availability is not the same as product permission to make that clip the primary content moment on a commercial detail page.
+
+YouTube's terms allow viewing through the embeddable player, but the same terms distinguish platform-enabled playback from independent use of the underlying content. The product should therefore treat YouTube as the playback mechanism, not as a blanket content-rights solution.
+
+Implementation implication:
+
+- Add moderation fields before launch: `approvedBy`, `approvedAt`, `rightsSource`, and `status`.
+- Keep the feature behind a curation workflow rather than automatic scraper enrichment.
+- Use platform embeds for playback. Do not download, crop, transcode, or re-host third-party clips without a separate rights path.
+
+Sources:
+
+- YouTube Terms of Service, permissions and restrictions: https://www.youtube.com/t/terms
+- YouTube Help on commercial uses of embedded players: https://support.google.com/youtube/answer/71011
