@@ -28,6 +28,18 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+### Focused Swift Testing Filters Can Match Zero Tests
+
+`swift test --filter <pattern>` can exit 0 even when the filter matches zero
+test cases. Treat the process exit code as insufficient by itself: inspect the
+reported test count and confirm at least one expected test ran. If the output
+reports no matching tests, rerun with a known-matching suite, a broader filter,
+or the full `swift test` suite before using the result as verification evidence.
+
+This has caught filters aimed at API client configuration tests and
+`HomeShowsTonightModelTests`; the command was green, but it had not exercised
+the intended coverage.
+
 ### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
 
 When a `requireView` / `requireText` / `tapControl` assertion fails in a way
