@@ -1,3 +1,4 @@
+import LaughTrackCore
 import SwiftUI
 
 struct SearchConditionPanel: View {
@@ -104,7 +105,11 @@ struct ShowsConditionControls: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft)
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                    if let activeNearbyPreference = model.activeNearbyPreference {
+                        NearbyPreferenceAccessory(preference: activeNearbyPreference)
+                    }
+                }
                     .modifier(SearchFieldInputBehavior())
                     #if os(iOS)
                     .keyboardType(UIKeyboardType.numberPad)
@@ -129,11 +134,6 @@ struct ShowsConditionControls: View {
 
                 if let nearbyStatusMessage = model.nearbyStatusMessage {
                     InlineStatusMessage(message: nearbyStatusMessage)
-                } else if let activeNearbyPreference = model.activeNearbyPreference {
-                    LaughTrackContextRow(
-                        leading: activeNearbyPreference.source == .manual ? "Saved ZIP" : "Current location",
-                        trailing: "\(activeNearbyPreference.zipCode) • \(activeNearbyPreference.distanceMiles) mi"
-                    )
                 }
             }
 
@@ -193,6 +193,43 @@ struct ShowsConditionControls: View {
                 }
             }
         }
+    }
+}
+
+private struct NearbyPreferenceAccessory: View {
+    @Environment(\.appTheme) private var theme
+
+    let preference: NearbyPreference
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.xs) {
+            Image(systemName: preference.source == .manual ? "keyboard" : "location.fill")
+                .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+
+            Text("\(sourceTitle) · \(preference.distanceMiles) mi")
+                .font(laughTrack.typography.metadata)
+                .lineLimit(1)
+        }
+        .foregroundStyle(laughTrack.colors.accentStrong)
+        .padding(.horizontal, laughTrack.browseDensity.chipHorizontalPadding)
+        .padding(.vertical, laughTrack.browseDensity.chipVerticalPadding)
+        .background(laughTrack.colors.highlight.opacity(0.95))
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.45), lineWidth: 1)
+        )
+        .clipShape(Capsule(style: .continuous))
+        .accessibilityLabel("\(accessibilitySource), \(preference.zipCode), \(preference.distanceMiles) miles")
+    }
+
+    private var sourceTitle: String {
+        preference.source == .manual ? "Manual" : "Device"
+    }
+
+    private var accessibilitySource: String {
+        preference.source == .manual ? "Manually entered ZIP" : "Device-resolved ZIP"
     }
 }
 

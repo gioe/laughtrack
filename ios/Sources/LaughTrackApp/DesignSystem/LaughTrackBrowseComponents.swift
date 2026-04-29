@@ -219,11 +219,22 @@ struct LaughTrackBrowseChip: View {
     }
 }
 
-struct LaughTrackSearchField: View {
+struct LaughTrackSearchField<TrailingAccessory: View>: View {
     @Environment(\.appTheme) private var theme
 
     let placeholder: String
     @Binding var text: String
+    @ViewBuilder let trailingAccessory: () -> TrailingAccessory
+
+    init(
+        placeholder: String,
+        text: Binding<String>,
+        @ViewBuilder trailingAccessory: @escaping () -> TrailingAccessory
+    ) {
+        self.placeholder = placeholder
+        _text = text
+        self.trailingAccessory = trailingAccessory
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -237,6 +248,8 @@ struct LaughTrackSearchField: View {
                 .autocorrectionDisabled()
                 .font(laughTrack.typography.body)
                 .foregroundStyle(laughTrack.colors.textPrimary)
+
+            trailingAccessory()
         }
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, theme.spacing.md)
@@ -247,6 +260,14 @@ struct LaughTrackSearchField: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
+    }
+}
+
+extension LaughTrackSearchField where TrailingAccessory == EmptyView {
+    init(placeholder: String, text: Binding<String>) {
+        self.init(placeholder: placeholder, text: text) {
+            EmptyView()
+        }
     }
 }
 
