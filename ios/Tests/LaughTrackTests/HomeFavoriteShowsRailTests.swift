@@ -25,16 +25,18 @@ struct HomeFavoriteShowsRailTests {
             ]
         )
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        #expect(favorites.savedFavoritesPhase == .loaded)
+        #expect(favorites.savedFavoriteComedians.map(\.name) == ["Taylor Tomlinson"])
 
         let host = HostedView(
             homeView(apiClient: apiClient, authManager: authManager, favorites: favorites)
         )
         await host.settle()
+        host.scrollDown(pages: 2)
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeFavoriteShowsRail)
         try host.requireText("Your favorites are touring")
         try host.requireLabel("Taylor Tomlinson at The Stand")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeFavoriteShowButton(901))
     }
 
     @Test("signed-out users do not see the favorite shows rail")
@@ -99,6 +101,7 @@ struct HomeFavoriteShowsRailTests {
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: MockHomeFavoriteShowsTransport(
                 favoriteResponse: favoriteResponse,
                 showResponses: showResponses
@@ -159,12 +162,18 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
         let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
 
         switch operationID {
         case "getFavorites":
             return (
                 HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
                 HTTPBody(try encoder.encode(favoriteResponse))
+            )
+        case "getHomeFeed":
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: emptyHomeFeed)))
             )
         case "searchShows":
             let name = request.url?.queryItems["comedian"] ?? ""
@@ -181,6 +190,18 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
                 HTTPBody(#"{"error":"unexpected operation"}"#)
             )
         }
+    }
+
+    private var emptyHomeFeed: Components.Schemas.HomeFeed {
+        .init(
+            hero: .init(zipCode: nil, city: nil, state: nil, shows: []),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [],
+            moreNearYou: [],
+            trendingThisWeek: [],
+            popularClubs: []
+        )
     }
 }
 

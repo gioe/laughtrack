@@ -55,6 +55,7 @@ enum LaughTrackHostedViewTestSupport {
             zipLocationResolver: zipLocationResolver
         )
         let container = ServiceContainer()
+        container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel, instance: DataCache<LaughTrackCacheKey>())
         container.register(NearbyPreferenceStore.self, scope: .appLevel, instance: store)
         container.register((any NearbyLocationResolving).self, scope: .appLevel, instance: resolver)
         container.register((any ZipLocationResolving).self, scope: .appLevel, instance: zipLocationResolver)
@@ -318,6 +319,18 @@ final class HostedView {
         render()
     }
 
+    func scrollDown(pages: CGFloat = 1) {
+        guard let scrollView = firstScrollView(in: hostingController.view) else {
+            Issue.record("No UIScrollView found in hosted view")
+            return
+        }
+
+        let maxOffsetY = max(0, scrollView.contentSize.height - scrollView.bounds.height)
+        let nextOffsetY = min(maxOffsetY, scrollView.contentOffset.y + scrollView.bounds.height * pages)
+        scrollView.setContentOffset(CGPoint(x: scrollView.contentOffset.x, y: nextOffsetY), animated: false)
+        render()
+    }
+
     /// Returns a formatted dump of the UIView hierarchy and accessibility-element
     /// tree rooted at the hosted view. Each line shows the underlying type, its
     /// `accessibilityIdentifier` (when present), and its `accessibilityLabel`
@@ -434,6 +447,20 @@ final class HostedView {
         for subview in root.subviews {
             if let match = findView(in: subview, withIdentifier: identifier) {
                 return match
+            }
+        }
+
+        return nil
+    }
+
+    private func firstScrollView(in root: UIView) -> UIScrollView? {
+        if let scrollView = root as? UIScrollView {
+            return scrollView
+        }
+
+        for subview in root.subviews {
+            if let scrollView = firstScrollView(in: subview) {
+                return scrollView
             }
         }
 

@@ -261,6 +261,7 @@ struct ContentViewNavigationTests {
 private func makeHomeFeedClient() -> Client {
     Client(
         serverURL: URL(string: "https://example.com")!,
+        configuration: .laughTrack,
         transport: MockHomeFeedTransport()
     )
 }
@@ -273,6 +274,7 @@ private struct MockHomeFeedTransport: ClientTransport {
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
         let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
 
         switch operationID {
         case "getHomeFeed":

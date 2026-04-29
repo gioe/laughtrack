@@ -18,6 +18,11 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
+                HomeFrameCard(
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                    searchNavigationBridge: searchNavigationBridge
+                )
+
                 HomeShowsTonightRail(
                     apiClient: apiClient,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
@@ -33,12 +38,6 @@ struct HomeView: View {
                     apiClient: apiClient,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
                     cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
-                )
-
-                HomeNearbyDiscoverySection(
-                    apiClient: apiClient,
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
-                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
             }
             .padding(.horizontal, theme.spacing.lg)
@@ -73,6 +72,89 @@ struct HomeView: View {
         #else
         .primaryAction
         #endif
+    }
+}
+
+private struct HomeFrameCard: View {
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let searchNavigationBridge: SearchNavigationBridge
+
+    @Environment(\.appTheme) private var theme
+
+    private var preference: NearbyPreference? {
+        nearbyPreferenceStore.preference
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackShelfHeader(
+                eyebrow: "Home frame",
+                title: frameTitle,
+                subtitle: "Search changes location and time"
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("Tonight", systemImage: "moon.stars", tone: .accent)
+
+                    if let preference {
+                        LaughTrackBadge(
+                            locationBadgeText(for: preference),
+                            systemImage: "mappin.and.ellipse",
+                            tone: .neutral
+                        )
+                        LaughTrackBadge(
+                            "Within \(preference.distanceMiles) mi",
+                            systemImage: "location.fill",
+                            tone: .highlight
+                        )
+                    } else {
+                        LaughTrackBadge("All LaughTrack cities", systemImage: "map", tone: .neutral)
+                    }
+                }
+            }
+
+            LaughTrackButton("Adjust in Search", systemImage: "magnifyingglass", tone: .secondary, fullWidth: false) {
+                searchNavigationBridge.openSearch(.init(pivot: .shows, query: "", shortcut: "Tonight"))
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var frameTitle: String {
+        guard let preference else {
+            return "Tonight across LaughTrack"
+        }
+
+        if let city = locationTitle(for: preference) {
+            return "Tonight near \(city)"
+        }
+
+        return "Tonight near ZIP \(preference.zipCode)"
+    }
+
+    private func locationBadgeText(for preference: NearbyPreference) -> String {
+        if let city = locationTitle(for: preference) {
+            return city
+        }
+        return "ZIP \(preference.zipCode)"
+    }
+
+    private func locationTitle(for preference: NearbyPreference) -> String? {
+        guard let city = preference.city else { return nil }
+        if let state = preference.state {
+            return "\(city), \(state)"
+        }
+        return city
     }
 }
 
@@ -461,14 +543,11 @@ private struct HomeFavoriteShowsRail: View {
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
-    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @StateObject private var model = HomeFavoriteShowsModel()
 
     private var favoriteComedians: [Components.Schemas.ComedianSearchItem] {
-        guard authManager.currentSession != nil,
-              favorites.savedFavoritesPhase == .loaded
-        else { return [] }
+        guard favorites.savedFavoritesPhase == .loaded else { return [] }
 
         return favorites.savedFavoriteComedians
     }
@@ -478,7 +557,7 @@ private struct HomeFavoriteShowsRail: View {
     }
 
     var body: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 0) {
             switch model.phase {
             case .success(let shows) where !shows.isEmpty:
                 favoriteShowsContent(shows)
@@ -486,6 +565,7 @@ private struct HomeFavoriteShowsRail: View {
                 EmptyView()
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .task(id: requestKey) {
             await model.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians, cache: cache)
         }
@@ -498,7 +578,7 @@ private struct HomeFavoriteShowsRail: View {
             LaughTrackShelfHeader(
                 eyebrow: "Favorites",
                 title: "Your favorites are touring",
-                subtitle: "Upcoming shows featuring comedians you saved."
+                subtitle: "Upcoming after tonight from comedians you saved."
             )
 
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
@@ -641,8 +721,8 @@ private struct HomeTrendingComediansRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Trending comedians",
-                title: "Comics drawing crowds",
+                eyebrow: "Upcoming after tonight",
+                title: "Comics drawing crowds later",
                 subtitle: "Photo-backed performers with upcoming shows."
             )
 

@@ -42,6 +42,7 @@ struct HomeShowsTonightModelTests {
 private func makeHomeShowsTonightClient() -> Client {
     Client(
         serverURL: URL(string: "https://example.com")!,
+        configuration: .laughTrack,
         transport: MockHomeShowsTonightTransport()
     )
 }
@@ -54,6 +55,7 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
         let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
 
         switch operationID {
         case "getHomeFeed":

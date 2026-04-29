@@ -85,11 +85,13 @@ struct AppShellViewTests {
         // CoordinatedNavigationStack-rooted ContentView.
     }
 
-    @Test("home nearby section remains visible after compact browse redesign")
-    func homeNearbySectionSurvivesRedesign() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-nearby")
+    @Test("home shows one active frame without duplicate nearby messaging")
+    func homeShowsSingleActiveFrame() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-frame")
         let coordinator = NavigationCoordinator<AppRoute>()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-nearby")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-frame")
+        let nearbyPreferenceStore = container.resolve(NearbyPreferenceStore.self)
+        nearbyPreferenceStore.setManualZip("10012", distanceMiles: 25, city: "New York", state: "NY")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
@@ -101,8 +103,13 @@ struct AppShellViewTests {
             .environmentObject(authManager)
         )
 
+        try host.requireText("Home frame")
+        try host.requireText("Tonight near New York, NY")
+        try host.requireText("Search changes location and time")
         try host.requireText("Shows tonight")
-        try host.requireText("Nearby tonight")
+        try host.requireText("Upcoming after tonight")
+        #expect(host.findText("Nearby tonight") == nil)
+        #expect(host.findText("Shows around ZIP 10012") == nil)
     }
 
     @Test("home no longer exposes the search-pivot hero after shows-tonight redesign")
