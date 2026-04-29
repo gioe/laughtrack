@@ -12,6 +12,8 @@ enum LaughTrackViewTestID {
     static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
     static let homeClubsSearchButton = "laughtrack.home.clubs-search-button"
     static let homeComediansSearchButton = "laughtrack.home.comedians-search-button"
+    static let homeShowsTonightRail = "laughtrack.home.shows-tonight-rail"
+    static let homeShowsTonightHeroButton = "laughtrack.home.shows-tonight-hero-button"
     static let homeTrendingComediansRail = "laughtrack.home.trending-comedians-rail"
     static let homeFavoriteShowsRail = "laughtrack.home.favorite-shows-rail"
     static let settingsScreen = "laughtrack.settings.screen"
@@ -43,6 +45,10 @@ enum LaughTrackViewTestID {
 
     static func homeFavoriteShowButton(_ id: Int) -> String {
         "laughtrack.home.favorite-show-\(id)"
+    }
+
+    static func homeShowsTonightButton(_ id: Int) -> String {
+        "laughtrack.home.shows-tonight-\(id)"
     }
 
     static func clubsSearchResultButton(_ id: Int) -> String {

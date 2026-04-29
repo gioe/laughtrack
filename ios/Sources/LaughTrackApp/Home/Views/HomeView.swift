@@ -18,31 +18,10 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
-                HomeHeroHeader(
+                HomeShowsTonightRail(
+                    apiClient: apiClient,
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
-
-                SessionBannerCard(signedOutMessage: signedOutMessage)
-
-                VStack(alignment: .leading, spacing: theme.spacing.md) {
-                    LaughTrackHeroModule(
-                        eyebrow: "Search",
-                        title: "Jump back into Search",
-                        subtitle: "Move between Shows, Clubs, and Comedians without leaving the same working surface.",
-                        ctaTitle: "Shows, clubs, and comics"
-                    )
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: theme.spacing.sm) {
-                            LaughTrackBrowseChip("Near Me ready", systemImage: "location.fill", tone: .selected)
-                            LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
-                            LaughTrackBrowseChip("Favorites in profile", systemImage: "star.fill")
-                        }
-                        .padding(.horizontal, 1)
-                    }
-                }
-
-                HomeSearchEntryRail(searchNavigationBridge: searchNavigationBridge)
 
                 HomeFavoriteShowsRail(apiClient: apiClient)
 
@@ -92,25 +71,371 @@ struct HomeView: View {
     }
 }
 
-struct HomeHeroHeader: View {
+private struct HomeShowsTonightRail: View {
+    let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
-    var body: some View {
-        LaughTrackSectionHeader(
-            eyebrow: "Home",
-            title: title,
-            subtitle: "Browse local momentum, featured shows, and venue spotlights before dropping into Search."
-        )
+    @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @StateObject private var model = HomeShowsTonightModel()
+
+    private var zipCode: String? {
+        nearbyPreferenceStore.preference?.zipCode
     }
 
-    var title: String {
-        guard let city = nearbyPreferenceStore.preference?.city, !city.isEmpty else {
-            return "Comedy worth noticing nearby"
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackShelfHeader(
+                eyebrow: "Tonight",
+                title: title,
+                subtitle: nil
+            )
+
+            switch model.phase {
+            case .idle, .loading:
+                LoadingCard(title: "Loading tonight's shows")
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode) },
+                    signIn: { coordinator.push(.profile) }
+                )
+            case .success(let shows):
+                if shows.isEmpty {
+                    EmptyCard(message: "No shows are listed for tonight yet.")
+                } else {
+                    showsContent(shows)
+                }
+            }
         }
-        if let state = nearbyPreferenceStore.preference?.state, !state.isEmpty {
-            return "What's funny near \(city), \(state)?"
+        .task(id: model.requestKey(for: zipCode)) {
+            await model.refresh(apiClient: apiClient, zipCode: zipCode)
         }
-        return "What's funny near \(city)?"
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightRail)
+    }
+
+    private var title: String {
+        if let city = model.cityTitle {
+            return "Shows tonight near \(city)"
+        }
+        return "Shows tonight"
+    }
+
+    @ViewBuilder
+    private func showsContent(_ shows: [Components.Schemas.Show]) -> some View {
+        if let heroShow = shows.first {
+            Button {
+                coordinator.open(.show(heroShow.id))
+            } label: {
+                HomeShowsTonightHeroCard(show: heroShow)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightHeroButton)
+        }
+
+        let railShows = Array(shows.dropFirst().prefix(8))
+        if !railShows.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(alignment: .top, spacing: theme.spacing.sm) {
+                    ForEach(railShows, id: \.id) { show in
+                        Button {
+                            coordinator.open(.show(show.id))
+                        } label: {
+                            HomeShowsTonightRailCard(show: show)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
+                    }
+                }
+                .padding(.horizontal, 1)
+                .padding(.vertical, 2)
+            }
+        }
+    }
+}
+
+private struct HomeShowsTonightHeroCard: View {
+    let show: Components.Schemas.Show
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            artwork
+
+            VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                Text(show.name ?? "Untitled show")
+                    .font(laughTrack.typography.cardTitle)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+
+                Text(show.clubName ?? "Unknown club")
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+
+                Text(metadata.joined(separator: " • "))
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(2)
+            }
+
+            HStack(spacing: theme.spacing.sm) {
+                LaughTrackBadge(lineupPreview, systemImage: "person.2.fill", tone: .neutral)
+
+                Spacer(minLength: theme.spacing.sm)
+
+                HStack(spacing: theme.spacing.xs) {
+                    Text(show.soldOut == true ? "Sold out" : "Tickets")
+                    Image(systemName: "arrow.right")
+                }
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(show.soldOut == true ? laughTrack.colors.textSecondary : laughTrack.colors.accentStrong)
+            }
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(show.name ?? "Untitled show"), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let url = URL.normalizedExternalURL(show.imageUrl) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .empty:
+                    Rectangle()
+                        .fill(laughTrack.colors.surfaceMuted)
+                        .overlay {
+                            ProgressView()
+                                .tint(laughTrack.colors.accent)
+                        }
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    fallbackArtwork
+                @unknown default:
+                    fallbackArtwork
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 172)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        } else {
+            fallbackArtwork
+                .frame(maxWidth: .infinity)
+                .frame(height: 172)
+        }
+    }
+
+    private var fallbackArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "ticket.fill")
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+    }
+
+    private var metadata: [String] {
+        [
+            ShowFormatting.listDate(show.date),
+            show.room,
+            ShowFormatting.distance(show.distanceMiles),
+        ].compactMap { value in
+            guard let value, !value.isEmpty else { return nil }
+            return value
+        }
+    }
+
+    private var lineupPreview: String {
+        guard let lineup = show.lineup, !lineup.isEmpty else {
+            return "Lineup TBA"
+        }
+
+        let names = lineup.prefix(2).map(\.name)
+        if lineup.count > 2 {
+            return "\(names.joined(separator: ", ")) +\(lineup.count - 2)"
+        }
+        return names.joined(separator: ", ")
+    }
+}
+
+private struct HomeShowsTonightRailCard: View {
+    let show: Components.Schemas.Show
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            artwork
+
+            Text(show.name ?? "Untitled show")
+                .font(laughTrack.typography.cardTitle)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(2)
+                .frame(width: 104, alignment: .leading)
+
+            Text(show.clubName ?? "Unknown club")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+                .frame(width: 104, alignment: .leading)
+
+            Text(ShowFormatting.listDate(show.date))
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .lineLimit(1)
+                .frame(width: 104, alignment: .leading)
+        }
+        .frame(width: 112, alignment: .topLeading)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(show.name ?? "Untitled show"), \(show.clubName ?? "Unknown club"), \(ShowFormatting.listDate(show.date))")
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let url = URL.normalizedExternalURL(show.imageUrl) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .empty:
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(laughTrack.colors.surfaceMuted)
+                        .overlay {
+                            ProgressView()
+                                .tint(laughTrack.colors.accent)
+                        }
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    fallbackArtwork
+                @unknown default:
+                    fallbackArtwork
+                }
+            }
+            .frame(width: 104, height: 78)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        } else {
+            fallbackArtwork
+        }
+    }
+
+    private var fallbackArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "ticket.fill")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+            .frame(width: 104, height: 78)
+    }
+}
+
+@MainActor
+final class HomeShowsTonightModel: ObservableObject {
+    @Published private(set) var phase: LoadPhase<[Components.Schemas.Show]> = .idle
+    @Published private(set) var cityTitle: String?
+
+    private var loadedRequestKey: String?
+
+    func requestKey(for zipCode: String?) -> String {
+        zipCode ?? ""
+    }
+
+    func refresh(apiClient: Client, zipCode: String?) async {
+        let requestKey = requestKey(for: zipCode)
+        if loadedRequestKey == requestKey, case .success = phase {
+            return
+        }
+
+        phase = .loading
+
+        do {
+            let output = try await apiClient.getHomeFeed(
+                .init(
+                    query: .init(zip: zipCode),
+                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                cityTitle = Self.locationTitle(city: response.data.hero.city, state: response.data.hero.state)
+                phase = .success(Self.shows(from: response.data))
+                loadedRequestKey = requestKey
+            case .badRequest(let badRequest):
+                phase = .failure(
+                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not load tonight's shows.")
+                )
+            case .tooManyRequests(let tooManyRequests):
+                phase = .failure(
+                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting tonight's shows right now.")
+                )
+            case .internalServerError(let serverError):
+                phase = .failure(
+                    .serverError(status: 500, message: (try? serverError.body.json.error))
+                )
+            case .undocumented(let status, _):
+                phase = .failure(classifyUndocumented(status: status, context: "tonight's shows"))
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            phase = .failure(
+                .network("LaughTrack couldn't reach the home feed. Check your connection and try again.")
+            )
+        }
+    }
+
+    private static func shows(from feed: Components.Schemas.HomeFeed) -> [Components.Schemas.Show] {
+        var seenIDs: Set<Int> = []
+        return (feed.showsTonight + feed.hero.shows + feed.trendingThisWeek).filter { show in
+            seenIDs.insert(show.id).inserted
+        }
+    }
+
+    private static func locationTitle(city: String?, state: String?) -> String? {
+        guard let city, !city.isEmpty else { return nil }
+        if let state, !state.isEmpty {
+            return "\(city), \(state)"
+        }
+        return city
     }
 }
 
@@ -253,28 +578,6 @@ final class HomeFavoriteShowsModel: ObservableObject {
             comedian.uuid == favorite.uuid ||
                 comedian.id == favorite.id ||
                 comedian.name.localizedCaseInsensitiveCompare(favorite.name) == .orderedSame
-        }
-    }
-}
-
-private struct HomeSearchEntryRail: View {
-    let searchNavigationBridge: SearchNavigationBridge
-
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LaughTrackShelfHeader(
-                eyebrow: "Search entry points",
-                title: "Open Search from a head start",
-                subtitle: "Pick what you’re browsing first, then refine in place."
-            )
-
-            VStack(spacing: theme.spacing.sm) {
-                HomeSearchEntryCard(config: .shows, searchNavigationBridge: searchNavigationBridge)
-                HomeSearchEntryCard(config: .clubs, searchNavigationBridge: searchNavigationBridge)
-                HomeSearchEntryCard(config: .comedians, searchNavigationBridge: searchNavigationBridge)
-            }
         }
     }
 }

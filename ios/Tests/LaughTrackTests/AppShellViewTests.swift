@@ -74,9 +74,8 @@ struct AppShellViewTests {
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
-        try host.requireText("Jump back into Search")
-        try host.requireText("Open Search from a head start")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
+        try host.requireText("Shows tonight")
         // homeSettingsButton lives inside HomeView's `.toolbar` modifier, which
         // requires an ancestor NavigationStack. Wrapping the test view in
         // NavigationStack works in isolation but doesn't reliably propagate the
@@ -102,12 +101,12 @@ struct AppShellViewTests {
             .environmentObject(authManager)
         )
 
-        try host.requireText("Comedy worth noticing nearby")
+        try host.requireText("Shows tonight")
         try host.requireText("Nearby tonight")
     }
 
-    @Test("home search seed still opens search after browse redesign")
-    func homeSearchSeedStillOpensSearch() async throws {
+    @Test("home no longer exposes the search-pivot hero after shows-tonight redesign")
+    func homeRemovesSearchPivotHero() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-search-smoke")
         let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-search-smoke")
@@ -122,8 +121,9 @@ struct AppShellViewTests {
             .environmentObject(authManager)
         )
 
-        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton) == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton) == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton) == nil)
     }
 
     @Test("authenticated shell triggers favorites fetch without visiting the Library tab")

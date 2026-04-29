@@ -1,58 +1,102 @@
 #if canImport(UIKit)
-import SwiftUI
+import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import Testing
-import LaughTrackBridge
-import LaughTrackCore
+import LaughTrackAPIClient
 @testable import LaughTrackApp
 
-@Suite("Home hero header")
+@Suite("Home shows tonight model")
 @MainActor
-struct HomeHeroHeaderTests {
-    @Test("renders 'What's funny near {City, ST}?' when a saved Nearby preference carries city and state")
-    func locationAwareHeader() async throws {
-        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "hero-located")
-        store.setGeolocatedZip("10012", distanceMiles: 25, city: "New York", state: "NY")
+struct HomeShowsTonightModelTests {
+    @Test("loads shows tonight without a nearby preference")
+    func loadsShowsTonightWithoutNearbyPreference() async {
+        let model = HomeShowsTonightModel()
 
-        let host = HostedView(
-            HomeHeroHeader(nearbyPreferenceStore: store)
-                .environment(\.appTheme, LaughTrackTheme())
-        )
+        await model.refresh(apiClient: makeHomeShowsTonightClient(), zipCode: nil)
 
-        try host.requireText("What's funny near New York, NY?")
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected shows-tonight success phase")
+            return
+        }
+
+        #expect(shows.map(\.id) == [801, 802, 803])
+        #expect(model.cityTitle == "New York, NY")
     }
 
-    @Test("preserves the static fallback header when no Nearby preference is set")
-    func staticFallbackHeader() async throws {
-        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "hero-fallback")
+    @Test("deduplicates fallback hero and weekly shows behind tonight")
+    func deduplicatesFallbackShowsBehindTonight() async {
+        let model = HomeShowsTonightModel()
 
-        let host = HostedView(
-            HomeHeroHeader(nearbyPreferenceStore: store)
-                .environment(\.appTheme, LaughTrackTheme())
-        )
+        await model.refresh(apiClient: makeHomeShowsTonightClient(), zipCode: "10012")
 
-        try host.requireText("Comedy worth noticing nearby")
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected shows-tonight success phase")
+            return
+        }
+
+        #expect(shows.map(\.id) == [801, 802, 803])
+    }
+}
+
+private func makeHomeShowsTonightClient() -> Client {
+    Client(
+        serverURL: URL(string: "https://example.com")!,
+        transport: MockHomeShowsTonightTransport()
+    )
+}
+
+private struct MockHomeShowsTonightTransport: ClientTransport {
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let encoder = JSONEncoder()
+
+        switch operationID {
+        case "getHomeFeed":
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: homeFeed)))
+            )
+        default:
+            return (
+                HTTPResponse(status: .internalServerError, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"unexpected operation"}"#)
+            )
+        }
     }
 
-    @Test("renders 'What's funny near {City, ST}?' after manual-ZIP refinement resolves city/state")
-    func locationAwareHeaderAfterManualZipRefinement() async throws {
-        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "hero-manual-refined")
-        let zipResolver = StubZipLocationResolver(
-            result: .success(ResolvedNearbyLocation(zipCode: "60614", city: "Chicago", state: "IL"))
+    private var homeFeed: Components.Schemas.HomeFeed {
+        .init(
+            hero: .init(zipCode: "10012", city: "New York", state: "NY", shows: [show(id: 802)]),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [show(id: 801), show(id: 802)],
+            moreNearYou: [],
+            trendingThisWeek: [show(id: 803), show(id: 801)],
+            popularClubs: []
         )
-        let controller = LaughTrackHostedViewTestSupport.makeNearbyLocationController(
-            store: store,
-            zipLocationResolver: zipResolver
+    }
+
+    private func show(id: Int) -> Components.Schemas.Show {
+        .init(
+            id: id,
+            clubName: "Comedy Cellar",
+            date: Date().addingTimeInterval(TimeInterval(id - 800) * 60 * 60),
+            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets/\(id)", soldOut: false, _type: "General admission")],
+            name: "Tonight Show \(id)",
+            socialData: nil,
+            lineup: [],
+            description: nil,
+            address: "117 MacDougal St, New York, NY",
+            room: "Main Room",
+            imageUrl: "https://example.com/show-\(id).png",
+            soldOut: false,
+            distanceMiles: nil
         )
-
-        _ = controller.applyManualZip("60614", distanceMiles: 25)
-        await controller.pendingZipRefinement?.value
-
-        let host = HostedView(
-            HomeHeroHeader(nearbyPreferenceStore: store)
-                .environment(\.appTheme, LaughTrackTheme())
-        )
-
-        try host.requireText("What's funny near Chicago, IL?")
     }
 }
 #endif

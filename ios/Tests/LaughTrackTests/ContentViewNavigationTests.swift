@@ -1,6 +1,10 @@
 #if canImport(UIKit)
+import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import SwiftUI
 import Testing
+import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -92,15 +96,15 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
     }
 
-    @Test("Home shows search entry seeds the search tab")
-    func homeShowsSearchButtonSeedsSearchTab() async throws {
+    @Test("Home shows-tonight hero opens show detail")
+    func homeShowsTonightHeroOpensShowDetail() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let searchBridge = SearchNavigationBridge()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-search")
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-search")
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-tonight")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-tonight")
         let host = HostedView(
             HomeView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                apiClient: makeHomeFeedClient(),
                 signedOutMessage: nil,
                 searchNavigationBridge: searchBridge
             )
@@ -110,15 +114,19 @@ struct ContentViewNavigationTests {
             .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
+        await host.settle()
 
-        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightHeroButton)
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsTonightHeroButton)
 
-        #expect(coordinator.path.isEmpty)
-        #expect(searchBridge.request?.seed == .init(pivot: .shows, query: "", shortcut: "Near Me"))
+        let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
+        #expect(pushed == [.showDetail(701)])
+        #expect(searchBridge.request == nil)
     }
 
-    @Test("home uses compact search entry copy instead of dedicated giant cards")
-    func homeUsesCompactSearchEntryCopy() async throws {
+    @Test("home removes the search entry rail from the body")
+    func homeRemovesSearchEntryRail() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-browse-redesign")
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-browse-redesign")
@@ -135,61 +143,9 @@ struct ContentViewNavigationTests {
             .environmentObject(authManager)
         )
 
-        try host.requireText("Jump back into Search")
-        try host.requireText("Open Search from a head start")
-        try host.requireText("Shows")
-        try host.requireText("Clubs")
-        try host.requireText("Comedians")
-    }
-
-    @Test("Home clubs search entry seeds the search tab")
-    func homeClubsSearchButtonSeedsSearchTab() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let searchBridge = SearchNavigationBridge()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-clubs-search")
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-clubs-search")
-        let host = HostedView(
-            HomeView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                signedOutMessage: nil,
-                searchNavigationBridge: searchBridge
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-            .environmentObject(ComedianFavoriteStore())
-            .environmentObject(authManager)
-        )
-
-        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton)
-
-        #expect(coordinator.path.isEmpty)
-        #expect(searchBridge.request?.seed == .init(pivot: .clubs, query: "", shortcut: nil))
-    }
-
-    @Test("Home comedians search entry seeds the search tab")
-    func homeComediansSearchButtonSeedsSearchTab() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let searchBridge = SearchNavigationBridge()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-comedians-search")
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-comedians-search")
-        let host = HostedView(
-            HomeView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                signedOutMessage: nil,
-                searchNavigationBridge: searchBridge
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-            .environmentObject(ComedianFavoriteStore())
-            .environmentObject(authManager)
-        )
-
-        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton)
-
-        #expect(coordinator.path.isEmpty)
-        #expect(searchBridge.request?.seed == .init(pivot: .comedians, query: "", shortcut: nil))
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton) == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton) == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton) == nil)
     }
 
     @Test("ContentView renders the show detail route")
@@ -299,6 +255,78 @@ struct ContentViewNavigationTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
         try host.requireLabel("Open Settings")
+    }
+}
+
+private func makeHomeFeedClient() -> Client {
+    Client(
+        serverURL: URL(string: "https://example.com")!,
+        transport: MockHomeFeedTransport()
+    )
+}
+
+private struct MockHomeFeedTransport: ClientTransport {
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let encoder = JSONEncoder()
+
+        switch operationID {
+        case "getHomeFeed":
+            return (
+                HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
+                HTTPBody(try encoder.encode(Components.Schemas.HomeFeedResponse(data: homeFeed)))
+            )
+        default:
+            return (
+                HTTPResponse(status: .internalServerError, headerFields: [.contentType: "application/json"]),
+                HTTPBody(#"{"error":"unexpected operation"}"#)
+            )
+        }
+    }
+
+    private var homeFeed: Components.Schemas.HomeFeed {
+        .init(
+            hero: .init(zipCode: nil, city: nil, state: nil, shows: [show(id: 704), show(id: 705)]),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [show(id: 701), show(id: 702), show(id: 703)],
+            moreNearYou: [],
+            trendingThisWeek: [show(id: 703), show(id: 706)],
+            popularClubs: []
+        )
+    }
+
+    private func show(id: Int) -> Components.Schemas.Show {
+        .init(
+            id: id,
+            clubName: "The Stand",
+            date: Date().addingTimeInterval(TimeInterval(id - 700) * 60 * 60),
+            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets/\(id)", soldOut: false, _type: "General admission")],
+            name: "Tonight Show \(id)",
+            socialData: nil,
+            lineup: [
+                .init(
+                    name: "Taylor Tomlinson",
+                    imageUrl: "https://example.com/taylor.png",
+                    uuid: "comedian-taylor-\(id)",
+                    id: id + 1000,
+                    userId: nil,
+                    socialData: .init(id: id + 1000),
+                    isFavorite: false,
+                    showCount: 3
+                ),
+            ],
+            description: nil,
+            address: "116 E 16th St, New York, NY",
+            room: "Main Room",
+            imageUrl: "https://example.com/show-\(id).png",
+            soldOut: false,
+            distanceMiles: nil
+        )
     }
 }
 #endif
