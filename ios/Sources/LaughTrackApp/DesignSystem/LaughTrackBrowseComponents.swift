@@ -3,6 +3,7 @@ import LaughTrackBridge
 
 enum LaughTrackBrowseChipTone: Equatable {
     case neutral
+    case subtle
     case accent
     case selected
 }
@@ -190,6 +191,8 @@ struct LaughTrackBrowseChip: View {
         switch tone {
         case .neutral:
             return laughTrack.colors.textPrimary
+        case .subtle:
+            return laughTrack.colors.textSecondary
         case .accent:
             return laughTrack.colors.accentStrong
         case .selected:
@@ -203,6 +206,8 @@ struct LaughTrackBrowseChip: View {
         switch tone {
         case .neutral:
             return laughTrack.colors.surface
+        case .subtle:
+            return laughTrack.colors.surfaceMuted.opacity(0.68)
         case .accent:
             return laughTrack.colors.highlight.opacity(0.92)
         case .selected:
@@ -216,6 +221,8 @@ struct LaughTrackBrowseChip: View {
         switch tone {
         case .neutral:
             return laughTrack.colors.borderSubtle
+        case .subtle:
+            return laughTrack.colors.borderSubtle.opacity(0.5)
         case .accent:
             return laughTrack.colors.borderStrong.opacity(0.5)
         case .selected:
@@ -575,6 +582,7 @@ struct LaughTrackBrowseComponents_Previews: PreviewProvider {
                 )
 
                 LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
+                LaughTrackBrowseChip("Tonight", systemImage: "moon.stars", tone: .subtle)
             }
             .padding()
         }

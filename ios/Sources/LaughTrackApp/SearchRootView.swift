@@ -130,7 +130,7 @@ struct SearchRootView: View {
     }
 
     private func shortcutTone(for shortcut: String) -> LaughTrackBrowseChipTone {
-        model.selectedShortcut == shortcut ? .selected : .neutral
+        model.selectedShortcut == shortcut ? .selected : .subtle
     }
 
     private func shortcutSystemImage(for shortcut: String) -> String? {
