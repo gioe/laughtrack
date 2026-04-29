@@ -18,7 +18,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 on a protected call drives /auth/refresh and rotates tokens in authMiddleware and keychain")
     @MainActor
     func refreshOn401RotatesTokensInAuthMiddlewareAndKeychain() async throws {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -132,7 +132,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 -> refresh -> 200 leaves AuthManager authenticated and keychain populated")
     @MainActor
     func successfulRefreshDoesNotTriggerUnauthorizedCallback() async throws {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -243,7 +243,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("401 from /auth/refresh signs the user out and does not retry the original request")
     @MainActor
     func refreshEndpoint401DoesNotLoopAndSignsOut() async throws {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "expired-refresh-token-\(UUID().uuidString)"
@@ -356,7 +356,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("Refresh closure throws — TRM propagates the error and does not mutate token state")
     @MainActor
     func refreshClosureThrowingPreservesTokenState() async throws {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -433,7 +433,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
     @Test("Missing refresh token in keychain on 401 signs the user out without calling /auth/refresh")
     @MainActor
     func missingRefreshTokenSignsOutWithoutHittingRefreshEndpoint() async throws {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "stale-access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-in-keychain-\(UUID().uuidString)"
@@ -540,7 +540,7 @@ struct TokenRefreshMiddlewareIntegrationTests {
 }
 
 // Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
-// IntegrationInMemorySecureStorage, StubOAuthSessionRunner, and the
+// InMemorySecureStorage, StubOAuthSessionRunner, and the
 // production-style refresh closure) live in MiddlewareIntegrationTestSupport.swift.
 
 // Kept fileprivate (rather than module-internal in the support file) so the

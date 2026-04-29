@@ -101,13 +101,7 @@ final class StubOAuthSessionRunner: OAuthSessionRunning {
     }
 }
 
-// Named with the `Integration` prefix to avoid an `invalid redeclaration` clash
-// with the file-private `InMemorySecureStorage` types that AuthManagerTests.swift
-// and HostedViewTestSupport.swift each declare locally — Swift treats a module-
-// internal type with the same name as a redeclaration of those private siblings.
-// Future consolidation across all three test files would lift those private
-// copies into this fixture; that's a strictly broader refactor than this task.
-final class IntegrationInMemorySecureStorage: SecureStorageProtocol {
+final class InMemorySecureStorage: SecureStorageProtocol {
     private var values: [String: String] = [:]
 
     func save(_ value: String, forKey key: String) throws {
@@ -170,4 +164,3 @@ func makeProductionStyleRefreshClosure(
         )
     }
 }
-

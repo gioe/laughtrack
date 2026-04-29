@@ -448,23 +448,3 @@ private final class MockOAuthSessionRunner: OAuthSessionRunning {
         return callbackURL
     }
 }
-
-private final class InMemorySecureStorage: SecureStorageProtocol {
-    private var values: [String: String] = [:]
-
-    func save(_ value: String, forKey key: String) throws {
-        values[key] = value
-    }
-
-    func retrieve(forKey key: String) throws -> String? {
-        values[key]
-    }
-
-    func delete(forKey key: String) throws {
-        values[key] = nil
-    }
-
-    func deleteAll() throws {
-        values.removeAll()
-    }
-}

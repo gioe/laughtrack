@@ -182,7 +182,7 @@ private struct AuthSignOutHarness {
     /// routed through a scripted transport, with a test session already restored to
     /// `.authenticated`. The signoutRequest binding exactly mirrors AppBootstrap.swift:114.
     static func make() async throws -> AuthSignOutHarness {
-        let secureStorage = IntegrationInMemorySecureStorage()
+        let secureStorage = InMemorySecureStorage()
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
         let initialAccess = "access-token-\(UUID().uuidString)"
         let initialRefresh = "refresh-token-\(UUID().uuidString)"
@@ -294,5 +294,5 @@ private actor IntegrationSignoutErrorRecorder {
 }
 
 // Shared fixtures (ScriptedTransport, ScriptedResponse, RecordedRequest,
-// IntegrationInMemorySecureStorage, StubOAuthSessionRunner, and the
+// InMemorySecureStorage, StubOAuthSessionRunner, and the
 // production-style refresh closure) live in MiddlewareIntegrationTestSupport.swift.
