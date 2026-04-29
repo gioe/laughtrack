@@ -58,3 +58,36 @@ Sources:
 
 - YouTube Terms of Service, permissions and restrictions: https://www.youtube.com/t/terms
 - YouTube Help on commercial uses of embedded players: https://support.google.com/youtube/answer/71011
+
+## Autoplay And Sound Decision
+
+Do not autoplay comedian clips with sound. The default interaction should be click-to-play with sound controlled by the user.
+
+Accepted behavior:
+
+- Default state: show a still thumbnail or paused embed with a clear play affordance.
+- User action: tapping/clicking the clip starts playback with sound according to the embedded provider's controls.
+- Optional later enhancement: muted inline preview on capable browsers, only when it does not add layout shift, data overuse, or cross-origin player complexity.
+
+Rejected behavior:
+
+- Sound-on autoplay on page load.
+- Hidden or control-less playback that makes it unclear where audio is coming from.
+- Treating muted autoplay as required for MVP.
+
+Why:
+
+- Chrome allows muted autoplay, but autoplay with sound depends on prior user interaction, site engagement, installation state, or iframe permission delegation. That makes sound-on autoplay inconsistent and inappropriate as the primary behavior.
+- A comedian clip is a sample moment, not background video. A deliberate play action creates a clearer product contract and avoids surprising users on mobile or in public contexts.
+- YouTube supports `autoplay` and `playsinline`, but the app does not need IFrame API complexity until it has measured demand for richer playback controls.
+
+Implementation implication:
+
+- MVP can render a YouTube iframe only after the user clicks the thumbnail, reducing initial third-party load and avoiding unwanted playback.
+- If a muted preview is added later, include `muted`, `playsinline`, and visible controls/unmute affordance where the provider permits it.
+
+Sources:
+
+- Chrome autoplay policy: https://developer.chrome.com/blog/autoplay/
+- Chrome muted mobile autoplay behavior: https://developer.chrome.com/blog/autoplay-2/
+- YouTube embedded player parameters: https://developers.google.com/youtube/player_parameters
