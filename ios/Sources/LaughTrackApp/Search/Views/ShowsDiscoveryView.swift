@@ -147,10 +147,6 @@ private struct ShowFiltersPanel: View {
                                 _ = model.applyManualZip()
                             }
 
-                            CurrentLocationButton(isLoading: model.isResolvingCurrentLocation) {
-                                await model.useCurrentLocation()
-                            }
-
                             if model.activeNearbyPreference != nil {
                                 LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
                                     model.clearLocation()
@@ -297,31 +293,5 @@ private struct ShowsSearchMeta: View {
         }
 
         return filters
-    }
-}
-
-private struct CurrentLocationButton: View {
-    let isLoading: Bool
-    let action: () async -> Void
-
-    var body: some View {
-        LaughTrackButton(
-            isLoading ? "Finding ZIP…" : "Use Current Location",
-            systemImage: isLoading ? nil : "location.circle",
-            tone: .secondary,
-            density: .compact,
-            fullWidth: false
-        ) {
-            Task {
-                await action()
-            }
-        }
-        .disabled(isLoading)
-        .overlay(alignment: .trailing) {
-            if isLoading {
-                ProgressView()
-                    .padding(.trailing, 12)
-            }
-        }
     }
 }

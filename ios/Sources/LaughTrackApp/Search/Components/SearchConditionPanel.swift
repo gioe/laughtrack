@@ -34,16 +34,20 @@ struct SearchConditionPanel: View {
             HStack(spacing: theme.spacing.sm) {
                 ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
                     Button {
-                        model.selectShortcut(shortcut)
-                        onShortcutSelected()
+                        Task {
+                            await model.selectShortcut(shortcut, showsModel: showsModel)
+                            onShortcutSelected()
+                        }
                     } label: {
                         LaughTrackBrowseChip(
-                            shortcut,
+                            shortcutTitle(for: shortcut),
                             systemImage: shortcutSystemImage(for: shortcut),
-                            tone: shortcutTone(for: shortcut)
+                            tone: shortcutTone(for: shortcut),
+                            isLoading: shortcut == "Near Me" && showsModel.isResolvingCurrentLocation
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(shortcut == "Near Me" && showsModel.isResolvingCurrentLocation)
                 }
             }
         }
@@ -72,7 +76,11 @@ struct SearchConditionPanel: View {
         model.selectedShortcut == shortcut ? .selected : .neutral
     }
 
-    private func shortcutSystemImage(for shortcut: String) -> String {
+    private func shortcutSystemImage(for shortcut: String) -> String? {
+        if shortcut == "Near Me", showsModel.isResolvingCurrentLocation {
+            return nil
+        }
+
         switch shortcut {
         case "Tonight":
             return "moon.stars"
@@ -81,6 +89,10 @@ struct SearchConditionPanel: View {
         default:
             return "location"
         }
+    }
+
+    private func shortcutTitle(for shortcut: String) -> String {
+        shortcut == "Near Me" && showsModel.isResolvingCurrentLocation ? "Finding ZIP..." : shortcut
     }
 
     private func pivotSystemImage(for pivot: SearchRootModel.Pivot) -> String {
@@ -120,10 +132,6 @@ struct ShowsConditionControls: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: theme.spacing.sm) {
-                        CurrentLocationButton(isLoading: model.isResolvingCurrentLocation) {
-                            await model.useCurrentLocation()
-                        }
-
                         if model.activeNearbyPreference != nil {
                             LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
                                 model.clearLocation()
@@ -230,31 +238,5 @@ private struct NearbyPreferenceAccessory: View {
 
     private var accessibilitySource: String {
         preference.source == .manual ? "Manually entered ZIP" : "Device-resolved ZIP"
-    }
-}
-
-private struct CurrentLocationButton: View {
-    let isLoading: Bool
-    let action: () async -> Void
-
-    var body: some View {
-        LaughTrackButton(
-            isLoading ? "Finding ZIP…" : "Use Current Location",
-            systemImage: isLoading ? nil : "location.circle",
-            tone: .secondary,
-            density: .compact,
-            fullWidth: false
-        ) {
-            Task {
-                await action()
-            }
-        }
-        .disabled(isLoading)
-        .overlay(alignment: .trailing) {
-            if isLoading {
-                ProgressView()
-                    .padding(.trailing, 12)
-            }
-        }
     }
 }
