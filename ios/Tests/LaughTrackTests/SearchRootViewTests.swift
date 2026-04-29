@@ -118,6 +118,40 @@ struct SearchRootModelTests {
         #expect(showsModel.toDate == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
     }
 
+    @Test("near me shortcut resolves current location when no nearby preference exists")
+    func nearMeShortcutResolvesCurrentLocation() async throws {
+        let model = SearchRootModel()
+        let showsModel = makeShowsDiscoveryModel(
+            name: "near-me-resolves",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+
+        let succeeded = await model.selectShortcut("Near Me", showsModel: showsModel)
+
+        #expect(succeeded)
+        #expect(model.activePivot == .shows)
+        #expect(model.selectedShortcut == "Near Me")
+        #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "10012", source: .geolocated, distanceMiles: 25))
+    }
+
+    @Test("near me shortcut clears an already resolved nearby preference")
+    func nearMeShortcutClearsResolvedLocation() async throws {
+        let model = SearchRootModel()
+        let showsModel = makeShowsDiscoveryModel(
+            name: "near-me-clears",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        showsModel.zipCodeDraft = "30309"
+        _ = showsModel.applyManualZip()
+
+        let succeeded = await model.selectShortcut("Near Me", showsModel: showsModel)
+
+        #expect(succeeded)
+        #expect(model.activePivot == .shows)
+        #expect(model.selectedShortcut == nil)
+        #expect(showsModel.activeNearbyPreference == nil)
+    }
+
     @Test("root query is applied only to the active pivot model")
     func rootQueryAppliesToActivePivotModel() async throws {
         let model = SearchRootModel()
@@ -181,5 +215,34 @@ struct SearchRootModelTests {
 
         #expect(showsModel.comedianSearchText == "Mark Normand")
         #expect(showsModel.clubSearchText == "")
+    }
+
+    private func makeShowsDiscoveryModel(
+        name: String,
+        resolver: any NearbyLocationResolving
+    ) -> ShowsDiscoveryModel {
+        let suiteName = "SearchRootModelTests.\(name).\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults)),
+                resolver: resolver,
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+    }
+}
+
+@MainActor
+private final class MockSearchNearbyLocationResolver: NearbyLocationResolving {
+    let result: Result<String, Error>
+
+    init(result: Result<String, Error>) {
+        self.result = result
+    }
+
+    func requestCurrentZip() async throws -> String {
+        try result.get()
     }
 }

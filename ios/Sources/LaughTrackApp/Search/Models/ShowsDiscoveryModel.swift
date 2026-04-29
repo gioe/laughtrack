@@ -6,6 +6,12 @@ import LaughTrackCore
 
 @MainActor
 final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
+    enum NearbyShortcutSelectionResult: Equatable {
+        case resolved
+        case cleared
+        case failed
+    }
+
     private static let pageSize = 10
 
     @Published var zipCodeDraft = ""
@@ -115,6 +121,16 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     @discardableResult
     func useCurrentLocation() async -> Bool {
         await nearbyLocationController.useCurrentLocation(distanceMiles: distance.rawValue)
+    }
+
+    @discardableResult
+    func selectNearbyShortcut() async -> NearbyShortcutSelectionResult {
+        if activeNearbyPreference != nil {
+            clearLocation()
+            return .cleared
+        }
+
+        return await useCurrentLocation() ? .resolved : .failed
     }
 
     private func fetchPage(

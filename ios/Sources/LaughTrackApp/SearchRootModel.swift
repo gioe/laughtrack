@@ -70,6 +70,27 @@ final class SearchRootModel: ObservableObject {
         activePivot = .shows
     }
 
+    @discardableResult
+    func selectShortcut(_ shortcut: String, showsModel: ShowsDiscoveryModel) async -> Bool {
+        selectedShortcut = shortcut
+        activePivot = .shows
+
+        guard shortcut == "Near Me" else {
+            return true
+        }
+
+        switch await showsModel.selectNearbyShortcut() {
+        case .resolved:
+            selectedShortcut = shortcut
+            return true
+        case .cleared:
+            selectedShortcut = nil
+            return true
+        case .failed:
+            return false
+        }
+    }
+
     func applyShortcutFilters(
         to showsModel: ShowsDiscoveryModel,
         now: Date = Date(),

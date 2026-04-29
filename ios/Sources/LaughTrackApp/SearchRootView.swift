@@ -91,16 +91,20 @@ struct SearchRootView: View {
             HStack(spacing: theme.spacing.sm) {
                 ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
                     Button {
-                        model.selectShortcut(shortcut)
-                        applyRootQueryToActivePivot()
+                        Task {
+                            await model.selectShortcut(shortcut, showsModel: showsModel)
+                            applyRootQueryToActivePivot()
+                        }
                     } label: {
                         LaughTrackBrowseChip(
-                            shortcut,
+                            shortcutTitle(for: shortcut),
                             systemImage: shortcutSystemImage(for: shortcut),
-                            tone: shortcutTone(for: shortcut)
+                            tone: shortcutTone(for: shortcut),
+                            isLoading: shortcut == "Near Me" && showsModel.isResolvingCurrentLocation
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(shortcut == "Near Me" && showsModel.isResolvingCurrentLocation)
                 }
             }
         }
@@ -129,7 +133,11 @@ struct SearchRootView: View {
         model.selectedShortcut == shortcut ? .selected : .neutral
     }
 
-    private func shortcutSystemImage(for shortcut: String) -> String {
+    private func shortcutSystemImage(for shortcut: String) -> String? {
+        if shortcut == "Near Me", showsModel.isResolvingCurrentLocation {
+            return nil
+        }
+
         switch shortcut {
         case "Tonight":
             return "moon.stars"
@@ -138,6 +146,10 @@ struct SearchRootView: View {
         default:
             return "location"
         }
+    }
+
+    private func shortcutTitle(for shortcut: String) -> String {
+        shortcut == "Near Me" && showsModel.isResolvingCurrentLocation ? "Finding ZIP..." : shortcut
     }
 
     private func pivotSystemImage(for pivot: SearchRootModel.Pivot) -> String {

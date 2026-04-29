@@ -147,11 +147,13 @@ struct LaughTrackBrowseChip: View {
     let title: String
     let systemImage: String?
     let tone: LaughTrackBrowseChipTone
+    let isLoading: Bool
 
-    init(_ title: String, systemImage: String? = nil, tone: LaughTrackBrowseChipTone = .neutral) {
+    init(_ title: String, systemImage: String? = nil, tone: LaughTrackBrowseChipTone = .neutral, isLoading: Bool = false) {
         self.title = title
         self.systemImage = systemImage
         self.tone = tone
+        self.isLoading = isLoading
     }
 
     var body: some View {
@@ -159,7 +161,10 @@ struct LaughTrackBrowseChip: View {
         let browseDensity = laughTrack.browseDensity
 
         HStack(spacing: theme.spacing.xs) {
-            if let systemImage {
+            if isLoading {
+                ProgressView()
+                    .controlSize(.small)
+            } else if let systemImage {
                 Image(systemName: systemImage)
                     .font(.system(size: theme.iconSizes.sm, weight: .semibold))
             }
