@@ -21,8 +21,7 @@ struct ShowsDiscoveryView: View {
             VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
                 LaughTrackShelfHeader(
                     eyebrow: "Shows",
-                    title: "Shows nearby",
-                    subtitle: "Keep filters close and results dense."
+                    title: "Shows nearby"
                 )
 
                 if displaysSearchFields {
@@ -113,124 +112,108 @@ private struct ShowFiltersPanel: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        LaughTrackCard(tone: .muted, density: .compact) {
-            VStack(alignment: .leading, spacing: theme.spacing.md) {
-                LaughTrackShelfHeader(
-                    eyebrow: "Filters",
-                    title: "Tune the search",
-                    subtitle: "Keep location, sort, and dates in reach."
-                )
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                Text("ZIP")
+                    .font(laughTrack.typography.eyebrow)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
+
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft)
+                    .modifier(SearchFieldInputBehavior())
+                    #if os(iOS)
+                    .keyboardType(UIKeyboardType.numberPad)
+                    #endif
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBrowseChip("Upcoming dates first", systemImage: "sparkles", tone: .accent)
-                        LaughTrackBrowseChip("Dense result rows", systemImage: "rectangle.grid.1x2", tone: .neutral)
-                        LaughTrackBrowseChip("Nearby aware", systemImage: "location.fill", tone: .neutral)
+                        LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, density: .compact, fullWidth: false) {
+                            _ = model.applyManualZip()
+                        }
+
+                        if model.activeNearbyPreference != nil {
+                            LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
+                                model.clearLocation()
+                            }
+                        }
                     }
                 }
 
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    Text("ZIP")
+                if let nearbyStatusMessage = model.nearbyStatusMessage {
+                    InlineStatusMessage(message: nearbyStatusMessage)
+                } else if let activeNearbyPreference = model.activeNearbyPreference {
+                    LaughTrackContextRow(
+                        leading: activeNearbyPreference.source == .manual ? "Saved ZIP" : "Current location",
+                        trailing: "\(activeNearbyPreference.zipCode) • \(activeNearbyPreference.distanceMiles) mi"
+                    )
+                }
+            }
+
+            HStack(spacing: theme.spacing.sm) {
+                Menu {
+                    Picker("Sort", selection: $model.sort) {
+                        ForEach(ShowSortOption.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                } label: {
+                    LaughTrackBrowseChip(
+                        "Sort: \(model.sort.title)",
+                        systemImage: "arrow.up.arrow.down",
+                        tone: .neutral
+                    )
+                }
+
+                if model.activeNearbyPreference != nil {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
+                            ForEach(ShowDistanceOption.allCases) { option in
+                                Button {
+                                    model.distance = option
+                                } label: {
+                                    LaughTrackBrowseChip(
+                                        option.title,
+                                        systemImage: "location.north.line",
+                                        tone: model.distance == option ? .selected : .neutral
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+            }
+
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                HStack {
+                    Text("Dates")
                         .font(laughTrack.typography.eyebrow)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                         .textCase(.uppercase)
-
-                    LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft)
-                        .modifier(SearchFieldInputBehavior())
-                        #if os(iOS)
-                        .keyboardType(UIKeyboardType.numberPad)
-                        #endif
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: theme.spacing.sm) {
-                            LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, density: .compact, fullWidth: false) {
-                                _ = model.applyManualZip()
-                            }
-
-                            if model.activeNearbyPreference != nil {
-                                LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
-                                    model.clearLocation()
-                                }
-                            }
-                        }
-                    }
-
-                    if let nearbyStatusMessage = model.nearbyStatusMessage {
-                        InlineStatusMessage(message: nearbyStatusMessage)
-                    } else if let activeNearbyPreference = model.activeNearbyPreference {
-                        LaughTrackContextRow(
-                            leading: activeNearbyPreference.source == .manual ? "Saved ZIP" : "Current location",
-                            trailing: "\(activeNearbyPreference.zipCode) • \(activeNearbyPreference.distanceMiles) mi"
-                        )
-                    }
+                    Spacer()
+                    Text(model.useDateRange ? "Custom window" : "Upcoming by default")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
                 }
 
-                HStack(spacing: theme.spacing.sm) {
-                    Menu {
-                        Picker("Sort", selection: $model.sort) {
-                            ForEach(ShowSortOption.allCases) { option in
-                                Text(option.title).tag(option)
-                            }
-                        }
-                    } label: {
-                        LaughTrackBrowseChip(
-                            "Sort: \(model.sort.title)",
-                            systemImage: "arrow.up.arrow.down",
-                            tone: .neutral
+                Toggle("Use date range", isOn: $model.useDateRange)
+                    .font(laughTrack.typography.body)
+                    .tint(laughTrack.colors.accent)
+
+                if model.useDateRange {
+                    VStack(spacing: theme.spacing.md) {
+                        DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
+                        DatePicker(
+                            "To",
+                            selection: Binding(
+                                get: { max(model.toDate, model.fromDate) },
+                                set: { model.toDate = max($0, model.fromDate) }
+                            ),
+                            in: model.fromDate...,
+                            displayedComponents: .date
                         )
                     }
-
-                    if model.activeNearbyPreference != nil {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: theme.spacing.sm) {
-                                ForEach(ShowDistanceOption.allCases) { option in
-                                    Button {
-                                        model.distance = option
-                                    } label: {
-                                        LaughTrackBrowseChip(
-                                            option.title,
-                                            systemImage: "location.north.line",
-                                            tone: model.distance == option ? .selected : .neutral
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    HStack {
-                        Text("Dates")
-                            .font(laughTrack.typography.eyebrow)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .textCase(.uppercase)
-                        Spacer()
-                        Text(model.useDateRange ? "Custom window" : "Upcoming by default")
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
-
-                    Toggle("Use date range", isOn: $model.useDateRange)
-                        .font(laughTrack.typography.body)
-                        .tint(laughTrack.colors.accent)
-
-                    if model.useDateRange {
-                        VStack(spacing: theme.spacing.md) {
-                            DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
-                            DatePicker(
-                                "To",
-                                selection: Binding(
-                                    get: { max(model.toDate, model.fromDate) },
-                                    set: { model.toDate = max($0, model.fromDate) }
-                                ),
-                                in: model.fromDate...,
-                                displayedComponents: .date
-                            )
-                        }
-                        .font(laughTrack.typography.body)
-                    }
+                    .font(laughTrack.typography.body)
                 }
             }
         }
