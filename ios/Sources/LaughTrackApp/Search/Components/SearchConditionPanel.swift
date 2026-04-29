@@ -109,6 +109,9 @@ struct ShowsConditionControls: View {
                     #if os(iOS)
                     .keyboardType(UIKeyboardType.numberPad)
                     #endif
+                    .onSubmit {
+                        _ = model.applyManualZip()
+                    }
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: theme.spacing.sm) {
