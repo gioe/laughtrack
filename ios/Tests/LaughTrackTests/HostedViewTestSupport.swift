@@ -266,6 +266,10 @@ final class HostedView {
         findView(in: hostingController.view, withIdentifier: identifier)
     }
 
+    func findText(_ text: String) -> UIView? {
+        findText(in: hostingController.view, text: text)
+    }
+
     @discardableResult
     func requireView(withIdentifier identifier: String) throws -> UIView {
         try waitUntil("Missing view with accessibility identifier '\(identifier)'") {

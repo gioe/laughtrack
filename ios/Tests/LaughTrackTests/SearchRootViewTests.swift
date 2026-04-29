@@ -28,7 +28,13 @@ struct SearchRootViewTests {
         try host.requireText("Near Me")
         try host.requireText("Tonight")
         try host.requireText("Shows")
+        try host.requireText("ZIP")
+        try host.requireText("Use date range")
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
+
+        #expect(host.findText("Tune the search") == nil)
+        #expect(host.findText("Keep location, sort, and dates in reach.") == nil)
+        #expect(host.findText("Keep filters close and results dense.") == nil)
     }
 }
 #endif
