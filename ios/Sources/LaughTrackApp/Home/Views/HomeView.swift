@@ -410,7 +410,12 @@ final class HomeShowsTonightModel: ObservableObject {
             apiClient: apiClient,
             zipCode: zipCode,
             cache: cache,
-            cacheTTL: cacheTTL
+            cacheTTL: cacheTTL,
+            badParamsMessage: "LaughTrack could not load tonight's shows.",
+            rateLimitMessage: "LaughTrack is rate-limiting tonight's shows right now.",
+            undocumentedContext: "tonight's shows",
+            networkContext: "the home feed",
+            networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
         )
         guard !Task.isCancelled else { return }
 
@@ -803,7 +808,12 @@ final class HomeTrendingComediansModel: ObservableObject {
             apiClient: apiClient,
             zipCode: zipCode,
             cache: cache,
-            cacheTTL: cacheTTL
+            cacheTTL: cacheTTL,
+            badParamsMessage: "LaughTrack could not load trending comedians.",
+            rateLimitMessage: "LaughTrack is rate-limiting trending comedians right now.",
+            undocumentedContext: "trending comedians",
+            networkContext: "the home feed",
+            networkMessage: "LaughTrack couldn't reach the trending comedians service. Check your connection and try again."
         )
         guard !Task.isCancelled else { return }
 
@@ -871,7 +881,12 @@ private enum HomeFeedRequest {
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>?,
-        cacheTTL: TimeInterval
+        cacheTTL: TimeInterval,
+        badParamsMessage: String,
+        rateLimitMessage: String,
+        undocumentedContext: String,
+        networkContext: String,
+        networkMessage: String
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         do {
             let output = try await apiClient.getHomeFeed(
@@ -893,24 +908,24 @@ private enum HomeFeedRequest {
                 return .success(response.data)
             case .badRequest(let badRequest):
                 return .failure(
-                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not load the home feed.")
+                    .badParams((try? badRequest.body.json.error) ?? badParamsMessage)
                 )
             case .tooManyRequests(let tooManyRequests):
                 return .failure(
-                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting the home feed right now.")
+                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? rateLimitMessage)
                 )
             case .internalServerError(let serverError):
                 return .failure(
                     .serverError(status: 500, message: (try? serverError.body.json.error))
                 )
             case .undocumented(let status, _):
-                return .failure(classifyUndocumented(status: status, context: "home feed"))
+                return .failure(classifyUndocumented(status: status, context: undocumentedContext))
             }
         } catch {
             return .failure(classifyRequestError(
                 error,
-                context: "the home feed",
-                networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
+                context: networkContext,
+                networkMessage: networkMessage
             ))
         }
     }
