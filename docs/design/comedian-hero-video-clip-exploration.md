@@ -91,3 +91,36 @@ Sources:
 - Chrome autoplay policy: https://developer.chrome.com/blog/autoplay/
 - Chrome muted mobile autoplay behavior: https://developer.chrome.com/blog/autoplay-2/
 - YouTube embedded player parameters: https://developers.google.com/youtube/player_parameters
+
+## Hero Placement Decision
+
+Place the clip below the comedian name/stat block and before the long bio/social row when a curated clip exists. Do not replace the full-bleed hero photo, and do not place the video as a decorative overlay on top of the headshot.
+
+Recommended layout:
+
+- Desktop: keep the current full-bleed image hero, with identity/CTA content on the readable side. Add a compact clip module below the name/stat area, constrained to a stable aspect-ratio box.
+- Mobile: show the name, stat, primary CTA, then the clip module before the full bio. This keeps the show/notification action reachable without forcing a video iframe above the fold on every profile.
+- No clip available: render the current hero unchanged.
+
+Why:
+
+- Replacing the headshot makes comedian identity dependent on clip availability and would produce inconsistent profile quality across the catalog.
+- Overlaying video on the hero image risks text/control collisions, poor contrast, and unpredictable embed controls inside an already dense hero.
+- A below-name placement gives the clip high prominence while preserving the existing hero's strongest job: immediate recognition of the comedian and a clear next-show action.
+
+Implementation implication:
+
+- Build this as an optional `FeaturedComedianClip` component owned by the comedian detail header area.
+- Reserve stable dimensions with `aspect-video` for landscape clips and a bounded portrait mode if Shorts become common.
+- Lazy-load the iframe after user intent where possible, using a thumbnail/button shell first.
+- Keep "See next show" or "Notify me about shows" as the primary CTA. The clip is a sampling moment, not the conversion target.
+
+## Open Follow-Up Work
+
+This task answers the product questions but does not ship the feature. A future implementation task should cover:
+
+- Schema and migration for curated featured clips.
+- Admin or operational curation workflow.
+- YouTube thumbnail/embed helper and provider validation.
+- Comedian detail UI component and responsive visual QA.
+- Analytics to compare clip engagement against show CTA engagement.
