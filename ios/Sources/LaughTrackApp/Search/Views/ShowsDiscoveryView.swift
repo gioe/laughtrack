@@ -1,6 +1,7 @@
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
+import LaughTrackCore
 
 struct ShowsDiscoveryView: View {
     let apiClient: Client
@@ -8,7 +9,12 @@ struct ShowsDiscoveryView: View {
     var displaysSearchFields = true
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+
+    private var pageCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
 
     var body: some View {
         LaughTrackCard(density: .compact) {
@@ -41,7 +47,7 @@ struct ShowsDiscoveryView: View {
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
-                        retry: { await model.reload(apiClient: apiClient) },
+                        retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
@@ -71,7 +77,7 @@ struct ShowsDiscoveryView: View {
                                     title: "Load more shows",
                                     isLoading: model.isLoadingMore
                                 ) {
-                                    await model.loadMore(apiClient: apiClient)
+                                    await model.loadMore(apiClient: apiClient, cache: pageCache)
                                 }
                             }
                         }
@@ -80,7 +86,7 @@ struct ShowsDiscoveryView: View {
             }
         }
         .task(id: model.requestKey) {
-            await model.reload(apiClient: apiClient)
+            await model.reload(apiClient: apiClient, cache: pageCache)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
     }

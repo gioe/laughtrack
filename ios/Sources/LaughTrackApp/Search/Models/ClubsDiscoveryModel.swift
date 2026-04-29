@@ -1,5 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
@@ -8,16 +9,24 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
 
     @Published var searchText = ""
 
-    func reload(apiClient: Client) async {
+    func reload(
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         let query = normalizedQuery
-        await super.reload(query: query, shouldDebounce: !query.isEmpty) { page, query in
-            await Self.fetchPage(page: page, query: query, apiClient: apiClient)
+        await super.reload(query: query, shouldDebounce: !query.isEmpty, cacheTTL: cacheTTL) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
-    func loadMore(apiClient: Client) async {
+    func loadMore(
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         await super.loadMore(query: normalizedQuery) { page, query in
-            await Self.fetchPage(page: page, query: query, apiClient: apiClient)
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
@@ -32,8 +41,18 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
     private static func fetchPage(
         page: Int,
         query: String,
-        apiClient: Client
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>, LoadFailure> {
+        let cacheKey = LaughTrackCacheKey.clubsSearch(query: query, page: page)
+        if let cached: DiscoverySearchResponse<Components.Schemas.ClubSearchItem> = await MainPageCache.get(
+            cacheKey,
+            from: cache
+        ) {
+            return .success(cached)
+        }
+
         do {
             if query.isEmpty {
                 let output = try await apiClient.listClubs(
@@ -65,12 +84,12 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                             distanceMiles: nil
                         )
                     }
-                    return .success(
-                        .init(
-                            items: items,
-                            total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
-                        )
+                    let pageResponse = DiscoverySearchResponse(
+                        items: items,
+                        total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
                     )
+                    await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                    return .success(pageResponse)
                 case .badRequest(let badRequest):
                     return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those club filters."))
                 case .tooManyRequests(let tooManyRequests):
@@ -96,12 +115,12 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                 switch output {
                 case .ok(let ok):
                     let response = try ok.body.json
-                    return .success(
-                        .init(
-                            items: response.data,
-                            total: response.total
-                        )
+                    let pageResponse = DiscoverySearchResponse(
+                        items: response.data,
+                        total: response.total
                     )
+                    await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                    return .success(pageResponse)
                 case .badRequest(let badRequest):
                     return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those club filters."))
                 case .tooManyRequests(let tooManyRequests):

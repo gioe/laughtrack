@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
@@ -66,18 +67,26 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         return timezone.localizedName(for: .shortStandard, locale: .current) ?? timezone.identifier
     }
 
-    func reload(apiClient: Client) async {
+    func reload(
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         let query = requestKey
-        await super.reload(query: query, shouldDebounce: query.hasActiveFilters) { [weak self] page, query in
+        await super.reload(query: query, shouldDebounce: query.hasActiveFilters, cacheTTL: cacheTTL) { [weak self] page, query in
             guard let self else { return .failure(.unexpected(status: 0, message: "LaughTrack could not load shows right now.")) }
-            return await self.fetchPage(page: page, query: query, apiClient: apiClient)
+            return await self.fetchPage(page: page, query: query, apiClient: apiClient, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
-    func loadMore(apiClient: Client) async {
+    func loadMore(
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         await super.loadMore(query: requestKey) { [weak self] page, query in
             guard let self else { return .failure(.unexpected(status: 0, message: "LaughTrack could not load shows right now.")) }
-            return await self.fetchPage(page: page, query: query, apiClient: apiClient)
+            return await self.fetchPage(page: page, query: query, apiClient: apiClient, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
@@ -111,8 +120,18 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     private func fetchPage(
         page: Int,
         query: ShowsDiscoveryQuery,
-        apiClient: Client
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, LoadFailure> {
+        let cacheKey = LaughTrackCacheKey.showsSearch(requestKey: query.cacheKey, page: page)
+        if let cached: DiscoverySearchResponse<Components.Schemas.Show> = await MainPageCache.get(
+            cacheKey,
+            from: cache
+        ) {
+            return .success(cached)
+        }
+
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -135,12 +154,12 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
             case .ok(let ok):
                 let response = try ok.body.json
                 zipCapTriggered = response.zipCapTriggered
-                return .success(
-                    .init(
-                        items: response.data,
-                        total: response.total
-                    )
+                let pageResponse = DiscoverySearchResponse(
+                    items: response.data,
+                    total: response.total
                 )
+                await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                return .success(pageResponse)
             case .badRequest(let badRequest):
                 return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))
             case .tooManyRequests(let tooManyRequests):

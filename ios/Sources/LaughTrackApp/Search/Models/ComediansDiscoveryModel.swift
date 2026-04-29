@@ -1,5 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
@@ -8,16 +9,26 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
 
     @Published var searchText = ""
 
-    func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+    func reload(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         let query = normalizedQuery
-        await super.reload(query: query, shouldDebounce: !query.isEmpty) { page, query in
-            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites)
+        await super.reload(query: query, shouldDebounce: !query.isEmpty, cacheTTL: cacheTTL) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
-    func loadMore(apiClient: Client, favorites: ComedianFavoriteStore) async {
+    func loadMore(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         await super.loadMore(query: normalizedQuery) { page, query in
-            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites)
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites, cache: cache, cacheTTL: cacheTTL)
         }
     }
 
@@ -33,8 +44,21 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
         page: Int,
         query: String,
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
     ) async -> Result<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>, LoadFailure> {
+        let cacheKey = LaughTrackCacheKey.comediansSearch(query: query, page: page)
+        if let cached: DiscoverySearchResponse<Components.Schemas.ComedianSearchItem> = await MainPageCache.get(
+            cacheKey,
+            from: cache
+        ) {
+            cached.items.forEach { comedian in
+                favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+            }
+            return .success(cached)
+        }
+
         do {
             if query.isEmpty {
                 let output = try await apiClient.listComedians(
@@ -60,12 +84,12 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                             isFavorite: favorites.storedValue(for: comedian.uuid)
                         )
                     }
-                    return .success(
-                        .init(
-                            items: items,
-                            total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
-                        )
+                    let pageResponse = DiscoverySearchResponse(
+                        items: items,
+                        total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
                     )
+                    await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                    return .success(pageResponse)
                 case .badRequest(let badRequest):
                     return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those comedian filters."))
                 case .internalServerError(let serverError):
@@ -92,12 +116,12 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                         favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
                         return comedian
                     }
-                    return .success(
-                        .init(
-                            items: items,
-                            total: response.total
-                        )
+                    let pageResponse = DiscoverySearchResponse(
+                        items: items,
+                        total: response.total
                     )
+                    await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                    return .success(pageResponse)
                 case .badRequest(let badRequest):
                     return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those comedian filters."))
                 case .tooManyRequests(let tooManyRequests):

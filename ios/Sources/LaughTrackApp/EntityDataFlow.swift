@@ -33,7 +33,7 @@ enum LoadPhase<Value> {
     case failure(LoadFailure)
 }
 
-struct DiscoverySearchPage<Item> {
+struct DiscoverySearchPage<Item: Sendable>: Sendable {
     let items: [Item]
     let total: Int
     let page: Int
@@ -43,26 +43,28 @@ struct DiscoverySearchPage<Item> {
     }
 }
 
-struct DiscoverySearchResponse<Item> {
+struct DiscoverySearchResponse<Item: Sendable>: Sendable {
     let items: [Item]
     let total: Int
 }
 
 @MainActor
-class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
+class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Item>> = .idle
     @Published private(set) var isLoadingMore = false
     @Published private(set) var paginationFailure: LoadFailure?
 
     private var loadedQuery: Query?
     private var loadingQuery: Query?
+    private var loadedAt: Date?
 
     func reload(
         query: Query,
         shouldDebounce: Bool = false,
+        cacheTTL: TimeInterval? = nil,
         fetch: @escaping (_ page: Int, _ query: Query) async -> Result<DiscoverySearchResponse<Item>, LoadFailure>
     ) async {
-        if loadedQuery == query, case .success = phase {
+        if loadedQuery == query, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
 
@@ -134,9 +136,16 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
                 )
             )
             loadedQuery = query
+            loadedAt = Date()
         case .failure(let failure):
             handleFailure(failure: failure, existingItems: existingItems, resetResults: resetResults)
         }
+    }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval?) -> Bool {
+        guard let cacheTTL else { return true }
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 
     private func handleFailure(

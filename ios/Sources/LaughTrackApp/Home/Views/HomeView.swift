@@ -20,14 +20,19 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
                 HomeShowsTonightRail(
                     apiClient: apiClient,
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
                 )
 
-                HomeFavoriteShowsRail(apiClient: apiClient)
+                HomeFavoriteShowsRail(
+                    apiClient: apiClient,
+                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+                )
 
                 HomeTrendingComediansRail(
                     apiClient: apiClient,
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
+                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
                 )
 
                 HomeNearbyDiscoverySection(
@@ -74,6 +79,7 @@ struct HomeView: View {
 private struct HomeShowsTonightRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let cache: DataCache<LaughTrackCacheKey>
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -99,7 +105,7 @@ private struct HomeShowsTonightRail: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode) },
+                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache) },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let shows):
@@ -111,7 +117,7 @@ private struct HomeShowsTonightRail: View {
             }
         }
         .task(id: model.requestKey(for: zipCode)) {
-            await model.refresh(apiClient: apiClient, zipCode: zipCode)
+            await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache)
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
@@ -373,57 +379,59 @@ final class HomeShowsTonightModel: ObservableObject {
     @Published private(set) var cityTitle: String?
 
     private var loadedRequestKey: String?
+    private var loadedAt: Date?
 
     func requestKey(for zipCode: String?) -> String {
         zipCode ?? ""
     }
 
-    func refresh(apiClient: Client, zipCode: String?) async {
+    func refresh(
+        apiClient: Client,
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         let requestKey = requestKey(for: zipCode)
-        if loadedRequestKey == requestKey, case .success = phase {
+        if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            return
+        }
+
+        if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
+            .homeFeed(zipCode: zipCode),
+            from: cache
+        ) {
+            apply(feed: cachedFeed, requestKey: requestKey)
             return
         }
 
         phase = .loading
 
-        do {
-            let output = try await apiClient.getHomeFeed(
-                .init(
-                    query: .init(zip: zipCode),
-                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
-                )
-            )
+        let result = await HomeFeedRequest.load(
+            apiClient: apiClient,
+            zipCode: zipCode,
+            cache: cache,
+            cacheTTL: cacheTTL
+        )
+        guard !Task.isCancelled else { return }
 
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                cityTitle = Self.locationTitle(city: response.data.hero.city, state: response.data.hero.state)
-                phase = .success(Self.shows(from: response.data))
-                loadedRequestKey = requestKey
-            case .badRequest(let badRequest):
-                phase = .failure(
-                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not load tonight's shows.")
-                )
-            case .tooManyRequests(let tooManyRequests):
-                phase = .failure(
-                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting tonight's shows right now.")
-                )
-            case .internalServerError(let serverError):
-                phase = .failure(
-                    .serverError(status: 500, message: (try? serverError.body.json.error))
-                )
-            case .undocumented(let status, _):
-                phase = .failure(classifyUndocumented(status: status, context: "tonight's shows"))
-            }
-        } catch {
-            guard !Task.isCancelled else { return }
-            phase = .failure(classifyRequestError(
-                error,
-                context: "the home feed",
-                networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
-            )
-            )
+        switch result {
+        case .success(let feed):
+            apply(feed: feed, requestKey: requestKey)
+        case .failure(let failure):
+            phase = .failure(failure)
         }
+    }
+
+    private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
+        cityTitle = Self.locationTitle(city: feed.hero.city, state: feed.hero.state)
+        phase = .success(Self.shows(from: feed))
+        loadedRequestKey = requestKey
+        loadedAt = Date()
+    }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 
     private static func shows(from feed: Components.Schemas.HomeFeed) -> [Components.Schemas.Show] {
@@ -444,6 +452,7 @@ final class HomeShowsTonightModel: ObservableObject {
 
 private struct HomeFavoriteShowsRail: View {
     let apiClient: Client
+    let cache: DataCache<LaughTrackCacheKey>
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -473,7 +482,7 @@ private struct HomeFavoriteShowsRail: View {
             }
         }
         .task(id: requestKey) {
-            await model.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians)
+            await model.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians, cache: cache)
         }
     }
 
@@ -519,18 +528,30 @@ final class HomeFavoriteShowsModel: ObservableObject {
     @Published private(set) var phase: LoadPhase<[Components.Schemas.Show]> = .idle
 
     private var loadedRequestKey: String?
+    private var loadedAt: Date?
 
     func refresh(
         apiClient: Client,
-        favoriteComedians: [Components.Schemas.ComedianSearchItem]
+        favoriteComedians: [Components.Schemas.ComedianSearchItem],
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
     ) async {
         let requestKey = Self.requestKey(for: favoriteComedians)
         guard !requestKey.isEmpty else {
             loadedRequestKey = nil
+            loadedAt = nil
             phase = .idle
             return
         }
-        if loadedRequestKey == requestKey, case .success = phase {
+        if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            return
+        }
+
+        if let cachedShows: [Components.Schemas.Show] = await MainPageCache.get(
+            .favoriteShows(requestKey: requestKey),
+            from: cache
+        ) {
+            apply(shows: cachedShows, requestKey: requestKey)
             return
         }
 
@@ -564,8 +585,15 @@ final class HomeFavoriteShowsModel: ObservableObject {
             }
         }
 
-        phase = .success(showsByID.values.sorted { $0.date < $1.date })
+        let shows = showsByID.values.sorted { $0.date < $1.date }
+        await MainPageCache.set(shows, forKey: .favoriteShows(requestKey: requestKey), in: cache, ttl: cacheTTL)
+        apply(shows: shows, requestKey: requestKey)
+    }
+
+    private func apply(shows: [Components.Schemas.Show], requestKey: String) {
+        phase = .success(shows)
         loadedRequestKey = requestKey
+        loadedAt = Date()
     }
 
     static func requestKey(for favoriteComedians: [Components.Schemas.ComedianSearchItem]) -> String {
@@ -583,11 +611,17 @@ final class HomeFavoriteShowsModel: ObservableObject {
                 comedian.name.localizedCaseInsensitiveCompare(favorite.name) == .orderedSame
         }
     }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
+    }
 }
 
 private struct HomeTrendingComediansRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let cache: DataCache<LaughTrackCacheKey>
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -613,7 +647,7 @@ private struct HomeTrendingComediansRail: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode) },
+                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache) },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let items):
@@ -640,7 +674,7 @@ private struct HomeTrendingComediansRail: View {
             }
         }
         .task(id: model.requestKey(for: zipCode)) {
-            await model.refresh(apiClient: apiClient, zipCode: zipCode)
+            await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache)
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
@@ -738,56 +772,53 @@ final class HomeTrendingComediansModel: ObservableObject {
     @Published private(set) var phase: LoadPhase<[Components.Schemas.ComedianListItem]> = .idle
 
     private var loadedRequestKey: String?
+    private var loadedAt: Date?
 
     func requestKey(for zipCode: String?) -> String {
         zipCode ?? ""
     }
 
-    func refresh(apiClient: Client, zipCode: String?) async {
+    func refresh(
+        apiClient: Client,
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         let requestKey = requestKey(for: zipCode)
-        if loadedRequestKey == requestKey, case .success = phase {
+        if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            return
+        }
+
+        if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
+            .homeFeed(zipCode: zipCode),
+            from: cache
+        ) {
+            apply(feed: cachedFeed, requestKey: requestKey)
             return
         }
 
         phase = .loading
 
-        do {
-            let output = try await apiClient.getHomeFeed(
-                .init(
-                    query: .init(zip: zipCode),
-                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
-                )
-            )
+        let result = await HomeFeedRequest.load(
+            apiClient: apiClient,
+            zipCode: zipCode,
+            cache: cache,
+            cacheTTL: cacheTTL
+        )
+        guard !Task.isCancelled else { return }
 
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                phase = .success(Self.railItems(from: response.data.trendingComedians))
-                loadedRequestKey = requestKey
-            case .badRequest(let badRequest):
-                phase = .failure(
-                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not load trending comedians.")
-                )
-            case .tooManyRequests(let tooManyRequests):
-                phase = .failure(
-                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting trending comedians right now.")
-                )
-            case .internalServerError(let serverError):
-                phase = .failure(
-                    .serverError(status: 500, message: (try? serverError.body.json.error))
-                )
-            case .undocumented(let status, _):
-                phase = .failure(classifyUndocumented(status: status, context: "trending comedians"))
-            }
-        } catch {
-            guard !Task.isCancelled else { return }
-            phase = .failure(classifyRequestError(
-                error,
-                context: "the home feed",
-                networkMessage: "LaughTrack couldn't reach the trending comedians service. Check your connection and try again."
-            )
-            )
+        switch result {
+        case .success(let feed):
+            apply(feed: feed, requestKey: requestKey)
+        case .failure(let failure):
+            phase = .failure(failure)
         }
+    }
+
+    private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
+        phase = .success(Self.railItems(from: feed.trendingComedians))
+        loadedRequestKey = requestKey
+        loadedAt = Date()
     }
 
     static func railItems(
@@ -805,5 +836,82 @@ final class HomeTrendingComediansModel: ObservableObject {
     private static func hasUsablePhoto(_ comedian: Components.Schemas.ComedianListItem) -> Bool {
         let rawValue = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
         return URL.normalizedExternalURL(rawValue) != nil
+    }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
+    }
+}
+
+enum MainPageCache {
+    static let defaultTTL: TimeInterval = 60 * 60
+
+    static func get<Value>(
+        _ key: LaughTrackCacheKey,
+        from cache: DataCache<LaughTrackCacheKey>?
+    ) async -> Value? {
+        guard let cache else { return nil }
+        return await cache.get(forKey: key)
+    }
+
+    static func set(
+        _ value: some Sendable,
+        forKey key: LaughTrackCacheKey,
+        in cache: DataCache<LaughTrackCacheKey>?,
+        ttl: TimeInterval = defaultTTL
+    ) async {
+        guard let cache else { return }
+        await cache.set(value, forKey: key, ttl: ttl)
+    }
+}
+
+private enum HomeFeedRequest {
+    static func load(
+        apiClient: Client,
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval
+    ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
+        do {
+            let output = try await apiClient.getHomeFeed(
+                .init(
+                    query: .init(zip: zipCode),
+                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                await MainPageCache.set(
+                    response.data,
+                    forKey: .homeFeed(zipCode: zipCode),
+                    in: cache,
+                    ttl: cacheTTL
+                )
+                return .success(response.data)
+            case .badRequest(let badRequest):
+                return .failure(
+                    .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not load the home feed.")
+                )
+            case .tooManyRequests(let tooManyRequests):
+                return .failure(
+                    .rateLimited(retryAfter: nil, message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting the home feed right now.")
+                )
+            case .internalServerError(let serverError):
+                return .failure(
+                    .serverError(status: 500, message: (try? serverError.body.json.error))
+                )
+            case .undocumented(let status, _):
+                return .failure(classifyUndocumented(status: status, context: "home feed"))
+            }
+        } catch {
+            return .failure(classifyRequestError(
+                error,
+                context: "the home feed",
+                networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
+            ))
+        }
     }
 }

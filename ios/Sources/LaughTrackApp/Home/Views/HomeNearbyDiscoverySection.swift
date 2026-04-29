@@ -7,8 +7,13 @@ struct HomeNearbyDiscoverySection: View {
     let apiClient: Client
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @StateObject private var model: HomeNearbyDiscoveryModel
+
+    private var pageCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
 
     init(
         apiClient: Client,
@@ -37,7 +42,7 @@ struct HomeNearbyDiscoverySection: View {
             }
         }
         .task(id: model.requestKey) {
-            await model.refresh(apiClient: apiClient)
+            await model.refresh(apiClient: apiClient, cache: pageCache)
         }
     }
 
@@ -127,7 +132,7 @@ struct HomeNearbyDiscoverySection: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient) },
+                    retry: { await model.refresh(apiClient: apiClient, cache: pageCache) },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let result):

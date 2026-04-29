@@ -4,7 +4,7 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-struct HomeNearbyPage {
+struct HomeNearbyPage: Sendable {
     let items: [Components.Schemas.Show]
     let total: Int
     let zipCapTriggered: Bool
@@ -28,6 +28,7 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
     private var locationStatusCancellable: AnyCancellable?
     private var locationLoadingCancellable: AnyCancellable?
     private var loadedPreference: NearbyPreference?
+    private var loadedAt: Date?
 
     init(
         nearbyPreferenceStore: NearbyPreferenceStore,
@@ -66,14 +67,28 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
         activeNearbyPreference == nil && !isPromptDismissed
     }
 
-    func refresh(apiClient: Client) async {
+    func refresh(
+        apiClient: Client,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+    ) async {
         guard let preference = activeNearbyPreference else {
             loadedPreference = nil
+            loadedAt = nil
             phase = .idle
             return
         }
 
-        if loadedPreference == preference, case .success = phase {
+        if loadedPreference == preference, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            return
+        }
+
+        let cacheKey = LaughTrackCacheKey.nearbyShows(
+            zipCode: preference.zipCode,
+            distanceMiles: preference.distanceMiles
+        )
+        if let cachedPage: HomeNearbyPage = await MainPageCache.get(cacheKey, from: cache) {
+            apply(page: cachedPage, preference: preference)
             return
         }
 
@@ -100,14 +115,13 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                phase = .success(
-                    .init(
-                        items: response.data,
-                        total: response.total,
-                        zipCapTriggered: response.zipCapTriggered
-                    )
+                let page = HomeNearbyPage(
+                    items: response.data,
+                    total: response.total,
+                    zipCapTriggered: response.zipCapTriggered
                 )
-                loadedPreference = preference
+                await MainPageCache.set(page, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                apply(page: page, preference: preference)
             case .badRequest(let badRequest):
                 phase = .failure(
                     .badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those nearby filters.")
@@ -185,16 +199,29 @@ final class HomeNearbyDiscoveryModel: ObservableObject {
         if let preference {
             zipCodeDraft = preference.zipCode
             loadedPreference = nil
+            loadedAt = nil
             if isPromptDismissed {
                 setPromptDismissed(false)
             }
         } else {
             loadedPreference = nil
+            loadedAt = nil
             phase = .idle
             if !isEditingZip {
                 zipCodeDraft = ""
             }
         }
+    }
+
+    private func apply(page: HomeNearbyPage, preference: NearbyPreference) {
+        phase = .success(page)
+        loadedPreference = preference
+        loadedAt = Date()
+    }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 
     private func setPromptDismissed(_ dismissed: Bool) {

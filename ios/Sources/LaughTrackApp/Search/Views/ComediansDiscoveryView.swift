@@ -9,9 +9,14 @@ struct ComediansDiscoveryView: View {
     var displaysSearchInput = true
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
+
+    private var pageCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
 
     var body: some View {
         LaughTrackCard(density: .compact) {
@@ -36,7 +41,7 @@ struct ComediansDiscoveryView: View {
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
-                        retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                        retry: { await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache) },
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
@@ -70,7 +75,7 @@ struct ComediansDiscoveryView: View {
                                     title: "Load more comedians",
                                     isLoading: model.isLoadingMore
                                 ) {
-                                    await model.loadMore(apiClient: apiClient, favorites: favorites)
+                                    await model.loadMore(apiClient: apiClient, favorites: favorites, cache: pageCache)
                                 }
                             }
                         }
@@ -79,7 +84,7 @@ struct ComediansDiscoveryView: View {
             }
         }
         .task(id: model.searchText) {
-            await model.reload(apiClient: apiClient, favorites: favorites)
+            await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache)
         }
         .alert("Favorites", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {

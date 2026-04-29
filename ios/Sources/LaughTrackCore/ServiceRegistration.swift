@@ -11,7 +11,9 @@ public enum ServiceRegistration {
         container.register(ImageCache.self, scope: .appLevel) { ImageCache() }
         container.register(AppStateStorageProtocol.self, scope: .appLevel) { AppStateStorage() }
 
-        container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel) { DataCache<LaughTrackCacheKey>() }
+        container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel) {
+            DataCache<LaughTrackCacheKey>(configuration: .init(defaultTTL: 60 * 60))
+        }
 
         container.register(NearbyPreferenceStore.self, scope: .appLevel) {
             NearbyPreferenceStore(

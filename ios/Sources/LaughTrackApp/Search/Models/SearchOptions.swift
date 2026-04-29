@@ -75,4 +75,16 @@ struct ShowsDiscoveryQuery: Hashable {
         useDateRange ||
         sort != .earliest
     }
+
+    var cacheKey: String {
+        [
+            "comedian=\(comedian)",
+            "club=\(club)",
+            "zip=\(sanitizedZip ?? "")",
+            "from=\(fromString ?? "")",
+            "to=\(toString ?? "")",
+            "distance=\(distance.rawValue)",
+            "sort=\(sort.rawValue)",
+        ].joined(separator: "|")
+    }
 }

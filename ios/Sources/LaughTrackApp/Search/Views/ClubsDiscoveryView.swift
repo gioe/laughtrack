@@ -1,6 +1,7 @@
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
+import LaughTrackCore
 
 struct ClubsDiscoveryView: View {
     let apiClient: Client
@@ -8,7 +9,12 @@ struct ClubsDiscoveryView: View {
     var displaysSearchInput = true
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+
+    private var pageCache: DataCache<LaughTrackCacheKey> {
+        serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+    }
 
     var body: some View {
         LaughTrackCard(density: .compact) {
@@ -33,7 +39,7 @@ struct ClubsDiscoveryView: View {
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
-                        retry: { await model.reload(apiClient: apiClient) },
+                        retry: { await model.reload(apiClient: apiClient, cache: pageCache) },
                         signIn: { coordinator.push(.profile) }
                     )
                 case .success(let result):
@@ -70,7 +76,7 @@ struct ClubsDiscoveryView: View {
                                     title: "Load more clubs",
                                     isLoading: model.isLoadingMore
                                 ) {
-                                    await model.loadMore(apiClient: apiClient)
+                                    await model.loadMore(apiClient: apiClient, cache: pageCache)
                                 }
                             }
                         }
@@ -79,7 +85,7 @@ struct ClubsDiscoveryView: View {
             }
         }
         .task(id: model.searchText) {
-            await model.reload(apiClient: apiClient)
+            await model.reload(apiClient: apiClient, cache: pageCache)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
     }
