@@ -11,7 +11,7 @@ struct DetailHero: View {
     @Environment(\.appTheme) private var theme
 
     let title: String
-    let subtitle: String
+    let subtitle: String?
     let imageURL: String
     let badges: [DetailHeroBadge]
 
@@ -32,10 +32,12 @@ struct DetailHero: View {
             )
 
             VStack(alignment: .leading, spacing: 12) {
-                Text(subtitle)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
-                    .textCase(.uppercase)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
+                        .textCase(.uppercase)
+                }
                 Text(title)
                     .font(laughTrack.typography.hero)
                     .foregroundStyle(laughTrack.colors.textInverse)

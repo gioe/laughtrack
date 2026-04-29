@@ -42,7 +42,7 @@ struct ComedianDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
                         title: comedian.name,
-                        subtitle: "Comedian",
+                        subtitle: nil,
                         imageURL: comedian.imageUrl,
                         badges: []
                     )
@@ -73,8 +73,7 @@ struct ComedianDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             LaughTrackSectionHeader(
                                 eyebrow: "Upcoming shows",
-                                title: "Catch them live",
-                                subtitle: "Upcoming dates for this comedian."
+                                title: "Catch them live"
                             )
 
                             if let relatedContentMessage = content.relatedContentMessage {
@@ -100,8 +99,7 @@ struct ComedianDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             LaughTrackSectionHeader(
                                 eyebrow: "Related comedians",
-                                title: "People sharing the bill",
-                                subtitle: "When lineup data is available, you can hop straight into the next comedian detail page."
+                                title: "People sharing the bill"
                             )
 
                             if content.relatedComedians.isEmpty {
