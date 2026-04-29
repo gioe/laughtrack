@@ -42,48 +42,32 @@ struct ComedianDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
                         title: comedian.name,
-                        subtitle: content.upcomingShows.isEmpty ? "No upcoming shows" : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
+                        subtitle: "Comedian",
                         imageURL: comedian.imageUrl,
-                        badges: comedianHeroBadges(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
+                        badges: []
                     )
 
-                    LaughTrackCard(tone: .muted) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            LaughTrackSectionHeader(
-                                eyebrow: "Saved comics",
-                                title: "Favorite",
-                                subtitle: "Save this comic to find them again later."
-                            )
-                            HStack {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(isFavorite ? "In your favorites" : "Not saved yet")
-                                        .font(theme.laughTrackTokens.typography.cardTitle)
-                                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                                    Text("Tap the heart to save or unsave this comic.")
-                                        .font(theme.laughTrackTokens.typography.body)
-                                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                                }
-                                Spacer()
-                                FavoriteButton(
-                                    isFavorite: isFavorite,
-                                    isPending: favorites.isPending(comedian.uuid)
-                                ) {
-                                    await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
-                                }
-                            }
+                    ComedianHeroActionRow(
+                        isFavorite: isFavorite,
+                        isFavoritePending: favorites.isPending(comedian.uuid),
+                        socialLinks: socialActionLinks(from: comedian.socialData),
+                        toggleFavorite: {
+                            await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+                        },
+                        openURL: { url in
+                            openURL(url)
                         }
-                    }
-
-                    DetailInfoCard(
-                        eyebrow: "Profile",
-                        title: "About this comedian",
-                        subtitle: "Basic info and links.",
-                        rows: comedianProfileRows(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
                     )
 
-                    SocialLinkSection(socialData: comedian.socialData) { url in
-                        openURL(url)
-                    }
+                    ComedianHighlightsRow(
+                        highlights: comedianHighlights(
+                            comedian: comedian,
+                            upcomingShows: content.upcomingShows
+                        ),
+                        openURL: { url in
+                            openURL(url)
+                        }
+                    )
 
                     LaughTrackCard {
                         VStack(alignment: .leading, spacing: 12) {
@@ -154,6 +138,57 @@ struct ComedianDetailView: View {
         })
     }
 
+    private func socialActionLinks(from socialData: Components.Schemas.SocialData) -> [SocialLink] {
+        SocialLink.links(from: socialData).filter { $0.label != "Website" }
+    }
+
+    private func comedianHighlights(
+        comedian: Components.Schemas.ComedianDetail,
+        upcomingShows: [Components.Schemas.Show]
+    ) -> [ComedianHighlight] {
+        [
+            nextShowHighlight(from: upcomingShows.first),
+            audienceReachText(for: comedian.socialData).map {
+                ComedianHighlight(title: $0, systemImage: "person.3.fill", tone: .accent)
+            },
+            URL.normalizedExternalURL(comedian.socialData.website).map {
+                ComedianHighlight(title: "Website", systemImage: "safari", tone: .neutral, url: $0)
+            }
+        ]
+        .compactMap { $0 }
+    }
+
+    private func nextShowHighlight(from show: Components.Schemas.Show?) -> ComedianHighlight? {
+        guard let show else { return nil }
+
+        let location = nextShowLocation(from: show)
+        let title: String
+        if let location {
+            title = "\(ShowFormatting.listDate(show.date)) · \(location)"
+        } else {
+            title = ShowFormatting.listDate(show.date)
+        }
+
+        return ComedianHighlight(title: title, systemImage: "calendar", tone: .highlight)
+    }
+
+    private func nextShowLocation(from show: Components.Schemas.Show) -> String? {
+        if let address = show.address {
+            let components = address
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+
+            if components.count >= 3 {
+                let city = components[components.count - 2]
+                let state = components.last?.split(separator: " ").first.map(String.init)
+                return [city, state].compactMap { $0 }.joined(separator: ", ")
+            }
+        }
+
+        return show.clubName
+    }
+
     private func toggleFavorite(name: String, uuid: String, currentValue: Bool) async {
         let result = await favorites.toggle(
             uuid: uuid,
@@ -172,60 +207,6 @@ struct ComedianDetailView: View {
         }
     }
 
-    private func comedianHeroBadges(
-        comedian: Components.Schemas.ComedianDetail,
-        upcomingShowCount: Int
-    ) -> [DetailHeroBadge] {
-        var badges: [DetailHeroBadge] = []
-
-        if upcomingShowCount > 0 {
-            badges.append(
-                DetailHeroBadge(
-                    title: "\(upcomingShowCount) upcoming",
-                    systemImage: "calendar",
-                    tone: .neutral
-                )
-            )
-        }
-
-        if let audienceReach = audienceReachText(for: comedian.socialData) {
-            badges.append(
-                DetailHeroBadge(
-                    title: audienceReach,
-                    systemImage: "person.3.fill",
-                    tone: .accent
-                )
-            )
-        }
-
-        if let website = comedian.socialData.website, !website.isEmpty {
-            badges.append(
-                DetailHeroBadge(
-                    title: "Website on file",
-                    systemImage: "link",
-                    tone: .neutral
-                )
-            )
-        }
-
-        return badges
-    }
-
-    private func comedianProfileRows(
-        comedian: Components.Schemas.ComedianDetail,
-        upcomingShowCount: Int
-    ) -> [DetailInfoRow] {
-        [
-            DetailInfoRow(label: "Upcoming", value: upcomingShowCount == 0 ? "No upcoming dates yet" : "\(upcomingShowCount) shows"),
-            DetailInfoRow(label: "Audience", value: audienceReachText(for: comedian.socialData)),
-            DetailInfoRow(label: "Instagram", value: socialHandle(comedian.socialData.instagramAccount, prefix: "@")),
-            DetailInfoRow(label: "TikTok", value: socialHandle(comedian.socialData.tiktokAccount, prefix: "@")),
-            DetailInfoRow(label: "YouTube", value: socialHandle(comedian.socialData.youtubeAccount, prefix: "@")),
-            DetailInfoRow(label: "Website", value: comedian.socialData.website),
-            DetailInfoRow(label: "Linktree", value: comedian.socialData.linktree)
-        ]
-    }
-
     private func audienceReachText(for socialData: Components.Schemas.SocialData) -> String? {
         let followerCount =
             (socialData.instagramFollowers ?? 0) +
@@ -235,9 +216,182 @@ struct ComedianDetailView: View {
         guard followerCount > 0 else { return nil }
         return "\(followerCount.formatted(.number.notation(.compactName))) followers"
     }
+}
 
-    private func socialHandle(_ handle: String?, prefix: String) -> String? {
-        guard let handle, !handle.isEmpty else { return nil }
-        return handle.hasPrefix(prefix) ? handle : "\(prefix)\(handle)"
+private struct ComedianHighlight: Identifiable {
+    let id = UUID()
+    let title: String
+    let systemImage: String
+    let tone: LaughTrackBadgeTone
+    let url: URL?
+
+    init(
+        title: String,
+        systemImage: String,
+        tone: LaughTrackBadgeTone,
+        url: URL? = nil
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.tone = tone
+        self.url = url
+    }
+}
+
+private struct ComedianHeroActionRow: View {
+    @Environment(\.appTheme) private var theme
+
+    let isFavorite: Bool
+    let isFavoritePending: Bool
+    let socialLinks: [SocialLink]
+    let toggleFavorite: () async -> Void
+    let openURL: (URL) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: theme.spacing.sm) {
+                ComedianFavoriteActionButton(
+                    isFavorite: isFavorite,
+                    isPending: isFavoritePending,
+                    action: toggleFavorite
+                )
+
+                ForEach(socialLinks) { link in
+                    ComedianSocialActionButton(link: link) {
+                        openURL(link.url)
+                    }
+                }
+            }
+            .padding(.vertical, theme.spacing.xs)
+        }
+    }
+}
+
+private struct ComedianHighlightsRow: View {
+    @Environment(\.appTheme) private var theme
+
+    let highlights: [ComedianHighlight]
+    let openURL: (URL) -> Void
+
+    var body: some View {
+        if !highlights.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    ForEach(highlights) { highlight in
+                        if let url = highlight.url {
+                            Button {
+                                openURL(url)
+                            } label: {
+                                LaughTrackBadge(
+                                    highlight.title,
+                                    systemImage: highlight.systemImage,
+                                    tone: highlight.tone
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Open \(highlight.title)")
+                        } else {
+                            LaughTrackBadge(
+                                highlight.title,
+                                systemImage: highlight.systemImage,
+                                tone: highlight.tone
+                            )
+                        }
+                    }
+                }
+                .padding(.vertical, theme.spacing.xs)
+            }
+        }
+    }
+}
+
+private struct ComedianFavoriteActionButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let isFavorite: Bool
+    let isPending: Bool
+    let action: () async -> Void
+
+    var body: some View {
+        Button {
+            Task {
+                await action()
+            }
+        } label: {
+            HStack(spacing: theme.spacing.xs) {
+                if isPending {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .frame(width: 18, height: 18)
+                } else {
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                }
+
+                Text(isFavorite ? "Saved" : "Save")
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isFavorite ? theme.laughTrackTokens.colors.accentStrong : theme.laughTrackTokens.colors.textPrimary)
+            .padding(.horizontal, theme.spacing.md)
+            .padding(.vertical, theme.spacing.xs)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(isFavorite ? theme.laughTrackTokens.colors.accentMuted.opacity(0.45) : theme.laughTrackTokens.colors.canvas)
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(isFavorite ? theme.laughTrackTokens.colors.accentStrong.opacity(0.35) : theme.laughTrackTokens.colors.borderStrong.opacity(0.5), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isFavorite ? "Remove favorite" : "Add favorite")
+    }
+}
+
+private struct ComedianSocialActionButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let link: SocialLink
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                Text(link.label)
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .lineLimit(1)
+            }
+            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            .padding(.horizontal, theme.spacing.md)
+            .padding(.vertical, theme.spacing.xs)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(theme.laughTrackTokens.colors.canvas)
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(theme.laughTrackTokens.colors.borderStrong.opacity(0.5), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open \(link.label)")
+    }
+
+    private var systemImage: String {
+        switch link.label {
+        case "Instagram":
+            return "camera"
+        case "TikTok":
+            return "music.note"
+        case "YouTube":
+            return "play.rectangle.fill"
+        case "Website":
+            return "safari"
+        default:
+            return "link"
+        }
     }
 }
