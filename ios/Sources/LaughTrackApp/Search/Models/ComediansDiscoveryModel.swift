@@ -110,7 +110,11 @@ final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schema
                 }
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the comedians service. Check your connection and try again."))
+            return .failure(classifyRequestError(
+                error,
+                context: "the comedians service",
+                networkMessage: "LaughTrack couldn't reach the comedians service. Check your connection and try again."
+            ))
         }
     }
 }

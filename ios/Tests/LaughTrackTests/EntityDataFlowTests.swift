@@ -184,6 +184,44 @@ struct EntityDataFlowTests {
         #expect(page.total == 1)
     }
 
+    @Test("comedian search decode failures are not shown as connection failures")
+    func comedianSearchDecodeFailuresClassifyAsDataIssues() async {
+        let model = ComediansDiscoveryModel()
+        model.searchText = "bad payload"
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            transport: MalformedSearchTransport()
+        )
+
+        await model.reload(apiClient: client, favorites: ComedianFavoriteStore())
+
+        guard case .failure(let failure) = model.phase else {
+            Issue.record("Expected comedian search to surface a failure phase")
+            return
+        }
+
+        #expect(failure.defaultTitle == "Data issue")
+    }
+
+    @Test("club search decode failures are not shown as connection failures")
+    func clubSearchDecodeFailuresClassifyAsDataIssues() async {
+        let model = ClubsDiscoveryModel()
+        model.searchText = "bad payload"
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            transport: MalformedSearchTransport()
+        )
+
+        await model.reload(apiClient: client)
+
+        guard case .failure(let failure) = model.phase else {
+            Issue.record("Expected club search to surface a failure phase")
+            return
+        }
+
+        #expect(failure.defaultTitle == "Data issue")
+    }
+
     @Test("failure messages include status codes and classify by case")
     func loadFailureDisplay() {
         #expect(LoadFailure.network("No signal").message == "No signal")
@@ -383,6 +421,66 @@ private struct RawShowRailTransport: ClientTransport {
                   "total": 1,
                   "filters": [],
                   "zipCapTriggered": false
+                }
+                """
+            )
+        default:
+            return jsonResponse(#"{"error":"unexpected operation"}"#, status: .internalServerError)
+        }
+    }
+
+    private func jsonResponse(
+        _ body: String,
+        status: HTTPResponse.Status = .ok
+    ) -> (HTTPResponse, HTTPBody?) {
+        (
+            HTTPResponse(status: status, headerFields: [.contentType: "application/json"]),
+            HTTPBody(body)
+        )
+    }
+}
+
+private struct MalformedSearchTransport: ClientTransport {
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        switch operationID {
+        case "searchComedians":
+            return jsonResponse(
+                """
+                {
+                  "data": [
+                    {
+                      "id": 301,
+                      "uuid": "comic-bad-payload",
+                      "name": "Bad Payload Comic",
+                      "imageUrl": "https://example.com/comic.png",
+                      "social_data": null,
+                      "show_count": 4,
+                      "isFavorite": false
+                    }
+                  ],
+                  "total": 1,
+                  "filters": []
+                }
+                """
+            )
+        case "searchClubs":
+            return jsonResponse(
+                """
+                {
+                  "data": [
+                    {
+                      "id": 401,
+                      "name": "Bad Payload Club",
+                      "active_comedian_count": 3
+                    }
+                  ],
+                  "total": 1,
+                  "filters": []
                 }
                 """
             )

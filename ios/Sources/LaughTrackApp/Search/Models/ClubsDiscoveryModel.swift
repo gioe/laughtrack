@@ -114,7 +114,11 @@ final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.Cl
                 }
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the clubs service. Check your connection and try again."))
+            return .failure(classifyRequestError(
+                error,
+                context: "the clubs service",
+                networkMessage: "LaughTrack couldn't reach the clubs service. Check your connection and try again."
+            ))
         }
     }
 }
