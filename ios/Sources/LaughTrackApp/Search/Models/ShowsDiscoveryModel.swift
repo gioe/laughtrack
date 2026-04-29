@@ -152,7 +152,11 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
                 return .failure(classifyUndocumented(status: status, context: "shows"))
             }
         } catch {
-            return .failure(.network("LaughTrack couldn't reach the shows search service. Check your connection and try again."))
+            return .failure(classifyRequestError(
+                error,
+                context: "the shows search service",
+                networkMessage: "LaughTrack couldn't reach the shows search service. Check your connection and try again."
+            ))
         }
     }
 

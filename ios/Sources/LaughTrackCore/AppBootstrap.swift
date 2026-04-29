@@ -49,6 +49,7 @@ public struct AppBootstrap {
         // between the very thing being refreshed and the request that refreshes it.
         let refreshClient = Client(
             serverURL: factory.serverURL,
+            configuration: .laughTrack,
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),
@@ -100,6 +101,7 @@ public struct AppBootstrap {
         // the request.
         let apiClient = Client(
             serverURL: factory.serverURL,
+            configuration: .laughTrack,
             transport: URLSessionTransport(),
             middlewares: [
                 APIVersionPathMiddleware(),

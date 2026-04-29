@@ -138,10 +138,59 @@ struct EntityDataFlowTests {
         #expect(model.paginationFailure == .network("Timed out"))
     }
 
+    @Test("home shows tonight model renders raw API show dates from a 200 home feed")
+    func homeShowsTonightModelDecodesRawHomeFeedDates() async {
+        let model = HomeShowsTonightModel()
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: RawShowRailTransport()
+        )
+
+        await model.refresh(apiClient: client, zipCode: nil)
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected home shows tonight to decode the 200 home feed")
+            return
+        }
+
+        #expect(shows.map(\.id) == [101])
+        #expect(model.cityTitle == "New York, NY")
+    }
+
+    @Test("shows discovery model renders raw API show dates from a 200 search response")
+    func showsDiscoveryModelDecodesRawSearchDates() async {
+        let model = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: RawShowRailTransport()
+        )
+
+        await model.reload(apiClient: client)
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected shows discovery to decode the 200 search response")
+            return
+        }
+
+        #expect(page.items.map(\.id) == [201])
+        #expect(page.total == 1)
+    }
+
     @Test("failure messages include status codes and classify by case")
     func loadFailureDisplay() {
         #expect(LoadFailure.network("No signal").message == "No signal")
         #expect(LoadFailure.network("No signal").defaultTitle == "No connection")
+
+        #expect(LoadFailure.decoding("Unreadable").message == "Unreadable")
+        #expect(LoadFailure.decoding("Unreadable").defaultTitle == "Data issue")
 
         #expect(LoadFailure.unauthorized("Session expired").message == "Session expired (HTTP 401)")
         #expect(LoadFailure.unauthorized("Session expired").defaultTitle == "Sign in required")
@@ -173,6 +222,7 @@ struct EntityDataFlowTests {
     func recoveryActionRouting() {
         #expect(LoadFailure.unauthorized("x").recoveryAction == .signIn)
         #expect(LoadFailure.network("y").recoveryAction == .retry)
+        #expect(LoadFailure.decoding("y").recoveryAction == .retry)
         #expect(LoadFailure.badParams("z").recoveryAction == .retry)
         #expect(LoadFailure.rateLimited(retryAfter: nil, message: nil).recoveryAction == .retry)
         #expect(LoadFailure.serverError(status: 500, message: nil).recoveryAction == .retry)
@@ -265,6 +315,83 @@ struct EntityDataFlowTests {
         default:
             Issue.record("Expected detail model to hold onto its first loaded value")
         }
+    }
+}
+
+private struct RawShowRailTransport: ClientTransport {
+    func send(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        switch operationID {
+        case "getHomeFeed":
+            return jsonResponse(
+                """
+                {
+                  "data": {
+                    "hero": {
+                      "zipCode": "10012",
+                      "city": "New York",
+                      "state": "NY",
+                      "shows": []
+                    },
+                    "trendingComedians": [],
+                    "comediansNearYou": [],
+                    "showsTonight": [
+                      {
+                        "id": 101,
+                        "date": "2026-04-29T00:00:00.000Z",
+                        "name": "Tonight Show",
+                        "clubName": "New York Comedy Club",
+                        "imageUrl": "https://example.com/show.png",
+                        "lineup": [],
+                        "tickets": []
+                      }
+                    ],
+                    "moreNearYou": [],
+                    "trendingThisWeek": [],
+                    "popularClubs": []
+                  }
+                }
+                """
+            )
+        case "searchShows":
+            return jsonResponse(
+                """
+                {
+                  "data": [
+                    {
+                      "id": 201,
+                      "date": "2026-05-27T02:30:00.000Z",
+                      "name": "Search Show",
+                      "clubName": "Flappers Comedy Club And Restaurant Burbank",
+                      "imageUrl": "/placeholders/club-placeholder.svg",
+                      "soldOut": false,
+                      "lineup": [],
+                      "tickets": []
+                    }
+                  ],
+                  "total": 1,
+                  "filters": [],
+                  "zipCapTriggered": false
+                }
+                """
+            )
+        default:
+            return jsonResponse(#"{"error":"unexpected operation"}"#, status: .internalServerError)
+        }
+    }
+
+    private func jsonResponse(
+        _ body: String,
+        status: HTTPResponse.Status = .ok
+    ) -> (HTTPResponse, HTTPBody?) {
+        (
+            HTTPResponse(status: status, headerFields: [.contentType: "application/json"]),
+            HTTPBody(body)
+        )
     }
 }
 

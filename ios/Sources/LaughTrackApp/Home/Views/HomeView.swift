@@ -417,8 +417,11 @@ final class HomeShowsTonightModel: ObservableObject {
             }
         } catch {
             guard !Task.isCancelled else { return }
-            phase = .failure(
-                .network("LaughTrack couldn't reach the home feed. Check your connection and try again.")
+            phase = .failure(classifyRequestError(
+                error,
+                context: "the home feed",
+                networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
+            )
             )
         }
     }

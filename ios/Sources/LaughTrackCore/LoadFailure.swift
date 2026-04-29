@@ -1,7 +1,9 @@
 import Foundation
+import LaughTrackAPIClient
 
 public enum LoadFailure: Error, Equatable, Sendable {
     case network(String)
+    case decoding(String)
     case badParams(String)
     case unauthorized(String)
     case rateLimited(retryAfter: TimeInterval?, message: String?)
@@ -11,6 +13,8 @@ public enum LoadFailure: Error, Equatable, Sendable {
     public var message: String {
         switch self {
         case .network(let message):
+            return message
+        case .decoding(let message):
             return message
         case .badParams(let message):
             return "\(message) (HTTP 400)"
@@ -39,6 +43,8 @@ public enum LoadFailure: Error, Equatable, Sendable {
         switch self {
         case .network:
             return "No connection"
+        case .decoding:
+            return "Data issue"
         case .badParams:
             return "Check these filters"
         case .unauthorized:
@@ -61,10 +67,17 @@ public enum LoadFailure: Error, Equatable, Sendable {
         switch self {
         case .unauthorized:
             return .signIn
-        case .network, .badParams, .rateLimited, .serverError, .unexpected:
+        case .network, .decoding, .badParams, .rateLimited, .serverError, .unexpected:
             return .retry
         }
     }
+}
+
+public func classifyRequestError(_ error: any Error, context: String, networkMessage: String) -> LoadFailure {
+    if isLaughTrackResponseDecodingError(error) {
+        return .decoding("LaughTrack reached \(context), but could not read the response. Please try again.")
+    }
+    return .network(networkMessage)
 }
 
 public func classifyUndocumented(status: Int, context: String) -> LoadFailure {
