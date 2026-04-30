@@ -446,6 +446,19 @@ class ComedyCellarExtractor:
                 container, ComedyCellarExtractor.COMEDIAN_LINK_PATTERN
             )
 
+            # Current Comedy Cellar markup renders names as
+            # <span class="name">Jane Doe</span> inside each set-content block
+            # without linking to /comedians/ pages.
+            try:
+                if hasattr(container, "find_all"):
+                    name_spans = container.find_all("span", class_="name")  # type: ignore[attr-defined]
+                    for span in name_spans:
+                        name = span.get_text(strip=True) if hasattr(span, "get_text") else ""
+                        if name and name not in names:
+                            names.append(name)
+            except Exception:
+                pass
+
             # Also consider <img alt="Name"> inside those links; sometimes names are only in alt text
             try:
                 link_selector = lambda href: bool(href and ComedyCellarExtractor.COMEDIAN_LINK_PATTERN in href)

@@ -2,6 +2,7 @@ import json
 from typing import Any, List
 
 import pytest
+from bs4 import BeautifulSoup
 
 from laughtrack.scrapers.implementations.venues.comedy_cellar.extractor import ComedyCellarExtractor
 from laughtrack.foundation.models.api.comedy_cellar.models import (
@@ -231,3 +232,34 @@ def test_extract_lineup_names_includes_img_alt_text(monkeypatch, patch_html_scra
     # Bypass HtmlScraper for this test and call the private method directly
     names = ComedyCellarExtractor._extract_lineup_names(container)
     assert names == ["Jane Doe"]
+
+
+def test_extract_lineup_names_reads_current_span_name_markup():
+    html = """
+    <div class="lineup" data-set-content="43160">
+        <div class="set-content">
+            <div>
+                <img alt="Rich Aronovitch's headshot" src="/rich.jpg"/>
+            </div>
+            <div>
+                <p><span class="name">Rich Aronovitch</span> ACCESS DAILY NBC</p>
+            </div>
+        </div>
+        <div class="set-content">
+            <div>
+                <img alt="Dan Davies's headshot" src="/dan.jpg"/>
+            </div>
+            <div>
+                <p><span class="name">Dan Davies</span> COMICS TO WATCH</p>
+            </div>
+        </div>
+        <div class="make-reservation">
+            <a href="/reservations-newyork/?showid=1777589100">Make A Reservation</a>
+        </div>
+    </div>
+    """
+    container = BeautifulSoup(html, "html.parser")
+
+    names = ComedyCellarExtractor._extract_lineup_names(container)
+
+    assert names == ["Rich Aronovitch", "Dan Davies"]
