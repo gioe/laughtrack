@@ -125,6 +125,23 @@ describe("HomePage favorite comedian rail", () => {
         );
     });
 
+    it("uses a 25-mile home radius for nearby profile ZIP sections", async () => {
+        mocks.auth.mockResolvedValue({
+            profile: { id: "profile-1", zipCode: "10801" },
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+
+        await renderHomePage();
+
+        expect(mocks.getShowsTonight).toHaveBeenCalledWith("UTC", "10801", 25);
+        expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25);
+        expect(mocks.getComediansByZip).toHaveBeenCalledWith("10801", 25);
+    });
+
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", zipCode: null },
