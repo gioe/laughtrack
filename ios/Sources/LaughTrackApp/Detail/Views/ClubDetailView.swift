@@ -12,6 +12,7 @@ struct ClubDetailView: View {
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
+    @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var model: ClubDetailModel
     @State private var feedbackMessage: String?
 
@@ -36,85 +37,37 @@ struct ClubDetailView: View {
                 .padding()
             case .success(let content):
                 let club = content.club
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
                         title: club.name,
-                        subtitle: content.upcomingShows.isEmpty ? (club.zipCode ?? "Club detail") : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
+                        subtitle: ClubDetailHeroPresentation.subtitle(
+                            upcomingShowCount: content.upcomingShows.count,
+                            zipCode: club.zipCode
+                        ),
                         imageURL: club.imageUrl,
-                        badges: clubHeroBadges(club: club, upcomingShowCount: content.upcomingShows.count, featuredComedianCount: content.featuredComedians.count)
-                    )
-
-                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information comes directly from the club.", rows: [
-                        DetailInfoRow(label: "Address", value: club.address),
-                        DetailInfoRow(label: "ZIP", value: club.zipCode),
-                        DetailInfoRow(label: "Phone", value: club.phoneNumber)
-                    ])
-
-                    DetailLinkCard(
-                        eyebrow: "Actions",
-                        title: "Take the next step",
-                        subtitle: "Jump out to the venue’s website, maps, or phone line when that data is available.",
-                        links: clubActionLinks(club: club),
-                        openURL: { url in openURL(url) }
-                    )
-
-                    LaughTrackCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            LaughTrackSectionHeader(
-                                eyebrow: "Upcoming shows",
-                                title: "What’s on at this room",
-                                subtitle: "Shows are filtered to this club so you can jump straight into a date."
-                            )
-
-                            if let relatedContentMessage = content.relatedContentMessage {
-                                InlineStatusMessage(message: relatedContentMessage)
-                            }
-
-                            if content.upcomingShows.isEmpty {
-                                EmptyCard(message: "No upcoming shows are available for this club right now.")
-                            } else {
-                                ForEach(content.upcomingShows, id: \.id) { show in
-                                    Button {
-                                        coordinator.open(.show(show.id))
-                                    } label: {
-                                        ShowRow(show: show)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
+                        badges: [],
+                        actions: clubHeroActions(club: club),
+                        openURL: { url in
+                            openURL(url)
                         }
-                    }
+                    )
+                    .ignoresSafeArea(.container, edges: .top)
 
-                    LaughTrackCard(tone: .muted) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            LaughTrackSectionHeader(
-                                eyebrow: "Featured comedians",
-                                title: "Artists on upcoming bills",
-                                subtitle: "When lineup data is available, you can move straight from the club profile into comedian details."
-                            )
-
-                            if content.featuredComedians.isEmpty {
-                                EmptyCard(message: "No featured comedians are available for this club yet.")
-                            } else {
-                                ForEach(content.featuredComedians, id: \.uuid) { comedian in
-                                    ComedianLineupRow(
-                                        comedian: comedian,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage,
-                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
-                                    )
-                                }
-                            }
-                        }
+                    VStack(alignment: .leading, spacing: 20) {
+                        ClubShowsSearchSection(
+                            clubName: club.name,
+                            apiClient: apiClient,
+                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
+                        )
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
+        .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .navigationTitle("Club")
-        .modifier(InlineNavigationTitle())
+        .modifier(EntityDetailNavigationChrome(entity: .club))
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
         }
@@ -127,61 +80,51 @@ struct ClubDetailView: View {
         })
     }
 
-    private func clubHeroBadges(
-        club: Components.Schemas.ClubDetail,
-        upcomingShowCount: Int,
-        featuredComedianCount: Int
-    ) -> [DetailHeroBadge] {
-        var badges = [DetailHeroBadge(title: "Club detail", systemImage: "building.2.fill", tone: .highlight)]
-
-        if upcomingShowCount > 0 {
-            badges.append(
-                DetailHeroBadge(
-                    title: "\(upcomingShowCount) upcoming",
-                    systemImage: "calendar",
-                    tone: .neutral
-                )
+    private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
+        [
+            DetailHeroAction(
+                title: "Website",
+                systemImage: "arrow.up.right",
+                url: URL.normalizedExternalURL(club.website)
+            ),
+            DetailHeroAction(
+                title: "Maps",
+                systemImage: "map.fill",
+                url: URL.mapsURL(for: club.address)
             )
-        }
+        ]
+    }
+}
 
-        if featuredComedianCount > 0 {
-            badges.append(
-                DetailHeroBadge(
-                    title: "\(featuredComedianCount) comics",
-                    systemImage: "music.mic",
-                    tone: .accent
-                )
-            )
-        }
+enum ClubDetailHeroPresentation {
+    static func subtitle(upcomingShowCount: Int, zipCode: String?) -> String? {
+        nil
+    }
+}
 
-        if !club.address.isEmpty {
-            badges.append(
-                DetailHeroBadge(
-                    title: "Address on file",
-                    systemImage: "mappin.and.ellipse",
-                    tone: .neutral
-                )
-            )
-        }
+private struct ClubShowsSearchSection: View {
+    let clubName: String
+    let apiClient: Client
 
-        if let phoneNumber = club.phoneNumber, !phoneNumber.isEmpty {
-            badges.append(
-                DetailHeroBadge(
-                    title: "Call venue",
-                    systemImage: "phone.fill",
-                    tone: .accent
-                )
-            )
-        }
+    @StateObject private var model: ShowsDiscoveryModel
 
-        return badges
+    init(
+        clubName: String,
+        apiClient: Client,
+        nearbyLocationController: NearbyLocationController
+    ) {
+        self.clubName = clubName
+        self.apiClient = apiClient
+        _model = StateObject(wrappedValue: ShowsDiscoveryModel(
+            nearbyLocationController: nearbyLocationController,
+            pinnedClubName: clubName
+        ))
     }
 
-    private func clubActionLinks(club: Components.Schemas.ClubDetail) -> [DetailLink] {
-        [
-            DetailLink(title: "Visit website", url: URL.normalizedExternalURL(club.website)),
-            DetailLink(title: "Open in Maps", url: URL.mapsURL(for: club.address)),
-            DetailLink(title: "Call venue", url: URL.phoneURL(club.phoneNumber))
-        ]
+    var body: some View {
+        ShowsDiscoveryView(
+            apiClient: apiClient,
+            model: model
+        )
     }
 }

@@ -955,6 +955,8 @@ public enum Components {
             public var soldOut: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/Show/distanceMiles`.
             public var distanceMiles: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/Show/timezone`.
+            public var timezone: Swift.String?
             /// Creates a new `Show`.
             ///
             /// - Parameters:
@@ -971,6 +973,7 @@ public enum Components {
             ///   - imageUrl:
             ///   - soldOut:
             ///   - distanceMiles:
+            ///   - timezone:
             public init(
                 id: Swift.Int,
                 clubName: Swift.String? = nil,
@@ -984,7 +987,8 @@ public enum Components {
                 room: Swift.String? = nil,
                 imageUrl: Swift.String,
                 soldOut: Swift.Bool? = nil,
-                distanceMiles: Swift.Double? = nil
+                distanceMiles: Swift.Double? = nil,
+                timezone: Swift.String? = nil
             ) {
                 self.id = id
                 self.clubName = clubName
@@ -999,6 +1003,7 @@ public enum Components {
                 self.imageUrl = imageUrl
                 self.soldOut = soldOut
                 self.distanceMiles = distanceMiles
+                self.timezone = timezone
             }
             public enum CodingKeys: String, CodingKey {
                 case id
@@ -1014,6 +1019,7 @@ public enum Components {
                 case imageUrl
                 case soldOut
                 case distanceMiles
+                case timezone
             }
         }
         /// - Remark: Generated from `#/components/schemas/ShowListResponse`.

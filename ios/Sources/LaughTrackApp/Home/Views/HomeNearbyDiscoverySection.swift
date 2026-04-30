@@ -142,10 +142,6 @@ struct HomeNearbyDiscoverySection: View {
                     VStack(alignment: .leading, spacing: theme.spacing.md) {
                         SearchResultsSummary(count: result.items.count, total: result.total)
 
-                        if result.zipCapTriggered {
-                            InlineStatusMessage(message: "That ZIP was broadened by the server because it covered too many locations. Tighten the ZIP or clear nearby filters.")
-                        }
-
                         ForEach(Array(result.items.prefix(3)), id: \.id) { show in
                             Button {
                                 coordinator.open(.show(show.id))

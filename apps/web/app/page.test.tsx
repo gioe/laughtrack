@@ -106,6 +106,25 @@ beforeEach(() => {
 });
 
 describe("HomePage favorite comedian rail", () => {
+    it("scopes shows tonight to the resolved profile ZIP", async () => {
+        mocks.auth.mockResolvedValue({
+            profile: { id: "profile-1", zipCode: "10801" },
+        });
+        mocks.getHeroContext.mockResolvedValue({
+            city: "New Rochelle",
+            state: "NY",
+            zipCode: "10801",
+        });
+
+        await renderHomePage();
+
+        expect(mocks.getShowsTonight).toHaveBeenCalledWith(
+            "UTC",
+            "10801",
+            expect.any(Number),
+        );
+    });
+
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", zipCode: null },

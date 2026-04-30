@@ -78,7 +78,15 @@ export async function GET(req: NextRequest) {
                       logSectionError("getComediansByZip"),
                   )
                 : Promise.resolve([]),
-            getShowsTonight(timezone).catch(logSectionError("getShowsTonight")),
+            zipCode
+                ? getShowsTonight(
+                      timezone,
+                      zipCode,
+                      DEFAULT_HOME_RADIUS_MILES,
+                  ).catch(logSectionError("getShowsTonight"))
+                : getShowsTonight(timezone).catch(
+                      logSectionError("getShowsTonight"),
+                  ),
             zipCode
                 ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
                       logSectionError("getShowsNearZip"),

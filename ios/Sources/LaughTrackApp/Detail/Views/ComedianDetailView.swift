@@ -39,91 +39,94 @@ struct ComedianDetailView: View {
             case .success(let content):
                 let comedian = content.comedian
                 let isFavorite = favorites.value(for: comedian.uuid)
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
                         title: comedian.name,
                         subtitle: nil,
                         imageURL: comedian.imageUrl,
                         badges: []
                     )
+                    .ignoresSafeArea(.container, edges: .top)
 
-                    ComedianHeroActionRow(
-                        isFavorite: isFavorite,
-                        isFavoritePending: favorites.isPending(comedian.uuid),
-                        socialLinks: socialActionLinks(from: comedian.socialData),
-                        toggleFavorite: {
-                            await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
-                        },
-                        openURL: { url in
-                            openURL(url)
-                        }
-                    )
-
-                    ComedianHighlightsRow(
-                        highlights: comedianHighlights(
-                            comedian: comedian,
-                            upcomingShows: content.upcomingShows
-                        ),
-                        openURL: { url in
-                            openURL(url)
-                        }
-                    )
-
-                    LaughTrackCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            LaughTrackSectionHeader(
-                                eyebrow: "Upcoming shows",
-                                title: "Catch them live"
-                            )
-
-                            if let relatedContentMessage = content.relatedContentMessage {
-                                InlineStatusMessage(message: relatedContentMessage)
+                    VStack(alignment: .leading, spacing: 20) {
+                        ComedianHeroActionRow(
+                            isFavorite: isFavorite,
+                            isFavoritePending: favorites.isPending(comedian.uuid),
+                            socialLinks: socialActionLinks(from: comedian.socialData),
+                            toggleFavorite: {
+                                await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+                            },
+                            openURL: { url in
+                                openURL(url)
                             }
+                        )
 
-                            if content.upcomingShows.isEmpty {
-                                EmptyCard(message: "No upcoming shows are available for this comedian right now.")
-                            } else {
-                                ForEach(content.upcomingShows, id: \.id) { show in
-                                    Button {
-                                        coordinator.open(.show(show.id))
-                                    } label: {
-                                        ShowRow(show: show)
+                        ComedianHighlightsRow(
+                            highlights: comedianHighlights(
+                                comedian: comedian,
+                                upcomingShows: content.upcomingShows
+                            ),
+                            openURL: { url in
+                                openURL(url)
+                            }
+                        )
+
+                        LaughTrackCard {
+                            VStack(alignment: .leading, spacing: 12) {
+                                LaughTrackSectionHeader(
+                                    eyebrow: "Upcoming shows",
+                                    title: "Catch them live"
+                                )
+
+                                if let relatedContentMessage = content.relatedContentMessage {
+                                    InlineStatusMessage(message: relatedContentMessage)
+                                }
+
+                                if content.upcomingShows.isEmpty {
+                                    EmptyCard(message: "No upcoming shows are available for this comedian right now.")
+                                } else {
+                                    ForEach(content.upcomingShows, id: \.id) { show in
+                                        Button {
+                                            coordinator.open(.show(show.id))
+                                        } label: {
+                                            ShowRow(show: show)
+                                        }
+                                        .buttonStyle(.plain)
                                     }
-                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+
+                        LaughTrackCard(tone: .muted) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                LaughTrackSectionHeader(
+                                    eyebrow: "Related comedians",
+                                    title: "People sharing the bill"
+                                )
+
+                                if content.relatedComedians.isEmpty {
+                                    EmptyCard(message: "No related comedians are available yet.")
+                                } else {
+                                    ForEach(content.relatedComedians, id: \.uuid) { relatedComedian in
+                                        ComedianLineupRow(
+                                            comedian: relatedComedian,
+                                            apiClient: apiClient,
+                                            feedbackMessage: $feedbackMessage,
+                                            openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-
-                    LaughTrackCard(tone: .muted) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            LaughTrackSectionHeader(
-                                eyebrow: "Related comedians",
-                                title: "People sharing the bill"
-                            )
-
-                            if content.relatedComedians.isEmpty {
-                                EmptyCard(message: "No related comedians are available yet.")
-                            } else {
-                                ForEach(content.relatedComedians, id: \.uuid) { relatedComedian in
-                                    ComedianLineupRow(
-                                        comedian: relatedComedian,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage,
-                                        openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    .padding()
                 }
-                .padding()
             }
         }
+        .ignoresSafeArea(.container, edges: .top)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
-        .navigationTitle("Comedian")
-        .modifier(InlineNavigationTitle())
+        .modifier(EntityDetailNavigationChrome(entity: .comedian))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
@@ -162,9 +165,9 @@ struct ComedianDetailView: View {
         let location = nextShowLocation(from: show)
         let title: String
         if let location {
-            title = "\(ShowFormatting.listDate(show.date)) · \(location)"
+            title = "\(ShowFormatting.listDate(show.date, timezoneID: show.timezone)) · \(location)"
         } else {
-            title = ShowFormatting.listDate(show.date)
+            title = ShowFormatting.listDate(show.date, timezoneID: show.timezone)
         }
 
         return ComedianHighlight(title: title, systemImage: "calendar", tone: .highlight)

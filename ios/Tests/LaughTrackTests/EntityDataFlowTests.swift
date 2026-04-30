@@ -184,6 +184,148 @@ struct EntityDataFlowTests {
         #expect(page.total == 1)
     }
 
+    @Test("shows discovery model sends selected filter slugs and stores returned filter options")
+    func showsDiscoveryModelSendsSelectedFilters() async {
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "searchShows")
+            return testJSONResponse(
+                """
+                {
+                  "data": [],
+                  "total": 0,
+                  "filters": [
+                    { "id": 1, "slug": "late-night", "name": "Late night", "selected": true },
+                    { "id": 2, "slug": "stand-up", "name": "Stand-up", "selected": true }
+                  ],
+                  "zipCapTriggered": false
+                }
+                """
+            )
+        }
+        let model = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+        model.selectedFilterSlugs = ["stand-up", "late-night"]
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: transport
+        )
+
+        await model.reload(apiClient: client)
+
+        let filtersParam = queryValue("filters", from: transport.capturedRequests.last?.path)
+        #expect(filtersParam == "late-night,stand-up")
+
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected shows discovery to retain a success page")
+            return
+        }
+        #expect(page.filters.map(\.slug) == ["late-night", "stand-up"])
+    }
+
+    @Test("shows discovery model can pin show searches to a club")
+    func showsDiscoveryModelPinsSearchesToClub() async {
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "searchShows")
+            return testJSONResponse(
+                """
+                {
+                  "data": [],
+                  "total": 0,
+                  "filters": [],
+                  "zipCapTriggered": false
+                }
+                """
+            )
+        }
+        let model = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            pinnedClubName: "Comedy Cellar"
+        )
+        model.clubSearchText = "The Stand"
+        model.comedianSearchText = "Mark Normand"
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: transport
+        )
+
+        await model.reload(apiClient: client)
+
+        let path = transport.capturedRequests.last?.path
+        #expect(model.isClubPinned)
+        #expect(!model.allowsLocationFiltering)
+        #expect(queryValue("club", from: path) == "Comedy Cellar")
+        #expect(queryValue("comedian", from: path) == "Mark Normand")
+    }
+
+    @Test("shows discovery model defaults date filtering to today")
+    func showsDiscoveryModelDefaultsDateFilteringToToday() {
+        let model = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+
+        #expect(model.useDateRange)
+        #expect(model.dateRangeChipTitle == "Today")
+        #expect(model.requestKey.fromString != nil)
+        #expect(model.requestKey.fromString == model.requestKey.toString)
+    }
+
+    @Test("comedian and club discovery models send selected filters and sort")
+    func primitiveDiscoveryModelsSendSelectedFiltersAndSort() async {
+        let transport = StubClientTransport { _, _, _, operationID in
+            switch operationID {
+            case "searchComedians":
+                return testJSONResponse(#"{"data":[],"total":0,"filters":[]}"#)
+            case "searchClubs":
+                return testJSONResponse(#"{"data":[],"total":0,"filters":[]}"#)
+            default:
+                Issue.record("Unexpected operation \(operationID)")
+                return testJSONResponse(#"{"error":"unexpected"}"#, status: .internalServerError)
+            }
+        }
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: transport
+        )
+
+        let comedians = ComediansDiscoveryModel()
+        comedians.selectedFilterSlugs = ["podcast", "stand-up"]
+        comedians.sort = .alphabetical
+        await comedians.reload(apiClient: client, favorites: ComedianFavoriteStore())
+
+        let clubs = ClubsDiscoveryModel()
+        clubs.selectedFilterSlugs = ["independent", "downtown"]
+        clubs.sort = .leastPopular
+        await clubs.reload(apiClient: client)
+
+        let requests = transport.capturedRequests
+        let comedianPath = requests.first(where: { $0.operationID == "searchComedians" })?.path
+        let clubPath = requests.first(where: { $0.operationID == "searchClubs" })?.path
+        let comedianFilters = queryValue("filters", from: comedianPath)
+        let clubFilters = queryValue("filters", from: clubPath)
+        let comedianSort = queryValue("sort", from: comedianPath)
+        let clubSort = queryValue("sort", from: clubPath)
+        #expect(comedianFilters == "podcast,stand-up")
+        #expect(clubFilters == "downtown,independent")
+        #expect(comedianSort == "name_asc")
+        #expect(clubSort == "popularity_asc")
+    }
+
     @Test("comedian search decode failures are not shown as connection failures")
     func comedianSearchDecodeFailuresClassifyAsDataIssues() async {
         let model = ComediansDiscoveryModel()
@@ -498,6 +640,21 @@ private struct MalformedSearchTransport: ClientTransport {
             HTTPBody(body)
         )
     }
+}
+
+private func testJSONResponse(
+    _ body: String,
+    status: HTTPResponse.Status = .ok
+) -> (HTTPResponse, HTTPBody?) {
+    (
+        HTTPResponse(status: status, headerFields: [.contentType: "application/json"]),
+        HTTPBody(body)
+    )
+}
+
+private func queryValue(_ name: String, from path: String?) -> String? {
+    guard let path, let components = URLComponents(string: "https://test.example.com\(path)") else { return nil }
+    return components.queryItems?.first(where: { $0.name == name })?.value
 }
 
 private func makeTrendingComedians(

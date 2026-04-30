@@ -6,11 +6,14 @@ import LaughTrackCore
 struct ClubsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ClubsDiscoveryModel
+    var unifiedSearchText: Binding<String>?
+    var unifiedSearchPrompt: String?
     var displaysSearchInput = true
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @State private var isFilterEditorPresented = false
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -25,12 +28,25 @@ struct ClubsDiscoveryView: View {
                     subtitle: "Keep venues dense, tappable, and easy to scan."
                 )
 
-                if displaysSearchInput {
+                if let unifiedSearchText {
+                    SearchField(
+                        title: "Search",
+                        prompt: unifiedSearchPrompt ?? "Search club names",
+                        text: unifiedSearchText
+                    )
+                } else if displaysSearchInput {
                     SearchField(
                         title: "Club name",
                         prompt: "Comedy Cellar, The Stand…",
                         text: $model.searchText
                     )
+                }
+
+                PrimitiveSearchControls(
+                    sort: $model.sort,
+                    filterCount: model.selectedFilterSlugs.count
+                ) {
+                    isFilterEditorPresented = true
                 }
 
                 switch model.phase {
@@ -84,10 +100,39 @@ struct ClubsDiscoveryView: View {
                 }
             }
         }
-        .task(id: model.searchText) {
+        .task(id: model.requestKey) {
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
+        #if os(iOS)
+        .fadeFullScreenCover(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        #else
+        .sheet(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        #endif
         .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
+    }
+
+    private var currentFilters: [Components.Schemas.Filter] {
+        guard case .success(let result) = model.phase else { return [] }
+        return result.filters
+    }
+
+    private var currentTotal: Int {
+        guard case .success(let result) = model.phase else { return 0 }
+        return result.total
     }
 }
 

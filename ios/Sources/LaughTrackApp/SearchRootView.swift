@@ -8,6 +8,7 @@ struct SearchRootView: View {
     let favorites: ComedianFavoriteStore
     let coordinator: NavigationCoordinator<AppRoute>
     let searchNavigationBridge: SearchNavigationBridge
+    @Binding private var selectedPrimitive: SearchRootModel.Pivot
 
     @Environment(\.appTheme) private var theme
     @StateObject private var model = SearchRootModel()
@@ -20,12 +21,14 @@ struct SearchRootView: View {
         favorites: ComedianFavoriteStore,
         coordinator: NavigationCoordinator<AppRoute>,
         searchNavigationBridge: SearchNavigationBridge,
-        nearbyLocationController: NearbyLocationController
+        nearbyLocationController: NearbyLocationController,
+        selectedPrimitive: Binding<SearchRootModel.Pivot> = .constant(.shows)
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
         self.coordinator = coordinator
         self.searchNavigationBridge = searchNavigationBridge
+        _selectedPrimitive = selectedPrimitive
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
                 nearbyLocationController: nearbyLocationController
@@ -38,123 +41,38 @@ struct SearchRootView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
-                LaughTrackHeroModule(
-                    eyebrow: "Search",
-                    title: "Search nearby comedy",
-                    subtitle: model.activePivot.queryHelpText
-                )
-
-                LaughTrackCard(density: .compact) {
-                    VStack(alignment: .leading, spacing: tokens.browseDensity.rowGap) {
-                        LaughTrackSearchField(
-                            placeholder: model.activePivot.queryPrompt,
-                            text: $model.query
-                        )
-
-                        shortcutRow
-                        pivotRow
-                    }
-                }
+                SearchHeader()
 
                 activeSearchScreenWithDependencies
             }
             .padding(.horizontal, theme.spacing.lg)
-            .padding(.vertical, tokens.browseDensity.heroPadding)
+            .padding(.top, -4)
+            .padding(.bottom, tokens.browseDensity.heroPadding)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.searchTabScreen)
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Search")
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
         .task {
+            model.activePivot = selectedPrimitive
             applyRootQueryToActivePivot()
         }
         .onChange(of: model.query) { _ in
             applyRootQueryToActivePivot()
         }
         .onChange(of: model.activePivot) { _ in
+            selectedPrimitive = model.activePivot
+            applyRootQueryToActivePivot()
+        }
+        .onChange(of: selectedPrimitive) { _ in
+            model.activePivot = selectedPrimitive
             applyRootQueryToActivePivot()
         }
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { request in
             model.applySeed(request.seed)
+            selectedPrimitive = request.seed.pivot
             applyRootQueryToActivePivot()
             searchNavigationBridge.clearRequest(request)
-        }
-    }
-
-    private var shortcutRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.sm) {
-                ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
-                    Button {
-                        Task {
-                            await model.selectShortcut(shortcut, showsModel: showsModel)
-                            applyRootQueryToActivePivot()
-                        }
-                    } label: {
-                        LaughTrackBrowseChip(
-                            shortcutTitle(for: shortcut),
-                            systemImage: shortcutSystemImage(for: shortcut),
-                            tone: shortcutTone(for: shortcut),
-                            isLoading: shortcut == "Near Me" && showsModel.isResolvingCurrentLocation
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(shortcut == "Near Me" && showsModel.isResolvingCurrentLocation)
-                }
-            }
-        }
-    }
-
-    private var pivotRow: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.sm) {
-                ForEach(SearchRootModel.Pivot.allCases) { pivot in
-                    Button {
-                        model.activePivot = pivot
-                    } label: {
-                        LaughTrackBrowseChip(
-                            pivot.title,
-                            systemImage: pivotSystemImage(for: pivot),
-                            tone: model.activePivot == pivot ? .selected : .neutral
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    private func shortcutTone(for shortcut: String) -> LaughTrackBrowseChipTone {
-        model.selectedShortcut == shortcut ? .selected : .subtle
-    }
-
-    private func shortcutSystemImage(for shortcut: String) -> String? {
-        if shortcut == "Near Me", showsModel.isResolvingCurrentLocation {
-            return nil
-        }
-
-        switch shortcut {
-        case "Tonight":
-            return "moon.stars"
-        case "This Week":
-            return "calendar"
-        default:
-            return "location"
-        }
-    }
-
-    private func shortcutTitle(for shortcut: String) -> String {
-        shortcut == "Near Me" && showsModel.isResolvingCurrentLocation ? "Finding ZIP..." : shortcut
-    }
-
-    private func pivotSystemImage(for pivot: SearchRootModel.Pivot) -> String {
-        switch pivot {
-        case .shows:
-            return "music.mic"
-        case .comedians:
-            return "person.2"
-        case .clubs:
-            return "building.2"
         }
     }
 
@@ -171,18 +89,24 @@ struct SearchRootView: View {
             ShowsDiscoveryView(
                 apiClient: apiClient,
                 model: showsModel,
+                unifiedSearchText: $model.query,
+                unifiedSearchPrompt: model.activePivot.queryPrompt,
                 displaysSearchFields: false
             )
         case .comedians:
             ComediansDiscoveryView(
                 apiClient: apiClient,
                 model: comediansModel,
+                unifiedSearchText: $model.query,
+                unifiedSearchPrompt: model.activePivot.queryPrompt,
                 displaysSearchInput: false
             )
         case .clubs:
             ClubsDiscoveryView(
                 apiClient: apiClient,
                 model: clubsModel,
+                unifiedSearchText: $model.query,
+                unifiedSearchPrompt: model.activePivot.queryPrompt,
                 displaysSearchInput: false
             )
         }
@@ -195,5 +119,29 @@ struct SearchRootView: View {
             comediansModel: comediansModel,
             clubsModel: clubsModel
         )
+    }
+}
+
+private struct SearchHeader: View {
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            Text("Search")
+                .font(tokens.typography.sectionTitle)
+                .foregroundStyle(tokens.colors.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            Text("Find shows, comedians, and clubs across LaughTrack.")
+                .font(tokens.typography.body)
+                .foregroundStyle(tokens.colors.textSecondary)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(LaughTrackViewTestID.searchHeader)
     }
 }

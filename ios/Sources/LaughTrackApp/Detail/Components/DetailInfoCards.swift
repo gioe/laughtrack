@@ -13,6 +13,8 @@ struct DetailInfoCard: View {
     let title: String
     let subtitle: String?
     let rows: [DetailInfoRow]
+    var links: [DetailLink] = []
+    var openURL: ((URL) -> Void)?
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -33,6 +35,16 @@ struct DetailInfoCard: View {
                             Text(row.value ?? "")
                                 .font(laughTrack.typography.body)
                                 .foregroundStyle(laughTrack.colors.textPrimary)
+                        }
+                    }
+                }
+
+                if let openURL {
+                    ForEach(Array(links.enumerated()), id: \.offset) { _, link in
+                        if let url = link.url {
+                            LaughTrackButton(link.title, systemImage: "arrow.up.right", tone: .secondary) {
+                                openURL(url)
+                            }
                         }
                     }
                 }

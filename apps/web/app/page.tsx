@@ -102,7 +102,13 @@ export default async function HomePage() {
                   () => [],
               )
             : Promise.resolve([]),
-        getShowsTonight(timezone).catch(() => []),
+        zipCode
+            ? getShowsTonight(
+                  timezone,
+                  zipCode,
+                  DEFAULT_HOME_RADIUS_MILES,
+              ).catch(() => [])
+            : getShowsTonight(timezone).catch(() => []),
         zipCode
             ? getShowsNearZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
                   () => [],

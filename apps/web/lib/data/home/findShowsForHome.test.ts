@@ -25,6 +25,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
             uuid: item.comedian.uuid,
             name: item.comedian.name,
             imageUrl: `https://cdn.example.com/${item.comedian.name}.png`,
+            show_count: item.comedian._count?.lineupItems,
             isFavorite: false,
             isAlias: false,
         })),
@@ -195,6 +196,7 @@ describe("findShowsForHome", () => {
                 name: "Filtered Comic",
                 imageUrl: "https://cdn.example.com/Filtered Comic.png",
                 hasImage: true,
+                show_count: 12,
                 isFavorite: false,
                 isAlias: false,
             };

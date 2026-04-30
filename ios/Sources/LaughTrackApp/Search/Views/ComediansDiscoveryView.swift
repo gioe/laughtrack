@@ -6,6 +6,8 @@ import LaughTrackCore
 struct ComediansDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ComediansDiscoveryModel
+    var unifiedSearchText: Binding<String>?
+    var unifiedSearchPrompt: String?
     var displaysSearchInput = true
 
     @Environment(\.appTheme) private var theme
@@ -13,6 +15,7 @@ struct ComediansDiscoveryView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
+    @State private var isFilterEditorPresented = false
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -27,12 +30,25 @@ struct ComediansDiscoveryView: View {
                     subtitle: "Scan favorites and upcoming sets without leaving Search."
                 )
 
-                if displaysSearchInput {
+                if let unifiedSearchText {
+                    SearchField(
+                        title: "Search",
+                        prompt: unifiedSearchPrompt ?? "Search comedian names",
+                        text: unifiedSearchText
+                    )
+                } else if displaysSearchInput {
                     SearchField(
                         title: "Comedian name",
                         prompt: "Mark Normand, Atsuko Okatsuka…",
                         text: $model.searchText
                     )
+                }
+
+                PrimitiveSearchControls(
+                    sort: $model.sort,
+                    filterCount: model.selectedFilterSlugs.count
+                ) {
+                    isFilterEditorPresented = true
                 }
 
                 switch model.phase {
@@ -83,9 +99,28 @@ struct ComediansDiscoveryView: View {
                 }
             }
         }
-        .task(id: model.searchText) {
+        .task(id: model.requestKey) {
             await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache)
         }
+        #if os(iOS)
+        .fadeFullScreenCover(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        #else
+        .sheet(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        #endif
         .alert("Favorites", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
                 feedbackMessage = nil
@@ -94,6 +129,16 @@ struct ComediansDiscoveryView: View {
             Text(feedbackMessage ?? "")
         })
         .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchScreen)
+    }
+
+    private var currentFilters: [Components.Schemas.Filter] {
+        guard case .success(let result) = model.phase else { return [] }
+        return result.filters
+    }
+
+    private var currentTotal: Int {
+        guard case .success(let result) = model.phase else { return 0 }
+        return result.total
     }
 }
 

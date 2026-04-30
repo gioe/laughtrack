@@ -73,6 +73,36 @@ describe("filterAndMapLineupItems", () => {
         });
     });
 
+    describe("show_count", () => {
+        it("maps lineup item count from the effective comedian", () => {
+            const item = makeItem({ _count: { lineupItems: 17 } });
+            const [result] = filterAndMapLineupItems([item]);
+
+            expect(result.show_count).toBe(17);
+        });
+
+        it("maps parent lineup item count for alias comedians", () => {
+            const child = makeItem({
+                id: 2,
+                uuid: "uuid-2",
+                name: "Child Comedian",
+                _count: { lineupItems: 2 },
+                parentComedian: {
+                    id: 99,
+                    uuid: "uuid-99",
+                    name: "Parent Comic",
+                    taggedComedians: [],
+                    _count: { lineupItems: 41 },
+                },
+            });
+
+            const [result] = filterAndMapLineupItems([child]);
+
+            expect(result.name).toBe("Parent Comic");
+            expect(result.show_count).toBe(41);
+        });
+    });
+
     describe("parent-deduplication", () => {
         it("excludes a child comedian when its parent is present in the lineup", () => {
             const parent = makeParent();

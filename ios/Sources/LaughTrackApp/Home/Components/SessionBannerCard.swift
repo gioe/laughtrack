@@ -47,7 +47,7 @@ struct SessionBannerCard: View {
                     Text("Browsing stays open even when you’re signed out.")
                         .font(laughTrack.typography.cardTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
-                    Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google, sync favorites, and recover quickly if sign-in is interrupted.")
+                    Text(signedOutMessage ?? "Open Profile when you want to connect Apple or Google, sync favorites, and recover quickly if sign-in is interrupted.")
                         .font(laughTrack.typography.body)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                 }

@@ -85,8 +85,7 @@ struct HomeFavoriteShowsRailTests {
     ) -> some View {
         HomeView(
             apiClient: apiClient,
-            signedOutMessage: nil,
-            searchNavigationBridge: SearchNavigationBridge()
+            signedOutMessage: nil
         )
         .environment(\.appTheme, LaughTrackTheme())
         .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-favorites-\(UUID().uuidString)"))

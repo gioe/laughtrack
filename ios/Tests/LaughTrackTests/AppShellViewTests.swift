@@ -12,7 +12,7 @@ import LaughTrackCore
 @Suite("App shell")
 @MainActor
 struct AppShellViewTests {
-    @Test("shell renders four top-level tabs")
+    @Test("shell renders three top-level tabs and keeps account out of the tab bar")
     func shellRendersTabs() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-tabs")
         let coordinator = NavigationCoordinator<AppRoute>()
@@ -20,19 +20,22 @@ struct AppShellViewTests {
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore()
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
-        try host.requireText("Home")
+        try host.requireText("Near Me")
         try host.requireText("Search")
-        try host.requireText("Library")
-        try host.requireText("Profile")
+        try host.requireText("Favorites")
+        #expect(host.findText("Profile") == nil)
+        #expect(AppTab.allCases == [.nearMe, .search, .favorites])
     }
 
     @Test("shell can start on the search tab without losing tab chrome")
@@ -44,37 +47,43 @@ struct AppShellViewTests {
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 favorites: ComedianFavoriteStore(),
-                initialTab: .search
+                initialTab: .search,
+                shellState: AppShellState()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
-        try host.requireText("Home")
+        try host.requireText("Near Me")
         try host.requireText("Search")
     }
 
-    @Test("home tab keeps the real home affordances inside shell chrome")
-    func homeTabKeepsRealHomeAffordances() async throws {
+    @Test("near me tab keeps the real home affordances inside shell chrome")
+    func nearMeTabKeepsRealHomeAffordances() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home")
         let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore()
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeNearMeHeader)
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
+        try host.requireText("Near me")
         try host.requireText("Shows tonight")
         // homeSettingsButton lives inside HomeView's `.toolbar` modifier, which
         // requires an ancestor NavigationStack. Wrapping the test view in
@@ -85,8 +94,8 @@ struct AppShellViewTests {
         // CoordinatedNavigationStack-rooted ContentView.
     }
 
-    @Test("home shows one active frame without duplicate nearby messaging")
-    func homeShowsSingleActiveFrame() async throws {
+    @Test("home does not render the home frame card")
+    func homeDoesNotRenderHomeFrameCard() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-frame")
         let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-frame")
@@ -95,17 +104,20 @@ struct AppShellViewTests {
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore()
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
         )
+        await host.settle()
 
-        try host.requireText("Home frame")
-        try host.requireText("Tonight near New York, NY")
-        try host.requireText("Search changes location and time")
+        #expect(host.findText("Home frame") == nil)
+        #expect(host.findText("Tonight near New York, NY") == nil)
+        #expect(host.findText("Search changes location and time") == nil)
+        #expect(host.findText("Adjust in Search") == nil)
         try host.requireText("Shows tonight")
         try host.requireText("Upcoming after tonight")
         #expect(host.findText("Nearby tonight") == nil)
@@ -120,7 +132,8 @@ struct AppShellViewTests {
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore()
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -133,11 +146,11 @@ struct AppShellViewTests {
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton) == nil)
     }
 
-    @Test("authenticated shell triggers favorites fetch without visiting the Library tab")
+    @Test("authenticated shell triggers favorites fetch without visiting the Favorites tab")
     func authenticatedShellTriggersFavoritesFetch() async throws {
         // Regression guard for TASK-1762. The favorites load used to live on
-        // SettingsView (and briefly on LibraryView), so heart-state on Search and
-        // detail surfaces went stale until the user happened to open Library.
+        // the old standalone SettingsView (and briefly on the Favorites tab), so heart-state on Search and
+        // detail surfaces went stale until the user happened to open Favorites.
         // Hosting the `.task(id:)` on AppShellView means the load fires as soon
         // as the authenticated shell appears, before any tab is opened.
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
@@ -153,7 +166,8 @@ struct AppShellViewTests {
         let host = HostedView(
             AppShellView(
                 apiClient: apiClient,
-                favorites: ComedianFavoriteStore()
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
@@ -165,26 +179,20 @@ struct AppShellViewTests {
         #expect(recorder.getFavoritesCalls >= 1)
     }
 
-    @Test("shell can start on the profile tab and shows the profile surface, not Settings")
-    func shellCanStartOnProfileTab() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-profile")
-        let host = HostedView(
-            AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                initialTab: .profile
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-            .environmentObject(authManager)
-        )
+    @Test("shell account header targets the profile route")
+    func shellAccountHeaderTargetsProfileRoute() async throws {
+        #expect(AppRoute.accountHeaderTarget() == .profile)
+    }
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
-        try host.requireLabel("Open Settings")
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.settingsScreen) == nil)
+    @Test("shell account header layout tracks safe area and touch target")
+    func shellAccountHeaderLayoutTracksSafeAreaAndTouchTarget() async throws {
+        let theme = LaughTrackTheme()
+        let compactTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 24, theme: theme)
+        let tallTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 59, theme: theme)
+
+        #expect(tallTop - compactTop == 35)
+        #expect(compactTop > 24)
+        #expect(AccountHeaderLayout.buttonSize >= 44)
     }
 }
 

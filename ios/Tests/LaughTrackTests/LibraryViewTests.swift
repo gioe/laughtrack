@@ -1,16 +1,16 @@
 import Testing
 @testable import LaughTrackApp
 
-@Suite("Library view")
+@Suite("Favorites view")
 @MainActor
 struct LibraryViewTests {
-    @Test("library tab uses product-grade copy")
+    @Test("favorites tab uses product-grade copy")
     func libraryUsesProductCopy() async throws {
-        #expect(LibraryView.title == "Library")
+        #expect(LibraryView.title == "Favorites")
     }
 
-    @Test("library signed-out branch surfaces a sign-in prompt copy")
+    @Test("favorites signed-out branch surfaces a sign-in prompt copy")
     func librarySignedOutPromptCopy() async throws {
-        #expect(LibraryView.signedOutPromptTitle == "Sign in to see your saved comedians")
+        #expect(LibraryView.signedOutPromptTitle == "Sign in to see your favorites")
     }
 }

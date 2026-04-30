@@ -8,11 +8,12 @@ import LaughTrackCore
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
-    @Test("search root shows compact query chrome and browse shortcuts")
-    func searchRootShowsCompactChrome() async throws {
+    @Test("search root uses one search field and keeps primitive filters out of the content card")
+    func searchRootOmitsMarketingHeader() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let favorites = ComedianFavoriteStore()
-        let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "search-root-default")
+        let store = container.resolve(NearbyPreferenceStore.self)
         let host = HostedView(
             SearchRootView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
@@ -22,15 +23,19 @@ struct SearchRootViewTests {
                 nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store)
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
         )
 
-        try host.requireText("Search nearby comedy")
-        try host.requireText("Near Me")
-        try host.requireText("Tonight")
+        #expect(host.findText("Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.") == nil)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.searchHeader)
+        try host.requireText("Search")
         try host.requireText("Shows")
         try host.requireText("ZIP")
         try host.requireText("Use date range")
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
+        #expect(host.findText("Near Me") == nil)
+        #expect(host.findText("Tonight") == nil)
+        #expect(host.findText("This Week") == nil)
 
         #expect(host.findText("Tune the search") == nil)
         #expect(host.findText("Keep location, sort, and dates in reach.") == nil)
@@ -42,6 +47,122 @@ struct SearchRootViewTests {
 @Suite("Search root model")
 @MainActor
 struct SearchRootModelTests {
+    @Test("shell state allows no selected primitive on the near me tab")
+    func shellStateAllowsNoPrimitiveOnNearMe() async throws {
+        let state = AppShellState()
+
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == nil)
+    }
+
+    @Test("shell state restores the cached search primitive when search is selected")
+    func shellStateRestoresCachedSearchPrimitive() async throws {
+        let state = AppShellState()
+
+        state.selectTab(.search)
+        state.setSearchPrimitive(.clubs)
+        #expect(state.selectedTab == .search)
+        #expect(state.selectedPrimitive == .clubs)
+
+        state.selectTab(.nearMe)
+        #expect(state.selectedPrimitive == nil)
+
+        state.selectTab(.search)
+        #expect(state.selectedPrimitive == .clubs)
+    }
+
+    @Test("shell state keeps all primitives on the near me tab")
+    func shellStateKeepsHomePrimitivesOnNearMe() async throws {
+        let state = AppShellState()
+
+        state.selectPrimitive(.shows)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == .shows)
+
+        state.selectPrimitive(.comedians)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == .comedians)
+
+        state.selectPrimitive(.clubs)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == .clubs)
+    }
+
+    @Test("shell state keeps primitive filters on the favorites tab")
+    func shellStateKeepsPrimitiveFiltersOnFavorites() async throws {
+        let state = AppShellState()
+
+        state.selectTab(.favorites)
+        state.selectPrimitive(.shows)
+        #expect(state.selectedTab == .favorites)
+        #expect(state.selectedPrimitive == .shows)
+
+        state.selectPrimitive(.shows)
+        #expect(state.selectedTab == .favorites)
+        #expect(state.selectedPrimitive == nil)
+    }
+
+    @Test("shell state toggles a repeated home primitive back to all content")
+    func shellStateTogglesRepeatedHomePrimitiveToAllContent() async throws {
+        let state = AppShellState()
+
+        state.selectPrimitive(.clubs)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == .clubs)
+
+        state.selectPrimitive(.clubs)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == nil)
+    }
+
+    @Test("home primitive filters do not replace the cached search primitive")
+    func homePrimitiveFiltersDoNotReplaceCachedSearchPrimitive() async throws {
+        let state = AppShellState()
+
+        state.selectTab(.search)
+        state.setSearchPrimitive(.comedians)
+        state.selectTab(.nearMe)
+
+        state.selectPrimitive(.clubs)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == .clubs)
+
+        state.selectPrimitive(.clubs)
+        #expect(state.selectedPrimitive == nil)
+
+        state.selectTab(.search)
+        #expect(state.selectedPrimitive == .comedians)
+    }
+
+    @Test("location header shows pitch until nearby is configured or manual ZIP is chosen")
+    func locationHeaderShowsPitchUntilNearbyIsConfiguredOrManualZipIsChosen() async throws {
+        let state = AppShellState()
+
+        #expect(state.selectLocationHeader(hasNearbyPreference: false) == .presentPermissionPitch)
+        #expect(state.isLocationPermissionPitchPresented)
+
+        state.dismissLocationPermissionPitchForManualZip()
+        #expect(!state.isLocationPermissionPitchPresented)
+        #expect(state.selectLocationHeader(hasNearbyPreference: false) == .openSettings)
+    }
+
+    @Test("location header opens settings when nearby is already configured")
+    func locationHeaderOpensSettingsWhenNearbyIsConfigured() async throws {
+        let state = AppShellState()
+
+        #expect(state.selectLocationHeader(hasNearbyPreference: true) == .openSettings)
+        #expect(!state.isLocationPermissionPitchPresented)
+    }
+
+    @Test("shell state defaults search to shows when no primitive has been cached")
+    func shellStateDefaultsSearchToShows() async throws {
+        let state = AppShellState()
+
+        state.selectTab(.search)
+
+        #expect(state.selectedPrimitive == .shows)
+    }
+
     @Test("switching pivots does not navigate away from search root")
     func switchingPivotsStaysInPlace() async throws {
         let model = SearchRootModel()

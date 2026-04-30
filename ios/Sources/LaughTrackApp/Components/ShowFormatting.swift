@@ -9,15 +9,14 @@ enum ShowFormatting {
         return formatter
     }()
 
-    private static let listFormatter: DateFormatter = {
+    static func listDate(_ date: Date, timezoneID: String? = nil) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        return formatter
-    }()
-
-    static func listDate(_ date: Date) -> String {
-        listFormatter.string(from: date)
+        if let timezoneID, let timezone = TimeZone(identifier: timezoneID) {
+            formatter.timeZone = timezone
+        }
+        return formatter.string(from: date)
     }
 
     static func apiDate(_ date: Date) -> String {

@@ -42,9 +42,32 @@ enum ShowSortOption: String, CaseIterable, Identifiable {
     }
 }
 
+enum PrimitiveSortOption: String, CaseIterable, Identifiable {
+    case mostPopular = "popularity_desc"
+    case leastPopular = "popularity_asc"
+    case alphabetical = "name_asc"
+    case reverseAlphabetical = "name_desc"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .mostPopular:
+            return "Most popular"
+        case .leastPopular:
+            return "Least popular"
+        case .alphabetical:
+            return "A-Z"
+        case .reverseAlphabetical:
+            return "Z-A"
+        }
+    }
+}
+
 struct ShowsDiscoveryQuery: Hashable {
     let comedian: String
     let club: String
+    let filters: [String]
     let zip: String
     let useDateRange: Bool
     let from: Date
@@ -68,9 +91,15 @@ struct ShowsDiscoveryQuery: Hashable {
         return digits
     }
 
+    var filtersParam: String? {
+        guard !filters.isEmpty else { return nil }
+        return filters.joined(separator: ",")
+    }
+
     var hasActiveFilters: Bool {
         !comedian.isEmpty ||
         !club.isEmpty ||
+        !filters.isEmpty ||
         sanitizedZip != nil ||
         useDateRange ||
         sort != .earliest
@@ -80,10 +109,30 @@ struct ShowsDiscoveryQuery: Hashable {
         [
             "comedian=\(comedian)",
             "club=\(club)",
+            "filters=\(filtersParam ?? "")",
             "zip=\(sanitizedZip ?? "")",
             "from=\(fromString ?? "")",
             "to=\(toString ?? "")",
             "distance=\(distance.rawValue)",
+            "sort=\(sort.rawValue)",
+        ].joined(separator: "|")
+    }
+}
+
+struct PrimitiveDiscoveryQuery: Hashable {
+    let text: String
+    let filters: [String]
+    let sort: PrimitiveSortOption
+
+    var filtersParam: String? {
+        guard !filters.isEmpty else { return nil }
+        return filters.joined(separator: ",")
+    }
+
+    var cacheKey: String {
+        [
+            "text=\(text)",
+            "filters=\(filtersParam ?? "")",
             "sort=\(sort.rawValue)",
         ].joined(separator: "|")
     }

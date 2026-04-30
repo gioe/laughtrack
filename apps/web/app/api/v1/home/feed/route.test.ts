@@ -283,6 +283,22 @@ describe("GET /api/v1/home/feed", () => {
             );
         });
 
+        it("passes the resolved ZIP to getShowsTonight so the titled section is local", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10801",
+                city: "New Rochelle",
+                state: "NY",
+            });
+
+            await GET(makeRequest({ zip: "10801" }));
+
+            expect(mockGetShowsTonight).toHaveBeenCalledWith(
+                "UTC",
+                "10801",
+                expect.any(Number),
+            );
+        });
+
         it("defaults to UTC when X-Timezone is absent", async () => {
             await GET(makeRequest());
 

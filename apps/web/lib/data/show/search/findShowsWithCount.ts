@@ -56,12 +56,22 @@ const SHOW_SELECT = {
                     uuid: true,
                     name: true,
                     hasImage: true,
+                    _count: {
+                        select: {
+                            lineupItems: true,
+                        },
+                    },
                     parentComedian: {
                         select: {
                             id: true,
                             uuid: true,
                             name: true,
                             hasImage: true,
+                            _count: {
+                                select: {
+                                    lineupItems: true,
+                                },
+                            },
                             taggedComedians: {
                                 select: {
                                     tag: true,
@@ -90,9 +100,7 @@ export async function findShowsWithCount(
         // always wants upcoming-only results, so supply the default here.
         const dateClause = helper.getDateClause();
         const dateFilter =
-            "date" in dateClause
-                ? dateClause
-                : { date: { gte: new Date() } };
+            "date" in dateClause ? dateClause : { date: { gte: new Date() } };
         const whereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...dateFilter,

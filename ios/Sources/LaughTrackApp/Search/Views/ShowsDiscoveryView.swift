@@ -2,15 +2,23 @@ import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct ShowsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsDiscoveryModel
+    var unifiedSearchText: Binding<String>?
+    var unifiedSearchPrompt: String?
     var displaysSearchFields = true
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @State private var isZipEditorPresented = false
+    @State private var isFilterEditorPresented = false
+    @State private var isDateEditorPresented = false
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -19,26 +27,36 @@ struct ShowsDiscoveryView: View {
     var body: some View {
         LaughTrackCard(density: .compact) {
             VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                LaughTrackShelfHeader(
-                    eyebrow: "Shows",
-                    title: "Shows nearby"
-                )
-
-                if displaysSearchFields {
+                if let unifiedSearchText {
+                    SearchField(
+                        title: "Search",
+                        prompt: unifiedSearchPrompt ?? "Search nearby comedy",
+                        text: unifiedSearchText
+                    )
+                } else if displaysSearchFields {
                     SearchField(
                         title: "Comedian",
                         prompt: "Mark Normand, Atsuko Okatsuka…",
                         text: $model.comedianSearchText
                     )
 
-                    SearchField(
-                        title: "Club",
-                        prompt: "Comedy Cellar, The Stand…",
-                        text: $model.clubSearchText
-                    )
+                    if !model.isClubPinned {
+                        SearchField(
+                            title: "Club",
+                            prompt: "Comedy Cellar, The Stand…",
+                            text: $model.clubSearchText
+                        )
+                    }
                 }
 
-                ShowFiltersPanel(model: model)
+                ShowFiltersPanel(
+                    model: model,
+                    filters: currentFilters,
+                    total: currentTotal,
+                    isZipEditorPresented: $isZipEditorPresented,
+                    isFilterEditorPresented: $isFilterEditorPresented,
+                    isDateEditorPresented: $isDateEditorPresented
+                )
 
                 switch model.phase {
                 case .idle, .loading:
@@ -55,7 +73,6 @@ struct ShowsDiscoveryView: View {
                     } else {
                         VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
-                            ShowsSearchMeta(model: model, zipCapTriggered: model.zipCapTriggered)
 
                             ForEach(result.items, id: \.id) { show in
                                 Button {
@@ -87,7 +104,48 @@ struct ShowsDiscoveryView: View {
         .task(id: model.requestKey) {
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
+        #if os(iOS)
+        .fadeFullScreenCover(isPresented: $isZipEditorPresented) {
+            ZipFilterModal(model: model, isPresented: $isZipEditorPresented)
+        }
+        .fadeFullScreenCover(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        .fadeFullScreenCover(isPresented: $isDateEditorPresented) {
+            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+        }
+        #else
+        .sheet(isPresented: $isZipEditorPresented) {
+            ZipFilterModal(model: model, isPresented: $isZipEditorPresented)
+        }
+        .sheet(isPresented: $isFilterEditorPresented) {
+            SearchFilterModal(
+                filters: currentFilters,
+                total: currentTotal,
+                selectedSlugs: $model.selectedFilterSlugs,
+                isPresented: $isFilterEditorPresented
+            )
+        }
+        .sheet(isPresented: $isDateEditorPresented) {
+            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+        }
+        #endif
         .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
+    }
+
+    private var currentFilters: [Components.Schemas.Filter] {
+        guard case .success(let result) = model.phase else { return [] }
+        return result.filters
+    }
+
+    private var currentTotal: Int {
+        guard case .success(let result) = model.phase else { return 0 }
+        return result.total
     }
 
     private var emptyMessage: String {
@@ -108,56 +166,14 @@ private struct ShowFiltersPanel: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var model: ShowsDiscoveryModel
+    let filters: [Components.Schemas.Filter]
+    let total: Int
+    @Binding var isZipEditorPresented: Bool
+    @Binding var isFilterEditorPresented: Bool
+    @Binding var isDateEditorPresented: Bool
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
         VStack(alignment: .leading, spacing: theme.spacing.md) {
-            VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                Text("ZIP")
-                    .font(laughTrack.typography.eyebrow)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .textCase(.uppercase)
-
-                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
-                    Button {
-                        _ = model.applyManualZip()
-                    } label: {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                            .foregroundStyle(laughTrack.colors.accent)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Apply ZIP")
-                }
-                    .modifier(SearchFieldInputBehavior())
-                    #if os(iOS)
-                    .keyboardType(UIKeyboardType.numberPad)
-                    #endif
-                    .onSubmit {
-                        _ = model.applyManualZip()
-                    }
-
-                if model.activeNearbyPreference != nil {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: theme.spacing.sm) {
-                            LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
-                                model.clearLocation()
-                            }
-                        }
-                    }
-                }
-
-                if let nearbyStatusMessage = model.nearbyStatusMessage {
-                    InlineStatusMessage(message: nearbyStatusMessage)
-                } else if let activeNearbyPreference = model.activeNearbyPreference {
-                    LaughTrackContextRow(
-                        leading: activeNearbyPreference.source == .manual ? "Saved ZIP" : "Current location",
-                        trailing: "\(activeNearbyPreference.zipCode) • \(activeNearbyPreference.distanceMiles) mi"
-                    )
-                }
-            }
-
             HStack(spacing: theme.spacing.sm) {
                 Menu {
                     Picker("Sort", selection: $model.sort) {
@@ -173,7 +189,41 @@ private struct ShowFiltersPanel: View {
                     )
                 }
 
-                if model.activeNearbyPreference != nil {
+                if model.allowsLocationFiltering {
+                    Button {
+                        isZipEditorPresented = true
+                    } label: {
+                        LaughTrackBrowseChip(
+                            zipChipTitle,
+                            systemImage: "mappin.and.ellipse",
+                            tone: model.activeNearbyPreference == nil ? .neutral : .selected
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Edit ZIP")
+                }
+
+                Button {
+                    isFilterEditorPresented = true
+                } label: {
+                    LaughTrackBrowseChip("\(activeFilterCount) filters", tone: .accent)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Filter results")
+
+                Button {
+                    isDateEditorPresented = true
+                } label: {
+                    LaughTrackBrowseChip(
+                        model.dateRangeChipTitle,
+                        systemImage: "calendar",
+                        tone: model.useDateRange ? .selected : .neutral
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(model.dateRangeChipTitle)
+
+                if model.allowsLocationFiltering, model.activeNearbyPreference != nil {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: theme.spacing.sm) {
                             ForEach(ShowDistanceOption.allCases) { option in
@@ -192,19 +242,80 @@ private struct ShowFiltersPanel: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                Text("Dates")
-                    .font(laughTrack.typography.eyebrow)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .textCase(.uppercase)
+            if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
+                InlineStatusMessage(message: nearbyStatusMessage)
+            }
 
-                Toggle("Use date range", isOn: $model.useDateRange)
-                    .font(laughTrack.typography.body)
-                    .tint(laughTrack.colors.accent)
+        }
+    }
 
-                if model.useDateRange {
+    private var zipChipTitle: String {
+        if let activeNearbyPreference = model.activeNearbyPreference {
+            return "Location \(activeNearbyPreference.zipCode)"
+        }
+
+        let draft = model.zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        return draft.isEmpty ? "Location" : "Location \(draft)"
+    }
+
+    private var activeFilterCount: Int {
+        model.selectedFilterSlugs.count
+    }
+}
+
+private struct DateRangeFilterModal: View {
+    @Environment(\.appTheme) private var theme
+
+    @ObservedObject var model: ShowsDiscoveryModel
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            Color.black.opacity(0.28)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPresented = false
+                }
+
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text("Dates")
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text("Choose the show dates to include.")
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(laughTrack.colors.surfaceElevated)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
+                }
+
+                ScrollView {
                     VStack(spacing: theme.spacing.md) {
-                        DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
+                        DatePicker(
+                            "From",
+                            selection: $model.fromDate,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.graphical)
+
                         DatePicker(
                             "To",
                             selection: Binding(
@@ -214,69 +325,168 @@ private struct ShowFiltersPanel: View {
                             in: model.fromDate...,
                             displayedComponents: .date
                         )
+                        .datePickerStyle(.graphical)
                     }
-                    .font(laughTrack.typography.body)
+                }
+                .font(laughTrack.typography.body)
+                .frame(maxHeight: 430)
+
+                VStack(spacing: theme.spacing.sm) {
+                    LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
+                        model.useDateRange = true
+                        isPresented = false
+                    }
+
+                    LaughTrackButton("Today", systemImage: "calendar", tone: .secondary, density: .compact) {
+                        let today = Calendar.current.startOfDay(for: Date())
+                        model.fromDate = today
+                        model.toDate = today
+                        model.useDateRange = true
+                        isPresented = false
+                    }
+
+                    LaughTrackButton("Any date", systemImage: "calendar.badge.minus", tone: .tertiary, density: .compact) {
+                        model.useDateRange = false
+                        isPresented = false
+                    }
                 }
             }
+            .padding(theme.spacing.xl)
+            .background(laughTrack.colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+            )
+            .shadowStyle(laughTrack.shadows.floating)
+            .padding(.horizontal, theme.spacing.xl)
         }
+        .background(.clear)
     }
 }
 
-private struct ShowsSearchMeta: View {
+private struct ZipFilterModal: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var model: ShowsDiscoveryModel
-    let zipCapTriggered: Bool
+    @Binding var isPresented: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            LaughTrackContextRow(
-                leading: "Times shown in \(model.timezoneLabel)",
-                trailing: "\(activeFilters.count) filters"
-            )
+        let laughTrack = theme.laughTrackTokens
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: theme.spacing.sm) {
-                    ForEach(activeFilters, id: \.self) { filter in
-                        LaughTrackBrowseChip(filter, tone: .neutral)
+        ZStack {
+            Color.black.opacity(0.28)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPresented = false
+                }
+
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text("Location")
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text("Set the location used for nearby shows.")
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Button {
+                        isPresented = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(laughTrack.colors.surfaceElevated)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
+                }
+
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                    Button {
+                        applyZip()
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Apply ZIP")
+                }
+                .modifier(SearchFieldInputBehavior())
+                #if os(iOS)
+                .keyboardType(UIKeyboardType.numberPad)
+                #endif
+                .onSubmit(applyZip)
+
+                VStack(spacing: theme.spacing.sm) {
+                    LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
+                        applyZip()
+                    }
+
+                    LaughTrackButton(
+                        model.isResolvingCurrentLocation ? "Finding ZIP..." : "Current location",
+                        systemImage: "location.fill",
+                        tone: .secondary,
+                        density: .compact
+                    ) {
+                        Task {
+                            let didResolve = await model.useCurrentLocation()
+                            if didResolve {
+                                isPresented = false
+                            }
+                        }
+                    }
+                    .disabled(model.isResolvingCurrentLocation)
+
+                    if model.activeNearbyPreference != nil {
+                        LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact) {
+                            model.clearLocation()
+                            isPresented = false
+                        }
+                    }
+                }
+
+                if let nearbyStatusMessage = model.nearbyStatusMessage {
+                    InlineStatusMessage(message: nearbyStatusMessage)
+
+                    if nearbyStatusMessage == NearbyLocationError.denied.recoveryMessage {
+                        LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                            openAppSettings()
+                        }
                     }
                 }
             }
+            .padding(theme.spacing.xl)
+            .background(laughTrack.colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+            )
+            .shadowStyle(laughTrack.shadows.floating)
+            .padding(.horizontal, theme.spacing.xl)
+        }
+        .background(.clear)
+    }
 
-            if zipCapTriggered {
-                LaughTrackInlineStateCard(
-                    tone: .error,
-                    title: "Location was broadened",
-                    message: "That ZIP matched too many nearby locations. Try a tighter ZIP or clear the location filter.",
-                    actionTitle: "Browse all shows"
-                ) {
-                    model.clearLocation()
-                }
-            }
+    private func applyZip() {
+        if model.applyManualZip() {
+            isPresented = false
         }
     }
 
-    private var activeFilters: [String] {
-        let query = model.requestKey
-        var filters = ["Sort: \(query.sort.title)"]
-
-        if let zip = query.sanitizedZip {
-            filters.append("ZIP \(zip)")
-            filters.append("Within \(query.distance.rawValue) mi")
-        }
-
-        if !query.comedian.isEmpty {
-            filters.append("Comedian: \(query.comedian)")
-        }
-
-        if !query.club.isEmpty {
-            filters.append("Club: \(query.club)")
-        }
-
-        if query.useDateRange, let from = query.fromString, let to = query.toString {
-            filters.append("\(from) to \(to)")
-        }
-
-        return filters
+    private func openAppSettings() {
+        #if canImport(UIKit)
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+        #endif
     }
 }

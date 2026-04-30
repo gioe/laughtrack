@@ -1,21 +1,18 @@
 import Foundation
 
 enum AppTab: Hashable, CaseIterable {
-    case home
+    case nearMe
     case search
-    case library
-    case profile
+    case favorites
 
     var title: String {
         switch self {
-        case .home:
-            return "Home"
+        case .nearMe:
+            return "Near Me"
         case .search:
             return "Search"
-        case .library:
-            return "Library"
-        case .profile:
-            return "Profile"
+        case .favorites:
+            return "Favorites"
         }
     }
 }

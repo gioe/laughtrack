@@ -1481,7 +1481,8 @@
           "room": { "type": ["string", "null"] },
           "imageUrl": { "type": "string" },
           "soldOut": { "type": "boolean" },
-          "distanceMiles": { "type": ["number", "null"] }
+          "distanceMiles": { "type": ["number", "null"] },
+          "timezone": { "type": ["string", "null"] }
         }
       },
       "ShowListResponse": {

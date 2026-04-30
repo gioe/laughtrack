@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
@@ -37,6 +38,7 @@ struct DiscoverySearchPage<Item: Sendable>: Sendable {
     let items: [Item]
     let total: Int
     let page: Int
+    let filters: [Components.Schemas.Filter]
 
     var canLoadMore: Bool {
         items.count < total
@@ -46,6 +48,17 @@ struct DiscoverySearchPage<Item: Sendable>: Sendable {
 struct DiscoverySearchResponse<Item: Sendable>: Sendable {
     let items: [Item]
     let total: Int
+    let filters: [Components.Schemas.Filter]
+
+    init(
+        items: [Item],
+        total: Int,
+        filters: [Components.Schemas.Filter] = []
+    ) {
+        self.items = items
+        self.total = total
+        self.filters = filters
+    }
 }
 
 @MainActor
@@ -132,7 +145,8 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
                 .init(
                     items: resetResults ? response.items : existingItems + response.items,
                     total: response.total,
-                    page: page
+                    page: page,
+                    filters: response.filters
                 )
             )
             loadedQuery = query

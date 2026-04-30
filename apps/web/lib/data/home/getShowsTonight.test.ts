@@ -3,6 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 vi.mock("./findShowsForHome", () => ({
     findShowsForHome: vi.fn(() => Promise.resolve([])),
 }));
+vi.mock("zipcodes", () => ({
+    default: {
+        radius: vi.fn(() => ["10801", "10802"]),
+    },
+}));
 
 import { getShowsTonight } from "./getShowsTonight";
 import { findShowsForHome } from "./findShowsForHome";
@@ -50,5 +55,15 @@ describe("getShowsTonight", () => {
         const date = getDateClause();
         expect(date.gte.toISOString()).toBe("2026-04-27T00:00:00.000Z");
         expect(date.lte.toISOString()).toBe("2026-04-27T23:59:59.999Z");
+    });
+
+    it("scopes tonight's shows to nearby club ZIP codes when a ZIP is provided", async () => {
+        await getShowsTonight("UTC", "10801", 25);
+
+        const [where] = mockFindShowsForHome.mock.calls[0];
+        expect(where.club).toEqual({
+            visible: true,
+            zipCode: { in: ["10801", "10802"] },
+        });
     });
 });

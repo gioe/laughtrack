@@ -280,6 +280,26 @@ describe("findShowsWithCount", () => {
             expect(helper.getProfileId).toHaveBeenCalledTimes(2);
         });
 
+        it("selects comedian lineup counts for native featured-comedian rows", async () => {
+            let capturedSelect: any;
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: any) => {
+                capturedSelect = args.select;
+                return Promise.resolve([makeShow()]);
+            });
+
+            await findShowsWithCount(makeHelper() as any);
+
+            const comedianSelect =
+                capturedSelect.lineupItems.select.comedian.select;
+            expect(comedianSelect._count).toEqual({
+                select: { lineupItems: true },
+            });
+            expect(comedianSelect.parentComedian.select._count).toEqual({
+                select: { lineupItems: true },
+            });
+        });
+
         it("excludes favoriteComedians from the comedian select when profileId is not set", async () => {
             let capturedSelect: any;
             mockCount.mockResolvedValue(1);

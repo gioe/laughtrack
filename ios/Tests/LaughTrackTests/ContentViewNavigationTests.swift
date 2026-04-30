@@ -22,24 +22,117 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
         try host.requireText("Search")
-        try host.requireText("Library")
-        try host.requireText("Profile")
+        try host.requireText("Favorites")
+        #expect(host.findText("Profile") == nil)
     }
 
-    @Test("Settings entry point from home pushes the expected navigation intent")
-    func homeSettingsButtonPushesSettingsRoute() async throws {
+    @Test("home clubs pill keeps home focused on club backend content")
+    func homeClubsPillKeepsHomeFocusedOnClubs() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "primitive-pills")
+        let host = HostedView(
+            ContentView(apiClient: makeHomeFeedClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "primitive-pills"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("shows"))
+        try host.requireView(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("comedians"))
+        try host.requireView(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("clubs"))
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("clubs"))
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homePopularClubsRail)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail) == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeTrendingComediansRail) == nil)
+    }
+
+    @Test("home shows pill keeps home focused on show backend content")
+    func homeShowsPillKeepsHomeFocusedOnShows() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-pill")
+        let host = HostedView(
+            ContentView(apiClient: makeHomeFeedClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-pill"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+        await host.settle()
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("shows"))
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeTrendingComediansRail) == nil)
+    }
+
+    @Test("home comedians pill keeps home focused on comedian backend content")
+    func homeComediansPillKeepsHomeFocusedOnComedians() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-comedians-pill")
+        let host = HostedView(
+            ContentView(apiClient: makeHomeFeedClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-comedians-pill"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+        await host.settle()
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("comedians"))
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeTrendingComediansRail)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail) == nil)
+    }
+
+    @Test("location header button only appears on the near me tab")
+    func locationHeaderButtonOnlyAppearsOnNearMeTab() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "location-header")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "location-header"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.locationHeaderButton)
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("clubs"))
+        await host.settle()
+
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.locationHeaderButton) == nil)
+    }
+
+    @Test("Profile entry point from near me pushes the expected navigation intent")
+    func nearMeProfileButtonPushesProfileRoute() async throws {
         // The HomeView toolbar button's action calls
-        //   coordinator.push(AppRoute.homeToolbarTarget(isSignedIn: ...))
+        //   coordinator.push(AppRoute.nearMeToolbarTarget(isSignedIn: ...))
         // (see Home/Views/HomeView.swift). Two assertions together cover the
         // production wiring without depending on iOS 26's flaky toolbar
         // accessibility activation:
         //   1. the toolbar button is mounted with the expected accessibility id,
-        //   2. the route resolver returns `.settings` when signed-in (and
-        //      `.profile` when signed-out).
+        //   2. the route resolver returns `.profile`.
         // If a regression changes either the action's resolver or the resolver's
         // logic, one of the two assertions catches it.
         let coordinator = NavigationCoordinator<AppRoute>()
@@ -49,34 +142,35 @@ struct ContentViewNavigationTests {
             NavigationStack {
                 HomeView(
                     apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                    signedOutMessage: nil,
-                    searchNavigationBridge: SearchNavigationBridge()
+                    signedOutMessage: nil
                 )
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
                 .environmentObject(ComedianFavoriteStore())
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
             },
             freshWindow: true
         )
         await host.settle()
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeSettingsButton)
 
-        #expect(AppRoute.homeToolbarTarget(isSignedIn: true) == .settings)
-        #expect(AppRoute.homeToolbarTarget(isSignedIn: false) == .profile)
+        #expect(AppRoute.accountHeaderTarget() == .profile)
+        #expect(AppRoute.nearMeToolbarTarget(isSignedIn: true) == .profile)
+        #expect(AppRoute.nearMeToolbarTarget(isSignedIn: false) == .profile)
 
         // Drive the resolver through the same coordinator the live button uses,
         // then verify the destination via NavigationPath.codable round-trip
         // (criterion TASK-1761#5882). Use `path.append(_:)` directly since
         // NavigationCoordinator's `push` is constrained `Route: Hashable` and
         // routes to the non-Codable overload, which makes `path.codable` nil.
-        coordinator.path.append(AppRoute.homeToolbarTarget(isSignedIn: authManager.currentSession != nil))
+        coordinator.path.append(AppRoute.nearMeToolbarTarget(isSignedIn: authManager.currentSession != nil))
         let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
-        #expect(pushed == [.settings])
+        #expect(pushed == [.profile])
     }
 
-    @Test("ContentView switches between the home and settings routes")
+    @Test("ContentView switches between the near me and profile routes")
     func contentViewSwitchesBetweenRoutes() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "content-view")
@@ -86,27 +180,26 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
 
-        coordinator.push(.settings)
+        coordinator.push(.profile)
         host.render()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
     }
 
     @Test("Home shows-tonight hero opens show detail")
     func homeShowsTonightHeroOpensShowDetail() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
-        let searchBridge = SearchNavigationBridge()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-tonight")
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-tonight")
         let host = HostedView(
             HomeView(
                 apiClient: makeHomeFeedClient(),
-                signedOutMessage: nil,
-                searchNavigationBridge: searchBridge
+                signedOutMessage: nil
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -122,7 +215,6 @@ struct ContentViewNavigationTests {
 
         let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
         #expect(pushed == [.showDetail(701)])
-        #expect(searchBridge.request == nil)
     }
 
     @Test("home removes the search entry rail from the body")
@@ -133,8 +225,7 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                signedOutMessage: nil,
-                searchNavigationBridge: SearchNavigationBridge()
+                signedOutMessage: nil
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -158,6 +249,7 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.showDetail(301))
@@ -176,6 +268,7 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.comedianDetail(101))
@@ -194,6 +287,7 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.clubDetail(201))
@@ -212,6 +306,7 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.search)
@@ -220,7 +315,7 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
     }
 
-    @Test("ContentView routes the library route through the shell tab")
+    @Test("ContentView routes the library route through the favorites shell tab")
     func contentViewShowsLibraryShellRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "library-shell-route")
@@ -230,12 +325,13 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.library)
         host.render()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.libraryTabScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesTabScreen)
     }
 
     @Test("ContentView routes the profile route through the real profile surface")
@@ -248,13 +344,14 @@ struct ContentViewNavigationTests {
                 .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
         )
 
         coordinator.push(.profile)
         host.render()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
-        try host.requireLabel("Open Settings")
+        try host.requireText("Browse defaults")
     }
 }
 
@@ -293,12 +390,12 @@ private struct MockHomeFeedTransport: ClientTransport {
     private var homeFeed: Components.Schemas.HomeFeed {
         .init(
             hero: .init(zipCode: nil, city: nil, state: nil, shows: [show(id: 704), show(id: 705)]),
-            trendingComedians: [],
+            trendingComedians: [comedian(id: 801)],
             comediansNearYou: [],
             showsTonight: [show(id: 701), show(id: 702), show(id: 703)],
             moreNearYou: [],
             trendingThisWeek: [show(id: 703), show(id: 706)],
-            popularClubs: []
+            popularClubs: [club(id: 601)]
         )
     }
 
@@ -328,6 +425,28 @@ private struct MockHomeFeedTransport: ClientTransport {
             imageUrl: "https://example.com/show-\(id).png",
             soldOut: false,
             distanceMiles: nil
+        )
+    }
+
+    private func comedian(id: Int) -> Components.Schemas.ComedianListItem {
+        .init(
+            id: id,
+            uuid: "comedian-\(id)",
+            name: "Home Comedian \(id)",
+            imageUrl: "https://example.com/comedian-\(id).png",
+            socialData: .init(id: id),
+            showCount: 6
+        )
+    }
+
+    private func club(id: Int) -> Components.Schemas.ClubListItem {
+        .init(
+            id: id,
+            address: "116 E 16th St, New York, NY",
+            name: "Home Club \(id)",
+            zipCode: "10003",
+            imageUrl: "https://example.com/club-\(id).png",
+            activeComedianCount: 9
         )
     }
 }
