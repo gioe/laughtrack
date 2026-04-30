@@ -16,24 +16,24 @@ struct ShowRowTests {
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/headliner.jpg")
     }
 
-    @Test("show row titles with the highest show-count lineup comedian")
-    func showRowUsesMostPopularLineupComedianTitle() {
+    @Test("show row titles with the show name")
+    func showRowUsesShowNameTitle() {
         let show = makeShow(lineup: [
             lineup(name: "Opening comic", imageURL: "https://example.com/opening.jpg", showCount: 12),
             lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
             lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
         ])
 
-        #expect(ShowRow.title(for: show) == "Headliner")
+        #expect(ShowRow.title(for: show) == "Late show")
     }
 
-    @Test("show row titles alias lineup items with the parent comedian")
-    func showRowUsesParentComedianForAliasTitle() {
+    @Test("show row keeps parent comedian artwork for alias lineup items")
+    func showRowUsesParentComedianForAliasArtwork() {
         let parent = lineup(name: "Parent Headliner", imageURL: "https://example.com/parent.jpg", showCount: 60)
         let alias = lineup(name: "Alias Name", imageURL: "https://example.com/alias.jpg", showCount: 5, parentComedian: parent)
         let show = makeShow(lineup: [alias])
 
-        #expect(ShowRow.title(for: show) == "Parent Headliner")
+        #expect(ShowRow.title(for: show) == "Late show")
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/parent.jpg")
     }
 
@@ -62,12 +62,61 @@ struct ShowRowTests {
         #expect(ShowFormatting.listDate(date, timezoneID: "America/Los_Angeles").contains("5:00"))
     }
 
-    private func makeShow(lineup: [Components.Schemas.ComedianLineup]?) -> Components.Schemas.Show {
+    @Test("show row formats a single ticket price")
+    func showRowFormatsSingleTicketPrice() {
+        let show = makeShow(
+            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission")],
+            lineup: []
+        )
+
+        #expect(ShowRow.priceLabel(for: show) == "$24")
+    }
+
+    @Test("show row formats a ticket price range")
+    func showRowFormatsTicketPriceRange() {
+        let show = makeShow(
+            tickets: [
+                .init(price: 35, purchaseUrl: "https://example.com/vip", soldOut: false, _type: "VIP"),
+                .init(price: 20, purchaseUrl: "https://example.com/ga", soldOut: false, _type: "General admission"),
+            ],
+            lineup: []
+        )
+
+        #expect(ShowRow.priceLabel(for: show) == "$20 - $35")
+    }
+
+    @Test("show row formats free tickets")
+    func showRowFormatsFreeTickets() {
+        let show = makeShow(
+            tickets: [.init(price: 0, purchaseUrl: "https://example.com/free", soldOut: false, _type: "RSVP")],
+            lineup: []
+        )
+
+        #expect(ShowRow.priceLabel(for: show) == "Free")
+    }
+
+    @Test("show row omits price when no available ticket has a price")
+    func showRowOmitsUnavailablePrice() {
+        let show = makeShow(
+            tickets: [
+                .init(price: nil, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission"),
+                .init(price: 50, purchaseUrl: "https://example.com/sold-out", soldOut: true, _type: "VIP"),
+            ],
+            lineup: []
+        )
+
+        #expect(ShowRow.priceLabel(for: show) == nil)
+    }
+
+    private func makeShow(
+        tickets: [Components.Schemas.Ticket] = [],
+        lineup: [Components.Schemas.ComedianLineup]?
+    ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: 1,
             clubName: "Comedy Cellar",
             date: Date(timeIntervalSince1970: 1_710_000_000),
-            tickets: [],
+            tickets: tickets,
             name: "Late show",
             lineup: lineup,
             imageUrl: "https://example.com/show.jpg"

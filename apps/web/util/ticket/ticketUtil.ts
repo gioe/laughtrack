@@ -23,14 +23,18 @@ function mapTicketPrice(price: any): number | null {
 }
 
 export function formatTicketString(tickets: Ticket[]) {
-    if (tickets.length === 1) {
-        return tickets[0].price == 0.0
-            ? "Free"
-            : `$${tickets[0].price.toString()}`;
-    } else if (tickets.length > 1) {
-        const prices = tickets
-            .map((ticket) => ticket.price)
-            .sort((a, b) => a - b);
+    const prices = tickets
+        .map((ticket) => ticket.price)
+        .filter((price): price is number => price != null)
+        .sort((a, b) => a - b);
+
+    if (prices.length === 0) {
+        return "";
+    }
+
+    if (prices.length === 1) {
+        return prices[0] == 0.0 ? "Free" : `$${prices[0].toString()}`;
+    } else {
         const lowestPrice = prices[0];
         const highestPrice = prices[prices.length - 1];
 
@@ -41,7 +45,5 @@ export function formatTicketString(tickets: Ticket[]) {
         } else {
             return `$${lowestPrice.toString()} - $${highestPrice.toString()}`;
         }
-    } else {
-        return "";
     }
 }

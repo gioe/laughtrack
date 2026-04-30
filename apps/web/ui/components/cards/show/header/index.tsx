@@ -40,24 +40,28 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             </div>
 
             <div>
-                {!hideClubName && (
+                {show.name ? (
                     <h2
                         className={cn(
                             "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-cedar-dark mb-1",
                             isPast ? "font-semibold" : "font-bold",
                         )}
                     >
-                        {show.clubName ?? ""}
+                        {show.name}
                     </h2>
-                )}
-                {show.name && (
+                ) : (
                     <p
                         className={cn(
-                            "text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1",
+                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-cedar-dark mb-1",
                             isPast && "font-normal",
                         )}
                     >
-                        {`${show.name}`}
+                        Untitled show
+                    </p>
+                )}
+                {!hideClubName && show.clubName && (
+                    <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1">
+                        {show.clubName}
                     </p>
                 )}
                 {show.room && (

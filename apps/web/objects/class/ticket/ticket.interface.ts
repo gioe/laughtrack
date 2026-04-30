@@ -1,6 +1,6 @@
 // Client
 export interface TicketInterface {
-    price: number;
+    price: number | null;
     purchaseUrl: string | null;
     soldOut: boolean | null;
     type: string | null;

@@ -12,6 +12,7 @@ struct ShowRow: View {
             metadata: [
                 ShowFormatting.listDate(show.date, timezoneID: show.timezone),
                 ShowFormatting.distance(show.distanceMiles),
+                Self.priceLabel(for: show),
                 show.soldOut == true ? "Sold out" : nil,
             ].compactMap { $0 },
             systemImage: "ticket.fill",
@@ -20,11 +21,6 @@ struct ShowRow: View {
     }
 
     static func title(for show: Components.Schemas.Show) -> String {
-        let name = featuredComedian(for: show)?.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let name, !name.isEmpty {
-            return name
-        }
-
         let showName = show.name?.trimmingCharacters(in: .whitespacesAndNewlines)
         return showName?.isEmpty == false ? showName! : "Untitled show"
     }
@@ -32,6 +28,27 @@ struct ShowRow: View {
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
         let imageURL = featuredComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
         return imageURL?.isEmpty == false ? imageURL : nil
+    }
+
+    static func priceLabel(for show: Components.Schemas.Show) -> String? {
+        let prices = (show.tickets ?? [])
+            .filter { $0.soldOut != true }
+            .compactMap(\.price)
+            .sorted()
+
+        guard let lowestPrice = prices.first else {
+            return nil
+        }
+
+        guard let highestPrice = prices.last, highestPrice != lowestPrice else {
+            return formatPrice(lowestPrice)
+        }
+
+        if lowestPrice == 0 {
+            return "Free - \(formatPrice(highestPrice))"
+        }
+
+        return "\(formatPrice(lowestPrice)) - \(formatPrice(highestPrice))"
     }
 
     private static func featuredComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
@@ -48,5 +65,17 @@ struct ShowRow: View {
 
     private static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {
         comedian.parentComedian ?? comedian
+    }
+
+    private static func formatPrice(_ price: Double) -> String {
+        if price == 0 {
+            return "Free"
+        }
+
+        if price.rounded() == price {
+            return "$\(Int(price))"
+        }
+
+        return price.formatted(.currency(code: "USD"))
     }
 }
