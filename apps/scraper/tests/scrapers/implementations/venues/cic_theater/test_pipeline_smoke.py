@@ -1,164 +1,174 @@
 """
-Smoke tests for CIC Theater Chicago using EventbriteScraper.
+Smoke tests for CIC Theater's custom recurring-schedule scraper.
 
-Verifies that the EventbriteScraper pipeline works correctly for CIC Theater's
-organizer ID (34074498445) — an 11-digit Eventbrite organizer ID. The client
-tries /venues/{id}/events/ first, then falls back to /organizers/{id}/events/
-on 404, which is the path taken for organizer IDs.
-
-Catches regressions where:
-- get_data() silently returns None despite a valid organizer ID
-- The transformation pipeline drops events due to can_transform() failures
+CIC's Eventbrite organizer is stale/empty. The current public schedule lives on
+the Squarespace-rendered Browse All Shows page as recurring weekly copy, not as
+dated Eventbrite or Squarespace API events.
 """
 
-import importlib.util
+from datetime import date
 
 import pytest
 
-pytestmark = pytest.mark.skipif(
-    importlib.util.find_spec("curl_cffi") is None,
-    reason="curl_cffi not installed",
+from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.core.entities.event.cic_theater import CicTheaterEvent
+from laughtrack.scrapers.implementations.venues.cic_theater.data import (
+    CicTheaterPageData,
+)
+from laughtrack.scrapers.implementations.venues.cic_theater.extractor import (
+    CicTheaterExtractor,
+)
+from laughtrack.scrapers.implementations.venues.cic_theater.scraper import (
+    CicTheaterScraper,
 )
 
-from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.eventbrite import EventbriteEvent
-from laughtrack.core.entities.show.model import Show
-from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
-from laughtrack.scrapers.implementations.api.eventbrite.data import EventbriteVenueData
 
-
-ORGANIZER_ID = "34074498445"
-EVENT_URL = "https://www.eventbrite.com/e/pimprov-tickets-165717699099"
+_SOURCE_URL = "https://www.cictheater.com/browse-shows"
+_SAMPLE_HTML = """
+<html>
+  <body>
+    <h1>Browse All Shows</h1>
+    <p>Shows are currently at Finley Dunnes Tavern at 3458 N Lincoln Ave on Wednesdays and Thursdays at 8pm.</p>
+    <h2>BYOT</h2>
+    <p>Wednesdays, 8pm Bring Your Own Team! Got an improv team? Want to play? Come play!</p>
+    <h2>Open Stage hosted by Da 3 Jokers</h2>
+    <p>Thursdays, 8pm Open Stage hosted by Da 3 Jokers. Free for everybody.</p>
+  </body>
+</html>
+"""
 
 
 def _club() -> Club:
-    _c = Club(id=999, name='CIC Theater', address='1422 W Irving Park Rd', website='https://www.cictheater.com', popularity=0, zip_code='60613', phone_number='', visible=True, timezone='America/Chicago')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='eventbrite', scraper_key='eventbrite', source_url=f'https://www.eventbrite.com/o/cic-theater-{ORGANIZER_ID}', external_id=ORGANIZER_ID)
+    _c = Club(
+        id=190,
+        name="CIC Theater",
+        address="1422 W Irving Park Rd",
+        website="https://www.cictheater.com",
+        popularity=0,
+        zip_code="60613",
+        phone_number="",
+        visible=True,
+        timezone="America/Chicago",
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="custom",
+        scraper_key="cic_theater",
+        source_url=_SOURCE_URL,
+        external_id=None,
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
 
-def _make_eventbrite_event(
-    name: str = "Pimprov",
-    start_date: str = "2026-04-04T22:00:00Z",
-) -> EventbriteEvent:
-    return EventbriteEvent(
-        name=name,
-        event_url=EVENT_URL,
-        start_date=start_date,
-        description="Improv comedy at CIC Theater.",
-        location_name="CIC Theater",
-        location_address="1422 W Irving Park Rd, Chicago, IL 60613",
+def test_collect_scraping_targets_returns_browse_shows_url():
+    scraper = CicTheaterScraper(_club())
+
+    assert scraper.collect_scraping_targets_sync() == [_SOURCE_URL]
+
+
+def test_extractor_generates_wednesday_and_thursday_instances():
+    events = CicTheaterExtractor.extract_events(
+        _SAMPLE_HTML,
+        source_url=_SOURCE_URL,
+        today=date(2026, 5, 1),
+        weeks=2,
     )
 
+    assert [(event.title, event.date, event.time) for event in events] == [
+        ("BYOT", "2026-05-06", "8:00 PM"),
+        ("Open Stage hosted by Da 3 Jokers", "2026-05-07", "8:00 PM"),
+        ("BYOT", "2026-05-13", "8:00 PM"),
+        ("Open Stage hosted by Da 3 Jokers", "2026-05-14", "8:00 PM"),
+    ]
 
-# ---------------------------------------------------------------------------
-# Smoke tests
-# ---------------------------------------------------------------------------
+
+def test_extractor_returns_empty_when_schedule_copy_is_missing():
+    events = CicTheaterExtractor.extract_events(
+        "<html><body><p>No current public schedule.</p></body></html>",
+        source_url=_SOURCE_URL,
+        today=date(2026, 5, 1),
+    )
+
+    assert events == []
 
 
 @pytest.mark.asyncio
-async def test_collect_scraping_targets_returns_organizer_id():
-    """collect_scraping_targets() returns CIC Theater's organizer ID."""
-    scraper = EventbriteScraper(_club())
-    targets = await scraper.collect_scraping_targets()
+async def test_get_data_fetches_source_page_and_returns_page_data(monkeypatch):
+    scraper = CicTheaterScraper(_club())
 
-    assert targets == [ORGANIZER_ID], (
-        f"Expected [{ORGANIZER_ID!r}], got {targets} — check EventbriteScraper.collect_scraping_targets()"
-    )
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        assert url == _SOURCE_URL
+        return _SAMPLE_HTML
 
+    monkeypatch.setattr(CicTheaterScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(CicTheaterScraper, "_today", staticmethod(lambda: date(2026, 5, 1)))
 
-@pytest.mark.asyncio
-async def test_get_data_returns_page_data_with_events():
-    """
-    get_data() returns EventbriteVenueData with at least one event
-    when EventbriteClient.fetch_all_events() returns events.
-    """
-    scraper = EventbriteScraper(_club())
+    result = await scraper.get_data(_SOURCE_URL)
 
-    class _FakeClient:
-        async def fetch_all_events(self):
-            return [_make_eventbrite_event()]
-
-    scraper.eventbrite_client = _FakeClient()  # type: ignore[assignment]
-
-    result = await scraper.get_data(ORGANIZER_ID)
-
-    assert isinstance(result, EventbriteVenueData), (
-        "get_data() did not return EventbriteVenueData — check EventbriteScraper.get_data()"
-    )
-    assert len(result.event_list) == 1, (
-        "get_data() returned EventbriteVenueData with 0 events — "
-        "check EventbriteExtractor.to_page_data() or EventbriteClient.fetch_all_events()"
-    )
+    assert isinstance(result, CicTheaterPageData)
+    assert len(result.event_list) >= 2
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_empty_page_data_when_api_returns_empty():
-    """get_data() returns empty EventbriteVenueData when EventbriteClient returns an empty event list."""
-    scraper = EventbriteScraper(_club())
+async def test_get_data_returns_none_when_no_schedule_found(monkeypatch):
+    scraper = CicTheaterScraper(_club())
 
-    class _EmptyClient:
-        async def fetch_all_events(self):
-            return []
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return "<html><body><p>No current public schedule.</p></body></html>"
 
-    scraper.eventbrite_client = _EmptyClient()  # type: ignore[assignment]
+    monkeypatch.setattr(CicTheaterScraper, "fetch_html", fake_fetch_html)
 
-    result = await scraper.get_data(ORGANIZER_ID)
+    result = await scraper.get_data(_SOURCE_URL)
 
-    assert result is not None, (
-        "get_data() should return empty EventbriteVenueData, not None, when API returns 0 events"
-    )
-    assert result.event_list == []
+    assert result is None
 
 
-@pytest.mark.asyncio
-async def test_get_data_returns_none_on_client_exception():
-    """get_data() returns None when EventbriteClient raises an exception."""
-    scraper = EventbriteScraper(_club())
-
-    class _BrokenClient:
-        async def fetch_all_events(self):
-            raise RuntimeError("API unreachable")
-
-    scraper.eventbrite_client = _BrokenClient()  # type: ignore[assignment]
-
-    result = await scraper.get_data(ORGANIZER_ID)
-
-    assert result is None, (
-        "get_data() should catch exceptions and return None — "
-        "check exception handling in EventbriteScraper.get_data()"
+def test_to_show_sets_title_date_room_and_ticket_url():
+    event = CicTheaterEvent(
+        title="BYOT",
+        date="2026-05-06",
+        time="8:00 PM",
+        source_url=_SOURCE_URL,
+        venue_note="Finley Dunnes Tavern 3458 N Lincoln Ave",
     )
 
+    show = event.to_show(_club())
 
-def test_transformation_pipeline_produces_shows():
-    """
-    transformation_pipeline.transform() returns at least one Show
-    when given EventbriteVenueData with a valid EventbriteEvent.
+    assert show is not None
+    assert show.name == "BYOT"
+    assert show.date.year == 2026
+    assert show.date.month == 5
+    assert show.date.day == 6
+    assert show.date.hour == 20
+    assert show.room == "Finley Dunnes Tavern"
+    assert show.show_page_url == _SOURCE_URL
+    assert show.tickets[0].purchase_url == _SOURCE_URL
 
-    Catches can_transform() regressions that silently drop all events.
-    """
-    scraper = EventbriteScraper(_club())
-    event = _make_eventbrite_event()
-    page_data = EventbriteVenueData(event_list=[event])
 
-    shows = scraper.transformation_pipeline.transform(page_data)
-
-    assert len(shows) > 0, (
-        "transformation_pipeline.transform() returned 0 Shows from EventbriteVenueData — "
-        "check EventbriteEventTransformer.can_transform() and transformer registration"
+def test_to_show_sets_western_room_when_source_page_lists_western():
+    event = CicTheaterEvent(
+        title="BYOT",
+        date="2026-05-06",
+        time="8:00 PM",
+        source_url=_SOURCE_URL,
+        venue_note="The Western Bar & Kitchen 4301 N Western Ave",
     )
-    assert all(isinstance(s, Show) for s in shows)
+
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.room == "The Western Bar & Kitchen"
 
 
-def test_transformation_pipeline_sets_show_date():
-    """Shows produced by the pipeline have a timezone-aware date."""
-    scraper = EventbriteScraper(_club())
-    event = _make_eventbrite_event(start_date="2026-04-04T22:00:00Z")
-    page_data = EventbriteVenueData(event_list=[event])
+def test_to_show_returns_none_for_invalid_date():
+    event = CicTheaterEvent(
+        title="BYOT",
+        date="not-a-date",
+        time="8:00 PM",
+        source_url=_SOURCE_URL,
+        venue_note="Finley Dunnes Tavern 3458 N Lincoln Ave",
+    )
 
-    shows = scraper.transformation_pipeline.transform(page_data)
-
-    assert len(shows) == 1
-    assert shows[0].date is not None
-    assert shows[0].date.tzinfo is not None, "Show date must be timezone-aware"
+    assert event.to_show(_club()) is None
