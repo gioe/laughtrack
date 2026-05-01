@@ -29,6 +29,7 @@ class BroadwayEvent(ShowConvertible):
     buyNowButtonText: str
     tags: List[str]
     ages: str
+    title: str = ""
     room: str = ""
 
     # Optional fields for enrichment
@@ -56,6 +57,7 @@ class BroadwayEvent(ShowConvertible):
             buyNowButtonText=C.str_or_default(data.get("buyNowButtonText")),
             tags=C.to_str_list(data.get("tags", [])),
             ages=C.str_or_default(data.get("ages")),
+            title=C.str_or_default(data.get("title")),
             room=C.str_or_default(data.get("room")),
             show_page_url=C.str_or_default(data.get("show_page_url")),
         )
@@ -112,8 +114,8 @@ class BroadwayEvent(ShowConvertible):
         ]
         description = ShowFactoryUtils.build_description_from_parts(description_parts)
 
-        # Event name from main artist or default
-        name = self.mainArtist[0] if self.mainArtist else "Comedy Show"
+        # Event name from the public card title; performer names belong in lineup.
+        name = self._show_name(start_date)
 
         # Create standardized show
         return ShowFactoryUtils.create_enhanced_show_base(
@@ -128,3 +130,15 @@ class BroadwayEvent(ShowConvertible):
             supplied_tags=["event"],
             enhanced=enhanced,
         )
+
+    def _show_name(self, start_date) -> str:
+        if self.title:
+            if self._is_generic_standup_title(self.title):
+                return self.title.strip().rstrip(".")
+            return self.title
+        return self.mainArtist[0] if self.mainArtist else "Comedy Show"
+
+    @staticmethod
+    def _is_generic_standup_title(title: str) -> bool:
+        normalized = title.strip().lower()
+        return normalized == "stand up comedy in new york city."

@@ -26,6 +26,7 @@ enum LaughTrackViewTestID {
     static let homeNearMeHeader = "laughtrack.home.near-me-header"
     static let homeShowsTonightRail = "laughtrack.home.shows-tonight-rail"
     static let homeShowsTonightHeroButton = "laughtrack.home.shows-tonight-hero-button"
+    static let homeShowsTonightSeeMoreButton = "laughtrack.home.shows-tonight-see-more-button"
     static let homeTrendingComediansRail = "laughtrack.home.trending-comedians-rail"
     static let homeFavoriteShowsRail = "laughtrack.home.favorite-shows-rail"
     static let homePopularClubsRail = "laughtrack.home.popular-clubs-rail"
@@ -76,7 +77,7 @@ enum LaughTrackViewTestID {
     }
 }
 
-private struct HomeLocationFilterModal: View {
+struct HomeLocationFilterModal: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var nearbyLocationController: NearbyLocationController
@@ -221,7 +222,6 @@ struct ContentView: View {
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var shellState = AppShellState()
-    @State private var isHomeLocationEditorPresented = false
 
     var body: some View {
         Group {
@@ -300,159 +300,9 @@ struct ContentView: View {
             )
         }
         .environmentObject(favorites)
-        .overlay(alignment: .topLeading) {
-            if coordinator.path.isEmpty {
-                accountHeader
-                    .padding(.leading, theme.spacing.lg)
-                    .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(
-                        safeAreaTop: currentTopSafeAreaInset,
-                        theme: theme
-                    ))
-                    .ignoresSafeArea(.container, edges: .top)
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            if coordinator.path.isEmpty && shellState.selectedTab == .nearMe {
-                locationHeaderButton
-                    .padding(.trailing, theme.spacing.lg)
-                    .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(
-                        safeAreaTop: currentTopSafeAreaInset,
-                        theme: theme
-                    ))
-                    .ignoresSafeArea(.container, edges: .top)
-            }
-        }
-        .sheet(isPresented: $shellState.isLocationPermissionPitchPresented) {
-            LocationPermissionPitchView(
-                nearbyLocationController: nearbyLocationController,
-                onResolved: {
-                    shellState.dismissLocationPermissionPitch()
-                },
-                onManualZip: {
-                    shellState.dismissLocationPermissionPitchForManualZip()
-                    coordinator.push(.profile)
-                },
-                onClose: {
-                    shellState.dismissLocationPermissionPitch()
-                }
-            )
-            .environment(\.appTheme, theme)
-        }
-        #if os(iOS)
-        .fadeFullScreenCover(isPresented: $isHomeLocationEditorPresented) {
-            HomeLocationFilterModal(
-                nearbyLocationController: nearbyLocationController,
-                isPresented: $isHomeLocationEditorPresented
-            )
-            .environment(\.appTheme, theme)
-        }
-        #else
-        .sheet(isPresented: $isHomeLocationEditorPresented) {
-            HomeLocationFilterModal(
-                nearbyLocationController: nearbyLocationController,
-                isPresented: $isHomeLocationEditorPresented
-            )
-            .environment(\.appTheme, theme)
-        }
-        #endif
-    }
-
-    private var accountHeader: some View {
-        HStack(spacing: theme.spacing.sm) {
-            accountHeaderButton
-
-            primitiveFilterRow
-        }
-    }
-
-    private var accountHeaderButton: some View {
-        shellHeaderIconButton(
-            systemImage: "person.crop.circle",
-            accessibilityLabel: "Account",
-            accessibilityIdentifier: LaughTrackViewTestID.accountHeaderButton
-        ) {
-            coordinator.push(AppRoute.accountHeaderTarget())
-        }
-    }
-
-    private var locationHeaderButton: some View {
-        shellHeaderIconButton(
-            systemImage: "location.fill",
-            accessibilityLabel: "Location",
-            accessibilityIdentifier: LaughTrackViewTestID.locationHeaderButton
-        ) {
-            isHomeLocationEditorPresented = true
-        }
     }
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
-    }
-
-    private func shellHeaderIconButton(
-        systemImage: String,
-        accessibilityLabel: String,
-        accessibilityIdentifier: String,
-        action: @escaping () -> Void
-    ) -> some View {
-        let tokens = theme.laughTrackTokens
-
-        return Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(tokens.colors.textPrimary)
-                .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
-                .background {
-                    Circle()
-                        .fill(tokens.colors.surfaceElevated.opacity(0.94))
-                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
-                }
-                .overlay {
-                    Circle()
-                        .stroke(tokens.colors.borderSubtle, lineWidth: 1)
-                }
-        }
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityIdentifier(accessibilityIdentifier)
-    }
-
-    private var primitiveFilterRow: some View {
-        HStack(spacing: theme.spacing.xs) {
-            ForEach(SearchRootModel.Pivot.allCases) { primitive in
-                Button {
-                    shellState.selectPrimitive(primitive)
-                } label: {
-                    Text(primitive.title)
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundStyle(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.textInverse : theme.laughTrackTokens.colors.textPrimary)
-                        .padding(.horizontal, 12)
-                        .frame(height: 34)
-                        .background {
-                            Capsule()
-                                .fill(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.accentStrong : theme.laughTrackTokens.colors.surfaceElevated.opacity(0.94))
-                                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 5)
-                        }
-                        .overlay {
-                            Capsule()
-                                .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
-                        }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(primitive.title)
-                .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
-            }
-        }
-    }
-
-    private var currentTopSafeAreaInset: CGFloat {
-        #if canImport(UIKit)
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first { $0.isKeyWindow }?
-            .safeAreaInsets.top ?? 0
-        #else
-        0
-        #endif
     }
 }

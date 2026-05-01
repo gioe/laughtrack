@@ -54,6 +54,7 @@ public typealias OfflineOperationError = SharedKit.OfflineOperationError
 
 public typealias DataCache = SharedKit.DataCache
 public typealias ImageCache = SharedKit.ImageCache
+public typealias CachedAsyncImage = SharedKit.CachedAsyncImage
 
 // MARK: - AppStateStorage
 

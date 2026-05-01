@@ -38,7 +38,7 @@ def test_from_dict_and_to_show_success():
 
     # Then we have a valid Show with expected fields
     assert show is not None
-    assert show.name == "Gigi Klein"  # main artist first entry becomes show name
+    assert show.name == "Gigi Klein"  # legacy fallback when no extracted title is available
     assert show.club_id == club.id
     assert show.room == data["venue"]
     assert show.show_page_url == data["externalLink"]
@@ -138,3 +138,28 @@ def test_to_show_builds_description_with_parts():
     assert "Doors: 8:30 PM" in (show.description or "")
     assert "Ages: 21+" in (show.description or "")
 
+
+def test_to_show_normalizes_generic_standup_title_without_date_and_time():
+    data = {
+        "id": "19793",
+        "eventDate": "05/01/2026 9:00 pm",
+        "additionalInformation": "",
+        "mainArtist": ["Vannessa Jackson", "Brian Scott McFadden"],
+        "additionalArtists": [],
+        "venue": "Broadway Comedy Club",
+        "image": "",
+        "isTesseraProduct": False,
+        "externalLink": "https://www.broadwaycomedyclub.com/shows/2026-05-01-stand-up-comedy-in-new-york-city-900-pm/",
+        "externalLinkButtonText": "",
+        "doors": "",
+        "buyNowButtonText": "",
+        "tags": [],
+        "ages": "",
+        "title": "Stand Up Comedy In New York City.",
+    }
+
+    event = BroadwayEvent.from_dict(data)
+    show = event.to_show(make_club(), enhanced=False)
+
+    assert show is not None
+    assert show.name == "Stand Up Comedy In New York City"

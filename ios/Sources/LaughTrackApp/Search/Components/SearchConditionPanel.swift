@@ -160,7 +160,7 @@ struct ShowsConditionControls: View {
                     )
                 }
 
-                if model.activeNearbyPreference != nil {
+                if model.allowsLocationFiltering {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: theme.spacing.sm) {
                             ForEach(ShowDistanceOption.allCases) { option in

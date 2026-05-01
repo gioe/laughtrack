@@ -7,7 +7,7 @@ struct ShowRow: View {
 
     var body: some View {
         LaughTrackResultRow(
-            title: Self.title(for: show),
+            title: ShowTitlePresentation.title(for: show),
             subtitle: show.clubName ?? "Unknown club",
             metadata: [
                 ShowFormatting.listDate(show.date, timezoneID: show.timezone),
@@ -21,8 +21,7 @@ struct ShowRow: View {
     }
 
     static func title(for show: Components.Schemas.Show) -> String {
-        let showName = show.name?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return showName?.isEmpty == false ? showName! : "Untitled show"
+        ShowTitlePresentation.title(for: show)
     }
 
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
@@ -77,5 +76,103 @@ struct ShowRow: View {
         }
 
         return price.formatted(.currency(code: "USD"))
+    }
+}
+
+enum ShowTitlePresentation {
+    static func title(for show: Components.Schemas.Show) -> String {
+        displayTitle(
+            rawTitle: show.name,
+            clubName: show.clubName,
+            lineup: show.lineup
+        )
+    }
+
+    static func title(for show: Components.Schemas.ShowDetail) -> String {
+        displayTitle(
+            rawTitle: show.name,
+            clubName: show.club.name,
+            lineup: show.lineup
+        )
+    }
+
+    private static func displayTitle(
+        rawTitle: String?,
+        clubName: String?,
+        lineup: [Components.Schemas.ComedianLineup]?
+    ) -> String {
+        let title = rawTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if title.isEmpty {
+            return fallbackTitle(clubName: clubName)
+        }
+
+        if isLineupOnlyTitle(title, lineup: lineup) || isLikelyPerformerOnlyTitle(title) {
+            return fallbackTitle(clubName: clubName)
+        }
+
+        return title
+    }
+
+    private static func isLineupOnlyTitle(
+        _ title: String,
+        lineup: [Components.Schemas.ComedianLineup]?
+    ) -> Bool {
+        guard let lineup, lineup.count == 1 else {
+            return false
+        }
+
+        let comedian = lineup[0]
+        let names = [
+            comedian.name,
+            comedian.parentComedian?.name
+        ]
+
+        return names.contains { name in
+            guard let name else { return false }
+            return name.trimmingCharacters(in: .whitespacesAndNewlines)
+                .localizedCaseInsensitiveCompare(title) == .orderedSame
+        }
+    }
+
+    private static func fallbackTitle(clubName: String?) -> String {
+        let clubName = clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return clubName.isEmpty ? "Comedy show" : "Comedy Show at \(clubName)"
+    }
+
+    private static func isLikelyPerformerOnlyTitle(_ title: String) -> Bool {
+        let lowercased = title.lowercased()
+        let showWords = [
+            "comedy",
+            "show",
+            "showcase",
+            "friends",
+            "night",
+            "live",
+            "open",
+            "mic",
+            "late",
+            "early",
+            "set",
+            "presents",
+            "special",
+            "festival"
+        ]
+
+        if showWords.contains(where: { lowercased.contains($0) }) {
+            return false
+        }
+
+        let words = title
+            .split(separator: " ")
+            .map(String.init)
+            .filter { !$0.isEmpty }
+
+        guard (2...3).contains(words.count) else {
+            return false
+        }
+
+        return words.allSatisfy { word in
+            word.range(of: #"^[A-Z][A-Za-z.'-]*$"#, options: .regularExpression) != nil
+        }
     }
 }

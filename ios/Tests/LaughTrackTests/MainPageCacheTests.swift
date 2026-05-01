@@ -12,14 +12,15 @@ import LaughTrackCore
 struct MainPageCacheTests {
     @Test("home rail uses cached feed before making a network request")
     func homeRailUsesCachedFeedBeforeNetwork() async {
+        let zipCode = uniqueCacheKey("test-cache-before-network")
         let cache = DataCache<LaughTrackCacheKey>()
-        await cache.set(homeFeed(showID: 701), forKey: .homeFeed(zipCode: nil))
+        await cache.set(homeFeed(showID: 701), forKey: .homeFeed(zipCode: zipCode))
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 999)))
         let model = HomeShowsTonightModel()
 
         await model.refresh(
             apiClient: makeClient(transport),
-            zipCode: nil,
+            zipCode: zipCode,
             cache: cache
         )
 
@@ -33,30 +34,32 @@ struct MainPageCacheTests {
 
     @Test("home rail caches network responses after a miss")
     func homeRailCachesNetworkResponseAfterMiss() async {
+        let zipCode = uniqueCacheKey("test-cache-after-miss")
         let cache = DataCache<LaughTrackCacheKey>()
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 702)))
         let model = HomeShowsTonightModel()
 
         await model.refresh(
             apiClient: makeClient(transport),
-            zipCode: nil,
+            zipCode: zipCode,
             cache: cache
         )
 
-        let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: nil))
+        let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: zipCode))
         #expect(cached?.showsTonight.map(\.id) == [702])
         #expect(transport.requestCount == 1)
     }
 
     @Test("home rail refreshes after cached data expires")
     func homeRailRefreshesAfterCacheExpiry() async throws {
+        let zipCode = uniqueCacheKey("test-cache-expiry")
         let cache = DataCache<LaughTrackCacheKey>()
         let transport = CountingHomeFeedTransport(result: .success(homeFeed(showID: 703)))
         let model = HomeShowsTonightModel()
 
         await model.refresh(
             apiClient: makeClient(transport),
-            zipCode: nil,
+            zipCode: zipCode,
             cache: cache,
             cacheTTL: 0.05
         )
@@ -64,7 +67,7 @@ struct MainPageCacheTests {
         try await Task.sleep(for: .milliseconds(100))
         await model.refresh(
             apiClient: makeClient(transport),
-            zipCode: nil,
+            zipCode: zipCode,
             cache: cache,
             cacheTTL: 0.05
         )
@@ -79,14 +82,15 @@ struct MainPageCacheTests {
 
     @Test("home rail falls back to valid cached data when refresh transport fails")
     func homeRailFallsBackToValidCacheOnRefreshFailure() async {
+        let zipCode = uniqueCacheKey("test-cache-fallback")
         let cache = DataCache<LaughTrackCacheKey>()
-        await cache.set(homeFeed(showID: 705), forKey: .homeFeed(zipCode: nil))
+        await cache.set(homeFeed(showID: 705), forKey: .homeFeed(zipCode: zipCode))
         let transport = CountingHomeFeedTransport(result: .failure(URLError(.notConnectedToInternet)))
         let model = HomeShowsTonightModel()
 
         await model.refresh(
             apiClient: makeClient(transport),
-            zipCode: nil,
+            zipCode: zipCode,
             cache: cache
         )
 
@@ -97,6 +101,82 @@ struct MainPageCacheTests {
         #expect(shows.map(\.id) == [705])
         #expect(transport.requestCount == 0)
     }
+
+    @Test("home feed persistent cache survives a new store instance")
+    func persistentHomeFeedCacheSurvivesNewStoreInstance() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory)
+        await writer.setHomeFeed(homeFeed(showID: 706), zipCode: "10801", ttl: 60)
+
+        let reader = PersistentMainPageCache(directory: directory)
+        let cached = await reader.getHomeFeed(zipCode: "10801")
+
+        #expect(cached?.showsTonight.map(\.id) == [706])
+    }
+
+    @Test("main page cache reads home feed from persistent storage after memory miss")
+    func mainPageCacheReadsPersistentHomeFeedAfterMemoryMiss() async throws {
+        let directory = try temporaryDirectory()
+        let persistentCache = PersistentMainPageCache(directory: directory)
+        await persistentCache.setHomeFeed(homeFeed(showID: 707), zipCode: "10801", ttl: 60)
+
+        let cache = DataCache<LaughTrackCacheKey>()
+        let cached: Components.Schemas.HomeFeed? = await MainPageCache.get(
+            .homeFeed(zipCode: "10801"),
+            from: cache,
+            persistentCache: persistentCache
+        )
+
+        #expect(cached?.showsTonight.map(\.id) == [707])
+    }
+
+    @Test("home feed persistent cache expires entries")
+    func persistentHomeFeedCacheExpiresEntries() async throws {
+        let directory = try temporaryDirectory()
+        let persistentCache = PersistentMainPageCache(directory: directory)
+        await persistentCache.setHomeFeed(homeFeed(showID: 708), zipCode: nil, ttl: 0.05)
+
+        try await Task.sleep(for: .milliseconds(100))
+        let cached = await persistentCache.getHomeFeed(zipCode: nil)
+
+        #expect(cached == nil)
+    }
+
+    @Test("favorite shows persistent cache survives a new store instance")
+    func persistentFavoriteShowsCacheSurvivesNewStoreInstance() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory)
+        await writer.setFavoriteShows([homeShow(id: 709)], requestKey: "comedian-a", ttl: 60)
+
+        let reader = PersistentMainPageCache(directory: directory)
+        let cached = await reader.getFavoriteShows(requestKey: "comedian-a")
+
+        #expect(cached?.map(\.id) == [709])
+    }
+
+    @Test("nearby shows persistent cache survives a new store instance")
+    func persistentNearbyShowsCacheSurvivesNewStoreInstance() async throws {
+        let directory = try temporaryDirectory()
+        let writer = PersistentMainPageCache(directory: directory)
+        let page = HomeNearbyPage(items: [homeShow(id: 710)], total: 1, zipCapTriggered: false)
+        await writer.setNearbyPage(page, zipCode: "10801", distanceMiles: 25, ttl: 60)
+
+        let reader = PersistentMainPageCache(directory: directory)
+        let cached = await reader.getNearbyPage(zipCode: "10801", distanceMiles: 25)
+
+        #expect(cached?.items.map(\.id) == [710])
+    }
+}
+
+private func temporaryDirectory() throws -> URL {
+    let directory = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    return directory
+}
+
+private func uniqueCacheKey(_ prefix: String) -> String {
+    "\(prefix)-\(UUID().uuidString)"
 }
 
 private func makeClient(_ transport: ClientTransport) -> Client {

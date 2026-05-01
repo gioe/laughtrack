@@ -142,7 +142,8 @@ struct ContentViewNavigationTests {
             NavigationStack {
                 HomeView(
                     apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                    signedOutMessage: nil
+                    signedOutMessage: nil,
+                    searchNavigationBridge: SearchNavigationBridge()
                 )
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
@@ -199,7 +200,8 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             HomeView(
                 apiClient: makeHomeFeedClient(),
-                signedOutMessage: nil
+                signedOutMessage: nil,
+                searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -225,7 +227,8 @@ struct ContentViewNavigationTests {
         let host = HostedView(
             HomeView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                signedOutMessage: nil
+                signedOutMessage: nil,
+                searchNavigationBridge: SearchNavigationBridge()
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)

@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackCore
 
 @MainActor
 protocol SearchRootQueryReceivable: AnyObject {
@@ -46,6 +47,19 @@ final class SearchRootModel: ObservableObject {
         let pivot: Pivot
         let query: String
         let shortcut: String?
+        let nearbyPreference: NearbyPreference?
+
+        init(
+            pivot: Pivot,
+            query: String,
+            shortcut: String?,
+            nearbyPreference: NearbyPreference? = nil
+        ) {
+            self.pivot = pivot
+            self.query = query
+            self.shortcut = shortcut
+            self.nearbyPreference = nearbyPreference
+        }
     }
 
     func applySeed(_ seed: Seed) {

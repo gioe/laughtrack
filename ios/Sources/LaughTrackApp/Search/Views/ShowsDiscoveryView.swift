@@ -12,6 +12,7 @@ struct ShowsDiscoveryView: View {
     var unifiedSearchText: Binding<String>?
     var unifiedSearchPrompt: String?
     var displaysSearchFields = true
+    var isActive = true
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -101,7 +102,8 @@ struct ShowsDiscoveryView: View {
                 }
             }
         }
-        .task(id: model.requestKey) {
+        .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
+            guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
         #if os(iOS)
@@ -174,7 +176,11 @@ private struct ShowFiltersPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
-            HStack(spacing: theme.spacing.sm) {
+            LazyVGrid(
+                columns: SearchFilterToolbarLayout.columns(spacing: theme.spacing.sm),
+                alignment: .leading,
+                spacing: theme.spacing.sm
+            ) {
                 Menu {
                     Picker("Sort", selection: $model.sort) {
                         ForEach(ShowSortOption.allCases) { option in
@@ -188,6 +194,7 @@ private struct ShowFiltersPanel: View {
                         tone: .neutral
                     )
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 if model.allowsLocationFiltering {
                     Button {
@@ -201,6 +208,7 @@ private struct ShowFiltersPanel: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Edit ZIP")
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 Button {
@@ -210,6 +218,7 @@ private struct ShowFiltersPanel: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Filter results")
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
                     isDateEditorPresented = true
@@ -222,24 +231,11 @@ private struct ShowFiltersPanel: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(model.dateRangeChipTitle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                if model.allowsLocationFiltering, model.activeNearbyPreference != nil {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: theme.spacing.sm) {
-                            ForEach(ShowDistanceOption.allCases) { option in
-                                Button {
-                                    model.distance = option
-                                } label: {
-                                    LaughTrackBrowseChip(
-                                        option.title,
-                                        tone: model.distance == option ? .selected : .neutral
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                }
+            if model.allowsLocationFiltering {
+                distanceSelector
             }
 
             if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
@@ -260,6 +256,46 @@ private struct ShowFiltersPanel: View {
 
     private var activeFilterCount: Int {
         model.selectedFilterSlugs.count
+    }
+
+    private var distanceSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: theme.spacing.sm) {
+                ForEach(ShowDistanceOption.allCases) { option in
+                    Button {
+                        model.distance = option
+                    } label: {
+                        LaughTrackBrowseChip(
+                            option.title,
+                            tone: model.distance == option ? .selected : .neutral
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+enum SearchFilterToolbarLayout {
+    static let minimumChipWidth: CGFloat = 132
+    static let maximumColumnCount = 4
+
+    static func columns(spacing: CGFloat) -> [GridItem] {
+        [
+            GridItem(
+                .adaptive(minimum: minimumChipWidth),
+                spacing: spacing,
+                alignment: .leading
+            )
+        ]
+    }
+
+    static func columnCount(for width: CGFloat, spacing: CGFloat) -> Int {
+        guard width > 0 else { return 1 }
+        let count = Int((width + spacing) / (minimumChipWidth + spacing))
+        return min(max(count, 1), maximumColumnCount)
     }
 }
 

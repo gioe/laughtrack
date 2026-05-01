@@ -71,10 +71,15 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         formatter.setLocalizedDateFormatFromTemplate("MMM d")
         return formatter
     }()
-    init(nearbyLocationController: NearbyLocationController, pinnedClubName: String? = nil) {
+    init(
+        nearbyLocationController: NearbyLocationController,
+        pinnedClubName: String? = nil,
+        initialUseDateRange: Bool = true
+    ) {
         self.nearbyLocationController = nearbyLocationController
         self.pinnedClubName = pinnedClubName
         super.init()
+        useDateRange = initialUseDateRange
         applyNearbyPreference(nearbyLocationController.preference)
         nearbyPreferenceCancellable = nearbyLocationController.$preference
             .sink { [weak self] preference in
@@ -133,6 +138,14 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         // Venue-name discovery remains explicit in the Clubs pivot.
         comedianSearchText = query
         clubSearchText = pinnedClubName ?? ""
+    }
+
+    func applySearchSeedNearbyPreference(_ preference: NearbyPreference?) {
+        guard let preference, allowsLocationFiltering else { return }
+        activeNearbyPreference = preference
+        zipCodeDraft = preference.zipCode
+        distance = .from(distanceMiles: preference.distanceMiles)
+        nearbyStatusMessage = nil
     }
 
     func clearLocation() {

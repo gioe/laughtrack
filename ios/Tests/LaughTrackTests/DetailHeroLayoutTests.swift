@@ -19,6 +19,30 @@ struct DetailHeroLayoutTests {
         #expect(DetailHeroLayout.contentSpacingWithActions <= 8)
     }
 
+    @Test("show detail replaces lone lineup performer titles with venue title")
+    func showDetailReplacesLoneLineupPerformerTitle() {
+        var show = Self.showDetail()
+        show.name = "Vanessa Jackson"
+        show.club = .init(
+            id: 301,
+            name: "The Broadway Comedy Club",
+            address: "318 W. 53rd St, New York, NY",
+            imageUrl: "https://example.com/club.png",
+            timezone: "America/New_York"
+        )
+        show.lineup = [
+            .init(
+                name: "Vanessa Jackson",
+                imageUrl: "https://example.com/vanessa.png",
+                uuid: "vanessa-jackson",
+                id: 401,
+                showCount: 1
+            )
+        ]
+
+        #expect(ShowTitlePresentation.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+    }
+
     @Test("club detail hero omits subtitle copy")
     func clubDetailHeroOmitsSubtitleCopy() {
         #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 8, zipCode: "10012") == nil)
@@ -38,20 +62,20 @@ struct DetailHeroLayoutTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Room", "Distance", "Address"])
+        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Distance"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
     }
 
-    @Test("show detail summary facts omit missing optional values")
-    func showSummaryFactsOmitMissingValues() {
+    @Test("show detail summary facts omit missing optional values and address")
+    func showSummaryFactsOmitMissingValuesAndAddress() {
         var show = Self.showDetail()
         show.tickets = nil
         show.room = nil
         show.distanceMiles = nil
-        show.address = nil
-        show.club.address = nil
+        show.address = "117 MacDougal St, New York, NY"
+        show.club.address = "117 MacDougal St, New York, NY"
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
@@ -59,11 +83,25 @@ struct DetailHeroLayoutTests {
         #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
     }
 
-    @Test("show detail ticket subtitle uses user-facing copy")
-    func showTicketSubtitleIsUserFacing() {
+    @Test("show detail ticket cell targets ticket purchase URL")
+    func showTicketCellTargetsTicketPurchaseURL() {
+        var show = Self.showDetail()
+        show.cta = .init(url: "https://laughtrack.app/show-cta", label: "Buy tickets", isSoldOut: false)
+
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://laughtrack.app/tickets")
+    }
+
+    @Test("show detail calendar event uses show venue and ticket URL")
+    func showCalendarEventUsesShowVenueAndTicketURL() {
         let show = Self.showDetail()
 
-        #expect(ShowDetailPresentation.ticketSubtitle(for: show) == "Choose a ticket option or open the venue checkout.")
+        let event = ShowCalendarEventPresentation.event(for: show)
+
+        #expect(event.title == "Mark Normand and Friends")
+        #expect(event.startDate == show.date)
+        #expect(event.endDate == show.date.addingTimeInterval(2 * 60 * 60))
+        #expect(event.location?.contains("Comedy Cellar") == true)
+        #expect(event.url?.absoluteString == "https://laughtrack.app/tickets")
     }
 
     @Test("show detail omits editor note section")

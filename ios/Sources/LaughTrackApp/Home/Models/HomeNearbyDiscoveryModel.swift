@@ -4,7 +4,7 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-struct HomeNearbyPage: Sendable {
+struct HomeNearbyPage: Codable, Sendable {
     let items: [Components.Schemas.Show]
     let total: Int
     let zipCapTriggered: Bool

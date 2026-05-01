@@ -8,6 +8,7 @@ struct SearchRootView: View {
     let favorites: ComedianFavoriteStore
     let coordinator: NavigationCoordinator<AppRoute>
     let searchNavigationBridge: SearchNavigationBridge
+    let isActive: Bool
     @Binding private var selectedPrimitive: SearchRootModel.Pivot
 
     @Environment(\.appTheme) private var theme
@@ -22,16 +23,19 @@ struct SearchRootView: View {
         coordinator: NavigationCoordinator<AppRoute>,
         searchNavigationBridge: SearchNavigationBridge,
         nearbyLocationController: NearbyLocationController,
+        isActive: Bool = true,
         selectedPrimitive: Binding<SearchRootModel.Pivot> = .constant(.shows)
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
         self.coordinator = coordinator
         self.searchNavigationBridge = searchNavigationBridge
+        self.isActive = isActive
         _selectedPrimitive = selectedPrimitive
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
-                nearbyLocationController: nearbyLocationController
+                nearbyLocationController: nearbyLocationController,
+                initialUseDateRange: false
             )
         )
     }
@@ -71,6 +75,7 @@ struct SearchRootView: View {
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { request in
             model.applySeed(request.seed)
             selectedPrimitive = request.seed.pivot
+            showsModel.applySearchSeedNearbyPreference(request.seed.nearbyPreference)
             applyRootQueryToActivePivot()
             searchNavigationBridge.clearRequest(request)
         }
@@ -91,7 +96,8 @@ struct SearchRootView: View {
                 model: showsModel,
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
-                displaysSearchFields: false
+                displaysSearchFields: false,
+                isActive: isActive
             )
         case .comedians:
             ComediansDiscoveryView(
@@ -99,7 +105,8 @@ struct SearchRootView: View {
                 model: comediansModel,
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
-                displaysSearchInput: false
+                displaysSearchInput: false,
+                isActive: isActive
             )
         case .clubs:
             ClubsDiscoveryView(
@@ -107,7 +114,8 @@ struct SearchRootView: View {
                 model: clubsModel,
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,
-                displaysSearchInput: false
+                displaysSearchInput: false,
+                isActive: isActive
             )
         }
     }

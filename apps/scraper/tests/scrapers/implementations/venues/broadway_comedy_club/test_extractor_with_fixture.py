@@ -14,6 +14,7 @@ def test_extract_events_uses_room_from_card_footer():
 
     ev = events[0]
     assert ev.id == "18195"
+    assert ev.title == "The Broadway Magic Hour With Jim Vines & Carl Mercurio"
     assert ev.room == "Main Room"
     # externalLink should have been set from the card href when empty
     assert ev.externalLink and "/shows/" in ev.externalLink
@@ -30,4 +31,5 @@ def test_to_show_prefers_extracted_room_over_venue():
 
     show = ev.to_show(club, enhanced=False)
     assert show is not None
+    assert show.name == "The Broadway Magic Hour With Jim Vines & Carl Mercurio"
     assert show.room == "Main Room"

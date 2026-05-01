@@ -21,7 +21,7 @@ from laughtrack.scrapers.implementations.venues.broadway_comedy_club.scraper imp
 from laughtrack.scrapers.implementations.venues.broadway_comedy_club.data import BroadwayEventData
 
 
-SCRAPING_URL = "broadwaycomedyclub.com/shows"
+SCRAPING_URL = "https://www.broadwaycomedyclub.com/calendar/"
 
 
 def _club() -> Club:
@@ -39,7 +39,7 @@ var eventObjects = [];
 eventObjects.push({"id": "12345", "eventDate": "04/15/2026 08:00 PM", "mainArtist": ["Test Comedian"], "isTesseraProduct": false, "externalLink": "https://broadwaycomedyclub.com/shows/12345"});
 </script>
 <div class="tessera-show-card" id="12345">
-  <a href="/shows/12345"><h3 class="card-title my-1">Test Comedian</h3></a>
+  <a href="/shows/12345"><h3 class="card-title my-1">Real Broadway Show Title</h3></a>
   <div class="tessera-venue fw-bold">Main Room</div>
 </div>
 </body></html>"""
@@ -74,13 +74,14 @@ async def test_get_data_returns_events_from_fixture_html(monkeypatch):
     from laughtrack.core.clients.tessera.client import TesseraClient
     monkeypatch.setattr(TesseraClient, "refresh_session_id", fake_refresh_session_id)
 
-    result = await scraper.get_data(f"https://{SCRAPING_URL}")
+    result = await scraper.get_data(SCRAPING_URL)
 
     assert isinstance(result, BroadwayEventData), "get_data() did not return BroadwayEventData"
     assert len(result.event_list) > 0, (
         "get_data() returned 0 events from fixture HTML — check eventObjects.push() extraction"
     )
     assert result.event_list[0].mainArtist[0] == "Test Comedian"
+    assert result.event_list[0].title == "Real Broadway Show Title"
 
 
 @pytest.mark.asyncio

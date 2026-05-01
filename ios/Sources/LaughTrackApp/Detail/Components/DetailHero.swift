@@ -62,6 +62,9 @@ struct DetailHero: View {
                 Text(title)
                     .font(laughTrack.typography.hero)
                     .foregroundStyle(laughTrack.colors.textInverse)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let openURL {
                     let visibleActions = actions.filter { $0.url != nil }

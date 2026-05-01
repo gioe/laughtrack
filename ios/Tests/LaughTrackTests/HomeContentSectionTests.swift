@@ -42,4 +42,25 @@ struct HomeContentSectionTests {
 
         #expect(HomeShowsTonightHeroPresentation.shouldShowFooter(for: show) == false)
     }
+
+    @Test("home cards use cached async images")
+    func homeCardsUseCachedAsyncImages() throws {
+        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+
+        #expect(!source.contains("\n            AsyncImage(url:"))
+        #expect(source.contains("CachedAsyncImage(url:"))
+    }
+
+    private func homeViewSourceURL() throws -> URL {
+        var directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        while directory.path != "/" {
+            let candidate = directory
+                .appendingPathComponent("Sources/LaughTrackApp/Home/Views/HomeView.swift")
+            if FileManager.default.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+            directory.deleteLastPathComponent()
+        }
+        throw CocoaError(.fileNoSuchFile)
+    }
 }

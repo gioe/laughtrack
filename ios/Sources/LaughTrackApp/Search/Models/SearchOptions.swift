@@ -137,3 +137,8 @@ struct PrimitiveDiscoveryQuery: Hashable {
         ].joined(separator: "|")
     }
 }
+
+struct DiscoveryLoadTaskKey<Query: Hashable>: Hashable {
+    let isActive: Bool
+    let query: Query
+}

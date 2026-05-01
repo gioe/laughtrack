@@ -17,15 +17,15 @@ final class AppShellState: ObservableObject {
     }
 
     func selectTab(_ tab: AppTab) {
-        if selectedTab != tab {
-            selectedTab = tab
-        }
-
         switch tab {
         case .search:
             updateSelectedPrimitive(cachedSearchPrimitive)
         case .nearMe, .favorites:
             updateSelectedPrimitive(nil)
+        }
+
+        if selectedTab != tab {
+            selectedTab = tab
         }
     }
 
@@ -94,6 +94,7 @@ struct AppShellView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
+    @State private var isHomeLocationEditorPresented = false
 
     init(
         apiClient: Client,
@@ -110,7 +111,12 @@ struct AppShellView: View {
     }
 
     var body: some View {
-        tabContent
+        VStack(spacing: 0) {
+            shellHeader
+
+            tabContent
+        }
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
     }
 
     private var tabContent: some View {
@@ -118,7 +124,8 @@ struct AppShellView: View {
             HomeView(
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
-                selectedPrimitive: shellState.selectedPrimitive
+                selectedPrimitive: shellState.selectedPrimitive,
+                searchNavigationBridge: searchNavigationBridge
             )
                 .tabItem { Label("Near Me", systemImage: "location.fill") }
                 .tag(AppTab.nearMe)
@@ -129,6 +136,7 @@ struct AppShellView: View {
                 coordinator: coordinator,
                 searchNavigationBridge: searchNavigationBridge,
                 nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                isActive: shellState.selectedTab == .search,
                 selectedPrimitive: searchPrimitiveBinding
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
@@ -156,6 +164,39 @@ struct AppShellView: View {
                 )
             }
         }
+        .sheet(isPresented: $shellState.isLocationPermissionPitchPresented) {
+            LocationPermissionPitchView(
+                nearbyLocationController: nearbyLocationController,
+                onResolved: {
+                    shellState.dismissLocationPermissionPitch()
+                },
+                onManualZip: {
+                    shellState.dismissLocationPermissionPitchForManualZip()
+                    coordinator.push(.profile)
+                },
+                onClose: {
+                    shellState.dismissLocationPermissionPitch()
+                }
+            )
+            .environment(\.appTheme, theme)
+        }
+        #if os(iOS)
+        .fadeFullScreenCover(isPresented: $isHomeLocationEditorPresented) {
+            HomeLocationFilterModal(
+                nearbyLocationController: nearbyLocationController,
+                isPresented: $isHomeLocationEditorPresented
+            )
+            .environment(\.appTheme, theme)
+        }
+        #else
+        .sheet(isPresented: $isHomeLocationEditorPresented) {
+            HomeLocationFilterModal(
+                nearbyLocationController: nearbyLocationController,
+                isPresented: $isHomeLocationEditorPresented
+            )
+            .environment(\.appTheme, theme)
+        }
+        #endif
     }
 
     private var selectedTabBinding: Binding<AppTab> {
@@ -170,6 +211,111 @@ struct AppShellView: View {
             get: { shellState.resolvedSearchPrimitive },
             set: { shellState.setSearchPrimitive($0) }
         )
+    }
+
+    private var shellHeader: some View {
+        HStack(spacing: theme.spacing.sm) {
+            accountHeaderButton
+
+            primitiveFilterScroller
+
+            if shellState.selectedTab == .nearMe {
+                locationHeaderButton
+            }
+        }
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.top, theme.spacing.xs)
+        .padding(.bottom, theme.spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(theme.laughTrackTokens.colors.canvas.opacity(0.97))
+    }
+
+    private var accountHeaderButton: some View {
+        shellHeaderIconButton(
+            systemImage: "person.crop.circle",
+            accessibilityLabel: "Account",
+            accessibilityIdentifier: LaughTrackViewTestID.accountHeaderButton
+        ) {
+            coordinator.push(AppRoute.accountHeaderTarget())
+        }
+    }
+
+    private var locationHeaderButton: some View {
+        shellHeaderIconButton(
+            systemImage: "location.fill",
+            accessibilityLabel: "Location",
+            accessibilityIdentifier: LaughTrackViewTestID.locationHeaderButton
+        ) {
+            isHomeLocationEditorPresented = true
+        }
+    }
+
+    private var nearbyLocationController: NearbyLocationController {
+        serviceContainer.resolve(NearbyLocationController.self)
+    }
+
+    private func shellHeaderIconButton(
+        systemImage: String,
+        accessibilityLabel: String,
+        accessibilityIdentifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        let tokens = theme.laughTrackTokens
+
+        return Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundStyle(tokens.colors.textPrimary)
+                .frame(width: AccountHeaderLayout.buttonSize, height: AccountHeaderLayout.buttonSize)
+                .background {
+                    Circle()
+                        .fill(tokens.colors.surfaceElevated.opacity(0.94))
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                }
+                .overlay {
+                    Circle()
+                        .stroke(tokens.colors.borderSubtle, lineWidth: 1)
+                }
+        }
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    private var primitiveFilterRow: some View {
+        HStack(spacing: theme.spacing.xs) {
+            ForEach(SearchRootModel.Pivot.allCases) { primitive in
+                Button {
+                    shellState.selectPrimitive(primitive)
+                } label: {
+                    Text(primitive.title)
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .foregroundStyle(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.textInverse : theme.laughTrackTokens.colors.textPrimary)
+                        .padding(.horizontal, 12)
+                        .frame(height: 34)
+                        .background {
+                            Capsule()
+                                .fill(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.accentStrong : theme.laughTrackTokens.colors.surfaceElevated.opacity(0.94))
+                                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 5)
+                        }
+                        .overlay {
+                            Capsule()
+                                .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(primitive.title)
+                .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
+            }
+        }
+    }
+
+    private var primitiveFilterScroller: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            primitiveFilterRow
+                .padding(.horizontal, 1)
+                .padding(.vertical, 1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

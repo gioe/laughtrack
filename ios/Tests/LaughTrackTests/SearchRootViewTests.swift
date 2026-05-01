@@ -1,5 +1,7 @@
 import SwiftUI
 import Testing
+import Combine
+import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -29,17 +31,47 @@ struct SearchRootViewTests {
         #expect(host.findText("Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.") == nil)
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchHeader)
         try host.requireText("Search")
-        try host.requireText("Shows")
-        try host.requireText("ZIP")
-        try host.requireText("Use date range")
+        #expect(host.findText("Shows") == nil)
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
         #expect(host.findText("Near Me") == nil)
         #expect(host.findText("Tonight") == nil)
         #expect(host.findText("This Week") == nil)
+        try host.requireText("10 mi")
+        try host.requireText("25 mi")
+        try host.requireText("50 mi")
+        try host.requireText("100 mi")
 
         #expect(host.findText("Tune the search") == nil)
         #expect(host.findText("Keep location, sort, and dates in reach.") == nil)
         #expect(host.findText("Keep filters close and results dense.") == nil)
+    }
+
+    @Test("inactive search root does not start discovery loads")
+    func inactiveSearchRootDoesNotStartDiscoveryLoads() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let favorites = ComedianFavoriteStore()
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "search-root-inactive")
+        let store = container.resolve(NearbyPreferenceStore.self)
+        let transport = StubClientTransport.alwaysFails()
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+        let host = HostedView(
+            SearchRootView(
+                apiClient: apiClient,
+                favorites: favorites,
+                coordinator: coordinator,
+                searchNavigationBridge: SearchNavigationBridge(),
+                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
+                isActive: false
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
+        )
+        await host.settle()
+
+        #expect(transport.capturedRequests.isEmpty)
     }
 }
 #endif
@@ -163,6 +195,21 @@ struct SearchRootModelTests {
         #expect(state.selectedPrimitive == .shows)
     }
 
+    @Test("shell state publishes search primitive before activating search tab")
+    func shellStatePublishesSearchPrimitiveBeforeActivatingSearchTab() async throws {
+        let state = AppShellState()
+        var selectedPrimitiveWhenSearchPublished: SearchRootModel.Pivot?
+        let cancellable = state.$selectedTab.sink { tab in
+            guard tab == .search else { return }
+            selectedPrimitiveWhenSearchPublished = state.selectedPrimitive
+        }
+
+        state.selectTab(.search)
+        cancellable.cancel()
+
+        #expect(selectedPrimitiveWhenSearchPublished == .shows)
+    }
+
     @Test("switching pivots does not navigate away from search root")
     func switchingPivotsStaysInPlace() async throws {
         let model = SearchRootModel()
@@ -188,10 +235,22 @@ struct SearchRootModelTests {
         #expect(model.selectedShortcut == "Tonight")
     }
 
+    @Test("show filter toolbar uses adaptive columns")
+    func showFilterToolbarUsesAdaptiveColumns() async throws {
+        #expect(SearchFilterToolbarLayout.columnCount(for: 568, spacing: 12) == 4)
+        #expect(SearchFilterToolbarLayout.columnCount(for: 390, spacing: 12) == 2)
+        #expect(SearchFilterToolbarLayout.columnCount(for: 260, spacing: 12) == 1)
+    }
+
     @Test("home search bridge stores latest seed request")
     func homeSearchBridgeStoresLatestSeedRequest() async throws {
         let bridge = SearchNavigationBridge()
-        let seed = SearchRootModel.Seed(pivot: .comedians, query: "Atsuko", shortcut: nil)
+        let seed = SearchRootModel.Seed(
+            pivot: .shows,
+            query: "",
+            shortcut: "Near Me",
+            nearbyPreference: NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 50)
+        )
 
         bridge.openSearch(seed)
 
@@ -230,6 +289,44 @@ struct SearchRootModelTests {
         #expect(showsModel.useDateRange)
         #expect(showsModel.fromDate == calendar.startOfDay(for: now))
         #expect(showsModel.toDate == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
+    }
+
+    @Test("shows discovery model can start with date filtering disabled for search root")
+    func showsDiscoveryModelCanStartWithDateFilteringDisabledForSearchRoot() async throws {
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            initialUseDateRange: false
+        )
+
+        #expect(!showsModel.useDateRange)
+        #expect(showsModel.requestKey.fromString == nil)
+        #expect(showsModel.requestKey.toString == nil)
+    }
+
+    @Test("shows discovery applies nearby preference from a search seed")
+    func showsDiscoveryAppliesNearbyPreferenceFromSearchSeed() async throws {
+        let showsModel = makeShowsDiscoveryModel(
+            name: "seed-nearby",
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
+        )
+        let preference = NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 50,
+            city: "New York",
+            state: "NY"
+        )
+
+        showsModel.applySearchSeedNearbyPreference(preference)
+
+        #expect(showsModel.activeNearbyPreference == preference)
+        #expect(showsModel.zipCodeDraft == "10012")
+        #expect(showsModel.requestKey.sanitizedZip == "10012")
+        #expect(showsModel.requestKey.distance.rawValue == 50)
     }
 
     @Test("near me shortcut resolves current location when no nearby preference exists")

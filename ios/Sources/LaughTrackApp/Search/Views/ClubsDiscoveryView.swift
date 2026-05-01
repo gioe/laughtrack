@@ -9,6 +9,7 @@ struct ClubsDiscoveryView: View {
     var unifiedSearchText: Binding<String>?
     var unifiedSearchPrompt: String?
     var displaysSearchInput = true
+    var isActive = true
 
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
@@ -100,7 +101,8 @@ struct ClubsDiscoveryView: View {
                 }
             }
         }
-        .task(id: model.requestKey) {
+        .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
+            guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
         #if os(iOS)

@@ -1,4 +1,5 @@
 import SwiftUI
+import EventKit
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -14,6 +15,7 @@ struct ShowDetailView: View {
     @Environment(\.openURL) private var openURL
 
     @StateObject private var model: ShowDetailModel
+    @StateObject private var calendarWriter = ShowCalendarWriter()
     @State private var feedbackMessage: String?
 
     init(showID: Int, apiClient: Client) {
@@ -39,7 +41,7 @@ struct ShowDetailView: View {
                 let show = response.data
                 VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
-                        title: show.name ?? "Untitled show",
+                        title: ShowTitlePresentation.title(for: show),
                         subtitle: ShowFormatting.detailDate(show.date, timezoneID: show.timezone),
                         imageURL: show.imageUrl,
                         badges: ShowDetailPresentation.heroBadges(for: show)
@@ -47,9 +49,15 @@ struct ShowDetailView: View {
                     .ignoresSafeArea(.container, edges: .top)
 
                     VStack(alignment: .leading, spacing: 20) {
-                        ShowSummarySection(show: show) {
+                        ShowSummarySection(show: show, openClub: {
                             coordinator.open(.club(show.club.id))
-                        }
+                        }, openTicketURL: { url in
+                            openURL(url)
+                        }, addToCalendar: {
+                            Task {
+                                feedbackMessage = await calendarWriter.add(show)
+                            }
+                        })
 
                         if
                             ShowDetailPresentation.shouldShowEditorNote(for: show),
@@ -57,10 +65,6 @@ struct ShowDetailView: View {
                             !description.isEmpty
                         {
                             DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
-                        }
-
-                        ShowCTASection(show: show) { url in
-                            openURL(url)
                         }
 
                         ShowLineupSection(
@@ -115,23 +119,23 @@ enum ShowDetailPresentation {
             ),
             ShowDetailFact(label: "Tickets", value: ticketSummary(for: show)),
             ShowDetailFact(label: "Venue", value: show.club.name),
-            optionalFact(label: "Room", value: show.room),
-            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
-            optionalFact(label: "Address", value: show.address ?? show.club.address)
+            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles))
         ]
         .compactMap { $0 }
     }
 
-    static func ticketSubtitle(for show: Components.Schemas.ShowDetail) -> String {
-        if show.cta.isSoldOut {
-            return "This show is marked sold out, but the venue path stays visible."
+    static func primaryTicketURL(for show: Components.Schemas.ShowDetail) -> URL? {
+        guard !show.cta.isSoldOut, show.soldOut != true else {
+            return nil
         }
 
-        if show.tickets?.isEmpty == false {
-            return "Choose a ticket option or open the venue checkout."
-        }
+        let ticketURL = show.tickets?
+            .first { $0.soldOut != true && URL.normalizedExternalURL($0.purchaseUrl) != nil }
+            .flatMap { URL.normalizedExternalURL($0.purchaseUrl) }
 
-        return "Open the venue checkout when a ticket link is available."
+        return ticketURL
+            ?? URL.normalizedExternalURL(show.cta.url)
+            ?? URL.normalizedExternalURL(show.showPageUrl)
     }
 
     static func shouldShowEditorNote(for show: Components.Schemas.ShowDetail) -> Bool {
@@ -174,6 +178,8 @@ enum ShowDetailPresentation {
 private struct ShowSummarySection: View {
     let show: Components.Schemas.ShowDetail
     let openClub: () -> Void
+    let openTicketURL: (URL) -> Void
+    let addToCalendar: () -> Void
 
     private let columns = [
         GridItem(.flexible(), spacing: 10),
@@ -182,6 +188,7 @@ private struct ShowSummarySection: View {
 
     var body: some View {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
+        let ticketURL = ShowDetailPresentation.primaryTicketURL(for: show)
 
         LaughTrackCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -192,16 +199,39 @@ private struct ShowSummarySection: View {
 
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
                     ForEach(facts, id: \.label) { fact in
-                        ShowSummaryFactTile(fact: fact)
+                        if fact.label == "When" {
+                            Button(action: addToCalendar) {
+                                ShowSummaryFactTile(
+                                    fact: fact,
+                                    action: .init(systemImage: "calendar.badge.plus", label: "Add to calendar")
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Adds this show to your phone calendar")
+                        } else if fact.label == "Tickets", let ticketURL {
+                            Button {
+                                openTicketURL(ticketURL)
+                            } label: {
+                                ShowSummaryFactTile(
+                                    fact: fact,
+                                    action: .init(systemImage: "arrow.up.right", label: "Buy tickets")
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Opens the ticket purchase page")
+                        } else if fact.label == "Venue" {
+                            Button(action: openClub) {
+                                ShowSummaryFactTile(
+                                    fact: fact,
+                                    action: .init(systemImage: "building.2.fill", label: "Open venue")
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityHint("Opens the venue detail page")
+                        } else {
+                            ShowSummaryFactTile(fact: fact)
+                        }
                     }
-                }
-
-                LaughTrackButton(
-                    "Open venue",
-                    systemImage: "building.2.fill",
-                    tone: .tertiary
-                ) {
-                    openClub()
                 }
             }
         }
@@ -209,12 +239,19 @@ private struct ShowSummarySection: View {
 }
 
 private struct ShowSummaryFactTile: View {
+    struct ActionAffordance {
+        let systemImage: String
+        let label: String
+    }
+
     @Environment(\.appTheme) private var theme
 
     let fact: ShowDetailFact
+    var action: ActionAffordance?
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
+        let isActionable = action != nil
 
         VStack(alignment: .leading, spacing: 4) {
             Text(fact.label)
@@ -225,15 +262,115 @@ private struct ShowSummaryFactTile: View {
                 .font(laughTrack.typography.body.weight(.semibold))
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if let action {
+                HStack(spacing: 6) {
+                    Image(systemName: action.systemImage)
+                        .font(.system(size: 13, weight: .semibold))
+                    Text(action.label)
+                        .font(laughTrack.typography.metadata.weight(.semibold))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .padding(.top, 4)
+            }
         }
         .padding(10)
         .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-        .background(laughTrack.colors.surfaceMuted)
+        .background(isActionable ? laughTrack.colors.surfaceElevated : laughTrack.colors.surfaceMuted)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                .stroke(isActionable ? laughTrack.colors.accentStrong.opacity(0.45) : laughTrack.colors.borderSubtle, lineWidth: 1)
         )
+        .shadow(color: isActionable ? .black.opacity(0.08) : .clear, radius: 10, x: 0, y: 5)
+    }
+}
+
+struct ShowCalendarEventPresentation: Equatable {
+    let title: String
+    let startDate: Date
+    let endDate: Date
+    let location: String?
+    let notes: String
+    let url: URL?
+
+    static func event(for show: Components.Schemas.ShowDetail) -> ShowCalendarEventPresentation {
+        let title = ShowTitlePresentation.title(for: show)
+        let location = [show.club.name as String?, show.address ?? show.club.address]
+            .compactMap { value in
+                guard let value else { return nil }
+                let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            .joined(separator: "\n")
+        let url = ShowDetailPresentation.primaryTicketURL(for: show)
+            ?? URL.normalizedExternalURL(show.showPageUrl)
+
+        return ShowCalendarEventPresentation(
+            title: title,
+            startDate: show.date,
+            endDate: show.date.addingTimeInterval(2 * 60 * 60),
+            location: location.isEmpty ? nil : location,
+            notes: "Added from LaughTrack.",
+            url: url
+        )
+    }
+}
+
+@MainActor
+private final class ShowCalendarWriter: ObservableObject {
+    private let eventStore = EKEventStore()
+
+    func add(_ show: Components.Schemas.ShowDetail) async -> String {
+        do {
+            let granted = try await requestCalendarAccess()
+            guard granted else {
+                return "Calendar access is needed to add this show."
+            }
+
+            let presentation = ShowCalendarEventPresentation.event(for: show)
+            guard let calendar = eventStore.defaultCalendarForNewEvents else {
+                return "No writable calendar is available on this device."
+            }
+
+            let event = EKEvent(eventStore: eventStore)
+            event.title = presentation.title
+            event.startDate = presentation.startDate
+            event.endDate = presentation.endDate
+            event.location = presentation.location
+            event.notes = presentation.notes
+            event.url = presentation.url
+            event.calendar = calendar
+
+            try eventStore.save(event, span: .thisEvent)
+            return "Added \(presentation.title) to Calendar."
+        } catch {
+            return "Could not add this show to Calendar."
+        }
+    }
+
+    private func requestCalendarAccess() async throws -> Bool {
+        try await withCheckedThrowingContinuation { continuation in
+            if #available(iOS 17.0, macOS 14.0, *) {
+                eventStore.requestWriteOnlyAccessToEvents { granted, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: granted)
+                    }
+                }
+            } else {
+                eventStore.requestAccess(to: .event) { granted, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: granted)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -292,82 +429,6 @@ private struct RelatedShowsSection: View {
                             ShowRow(show: related)
                         }
                         .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct ShowCTASection: View {
-    @Environment(\.appTheme) private var theme
-
-    let show: Components.Schemas.ShowDetail
-    let openURL: (URL) -> Void
-
-    var body: some View {
-        let laughTrack = theme.laughTrackTokens
-        let primaryURL = URL.normalizedExternalURL(show.cta.url) ?? URL.normalizedExternalURL(show.showPageUrl)
-        let fallbackURL = URL.normalizedExternalURL(show.showPageUrl)
-
-        LaughTrackCard(tone: .standard) {
-            VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(
-                    eyebrow: "Tickets",
-                    title: show.cta.isSoldOut ? "Join the wait for the next one" : "Secure your seat",
-                    subtitle: ShowDetailPresentation.ticketSubtitle(for: show)
-                )
-
-                if let primaryURL {
-                    LaughTrackButton(
-                        show.cta.label,
-                        systemImage: "arrow.up.right",
-                        tone: show.cta.isSoldOut ? .secondary : .primary
-                    ) {
-                        openURL(primaryURL)
-                    }
-                    .disabled(show.cta.isSoldOut)
-                } else {
-                    EmptyCard(message: "Tickets are not linked yet for this show.")
-                }
-
-                if let fallbackURL, primaryURL != fallbackURL {
-                    LaughTrackButton("Open show page", systemImage: "safari", tone: .tertiary) {
-                        openURL(fallbackURL)
-                    }
-                }
-
-                if let tickets = show.tickets, !tickets.isEmpty {
-                    VStack(spacing: 10) {
-                        ForEach(Array(tickets.enumerated()), id: \.offset) { index, ticket in
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(ticket._type ?? "Ticket option \(index + 1)")
-                                        .font(laughTrack.typography.action)
-                                        .foregroundStyle(laughTrack.colors.textPrimary)
-                                    if let price = ticket.price {
-                                        Text(price, format: .currency(code: "USD"))
-                                            .font(laughTrack.typography.metadata)
-                                            .foregroundStyle(laughTrack.colors.textSecondary)
-                                    }
-                                }
-                                Spacer()
-                                if let url = URL.normalizedExternalURL(ticket.purchaseUrl) {
-                                    LaughTrackButton(
-                                        ticket.soldOut == true ? "Sold out" : "Open",
-                                        systemImage: ticket.soldOut == true ? "xmark.circle" : "arrow.up.right",
-                                        tone: ticket.soldOut == true ? .secondary : .tertiary,
-                                        fullWidth: false
-                                    ) {
-                                        openURL(url)
-                                    }
-                                    .disabled(ticket.soldOut == true)
-                                }
-                            }
-                            .padding(12)
-                            .background(laughTrack.colors.surfaceMuted)
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
                     }
                 }
             }

@@ -54,9 +54,6 @@ struct ShowDetailViewTests {
         response.data.lineup = nil
         response.relatedShows = []
         response.data.tickets = nil
-        // Clear both ticket URL surfaces so the view renders the empty-tickets card.
-        // ShowDetailView falls back from cta.url to showPageUrl; if either is set,
-        // the rendered tree shows a "Buy tickets" / "Open show page" button instead.
         response.data.cta = .init(url: nil, label: "Buy tickets", isSoldOut: false)
         response.data.showPageUrl = ""
 
@@ -70,7 +67,7 @@ struct ShowDetailViewTests {
 
         try host.requireLabel("Lineup details are not available yet.")
         try host.requireLabel("No related shows are available yet.")
-        try host.requireLabel("Tickets are not linked yet for this show.")
+        try host.requireLabel("Unavailable")
     }
 
     @Test("show detail hero does not duplicate summary facts")
@@ -86,20 +83,20 @@ struct ShowDetailViewTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Room", "Distance", "Address"])
+        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Distance"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
     }
 
-    @Test("show detail summary facts omit missing optional values")
-    func showSummaryFactsOmitMissingValues() {
+    @Test("show detail summary facts omit missing optional values and address")
+    func showSummaryFactsOmitMissingValuesAndAddress() {
         var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
         show.tickets = nil
         show.room = nil
         show.distanceMiles = nil
-        show.address = nil
-        show.club.address = nil
+        show.address = "318 W. 53rd St, New York, NY"
+        show.club.address = "318 W. 53rd St, New York, NY"
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
@@ -107,11 +104,31 @@ struct ShowDetailViewTests {
         #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
     }
 
-    @Test("show detail ticket subtitle uses user-facing copy")
-    func showTicketSubtitleIsUserFacing() {
-        let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+    @Test("show detail ticket cell targets ticket purchase URL")
+    func showTicketCellTargetsTicketPurchaseURL() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.tickets = [
+            .init(price: 30, purchaseUrl: "https://laughtrack.app/ticket-option", soldOut: false, _type: "General admission")
+        ]
+        show.cta = .init(url: "https://laughtrack.app/show-cta", label: "Buy tickets", isSoldOut: false)
 
-        #expect(ShowDetailPresentation.ticketSubtitle(for: show) == "Choose a ticket option or open the venue checkout.")
+        #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://laughtrack.app/ticket-option")
+    }
+
+    @Test("show detail calendar event uses show venue and ticket URL")
+    func showCalendarEventUsesShowVenueAndTicketURL() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.tickets = [
+            .init(price: 30, purchaseUrl: "https://laughtrack.app/ticket-option", soldOut: false, _type: "General admission")
+        ]
+
+        let event = ShowCalendarEventPresentation.event(for: show)
+
+        #expect(event.title == show.name)
+        #expect(event.startDate == show.date)
+        #expect(event.endDate == show.date.addingTimeInterval(2 * 60 * 60))
+        #expect(event.location?.contains(show.club.name) == true)
+        #expect(event.url?.absoluteString == "https://laughtrack.app/ticket-option")
     }
 
     private func makeView(apiClient: Client, authManager: AuthManager) -> some View {

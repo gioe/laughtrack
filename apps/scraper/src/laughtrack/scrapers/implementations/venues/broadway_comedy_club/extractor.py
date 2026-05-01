@@ -32,6 +32,15 @@ class BroadwayEventExtractor:
             child_class="card-title my-1",
         )
 
+        # Map Tessera card IDs to the public show titles rendered on the listing.
+        # eventObjects.mainArtist is lineup data, not the canonical show name.
+        id_to_title = HtmlScraper.extract_card_id_to_child_text_by_class(
+            html=html_content,
+            card_class="tessera-show-card",
+            child_tag="h3",
+            child_class="card-title my-1",
+        )
+
         # Also map card IDs to room text inside the card footer
         # E.g., <div class="tessera-venue fw-bold"> Main Room</div>
         id_to_room = HtmlScraper.extract_card_id_to_child_text_by_class(
@@ -66,6 +75,10 @@ class BroadwayEventExtractor:
                     # Attach room if we found it on the card
                     if ev_id and ev_id in id_to_room:
                         event_data["room"] = id_to_room[ev_id]
+
+                    # Attach the visible card title as the show title.
+                    if ev_id and ev_id in id_to_title:
+                        event_data["title"] = id_to_title[ev_id]
 
                     broadway_events.append(BroadwayEvent.from_dict(event_data))
 

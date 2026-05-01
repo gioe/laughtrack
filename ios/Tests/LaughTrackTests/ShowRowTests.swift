@@ -27,6 +27,52 @@ struct ShowRowTests {
         #expect(ShowRow.title(for: show) == "Late show")
     }
 
+    @Test("show row replaces lone lineup performer titles with venue title")
+    func showRowReplacesLoneLineupPerformerTitle() {
+        let show = makeShow(
+            name: "Vanessa Jackson",
+            clubName: "The Broadway Comedy Club",
+            lineup: [
+                lineup(name: "Vanessa Jackson", imageURL: "https://example.com/vanessa.jpg", showCount: 4)
+            ]
+        )
+
+        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+    }
+
+    @Test("show row replaces performer-looking titles even when lineup is absent")
+    func showRowReplacesPerformerLookingTitleWithoutLineup() {
+        let show = makeShow(
+            name: "Vanessa Jackson",
+            clubName: "The Broadway Comedy Club",
+            lineup: nil
+        )
+
+        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+    }
+
+    @Test("show row preserves titled shows that contain show words")
+    func showRowPreservesNamedShows() {
+        let show = makeShow(
+            name: "Atsuko Late Set",
+            clubName: "The Stand",
+            lineup: nil
+        )
+
+        #expect(ShowRow.title(for: show) == "Atsuko Late Set")
+    }
+
+    @Test("show row preserves longer production titles")
+    func showRowPreservesLongerProductionTitles() {
+        let show = makeShow(
+            name: "Comedy Show at The Grisly Pear Midtown",
+            clubName: "The Grisly Pear Midtown",
+            lineup: nil
+        )
+
+        #expect(ShowRow.title(for: show) == "Comedy Show at The Grisly Pear Midtown")
+    }
+
     @Test("show row keeps parent comedian artwork for alias lineup items")
     func showRowUsesParentComedianForAliasArtwork() {
         let parent = lineup(name: "Parent Headliner", imageURL: "https://example.com/parent.jpg", showCount: 60)
@@ -109,15 +155,17 @@ struct ShowRowTests {
     }
 
     private func makeShow(
+        name: String = "Late show",
+        clubName: String = "Comedy Cellar",
         tickets: [Components.Schemas.Ticket] = [],
         lineup: [Components.Schemas.ComedianLineup]?
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: 1,
-            clubName: "Comedy Cellar",
+            clubName: clubName,
             date: Date(timeIntervalSince1970: 1_710_000_000),
             tickets: tickets,
-            name: "Late show",
+            name: name,
             lineup: lineup,
             imageUrl: "https://example.com/show.jpg"
         )

@@ -4,6 +4,8 @@ import HTTPTypes
 import OpenAPIRuntime
 import Testing
 import LaughTrackAPIClient
+import LaughTrackBridge
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Home shows tonight model")
@@ -13,7 +15,12 @@ struct HomeShowsTonightModelTests {
     func loadsShowsTonightWithoutNearbyPreference() async {
         let model = HomeShowsTonightModel()
 
-        await model.refresh(apiClient: makeHomeShowsTonightClient(), zipCode: nil)
+        await model.refresh(
+            apiClient: makeHomeShowsTonightClient(),
+            zipCode: nil,
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
 
         guard case .success(let shows) = model.phase else {
             Issue.record("Expected shows-tonight success phase")
@@ -28,7 +35,12 @@ struct HomeShowsTonightModelTests {
     func deduplicatesFallbackShowsBehindTonight() async {
         let model = HomeShowsTonightModel()
 
-        await model.refresh(apiClient: makeHomeShowsTonightClient(), zipCode: "10012")
+        await model.refresh(
+            apiClient: makeHomeShowsTonightClient(),
+            zipCode: "10012",
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
 
         guard case .success(let shows) = model.phase else {
             Issue.record("Expected shows-tonight success phase")
@@ -37,17 +49,76 @@ struct HomeShowsTonightModelTests {
 
         #expect(shows.map(\.id) == [801, 802, 803])
     }
+
+    @Test("limits shows tonight to five unique shows")
+    func limitsShowsTonightToFiveUniqueShows() async {
+        let model = HomeShowsTonightModel()
+
+        await model.refresh(
+            apiClient: makeHomeShowsTonightClient(showIDs: Array(801...808)),
+            zipCode: "10013",
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected shows-tonight success phase")
+            return
+        }
+
+        #expect(shows.map(\.id) == [801, 802, 803, 804, 805])
+    }
+
+    @Test("see more seed opens the shows near me search")
+    func seeMoreSeedOpensShowsNearMeSearch() async {
+        let preference = NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 50,
+            city: "New York",
+            state: "NY"
+        )
+
+        #expect(HomeShowsTonightModel.seeMoreSearchSeed(nearbyPreference: preference) == SearchRootModel.Seed(
+            pivot: .shows,
+            query: "",
+            shortcut: "Near Me",
+            nearbyPreference: preference
+        ))
+    }
+
+    @Test("loads nearby preference from the home feed hero")
+    func loadsNearbyPreferenceFromHomeFeedHero() async {
+        let model = HomeShowsTonightModel()
+
+        await model.refresh(
+            apiClient: makeHomeShowsTonightClient(),
+            zipCode: nil,
+            cache: DataCache<LaughTrackCacheKey>(),
+            persistentCache: nil
+        )
+
+        #expect(model.feedNearbyPreference == NearbyPreference(
+            zipCode: "10012",
+            source: .manual,
+            distanceMiles: 25,
+            city: "New York",
+            state: "NY"
+        ))
+    }
 }
 
-private func makeHomeShowsTonightClient() -> Client {
+private func makeHomeShowsTonightClient(showIDs: [Int] = [801, 802, 803]) -> Client {
     Client(
         serverURL: URL(string: "https://example.com")!,
         configuration: .laughTrack,
-        transport: MockHomeShowsTonightTransport()
+        transport: MockHomeShowsTonightTransport(showIDs: showIDs)
     )
 }
 
 private struct MockHomeShowsTonightTransport: ClientTransport {
+    let showIDs: [Int]
+
     func send(
         _ request: HTTPRequest,
         body: HTTPBody?,
@@ -72,13 +143,14 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
     }
 
     private var homeFeed: Components.Schemas.HomeFeed {
-        .init(
-            hero: .init(zipCode: "10012", city: "New York", state: "NY", shows: [show(id: 802)]),
+        let feedShows = showIDs.map { show(id: $0) }
+        return .init(
+            hero: .init(zipCode: "10012", city: "New York", state: "NY", shows: Array(feedShows.dropFirst().prefix(2))),
             trendingComedians: [],
             comediansNearYou: [],
-            showsTonight: [show(id: 801), show(id: 802)],
+            showsTonight: Array(feedShows.prefix(4)),
             moreNearYou: [],
-            trendingThisWeek: [show(id: 803), show(id: 801)],
+            trendingThisWeek: feedShows + Array(feedShows.prefix(1)),
             popularClubs: []
         )
     }

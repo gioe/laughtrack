@@ -27,6 +27,7 @@ struct HomeView: View {
     let apiClient: Client
     let signedOutMessage: String?
     let selectedPrimitive: SearchRootModel.Pivot?
+    let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
@@ -36,11 +37,13 @@ struct HomeView: View {
     init(
         apiClient: Client,
         signedOutMessage: String?,
-        selectedPrimitive: SearchRootModel.Pivot? = nil
+        selectedPrimitive: SearchRootModel.Pivot? = nil,
+        searchNavigationBridge: SearchNavigationBridge
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.selectedPrimitive = selectedPrimitive
+        self.searchNavigationBridge = searchNavigationBridge
     }
 
     var body: some View {
@@ -112,6 +115,7 @@ struct HomeView: View {
         HomeShowsTonightRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            searchNavigationBridge: searchNavigationBridge,
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
         )
     }
@@ -171,6 +175,7 @@ private struct HomeNearMeHeader: View {
 private struct HomeShowsTonightRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
 
     @Environment(\.appTheme) private var theme
@@ -241,24 +246,31 @@ private struct HomeShowsTonightRail: View {
             .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightHeroButton)
         }
 
-        let railShows = Array(shows.dropFirst().prefix(8))
+        let railShows = Array(shows.dropFirst())
         if !railShows.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: theme.spacing.sm) {
-                    ForEach(railShows, id: \.id) { show in
-                        Button {
-                            coordinator.open(.show(show.id))
-                        } label: {
-                            HomeShowsTonightRailCard(show: show)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
+            VStack(spacing: theme.spacing.sm) {
+                ForEach(railShows, id: \.id) { show in
+                    Button {
+                        coordinator.open(.show(show.id))
+                    } label: {
+                        HomeShowsTonightRailCard(show: show)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
                 }
-                .padding(.horizontal, 1)
-                .padding(.vertical, 2)
             }
         }
+
+        LaughTrackButton("See more", systemImage: "magnifyingglass", tone: .secondary, density: .compact) {
+            searchNavigationBridge.openSearch(
+                HomeShowsTonightModel.seeMoreSearchSeed(nearbyPreference: seeMoreNearbyPreference)
+            )
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightSeeMoreButton)
+    }
+
+    private var seeMoreNearbyPreference: NearbyPreference? {
+        nearbyPreferenceStore.preference ?? model.feedNearbyPreference
     }
 }
 
@@ -274,7 +286,7 @@ private struct HomeShowsTonightHeroCard: View {
             artwork
 
             VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                Text(show.name ?? "Untitled show")
+                Text(ShowTitlePresentation.title(for: show))
                     .font(laughTrack.typography.cardTitle)
                     .foregroundStyle(laughTrack.colors.textPrimary)
                     .lineLimit(2)
@@ -303,7 +315,7 @@ private struct HomeShowsTonightHeroCard: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(show.name ?? "Untitled show"), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
+        .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
     }
 
     @ViewBuilder
@@ -311,32 +323,27 @@ private struct HomeShowsTonightHeroCard: View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(show.imageUrl) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    Rectangle()
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            ProgressView()
-                                .tint(laughTrack.colors.accent)
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    fallbackArtwork
-                @unknown default:
-                    fallbackArtwork
-                }
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Rectangle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 172)
+            .frame(height: 144)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         } else {
             fallbackArtwork
                 .frame(maxWidth: .infinity)
-                .frame(height: 172)
+                .frame(height: 144)
         }
     }
 
@@ -356,7 +363,7 @@ private struct HomeShowsTonightHeroCard: View {
         [
             ShowFormatting.listDate(show.date, timezoneID: show.timezone),
             show.room,
-            ShowFormatting.distance(show.distanceMiles),
+            ShowRow.priceLabel(for: show),
         ].compactMap { value in
             guard let value, !value.isEmpty else { return nil }
             return value
@@ -379,31 +386,55 @@ private struct HomeShowsTonightRailCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
             artwork
 
-            Text(show.name ?? "Untitled show")
-                .font(laughTrack.typography.cardTitle)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(2)
-                .frame(width: 104, alignment: .leading)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(ShowTitlePresentation.title(for: show))
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-            Text(show.clubName ?? "Unknown club")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .lineLimit(1)
-                .frame(width: 104, alignment: .leading)
+                Text(show.clubName ?? "Unknown club")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
 
-            Text(ShowFormatting.listDate(show.date, timezoneID: show.timezone))
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .lineLimit(1)
-                .frame(width: 104, alignment: .leading)
+                Text(metadata.joined(separator: " • "))
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
         }
-        .frame(width: 112, alignment: .topLeading)
+        .padding(theme.spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(laughTrack.colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(show.name ?? "Untitled show"), \(show.clubName ?? "Unknown club"), \(ShowFormatting.listDate(show.date, timezoneID: show.timezone))")
+        .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
+    }
+
+    private var metadata: [String] {
+        [
+            showTime,
+            ShowRow.priceLabel(for: show),
+        ].compactMap { value in
+            guard let value, !value.isEmpty else { return nil }
+            return value
+        }
+    }
+
+    private var showTime: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        if let timezoneID = show.timezone, let timezone = TimeZone(identifier: timezoneID) {
+            formatter.timeZone = timezone
+        }
+        return formatter.string(from: show.date)
     }
 
     @ViewBuilder
@@ -411,27 +442,22 @@ private struct HomeShowsTonightRailCard: View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(show.imageUrl) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            ProgressView()
-                                .tint(laughTrack.colors.accent)
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    fallbackArtwork
-                @unknown default:
-                    fallbackArtwork
-                }
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
             }
-            .frame(width: 104, height: 78)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .frame(width: 76, height: 58)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             fallbackArtwork
         }
@@ -447,14 +473,26 @@ private struct HomeShowsTonightRailCard: View {
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
-            .frame(width: 104, height: 78)
+            .frame(width: 76, height: 58)
     }
 }
 
 @MainActor
 final class HomeShowsTonightModel: ObservableObject {
+    static let displayLimit = 5
+
+    static func seeMoreSearchSeed(nearbyPreference: NearbyPreference?) -> SearchRootModel.Seed {
+        SearchRootModel.Seed(
+            pivot: .shows,
+            query: "",
+            shortcut: "Near Me",
+            nearbyPreference: nearbyPreference
+        )
+    }
+
     @Published private(set) var phase: LoadPhase<[Components.Schemas.Show]> = .idle
     @Published private(set) var cityTitle: String?
+    @Published private(set) var feedNearbyPreference: NearbyPreference?
 
     private var loadedRequestKey: String?
     private var loadedAt: Date?
@@ -467,7 +505,8 @@ final class HomeShowsTonightModel: ObservableObject {
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
-        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -476,7 +515,8 @@ final class HomeShowsTonightModel: ObservableObject {
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
             .homeFeed(zipCode: zipCode),
-            from: cache
+            from: cache,
+            persistentCache: persistentCache
         ) {
             apply(feed: cachedFeed, requestKey: requestKey)
             return
@@ -493,7 +533,8 @@ final class HomeShowsTonightModel: ObservableObject {
             rateLimitMessage: "LaughTrack is rate-limiting tonight's shows right now.",
             undocumentedContext: "tonight's shows",
             networkContext: "the home feed",
-            networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again."
+            networkMessage: "LaughTrack couldn't reach the home feed. Check your connection and try again.",
+            persistentCache: persistentCache
         )
         guard !Task.isCancelled else { return }
 
@@ -507,6 +548,7 @@ final class HomeShowsTonightModel: ObservableObject {
 
     private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
         cityTitle = Self.locationTitle(city: feed.hero.city, state: feed.hero.state)
+        feedNearbyPreference = Self.nearbyPreference(from: feed.hero)
         phase = .success(Self.shows(from: feed))
         loadedRequestKey = requestKey
         loadedAt = Date()
@@ -521,7 +563,7 @@ final class HomeShowsTonightModel: ObservableObject {
         var seenIDs: Set<Int> = []
         return (feed.showsTonight + feed.hero.shows + feed.trendingThisWeek).filter { show in
             seenIDs.insert(show.id).inserted
-        }
+        }.prefix(Self.displayLimit).map { $0 }
     }
 
     private static func locationTitle(city: String?, state: String?) -> String? {
@@ -530,6 +572,20 @@ final class HomeShowsTonightModel: ObservableObject {
             return "\(city), \(state)"
         }
         return city
+    }
+
+    private static func nearbyPreference(from hero: Components.Schemas.HomeFeedHero) -> NearbyPreference? {
+        guard let zipCode = hero.zipCode?.filter(\.isNumber), zipCode.count == 5 else {
+            return nil
+        }
+
+        return NearbyPreference(
+            zipCode: zipCode,
+            source: .manual,
+            distanceMiles: NearbyPreference.defaultDistanceMiles,
+            city: hero.city,
+            state: hero.state
+        )
     }
 }
 
@@ -735,20 +791,16 @@ private struct HomeTrendingComediansRail: View {
                 if items.isEmpty {
                     EmptyCard(message: "No trending comedians with photos are available right now.")
                 } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(alignment: .top, spacing: theme.spacing.sm) {
-                            ForEach(items, id: \.uuid) { comedian in
-                                Button {
-                                    coordinator.open(.comedian(comedian.id))
-                                } label: {
-                                    HomeTrendingComedianCard(comedian: comedian)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComedianButton(comedian.id))
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(items, id: \.uuid) { comedian in
+                            Button {
+                                coordinator.open(.comedian(comedian.id))
+                            } label: {
+                                HomeTrendingComedianCard(comedian: comedian)
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComedianButton(comedian.id))
                         }
-                        .padding(.horizontal, 1)
-                        .padding(.vertical, 2)
                     }
                     .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComediansRail)
                 }
@@ -776,23 +828,27 @@ private struct HomeTrendingComedianCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
             artwork
 
-            Text(comedian.name)
-                .font(laughTrack.typography.cardTitle)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .frame(width: 104, alignment: .leading)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(comedian.name)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-            Text(upcomingShowsText)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .lineLimit(1)
-                .frame(width: 104, alignment: .leading)
+                Text(upcomingShowsText)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: 112, alignment: .topLeading)
+        .padding(theme.spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(laughTrack.colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(comedian.name), \(upcomingShowsText)")
@@ -803,34 +859,28 @@ private struct HomeTrendingComedianCard: View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            ProgressView()
-                                .tint(laughTrack.colors.accent)
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            Image(systemName: "photo")
-                                .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-                        }
-                @unknown default:
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(laughTrack.colors.surfaceMuted)
-                }
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        Image(systemName: "photo")
+                            .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
             }
-            .frame(width: 104, height: 104)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .frame(width: 76, height: 76)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(laughTrack.colors.surfaceMuted)
@@ -839,12 +889,12 @@ private struct HomeTrendingComedianCard: View {
                         .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.accentStrong)
                 }
-                .frame(width: 104, height: 104)
+                .frame(width: 76, height: 76)
         }
     }
 
     private var upcomingShowsText: String {
-        "\(comedian.showCount) upcoming show\(comedian.showCount == 1 ? "" : "s")"
+        "\(comedian.showCount) show\(comedian.showCount == 1 ? "" : "s") upcoming"
     }
 }
 
@@ -966,19 +1016,15 @@ private struct HomePopularClubsRail: View {
                 if clubs.isEmpty {
                     EmptyCard(message: "No clubs are available right now.")
                 } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(alignment: .top, spacing: theme.spacing.sm) {
-                            ForEach(clubs, id: \.id) { club in
-                                Button {
-                                    coordinator.open(.club(club.id))
-                                } label: {
-                                    HomePopularClubCard(club: club)
-                                }
-                                .buttonStyle(.plain)
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(clubs, id: \.id) { club in
+                            Button {
+                                coordinator.open(.club(club.id))
+                            } label: {
+                                HomePopularClubCard(club: club)
                             }
+                            .buttonStyle(.plain)
                         }
-                        .padding(.horizontal, 1)
-                        .padding(.vertical, 2)
                     }
                     .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
                 }
@@ -1006,32 +1052,35 @@ private struct HomePopularClubCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
             artwork
 
-            Text(club.name)
-                .font(laughTrack.typography.cardTitle)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-                .frame(width: 128, alignment: .leading)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(club.name)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
 
-            Text(club.zipCode.map { "ZIP \($0)" } ?? club.address)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .lineLimit(1)
-                .frame(width: 128, alignment: .leading)
+                Text(club.zipCode.map { "ZIP \($0)" } ?? club.address)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
 
-            Text("\(club.activeComedianCount) active comedian\(club.activeComedianCount == 1 ? "" : "s")")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .lineLimit(1)
-                .frame(width: 128, alignment: .leading)
+                Text(activeComediansText)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: 136, alignment: .topLeading)
+        .padding(theme.spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(laughTrack.colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(club.name), \(club.activeComedianCount) active comedians")
+        .accessibilityLabel("\(club.name), \(activeComediansText)")
     }
 
     @ViewBuilder
@@ -1039,27 +1088,22 @@ private struct HomePopularClubCard: View {
         let laughTrack = theme.laughTrackTokens
 
         if let url = URL.normalizedExternalURL(club.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            ProgressView()
-                                .tint(laughTrack.colors.accent)
-                        }
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    fallbackArtwork
-                @unknown default:
-                    fallbackArtwork
-                }
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
             }
-            .frame(width: 128, height: 88)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .frame(width: 84, height: 64)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             fallbackArtwork
         }
@@ -1075,7 +1119,11 @@ private struct HomePopularClubCard: View {
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
-            .frame(width: 128, height: 88)
+            .frame(width: 84, height: 64)
+    }
+
+    private var activeComediansText: String {
+        "\(club.activeComedianCount) active comedian\(club.activeComedianCount == 1 ? "" : "s")"
     }
 }
 
@@ -1149,20 +1197,69 @@ enum MainPageCache {
 
     static func get<Value>(
         _ key: LaughTrackCacheKey,
-        from cache: DataCache<LaughTrackCacheKey>?
+        from cache: DataCache<LaughTrackCacheKey>?,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async -> Value? {
-        guard let cache else { return nil }
-        return await cache.get(forKey: key)
+        if let cached: Value = await cache?.get(forKey: key) {
+            return cached
+        }
+
+        guard let persistentCache else {
+            return nil
+        }
+
+        switch key {
+        case .homeFeed(let zipCode) where Value.self == Components.Schemas.HomeFeed.self:
+            guard let cached = await persistentCache.getCachedHomeFeed(zipCode: zipCode) else { return nil }
+            await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
+            return cached.value as? Value
+        case .favoriteShows(let requestKey) where Value.self == [Components.Schemas.Show].self:
+            guard let cached = await persistentCache.getCachedFavoriteShows(requestKey: requestKey) else { return nil }
+            await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
+            return cached.value as? Value
+        case .nearbyShows(let zipCode, let distanceMiles) where Value.self == HomeNearbyPage.self:
+            guard let cached = await persistentCache.getCachedNearbyPage(
+                zipCode: zipCode,
+                distanceMiles: distanceMiles
+            ) else { return nil }
+            await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
+            return cached.value as? Value
+        default:
+            return nil
+        }
     }
 
     static func set(
         _ value: some Sendable,
         forKey key: LaughTrackCacheKey,
         in cache: DataCache<LaughTrackCacheKey>?,
-        ttl: TimeInterval = defaultTTL
+        ttl: TimeInterval = defaultTTL,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async {
-        guard let cache else { return }
-        await cache.set(value, forKey: key, ttl: ttl)
+        await cache?.set(value, forKey: key, ttl: ttl)
+
+        switch key {
+        case .homeFeed(let zipCode):
+            guard let homeFeed = value as? Components.Schemas.HomeFeed else { return }
+            await persistentCache?.setHomeFeed(homeFeed, zipCode: zipCode, ttl: ttl)
+        case .favoriteShows(let requestKey):
+            guard let shows = value as? [Components.Schemas.Show] else { return }
+            await persistentCache?.setFavoriteShows(shows, requestKey: requestKey, ttl: ttl)
+        case .nearbyShows(let zipCode, let distanceMiles):
+            guard let page = value as? HomeNearbyPage else { return }
+            await persistentCache?.setNearbyPage(page, zipCode: zipCode, distanceMiles: distanceMiles, ttl: ttl)
+        default:
+            return
+        }
+    }
+
+    private static func hydrateMemoryCache(
+        _ value: some Sendable,
+        key: LaughTrackCacheKey,
+        expiresAt: Date,
+        cache: DataCache<LaughTrackCacheKey>?
+    ) async {
+        await cache?.set(value, forKey: key, ttl: max(0, expiresAt.timeIntervalSinceNow))
     }
 }
 
@@ -1176,7 +1273,8 @@ private enum HomeFeedRequest {
         rateLimitMessage: String,
         undocumentedContext: String,
         networkContext: String,
-        networkMessage: String
+        networkMessage: String,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         do {
             let output = try await apiClient.getHomeFeed(
@@ -1193,7 +1291,8 @@ private enum HomeFeedRequest {
                     response.data,
                     forKey: .homeFeed(zipCode: zipCode),
                     in: cache,
-                    ttl: cacheTTL
+                    ttl: cacheTTL,
+                    persistentCache: persistentCache
                 )
                 return .success(response.data)
             case .badRequest(let badRequest):
