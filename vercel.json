@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd apps/web && prisma migrate deploy && npm run build",
+  "framework": "nextjs",
+  "installCommand": "npm install --prefix apps/web",
+  "outputDirectory": "apps/web/.next"
+}
