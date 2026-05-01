@@ -290,17 +290,8 @@ private struct HomeShowsTonightHeroCard: View {
                     .lineLimit(2)
             }
 
-            HStack(spacing: theme.spacing.sm) {
-                LaughTrackBadge(lineupPreview, systemImage: "person.2.fill", tone: .neutral)
-
-                Spacer(minLength: theme.spacing.sm)
-
-                HStack(spacing: theme.spacing.xs) {
-                    Text(show.soldOut == true ? "Sold out" : "Tickets")
-                    Image(systemName: "arrow.right")
-                }
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(show.soldOut == true ? laughTrack.colors.textSecondary : laughTrack.colors.accentStrong)
+            if HomeShowsTonightHeroPresentation.shouldShowFooter(for: show) {
+                EmptyView()
             }
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
@@ -372,16 +363,11 @@ private struct HomeShowsTonightHeroCard: View {
         }
     }
 
-    private var lineupPreview: String {
-        guard let lineup = show.lineup, !lineup.isEmpty else {
-            return "Lineup TBA"
-        }
+}
 
-        let names = lineup.prefix(2).map(\.name)
-        if lineup.count > 2 {
-            return "\(names.joined(separator: ", ")) +\(lineup.count - 2)"
-        }
-        return names.joined(separator: ", ")
+enum HomeShowsTonightHeroPresentation {
+    static func shouldShowFooter(for show: Components.Schemas.Show) -> Bool {
+        false
     }
 }
 
