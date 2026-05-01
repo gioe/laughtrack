@@ -51,7 +51,11 @@ struct ShowDetailView: View {
                             coordinator.open(.club(show.club.id))
                         }
 
-                        if let description = show.description, !description.isEmpty {
+                        if
+                            ShowDetailPresentation.shouldShowEditorNote(for: show),
+                            let description = show.description,
+                            !description.isEmpty
+                        {
                             DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
                         }
 
@@ -128,6 +132,10 @@ enum ShowDetailPresentation {
         }
 
         return "Open the venue checkout when a ticket link is available."
+    }
+
+    static func shouldShowEditorNote(for show: Components.Schemas.ShowDetail) -> Bool {
+        false
     }
 
     private static func optionalFact(label: String, value: String?) -> ShowDetailFact? {

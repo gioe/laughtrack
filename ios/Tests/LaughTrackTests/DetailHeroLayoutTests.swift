@@ -66,6 +66,13 @@ struct DetailHeroLayoutTests {
         #expect(ShowDetailPresentation.ticketSubtitle(for: show) == "Choose a ticket option or open the venue checkout.")
     }
 
+    @Test("show detail omits editor note section")
+    func showDetailOmitsEditorNoteSection() {
+        let show = Self.showDetail()
+
+        #expect(ShowDetailPresentation.shouldShowEditorNote(for: show) == false)
+    }
+
     private static func showDetail() -> Components.Schemas.ShowDetail {
         .init(
             id: 301,
