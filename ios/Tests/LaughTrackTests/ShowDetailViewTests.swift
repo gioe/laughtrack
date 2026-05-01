@@ -73,6 +73,47 @@ struct ShowDetailViewTests {
         try host.requireLabel("Tickets are not linked yet for this show.")
     }
 
+    @Test("show detail hero does not duplicate summary facts")
+    func showHeroBadgesAreEmpty() {
+        let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+
+        #expect(ShowDetailPresentation.heroBadges(for: show).isEmpty)
+    }
+
+    @Test("show detail summary facts include event operations")
+    func showSummaryFactsIncludeOperationalDetails() {
+        let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+
+        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Room", "Distance", "Address"])
+        #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
+        #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
+        #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
+    }
+
+    @Test("show detail summary facts omit missing optional values")
+    func showSummaryFactsOmitMissingValues() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.tickets = nil
+        show.room = nil
+        show.distanceMiles = nil
+        show.address = nil
+        show.club.address = nil
+
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+
+        #expect(facts.map(\.label) == ["When", "Tickets", "Venue"])
+        #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
+    }
+
+    @Test("show detail ticket subtitle uses user-facing copy")
+    func showTicketSubtitleIsUserFacing() {
+        let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+
+        #expect(ShowDetailPresentation.ticketSubtitle(for: show) == "Choose a ticket option or open the venue checkout.")
+    }
+
     private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
         ShowDetailView(showID: 301, apiClient: apiClient)
             .environment(\.appTheme, LaughTrackTheme())
