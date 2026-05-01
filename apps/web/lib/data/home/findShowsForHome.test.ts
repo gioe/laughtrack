@@ -18,13 +18,27 @@ vi.mock("@/util/ticket/ticketUtil", () => ({
         })),
     ),
 }));
+vi.mock("@/util/distanceUtil", () => ({
+    computeDistanceMiles: vi.fn(
+        (_fromZip: string | undefined, toZip: string) => {
+            const distances: Record<string, number> = {
+                "10001": 18,
+                "10003": 4,
+                "10011": 4,
+            };
+            return distances[toZip] ?? null;
+        },
+    ),
+}));
 vi.mock("@/util/comedian/comedianUtil", () => ({
     filterAndMapLineupItems: vi.fn((items: any[]) =>
         items.map((item) => ({
             id: item.comedian.id,
             uuid: item.comedian.uuid,
             name: item.comedian.name,
-            imageUrl: `https://cdn.example.com/${item.comedian.name}.png`,
+            imageUrl: item.comedian.hasImage
+                ? `https://cdn.example.com/${item.comedian.name}.png`
+                : "",
             show_count: item.comedian._count?.lineupItems,
             isFavorite: false,
             isAlias: false,
@@ -59,16 +73,21 @@ function makeLineupItem(
         id: number;
         uuid: string;
         name: string;
+        hasImage: boolean;
+        showCount: number;
     }> = {},
 ) {
+    const { showCount, ...comedianOverrides } = overrides;
     return {
         comedian: {
             id: 1,
             uuid: "uuid-1",
             name: "Test Comedian",
+            hasImage: true,
+            _count: { lineupItems: showCount ?? 1 },
             parentComedian: null,
             taggedComedians: [],
-            ...overrides,
+            ...comedianOverrides,
         },
     };
 }
@@ -79,7 +98,14 @@ function makeShowRow(
         name: string;
         date: Date;
         tickets: ReturnType<typeof makeTicket>[];
-        club: { name: string; address: string; timezone?: string | null };
+        popularity: number;
+        club: {
+            name: string;
+            address: string;
+            zipCode?: string;
+            hasImage?: boolean;
+            timezone?: string | null;
+        };
         lineupItems: ReturnType<typeof makeLineupItem>[];
     }> = {},
 ) {
@@ -87,10 +113,13 @@ function makeShowRow(
         id: 1,
         name: "Test Show",
         date: new Date("2026-06-01"),
+        popularity: 0,
         tickets: [makeTicket()],
         club: {
             name: "Laugh Factory",
             address: "8001 Sunset Blvd",
+            zipCode: "90046",
+            hasImage: true,
             timezone: "America/Los_Angeles",
         },
         lineupItems: [makeLineupItem()],
@@ -214,7 +243,7 @@ describe("findShowsForHome", () => {
     });
 
     describe("DTO field mapping", () => {
-        it("maps clubName, address, imageUrl, and id from the DB row", async () => {
+        it("maps clubName, address, and id from the DB row", async () => {
             const row = makeShowRow({
                 id: 42,
                 name: "Friday Night Comedy",
@@ -230,9 +259,111 @@ describe("findShowsForHome", () => {
             expect(dto.name).toBe("Friday Night Comedy");
             expect(dto.clubName).toBe("Comedy Cellar");
             expect(dto.address).toBe("117 Macdougal St");
-            expect(dto.imageUrl).toBe(
+        });
+
+        it("uses the most popular lineup comedian image when one is available", async () => {
+            const row = makeShowRow({
+                lineupItems: [
+                    makeLineupItem({
+                        id: 1,
+                        uuid: "opener",
+                        name: "Opener Comic",
+                        showCount: 4,
+                    }),
+                    makeLineupItem({
+                        id: 2,
+                        uuid: "headliner",
+                        name: "Headliner Comic",
+                        showCount: 80,
+                    }),
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as any);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].imageUrl).toBe(
+                "https://cdn.example.com/Headliner Comic.png",
+            );
+        });
+
+        it("falls back to the club image when the lineup has no comedian image", async () => {
+            const row = makeShowRow({
+                club: { name: "Comedy Cellar", address: "117 Macdougal St" },
+                lineupItems: [
+                    makeLineupItem({
+                        id: 1,
+                        uuid: "comic-without-image",
+                        name: "Comic Without Image",
+                        hasImage: false,
+                    }),
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as any);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].imageUrl).toBe(
                 "https://cdn.example.com/Comedy Cellar.jpg",
             );
+        });
+
+        it("sorts ZIP-scoped home shows by proximity and lineup popularity", async () => {
+            const farPopular = makeShowRow({
+                id: 1,
+                club: {
+                    name: "Far Club",
+                    address: "123 Far St",
+                    zipCode: "10001",
+                },
+                lineupItems: [
+                    makeLineupItem({
+                        name: "Far Headliner",
+                        showCount: 500,
+                    }),
+                ],
+            });
+            const nearLessPopular = makeShowRow({
+                id: 2,
+                club: {
+                    name: "Near Club",
+                    address: "123 Near St",
+                    zipCode: "10003",
+                },
+                lineupItems: [
+                    makeLineupItem({
+                        name: "Near Opener",
+                        showCount: 5,
+                    }),
+                ],
+            });
+            const nearMorePopular = makeShowRow({
+                id: 3,
+                club: {
+                    name: "Nearer Club",
+                    address: "456 Near St",
+                    zipCode: "10011",
+                },
+                lineupItems: [
+                    makeLineupItem({
+                        name: "Near Headliner",
+                        showCount: 50,
+                    }),
+                ],
+            });
+            mockFindMany.mockResolvedValue([
+                farPopular,
+                nearLessPopular,
+                nearMorePopular,
+            ] as any);
+
+            const result = await findShowsForHome({}, { date: "asc" }, 2, {
+                zipCode: "10801",
+                sortByHomeRelevance: true,
+            });
+
+            expect(result.map((show) => show.id)).toEqual([3, 2]);
+            expect(result.map((show) => show.distanceMiles)).toEqual([4, 4]);
         });
 
         it("passes tickets through mapTickets", async () => {

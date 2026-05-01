@@ -1,9 +1,18 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
+import { computeDistanceMiles } from "@/util/distanceUtil";
+
+interface HomeShowQueryOptions {
+    zipCode?: string;
+    sortByHomeRelevance?: boolean;
+}
+
+const HOME_RELEVANCE_CANDIDATE_TAKE = 50;
 
 const HOME_SHOW_SELECT = {
     id: true,
@@ -22,6 +31,7 @@ const HOME_SHOW_SELECT = {
         select: {
             name: true,
             address: true,
+            zipCode: true,
             hasImage: true,
             timezone: true,
         },
@@ -41,12 +51,22 @@ const HOME_SHOW_SELECT = {
                     uuid: true,
                     name: true,
                     hasImage: true,
+                    _count: {
+                        select: {
+                            lineupItems: true,
+                        },
+                    },
                     parentComedian: {
                         select: {
                             id: true,
                             uuid: true,
                             name: true,
                             hasImage: true,
+                            _count: {
+                                select: {
+                                    lineupItems: true,
+                                },
+                            },
                             taggedComedians: { select: { tag: true } },
                         },
                     },
@@ -67,27 +87,93 @@ export async function findShowsForHome(
         | Prisma.ShowOrderByWithRelationInput
         | Prisma.ShowOrderByWithRelationInput[],
     take = 8,
+    options: HomeShowQueryOptions = {},
 ): Promise<ShowDTO[]> {
+    const queryTake = options.sortByHomeRelevance
+        ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
+        : take;
     const shows = await db.show.findMany({
         where,
         select: HOME_SHOW_SELECT,
         orderBy,
-        take,
+        take: queryTake,
     });
 
-    return shows.map((show) => ({
-        id: show.id,
-        name: show.name,
-        date: show.date,
-        clubName: show.club.name,
-        address: show.club.address,
-        imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
-        soldOut:
-            show.tickets.length > 0 &&
-            show.tickets.every((t) => t.soldOut === true),
-        lineup: filterAndMapLineupItems(show.lineupItems),
-        tickets: mapTickets(show.tickets),
-        room: show.room ?? undefined,
-        timezone: show.club.timezone,
-    }));
+    const mapped = shows.map((show) => {
+        const lineup = filterAndMapLineupItems(show.lineupItems);
+        const distanceMiles = options.zipCode
+            ? computeDistanceMiles(options.zipCode, show.club.zipCode)
+            : undefined;
+
+        return {
+            dto: {
+                id: show.id,
+                name: show.name,
+                date: show.date,
+                clubName: show.club.name,
+                address: show.club.address,
+                imageUrl:
+                    getBestLineupImageUrl(lineup) ??
+                    buildClubImageUrl(show.club.name, show.club.hasImage),
+                soldOut:
+                    show.tickets.length > 0 &&
+                    show.tickets.every((t) => t.soldOut === true),
+                lineup,
+                tickets: mapTickets(show.tickets),
+                room: show.room ?? undefined,
+                distanceMiles,
+                timezone: show.club.timezone,
+            },
+            lineupPopularity: getLineupPopularity(lineup),
+        };
+    });
+
+    if (options.sortByHomeRelevance) {
+        mapped.sort((a, b) => compareHomeShowRelevance(a, b));
+    }
+
+    return mapped.slice(0, take).map((show) => show.dto);
+}
+
+function getBestLineupImageUrl(lineup: ComedianLineupDTO[]): string | null {
+    let best: ComedianLineupDTO | null = null;
+    for (const comedian of lineup) {
+        if (!comedian.imageUrl) continue;
+        if (
+            !best ||
+            getLineupItemPopularity(comedian) > getLineupItemPopularity(best)
+        ) {
+            best = comedian;
+        }
+    }
+    return best?.imageUrl ?? null;
+}
+
+function getLineupPopularity(lineup: ComedianLineupDTO[]): number {
+    return lineup.reduce(
+        (score, comedian) => score + getLineupItemPopularity(comedian),
+        0,
+    );
+}
+
+function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
+    return comedian.show_count ?? 0;
+}
+
+function compareHomeShowRelevance(
+    a: { dto: ShowDTO; lineupPopularity: number },
+    b: { dto: ShowDTO; lineupPopularity: number },
+): number {
+    const aDistance = a.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
+    const bDistance = b.dto.distanceMiles ?? Number.POSITIVE_INFINITY;
+    if (aDistance !== bDistance) return aDistance - bDistance;
+
+    if (a.lineupPopularity !== b.lineupPopularity) {
+        return b.lineupPopularity - a.lineupPopularity;
+    }
+
+    const dateDelta = a.dto.date.getTime() - b.dto.date.getTime();
+    if (dateDelta !== 0) return dateDelta;
+
+    return a.dto.id - b.dto.id;
 }

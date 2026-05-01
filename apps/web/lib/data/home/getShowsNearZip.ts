@@ -30,5 +30,7 @@ export async function getShowsNearZip(
             club: { visible: true, zipCode: { in: nearbyZips } },
         },
         { date: "asc" },
+        8,
+        { zipCode, sortByHomeRelevance: true },
     );
 }

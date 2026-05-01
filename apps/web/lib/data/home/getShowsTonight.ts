@@ -40,5 +40,9 @@ export async function getShowsTonight(
             },
         },
         { date: "asc" },
+        8,
+        nearbyZips
+            ? { zipCode, sortByHomeRelevance: true }
+            : { sortByHomeRelevance: false },
     );
 }

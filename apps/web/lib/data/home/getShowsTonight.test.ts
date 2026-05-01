@@ -66,4 +66,15 @@ describe("getShowsTonight", () => {
             zipCode: { in: ["10801", "10802"] },
         });
     });
+
+    it("asks the shared home query to rank ZIP-scoped shows by home relevance", async () => {
+        await getShowsTonight("UTC", "10801", 25);
+
+        expect(mockFindShowsForHome).toHaveBeenCalledWith(
+            expect.any(Object),
+            { date: "asc" },
+            8,
+            { zipCode: "10801", sortByHomeRelevance: true },
+        );
+    });
 });
