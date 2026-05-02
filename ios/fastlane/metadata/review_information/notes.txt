@@ -1,0 +1,11 @@
+LaughTrack is a comedy show discovery app. Sign-in is optional — all browsing (comedians, shows, clubs, location-based discovery) works without an account. Sign-in (Apple or Google) is only required to favorite comedians and to add shows to the device calendar.
+
+To test full functionality:
+
+1. Open the app — the Near Me tab requests location permission for nearby show discovery. If denied, browsing still works via manual search.
+2. Tap the Search tab to browse comedians, shows, and clubs by name. Use the filter controls to narrow by date or distance.
+3. Tap any comedian or show to view a detail page. Show detail pages include a ticket link that opens the venue's official ticketing page in Safari.
+4. Sign in (Apple or Google, top-right of the Profile tab) to favorite a comedian and save them to the Favorites tab.
+5. On a show detail page, the Add to Calendar action requests calendar permission and adds an event with the show date, time, venue address, and ticket URL.
+
+Comedy show data is sourced from comedy club websites and updated nightly. The app does not handle ticket purchases — all ticketing is delegated to the venue's website.
