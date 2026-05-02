@@ -83,6 +83,7 @@ targets:
     info:
       path: Sources/LaughTrackApp/Info.plist
       properties:
+        ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.laughtrack.app.auth
