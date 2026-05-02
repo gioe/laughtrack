@@ -1,7 +1,7 @@
-LaughTrack helps you find live stand-up comedy near you. Browse upcoming shows at clubs in your area, discover new comedians, and track every set your favorites are on.
+Laughtrack helps you find live stand-up comedy near you. Browse upcoming shows at clubs in your area, discover new comedians, and track every set your favorites are on.
 
 NEAR YOU
-Open the app and see what's happening tonight. LaughTrack uses your location to surface comedy clubs and shows nearby — so the next great set is always one tap away.
+Open the app and see what's happening tonight. Laughtrack uses your location to surface comedy clubs and shows nearby — so the next great set is always one tap away.
 
 DISCOVER COMEDIANS
 Find comedians by name. See their full lineup of upcoming shows, where they're performing, and tap through to ticket links. Browse rising acts you haven't heard yet, or check whether your favorite touring comic is coming through town.
@@ -13,7 +13,7 @@ EXPLORE CLUBS
 Every comedy club in our directory has its full upcoming schedule. Find new venues nearby or plan a night out at your favorite spot.
 
 FAVORITES & TRACKING
-Sign in with Apple or Google to favorite comedians. LaughTrack tracks every appearance they have — when they announce a new date, you'll see it on your home screen.
+Sign in with Apple or Google to favorite comedians. Laughtrack tracks every appearance they have — when they announce a new date, you'll see it on your home screen.
 
 ADD TO CALENDAR
 Found a show you can't miss? Add it straight to your calendar with one tap. Show date, time, club address, and ticket link travel with the event.
@@ -21,4 +21,4 @@ Found a show you can't miss? Add it straight to your calendar with one tap. Show
 NO ACCOUNT NEEDED TO BROWSE
 Discover shows, comedians, and clubs without signing in. Sign in only when you want to favorite a comic or save a show.
 
-LaughTrack covers comedy clubs across the United States and is updated nightly. Find your next favorite comedian, your next great laugh, or your new neighborhood club.
+Laughtrack covers comedy clubs across the United States and is updated nightly. Find your next favorite comedian, your next great laugh, or your new neighborhood club.

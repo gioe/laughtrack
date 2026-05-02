@@ -1,4 +1,4 @@
-LaughTrack is a comedy show discovery app. Sign-in is optional — all browsing (comedians, shows, clubs, location-based discovery) works without an account. Sign-in (Apple or Google) is only required to favorite comedians and to add shows to the device calendar.
+Laughtrack is a comedy show discovery app. Sign-in is optional — all browsing (comedians, shows, clubs, location-based discovery) works without an account. Sign-in (Apple or Google) is only required to favorite comedians and to add shows to the device calendar.
 
 To test full functionality:
 
