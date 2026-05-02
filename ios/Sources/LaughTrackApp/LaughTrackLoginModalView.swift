@@ -47,19 +47,18 @@ struct LaughTrackLoginModalView: View {
                                     .frame(width: 24)
 
                                 Text(provider.title)
-                                    .font(laughTrack.typography.action)
-
-                                Spacer(minLength: 0)
+                                    .font(.system(size: 17, weight: .medium))
                             }
                             .foregroundStyle(provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
                             .padding(.horizontal, theme.spacing.lg)
                             .padding(.vertical, theme.spacing.md)
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, minHeight: 50)
                             .background(buttonBackground(for: provider))
                             .overlay(buttonBorder(for: provider))
                             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(provider.title)
                     }
                 }
 
