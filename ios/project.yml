@@ -116,7 +116,7 @@ targets:
         product: OpenAPIURLSession
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.app
+        PRODUCT_BUNDLE_IDENTIFIER: app.laughtrack.ios
         # PRODUCT_MODULE_NAME is intentionally LaughTrackApp (not the target name
         # LaughTrack) so `@testable import LaughTrackApp` works in both SPM
         # (where the target is named LaughTrackApp) and Xcode. Aligning the

@@ -1196,7 +1196,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.app;
+				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1297,7 +1297,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.app;
+				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;

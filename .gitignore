@@ -54,6 +54,15 @@ ios/build/
 ios/**/xcuserdata/
 tusk/backups/
 
+# Fastlane (generated artifacts + bundler vendor dir)
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/README.md
+ios/fastlane/test_output/
+ios/fastlane/screenshots/
+ios/vendor/bundle/
+ios/.bundle/
+
 # superpowers runtime artifacts (pid files, brainstorm HTML, server state)
 .superpowers/
 
