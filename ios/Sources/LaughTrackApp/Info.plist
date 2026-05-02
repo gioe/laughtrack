@@ -31,12 +31,12 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>LaughTrack adds comedy shows you choose to your calendar.</string>
 	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 	<string>LaughTrack adds comedy shows you choose to your calendar.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
