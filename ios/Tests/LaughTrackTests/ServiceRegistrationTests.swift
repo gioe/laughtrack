@@ -64,7 +64,7 @@ struct ServiceRegistrationTests {
         #expect(resolved != nil)
     }
 
-    @Test("configure registers all six expected services")
+    @Test("configure registers expected app services")
     @MainActor
     func configureRegistersAllServices() {
         let container = ServiceContainer()
@@ -76,6 +76,9 @@ struct ServiceRegistrationTests {
         #expect(container.resolveOptional(ImageCache.self) != nil)
         #expect(container.resolveOptional(AppStateStorageProtocol.self) != nil)
         #expect(container.resolveOptional(DataCache<LaughTrackCacheKey>.self) != nil)
+        #expect(container.resolveOptional(NotificationPreferenceStore.self) != nil)
+        #expect(container.resolveOptional((any NotificationPreferenceSyncing).self) != nil)
+        #expect(container.resolveOptional((any ProfileLocationPreferenceSyncing).self) != nil)
     }
 
     @Test("configure plus configureZipLocationResolver registers the full nearby-location stack")
@@ -100,12 +103,15 @@ struct ServiceRegistrationTests {
 
         let storeA = container.resolve(NearbyPreferenceStore.self)
         let storeB = container.resolve(NearbyPreferenceStore.self)
+        let notificationStoreA = container.resolve(NotificationPreferenceStore.self)
+        let notificationStoreB = container.resolve(NotificationPreferenceStore.self)
         let controllerA = container.resolve(NearbyLocationController.self)
         let controllerB = container.resolve(NearbyLocationController.self)
         let resolverA = container.resolve((any NearbyLocationResolving).self)
         let resolverB = container.resolve((any NearbyLocationResolving).self)
 
         #expect(storeA === storeB)
+        #expect(notificationStoreA === notificationStoreB)
         #expect(controllerA === controllerB)
         #expect(resolverA === resolverB)
     }

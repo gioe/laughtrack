@@ -6,22 +6,36 @@ struct ShowRow: View {
     let show: Components.Schemas.Show
 
     var body: some View {
-        LaughTrackResultRow(
-            title: ShowTitlePresentation.title(for: show),
+        LaughTrackEntityRow(
+            title: Self.listTitle(for: show),
             subtitle: show.clubName ?? "Unknown club",
-            metadata: [
-                ShowFormatting.listDate(show.date, timezoneID: show.timezone),
-                ShowFormatting.distance(show.distanceMiles),
-                Self.priceLabel(for: show),
-                show.soldOut == true ? "Sold out" : nil,
-            ].compactMap { $0 },
+            metadata: Self.metadata(for: show),
             systemImage: "ticket.fill",
-            imageURL: Self.artworkImageURL(for: show)
+            imageURL: Self.artworkImageURL(for: show),
+            showsDisclosureIndicator: true
         )
     }
 
     static func title(for show: Components.Schemas.Show) -> String {
         ShowTitlePresentation.title(for: show)
+    }
+
+    static func listTitle(for show: Components.Schemas.Show) -> String {
+        let title = ShowTitlePresentation.title(for: show)
+        let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !clubName.isEmpty, title == "Comedy Show at \(clubName)" else {
+            return title
+        }
+
+        return "Comedy show"
+    }
+
+    static func metadata(for show: Components.Schemas.Show) -> [String] {
+        [
+            ShowFormatting.listDate(show.date, timezoneID: show.timezone),
+            Self.priceLabel(for: show),
+            show.soldOut == true ? "Sold out" : nil,
+        ].compactMap { $0 }
     }
 
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {

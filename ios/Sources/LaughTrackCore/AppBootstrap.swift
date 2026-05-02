@@ -139,7 +139,11 @@ public struct AppBootstrap {
             return AuthenticatedUser(
                 displayName: body.data.displayName,
                 email: body.data.email,
-                avatarURL: avatarURL
+                avatarURL: avatarURL,
+                emailShowNotifications: body.data.emailShowNotifications,
+                pushShowNotifications: body.data.pushShowNotifications,
+                zipCode: body.data.zipCode,
+                nearbyDistanceMiles: body.data.nearbyDistanceMiles
             )
         }
 

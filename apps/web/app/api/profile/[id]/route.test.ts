@@ -91,7 +91,7 @@ describe("PUT /api/profile/[id]", () => {
         expect(body.error).toMatch(/invalid json/i);
     });
 
-    it("returns 400 with 'At least one field' when body has neither zipCode nor emailOptin", async () => {
+    it("returns 400 with 'At least one field' when body has no profile fields", async () => {
         mockResolveAuth.mockResolvedValue({
             profileId: "profile-1",
             userId: USER_ID,
@@ -136,6 +136,28 @@ describe("PUT /api/profile/[id]", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expect(body.response).toEqual(updatedProfile);
+    });
+
+    it("accepts push notification preference updates", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: USER_ID,
+        });
+        const updatedProfile = {
+            id: "profile-1",
+            pushOptin: true,
+        };
+        mockUpdateProfile.mockResolvedValue(updatedProfile as any);
+
+        const [req, ctx] = makeRequest({ pushOptin: true });
+        const res = await PUT(req, ctx);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockUpdateProfile).toHaveBeenCalledWith(USER_ID, {
+            pushOptin: true,
+        });
         expect(body.response).toEqual(updatedProfile);
     });
 });

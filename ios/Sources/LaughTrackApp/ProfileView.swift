@@ -10,21 +10,31 @@ struct ProfileView: View {
     let nearbyLocationController: NearbyLocationController
 
     @EnvironmentObject private var authManager: AuthManager
-    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @StateObject private var settingsModel: SettingsNearbyPreferenceModel
+    @StateObject private var notificationModel: SettingsNotificationPreferenceModel
 
     init(
         apiClient: Client,
         signedOutMessage: String?,
-        nearbyLocationController: NearbyLocationController
+        nearbyLocationController: NearbyLocationController,
+        notificationPreferenceStore: NotificationPreferenceStore,
+        notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)? = nil,
+        profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
         self.nearbyLocationController = nearbyLocationController
         _settingsModel = StateObject(
             wrappedValue: SettingsNearbyPreferenceModel(
-                nearbyLocationController: nearbyLocationController
+                nearbyLocationController: nearbyLocationController,
+                syncClient: profileLocationPreferenceSyncClient
+            )
+        )
+        _notificationModel = StateObject(
+            wrappedValue: SettingsNotificationPreferenceModel(
+                store: notificationPreferenceStore,
+                syncClient: notificationPreferenceSyncClient
             )
         )
     }
@@ -33,27 +43,181 @@ struct ProfileView: View {
         let tokens = theme.laughTrackTokens
 
         ScrollView {
-            VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+            VStack(alignment: .leading, spacing: tokens.spacing.sectionGap) {
+                profileHero
+
                 if let session = authManager.currentSession {
                     accountCard(session: session)
                 } else {
                     if let signedOutMessage {
                         LaughTrackAuthMessageCard(message: signedOutMessage)
                     }
-                    signInCTASection
                 }
-                ProfileSettingsSection(
-                    signedOutMessage: signedOutMessage,
-                    model: settingsModel
-                )
+                if let authenticatedUser = authManager.currentUser {
+                    ProfileSettingsSection(
+                        authenticatedUser: authenticatedUser,
+                        nearbyModel: settingsModel,
+                        notificationModel: notificationModel
+                    )
+                }
             }
             .padding(.horizontal, theme.spacing.lg)
-            .padding(.vertical, tokens.browseDensity.heroPadding)
+            .padding(.top, tokens.browseDensity.heroPadding)
+            .padding(.bottom, tokens.spacing.sectionGap)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileTabScreen)
-        .background(tokens.colors.canvas.ignoresSafeArea())
+        .background {
+            ZStack(alignment: .top) {
+                tokens.colors.canvas.ignoresSafeArea()
+                tokens.gradients.heroWash
+                    .frame(height: 220)
+                    .opacity(0.18)
+                    .ignoresSafeArea(edges: .top)
+            }
+        }
         .navigationTitle("Profile")
+        .profileNavigationTitleDisplayMode()
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
+        .onAppear {
+            refreshProfileLocation(from: authManager.currentUser)
+            refreshNotificationPreferences(from: authManager.currentUser)
+        }
+        .onChange(of: authManager.currentUser) { user in
+            refreshProfileLocation(from: user)
+            refreshNotificationPreferences(from: user)
+        }
+    }
+
+    private var profileHero: some View {
+        let laughTrack = theme.laughTrackTokens
+        let isSignedIn = authManager.currentSession != nil
+
+        return LaughTrackCard(tone: .accent, density: .compact) {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
+                HStack(alignment: .center, spacing: theme.spacing.md) {
+                    LaughTrackAvatar(
+                        style: .url(authManager.currentUser?.avatarURL, fallback: isSignedIn ? "person.crop.circle.fill" : "person.crop.circle.badge.plus"),
+                        size: 44,
+                        highlighted: true
+                    )
+
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text(heroTitle)
+                            .font(laughTrack.typography.sectionTitle)
+                            .foregroundStyle(laughTrack.colors.textInverse)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.86)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text(heroSubtitle)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.86))
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                if isSignedIn {
+                    HStack(spacing: theme.spacing.sm) {
+                        LaughTrackBadge("Sync on", systemImage: "checkmark.seal.fill", tone: .highlight)
+                        LaughTrackBadge(nearbySummary, systemImage: "location.fill", tone: .accent)
+                    }
+                } else {
+                    VStack(spacing: theme.spacing.sm) {
+                        ForEach(AuthProvider.allCases, id: \.self) { provider in
+                            heroAuthButton(for: provider)
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.profileHero)
+    }
+
+    private func heroAuthButton(for provider: AuthProvider) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Button {
+            Task {
+                await authManager.signIn(with: provider)
+            }
+        } label: {
+            HStack(spacing: theme.spacing.sm) {
+                Image(systemName: provider.symbolName)
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .frame(width: 24)
+
+                Text(provider.title)
+                    .font(.system(size: 17, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.86)
+            }
+            .foregroundStyle(provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .padding(.horizontal, theme.spacing.md)
+            .background(heroAuthButtonBackground(for: provider))
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
+                    .stroke(provider == .google ? laughTrack.colors.borderStrong.opacity(0.5) : .clear, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(provider.title)
+    }
+
+    @ViewBuilder
+    private func heroAuthButtonBackground(for provider: AuthProvider) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        switch provider {
+        case .apple:
+            laughTrack.colors.textPrimary
+        case .google:
+            laughTrack.colors.surfaceElevated
+        }
+    }
+
+    private var heroTitle: String {
+        if let user = authManager.currentUser, let displayName = user.displayName, !displayName.isEmpty {
+            return displayName
+        }
+
+        if let providerName = authManager.currentSession?.provider?.displayName {
+            return "\(providerName) account"
+        }
+
+        return "Guest mode"
+    }
+
+    private var heroSubtitle: String {
+        if let user = authManager.currentUser, let displayName = user.displayName, !displayName.isEmpty {
+            return "Favorites sync is on for \(displayName)."
+        }
+
+        if let providerName = authManager.currentSession?.provider?.displayName {
+            return "Favorites sync through \(providerName) is on."
+        }
+
+        return "Sign in to sync favorites and recover your account."
+    }
+
+    private var nearbySummary: String {
+        guard let preference = settingsModel.nearbyPreference else {
+            return "No nearby default"
+        }
+
+        return "\(preference.zipCode) · \(preference.distanceMiles) mi"
+    }
+
+    private func refreshNotificationPreferences(from user: AuthenticatedUser?) {
+        guard let user else { return }
+        notificationModel.replaceServerBackedPreferences(from: user)
+    }
+
+    private func refreshProfileLocation(from user: AuthenticatedUser?) {
+        guard let user else { return }
+        settingsModel.replaceServerBackedPreference(from: user)
     }
 
     @ViewBuilder
@@ -69,11 +233,19 @@ struct ProfileView: View {
             return providerName
         }()
 
-        LaughTrackCard {
-            VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+        LaughTrackCard(tone: .standard) {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Account",
+                    title: "Signed-in profile",
+                    subtitle: "Your app session and provider details.",
+                    density: .compact
+                )
+
                 HStack(alignment: .top, spacing: laughTrack.spacing.itemGap) {
                     LaughTrackAvatar(
-                        style: .url(user?.avatarURL, fallback: providerSymbol)
+                        style: .url(user?.avatarURL, fallback: providerSymbol),
+                        highlighted: true
                     )
 
                     VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
@@ -110,30 +282,23 @@ struct ProfileView: View {
         }
     }
 
-    private var signInCTASection: some View {
-        let laughTrack = theme.laughTrackTokens
+}
 
-        return VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-            LaughTrackSectionHeader(
-                eyebrow: "Sign in",
-                title: "Save favorites across sessions",
-                subtitle: "Sign in when you want synced favorite comedians and recovery messaging tied to a real account."
-            )
-
-            LaughTrackButton(
-                "Sign in",
-                systemImage: "person.crop.circle.badge.plus",
-                tone: .primary
-            ) {
-                loginModalPresenter.present()
-            }
-        }
+private extension View {
+    @ViewBuilder
+    func profileNavigationTitleDisplayMode() -> some View {
+        #if os(iOS)
+        navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
     }
 }
 
 private struct ProfileSettingsSection: View {
-    let signedOutMessage: String?
-    @ObservedObject var model: SettingsNearbyPreferenceModel
+    let authenticatedUser: AuthenticatedUser
+    @ObservedObject var nearbyModel: SettingsNearbyPreferenceModel
+    @ObservedObject var notificationModel: SettingsNotificationPreferenceModel
 
     @Environment(\.appTheme) private var theme
 
@@ -142,18 +307,18 @@ private struct ProfileSettingsSection: View {
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
             LaughTrackSectionHeader(
-                eyebrow: "Settings",
-                title: "Browse defaults",
-                subtitle: "Saved nearby ZIP, distance, and notification preferences."
+                eyebrow: "Profile",
+                title: "Profile settings",
+                subtitle: "Location and alert preferences saved to your account."
             )
 
-            if let signedOutMessage {
-                LaughTrackAuthMessageCard(message: signedOutMessage)
-            }
-
-            ProfileNearbyPreferencesSection(model: model)
-            ProfileNotificationsSection()
+            ProfileNearbyPreferencesSection(model: nearbyModel)
+            ProfileNotificationsSection(
+                emailAddress: authenticatedUser.email,
+                model: notificationModel
+            )
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.profileSettingsPanel)
     }
 }
 
@@ -167,55 +332,13 @@ private struct ProfileNearbyPreferencesSection: View {
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
             LaughTrackSectionHeader(
-                eyebrow: "Browse",
-                title: "Nearby defaults",
-                subtitle: "Near Me and nearby results read from the same saved ZIP code and radius."
+                eyebrow: "Location",
+                title: "Profile location",
+                subtitle: "Set the location Near Me reads from your profile."
             )
-
-            if let preference = model.nearbyPreference {
-                savedPreferenceCard(preference)
-            } else {
-                LaughTrackStateView(
-                    tone: .empty,
-                    title: "No nearby preference saved",
-                    message: "Save a ZIP code and distance here to reuse the same nearby defaults on home and nearby search."
-                )
-                .accessibilityIdentifier(LaughTrackViewTestID.settingsNearbyEmptyState)
-            }
 
             editorCard
         }
-    }
-
-    private func savedPreferenceCard(_ preference: NearbyPreference) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return LaughTrackCard {
-            VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                Text("Nearby preference saved")
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-
-                Text(
-                    preference.source == .manual
-                        ? "LaughTrack is using your saved manual nearby preference."
-                        : "LaughTrack last saved a nearby preference from your current location."
-                )
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-
-                HStack(spacing: theme.spacing.sm) {
-                    LaughTrackBadge("ZIP \(preference.zipCode)", systemImage: "mappin.and.ellipse", tone: .neutral)
-                    LaughTrackBadge("\(preference.distanceMiles) mi", systemImage: "location.fill", tone: .highlight)
-                    LaughTrackBadge(
-                        preference.source == .manual ? "Saved manually" : "Saved from location",
-                        systemImage: preference.source == .manual ? "slider.horizontal.3" : "location.north.line",
-                        tone: .accent
-                    )
-                }
-            }
-        }
-        .accessibilityIdentifier(LaughTrackViewTestID.settingsNearbySavedState)
     }
 
     private var editorCard: some View {
@@ -223,22 +346,75 @@ private struct ProfileNearbyPreferencesSection: View {
 
         return LaughTrackCard(tone: .muted) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                Text("Edit nearby preference")
+                Text("Near Me profile location")
                     .font(laughTrack.typography.cardTitle)
                     .foregroundStyle(laughTrack.colors.textPrimary)
 
-                Text("The saved ZIP code and distance below are persisted on this device and used by the nearby sections.")
-                    .font(laughTrack.typography.body)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                Text(locationSummary)
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.textSecondary)
 
-                ProfileSettingsTextField(
-                    title: "Saved ZIP code",
-                    text: $model.zipCodeDraft
-                )
-                .accessibilityLabel("Saved ZIP code")
+                LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                    Button {
+                        model.saveNearbyPreference()
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Apply ZIP")
+                }
+                .modifier(SearchFieldInputBehavior())
+                #if os(iOS)
+                .keyboardType(UIKeyboardType.numberPad)
+                #endif
+                .onSubmit {
+                    model.saveNearbyPreference()
+                }
+                .accessibilityLabel("Profile location ZIP code")
                 .accessibilityIdentifier(LaughTrackViewTestID.settingsZipField)
 
-                distancePicker
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    Text("Distance")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .textCase(.uppercase)
+
+                    distancePicker
+                }
+
+                VStack(spacing: theme.spacing.sm) {
+                    LaughTrackButton(
+                        "Save profile location",
+                        systemImage: "square.and.arrow.down"
+                    ) {
+                        model.saveNearbyPreference()
+                    }
+                    .accessibilityIdentifier(LaughTrackViewTestID.settingsSaveButton)
+
+                    LaughTrackButton(
+                        model.isResolvingCurrentLocation ? "Finding ZIP..." : "Current location",
+                        systemImage: "location.fill",
+                        tone: .secondary
+                    ) {
+                        Task {
+                            _ = await model.useCurrentLocation()
+                        }
+                    }
+                    .disabled(model.isResolvingCurrentLocation)
+
+                    if model.nearbyPreference != nil {
+                        LaughTrackButton(
+                            "Clear profile location",
+                            systemImage: "location.slash",
+                            tone: .tertiary
+                        ) {
+                            model.clearNearbyPreference()
+                        }
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsClearButton)
+                    }
+                }
 
                 if let validationMessage = model.validationMessage {
                     Text(validationMessage)
@@ -246,68 +422,141 @@ private struct ProfileNearbyPreferencesSection: View {
                         .foregroundStyle(laughTrack.colors.danger)
                 }
 
-                VStack(spacing: theme.spacing.sm) {
-                    LaughTrackButton(
-                        "Save nearby preference",
-                        systemImage: "square.and.arrow.down"
-                    ) {
-                        model.saveNearbyPreference()
-                    }
-                    .accessibilityIdentifier(LaughTrackViewTestID.settingsSaveButton)
+                if let statusMessage = model.statusMessage {
+                    InlineStatusMessage(message: statusMessage)
 
-                    if model.nearbyPreference != nil {
-                        LaughTrackButton(
-                            "Clear nearby preference",
-                            systemImage: "trash",
-                            tone: .destructive
-                        ) {
-                            model.clearNearbyPreference()
+                    if statusMessage == NearbyLocationError.denied.recoveryMessage {
+                        LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                            openAppSettings()
                         }
-                        .accessibilityIdentifier(LaughTrackViewTestID.settingsClearButton)
                     }
                 }
             }
         }
+        .accessibilityIdentifier(model.nearbyPreference == nil
+            ? LaughTrackViewTestID.settingsNearbyEmptyState
+            : LaughTrackViewTestID.settingsNearbySavedState
+        )
     }
 
     private var distancePicker: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("Distance")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .textCase(.uppercase)
-
-            Picker("Distance", selection: $model.distanceMiles) {
-                ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
-                    Text("\(distance) mi").tag(distance)
-                }
+        Picker("Distance", selection: $model.distanceMiles) {
+            ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
+                Text("\(distance) mi").tag(distance)
             }
-            .pickerStyle(.segmented)
-            .accessibilityLabel("Distance")
-            .accessibilityIdentifier(LaughTrackViewTestID.settingsDistancePicker)
         }
+        .pickerStyle(.segmented)
+        .accessibilityLabel("Distance")
+        .accessibilityIdentifier(LaughTrackViewTestID.settingsDistancePicker)
+    }
+
+    private var locationSummary: String {
+        guard let preference = model.nearbyPreference else {
+            return "No profile location is saved. Enter a ZIP or use current location to power Near Me."
+        }
+
+        if let city = preference.city, let state = preference.state {
+            return "Near Me is using \(city), \(state) from your profile."
+        }
+
+        return "Near Me is using ZIP \(preference.zipCode) from your profile."
     }
 }
 
 private struct ProfileNotificationsSection: View {
+    let emailAddress: String
+    @ObservedObject var model: SettingsNotificationPreferenceModel
+
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
             LaughTrackSectionHeader(
                 eyebrow: "Notifications",
-                title: "No fake alert toggles",
-                subtitle: "Push settings only belong here once the iOS app can actually honor them."
+                title: "Favorite comedian alerts",
+                subtitle: "Choose how LaughTrack should notify you when saved comedians add shows."
             )
 
-            LaughTrackStateView(
-                tone: .empty,
-                title: "Push notifications are not available yet",
-                message: "This build does not deliver push alerts, so LaughTrack intentionally avoids notification switches that would imply working behavior."
-            )
+            LaughTrackCard(tone: .muted) {
+                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                    VStack(spacing: theme.spacing.sm) {
+                        notificationToggle(
+                            title: "Email",
+                            subtitle: "New-show alerts sent to \(emailAddress).",
+                            systemImage: "envelope.fill",
+                            isOn: Binding(
+                                get: { model.preferences.favoriteComedianEmailAlertsEnabled },
+                                set: { model.setFavoriteComedianEmailAlertsEnabled($0) }
+                            )
+                        )
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsFavoriteComedianEmailAlertsToggle)
+
+                        Divider()
+                            .overlay(laughTrack.colors.borderSubtle)
+
+                        notificationToggle(
+                            title: "Push notifications",
+                            subtitle: "New-show alerts delivered on this device.",
+                            systemImage: "bell.badge.fill",
+                            isOn: Binding(
+                                get: { model.preferences.favoriteComedianPushAlertsEnabled },
+                                set: { model.setFavoriteComedianPushAlertsEnabled($0) }
+                            )
+                        )
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsFavoriteComedianPushAlertsToggle)
+                    }
+
+                    Text("Alert preferences are saved to your profile.")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let syncMessage = model.syncMessage {
+                        Text(syncMessage)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.danger)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.settingsNotificationsSection)
+    }
+
+    private func notificationToggle(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        isOn: Binding<Bool>,
+        isEnabled: Bool = true
+    ) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Toggle(isOn: isOn) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(isEnabled ? laughTrack.colors.accent : laughTrack.colors.textSecondary.opacity(0.7))
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text(title)
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+
+                    Text(subtitle)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .toggleStyle(.switch)
+        .tint(laughTrack.colors.accent)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.68)
     }
 }
 

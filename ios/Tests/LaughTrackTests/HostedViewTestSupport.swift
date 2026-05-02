@@ -25,6 +25,13 @@ enum LaughTrackHostedViewTestSupport {
         return NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
     }
 
+    static func makeNotificationPreferenceStore(name: String) -> NotificationPreferenceStore {
+        let suiteName = "LaughTrackHostedViewTestSupport.notifications.\(name).\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return NotificationPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
+    }
+
     static func makeNearbyLocationResolver() -> any NearbyLocationResolving {
         StubNearbyLocationResolver()
     }
@@ -47,6 +54,7 @@ enum LaughTrackHostedViewTestSupport {
 
     static func makeServiceContainer(name: String) -> ServiceContainer {
         let store = makeNearbyPreferenceStore(name: name)
+        let notificationStore = makeNotificationPreferenceStore(name: name)
         let resolver = makeNearbyLocationResolver()
         let zipLocationResolver = makeZipLocationResolver()
         let controller = NearbyLocationController(
@@ -57,6 +65,7 @@ enum LaughTrackHostedViewTestSupport {
         let container = ServiceContainer()
         container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel, instance: DataCache<LaughTrackCacheKey>())
         container.register(NearbyPreferenceStore.self, scope: .appLevel, instance: store)
+        container.register(NotificationPreferenceStore.self, scope: .appLevel, instance: notificationStore)
         container.register((any NearbyLocationResolving).self, scope: .appLevel, instance: resolver)
         container.register((any ZipLocationResolving).self, scope: .appLevel, instance: zipLocationResolver)
         container.register(NearbyLocationController.self, scope: .appLevel, instance: controller)

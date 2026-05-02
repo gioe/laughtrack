@@ -4,29 +4,33 @@ import { Prisma } from "@prisma/client";
 
 const USER_PROFILE_SELECT = {
     emailShowNotifications: true,
+    pushShowNotifications: true,
     zipCode: true,
+    nearbyDistanceMiles: true,
     userid: true,
     id: true,
     user: {
         select: {
             email: true,
             name: true,
-            image: true
-        }
-    }
+            image: true,
+        },
+    },
 } as const;
 
-export async function getUserProfileData(userId?: string): Promise<UserProfileInterface> {
+export async function getUserProfileData(
+    userId?: string,
+): Promise<UserProfileInterface> {
     try {
         if (!userId) {
-            throw new Error('User ID is required');
+            throw new Error("User ID is required");
         }
 
         const userProfile = await db.userProfile.findUnique({
             where: {
-                userid: userId
+                userid: userId,
             },
-            select: USER_PROFILE_SELECT
+            select: USER_PROFILE_SELECT,
         });
 
         if (!userProfile) {
@@ -35,22 +39,26 @@ export async function getUserProfileData(userId?: string): Promise<UserProfileIn
 
         return {
             zipCode: userProfile.zipCode,
+            nearbyDistanceMiles: userProfile.nearbyDistanceMiles,
             emailOptin: userProfile.emailShowNotifications,
+            pushOptin: userProfile.pushShowNotifications,
             id: userProfile.id,
             userId: userProfile.userid,
             email: userProfile.user.email,
             name: userProfile.user.name ?? undefined,
-            image: userProfile.user.image ?? undefined
+            image: userProfile.user.image ?? undefined,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error('Database error in getUserProfileData:', error);
+            console.error("Database error in getUserProfileData:", error);
             throw new Error(`Database error: ${error.message}`);
         }
         if (error instanceof Error) {
-            console.error('Error in getUserProfileData:', error);
+            console.error("Error in getUserProfileData:", error);
             throw error;
         }
-        throw new Error('An unknown error occurred while fetching user profile');
+        throw new Error(
+            "An unknown error occurred while fetching user profile",
+        );
     }
 }

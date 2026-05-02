@@ -20,6 +20,25 @@ public enum ServiceRegistration {
                 appStateStorage: container.resolve(AppStateStorageProtocol.self)
             )
         }
+        container.register(NotificationPreferenceStore.self, scope: .appLevel) {
+            NotificationPreferenceStore(
+                appStateStorage: container.resolve(AppStateStorageProtocol.self)
+            )
+        }
+        container.register((any NotificationPreferenceSyncing).self, scope: .appLevel) {
+            ProfileNotificationPreferenceSyncClient(
+                tokenManager: AuthTokenManager(
+                    secureStorage: container.resolve(SecureStorageProtocol.self)
+                )
+            )
+        }
+        container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
+            ProfileLocationPreferenceSyncClient(
+                tokenManager: AuthTokenManager(
+                    secureStorage: container.resolve(SecureStorageProtocol.self)
+                )
+            )
+        }
         container.register((any NearbyLocationResolving).self, scope: .appLevel) {
             CurrentLocationZipResolver()
         }

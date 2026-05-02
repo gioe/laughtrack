@@ -142,15 +142,28 @@ struct ClubRow: View {
     let club: Components.Schemas.ClubSearchItem
 
     var body: some View {
-        LaughTrackResultRow(
-            title: club.name ?? "Unknown club",
-            subtitle: [club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable",
-            metadata: [
-                club.activeComedianCount.map { "\($0) active comedians" },
-                club.showCount.map { "\($0) shows" },
-            ].compactMap { $0 },
+        LaughTrackEntityRow(
+            title: Self.title(for: club),
+            subtitle: Self.subtitle(for: club),
+            metadata: Self.metadata(for: club),
             systemImage: "building.2.fill",
-            imageURL: club.imageUrl
+            imageURL: club.imageUrl,
+            showsDisclosureIndicator: true
         )
+    }
+
+    static func title(for club: Components.Schemas.ClubSearchItem) -> String {
+        club.name ?? "Unknown club"
+    }
+
+    static func subtitle(for club: Components.Schemas.ClubSearchItem) -> String {
+        [club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable"
+    }
+
+    static func metadata(for club: Components.Schemas.ClubSearchItem) -> [String] {
+        [
+            club.activeComedianCount.map { "\($0) active comedians" },
+            club.showCount.map { "\($0) shows" },
+        ].compactMap { $0 }
     }
 }

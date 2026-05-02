@@ -8,7 +8,7 @@ import LaughTrackCore
 @Suite("Profile view")
 @MainActor
 struct ProfileViewTests {
-    @Test("signed-out profile shows the sign-in CTA and a Settings link")
+    @Test("signed-out profile shows the sign-in CTA without profile settings")
     func signedOutProfileShowsSignInAndSettingsContent() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-profile-signed-out")
         let coordinator = NavigationCoordinator<AppRoute>()
@@ -17,7 +17,8 @@ struct ProfileViewTests {
             ProfileView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyLocationController: container.resolve(NearbyLocationController.self)
+                nearbyLocationController: container.resolve(NearbyLocationController.self),
+                notificationPreferenceStore: container.resolve(NotificationPreferenceStore.self)
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -27,22 +28,40 @@ struct ProfileViewTests {
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileHero)
+        try host.requireText("Guest mode")
+        try host.requireText("Sign in to sync favorites and recover your account.")
+        try host.requireLabel("Continue with Apple")
+        try host.requireLabel("Continue with Google")
+        #expect(host.findText("Sync favorites across devices") == nil)
         #expect(host.findText("Sign in to LaughTrack") == nil)
-        try host.requireText("Browse defaults")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsNearbyEmptyState)
+        #expect(host.findText("Profile settings") == nil)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.profileSettingsPanel) == nil)
+        #expect(host.findText("Favorite comedian alerts") == nil)
         #expect(host.findText("Open Settings") == nil)
     }
 
     @Test("signed-in profile shows account card with provider name and Sign out")
     func signedInProfileShowsAccountCardAndSignOut() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "shell-profile-signed-in")
+        authManager.loadUserRequest = {
+            AuthenticatedUser(
+                displayName: "Ada Lovelace",
+                email: "ada@example.com",
+                avatarURL: nil,
+                zipCode: "94108",
+                nearbyDistanceMiles: 25
+            )
+        }
+        await authManager.refreshCurrentUser()
         let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-profile-signed-in")
         let host = HostedView(
             ProfileView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
-                nearbyLocationController: container.resolve(NearbyLocationController.self)
+                nearbyLocationController: container.resolve(NearbyLocationController.self),
+                notificationPreferenceStore: container.resolve(NotificationPreferenceStore.self)
             )
             .environment(\.appTheme, LaughTrackTheme())
             .environment(\.serviceContainer, container)
@@ -52,9 +71,12 @@ struct ProfileViewTests {
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileHero)
+        try host.requireText("Ada Lovelace")
         try host.requireLabel("Sign out")
-        try host.requireText("Browse defaults")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsNearbyEmptyState)
+        try host.requireText("Profile settings")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileSettingsPanel)
+        try host.requireText("Favorite comedian alerts")
         #expect(host.findText("Open Settings") == nil)
     }
 }

@@ -158,15 +158,13 @@ struct ComedianRow: View {
     var body: some View {
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        HStack(spacing: theme.spacing.sm) {
+        HStack(spacing: theme.spacing.md) {
             Button(action: openDetail) {
-                LaughTrackResultRow(
+                LaughTrackEntityRow(
                     title: comedian.name,
-                    subtitle: SocialLink.links(from: comedian.socialData).first?.label,
-                    metadata: ["\(comedian.showCount) upcoming"],
+                    subtitle: Self.upcomingShowsText(for: comedian.showCount),
                     systemImage: "music.mic",
-                    imageURL: comedian.imageUrl,
-                    showsDisclosureIndicator: false
+                    imageURL: comedian.imageUrl
                 )
             }
             .buttonStyle(.plain)
@@ -191,5 +189,9 @@ struct ComedianRow: View {
                 }
             }
         }
+    }
+
+    static func upcomingShowsText(for showCount: Int) -> String {
+        "\(showCount) upcoming show\(showCount == 1 ? "" : "s")"
     }
 }

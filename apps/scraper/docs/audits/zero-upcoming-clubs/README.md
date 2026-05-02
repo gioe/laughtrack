@@ -2,7 +2,7 @@
 
 Snapshot date: 2026-05-01
 
-This folder tracks active, visible clubs that currently have zero upcoming shows in the database (`shows.date >= NOW()`). Each club gets its own reference note so investigation findings, source behavior, and the eventual decision stay easy to review.
+This folder tracks active, visible clubs that currently have zero upcoming shows in the database (`shows.date >= NOW()`). Each club gets its own reference note so investigation findings, source behavior, and the eventual decision stay easy to review. Handled entries are struck through.
 
 ## Query
 
@@ -21,21 +21,17 @@ ORDER BY c.name;
 
 | ID | Club | Location | Last show | Reference |
 |---:|---|---|---|---|
-| 190 | CIC Theater | Chicago, IL | never | [cic-theater.md](cic-theater.md) |
-| 329 | Carolina Comedy Club |  | never | pending |
+| ~~190~~ | ~~CIC Theater~~ | ~~Chicago, IL~~ | ~~never~~ | [handled: custom scraper](cic-theater.md) |
+| ~~329~~ | ~~Carolina Comedy Club~~ |  | ~~never~~ | handled: closed |
 | 520 | Comedy Club at The Park | Richmond, VA | never | pending |
 | 200 | Comedy on Collins | Miami Beach, FL | never | pending |
-| 21 | Comic Strip Live | New York, NY | 2026-04-25 | pending |
-| 583 | Cultural Center for the Arts with Krackpots Comedy Club | Canton, OH | never | pending |
-| 1527 | Dry Bar Comedy  [Deactivated] |  | never | pending |
-| 642 | Encore Comedy - Kentucky |  | never | pending |
-| 640 | Encore Comedy - Maryland |  | never | pending |
-| 639 | Encore Comedy - Virginia |  | 2026-04-26 | pending |
-| 574 | Go Bananas Comedy Club |  | never | pending |
-| 424 | Helen Borgers Theatre |  | 2026-04-19 | pending |
-| 1428 | Helium |  | never | pending |
-| 406 | Jokesters Comedy Club |  | never | pending |
-| 1136 | Lake Theater & Cafe | Lake Oswego, OR | never | pending |
+| ~~21~~ | ~~Comic Strip Live~~ | ~~New York, NY~~ | ~~2026-04-25~~ | handled: updated Eventbrite organizer source |
+| ~~583~~ | ~~Cultural Center for the Arts with Krackpots Comedy Club~~ | ~~Canton, OH~~ | ~~never~~ | handled: hidden |
+| ~~1527~~ | ~~Dry Bar Comedy  [Deactivated]~~ |  | ~~never~~ | handled: hidden |
+| ~~642~~ | ~~Encore Comedy - Kentucky~~ |  | ~~never~~ | handled: hidden; follow-up TASK-1891 |
+| ~~640~~ | ~~Encore Comedy - Maryland~~ |  | ~~never~~ | handled: hidden; follow-up TASK-1891 |
+| ~~639~~ | ~~Encore Comedy - Virginia~~ |  | ~~2026-04-26~~ | handled: hidden; follow-up TASK-1891 |
+| ~~574~~ | ~~Go Bananas Comedy Club~~ |  | ~~never~~ | handled: custom scraper |
 | 602 | Laugh And Enjoy | West Chicago, IL | never | pending |
 | 589 | Midtown Comedy Lounge | El Paso, TX | never | pending |
 | 196 | Nashville Improv | Nashville, TN | 2026-04-11 | pending |
@@ -56,4 +52,3 @@ ORDER BY c.name;
 | 636 | Wicked Funny Comedy Club Danvers |  | 2026-04-13 | pending |
 | 586 | Wiseguys - Westgate |  | never | pending |
 | 448 | Wiseguys Las Vegas |  | never | pending |
-

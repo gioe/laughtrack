@@ -24,7 +24,13 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     @Published var distance: ShowDistanceOption = .city {
         didSet {
             guard let activeNearbyPreference, activeNearbyPreference.distanceMiles != distance.rawValue else { return }
-            nearbyLocationController.updateDistanceMiles(distance.rawValue)
+            self.activeNearbyPreference = NearbyPreference(
+                zipCode: activeNearbyPreference.zipCode,
+                source: activeNearbyPreference.source,
+                distanceMiles: distance.rawValue,
+                city: activeNearbyPreference.city,
+                state: activeNearbyPreference.state
+            )
         }
     }
     @Published var sort: ShowSortOption = .earliest
@@ -62,7 +68,6 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
 
     private let nearbyLocationController: NearbyLocationController
     private let pinnedClubName: String?
-    private var nearbyPreferenceCancellable: AnyCancellable?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
 
@@ -81,10 +86,6 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         super.init()
         useDateRange = initialUseDateRange
         applyNearbyPreference(nearbyLocationController.preference)
-        nearbyPreferenceCancellable = nearbyLocationController.$preference
-            .sink { [weak self] preference in
-                self?.applyNearbyPreference(preference)
-            }
         nearbyStatusCancellable = nearbyLocationController.$statusMessage
             .sink { [weak self] message in
                 self?.nearbyStatusMessage = message
@@ -151,7 +152,7 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     func clearLocation() {
         zipCodeDraft = ""
         nearbyStatusMessage = nil
-        nearbyLocationController.clear()
+        activeNearbyPreference = nil
     }
 
     func applyManualZip() -> Bool {
@@ -160,12 +161,32 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
             return true
         }
 
-        return nearbyLocationController.applyManualZip(zipCodeDraft, distanceMiles: distance.rawValue)
+        guard let zipCode = NearbyPreferenceStore.validZip(from: zipCodeDraft) else {
+            nearbyStatusMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
+            return false
+        }
+
+        activeNearbyPreference = NearbyPreference(
+            zipCode: zipCode,
+            source: .manual,
+            distanceMiles: distance.rawValue
+        )
+        zipCodeDraft = zipCode
+        nearbyStatusMessage = nil
+        return true
     }
 
     @discardableResult
     func useCurrentLocation() async -> Bool {
-        await nearbyLocationController.useCurrentLocation(distanceMiles: distance.rawValue)
+        guard let preference = await nearbyLocationController.currentLocationPreference(distanceMiles: distance.rawValue) else {
+            return false
+        }
+
+        activeNearbyPreference = preference
+        zipCodeDraft = preference.zipCode
+        distance = .from(distanceMiles: preference.distanceMiles)
+        nearbyStatusMessage = nil
+        return true
     }
 
     @discardableResult

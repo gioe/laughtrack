@@ -506,25 +506,57 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/avatar_url`.
             public var avatarUrl: Swift.String?
+            /// Whether the signed-in user receives email notifications for new shows from saved comedians.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/email_show_notifications`.
+            public var emailShowNotifications: Swift.Bool
+            /// Whether the signed-in user receives push notifications for new shows from saved comedians.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/push_show_notifications`.
+            public var pushShowNotifications: Swift.Bool
+            /// Saved profile ZIP code used for Near Me.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/zip_code`.
+            public var zipCode: Swift.String?
+            /// Saved profile distance in miles used for Near Me.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/nearby_distance_miles`.
+            public var nearbyDistanceMiles: Swift.Int?
             /// Creates a new `MeData`.
             ///
             /// - Parameters:
             ///   - displayName: User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///   - email: Unique email address (User.email).
             ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
+            ///   - emailShowNotifications: Whether the signed-in user receives email notifications for new shows from saved comedians.
+            ///   - pushShowNotifications: Whether the signed-in user receives push notifications for new shows from saved comedians.
+            ///   - zipCode: Saved profile ZIP code used for Near Me.
+            ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
             public init(
                 displayName: Swift.String? = nil,
                 email: Swift.String,
-                avatarUrl: Swift.String? = nil
+                avatarUrl: Swift.String? = nil,
+                emailShowNotifications: Swift.Bool = false,
+                pushShowNotifications: Swift.Bool = false,
+                zipCode: Swift.String? = nil,
+                nearbyDistanceMiles: Swift.Int? = nil
             ) {
                 self.displayName = displayName
                 self.email = email
                 self.avatarUrl = avatarUrl
+                self.emailShowNotifications = emailShowNotifications
+                self.pushShowNotifications = pushShowNotifications
+                self.zipCode = zipCode
+                self.nearbyDistanceMiles = nearbyDistanceMiles
             }
             public enum CodingKeys: String, CodingKey {
                 case displayName = "display_name"
                 case email
                 case avatarUrl = "avatar_url"
+                case emailShowNotifications = "email_show_notifications"
+                case pushShowNotifications = "push_show_notifications"
+                case zipCode = "zip_code"
+                case nearbyDistanceMiles = "nearby_distance_miles"
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.

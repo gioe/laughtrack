@@ -184,14 +184,14 @@ struct AppShellViewTests {
         #expect(AppRoute.accountHeaderTarget() == .profile)
     }
 
-    @Test("shell account header layout tracks safe area and touch target")
-    func shellAccountHeaderLayoutTracksSafeAreaAndTouchTarget() async throws {
+    @Test("shell account header layout trims tall safe area gap while preserving touch target")
+    func shellAccountHeaderLayoutTrimsTallSafeAreaGapWhilePreservingTouchTarget() async throws {
         let theme = LaughTrackTheme()
         let compactTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 24, theme: theme)
         let tallTop = AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: 59, theme: theme)
 
-        #expect(tallTop - compactTop == 35)
         #expect(compactTop > 24)
+        #expect(tallTop - compactTop == 17)
         #expect(AccountHeaderLayout.buttonSize >= 44)
     }
 }

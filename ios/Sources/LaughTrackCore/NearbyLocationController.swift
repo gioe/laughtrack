@@ -126,33 +126,46 @@ public final class NearbyLocationController: ObservableObject {
         store.setDistance(distanceMiles)
     }
 
-    @discardableResult
-    public func useCurrentLocation(distanceMiles: Int) async -> Bool {
+    public func currentLocationPreference(distanceMiles: Int) async -> NearbyPreference? {
         statusMessage = nil
         isResolvingCurrentLocation = true
         defer { isResolvingCurrentLocation = false }
 
         do {
             let resolved = try await resolver.requestCurrentLocation()
-            guard
-                store.setGeolocatedZip(
-                    resolved.zipCode,
-                    distanceMiles: distanceMiles,
-                    city: resolved.city,
-                    state: resolved.state
-                ) != nil
-            else {
+            guard let zipCode = NearbyPreferenceStore.validZip(from: resolved.zipCode) else {
                 statusMessage = NearbyLocationError.zipUnavailable.recoveryMessage
-                return false
+                return nil
             }
             statusMessage = nil
-            return true
+            return NearbyPreference(
+                zipCode: zipCode,
+                source: .geolocated,
+                distanceMiles: distanceMiles,
+                city: resolved.city,
+                state: resolved.state
+            )
         } catch let error as NearbyLocationError {
             statusMessage = error.recoveryMessage
-            return false
+            return nil
         } catch {
             statusMessage = NearbyLocationError.lookupFailed.recoveryMessage
+            return nil
+        }
+    }
+
+    @discardableResult
+    public func useCurrentLocation(distanceMiles: Int) async -> Bool {
+        guard let preference = await currentLocationPreference(distanceMiles: distanceMiles) else {
             return false
         }
+
+        _ = store.setGeolocatedZip(
+            preference.zipCode,
+            distanceMiles: preference.distanceMiles,
+            city: preference.city,
+            state: preference.state
+        )
+        return true
     }
 }

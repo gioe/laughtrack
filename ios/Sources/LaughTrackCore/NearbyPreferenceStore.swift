@@ -182,6 +182,53 @@ public final class NearbyPreferenceStore: ObservableObject {
     }
 }
 
+public protocol ProfileLocationPreferenceSyncing: Sendable {
+    func setProfileLocation(zipCode: String?, distanceMiles: Int?) async throws
+}
+
+public final class ProfileLocationPreferenceSyncClient: ProfileLocationPreferenceSyncing, @unchecked Sendable {
+    private let baseURL: URL
+    private let tokenManager: AuthTokenManager
+    private let urlSession: URLSession
+
+    public init(
+        baseURL: URL = AppConfiguration.apiBaseURL,
+        tokenManager: AuthTokenManager,
+        urlSession: URLSession = .shared
+    ) {
+        self.baseURL = baseURL
+        self.tokenManager = tokenManager
+        self.urlSession = urlSession
+    }
+
+    public func setProfileLocation(zipCode: String?, distanceMiles: Int?) async throws {
+        let accessToken = await MainActor.run { tokenManager.retrieveAccessToken() }
+        guard let accessToken else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/v1/me/location"))
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONSerialization.data(
+            withJSONObject: [
+                "zip_code": zipCode.map { $0 as Any } ?? NSNull(),
+                "nearby_distance_miles": distanceMiles.map { $0 as Any } ?? NSNull()
+            ],
+            options: []
+        )
+
+        let (_, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200..<300).contains(httpResponse.statusCode)
+        else {
+            throw URLError(.badServerResponse)
+        }
+    }
+}
+
 @MainActor
 public final class SettingsNearbyPreferenceModel: ObservableObject {
     public static let distanceOptions = [10, 25, 50, 100]
@@ -190,31 +237,73 @@ public final class SettingsNearbyPreferenceModel: ObservableObject {
     @Published public var distanceMiles = NearbyPreference.defaultDistanceMiles
     @Published public private(set) var nearbyPreference: NearbyPreference?
     @Published public private(set) var validationMessage: String?
+    @Published public private(set) var statusMessage: String?
+    @Published public private(set) var isResolvingCurrentLocation = false
 
     private let nearbyLocationController: NearbyLocationController
+    private let syncClient: (any ProfileLocationPreferenceSyncing)?
     private var preferenceCancellable: AnyCancellable?
+    private var statusCancellable: AnyCancellable?
+    private var loadingCancellable: AnyCancellable?
 
-    public init(nearbyLocationController: NearbyLocationController) {
+    public init(
+        nearbyLocationController: NearbyLocationController,
+        syncClient: (any ProfileLocationPreferenceSyncing)? = nil
+    ) {
         self.nearbyLocationController = nearbyLocationController
+        self.syncClient = syncClient
         applyPreference(nearbyLocationController.preference)
         preferenceCancellable = nearbyLocationController.$preference
             .sink { [weak self] preference in
                 self?.applyPreference(preference)
             }
+        statusCancellable = nearbyLocationController.$statusMessage
+            .sink { [weak self] message in
+                self?.statusMessage = message
+            }
+        loadingCancellable = nearbyLocationController.$isResolvingCurrentLocation
+            .sink { [weak self] isResolving in
+                self?.isResolvingCurrentLocation = isResolving
+            }
     }
 
     public func saveNearbyPreference() {
         guard nearbyLocationController.applyManualZip(zipCodeDraft, distanceMiles: distanceMiles) else {
-            validationMessage = "Enter a valid 5-digit ZIP code before saving this nearby preference."
+            validationMessage = "Enter a valid 5-digit ZIP code before saving this profile location."
             return
         }
 
         validationMessage = nil
+        syncCurrentProfileLocation()
+    }
+
+    @discardableResult
+    public func useCurrentLocation() async -> Bool {
+        validationMessage = nil
+        let didUpdate = await nearbyLocationController.useCurrentLocation(distanceMiles: distanceMiles)
+        if didUpdate {
+            syncCurrentProfileLocation()
+        }
+        return didUpdate
     }
 
     public func clearNearbyPreference() {
         validationMessage = nil
         nearbyLocationController.clear()
+        syncProfileLocation(zipCode: nil, distanceMiles: nil)
+    }
+
+    public func replaceServerBackedPreference(from user: AuthenticatedUser) {
+        guard let zipCode = user.zipCode else {
+            validationMessage = nil
+            nearbyLocationController.clear()
+            return
+        }
+
+        _ = nearbyLocationController.applyManualZip(
+            zipCode,
+            distanceMiles: user.nearbyDistanceMiles ?? NearbyPreference.defaultDistanceMiles
+        )
     }
 
     private func applyPreference(_ preference: NearbyPreference?) {
@@ -226,6 +315,25 @@ public final class SettingsNearbyPreferenceModel: ObservableObject {
         } else {
             zipCodeDraft = ""
             distanceMiles = NearbyPreference.defaultDistanceMiles
+        }
+    }
+
+    private func syncCurrentProfileLocation() {
+        syncProfileLocation(
+            zipCode: nearbyPreference?.zipCode,
+            distanceMiles: nearbyPreference?.distanceMiles
+        )
+    }
+
+    private func syncProfileLocation(zipCode: String?, distanceMiles: Int?) {
+        guard let syncClient else { return }
+
+        Task {
+            do {
+                try await syncClient.setProfileLocation(zipCode: zipCode, distanceMiles: distanceMiles)
+            } catch {
+                statusMessage = "LaughTrack could not save that profile location. Please try again."
+            }
         }
     }
 }

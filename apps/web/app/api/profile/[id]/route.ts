@@ -10,13 +10,19 @@ const ProfileUpdateSchema = z
             .string()
             .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
             .optional(),
+        nearbyDistanceMiles: z.number().int().positive().optional(),
         emailOptin: z.boolean().optional(),
+        pushOptin: z.boolean().optional(),
     })
     .refine(
-        (data) => data.zipCode !== undefined || data.emailOptin !== undefined,
+        (data) =>
+            data.zipCode !== undefined ||
+            data.nearbyDistanceMiles !== undefined ||
+            data.emailOptin !== undefined ||
+            data.pushOptin !== undefined,
         {
             message:
-                "At least one field (zipCode or emailOptin) must be provided",
+                "At least one field (zipCode, nearbyDistanceMiles, emailOptin, or pushOptin) must be provided",
         },
     );
 

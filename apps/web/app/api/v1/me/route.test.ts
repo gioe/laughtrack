@@ -137,6 +137,12 @@ describe("GET /api/v1/me", () => {
             name: "Ada Lovelace",
             email: "ada@example.com",
             image: "https://cdn.example.com/avatar.png",
+            profile: {
+                emailShowNotifications: true,
+                pushShowNotifications: true,
+                zipCode: "94108",
+                nearbyDistanceMiles: 25,
+            },
         } as any);
 
         const res = await GET(makeRequest());
@@ -148,12 +154,28 @@ describe("GET /api/v1/me", () => {
                 display_name: "Ada Lovelace",
                 email: "ada@example.com",
                 avatar_url: "https://cdn.example.com/avatar.png",
+                email_show_notifications: true,
+                push_show_notifications: true,
+                zip_code: "94108",
+                nearby_distance_miles: 25,
             },
         });
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
         expect(mockFindUser).toHaveBeenCalledWith({
             where: { id: "user-123" },
-            select: { name: true, email: true, image: true },
+            select: {
+                name: true,
+                email: true,
+                image: true,
+                profile: {
+                    select: {
+                        emailShowNotifications: true,
+                        pushShowNotifications: true,
+                        zipCode: true,
+                        nearbyDistanceMiles: true,
+                    },
+                },
+            },
         });
     });
 
@@ -166,6 +188,12 @@ describe("GET /api/v1/me", () => {
             name: null,
             email: "anon@example.com",
             image: null,
+            profile: {
+                emailShowNotifications: false,
+                pushShowNotifications: false,
+                zipCode: null,
+                nearbyDistanceMiles: null,
+            },
         } as any);
 
         const res = await GET(makeRequest());
@@ -177,6 +205,10 @@ describe("GET /api/v1/me", () => {
                 display_name: null,
                 email: "anon@example.com",
                 avatar_url: null,
+                email_show_notifications: false,
+                push_show_notifications: false,
+                zip_code: null,
+                nearby_distance_miles: null,
             },
         });
     });
@@ -190,6 +222,12 @@ describe("GET /api/v1/me", () => {
             name: "X",
             email: "x@example.com",
             image: null,
+            profile: {
+                emailShowNotifications: false,
+                pushShowNotifications: false,
+                zipCode: null,
+                nearbyDistanceMiles: null,
+            },
         } as any);
 
         await GET(makeRequest());

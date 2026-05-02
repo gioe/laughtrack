@@ -185,7 +185,9 @@ model UserProfile {
   id                     String             @id @default(cuid())
   role                   String             @default("user")
   emailShowNotifications Boolean            @default(false) @map("email_show_notifications")
+  pushShowNotifications  Boolean            @default(false) @map("push_show_notifications")
   zipCode                String?            @map("zip_code")
+  nearbyDistanceMiles    Int?               @map("nearby_distance_miles")
   userid                 String             @unique @map("user_id")
   favoriteComedians      FavoriteComedian[]
   user                   User               @relation(fields: [userid], references: [id])

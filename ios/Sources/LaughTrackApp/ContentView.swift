@@ -13,6 +13,11 @@ enum LaughTrackViewTestID {
     static let favoritesTabScreen = "laughtrack.favorites-tab.screen"
     static let libraryTabScreen = favoritesTabScreen
     static let profileTabScreen = "laughtrack.profile-tab.screen"
+    static let profileHero = "laughtrack.profile.hero"
+    static let profileSettingsPanel = "laughtrack.profile.settings-panel"
+    static let settingsNotificationsSection = "laughtrack.settings.notifications.section"
+    static let settingsFavoriteComedianEmailAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-email-alerts"
+    static let settingsFavoriteComedianPushAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-push-alerts"
     static let accountHeaderButton = "laughtrack.account.header-button"
     static let locationHeaderButton = "laughtrack.location.header-button"
     static let locationPermissionPitch = "laughtrack.location-permission.pitch"
@@ -282,7 +287,10 @@ struct ContentView: View {
                 ProfileView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
-                    nearbyLocationController: nearbyLocationController
+                    nearbyLocationController: nearbyLocationController,
+                    notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
+                    notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
+                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self)
                 )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)

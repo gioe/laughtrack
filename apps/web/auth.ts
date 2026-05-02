@@ -13,7 +13,9 @@ interface UserProfile {
     userid: string;
     role: string;
     emailShowNotifications: boolean;
+    pushShowNotifications: boolean;
     zipCode?: string | null;
+    nearbyDistanceMiles?: number | null;
 }
 
 declare module "next-auth" {
@@ -64,6 +66,7 @@ const _nextAuth = NextAuth({
                         userid: user.id!,
                         role: "user",
                         emailShowNotifications: false,
+                        pushShowNotifications: false,
                     },
                 });
             } catch (error) {

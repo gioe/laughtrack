@@ -345,6 +345,35 @@ struct SearchRootModelTests {
         #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "10012", source: .geolocated, distanceMiles: 25))
     }
 
+    @Test("shows search location changes stay local to the search model")
+    func showsSearchLocationDoesNotRewriteSharedNearMeDefault() async throws {
+        let suiteName = "SearchRootModelTests.local-search-location.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let store = NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
+        store.setManualZip("94108", distanceMiles: 25)
+        let controller = NearbyLocationController(
+            store: store,
+            resolver: MockSearchNearbyLocationResolver(result: .success("10012")),
+            zipLocationResolver: StubZipLocationResolver()
+        )
+        let showsModel = ShowsDiscoveryModel(nearbyLocationController: controller)
+
+        showsModel.zipCodeDraft = "30309"
+        showsModel.distance = .regional
+        let appliedManualZip = showsModel.applyManualZip()
+
+        #expect(appliedManualZip)
+        #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "30309", source: .manual, distanceMiles: 50))
+        #expect(store.preference == NearbyPreference(zipCode: "94108", source: .manual, distanceMiles: 25))
+
+        let appliedCurrentLocation = await showsModel.useCurrentLocation()
+
+        #expect(appliedCurrentLocation)
+        #expect(showsModel.activeNearbyPreference == NearbyPreference(zipCode: "10012", source: .geolocated, distanceMiles: 50))
+        #expect(store.preference == NearbyPreference(zipCode: "94108", source: .manual, distanceMiles: 25))
+    }
+
     @Test("near me shortcut clears an already resolved nearby preference")
     func nearMeShortcutClearsResolvedLocation() async throws {
         let model = SearchRootModel()

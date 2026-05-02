@@ -40,6 +40,19 @@ struct ShowRowTests {
         #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
     }
 
+    @Test("show row uses compact list title when title repeats the venue")
+    func showRowUsesCompactListTitleWhenTitleRepeatsVenue() {
+        let show = makeShow(
+            name: "Vanessa Jackson",
+            clubName: "The Broadway Comedy Club",
+            lineup: [
+                lineup(name: "Vanessa Jackson", imageURL: "https://example.com/vanessa.jpg", showCount: 4)
+            ]
+        )
+
+        #expect(ShowRow.listTitle(for: show) == "Comedy show")
+    }
+
     @Test("show row replaces performer-looking titles even when lineup is absent")
     func showRowReplacesPerformerLookingTitleWithoutLineup() {
         let show = makeShow(
@@ -60,6 +73,17 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.title(for: show) == "Atsuko Late Set")
+    }
+
+    @Test("show row keeps named shows in compact list title")
+    func showRowKeepsNamedShowsInCompactListTitle() {
+        let show = makeShow(
+            name: "Golden Gate Comedy Night",
+            clubName: "The Function SF",
+            lineup: nil
+        )
+
+        #expect(ShowRow.listTitle(for: show) == "Golden Gate Comedy Night")
     }
 
     @Test("show row preserves longer production titles")
@@ -118,6 +142,16 @@ struct ShowRowTests {
         #expect(ShowRow.priceLabel(for: show) == "$24")
     }
 
+    @Test("show row metadata omits distance")
+    func showRowMetadataOmitsDistance() {
+        let show = makeShow(
+            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission")],
+            lineup: []
+        )
+
+        #expect(ShowRow.metadata(for: show).contains { $0.contains("miles away") } == false)
+    }
+
     @Test("show row formats a ticket price range")
     func showRowFormatsTicketPriceRange() {
         let show = makeShow(
@@ -167,7 +201,8 @@ struct ShowRowTests {
             tickets: tickets,
             name: name,
             lineup: lineup,
-            imageUrl: "https://example.com/show.jpg"
+            imageUrl: "https://example.com/show.jpg",
+            distanceMiles: 2.1
         )
     }
 

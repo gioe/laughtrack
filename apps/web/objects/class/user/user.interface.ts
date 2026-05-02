@@ -4,8 +4,9 @@ export interface UserInterface {
     email: string;
     password?: string;
     role: string;
-    zipCode?: string
-    emailOptin?: boolean
+    zipCode?: string;
+    emailOptin?: boolean;
+    pushOptin?: boolean;
 }
 
 // DB
@@ -14,5 +15,5 @@ export interface UserDTO {
     email: string;
     password?: string;
     role: string;
-    zip_code?: string
+    zip_code?: string;
 }

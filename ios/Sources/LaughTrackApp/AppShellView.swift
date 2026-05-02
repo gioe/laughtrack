@@ -111,11 +111,17 @@ struct AppShellView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            shellHeader
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                shellHeader(safeAreaTop: proxy.safeAreaInsets.top)
 
-            tabContent
+                tabContent
+            }
+            .ignoresSafeArea(edges: .top)
         }
+        #if os(iOS)
+        .toolbar(.hidden, for: .navigationBar)
+        #endif
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
     }
 
@@ -213,7 +219,7 @@ struct AppShellView: View {
         )
     }
 
-    private var shellHeader: some View {
+    private func shellHeader(safeAreaTop: CGFloat) -> some View {
         HStack(spacing: theme.spacing.sm) {
             accountHeaderButton
 
@@ -224,7 +230,7 @@ struct AppShellView: View {
             }
         }
         .padding(.horizontal, theme.spacing.lg)
-        .padding(.top, theme.spacing.xs)
+        .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme))
         .padding(.bottom, theme.spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(theme.laughTrackTokens.colors.canvas.opacity(0.97))
@@ -321,8 +327,11 @@ struct AppShellView: View {
 
 enum AccountHeaderLayout {
     static let buttonSize: CGFloat = 48
+    private static let tallSafeAreaThreshold: CGFloat = 44
+    private static let tallSafeAreaOverlap: CGFloat = 18
 
     static func accountHeaderTopPadding(safeAreaTop: CGFloat, theme: AppThemeProtocol) -> CGFloat {
-        safeAreaTop + theme.spacing.xs
+        let overlap = safeAreaTop > tallSafeAreaThreshold ? tallSafeAreaOverlap : 0
+        return max(theme.spacing.xs, safeAreaTop - overlap + theme.spacing.xs)
     }
 }

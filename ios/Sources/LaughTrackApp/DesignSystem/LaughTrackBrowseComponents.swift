@@ -326,7 +326,30 @@ struct LaughTrackContextRow: View {
     }
 }
 
-struct LaughTrackResultRow: View {
+enum LaughTrackEntityRowArtworkShape: Equatable {
+    case circle
+    case roundedRectangle(cornerRadius: CGFloat)
+}
+
+struct LaughTrackEntityRowDesign: Equatable {
+    var artworkSize: CGFloat
+    var artworkShape: LaughTrackEntityRowArtworkShape
+    var minHeight: CGFloat
+    var titleLineLimit: Int
+    var subtitleLineLimit: Int
+    var metadataLineLimit: Int
+
+    static let searchCard = Self(
+        artworkSize: 70,
+        artworkShape: .circle,
+        minHeight: 86,
+        titleLineLimit: 2,
+        subtitleLineLimit: 2,
+        metadataLineLimit: 2
+    )
+}
+
+struct LaughTrackEntityRow: View {
     @Environment(\.appTheme) private var theme
 
     let title: String
@@ -336,6 +359,7 @@ struct LaughTrackResultRow: View {
     let imageURL: String?
     let accessoryTitle: String?
     let showsDisclosureIndicator: Bool
+    let design: LaughTrackEntityRowDesign
 
     init(
         title: String,
@@ -344,7 +368,8 @@ struct LaughTrackResultRow: View {
         systemImage: String,
         imageURL: String? = nil,
         accessoryTitle: String? = nil,
-        showsDisclosureIndicator: Bool = true
+        showsDisclosureIndicator: Bool = false,
+        design: LaughTrackEntityRowDesign = .searchCard
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -353,37 +378,40 @@ struct LaughTrackResultRow: View {
         self.imageURL = imageURL
         self.accessoryTitle = accessoryTitle
         self.showsDisclosureIndicator = showsDisclosureIndicator
+        self.design = design
     }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
-        let browseDensity = laughTrack.browseDensity
 
-        HStack(spacing: browseDensity.rowGap) {
+        HStack(spacing: theme.spacing.md) {
             artwork
 
             VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                 Text(title)
                     .font(laughTrack.typography.cardTitle)
                     .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(1)
+                    .lineLimit(design.titleLineLimit)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let subtitle {
                     Text(subtitle)
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(laughTrack.colors.textSecondary)
-                        .lineLimit(1)
+                        .lineLimit(design.subtitleLineLimit)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 if !metadata.isEmpty {
                     Text(metadata.joined(separator: " • "))
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(laughTrack.colors.textSecondary)
-                        .lineLimit(1)
+                        .lineLimit(design.metadataLineLimit)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-
-            Spacer(minLength: theme.spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(1)
 
             if let accessoryTitle {
                 Text(accessoryTitle)
@@ -396,8 +424,8 @@ struct LaughTrackResultRow: View {
                     .foregroundStyle(laughTrack.colors.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: browseDensity.resultRowMinHeight, alignment: .leading)
-        .padding(browseDensity.compactCardPadding)
+        .frame(maxWidth: .infinity, minHeight: design.minHeight, alignment: .leading)
+        .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
@@ -410,70 +438,109 @@ struct LaughTrackResultRow: View {
     @ViewBuilder
     private var artwork: some View {
         let laughTrack = theme.laughTrackTokens
+        let rawImageURL = imageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        if let imageURL, let url = normalizedExternalURL(imageURL) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    progressArtwork
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .failure:
-                    fallbackArtwork
-                @unknown default:
-                    fallbackArtwork
-                }
+        if let url = URL.normalizedExternalURL(rawImageURL) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                artworkBackground
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
             }
-            .frame(width: 54, height: 54)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .frame(width: design.artworkSize, height: design.artworkSize)
+            .modifier(LaughTrackEntityArtworkClip(shape: design.artworkShape))
         } else {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(laughTrack.colors.surfaceMuted)
-
-                Image(systemName: systemImage)
-                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
-            .frame(width: 54, height: 54)
+            fallbackArtwork
         }
     }
 
-    private var progressArtwork: some View {
+    @ViewBuilder
+    private var artworkBackground: some View {
         let laughTrack = theme.laughTrackTokens
 
-        return ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+        switch design.artworkShape {
+        case .circle:
+            Circle()
                 .fill(laughTrack.colors.surfaceMuted)
-            ProgressView()
-                .progressViewStyle(.circular)
-                .tint(laughTrack.colors.accent)
+        case .roundedRectangle(let cornerRadius):
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(laughTrack.colors.surfaceMuted)
         }
     }
 
     private var fallbackArtwork: some View {
-        let laughTrack = theme.laughTrackTokens
+        artworkBackground
+            .overlay {
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
+            .frame(width: design.artworkSize, height: design.artworkSize)
+    }
+}
 
-        return ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(laughTrack.colors.surfaceMuted)
+private struct LaughTrackEntityArtworkClip: ViewModifier {
+    let shape: LaughTrackEntityRowArtworkShape
 
-            Image(systemName: systemImage)
-                .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                .foregroundStyle(laughTrack.colors.accentStrong)
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        switch shape {
+        case .circle:
+            content.clipShape(Circle())
+        case .roundedRectangle(let cornerRadius):
+            content.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
     }
+}
 
-    private func normalizedExternalURL(_ rawValue: String?) -> URL? {
-        guard let rawValue, !rawValue.isEmpty else { return nil }
+struct LaughTrackResultRow: View {
+    let title: String
+    let subtitle: String?
+    let metadata: [String]
+    let systemImage: String
+    let imageURL: String?
+    let accessoryTitle: String?
+    let showsDisclosureIndicator: Bool
+    let design: LaughTrackEntityRowDesign
 
-        if let direct = URL(string: rawValue), direct.scheme != nil {
-            return direct
-        }
+    init(
+        title: String,
+        subtitle: String? = nil,
+        metadata: [String] = [],
+        systemImage: String,
+        imageURL: String? = nil,
+        accessoryTitle: String? = nil,
+        showsDisclosureIndicator: Bool = false,
+        design: LaughTrackEntityRowDesign = .searchCard
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.metadata = metadata
+        self.systemImage = systemImage
+        self.imageURL = imageURL
+        self.accessoryTitle = accessoryTitle
+        self.showsDisclosureIndicator = showsDisclosureIndicator
+        self.design = design
+    }
 
-        return URL(string: "https://\(rawValue)")
+    var body: some View {
+        LaughTrackEntityRow(
+            title: title,
+            subtitle: subtitle,
+            metadata: metadata,
+            systemImage: systemImage,
+            imageURL: imageURL,
+            accessoryTitle: accessoryTitle,
+            showsDisclosureIndicator: showsDisclosureIndicator,
+            design: design
+        )
     }
 }
 

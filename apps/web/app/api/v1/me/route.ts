@@ -40,7 +40,19 @@ export async function GET(req: NextRequest) {
 
     const user = await db.user.findUnique({
         where: { id: authCtx.userId },
-        select: { name: true, email: true, image: true },
+        select: {
+            name: true,
+            email: true,
+            image: true,
+            profile: {
+                select: {
+                    emailShowNotifications: true,
+                    pushShowNotifications: true,
+                    zipCode: true,
+                    nearbyDistanceMiles: true,
+                },
+            },
+        },
     });
     if (!user) {
         return NextResponse.json(
@@ -55,6 +67,13 @@ export async function GET(req: NextRequest) {
                 display_name: user.name,
                 email: user.email,
                 avatar_url: user.image,
+                email_show_notifications:
+                    user.profile?.emailShowNotifications ?? false,
+                push_show_notifications:
+                    user.profile?.pushShowNotifications ?? false,
+                zip_code: user.profile?.zipCode ?? null,
+                nearby_distance_miles:
+                    user.profile?.nearbyDistanceMiles ?? null,
             },
         },
         { headers: rateLimitHeaders(rl) },

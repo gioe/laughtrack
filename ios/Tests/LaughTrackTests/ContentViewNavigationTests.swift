@@ -354,7 +354,8 @@ struct ContentViewNavigationTests {
         host.render()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
-        try host.requireText("Browse defaults")
+        try host.requireText("Guest mode")
+        #expect(host.findText("Profile settings") == nil)
     }
 }
 

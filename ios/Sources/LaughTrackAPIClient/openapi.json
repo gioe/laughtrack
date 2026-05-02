@@ -1363,7 +1363,7 @@
       },
       "MeData": {
         "type": "object",
-        "required": ["email"],
+        "required": ["email", "email_show_notifications", "push_show_notifications", "zip_code", "nearby_distance_miles"],
         "properties": {
           "display_name": {
             "type": "string",
@@ -1378,6 +1378,24 @@
             "type": "string",
             "nullable": true,
             "description": "Avatar/profile photo URL from OAuth (User.image). May be null."
+          },
+          "email_show_notifications": {
+            "type": "boolean",
+            "description": "Whether the signed-in user receives email notifications for new shows from saved comedians."
+          },
+          "push_show_notifications": {
+            "type": "boolean",
+            "description": "Whether the signed-in user receives push notifications for new shows from saved comedians."
+          },
+          "zip_code": {
+            "type": "string",
+            "nullable": true,
+            "description": "Saved profile ZIP code used for Near Me."
+          },
+          "nearby_distance_miles": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Saved profile distance in miles used for Near Me."
           }
         }
       },
