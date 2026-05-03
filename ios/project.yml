@@ -7,7 +7,7 @@ options:
 packages:
   ios-libs:
     url: https://github.com/gioe/ios-libs.git
-    revision: 7074af12ab722bee44a208843890702128a2e6f7
+    revision: 409ad92db9ab062382390f79063cd90429cc8a5d
   swift-openapi-runtime:
     url: https://github.com/apple/swift-openapi-runtime
     from: "1.9.0"
@@ -170,6 +170,8 @@ targets:
         createIntermediateGroups: true
     dependencies:
       - target: LaughTrack
+      - package: ios-libs
+        product: SharedKitTesting
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests

@@ -11,6 +11,7 @@
 		02F5292558288AB4FA3DE54E /* SearchOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41925ABE34C9D35C075C67AA /* SearchOptions.swift */; };
 		03DB03946EACB4EC3CC920AD /* SearchFieldInputBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1FCFA6135148D9C41CD49A8 /* SearchFieldInputBehavior.swift */; };
 		03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */; };
+		059EE258BA825C714A341D38 /* SharedKitTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CAE5BED4A6625782B0E6C06F /* SharedKitTesting */; };
 		0C145C2A445386A99C1A41E1 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCCCA95DB28A342FFAAEC81 /* OpenAPIURLSession */; };
 		0E0EE5D3C981B00E1290F2FD /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE66AEEC26F743787CDC4EE /* Client.swift */; };
 		0FC8D86160FD6351D3956617 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */; };
@@ -453,6 +454,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DD5EC252E4D545CF7BB7B43F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				059EE258BA825C714A341D38 /* SharedKitTesting in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F6D23797E54D83423BF5CAA8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -856,6 +865,7 @@
 			buildConfigurationList = 9EE03E30B98E1E3251B4D304 /* Build configuration list for PBXNativeTarget "LaughTrackUITests" */;
 			buildPhases = (
 				C04615814999296B68DC978F /* Sources */,
+				DD5EC252E4D545CF7BB7B43F /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -864,6 +874,7 @@
 			);
 			name = LaughTrackUITests;
 			packageProductDependencies = (
+				CAE5BED4A6625782B0E6C06F /* SharedKitTesting */,
 			);
 			productName = LaughTrackUITests;
 			productReference = FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */;
@@ -1697,7 +1708,7 @@
 			repositoryURL = "https://github.com/gioe/ios-libs.git";
 			requirement = {
 				kind = revision;
-				revision = 7074af12ab722bee44a208843890702128a2e6f7;
+				revision = 409ad92db9ab062382390f79063cd90429cc8a5d;
 			};
 		};
 		84B17814638981A8256A1360 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */ = {
@@ -1806,6 +1817,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 043017419D5BF7055F628F43 /* XCRemoteSwiftPackageReference "ios-libs" */;
 			productName = SharedKit;
+		};
+		CAE5BED4A6625782B0E6C06F /* SharedKitTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 043017419D5BF7055F628F43 /* XCRemoteSwiftPackageReference "ios-libs" */;
+			productName = SharedKitTesting;
 		};
 		F6CD43913E8654A6A6A90389 /* SharedKit */ = {
 			isa = XCSwiftPackageProductDependency;

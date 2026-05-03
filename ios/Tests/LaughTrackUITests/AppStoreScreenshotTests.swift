@@ -1,3 +1,4 @@
+import SharedKitTesting
 import XCTest
 
 /// UI test that captures App Store screenshots in sequence.
@@ -5,35 +6,23 @@ import XCTest
 /// Driven by fastlane's `snapshot` tool via the `screenshots` lane:
 /// `bundle exec fastlane screenshots`
 ///
-/// Mock-mode launch arg pre-populates the saved nearby ZIP to Hollywood (90028)
-/// so the Near Me screen renders LA shows instead of leaking the runner's
-/// IP-based geolocation into screenshots.
+/// Inherits boilerplate from `BaseAppStoreScreenshotTests` (XCUIApplication
+/// setup, `-UITestMockMode` launch arg, coordinate-based `tap(x:y:)` helper).
+/// Mock mode is wired in `LaughTrackApp.init` to seed the saved nearby ZIP
+/// to Hollywood (90028) so the Near Me rail renders LA shows instead of
+/// leaking the runner's IP-based geolocation.
 ///
-/// Coordinates are hardcoded for iPhone 16 Pro Max (440×956 logical points),
-/// because the SwiftUI accessibility tree on iOS 18+ doesn't reliably surface
-/// tab bar items / filter pills as XCUI buttons. Coordinate taps are brittle
-/// across devices but predictable for a single screenshot device.
+/// Coordinates are hardcoded for iPhone 16 Pro Max (440×956 logical points).
 @MainActor
-final class AppStoreScreenshotTests: XCTestCase {
-    private var app: XCUIApplication!
-
-    override func setUpWithError() throws {
-        continueAfterFailure = false
-        app = XCUIApplication()
+final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
+    override func prepareForSnapshot() {
         setupSnapshot(app)
-        app.launchArguments.append("-UITestMockMode")
-        app.launch()
-    }
-
-    override func tearDownWithError() throws {
-        app = nil
     }
 
     func testGenerateAllScreenshots() throws {
         // Time-based wait: the home rail loads from production API in ~3-5s.
         // SwiftUI's accessibility tree on iOS 18+ doesn't reliably surface
-        // Text() views to XCUI's element queries, so we sleep instead of
-        // querying for a specific element.
+        // Text() views to XCUI's element queries, so we sleep instead.
         sleep(8)
         snapshot("01_NearMe")
 
@@ -80,10 +69,5 @@ final class AppStoreScreenshotTests: XCTestCase {
         tap(x: 220, y: 525)
         sleep(3)
         snapshot("07_ComedianDetail")
-    }
-
-    private func tap(x: CGFloat, y: CGFloat) {
-        let normalized = app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
-        normalized.withOffset(CGVector(dx: x, dy: y)).tap()
     }
 }
