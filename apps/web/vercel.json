@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma migrate deploy && npm run build",
+  "buildCommand": "export DIRECT_URL=\"${DIRECT_URL:-$DATABASE_URL}\" && prisma migrate deploy && npm run build",
   "framework": "nextjs",
   "installCommand": "npm install",
   "outputDirectory": ".next"
