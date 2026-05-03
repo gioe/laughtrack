@@ -111,6 +111,26 @@ platform :ios do
     )
   end
 
+  desc "Capture App Store screenshots on all devices"
+  lane :screenshots do
+    capture_screenshots
+  end
+
+  desc "Add device frames and captions to screenshots"
+  lane :frames do
+    frame_screenshots(
+      path: "./fastlane/screenshots",
+      force_device_type: "iPhone 16 Pro Max"
+    )
+  end
+
+  desc "Capture screenshots, frame them, then upload"
+  lane :screenshots_and_upload do
+    screenshots
+    frames
+    upload_metadata
+  end
+
   desc "Upload metadata and screenshots to App Store Connect"
   lane :upload_metadata do
     load_asc_api_key
@@ -160,12 +180,24 @@ platform :ios do
     )
   end
 
-  desc "Build and upload to TestFlight"
+  desc "Full pipeline: release notes, screenshots, bump build, build, upload, and submit for review"
+  lane :release do
+    generate_release_notes
+    screenshots
+    frames
+    bump_build_number
+    build
+    upload_testflight
+    submit_review
+    tag_release
+  end
+
+  desc "Build and upload to App Store Connect (creates version, uploads metadata + screenshots, pushes to TestFlight)"
   lane :beta do
     generate_release_notes
     bump_build_number
     build
-    upload_testflight
+    upload_app_store
     tag_release
   end
 

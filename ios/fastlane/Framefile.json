@@ -1,0 +1,81 @@
+{
+  "default": {
+    "keyword": {
+      "font": "./fastlane/fonts/keyword.ttf",
+      "color": "#FFFFFF"
+    },
+    "title": {
+      "font": "./fastlane/fonts/title.ttf",
+      "color": "#FFFFFF"
+    },
+    "background": "#3D2818",
+    "padding": 50,
+    "show_complete_frame": false,
+    "title_min_height": 0
+  },
+  "data": [
+    {
+      "filter": "01_NearMe",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Live stand-up comedy near you"
+      }
+    },
+    {
+      "filter": "02_SearchShows",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Every show, every night"
+      }
+    },
+    {
+      "filter": "03_SearchComedians",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Find comedians by name"
+      }
+    },
+    {
+      "filter": "04_SearchClubs",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Browse clubs nationwide"
+      }
+    },
+    {
+      "filter": "05_ClubDetail",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Every venue, full schedule"
+      }
+    },
+    {
+      "filter": "06_ShowDetail",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Tickets, calendar, venue at a tap"
+      }
+    },
+    {
+      "filter": "07_ComedianDetail",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Track your favorite comics"
+      }
+    }
+  ]
+}
