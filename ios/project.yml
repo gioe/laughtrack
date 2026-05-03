@@ -93,6 +93,8 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true
         NSLocationWhenInUseUsageDescription: LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.
+        NSCalendarsUsageDescription: LaughTrack adds comedy shows you choose to your calendar.
+        NSCalendarsWriteOnlyAccessUsageDescription: LaughTrack adds comedy shows you choose to your calendar.
         UILaunchScreen:
           UIColorName: LaunchBackground
           UIImageName: LaunchLogo
@@ -135,6 +137,7 @@ targets:
     scheme:
       testTargets:
         - LaughTrackTests
+        - LaughTrackUITests
   LaughTrackTests:
     type: bundle.unit-test
     platform: iOS
@@ -159,3 +162,17 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
         MARKETING_VERSION: "1.0"
+  LaughTrackUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/LaughTrackUITests
+        createIntermediateGroups: true
+    dependencies:
+      - target: LaughTrack
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
+        GENERATE_INFOPLIST_FILE: "YES"
+        MARKETING_VERSION: "1.0"
+        TEST_TARGET_NAME: LaughTrack

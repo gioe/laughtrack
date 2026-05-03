@@ -24,6 +24,10 @@ struct LaughTrackApp: App {
         self.apiClient = bootstrap.apiClient
         self.theme = bootstrap.theme
         _authManager = StateObject(wrappedValue: bootstrap.authManager)
+
+        if MockModeDetector.isMockMode {
+            Self.applyMockModeSeedData(container: bootstrap.container)
+        }
     }
 
     var body: some Scene {
@@ -39,12 +43,22 @@ struct LaughTrackApp: App {
     }
 
     private static func resetPersistentStateForUITestsIfNeeded() {
-        guard ProcessInfo.processInfo.arguments.contains("UITEST_RESET_STATE") else { return }
+        let arguments = ProcessInfo.processInfo.arguments
+        guard arguments.contains("UITEST_RESET_STATE") || arguments.contains(MockModeDetector.mockModeArgument) else { return }
 
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "laughtrack.discovery.nearby-preference")
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
+    }
+
+    /// In mock mode, pre-populate the saved nearby preference to Hollywood (90028)
+    /// so the Near Me screen renders LA shows deterministically. Without this seed,
+    /// the discovery rails fall back to IP-based geolocation which leaks the
+    /// developer's home location into App Store screenshots.
+    private static func applyMockModeSeedData(container: ServiceContainer) {
+        let store = container.resolve(NearbyPreferenceStore.self)
+        store.setManualZip("90028", distanceMiles: 25, city: "Los Angeles", state: "CA")
     }
 }
 #endif

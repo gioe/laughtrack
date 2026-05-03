@@ -50,6 +50,17 @@
                ReferencedContainer = "container:LaughTrack.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "52750A922363534F75FFBF6B"
+               BuildableName = "LaughTrackUITests.xctest"
+               BlueprintName = "LaughTrackUITests"
+               ReferencedContainer = "container:LaughTrack.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
