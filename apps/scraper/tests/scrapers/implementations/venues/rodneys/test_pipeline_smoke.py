@@ -27,6 +27,7 @@ from laughtrack.scrapers.implementations.venues.rodneys.data import RodneyPageDa
 CALENDAR_URL = "https://rodneysnewyorkcomedyclub.com/shows"
 SHOW_URL_1 = "https://rodneysnewyorkcomedyclub.com/shows/dan-naturman-and-friends"
 SHOW_URL_2 = "https://rodneysnewyorkcomedyclub.com/shows/friday-night-stand-up"
+SHOW_URL_3 = "https://rodneysnewyorkcomedyclub.com/shows/later-show"
 
 
 def _club() -> Club:
@@ -176,3 +177,64 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
         "Full pipeline produced 0 events — "
         "discover_urls() found URLs but get_data() extracted nothing from any of them"
     )
+
+
+@pytest.mark.asyncio
+async def test_scrape_async_uses_discovered_show_urls(monkeypatch):
+    """
+    scrape_async() must expand the calendar page into show-page targets.
+
+    The base scraper pipeline calls collect_scraping_targets(), so Rodney's must
+    bridge that method to its show-link discovery. Otherwise the scraper treats
+    the calendar listing itself as a single show page and returns 0 shows.
+    """
+    scraper = RodneysComedyClubScraper(_club())
+
+    show_pages = {
+        SHOW_URL_1: _show_page_html("Dan Naturman and Friends", "Sat | March 21, 2027 - 8:30PM"),
+        SHOW_URL_2: _show_page_html("Friday Night Stand-Up", "Fri | March 27, 2027 - 9:00PM"),
+    }
+
+    async def fake_fetch_html(self, url: str) -> str:
+        if url in show_pages:
+            return show_pages[url]
+        return _calendar_html()
+
+    monkeypatch.setattr(RodneysComedyClubScraper, "fetch_html", fake_fetch_html)
+
+    shows = await scraper.scrape_async()
+
+    assert [show.name for show in shows] == [
+        "Dan Naturman and Friends",
+        "Friday Night Stand-Up",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_uses_date_range_calendar(monkeypatch):
+    """Rodney's date-range calendar exposes shows missing from the default calendar page."""
+    scraper = RodneysComedyClubScraper(_club())
+    fetched_urls = []
+
+    range_calendar_html = f"""<html><body>
+<a href="{SHOW_URL_1}">Dan Naturman and Friends</a>
+<a href="{SHOW_URL_2}">Friday Night Stand-Up</a>
+<a href="{SHOW_URL_3}">Later Show</a>
+</body></html>"""
+    default_calendar_html = f"""<html><body>
+<a href="{SHOW_URL_1}">Dan Naturman and Friends</a>
+<a href="{SHOW_URL_2}">Friday Night Stand-Up</a>
+</body></html>"""
+
+    async def fake_fetch_html(self, url: str) -> str:
+        fetched_urls.append(url)
+        if "/calendar/-/" in url:
+            return range_calendar_html
+        return default_calendar_html
+
+    monkeypatch.setattr(RodneysComedyClubScraper, "fetch_html", fake_fetch_html)
+
+    urls = await scraper.collect_scraping_targets()
+
+    assert any("/calendar/-/" in url for url in fetched_urls)
+    assert urls == [SHOW_URL_1, SHOW_URL_2, SHOW_URL_3]

@@ -15,6 +15,7 @@ Architecture Components:
 """
 
 from dataclasses import asdict
+from datetime import date, timedelta
 from typing import List, Optional
 
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent as DomainEventbriteEvent
@@ -47,6 +48,7 @@ class RodneysComedyClubScraper(BaseScraper):
     """
 
     key = "rodneys"
+    _CALENDAR_LOOKAHEAD_DAYS = 365
 
     def __init__(self, club: Club, **kwargs):
         """Initialize the scraper with club information."""
@@ -84,6 +86,35 @@ class RodneysComedyClubScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error discovering URLs: {e}", self.logger_context)
             return []
+
+    async def collect_scraping_targets(self) -> List[str]:
+        """Return show detail URLs for the base scraper pipeline."""
+        calendar_url = URLUtils.normalize_url(self.club.scraping_url)
+        range_url = self._build_calendar_range_url(calendar_url)
+
+        urls: List[str] = []
+        seen: set[str] = set()
+        for listing_url in [range_url, calendar_url]:
+            try:
+                html_content = await self.fetch_html(listing_url)
+            except Exception as e:
+                Logger.error(f"{self._log_prefix}: Error fetching listing URL {listing_url}: {e}", self.logger_context)
+                continue
+
+            for url in RodneyEventExtractor.extract_show_links(html_content or ""):
+                if url not in seen:
+                    seen.add(url)
+                    urls.append(url)
+
+        Logger.info(f"{self._log_prefix}: Discovered {len(urls)} show URLs", self.logger_context)
+        return urls
+
+    def _build_calendar_range_url(self, calendar_url: str) -> str:
+        """Build Rodney's date-range calendar URL for broad future coverage."""
+        base_url = calendar_url.split("/calendar", 1)[0]
+        start = date.today()
+        end = start + timedelta(days=self._CALENDAR_LOOKAHEAD_DAYS)
+        return f"{base_url}/calendar/-/{start.isoformat()},{end.isoformat()}"
 
     async def get_data(self, url: str) -> Optional[RodneyPageData]:
         """
