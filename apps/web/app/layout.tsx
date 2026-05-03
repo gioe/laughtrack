@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./fonts.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Suspense } from "react";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import { SessionProvider } from "next-auth/react";
@@ -104,10 +105,26 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-            { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-            { url: "/icons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-            { url: "/icons/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+            {
+                url: "/icons/favicon-16x16.png",
+                sizes: "16x16",
+                type: "image/png",
+            },
+            {
+                url: "/icons/favicon-32x32.png",
+                sizes: "32x32",
+                type: "image/png",
+            },
+            {
+                url: "/icons/android-chrome-192x192.png",
+                sizes: "192x192",
+                type: "image/png",
+            },
+            {
+                url: "/icons/android-chrome-512x512.png",
+                sizes: "512x512",
+                type: "image/png",
+            },
         ],
         apple: {
             url: "/icons/apple-touch-icon.png",
@@ -149,6 +166,7 @@ export default async function RootLayout({
                             <ErrorBoundary>{children}</ErrorBoundary>
                         </StyleContextProvider>
                     </TimezoneProvider>
+                    <Analytics />
                 </body>
             </html>
         </SessionProvider>
