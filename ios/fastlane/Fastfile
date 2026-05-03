@@ -122,6 +122,7 @@ platform :ios do
       skip_metadata: false,
       skip_screenshots: false,
       skip_binary_upload: true,
+      overwrite_screenshots: true,
       precheck_include_in_app_purchases: false
     )
   end
