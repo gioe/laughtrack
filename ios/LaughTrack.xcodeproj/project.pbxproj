@@ -153,7 +153,6 @@
 		EC250092710CB355D3BF3A08 /* NearbyPreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */; };
 		EE218D2A45B07D5449EC7E61 /* DetailModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1384478A2C1BDEDDA8C64200 /* DetailModels.swift */; };
 		F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */; };
-		F1399963B00C325B79FBA0BD /* MockModeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CA3C55FC8C0DA303EC9471 /* MockModeDetector.swift */; };
 		F2F81216C8A86112F5D53B3D /* AuthManagerSignOutIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9FBF9E6CD8A67F17A979D0 /* AuthManagerSignOutIntegrationTests.swift */; };
 		F3010080CDE3E66A512F6423 /* CurrentLocationZipResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */; };
 		F3C8EE9201D25C4B704F1B06 /* APIClientConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 412F8D40AC24BC4BCC958FFD /* APIClientConfigurationTests.swift */; };
@@ -327,7 +326,6 @@
 		7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFavoritesViewTests.swift; sourceTree = "<group>"; };
 		75F533C73971C1F2F36A83BC /* HomeNearbyDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeNearbyDiscoveryModel.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
-		79CA3C55FC8C0DA303EC9471 /* MockModeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockModeDetector.swift; sourceTree = "<group>"; };
 		822BF17F198A98B4106613C1 /* ComedianRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianRowTests.swift; sourceTree = "<group>"; };
 		847B300414E0F1BA6011DA7B /* LaughTrackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTests.swift; sourceTree = "<group>"; };
 		84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
@@ -612,7 +610,6 @@
 				0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */,
 				E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */,
 				43EE3334A9C17B5E93FDB4F4 /* LoadFailure.swift */,
-				79CA3C55FC8C0DA303EC9471 /* MockModeDetector.swift */,
 				498BFB68E6063E822195D27C /* NearbyLocationController.swift */,
 				92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */,
 				A7010A6134B6DB8A613D78CA /* NotificationPreferenceStore.swift */,
@@ -1113,7 +1110,6 @@
 				2FDC04B26C9E078C0855E7FF /* LaughTrackCacheKey.swift in Sources */,
 				1B95B72A52E55A1521A3914B /* LaughTrackOfflineOperation.swift in Sources */,
 				CD180351B0B6171228503509 /* LoadFailure.swift in Sources */,
-				F1399963B00C325B79FBA0BD /* MockModeDetector.swift in Sources */,
 				E3DDB8037254DC0B356EBBEB /* NearbyLocationController.swift in Sources */,
 				8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */,
 				2268FC3D21464E385BD48063 /* NotificationPreferenceStore.swift in Sources */,
@@ -1701,7 +1697,7 @@
 			repositoryURL = "https://github.com/gioe/ios-libs.git";
 			requirement = {
 				kind = revision;
-				revision = 88cc4ddf96ab4719dce62c0c64cfabc6c8cae271;
+				revision = 7074af12ab722bee44a208843890702128a2e6f7;
 			};
 		};
 		84B17814638981A8256A1360 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */ = {

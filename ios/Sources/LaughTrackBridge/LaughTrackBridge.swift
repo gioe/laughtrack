@@ -61,6 +61,10 @@ public typealias CachedAsyncImage = SharedKit.CachedAsyncImage
 public typealias AppStateStorage = SharedKit.AppStateStorage
 public typealias AppStateStorageProtocol = SharedKit.AppStateStorageProtocol
 
+// MARK: - Testing helpers
+
+public typealias MockModeDetector = SharedKit.MockModeDetector
+
 // Environment extensions are automatically available through the re-exported types.
 // The .environment(\.appTheme, ...) and .environment(\.serviceContainer, ...) modifiers
 // work because EnvironmentValues extensions are resolved at the SwiftUI framework level,
