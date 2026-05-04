@@ -65,11 +65,14 @@ class EventbriteClient(BaseApiClient):
         # category_id, subcategory_id, and format_id are top-level fields in the
         # Eventbrite venue/organizer API response — they are returned by default
         # without needing to be listed in "expand".
+        # `venue` must be expanded so per-event venue objects are populated when
+        # fetching organizer feeds (which return events at many different venues);
+        # for single-venue scrapes the inclusion is harmless redundancy.
         self.params = {
             "status": "live",
             "order_by": "start_asc",
             "only_public": "true",
-            "expand": "ticket_availability",
+            "expand": "ticket_availability,venue",
         }
 
     def _initialize_headers(self) -> dict:

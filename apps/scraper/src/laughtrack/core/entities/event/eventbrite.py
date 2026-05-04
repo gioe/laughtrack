@@ -49,6 +49,14 @@ class EventbriteEvent(ShowConvertible):
     location_name: Optional[str] = None
     location_address: Optional[str] = None
 
+    # Structured venue fields (populated from expand=venue API responses).
+    # Required by organizer-feed scraping where each event has its own venue
+    # and the per-event venue club must be upserted from these fields.
+    venue_id: Optional[str] = None
+    venue_city: Optional[str] = None
+    venue_state: Optional[str] = None
+    venue_zip: Optional[str] = None
+
     # Performer information
     performers: Optional[List[str]] = None
 
@@ -65,6 +73,12 @@ class EventbriteEvent(ShowConvertible):
     # Raw data preservation for debugging
     _raw_json_ld: Optional[Dict[str, Any]] = None
     _raw_html_data: Optional[Dict[str, Any]] = None
+
+    # Reference to the original API venue object so the per-venue upsert path
+    # (ClubHandler.upsert_for_eventbrite_venue) can be called without re-parsing
+    # the address fields. Not part of the persisted Show; used by organizer-mode
+    # routing inside EventbriteScraper.
+    _api_venue: Any = None
 
     @classmethod
     def from_api_model(cls, api_event) -> "EventbriteEvent":
@@ -108,18 +122,30 @@ class EventbriteEvent(ShowConvertible):
         # Extract location information from venue
         location_name = None
         location_address = None
-        if api_event.venue:
-            if hasattr(api_event.venue, "name"):
-                location_name = api_event.venue.name
-            if hasattr(api_event.venue, "address") and api_event.venue.address:
+        venue_id = None
+        venue_city = None
+        venue_state = None
+        venue_zip = None
+        api_venue = getattr(api_event, "venue", None)
+        if api_venue:
+            if hasattr(api_venue, "name"):
+                location_name = api_venue.name
+            if hasattr(api_venue, "id"):
+                venue_id = api_venue.id
+            address = getattr(api_venue, "address", None)
+            if address:
                 # Build address string from address components
                 address_parts = []
-                if hasattr(api_event.venue.address, "address_1") and api_event.venue.address.address_1:
-                    address_parts.append(api_event.venue.address.address_1)
-                if hasattr(api_event.venue.address, "city") and api_event.venue.address.city:
-                    address_parts.append(api_event.venue.address.city)
-                if hasattr(api_event.venue.address, "region") and api_event.venue.address.region:
-                    address_parts.append(api_event.venue.address.region)
+                if getattr(address, "address_1", None):
+                    address_parts.append(address.address_1)
+                if getattr(address, "city", None):
+                    address_parts.append(address.city)
+                    venue_city = address.city
+                if getattr(address, "region", None):
+                    address_parts.append(address.region)
+                    venue_state = address.region
+                if getattr(address, "postal_code", None):
+                    venue_zip = address.postal_code
                 location_address = ", ".join(address_parts) if address_parts else None
 
         return cls(
@@ -129,6 +155,10 @@ class EventbriteEvent(ShowConvertible):
             description=description,
             location_name=location_name,
             location_address=location_address,
+            venue_id=venue_id,
+            venue_city=venue_city,
+            venue_state=venue_state,
+            venue_zip=venue_zip,
             performers=None,  # Will need to be extracted separately if available
             ticket_offers=None,  # Will need to be converted from ticket_availability if available
             category_id=getattr(api_event, "category_id", None),
@@ -136,6 +166,7 @@ class EventbriteEvent(ShowConvertible):
             data_source_type="api",
             _raw_json_ld=None,
             _raw_html_data={"api_event": api_event.__dict__},
+            _api_venue=api_venue,
         )
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
