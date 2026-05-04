@@ -202,12 +202,13 @@ private struct ShowFiltersPanel: View {
                     } label: {
                         LaughTrackBrowseChip(
                             zipChipTitle,
-                            systemImage: "mappin.and.ellipse",
+                            systemImage: zipChipSystemImage,
                             tone: model.activeNearbyPreference == nil ? .neutral : .selected
                         )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Edit ZIP")
+                    .accessibilityHint(zipChipAccessibilityHint)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
@@ -252,6 +253,20 @@ private struct ShowFiltersPanel: View {
 
         let draft = model.zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         return draft.isEmpty ? "Location" : "Location \(draft)"
+    }
+
+    private var zipChipSystemImage: String {
+        guard let source = model.activeNearbyPreference?.source else {
+            return "mappin.and.ellipse"
+        }
+        return source == .geolocated ? "location.fill" : "mappin.and.ellipse"
+    }
+
+    private var zipChipAccessibilityHint: String {
+        guard let source = model.activeNearbyPreference?.source else {
+            return "No location set."
+        }
+        return source == .geolocated ? "Detected from device location." : "Saved manually."
     }
 
     private var activeFilterCount: Int {
@@ -472,7 +487,7 @@ private struct ZipFilterModal: View {
                     }
 
                     LaughTrackButton(
-                        model.isResolvingCurrentLocation ? "Finding ZIP..." : "Current location",
+                        model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
                         systemImage: "location.fill",
                         tone: .secondary,
                         density: .compact
