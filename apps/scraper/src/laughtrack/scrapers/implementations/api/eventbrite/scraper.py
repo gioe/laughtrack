@@ -68,10 +68,13 @@ class EventbriteScraper(BaseScraper):
     def _is_organizer_mode(self) -> bool:
         """True when the configured source URL targets an Eventbrite organizer feed.
 
-        Organizer feeds (``/o/...``) span many venues; per-event venue routing is
-        required so each Show is attached to its own ``clubs`` row.
+        Organizer feeds (``eventbrite.com/o/...``) span many venues; per-event
+        venue routing is required so each Show is attached to its own ``clubs``
+        row. The substring check mirrors ``_extract_eventbrite_organizer_id`` in
+        services/scraping so a URL that activates organizer mode here is the
+        same one the orchestrator's synthetic-proxy builder accepts.
         """
-        return "/o/" in (self.club.scraping_url or "")
+        return "eventbrite.com/o/" in (self.club.scraping_url or "")
 
     async def collect_scraping_targets(self) -> List[str]:
         """API-based: single logical target representing the venue/organizer ID."""

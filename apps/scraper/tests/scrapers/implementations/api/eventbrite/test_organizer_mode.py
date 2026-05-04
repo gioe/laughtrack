@@ -186,6 +186,75 @@ def test_synthetic_proxy_returns_none_when_url_unsupported():
     assert _build_synthetic_proxy_for_company(bad) is None
 
 
+def test_synthetic_proxy_returns_none_for_eventbrite_org_url_without_digits():
+    """The ``>=6 digits`` guard in _extract_eventbrite_organizer_id must reject
+    Eventbrite ``/o/`` URLs that contain no parseable id, otherwise the
+    synthetic proxy would activate organizer mode with an empty external_id and
+    the Eventbrite client would issue a malformed ``/organizers//events/`` call."""
+    no_id = ProductionCompany(
+        id=98,
+        name="No-ID Org",
+        slug="no-id-org",
+        scraping_url="https://www.eventbrite.com/o/some-org",
+    )
+    assert _build_synthetic_proxy_for_company(no_id) is None
+    short_id = ProductionCompany(
+        id=97,
+        name="Too-Short Org",
+        slug="too-short-org",
+        scraping_url="https://www.eventbrite.com/o/some-org/12345",
+    )
+    # Five digits is below the 6-digit minimum the regex enforces.
+    assert _build_synthetic_proxy_for_company(short_id) is None
+
+
+def test_pc_stamp_skips_shows_when_keywords_dont_match():
+    """Per-venue Shows from organizer mode must NOT be stamped with
+    production_company_id when the company has show_name_keywords AND the
+    show name doesn't match. Encore Comedy itself has empty keywords so every
+    show matches, but the orchestrator's stamping branch is shared with
+    keyword-filtered companies (e.g. Laff House id=1) and the per-venue path
+    is new — verify the existing matches_show_name guard still kicks in."""
+    company = ProductionCompany(
+        id=1,
+        name="Laff House",
+        slug="laff-house",
+        scraping_url=_ENCORE_ORGANIZER_URL,
+        show_name_keywords=["comedy", "stand-up", "improv"],
+    )
+    proxy = _build_synthetic_proxy_for_company(company)
+    assert proxy is not None
+
+    show_date = datetime(2026, 6, 15, 23, 0, tzinfo=timezone.utc)
+    matching = Show(
+        name="Stand-up Comedy Night",
+        club_id=2001,
+        date=show_date,
+        show_page_url="",
+        lineup=[],
+        tickets=[],
+    )
+    non_matching = Show(
+        name="Karaoke and DJ Set",
+        club_id=2002,
+        date=show_date,
+        show_page_url="",
+        lineup=[],
+        tickets=[],
+    )
+
+    # Mirror the stamping branch in ScrapingService.scrape_one.
+    for show in (matching, non_matching):
+        if company.matches_show_name(show.name):
+            show.production_company_id = company.id
+
+    assert matching.production_company_id == company.id
+    # The non-matching show keeps production_company_id unset, which is the
+    # whole point of the keyword filter — it would otherwise be stamped onto
+    # an unrelated event surfaced by the same per-venue scrape.
+    assert non_matching.production_company_id is None
+
+
 # ---------------------------------------------------------------------------
 # EventbriteScraper organizer-mode end-to-end
 # ---------------------------------------------------------------------------
@@ -338,8 +407,9 @@ async def test_organizer_mode_skips_venue_when_upsert_fails():
 
 @pytest.mark.asyncio
 async def test_single_venue_mode_falls_through_to_standard_pipeline():
-    """When the source URL has no /o/ segment, scrape_async defers to BaseScraper
-    so single-venue scrapes keep their existing behavior (no per-event upsert)."""
+    """When the source URL has no eventbrite.com/o/ segment, scrape_async defers
+    to BaseScraper so single-venue scrapes keep their existing behavior (no
+    per-event upsert)."""
     venue_club = Club(
         id=42,
         name="Single Venue",
@@ -350,15 +420,6 @@ async def test_single_venue_mode_falls_through_to_standard_pipeline():
         phone_number="",
         visible=True,
     )
-    venue_club.scraping_sources = [
-        ScrapingSource(
-            platform="eventbrite",
-            scraper_key="eventbrite",
-            source_url="https://www.eventbrite.com/o/some-org",  # has /o/ but no digits — handled below
-            external_id="VENUE123",
-        )
-    ]
-    # Override to a non-organizer URL by activating a different source.
     venue_only = ScrapingSource(
         platform="eventbrite",
         scraper_key="eventbrite",

@@ -42,3 +42,15 @@ VALUES (
     ARRAY[]::text[]
 )
 ON CONFLICT (name) DO NOTHING;
+
+-- Idempotent guard: ensure the legacy SeatEngine state-bucket clubs stay
+-- hidden so the new per-venue Encore shows (upserted via organizer mode) don't
+-- coexist with a stale visible state-bucket version. Already true in prod and
+-- staging at the time this migration was authored; the UPDATE is a no-op
+-- there. New environments running the migration from scratch get the same
+-- end-state without an out-of-band manual step.
+UPDATE clubs
+SET visible = FALSE
+WHERE id IN (639, 640, 641, 642, 643, 644)
+  AND name LIKE 'Encore Comedy - %'
+  AND visible = TRUE;
