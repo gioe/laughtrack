@@ -369,6 +369,42 @@ async def test_organizer_mode_skips_events_with_missing_venue():
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_call():
+    """Per-venue ``upsert_for_eventbrite_venue`` must run inside the process-wide
+    ``serialized_db_call`` wrapper so it serializes against the orchestrator's
+    ``insert_club_result`` writes (which run on a different event loop in the
+    main scrape loop). Without this guarantee, two concurrent production-company
+    scrapes could issue overlapping ``clubs`` upserts."""
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+    api_events = [
+        _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
+    ]
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club
+    ) as upsert_mock, patch(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
+        wraps=lambda fn, *args, **kwargs: fn(*args, **kwargs),
+    ) as serialized_mock:
+        shows = await scraper.scrape_async()
+
+        assert len(shows) == 1
+        # Every per-venue upsert must go through the shared serialization wrapper.
+        assert serialized_mock.call_count == 1
+        # The wrapper received the upsert callable as its first positional argument.
+        assert serialized_mock.call_args.args[0] is upsert_mock
+
+
+@pytest.mark.asyncio
 async def test_organizer_mode_skips_venue_when_upsert_fails():
     """A DB error upserting one venue's club must not drop other venues' shows."""
     proxy = _build_synthetic_proxy_for_company(_encore_company())

@@ -32,6 +32,7 @@ from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.foundation.infrastructure.database.write_lock import serialized_db_call
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from .extractor import EventbriteExtractor
@@ -155,7 +156,10 @@ class EventbriteScraper(BaseScraper):
             api_venue = group[0]._api_venue
             try:
                 venue_club = await loop.run_in_executor(
-                    None, self._club_handler.upsert_for_eventbrite_venue, api_venue
+                    None,
+                    serialized_db_call,
+                    self._club_handler.upsert_for_eventbrite_venue,
+                    api_venue,
                 )
             except Exception as exc:
                 Logger.error(

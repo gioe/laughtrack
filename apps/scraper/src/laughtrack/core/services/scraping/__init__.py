@@ -20,6 +20,7 @@ from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.domain.club.selector import ClubSelector
 from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
+from laughtrack.foundation.infrastructure.database.write_lock import serialized_db_call
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.app.wiring import build_services  # noqa: F401 (side-effects for wiring if needed)
@@ -484,8 +485,10 @@ class ScrapingService:
                                 )
 
                         # Persist immediately after this club completes scraping.
-                        # db_lock serializes writes so insert_club_result() is called
-                        # from at most one thread at a time, ensuring ShowService thread safety.
+                        # db_lock orders writes within the orchestrator's loop;
+                        # serialized_db_call additionally serializes against
+                        # writes from worker-thread scrapers (e.g. EventbriteScraper
+                        # organizer-mode per-venue upserts) running on different loops.
                         _DB_WRITE_TIMEOUT = 60  # seconds; unblocks db_lock if Neon connection drops
                         try:
                             async with db_lock:
@@ -496,7 +499,10 @@ class ScrapingService:
                                     try:
                                         club_db_result = await asyncio.wait_for(
                                             loop.run_in_executor(
-                                                None, self.result_processor.insert_club_result, result
+                                                None,
+                                                serialized_db_call,
+                                                self.result_processor.insert_club_result,
+                                                result,
                                             ),
                                             timeout=_DB_WRITE_TIMEOUT,
                                         )
