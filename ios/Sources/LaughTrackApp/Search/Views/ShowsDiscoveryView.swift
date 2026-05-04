@@ -214,7 +214,7 @@ private struct ShowFiltersPanel: View {
                 Button {
                     isFilterEditorPresented = true
                 } label: {
-                    LaughTrackBrowseChip("\(activeFilterCount) filters", tone: .accent)
+                    LaughTrackBrowseChip(filterCountTitle, tone: .accent)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Filter results")
@@ -256,6 +256,10 @@ private struct ShowFiltersPanel: View {
 
     private var activeFilterCount: Int {
         model.selectedFilterSlugs.count
+    }
+
+    private var filterCountTitle: String {
+        "\(activeFilterCount) filter\(activeFilterCount == 1 ? "" : "s")"
     }
 
     private var distanceSelector: some View {

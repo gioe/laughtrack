@@ -41,7 +41,7 @@ struct PrimitiveSearchControls: View {
             }
 
             Button(action: openFilters) {
-                LaughTrackBrowseChip("\(filterCount) filters", tone: .accent)
+                LaughTrackBrowseChip("\(filterCount) filter\(filterCount == 1 ? "" : "s")", tone: .accent)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Filter results")
