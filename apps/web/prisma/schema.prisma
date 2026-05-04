@@ -94,6 +94,22 @@ model ScrapingSource {
   @@map("scraping_sources")
 }
 
+// Per-scraper runtime configuration. The Python scraper loads
+// `useResidentialProxy` rows once at startup so on-call can flip a venue's
+// proxy bit via plain SQL without a redeploy. Seeded in
+// 20260504143000_add_scrapers_table for the 5 IP-WAF-blocked platforms
+// identified in TASK-1892.
+model Scraper {
+  key                 String   @id
+  useResidentialProxy Boolean  @default(false) @map("use_residential_proxy")
+  notes               String?
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@index([useResidentialProxy])
+  @@map("scrapers")
+}
+
 model Club {
   id                      Int                      @id @default(autoincrement())
   name                    String                   @unique
