@@ -23,6 +23,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tusk_loader
+from tusk_underscore_bin_files import get_underscore_bin_files
 
 
 def find_files(root, dirs, extensions):
@@ -681,8 +682,31 @@ def rule15_big_bang_commits(root):
     return [f"  TASK-{row[0]}  {row[1]}  (criteria on one commit: {row[2]})" for row in rows]
 
 
+_BUMP_RECENT_WINDOW = 10
+
+
 def _version_bump_check(root, path_re, label):
     """Shared helper: check if files matching path_re were modified without a VERSION bump.
+
+    Two parts:
+      - Part A (uncommitted): files matching path_re are dirty in the working
+        tree but VERSION is not. Suppressed when ``just_bumped`` is true (HEAD
+        is the most recent commit that touched VERSION) — the documented
+        split-bump workflow from CLAUDE.md commits the bump first, then a
+        follow-up feature commit on top.
+      - Part B (committed): files matching path_re changed in
+        ``last_ver_commit..HEAD`` without a corresponding VERSION change in
+        that range. Suppressed when ``bump_is_recent`` is true — i.e. the bump
+        is within ``_BUMP_RECENT_WINDOW`` commits of HEAD on the linear
+        history. ``just_bumped`` is the N=0 special case; the broader window
+        covers the typical split-bump PR (bump → feature commit(s), all part
+        of the same task) once it has merged. Without this window the
+        advisory persisted on every developer's tree until the next task's
+        bump landed (Issue #634), polluting the lint signal between bumps.
+        The window is intentionally generous — long-running branches that
+        accumulate more than ``_BUMP_RECENT_WINDOW`` commits since their
+        single bump still trip Part B as a real "you might want another bump
+        before merging" signal.
 
     Advisory only — caller is responsible for not counting violations toward exit code.
     """
@@ -709,6 +733,46 @@ def _version_bump_check(root, path_re, label):
         except OSError:
             return "unknown"
 
+    # Detect whether the immediately-preceding commit was the VERSION bump.
+    # When HEAD is the most recent commit that touched VERSION, the user just
+    # bumped it in the prior commit (the documented split-bump workflow from
+    # CLAUDE.md), so a follow-up feature commit on the same branch must not
+    # trip the advisory.
+    last_ver_commit = ""
+    head_sha = ""
+    try:
+        r = subprocess.run(
+            ["git", "log", "-1", "--format=%H", "--", "VERSION"],
+            capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
+        )
+        last_ver_commit = r.stdout.strip() if r.returncode == 0 else ""
+        r = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
+        )
+        head_sha = r.stdout.strip() if r.returncode == 0 else ""
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    just_bumped = bool(last_ver_commit) and last_ver_commit == head_sha
+
+    # bump_is_recent: extended just_bumped used by Part B only. True when the
+    # bump is within _BUMP_RECENT_WINDOW commits of HEAD on the linear history.
+    # just_bumped is the N=0 case; the window covers the post-merge state of a
+    # typical split-bump PR (bump → feature commit(s) → merge), so Part B does
+    # not keep firing on every developer's tree until the next bump (Issue #634).
+    bump_is_recent = just_bumped
+    if not bump_is_recent and last_ver_commit:
+        try:
+            r = subprocess.run(
+                ["git", "rev-list", "--count", f"{last_ver_commit}..HEAD"],
+                capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
+            )
+            if r.returncode == 0:
+                count = int(r.stdout.strip())
+                bump_is_recent = 0 < count <= _BUMP_RECENT_WINDOW
+        except (subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+            pass
+
     # --- Part A: Uncommitted changes (staged or unstaged) ---
     dirty_files = []
     version_dirty = False
@@ -734,37 +798,33 @@ def _version_bump_check(root, path_re, label):
     except (subprocess.TimeoutExpired, FileNotFoundError):
         pass
 
-    if dirty_files and not version_dirty:
+    if dirty_files and not version_dirty and not just_bumped:
         ver = read_version()
         for s in sorted(dirty_files):
             violations.append(f"  Uncommitted: VERSION={ver}, {label} modified without VERSION bump: {s}")
 
     # --- Part B: Committed changes since last VERSION bump ---
-    # Skip if VERSION is currently dirty (user is already in the process of bumping it)
-    if not version_dirty:
+    # Skip if VERSION is currently dirty (user is already in the process of bumping it).
+    # Skip when last_ver_commit == HEAD (diff range empty) — covered by bump_is_recent.
+    # Skip when the bump is within the recent-window (split-bump batch — Issue #634).
+    if not version_dirty and last_ver_commit and not bump_is_recent:
         try:
-            r = subprocess.run(
-                ["git", "log", "-1", "--format=%H", "--", "VERSION"],
+            r2 = subprocess.run(
+                ["git", "diff", "--name-only", f"{last_ver_commit}..HEAD"],
                 capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
             )
-            last_ver_commit = r.stdout.strip() if r.returncode == 0 else ""
-            if last_ver_commit:
-                r2 = subprocess.run(
-                    ["git", "diff", "--name-only", f"{last_ver_commit}..HEAD"],
-                    capture_output=True, text=True, encoding="utf-8", timeout=5, cwd=root,
-                )
-                if r2.returncode == 0:
-                    changed = r2.stdout.splitlines()
-                    committed_files = [p for p in changed if path_re.match(p)]
-                    # No need to check if VERSION is in the diff — last_ver_commit is by
-                    # definition the most recent commit that touched VERSION, so nothing
-                    # between it and HEAD can contain another VERSION change.
-                    if committed_files:
-                        ver = read_version()
-                        for s in sorted(committed_files):
-                            violations.append(
-                                f"  Committed since last VERSION bump: VERSION={ver}, {label} modified without VERSION bump: {s}"
-                            )
+            if r2.returncode == 0:
+                changed = r2.stdout.splitlines()
+                committed_files = [p for p in changed if path_re.match(p)]
+                # No need to check if VERSION is in the diff — last_ver_commit is by
+                # definition the most recent commit that touched VERSION, so nothing
+                # between it and HEAD can contain another VERSION change.
+                if committed_files:
+                    ver = read_version()
+                    for s in sorted(committed_files):
+                        violations.append(
+                            f"  Committed since last VERSION bump: VERSION={ver}, {label} modified without VERSION bump: {s}"
+                        )
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
 
@@ -862,15 +922,29 @@ def rule22_issue_tasks_missing_test_criterion(root):
 # ── DB-backed rules ──────────────────────────────────────────────────
 
 def _db_path_from_root(root):
-    """Resolve the tusk DB path by calling 'tusk path'. Returns path str or None."""
+    """Resolve the tusk DB path by calling 'tusk path'. Returns path str or None.
+
+    When the project's local ``bin/tusk`` shim is missing, we fall back to bare
+    ``tusk`` on PATH — but only accept the resolved DB if it lives under
+    ``<root>/tusk/``. Without that containment check, a tmp_path fixture
+    lacking ``bin/tusk`` would silently borrow the dev's source-repo binary
+    and lint against the source DB, leaking session state into Rules 14/15
+    (and any other DB-backed rule). See Issue #633.
+    """
     tusk_bin = os.path.join(root, "bin", "tusk")
+    used_fallback = False
     if not os.path.isfile(tusk_bin):
         tusk_bin = "tusk"
+        used_fallback = True
     try:
         r = subprocess.run([tusk_bin, "path"], capture_output=True, text=True, encoding="utf-8", timeout=5)
         if r.returncode == 0:
             p = r.stdout.strip()
             if p and os.path.isfile(p):
+                if used_fallback:
+                    expected_prefix = os.path.realpath(os.path.join(root, "tusk")) + os.sep
+                    if not os.path.realpath(p).startswith(expected_prefix):
+                        return None
                 return p
     except (FileNotFoundError, subprocess.TimeoutExpired):
         pass
@@ -992,9 +1066,9 @@ def rule18_manifest_drift(root):
             continue
         expected.append(".claude/bin/" + os.path.basename(p))
 
-    # tusk_loader.py uses an underscore filename — not matched by the tusk-*.py glob above.
-    if os.path.isfile(os.path.join(root, "bin", "tusk_loader.py")):
-        expected.append(".claude/bin/tusk_loader.py")
+    # Underscore-named bin/ files — canonical list lives in bin/tusk_underscore_bin_files.py.
+    for name in get_underscore_bin_files(root):
+        expected.append(".claude/bin/" + name)
 
     for name in ["config.default.json", "VERSION", "pricing.json"]:
         expected.append(".claude/bin/" + name)
@@ -1168,6 +1242,74 @@ def rule24_subprocess_encoding(root):
     return violations
 
 
+def rule26_glossary_drift(root):
+    """docs/GLOSSARY.md is out of sync with the glossary table.
+
+    Renders the glossary table to markdown via the same code path as
+    `tusk glossary export --stdout`, then compares against the on-disk
+    file. Drift means the table and the file disagree about a definition,
+    see-also pointer, term ordering, or set of entries.
+
+    Skips when:
+    - The repo has no `tusk/tasks.db` (target projects not using tusk).
+    - `docs/GLOSSARY.md` doesn't exist (project doesn't ship a glossary).
+    - The glossary table is empty (no source of truth to compare against).
+    - The DB doesn't have the glossary table yet (pre-v64 migration).
+
+    Fix when triggered: either re-run `tusk glossary export` (md is stale)
+    or `tusk glossary set-definition <term>` to push a hand-edit back into
+    the table.
+    """
+    db_path = _db_path_from_root(root)
+    if not db_path:
+        return []
+
+    glossary_md = os.path.join(root, "docs", "GLOSSARY.md")
+    if not os.path.isfile(glossary_md):
+        return []
+
+    try:
+        conn = tusk_loader.load("tusk-db-lib").get_connection(db_path)
+        try:
+            try:
+                rows = conn.execute(
+                    "SELECT term, definition, see_also, topics "
+                    "FROM glossary ORDER BY term COLLATE NOCASE"
+                ).fetchall()
+            except sqlite3.OperationalError:
+                # Pre-v64 DB or missing table.
+                return []
+        finally:
+            conn.close()
+    except Exception:
+        return []
+
+    if not rows:
+        return []
+
+    try:
+        glossary_mod = tusk_loader.load("tusk-glossary")
+    except Exception:
+        return []
+
+    expected = glossary_mod.render_glossary_md([tuple(r) for r in rows])
+    try:
+        with open(glossary_md, encoding="utf-8") as f:
+            actual = f.read()
+    except OSError as exc:
+        return [f"  docs/GLOSSARY.md could not be read: {exc}"]
+
+    if expected == actual:
+        return []
+
+    return [
+        "  docs/GLOSSARY.md is out of sync with the glossary table.",
+        "  Fix: run `tusk glossary export` to regenerate the file from the table,",
+        "       or `tusk glossary set-definition <term> --definition '...'`",
+        "       to propagate a hand-edit back into the table.",
+    ]
+
+
 # Each entry: (display_name, check_function, advisory)
 # advisory=True  → violations are printed but do NOT count toward exit code
 # advisory=False → violations count toward the non-zero exit code
@@ -1195,6 +1337,7 @@ RULES = [
     ("Rule 23: CLAUDE.md exceeds line limit (advisory)", rule23_claude_md_size, True),
     ("Rule 24: subprocess.run/check_output/Popen text=True without encoding", rule24_subprocess_encoding, False),
     ("Rule 25: bin/tusk subcommand drift across dispatcher, candidates list, and Usage message", rule25_subcommand_dispatcher_drift, False),
+    ("Rule 26: docs/GLOSSARY.md drift from glossary table", rule26_glossary_drift, False),
 ]
 
 # Load project-specific rules from tusk-lint-extra.py if it exists alongside this script.

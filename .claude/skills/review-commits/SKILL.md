@@ -93,6 +93,19 @@ Only when the diff is non-empty and a review has been started in Step 3, proceed
 **Inline-review path (no agent spawned).** Use the inline path when *any* of the following is true:
 - The diff is small (fewer than ~200 lines) or contains only non-code files (`.md`, `.json`, `.yaml`).
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
+- Tusk is running under a Codex install AND the user did not explicitly opt into subagent-based review for this `/review-commits` invocation. Codex session policy disallows spawning subagents unless the operator asks for one, so the inline path is the safe default — it keeps the real-diff review workflow without violating session policy.
+
+**Detecting Codex install mode and the opt-in.** Read the `install-mode` marker stamped by `install.sh` (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`):
+
+```bash
+TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
+case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
+```
+
+Treat the user as having opted into the agent path only when their `/review-commits` invocation explicitly contains a phrase like `use the reviewer agent`, `delegate review`, `spawn the reviewer`, or `agent review`. A bare `/review-commits` (or one with only a task ID argument) is **not** an opt-in. When `IS_CODEX=1` and no opt-in phrase is present, surface the routing decision before reading the diff — e.g. *"Codex install detected — running inline review. Re-run with `use the reviewer agent` to opt into agent-based review."* — so the operator can re-invoke with the opt-in flag if they want a full agent review.
+
+**Why install-mode and not a runtime signal?** Codex (the `openai/codex` CLI) does not document or inject a `CODEX_*` env var into subprocess environments to mark "running under Codex" — `CODEX_HOME` is a configuration input pointing at Codex's local state, not an output marker, and `shell_environment_policy` lets users strip inherited variables freely (so even if a marker existed, it would not be reliable). install-mode is therefore the most durable signal we have: `install.sh` chooses it from `.claude/` (claude) vs `AGENTS.md`-only (codex) at install time and stamps the marker once. **Mixed-mode caveat:** a repo with both `.claude/` and `AGENTS.md` is marked `claude-*` by `install.sh`. If `/review-commits` is invoked from a Codex session in such a repo, `IS_CODEX=0` and the agent path is taken — under Codex's subagent policy that spawn may fail. If it does, perform a manual inline review: read the diff yourself, then use `tusk review approve` or `tusk review request-changes` + `tusk review add-comment`.
 
 Read the diff yourself, evaluate it, and record the result directly. Always pass `--model <your_model_id>` — the canonical ID matching the format in `task_sessions.model` (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`). Strip any suffixes like `[1m]` or date-stamps from your system prompt's ID so the value joins cleanly against other model-tagged tables (e.g. `claude-opus-4-7[1m]` → `claude-opus-4-7`):
 
@@ -117,6 +130,15 @@ On success the command prints `OK` and exits 0. On failure it prints a single `M
 > Agent review aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
 Proceed to spawn the agent only if the check prints `OK`.
+
+**Capture cost-attribution anchors before spawning.** The reviewer agent runs in its own Task sandbox and writes to a separate `<session-uuid>.jsonl` under `~/.claude/projects/<project-hash>/`. The orchestrator's auto-compute path uses `find_transcript()`, which returns whichever JSONL has the most recent mtime — typically the orchestrator's own (continuously updated by tool results), so the cost recorded on `code_reviews` reflects orchestrator wait time, not the actual reviewer-agent spend. To attribute correctly, snapshot the orchestrator's JSONL path and the spawn timestamp now, before spawning:
+
+```bash
+ORCH_JSONL=$(tusk review-agent-cost --print-orchestrator-jsonl)
+SPAWN_TS=$(date +%s)
+```
+
+Hold both values for Step 6, where the orchestrator runs `tusk review-agent-cost --since "$SPAWN_TS" --exclude-jsonl "$ORCH_JSONL"` after the agent completes and pipes the result into `tusk review backfill-cost --force <review_id> --cost-dollars X --tokens-in Y --tokens-out Z`. If `tusk review-agent-cost --print-orchestrator-jsonl` exits non-zero (no transcript found), fall through without setting `ORCH_JSONL` — Step 6 will skip the cost-correction step and the row keeps its (orchestrator-only) auto-compute.
 
 Read the reviewer prompt template:
 
@@ -179,23 +201,41 @@ tusk review status <task_id>
 
 Parse the JSON.
 
-- **`status` is `"approved"` or `"changes_requested"`** → proceed to Step 7.
+- **`status` is `"approved"` or `"changes_requested"`** → the agent posted its verdict normally. Now correct the cost attribution before moving on (see "Apply agent cost" below), then proceed to Step 7.
 
 - **`status` is still `"pending"`** → check whether the agent has finished using `TaskOutput` with `block: false` and the agent task ID:
 
   **Agent has completed** (TaskOutput shows the agent is done) but the review is still `"pending"`:
-  - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note. Pass `--model <your_model_id>` (the orchestrator's own ID from its system prompt) since the orchestrator, not the silent agent, is closing this review:
+  - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note. Pass `--model <your_model_id>` (the orchestrator's own ID from its system prompt) since the orchestrator, not the silent agent, is closing this review. **Cost note:** because the orchestrator is closing the review, the row's `cost_dollars` is auto-computed from the orchestrator's transcript window and reflects only orchestrator-side spend (the agent never recorded a verdict, so its API tokens cannot be attributed via the normal flow). After the approve call, attempt the agent-cost correction below — the agent did exit, so its JSONL may exist:
     ```bash
     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
     ```
     The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. Continue as if the review returned no findings.
 
   **Agent is still running** after the stall deadline elapsed:
-  - Auto-approve with a stall warning note. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the stalled agent, is closing this review:
+  - Auto-approve with a stall warning note. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the stalled agent, is closing this review. **Cost note:** the row's `cost_dollars` here reflects orchestrator-only attribution — the agent is still mid-run, so its in-progress JSONL is not safe to aggregate. **Skip the agent-cost correction** in this branch and accept the orchestrator-side cost; document the gap with the stall note already on the row:
     ```bash
     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (stall): reviewer agent has been running for ≥2.5 min without posting a verdict. The agent may be looping or running a long-running command such as a full test suite. Check REVIEWER-PROMPT.md Step 2.6 constraints. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
     ```
     Continue as if the review returned no findings.
+
+**Apply agent cost (normal-completion path only).** When the agent posted its verdict normally — i.e. the `status` check above returned `"approved"` or `"changes_requested"` — its `tusk review approve` / `tusk review request-changes` call ran inside the agent sandbox and the auto-compute resolved against `find_transcript()`, which (because the orchestrator's JSONL is being continuously updated) typically attributed to the orchestrator's transcript window. Override the row with the agent's actual spend now:
+
+```bash
+if [ -n "$ORCH_JSONL" ]; then
+  AGENT_COST_JSON=$(tusk review-agent-cost --since "$SPAWN_TS" --exclude-jsonl "$ORCH_JSONL")
+  AGENT_COST_RC=$?
+  if [ "$AGENT_COST_RC" -eq 0 ]; then
+    AGENT_COST=$(printf '%s' "$AGENT_COST_JSON" | jq -r .cost_dollars)
+    AGENT_TIN=$(printf '%s' "$AGENT_COST_JSON"  | jq -r .tokens_in)
+    AGENT_TOUT=$(printf '%s' "$AGENT_COST_JSON" | jq -r .tokens_out)
+    tusk review backfill-cost --force "$REVIEW_ID" \
+      --cost-dollars "$AGENT_COST" --tokens-in "$AGENT_TIN" --tokens-out "$AGENT_TOUT"
+  fi
+fi
+```
+
+`tusk review-agent-cost` reads the project's Claude transcripts dir, lists JSONLs modified at or after `$SPAWN_TS`, excludes `$ORCH_JSONL`, and aggregates token usage and cost across the remaining (agent) transcripts. Exit 0 means the override flags carry the agent's actual spend; exit 1 means no agent transcripts were discoverable (subagent JSONLs may live elsewhere on this host) and the row keeps its (orchestrator-only) auto-compute. Skip the block entirely if `$ORCH_JSONL` was not captured in Step 5.1.
 
 ## Step 7: Process Findings
 
@@ -303,18 +343,29 @@ If `can_retry` is false (either no open `must_fix` items, or `current_pass >= ma
 
 Otherwise, loop while `can_retry` is true:
 
-1. Start a new review pass:
+1. Start a new review pass and capture the diff size in one call. `tusk review begin` resolves the default branch (`tusk git-default-branch`), computes the `<default>...HEAD` primary range, falls back to the `[TASK-<id>]` commit-range recovery when the feature branch has already been merged and deleted, stamps the captured diff summary onto the new `code_reviews` row internally, and prints a single JSON object with `review_id`, `task_id`, `reviewer`, `range`, `diff_lines`, and `recovered_from_task_commits`. Pass `--pass-num` to bump the pass counter:
    ```bash
-   tusk review start <task_id> --pass-num <current_pass + 1> --diff-summary "Re-review pass <n>"
+   REVIEW_BEGIN_JSON=$(tusk review begin $TASK_ID --pass-num <current_pass + 1>)
+   DIFF_LINES=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .diff_lines)
    ```
 
-2. **Check diff size before deciding review strategy.** Recompute the range with the same helper used in Step 3 — it transparently handles both the default-branch (TASK-commit recovery) and feature-branch (`<default>...HEAD`) cases:
+   If the helper exits non-zero, no diff is recoverable for this pass — surface its stderr verbatim and stop the loop.
+
+2. **Branch on diff size to decide review strategy.**
+
+   **For small or documentation-only diffs (`$DIFF_LINES` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). After recording the inline decision, skip to step 3.
+
+   To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 
    ```bash
-   DIFF_LINES=$(tusk review-diff-range $TASK_ID | jq -r .diff_lines)
+   TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+   INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
+   case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
    ```
 
-   **For small or documentation-only diffs (`$DIFF_LINES` below ~200, or only non-code files), or when `review.reviewer` is absent from config:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). After recording the inline decision, skip to step 3.
+   The user has opted into the agent path only when their invocation explicitly contains a phrase like `use the reviewer agent`, `delegate review`, `spawn the reviewer`, or `agent review`. A bare `/review-commits` (or one with only a task ID argument) is **not** an opt-in. When `IS_CODEX=1` without an opt-in phrase, take the inline path on this re-review pass too.
+
+   **Mixed-mode caveat:** a repo with both `.claude/` and `AGENTS.md` is marked `claude-*` by `install.sh` (install-mode is decided at install time, not at runtime, and Codex does not inject a `CODEX_*` env var into subprocess environments that we could read instead). If this re-review pass is running from a Codex session in such a repo, `IS_CODEX=0` and the agent path will be attempted — under Codex's subagent policy that spawn may fail. If it does, perform a manual inline review on this pass: read the diff yourself, then use `tusk review approve` or `tusk review request-changes` + `tusk review add-comment`, and skip to step 3.
 
    **For all other diffs:** verify the required agent sandbox permissions are configured before spawning the re-review agent. Run:
 
@@ -325,7 +376,14 @@ Otherwise, loop while `can_retry` is true:
    On failure the command prints a single `MISSING: …` line and exits 1. When the check fails, surface to the user:
    > Re-review agent aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
-   Proceed to spawn the re-review agent only if the check prints `OK`. The re-review agent fetches the diff itself — no diff is passed inline.
+   Proceed to spawn the re-review agent only if the check prints `OK`. The re-review agent fetches the diff itself — no diff is passed inline. Refresh the cost-attribution anchors before spawning so Step 6's "Apply agent cost" block can correct this pass's row too:
+
+   ```bash
+   ORCH_JSONL=$(tusk review-agent-cost --print-orchestrator-jsonl)
+   SPAWN_TS=$(date +%s)
+   ```
+
+   Both variables shadow the values captured in Step 5.1 — that's intended; each pass writes a fresh `code_reviews` row, and the agent JSONL spawned for this pass is the only one that should attribute to it.
 
 3. Monitor completion (Step 6) and process findings (Step 7).
 

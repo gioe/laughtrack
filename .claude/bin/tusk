@@ -12,6 +12,7 @@
 #   tusk config <key>          Print config values (domains, task_types, agents, etc.)
 #   tusk validate              Validate config.json against the expected schema
 #   tusk sql-quote "text"      Escape and quote a string for safe SQL interpolation
+#   tusk typed-criteria-build  Build a properly-escaped --typed-criteria JSON from stdin (or --spec-file)
 #   tusk dupes check "..."     Check a summary for duplicates
 #   tusk dupes scan            Find all duplicate pairs among open tasks
 #   tusk dupes similar <id>    Find tasks similar to a given ID
@@ -23,7 +24,7 @@
 #   tusk criteria add <id> "text" [--source ...] [--type ...] [--spec ...]  Add a criterion
 #   tusk criteria list <id>      List criteria for a task
 #   tusk criteria done <cid> [<cid> ...] [--skip-verify]  Mark one or more criteria as completed
-#   tusk criteria skip <cid> --reason <reason>  Mark a criterion as deferred to chain
+#   tusk criteria skip <cid> --reason <reason>  Close criterion without commit attribution (not applicable, chain-deferred, etc.)
 #   tusk criteria reset <cid>    Reset a criterion to incomplete (clears deferred flag too)
 #   tusk criteria finish-deferred --reason <r> <id...>  Mark all deferred criteria with given reason as completed
 #   tusk progress <id> [--next-steps "..."]  Log a progress checkpoint from HEAD
@@ -35,6 +36,7 @@
 #   tusk regen-triggers        Drop and recreate validation triggers from config
 #   tusk token-audit [--summary|--json]  Analyze skill token consumption
 #   tusk sync-skills            Regenerate .claude/skills/ symlinks from skills/ + skills-internal/
+#   tusk reconcile-skills       Re-run applies_to_project_types filter and sync .claude/skills/
 #   tusk pricing-update [--dry-run]  Fetch and update pricing.json from Anthropic docs
 #   tusk upgrade               Upgrade tusk from GitHub
 #
@@ -442,8 +444,13 @@ cmd_init() {
     recreate=1
   fi
 
-  # Copy default config if no project config exists
+  # Copy default config if no project config exists.
+  # Ensure the config's parent directory exists first — when TUSK_DB pins the
+  # database outside the project's tusk/ subdir (e.g. TUSK_DB=$TARGET/test.db),
+  # the earlier `mkdir -p "$DB_DIR"` only creates dirname(TUSK_DB), leaving
+  # $PROJECT_ROOT/tusk/ uncreated and breaking the cp below (issue #596).
   if [[ ! -f "$PROJECT_CONFIG" ]]; then
+    mkdir -p "$(dirname "$PROJECT_CONFIG")"
     cp "$DEFAULT_CONFIG" "$PROJECT_CONFIG"
     echo "Created config at $PROJECT_CONFIG — edit to set your project's domains and agents."
   fi
@@ -896,6 +903,19 @@ CREATE TABLE pillars (
 );
 PILLARS_SCHEMA
 
+  # Glossary (canonical term definitions; source of truth for docs/GLOSSARY.md)
+  sqlite3 "$DB_PATH" <<'GLOSSARY_SCHEMA'
+CREATE TABLE glossary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    term TEXT NOT NULL UNIQUE,
+    definition TEXT NOT NULL,
+    see_also TEXT,
+    topics TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+GLOSSARY_SCHEMA
+
   # Test runs (per-repo successful test_command elapsed history; read by
   # tusk-commit.py to auto-scale test_command_timeout_sec from p95)
   sqlite3 "$DB_PATH" <<'TEST_RUNS_SCHEMA'
@@ -926,8 +946,14 @@ TEST_RUNS_SCHEMA
     python3 "$SCRIPT_DIR/tusk-pillars.py" "$DB_PATH" "$(resolve_config)" sync-from-md >/dev/null 2>&1 || true
   fi
 
+  # Seed glossary from docs/GLOSSARY.md when present (tusk source repo and any
+  # target project that ships its own GLOSSARY.md). Silent no-op otherwise.
+  if [[ -f "$REPO_ROOT/docs/GLOSSARY.md" ]]; then
+    python3 "$SCRIPT_DIR/tusk-glossary.py" "$DB_PATH" "$(resolve_config)" sync-from-md >/dev/null 2>&1 || true
+  fi
+
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 63;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 64;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -964,6 +990,10 @@ cmd_regen_triggers() {
 }
 
 cmd_shell() {
+  if [[ $# -gt 0 ]]; then
+    echo "tusk shell: takes no arguments — use 'tusk -column -header \"<SQL>\"' for one-off queries" >&2
+    return 1
+  fi
   exec sqlite3 -header -column -cmd "PRAGMA foreign_keys = ON;" "$DB_PATH"
 }
 
@@ -1005,9 +1035,9 @@ cmd_query() {
         _fuzzy_match="$(python3 - "$_subcmd_lc" <<'PYEOF' 2>/dev/null  # suppress errors; no hint shown on failure
 import difflib, sys
 candidates = [
-  'init','path','config','validate','sql-quote','branch','commit',
-  'lint','lint-rule','dupes','conventions','pillars','criteria','dashboard','chain','blockers',
-  'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-defer','review-wait','review-check-perms',
+  'init','path','config','validate','sql-quote','typed-criteria-build','branch','commit',
+  'lint','lint-rule','dupes','conventions','pillars','glossary','criteria','dashboard','chain','blockers',
+  'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-defer','review-wait','review-check-perms','review-agent-cost',
   'deps','session-stats','session-recalc','session-close','skill-run','call-breakdown',
   'active-project','git-default-branch','branch-parse',
   'task-get','task-get-multi','task-select','task-start','task-done','task-insert','task-update','task-reopen','task-unstart','task-list','task-summary',
@@ -1016,7 +1046,7 @@ candidates = [
   'test-detect','test-precheck','add-lib',
   'init-scan-codebase','init-scan-todos','init-fetch-bootstrap','init-write-config','init-write-manifest-files','init-wizard','init-scaffold',
   'loop','merge','abandon','bakeoff','progress','setup',
-  'token-audit','sync-skills','generate-manifest','pricing-update','wsjf','shell',
+  'token-audit','sync-skills','reconcile-skills','generate-manifest','pricing-update','wsjf','shell',
   'version','version-bump','report-issue','changelog-add','migrate','update-gitignore','regen-triggers','upgrade',
 ]
 matches = difflib.get_close_matches(sys.argv[1], candidates, n=1, cutoff=0.6)
@@ -1352,11 +1382,11 @@ is_readonly_subcmd() {
   # a snapshot. When in doubt, omit from this list — a redundant backup is
   # cheaper than a missed one.
   case "${1:-}" in
-    ""|path|config|validate|sql-quote|version|version-bump|\
+    ""|path|config|validate|sql-quote|typed-criteria-build|version|version-bump|\
     git-default-branch|branch-parse|report-issue|\
-    sync-skills|generate-manifest|pricing-update|token-audit|\
+    sync-skills|reconcile-skills|generate-manifest|pricing-update|token-audit|\
     task-get|task-get-multi|task-list|task-select|task-summary|setup|\
-    backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|\
+    backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|review-agent-cost|\
     init-fetch-bootstrap|init-scan-codebase|init-scan-todos)
       return 0 ;;
     *) return 1 ;;
@@ -1383,6 +1413,47 @@ snapshot_db() {
   return 0
 }
 
+# Schema-version preflight: refuse to run when the DB has been migrated past
+# what this binary supports (issue #636 / closed #624). Without this guard,
+# Python helpers that reference dropped columns or views surface as raw
+# sqlite3.OperationalError instead of an actionable upgrade prompt. The
+# reverse direction (binary newer than DB) stays the responsibility of
+# `tusk migrate`.
+preflight_schema_version() {
+  # No DB on disk → nothing to compare. The subcommand will either init a
+  # fresh DB or fail with its own clearer message.
+  [[ -f "$DB_PATH" ]] || return 0
+  case "${1:-}" in
+    # Recovery and DB-less subcommands. Users MUST be able to run these when
+    # the DB is at a higher schema version than this binary supports —
+    # otherwise the very tools that fix the mismatch would themselves be
+    # blocked. Mirrors but does NOT reuse `is_readonly_subcmd` because that
+    # list also includes DB-reading commands (task-get, task-list, …) which
+    # are exactly what this preflight needs to guard.
+    ""|init|path|config|version|version-bump|upgrade|migrate|regen-triggers|\
+      sql-quote|typed-criteria-build|git-default-branch|branch-parse|report-issue|update-gitignore|\
+      sync-skills|reconcile-skills|generate-manifest|pricing-update|token-audit)
+      return 0 ;;
+  esac
+  local user_version supported_max
+  user_version="$(sqlite3 "$DB_PATH" "PRAGMA user_version" 2>/dev/null)"
+  [[ -n "$user_version" ]] || return 0
+  # SUPPORTED_SCHEMA_MAX = highest version in tusk-migrate.py's MIGRATIONS
+  # registry. Single source of truth — no hardcoded duplicate. Parsing the
+  # registry tuples is O(N) over the migration count and runs once per
+  # invocation; cheaper than spawning python3 just to read a list.
+  supported_max="$(grep -E '^[[:space:]]*\([0-9]+,[[:space:]]*migrate_[0-9]+\)' "$SCRIPT_DIR/tusk-migrate.py" \
+    | sed -E 's/^[[:space:]]*\(([0-9]+),.*/\1/' \
+    | sort -n | tail -1)"
+  [[ -n "$supported_max" ]] || return 0
+  if (( user_version > supported_max )); then
+    echo "Schema mismatch: this database is at v${user_version}, but this tusk binary expects <=v${supported_max}. Run 'tusk upgrade' to update." >&2
+    exit 1
+  fi
+}
+
+preflight_schema_version "${1:-}"
+
 if [[ -z "${TUSK_NESTED_CALL:-}" ]] && ! is_readonly_subcmd "${1:-}"; then
   snapshot_db
 fi
@@ -1398,6 +1469,7 @@ case "${1:-}" in
   config) shift; cmd_config "$@" ;;
   validate) cmd_validate ;;
   sql-quote) shift; sql_quote "${1:-}" ;;
+  typed-criteria-build) shift; exec python3 "$SCRIPT_DIR/tusk-typed-criteria-build.py" "$@" ;;
   branch) shift; exec python3 "$SCRIPT_DIR/tusk-branch.py" "$REPO_ROOT" "$@" ;;
   commit) shift; exec python3 "$SCRIPT_DIR/tusk-commit.py" "$REPO_ROOT" "$(resolve_config)" "$@" ;;
   lint)   shift; exec python3 "$SCRIPT_DIR/tusk-lint.py" "$REPO_ROOT" "$@" ;;
@@ -1405,6 +1477,7 @@ case "${1:-}" in
   dupes)  shift; exec python3 "$SCRIPT_DIR/tusk-dupes.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   conventions) shift; exec python3 "$SCRIPT_DIR/tusk-conventions.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   pillars)     shift; exec python3 "$SCRIPT_DIR/tusk-pillars.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  glossary)    shift; exec python3 "$SCRIPT_DIR/tusk-glossary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   criteria) shift; exec python3 "$SCRIPT_DIR/tusk-criteria.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   dashboard) shift; exec python3 "$SCRIPT_DIR/tusk-dashboard.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   chain) shift; exec python3 "$SCRIPT_DIR/tusk-chain.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1456,6 +1529,7 @@ case "${1:-}" in
   init-wizard) shift; exec python3 "$SCRIPT_DIR/tusk-init-wizard.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   init-scaffold) shift; exec python3 "$SCRIPT_DIR/tusk-init-scaffold.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   review-check-perms) shift; exec python3 "$SCRIPT_DIR/tusk-review-check-perms.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  review-agent-cost) shift; exec python3 "$SCRIPT_DIR/tusk-review-agent-cost.py" "$@" ;;
   loop) shift; exec python3 "$SCRIPT_DIR/tusk-loop.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   merge) shift; exec python3 "$SCRIPT_DIR/tusk-merge.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   abandon) shift; exec python3 "$SCRIPT_DIR/tusk-abandon.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1464,10 +1538,11 @@ case "${1:-}" in
   setup) shift; exec python3 "$SCRIPT_DIR/tusk-setup.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   token-audit) shift; exec python3 "$SCRIPT_DIR/tusk-token-audit.py" "$REPO_ROOT" "$@" ;;
   sync-skills) shift; exec python3 "$SCRIPT_DIR/tusk-sync-skills.py" "$@" ;;
+  reconcile-skills) shift; exec python3 "$SCRIPT_DIR/tusk-reconcile-skills.py" "$@" ;;
   generate-manifest) shift; exec python3 "$SCRIPT_DIR/tusk-generate-manifest.py" "$@" ;;
   pricing-update) shift; exec python3 "$SCRIPT_DIR/tusk-pricing-update.py" "$@" ;;
   wsjf) shift; exec python3 "$SCRIPT_DIR/tusk-wsjf.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
-  shell)  cmd_shell ;;
+  shell)  shift; cmd_shell "$@" ;;
   version) cmd_version ;;
   version-bump) cmd_version_bump ;;
   report-issue) shift; cmd_report_issue "$@" ;;

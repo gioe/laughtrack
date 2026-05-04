@@ -171,19 +171,28 @@ Treat any non-`yes` response as skip. On **yes**:
    - Any partial implementation already present
    - Related tusk tasks: `tusk task-list --format json | jq '.[] | select(.summary | ascii_downcase | contains("<keyword>"))'`
 
+   **Read entry points, not just helpers.** When inspecting a file that defines a `main()` / `if __name__ == "__main__":` block (or an analogous orchestrator/dispatcher), you must also read those entry points — not just helper definitions. A helper that looks unused in isolation may be invoked downstream by the orchestrator. Concluding "X not implemented" purely from helper reads — without checking the call sites — is the failure mode that produced TASK-276 (issue #637): `regen_triggers` was defined at line 98 of `bin/tusk-migrate.py` and looked unused, but the call site at lines 2628–2634 inside `main()` invoked it as the final step of every migrate run.
+
 2. **Summarize** findings as a short bullet list before proceeding.
 
 3. **Refine Step 4 fields**: sharpen `description` (name files/functions), tighten criteria to match real code structure, adjust `complexity` if warranted. Do **not** change `summary`, `priority`, or `domain` unless the investigation reveals a fundamental misclassification.
 
-## Step 4.6: Reproducibility Check (bug-type only)
+## Step 4.6: Already-Resolved Check (all task types)
 
-**Run this step only when `task_type = bug`.** Skip for all other task types.
+**Always run this step.** The exact question depends on `task_type`:
 
-Before presenting the proposal, quickly scan the codebase to confirm the bug is still present. Use at most 3 tool calls (Grep, Read, or Bash read-only). **Prefer invoking the affected code path directly** (e.g. running the actual command with a known input) over grepping for static markers — a live invocation surfaces regex bugs, off-by-one errors, and silent failures that grep-and-read miss. If you find clear evidence the bug is already fixed (e.g., the code path described in the issue no longer exists or has been corrected), surface this before proceeding:
+- **`bug` / `defect`** — confirm the failure is still reproducible against the current code.
+- **All other task types** (`feature`, `refactor`, `docs`, etc.) — confirm the implementation is not already shipped. Reframe the proposal as the question "is this already wired up on `main`?" before grepping or reading.
 
-> **Reproducibility note:** The issue may already be fixed — [brief explanation]. Do you still want to create a task?
+Use at most **3 tool calls** total (Grep, Read, or Bash read-only) regardless of task type. **Prefer invoking the affected code path directly** (e.g. running the actual command with a known input) over grepping for static markers — a live invocation surfaces regex bugs, off-by-one errors, and silent failures that grep-and-read miss. **When reading a source file that defines a `main()` / `if __name__ == "__main__":` block (or an analogous orchestrator/dispatcher), also read those entry points — not just helper definitions.** A helper that looks unwired in isolation is often invoked downstream by the orchestrator; concluding "X not implemented" from helper reads alone is the same failure mode that produced TASK-276 (issue #637). When the budget is tight, spend a tool call on `grep -n '<helper_name>' <file>` to locate every call site before reading.
 
-Wait for user confirmation before proceeding to Step 5. If the bug is confirmed still present, or if you cannot determine either way within 3 calls, proceed without comment.
+**Sandbox state-mutating reproductions — tusk-on-tusk hazard.** "Invoking the affected code path directly" above means *read-only* invocation by default — running the live command with a known input (e.g. `tusk task-list`, `tusk config`, `--help` flags, `tusk task-get <id>`) is what surfaces the regex/dispatcher/silent-failure bugs grep alone misses; that remains the recommended default. The hazard is when the only way to demonstrate the issue is a state-mutating command (`tusk task-insert`, `tusk task-update`, `tusk review approve|request-changes|add-comment`, `tusk criteria done`, `tusk merge`, `tusk task-done`) and the affected code path IS `tusk` itself — invoking it directly mutates the orchestrator's live database, the same hazard Step 4.1's sandbox prevents. Concrete incident: TASK-209's post-fix `bin/tusk review request-changes 1 --note "test rationale"` repro overwrote review #1 (a stale March review on a long-closed task). For write-mutating reproductions, in order of preference: (1) prefer `--dry-run` if the tool offers it; (2) copy the live DB and pin tusk to the copy (`cp "$(tusk path)" /tmp/tusk-throwaway.db && TUSK_DB=/tmp/tusk-throwaway.db tusk <cmd>`) so writes land in the throwaway — `TUSK_DB` pins only the DB path, so `tusk` stays on PATH and the repo-root walk-up still works; (3) defer the live check to `tusk criteria done` after task creation, where the spec runs as part of the implementation cycle. Do **not** invoke state-mutating tusk subcommands directly against the orchestrator's DB during this step.
+
+If you find clear evidence the issue is already addressed (the bug is fixed, the proposed feature is already shipped and wired up, or the code path described no longer exists), surface this before proceeding:
+
+> **Already-resolved note:** This issue may already be addressed — [brief explanation]. Do you still want to create a task?
+
+Wait for user confirmation before proceeding to Step 5. If the issue is confirmed still present, or if you cannot determine either way within 3 calls, proceed without comment.
 
 ## Step 4.7: Model Recommendation (Config-Driven Scoring)
 
@@ -309,7 +318,23 @@ TEST_SPEC='tests/test_foo.py::test_it'"'"'s_broken'   # use '"'"' to embed a lit
   --typed-criteria "{\"text\":\"Failing test passes\",\"type\":\"test\",\"spec\":\"$TEST_SPEC\"}"
 ```
 
-When in doubt, always use the variable form — it is safe for any `test_spec` that does not contain a double quote or backslash (which pytest selectors never do).
+The variable form is safe for specs that contain neither `"` nor `\`.
+
+**Specs containing `"` or `\` (or both): use `tusk typed-criteria-build`.** Test specs lifted verbatim from GitHub issue bodies routinely mix single quotes, double quotes, and backslashes — for example, a heredoc reproducer like `printf %s "$JSON" | python3 -c "import json,sys; json.load(sys.stdin)"`. Both shell-quoting forms above silently produce malformed JSON in that case (issue #639). Pipe the spec through the helper instead — it lets Python's `json.dumps` handle every escape, then you embed the result via plain `$(...)` substitution:
+
+```bash
+JSON=$(printf '%s' "$TEST_SPEC" | tusk typed-criteria-build)
+  --typed-criteria "$JSON"
+```
+
+Or, when the spec lives in a file (e.g. you wrote it to a tempfile during Step 4.1 sandbox validation):
+
+```bash
+JSON=$(tusk typed-criteria-build --spec-file /tmp/spec)
+  --typed-criteria "$JSON"
+```
+
+`tusk typed-criteria-build` defaults to `text="Failing test passes"` and `type="test"`; pass `--text <text>` / `--type <type>` to override. Use this helper whenever the spec contains `"`, `\`, or any character whose shell escape isn't obvious — it removes the failure mode entirely rather than asking each caller to reinvent the escape.
 
 This criterion will be validated by running the spec as a shell command when `tusk criteria done <cid>` is called — it blocks closure if the command exits nonzero.
 
@@ -332,6 +357,8 @@ Read file: <base_directory>/../tusk/SKILL.md
 Then execute those instructions starting at **"Begin Work on a Task (with task ID argument)"** using the `task_id` from Step 6. Do not wait for additional user confirmation — proceed directly into the development workflow.
 
 **IMPORTANT: Execute /tusk steps 1–11 only. Do NOT execute step 12 (merge/retro).** Stop after step 11 (`/review-commits` or the lint step) — this skill owns merge, issue close, and retro as steps 8–10 below.
+
+**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail.
 
 Hold onto the `session_id` returned by `tusk task-start` in step 1 of the /tusk workflow — it is required in step 8 below.
 

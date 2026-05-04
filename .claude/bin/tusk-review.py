@@ -2,7 +2,7 @@
 """Manage code reviews for tusk tasks.
 
 Called by the tusk wrapper:
-    tusk review start|begin|add-comment|list|resolve|approve|request-changes|status|summary ...
+    tusk review start|begin|add-comment|list|resolve|approve|request-changes|backfill-cost|status|summary ...
 
 Arguments received from tusk:
     sys.argv[1] — DB path
@@ -17,12 +17,111 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-review-diff-range.py
+import tusk_loader  # loads tusk-db-lib.py, tusk-json-lib.py, tusk-review-diff-range.py, tusk-pricing-lib.py
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 _json_lib = tusk_loader.load("tusk-json-lib")
 dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
+
+_pricing_lib = None  # populated lazily by _load_pricing_lib()
+
+
+def _load_pricing_lib():
+    """Load the pricing library on first use.
+
+    Lazy so test paths that never touch cost capture don't pay for the
+    import (and so we can monkeypatch this hook in tests to inject a stub).
+    """
+    global _pricing_lib
+    if _pricing_lib is None:
+        _pricing_lib = tusk_loader.load("tusk-pricing-lib")
+        _pricing_lib.load_pricing()
+    return _pricing_lib
+
+
+def _compute_review_cost_from_window(created_at: str) -> dict | None:
+    """Aggregate the transcript between *created_at* and now; return cost+tokens.
+
+    Mirrors the cost computation in `tusk skill-run finish` but uses the
+    review row's `created_at` as the window start. Returns None when no
+    transcript is discoverable or the window contains zero requests —
+    callers leave the columns NULL in that case rather than writing zeros,
+    so a missing transcript stays distinguishable from a real $0 review.
+    """
+    lib = _load_pricing_lib()
+    started_at = lib.parse_sqlite_timestamp(created_at)
+    transcript_path = lib.find_transcript()
+    if not transcript_path or not os.path.isfile(transcript_path):
+        return None
+    totals = lib.aggregate_session(transcript_path, started_at, None)
+    if totals.get("request_count", 0) == 0:
+        return None
+    return {
+        "cost_dollars": lib.compute_cost(totals),
+        "tokens_in": lib.compute_tokens_in(totals),
+        "tokens_out": totals["output_tokens"],
+        "model": totals.get("model"),
+    }
+
+
+def _add_cost_flags(parser: argparse.ArgumentParser) -> None:
+    """Wire the cost-capture flags onto an approve/request-changes subparser."""
+    parser.add_argument(
+        "--cost-dollars",
+        dest="cost_dollars",
+        type=float,
+        default=None,
+        help="Override the auto-computed cost (USD) for this review row.",
+    )
+    parser.add_argument(
+        "--tokens-in",
+        dest="tokens_in",
+        type=int,
+        default=None,
+        help="Override the auto-computed tokens_in count for this review row.",
+    )
+    parser.add_argument(
+        "--tokens-out",
+        dest="tokens_out",
+        type=int,
+        default=None,
+        help="Override the auto-computed tokens_out count for this review row.",
+    )
+    parser.add_argument(
+        "--skip-cost",
+        dest="skip_cost",
+        action="store_true",
+        help="Skip transcript-based cost auto-compute on this call.",
+    )
+
+
+def _resolve_cost_columns(args, created_at: str) -> tuple:
+    """Return (cost_dollars, tokens_in, tokens_out) to set on the review row.
+
+    Per-column priority: explicit --cost-dollars/--tokens-in/--tokens-out
+    flags override; otherwise auto-compute from the transcript window. A
+    None in any slot means "leave the column alone." `--skip-cost` short-
+    circuits the auto-compute so callers (bakeoffs, manual fixes) can
+    disable it without passing all three explicit values.
+    """
+    explicit_cost = getattr(args, "cost_dollars", None)
+    explicit_tin = getattr(args, "tokens_in", None)
+    explicit_tout = getattr(args, "tokens_out", None)
+    skip_cost = getattr(args, "skip_cost", False)
+
+    if skip_cost or all(x is not None for x in (explicit_cost, explicit_tin, explicit_tout)):
+        return explicit_cost, explicit_tin, explicit_tout
+
+    computed = _compute_review_cost_from_window(created_at)
+    if computed is None:
+        return explicit_cost, explicit_tin, explicit_tout
+
+    return (
+        explicit_cost if explicit_cost is not None else computed["cost_dollars"],
+        explicit_tin if explicit_tin is not None else computed["tokens_in"],
+        explicit_tout if explicit_tout is not None else computed["tokens_out"],
+    )
 
 
 def load_review_config(config_path: str) -> dict:
@@ -357,12 +456,14 @@ def cmd_approve(args: argparse.Namespace, db_path: str) -> int:
     conn = get_connection(db_path)
     try:
         review = conn.execute(
-            "SELECT id, task_id, reviewer, status FROM code_reviews WHERE id = ?",
+            "SELECT id, task_id, reviewer, status, created_at FROM code_reviews WHERE id = ?",
             (args.review_id,),
         ).fetchone()
         if not review:
             print(f"Error: Review {args.review_id} not found", file=sys.stderr)
             return 2
+
+        cost_dollars, tokens_in, tokens_out = _resolve_cost_columns(args, review["created_at"])
 
         set_clauses = ["status = 'approved'", "review_pass = 1", "updated_at = datetime('now')"]
         params: list = []
@@ -372,6 +473,15 @@ def cmd_approve(args: argparse.Namespace, db_path: str) -> int:
         if args.model is not None:
             set_clauses.append("model = ?")
             params.append(args.model or None)
+        if cost_dollars is not None:
+            set_clauses.append("cost_dollars = ?")
+            params.append(cost_dollars)
+        if tokens_in is not None:
+            set_clauses.append("tokens_in = ?")
+            params.append(tokens_in)
+        if tokens_out is not None:
+            set_clauses.append("tokens_out = ?")
+            params.append(tokens_out)
         params.append(args.review_id)
         conn.execute(
             f"UPDATE code_reviews SET {', '.join(set_clauses)} WHERE id = ?",
@@ -397,12 +507,14 @@ def cmd_request_changes(args: argparse.Namespace, db_path: str) -> int:
     conn = get_connection(db_path)
     try:
         review = conn.execute(
-            "SELECT id, task_id, reviewer, status FROM code_reviews WHERE id = ?",
+            "SELECT id, task_id, reviewer, status, created_at FROM code_reviews WHERE id = ?",
             (args.review_id,),
         ).fetchone()
         if not review:
             print(f"Error: Review {args.review_id} not found", file=sys.stderr)
             return 2
+
+        cost_dollars, tokens_in, tokens_out = _resolve_cost_columns(args, review["created_at"])
 
         set_clauses = ["status = 'changes_requested'", "review_pass = 0", "updated_at = datetime('now')"]
         params: list = []
@@ -412,6 +524,15 @@ def cmd_request_changes(args: argparse.Namespace, db_path: str) -> int:
         if args.model is not None:
             set_clauses.append("model = ?")
             params.append(args.model or None)
+        if cost_dollars is not None:
+            set_clauses.append("cost_dollars = ?")
+            params.append(cost_dollars)
+        if tokens_in is not None:
+            set_clauses.append("tokens_in = ?")
+            params.append(tokens_in)
+        if tokens_out is not None:
+            set_clauses.append("tokens_out = ?")
+            params.append(tokens_out)
         params.append(args.review_id)
         conn.execute(
             f"UPDATE code_reviews SET {', '.join(set_clauses)} WHERE id = ?",
@@ -429,6 +550,85 @@ def cmd_request_changes(args: argparse.Namespace, db_path: str) -> int:
     else:
         note_str = ""
     print(f"Review #{args.review_id} changes requested{reviewer_str} for task #{review['task_id']}{note_str}")
+    return 0
+
+
+def cmd_backfill_cost(args: argparse.Namespace, db_path: str) -> int:
+    """Recompute cost/tokens columns for an existing review row.
+
+    Two paths:
+    - Explicit override — when `--cost-dollars`, `--tokens-in`, and
+      `--tokens-out` are all provided, skip transcript auto-compute and
+      apply the values directly. Used by /review-commits to attribute
+      a spawned reviewer agent's cost to the review row (the orchestrator's
+      transcript window doesn't see the agent's API spend).
+    - Transcript auto-compute — recompute from the row's `[created_at, now]`
+      window. Used to repair rows that finalized without cost data (e.g.
+      rows written under an older code path or via `--skip-cost`). If no
+      transcript with requests is discoverable, leaves the row unchanged
+      and returns 1. Historical pre-v801 NULL rows are out of scope.
+    """
+    conn = get_connection(db_path)
+    try:
+        review = conn.execute(
+            "SELECT id, task_id, created_at, cost_dollars, tokens_in, tokens_out"
+            " FROM code_reviews WHERE id = ?",
+            (args.review_id,),
+        ).fetchone()
+        if not review:
+            print(f"Error: Review {args.review_id} not found", file=sys.stderr)
+            return 2
+
+        if not getattr(args, "force", False) and review["cost_dollars"] is not None:
+            print(
+                f"Review #{args.review_id} already has cost_dollars=${review['cost_dollars']:.4f}. "
+                "Pass --force to overwrite.",
+                file=sys.stderr,
+            )
+            return 1
+
+        explicit_cost = getattr(args, "cost_dollars", None)
+        explicit_tin = getattr(args, "tokens_in", None)
+        explicit_tout = getattr(args, "tokens_out", None)
+        explicit_provided = [x for x in (explicit_cost, explicit_tin, explicit_tout) if x is not None]
+        if explicit_provided and len(explicit_provided) < 3:
+            print(
+                "Error: --cost-dollars, --tokens-in, and --tokens-out must all be provided together "
+                "(or omit all three to auto-compute from the transcript window).",
+                file=sys.stderr,
+            )
+            return 2
+
+        if len(explicit_provided) == 3:
+            computed = {
+                "cost_dollars": explicit_cost,
+                "tokens_in": explicit_tin,
+                "tokens_out": explicit_tout,
+            }
+        else:
+            computed = _compute_review_cost_from_window(review["created_at"])
+            if computed is None:
+                print(
+                    f"Warning: No transcript with requests in window "
+                    f"[{review['created_at']}, now] for review #{args.review_id} — leaving columns unchanged.",
+                    file=sys.stderr,
+                )
+                return 1
+
+        conn.execute(
+            "UPDATE code_reviews SET cost_dollars = ?, tokens_in = ?, tokens_out = ?,"
+            " updated_at = datetime('now') WHERE id = ?",
+            (computed["cost_dollars"], computed["tokens_in"], computed["tokens_out"], args.review_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    print(
+        f"Review #{args.review_id} backfilled: "
+        f"cost=${computed['cost_dollars']:.4f}, "
+        f"tokens_in={computed['tokens_in']:,}, tokens_out={computed['tokens_out']:,}"
+    )
     return 0
 
 
@@ -704,6 +904,7 @@ def main():
         "--model",
         help="Reviewer model ID (e.g. claude-opus-4-7). Pass --model '' to clear an existing model.",
     )
+    _add_cost_flags(approve_p)
 
     # request-changes
     req_changes_p = subparsers.add_parser("request-changes", help="Request changes on a review")
@@ -715,6 +916,40 @@ def main():
     req_changes_p.add_argument(
         "--model",
         help="Reviewer model ID (e.g. claude-opus-4-7). Pass --model '' to clear an existing model.",
+    )
+    _add_cost_flags(req_changes_p)
+
+    # backfill-cost
+    backfill_cost_p = subparsers.add_parser(
+        "backfill-cost",
+        help="Recompute cost/tokens for an existing review row from its created_at window",
+    )
+    backfill_cost_p.add_argument("review_id", type=int, help="Review ID")
+    backfill_cost_p.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing cost_dollars even if it is already populated",
+    )
+    backfill_cost_p.add_argument(
+        "--cost-dollars",
+        dest="cost_dollars",
+        type=float,
+        default=None,
+        help="Explicit cost (USD); requires --tokens-in and --tokens-out. Skips transcript auto-compute.",
+    )
+    backfill_cost_p.add_argument(
+        "--tokens-in",
+        dest="tokens_in",
+        type=int,
+        default=None,
+        help="Explicit tokens_in count; requires --cost-dollars and --tokens-out.",
+    )
+    backfill_cost_p.add_argument(
+        "--tokens-out",
+        dest="tokens_out",
+        type=int,
+        default=None,
+        help="Explicit tokens_out count; requires --cost-dollars and --tokens-in.",
     )
 
     # status
@@ -754,6 +989,8 @@ def main():
             sys.exit(cmd_approve(args, db_path))
         elif args.command == "request-changes":
             sys.exit(cmd_request_changes(args, db_path))
+        elif args.command == "backfill-cost":
+            sys.exit(cmd_backfill_cost(args, db_path))
         elif args.command == "status":
             sys.exit(cmd_status(args, db_path))
         elif args.command == "summary":

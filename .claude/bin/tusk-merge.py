@@ -32,9 +32,11 @@ Default behavior (merge.mode = local):
 
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tusk_loader  # loads tusk-db-lib.py and tusk-git-helpers.py
@@ -54,6 +56,30 @@ task_grep_arg = _git_helpers.task_grep_arg
 
 def run(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, encoding="utf-8", check=check)
+
+
+_INDEX_LOCK_RE = re.compile(r"Unable to create '[^']*\.git/index\.lock'")
+
+
+def _run_with_index_lock_retry(
+    cmd: list[str], label: str, sleep_seconds: float = 0.5
+) -> subprocess.CompletedProcess:
+    """Run `cmd`; retry once after a short sleep when the failure is a
+    transient `.git/index.lock` contention (issues #620, #640).
+
+    Other failures are returned immediately with no sleep, preserving the
+    original behavior for non-transient errors. `label` is used in the retry
+    notice on stderr.
+    """
+    result = run(cmd, check=False)
+    if result.returncode == 0 or not _INDEX_LOCK_RE.search(result.stderr or ""):
+        return result
+    print(
+        f"{label}: transient .git/index.lock contention; retrying once...",
+        file=sys.stderr,
+    )
+    time.sleep(sleep_seconds)
+    return run(cmd, check=False)
 
 
 def _has_remote(name: str = "origin") -> bool:
@@ -856,7 +882,9 @@ def main(argv: list[str]) -> int:
                 os.rename(src, dst)
                 moved.append((src, dst))
 
-        result = run(["git", "checkout", default_branch], check=False)
+        result = _run_with_index_lock_retry(
+            ["git", "checkout", default_branch], f"git checkout {default_branch}"
+        )
         if result.returncode != 0:
             for src, dst in moved:
                 os.rename(dst, src)
@@ -1057,7 +1085,10 @@ def main(argv: list[str]) -> int:
 
         # Step 4 (cont): Fast-forward merge (skipped when task commit already on default)
         if not task_on_default:
-            result = run(["git", "merge", "--ff-only", branch_name], check=False)
+            result = _run_with_index_lock_retry(
+                ["git", "merge", "--ff-only", branch_name],
+                f"git merge --ff-only {branch_name}",
+            )
             if result.returncode != 0:
                 print(
                     f"Error: git merge --ff-only {branch_name} failed:\n{result.stderr.strip()}\n"
