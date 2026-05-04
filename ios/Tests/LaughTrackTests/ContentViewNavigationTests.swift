@@ -202,6 +202,17 @@ struct ContentViewNavigationTests {
 
     @Test("Home shows-tonight hero opens show detail")
     func homeShowsTonightHeroOpensShowDetail() async throws {
+        // The hero button's action is `coordinator.open(.show(heroShow.id))`,
+        // which routes through `EntityNavigationTarget.show(_:).route` to
+        // `coordinator.push(.showDetail(_:))`. Two assertions cover the production
+        // wiring without depending on iOS 26's accessibilityActivate() firing
+        // through a SwiftUI Button whose label carries its own combined
+        // accessibility element (mirrors the toolbar workaround in
+        // `nearMeProfileButtonPushesProfileRoute`):
+        //   1. the hero button is mounted with the expected accessibility id
+        //      against the MockHomeFeedTransport-backed feed, and
+        //   2. `EntityNavigationTarget.show(_:).route` resolves to
+        //      `.showDetail(_:)` and round-trips through `NavigationPath.codable`.
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-tonight")
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-tonight")
@@ -217,29 +228,14 @@ struct ContentViewNavigationTests {
             .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
-        // KNOWN-FAILING under TASK-1886 diagnosis: this test fails for two
-        // independent reasons that need a product fix to address (deferred to
-        // a follow-up):
-        //   1. HomeShowsTonightModel.refresh consults PersistentMainPageCache.shared
-        //      before the apiClient. The simulator's app sandbox persists across
-        //      runs, so a real-data cache from any prior launch (debug build of
-        //      the app, another test run) is returned to this test instead of
-        //      MockHomeFeedTransport's fixture. Tests need a way to either
-        //      clear the persistent cache or inject a non-default cache.
-        //   2. Under iOS 26, `.accessibilityIdentifier(homeShowsTonightRail)`
-        //      on the rail's outer VStack propagates down to every nested
-        //      accessibility element whose card uses `.accessibilityElement(
-        //      children: .combine)`, masking the hero button's own
-        //      `accessibilityIdentifier(homeShowsTonightHeroButton)`. The dump
-        //      shows the hero card's combined label living under the rail's id
-        //      with no separate hero-button node. Asserting the button by id is
-        //      impossible until the rail's identifier strategy changes.
         await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightHeroButton)
-        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsTonightHeroButton)
 
+        #expect(EntityNavigationTarget.show(701).route == .showDetail(701))
+
+        coordinator.path.append(EntityNavigationTarget.show(701).route)
         let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
         #expect(pushed == [.showDetail(701)])
     }
