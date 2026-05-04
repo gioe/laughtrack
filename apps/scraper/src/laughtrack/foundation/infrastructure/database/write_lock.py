@@ -25,7 +25,11 @@ from typing import Callable, TypeVar
 
 _T = TypeVar("_T")
 
-_DB_WRITE_LOCK = threading.Lock()
+# RLock (not Lock) so a wrapped callable that recursively invokes
+# serialized_db_call on the same thread does not deadlock. The lock's job is
+# cross-thread serialization of DB writes; intra-thread recursion is harmless
+# because the GIL serializes Python-level execution within a single thread.
+_DB_WRITE_LOCK = threading.RLock()
 
 
 def serialized_db_call(fn: Callable[..., _T], *args, **kwargs) -> _T:

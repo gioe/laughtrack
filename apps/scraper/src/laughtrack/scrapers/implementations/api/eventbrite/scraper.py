@@ -174,9 +174,22 @@ class EventbriteScraper(BaseScraper):
                 )
                 return []
 
+            # to_show is wrapped in try/except so an unexpected raise on a
+            # single event does not propagate out of asyncio.gather and
+            # cancel sibling _upsert_one tasks — the previous sequential
+            # for-loop completed already-iterated venues, and that
+            # regression surface is preserved here.
             group_shows: List[Show] = []
             for event in group:
-                show = event.to_show(venue_club)
+                try:
+                    show = event.to_show(venue_club)
+                except Exception as exc:
+                    Logger.error(
+                        f"{self._log_prefix}: to_show failed for venue {venue_id} event "
+                        f"'{getattr(event, 'name', '?')}': {exc}",
+                        self.logger_context,
+                    )
+                    continue
                 if show:
                     group_shows.append(show)
             return group_shows

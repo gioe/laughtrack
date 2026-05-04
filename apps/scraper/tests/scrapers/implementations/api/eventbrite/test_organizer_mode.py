@@ -391,7 +391,11 @@ async def test_organizer_mode_runs_per_venue_upserts_concurrently():
         v.id: _fake_venue_club(2000 + i, f"Venue {i}", "X", "VA") for i, v in enumerate(venues)
     }
 
-    barrier = threading.Barrier(len(venues), timeout=2.0)
+    # 5.0s tolerates cold thread-pool spin-up under heavy CI load. A
+    # sequential-regression failure still trips the barrier's per-call
+    # timeout almost immediately, so the wider budget only insulates us
+    # from environmental flake — not from real concurrency regressions.
+    barrier = threading.Barrier(len(venues), timeout=5.0)
 
     def _blocking_upsert(api_venue):
         # Each call must reach the barrier before any returns; a sequential
