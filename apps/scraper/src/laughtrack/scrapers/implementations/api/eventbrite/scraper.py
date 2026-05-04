@@ -150,9 +150,8 @@ class EventbriteScraper(BaseScraper):
             return []
 
         loop = asyncio.get_running_loop()
-        shows: List[Show] = []
 
-        for venue_id, group in venue_groups.items():
+        async def _upsert_one(venue_id, group) -> List[Show]:
             api_venue = group[0]._api_venue
             try:
                 venue_club = await loop.run_in_executor(
@@ -166,19 +165,30 @@ class EventbriteScraper(BaseScraper):
                     f"{self._log_prefix}: failed to upsert club for venue {venue_id}: {exc}",
                     self.logger_context,
                 )
-                continue
+                return []
 
             if venue_club is None:
                 Logger.warn(
                     f"{self._log_prefix}: upsert returned None for venue {venue_id} — skipping {len(group)} event(s)",
                     self.logger_context,
                 )
-                continue
+                return []
 
+            group_shows: List[Show] = []
             for event in group:
                 show = event.to_show(venue_club)
                 if show:
-                    shows.append(show)
+                    group_shows.append(show)
+            return group_shows
+
+        # Run per-venue upserts concurrently. serialized_db_call still serializes
+        # the actual writes through the process-wide DB lock, so concurrency
+        # only parallelizes the executor dispatch and Show construction —
+        # overlapping clubs upserts are still impossible.
+        per_venue_shows = await asyncio.gather(
+            *[_upsert_one(venue_id, group) for venue_id, group in venue_groups.items()]
+        )
+        shows: List[Show] = [show for group_shows in per_venue_shows for show in group_shows]
 
         Logger.info(
             f"{self._log_prefix}: organizer feed produced {len(shows)} show(s) across {len(venue_groups)} venue(s)",

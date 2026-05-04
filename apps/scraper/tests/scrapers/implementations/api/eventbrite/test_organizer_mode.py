@@ -369,6 +369,60 @@ async def test_organizer_mode_skips_events_with_missing_venue():
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_runs_per_venue_upserts_concurrently():
+    """Per-venue upserts must run concurrently (asyncio.gather) so onboarding
+    a second multi-venue production company doesn't multiply scrape latency by
+    venue count. A ``threading.Barrier`` deadlocks under sequential execution
+    because each upsert blocks waiting for the next to enter — the test
+    therefore proves concurrency by completing within the barrier timeout."""
+    import threading
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    venues = [
+        _api_venue(venue_id=f"V_{i}", name=f"Venue {i}", city="X", region="VA") for i in range(4)
+    ]
+    api_events = [
+        _domain_event(name=f"Show {i}", url=f"https://www.eventbrite.com/e/{i}", api_venue=v)
+        for i, v in enumerate(venues)
+    ]
+    venue_clubs = {
+        v.id: _fake_venue_club(2000 + i, f"Venue {i}", "X", "VA") for i, v in enumerate(venues)
+    }
+
+    barrier = threading.Barrier(len(venues), timeout=2.0)
+
+    def _blocking_upsert(api_venue):
+        # Each call must reach the barrier before any returns; a sequential
+        # for-loop would never reach parties=N and BrokenBarrierError fires
+        # on timeout, surfacing the regression as a test failure.
+        barrier.wait()
+        return venue_clubs[api_venue.id]
+
+    scraper = EventbriteScraper(proxy)
+    # Bypass the process-wide DB write lock for this test only — the lock's
+    # job (covered by test_organizer_mode_routes_per_venue_upserts_through_serialized_db_call)
+    # is to serialize the actual DB writes; here we want to verify the
+    # asyncio.gather over per-venue upserts dispatches them all concurrently
+    # before any completes, which is the criterion 6274 structural guarantee.
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_blocking_upsert
+    ), patch(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper.serialized_db_call",
+        new=lambda fn, *args, **kwargs: fn(*args, **kwargs),
+    ):
+        shows = await scraper.scrape_async()
+
+    assert len(shows) == len(venues)
+    # All upserts ran — barrier reached parties=N without timing out.
+    assert barrier.n_waiting == 0
+    assert {s.club_id for s in shows} == {c.id for c in venue_clubs.values()}
+
+
+@pytest.mark.asyncio
 async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_call():
     """Per-venue ``upsert_for_eventbrite_venue`` must run inside the process-wide
     ``serialized_db_call`` wrapper so it serializes against the orchestrator's
