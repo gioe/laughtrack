@@ -200,6 +200,11 @@ private struct HomeShowsTonightRail: View {
                 title: title,
                 subtitle: nil
             )
+            // Anchoring the rail's test identifier on the shelf header — not the
+            // outer VStack — keeps it from propagating to the combined-children
+            // accessibility nodes produced by the hero/rail cards under iOS 26,
+            // which would otherwise mask the inner Button identifiers.
+            .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightRail)
 
             switch model.phase {
             case .idle, .loading:
@@ -241,7 +246,6 @@ private struct HomeShowsTonightRail: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
-        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightRail)
     }
 
     private var title: String {
