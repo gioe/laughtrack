@@ -161,8 +161,7 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
         baseURL: URL,
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
+        let encoder = APIMockEncoder.make()
 
         switch operationID {
         case "getFavorites":
