@@ -56,20 +56,12 @@ from laughtrack.foundation.utilities.url import URLUtils
 # ---------------------------------------------------------------------------
 
 # Scraper keys whose target site is gated by an IP-level WAF (Vercel-class)
-# that residential egress can clear. When ``RESIDENTIAL_PROXY_URL`` is set in
-# the environment, ``fetch_html`` auto-routes these scrapers through it; all
-# other scrapers continue to fetch directly. The allowlist exists so a single
-# proxy credential covers exactly the venues that need it — every other
-# scraper would burn proxy bandwidth for no benefit.
-PROXIED_SCRAPER_KEYS: frozenset[str] = frozenset(
-    {
-        "comedy_mothership",
-        "comedy_clubhouse",
-        "palm_beach_improv",
-        "ticketweb",
-        "tixr",
-    }
-)
+# that residential egress can clear. The allowlist is persisted in the
+# ``scrapers`` Postgres table (rows with ``use_residential_proxy = true``)
+# rather than as a code constant so operators can flip a venue's proxy bit
+# via SQL without a redeploy. The Python registry loads the set once at
+# first use and caches it for the lifetime of the process.
+from laughtrack.foundation.infrastructure.http import scraper_proxy_registry  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Bot-block detection
@@ -272,13 +264,13 @@ class HttpClient:
     def resolve_proxy_url(scraper_key: Optional[str]) -> Optional[str]:
         """Return ``RESIDENTIAL_PROXY_URL`` when *scraper_key* is allowlisted.
 
-        Scrapers in :data:`PROXIED_SCRAPER_KEYS` route through the residential
-        proxy named by the env var; all other keys (and a missing env var)
-        return ``None`` so the request goes out direct. The env var is read at
-        call time so tests can monkeypatch and tomorrow's nightly picks up a
-        secret rotation without a redeploy.
+        Scrapers in the ``scrapers`` table with ``use_residential_proxy=true``
+        route through the residential proxy named by the env var; all other
+        keys (and a missing env var) return ``None`` so the request goes out
+        direct. The env var is read at call time so a secret rotation is
+        picked up by tomorrow's nightly without a redeploy.
         """
-        if not scraper_key or scraper_key not in PROXIED_SCRAPER_KEYS:
+        if not scraper_key or scraper_key not in scraper_proxy_registry.proxy_enabled_keys():
             return None
         return os.environ.get("RESIDENTIAL_PROXY_URL") or None
 
@@ -535,7 +527,7 @@ class HttpClient:
         if (
             html is None
             and effective_proxy_url is not None
-            and scraper_key in PROXIED_SCRAPER_KEYS
+            and scraper_key in scraper_proxy_registry.proxy_enabled_keys()
         ):
             Logger.warn(
                 f"[HttpClient] Residential proxy fetch returned None for "
