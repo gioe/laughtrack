@@ -31,6 +31,7 @@ for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
+from laughtrack.core.clients.eventbrite.health import validate_eventbrite_token
 from laughtrack.core.entities.club.service import ClubService
 from laughtrack.core.entities.scraper.service import ScraperService
 from laughtrack.core.services.scraping import ScrapingService
@@ -102,6 +103,22 @@ Examples:
     club_service = ClubService()
     scraper_service = ScraperService()
     metrics_service = MetricsService()
+
+    # Fail fast on bad/missing EVENTBRITE_PRIVATE_TOKEN before any per-venue
+    # work, so a stale GHA secret produces one loud ERROR instead of ~27
+    # silent 401 WARNs scattered across every Eventbrite-backed venue.
+    # Skip pure listing/dashboard commands — they don't hit the API.
+    listing_only = args.list_scrapers or args.list_clubs or args.list_clubs_json
+    will_scrape = (
+        args.all
+        or args.club_id
+        or args.club
+        or args.scraper_type
+        or args.scraper_type_interactive
+        or not (listing_only or args.open_dashboard)
+    )
+    if will_scrape:
+        validate_eventbrite_token()
 
     try:
         # Perform the primary action (scrape/list). "--open-dashboard" is an optional post-action flag
