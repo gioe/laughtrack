@@ -2,23 +2,6 @@ import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
 
-struct SearchFilterControl: View {
-    let count: Int
-    let action: () -> Void
-
-    var body: some View {
-        HStack {
-            Button(action: action) {
-                LaughTrackBrowseChip("\(count) filters", tone: .accent)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Filter results")
-
-            Spacer(minLength: 0)
-        }
-    }
-}
-
 struct PrimitiveSearchControls: View {
     @Binding var sort: PrimitiveSortOption
     let filterCount: Int
