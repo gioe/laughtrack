@@ -51,10 +51,10 @@ reports success (TASK-1881 — `HomeFavoriteShowsRailTests` and
 `AppShellViewTests` reported green from method-level selectors that executed
 nothing).
 
-Method-level Swift Testing selectors are unreliable because the runtime
-identifier the `@Test` macro registers does not always match the source
-function name, and the test plan resolver silently drops unmatched selectors
-without erroring.
+Root cause is not pinned down — observed symptom is that the test plan
+resolver accepts an unmatched method-level selector silently and reports a
+clean run. Treat it as a known unreliable selector shape until proven
+otherwise.
 
 The mitigation: **never trust a method-level Swift Testing selector by exit
 code alone.**
@@ -62,14 +62,15 @@ code alone.**
 1. Use **class- / suite-level selectors** (`LaughTrackTests/SuiteName`,
    without a method segment). These are matched by the suite type name and
    reliably execute every `@Test` in the suite.
-2. Inspect the run output for the Swift Testing summary line — `􁁛 Test run
-   with N tests passed after …` (or `0 tests` when nothing matched). A
-   `Suite … passed` block with no nested `Test … started` lines is the
-   smoking gun. If you cannot find evidence the intended test ran, rerun at
-   suite level or against the full target.
-3. For XCTest-based files (still present alongside Swift Testing in this
-   repo), method-level selectors *do* work — the gotcha is specific to the
-   `@Test` macro.
+2. Inspect the run output for the Swift Testing run-summary line — it reads
+   `Test run with N tests passed after …` (or `0 tests` when nothing
+   matched). A `Suite … passed` block with no nested `Test … started`
+   lines is the smoking gun. If you cannot find evidence the intended test
+   ran, rerun at suite level or against the full target.
+3. The unit-test target (`LaughTrackTests`) is pure Swift Testing, so this
+   gotcha applies there. The UI-test target (`LaughTrackUITests`) is XCTest,
+   where method-level selectors *do* work — the failure mode is specific to
+   `@Test` macro selectors.
 
 ### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
 
