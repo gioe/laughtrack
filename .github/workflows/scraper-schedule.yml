@@ -68,6 +68,11 @@ jobs:
           EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # Residential proxy egress for scrapers with use_residential_proxy=true
+          # in the scrapers table. Unset secret = direct egress for everyone
+          # (the registry returns the URL as None, ScraperProxyRegistry never
+          # blocks the run on a missing secret).
+          RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
         run: |
           python -m scripts.core.scrape_shows --all
 
