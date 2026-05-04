@@ -40,6 +40,37 @@ This has caught filters aimed at API client configuration tests and
 `HomeShowsTonightModelTests`; the command was green, but it had not exercised
 the intended coverage.
 
+### `xcodebuild -only-testing:` Method-Level Selectors Can Run Zero `@Test` Functions
+
+The same zero-tests-but-green failure mode applies to the simulator runner
+(`xcodebuild test` directly, or `test_sim` via XcodeBuildMCP, both of which
+forward `-only-testing:` selectors). For Swift Testing's `@Test` functions, a
+method-level selector of the form `LaughTrackTests/SuiteName/methodName` can
+match zero tests while the xcodebuild process still exits 0 and the MCP tool
+reports success (TASK-1881 — `HomeFavoriteShowsRailTests` and
+`AppShellViewTests` reported green from method-level selectors that executed
+nothing).
+
+Method-level Swift Testing selectors are unreliable because the runtime
+identifier the `@Test` macro registers does not always match the source
+function name, and the test plan resolver silently drops unmatched selectors
+without erroring.
+
+The mitigation: **never trust a method-level Swift Testing selector by exit
+code alone.**
+
+1. Use **class- / suite-level selectors** (`LaughTrackTests/SuiteName`,
+   without a method segment). These are matched by the suite type name and
+   reliably execute every `@Test` in the suite.
+2. Inspect the run output for the Swift Testing summary line — `􁁛 Test run
+   with N tests passed after …` (or `0 tests` when nothing matched). A
+   `Suite … passed` block with no nested `Test … started` lines is the
+   smoking gun. If you cannot find evidence the intended test ran, rerun at
+   suite level or against the full target.
+3. For XCTest-based files (still present alongside Swift Testing in this
+   repo), method-level selectors *do* work — the gotcha is specific to the
+   `@Test` macro.
+
 ### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
 
 When a `requireView` / `requireText` / `tapControl` assertion fails in a way
