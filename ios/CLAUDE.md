@@ -204,6 +204,27 @@ them, but tests built on top of it inherit the constraints.
    directly. The integration test still asserts the button exists with its
    accessibility identifier, but does not depend on tap activation.
 
+4. **`accessibilityActivate()` on a SwiftUI Button with a complex/combined
+   label silently no-ops.** When a Button's `label:` content uses
+   `.accessibilityElement(children: .combine)` or otherwise produces its own
+   combined accessibility element (e.g. card views that combine artwork +
+   metadata into a single VoiceOver-friendly node), HostedView's
+   `tapControl(withIdentifier:)` finds the element but the underlying
+   `accessibilityActivate?()` call returns without firing the Button's
+   trailing closure — even after adding `.accessibilityAction { ... }` on
+   the Button or replacing the Button with `.onTapGesture` +
+   `.accessibilityAddTraits(.isButton)`. Same bucket as the toolbar gotcha
+   above. Don't burn cycles trying to coerce the activate path; switch the
+   test to the resolver round-trip pattern: assert (a) the button mounts
+   with the expected accessibility identifier, (b) the navigation helper
+   resolves to the expected route (e.g.
+   `EntityNavigationTarget.show(_:).route == .showDetail(_:)`), and (c)
+   drive the route via `coordinator.path.append(_:)` to verify
+   `NavigationPath.codable` round-trips. Canonical examples: the toolbar
+   workaround in `nearMeProfileButtonPushesProfileRoute` and the hero-button
+   workaround in `homeShowsTonightHeroOpensShowDetail` (both in
+   `ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
+
 ### Async Lifecycle in HostedView Tests
 
 SwiftUI's `.task` / `.task(id:)` modifiers don't fire reliably while
