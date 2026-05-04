@@ -1217,13 +1217,6 @@ enum MainPageCache {
             guard let cached = await persistentCache.getCachedFavoriteShows(requestKey: requestKey) else { return nil }
             await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
             return cached.value as? Value
-        case .nearbyShows(let zipCode, let distanceMiles) where Value.self == HomeNearbyPage.self:
-            guard let cached = await persistentCache.getCachedNearbyPage(
-                zipCode: zipCode,
-                distanceMiles: distanceMiles
-            ) else { return nil }
-            await hydrateMemoryCache(cached.value, key: key, expiresAt: cached.expiresAt, cache: cache)
-            return cached.value as? Value
         default:
             return nil
         }
@@ -1245,9 +1238,6 @@ enum MainPageCache {
         case .favoriteShows(let requestKey):
             guard let shows = value as? [Components.Schemas.Show] else { return }
             await persistentCache?.setFavoriteShows(shows, requestKey: requestKey, ttl: ttl)
-        case .nearbyShows(let zipCode, let distanceMiles):
-            guard let page = value as? HomeNearbyPage else { return }
-            await persistentCache?.setNearbyPage(page, zipCode: zipCode, distanceMiles: distanceMiles, ttl: ttl)
         default:
             return
         }

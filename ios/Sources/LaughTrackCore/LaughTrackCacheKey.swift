@@ -4,7 +4,6 @@ import Foundation
 public enum LaughTrackCacheKey: Hashable, Sendable {
     case homeFeed(zipCode: String?)
     case favoriteShows(requestKey: String)
-    case nearbyShows(zipCode: String, distanceMiles: Int)
     case showsSearch(requestKey: String, page: Int)
     case clubsSearch(query: String, page: Int)
     case comediansSearch(query: String, page: Int)

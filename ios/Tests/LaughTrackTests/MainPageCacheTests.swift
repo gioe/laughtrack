@@ -153,19 +153,6 @@ struct MainPageCacheTests {
 
         #expect(cached?.map(\.id) == [709])
     }
-
-    @Test("nearby shows persistent cache survives a new store instance")
-    func persistentNearbyShowsCacheSurvivesNewStoreInstance() async throws {
-        let directory = try temporaryDirectory()
-        let writer = PersistentMainPageCache(directory: directory)
-        let page = HomeNearbyPage(items: [homeShow(id: 710)], total: 1, zipCapTriggered: false)
-        await writer.setNearbyPage(page, zipCode: "10801", distanceMiles: 25, ttl: 60)
-
-        let reader = PersistentMainPageCache(directory: directory)
-        let cached = await reader.getNearbyPage(zipCode: "10801", distanceMiles: 25)
-
-        #expect(cached?.items.map(\.id) == [710])
-    }
 }
 
 private func temporaryDirectory() throws -> URL {

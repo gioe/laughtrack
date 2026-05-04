@@ -53,18 +53,6 @@ actor PersistentMainPageCache {
         get(fileName: "favorite-shows-\(fileNameComponent(requestKey))")
     }
 
-    func setNearbyPage(_ page: HomeNearbyPage, zipCode: String, distanceMiles: Int, ttl: TimeInterval) {
-        set(page, fileName: nearbyPageFileName(zipCode: zipCode, distanceMiles: distanceMiles), ttl: ttl)
-    }
-
-    func getNearbyPage(zipCode: String, distanceMiles: Int) -> HomeNearbyPage? {
-        getCachedNearbyPage(zipCode: zipCode, distanceMiles: distanceMiles)?.value
-    }
-
-    func getCachedNearbyPage(zipCode: String, distanceMiles: Int) -> CachedValue<HomeNearbyPage>? {
-        get(fileName: nearbyPageFileName(zipCode: zipCode, distanceMiles: distanceMiles))
-    }
-
     private func set<Value: Codable & Sendable>(_ value: Value, fileName: String, ttl: TimeInterval) {
         let entry = Entry(value: value, expiresAt: Date().addingTimeInterval(ttl))
 
@@ -91,10 +79,6 @@ actor PersistentMainPageCache {
         } catch {
             return nil
         }
-    }
-
-    private func nearbyPageFileName(zipCode: String, distanceMiles: Int) -> String {
-        "nearby-shows-\(fileNameComponent(zipCode))-\(distanceMiles)"
     }
 
     private func fileURL(fileName: String) -> URL {
