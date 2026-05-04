@@ -28,6 +28,33 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+### iOS Simulator Cold Start Dominates `test_sim` Wall Time
+
+A "test_sim hung" report on a HostedView suite is almost always cold-start
+overhead, not a hanging test. Measured for `LaughTrackTests/ContentViewNavigationTests`
+on iPhone 17 / iOS 26.1 (15 tests, all settle()-driven HostedView tests):
+
+- Sim cold boot from shutdown:           ~120s
+- `xcodebuild build-for-testing` cold:    60-180s (DerivedData empty)
+- `xcodebuild build-for-testing` warm:    ~6s    (DerivedData primed)
+- App install + test bundle load:         ~30s   (per run, even when warm)
+- Test execution (suite-level slice):     ~20s
+
+Cold path easily exceeds 4 minutes — over the XcodeBuildMCP `test_sim` 120s
+default tool timeout. Warm path is ~60s end-to-end.
+
+The reliable pattern for iterative work on a HostedView suite:
+
+1. Boot the sim once (XcodeBuildMCP `boot_sim` or `xcrun simctl boot <UDID>`)
+   and leave it running. Sim cold boot is the single largest cost.
+2. Prime DerivedData once with `xcodebuild build-for-testing` for the scheme.
+3. Iterate via raw `xcodebuild test-without-building -only-testing:LaughTrackTests/<SuiteName>`
+   with `-resultBundlePath` for failure diagnostics. Skip `test_sim` for slices
+   that need more than 90s — the MCP tool's 120s ceiling will cut you off.
+
+When `test_sim` is the right tool for a quick run on a primed sim and prebuilt
+DerivedData, it stays well under the timeout.
+
 ### Focused Swift Testing Filters Can Match Zero Tests
 
 `swift test --filter <pattern>` can exit 0 even when the filter matches zero
@@ -71,6 +98,59 @@ code alone.**
    gotcha applies there. The UI-test target (`LaughTrackUITests`) is XCTest,
    where method-level selectors *do* work — the failure mode is specific to
    `@Test` macro selectors.
+
+### `.accessibilityIdentifier` On A Container Clobbers Child Button Identifiers
+
+Under iOS 26, applying `.accessibilityIdentifier(...)` to a container view
+that wraps cards using `.accessibilityElement(children: .combine)` propagates
+the container's identifier down to every combined-child accessibility node —
+the inner Buttons' own `.accessibilityIdentifier(...)` modifiers are masked.
+
+Concrete example from `HomeShowsTonightRail` (TASK-1886 diagnosis):
+
+```swift
+VStack(...) {
+    ForEach(shows) { show in
+        Button { ... } label: { HomeShowsTonightHeroCard(show: show) }
+            .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightHeroButton)
+        // HomeShowsTonightHeroCard ends with .accessibilityElement(children: .combine)
+    }
+}
+.accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightRail)
+```
+
+`dumpAccessibilityTree` shows the hero card surfaces as
+`AccessibilityNode id='laughtrack.home.shows-tonight-rail' label='<hero card combined label>'`
+— the hero button's identifier never appears, so
+`requireView(withIdentifier: homeShowsTonightHeroButton)` and
+`tapControl(withIdentifier: homeShowsTonightHeroButton)` cannot find it.
+
+If a HostedView test must drive a button inside a rail/list whose container
+already carries an identifier, either drop the container's identifier and
+assert the rail's existence by some other means (e.g. `requireText` of the
+rail's eyebrow/title), or activate the button by accessibility label rather
+than identifier.
+
+### Persistent Caches Bleed Real Production Data Into HostedView Tests
+
+Models reading from a singleton disk-backed cache (`PersistentMainPageCache.shared`,
+`DataCache<…>` instances scoped at `.appLevel`) will return whatever was
+written to disk by previous launches — including debug-build runs of the
+real app against production servers. A HostedView test that constructs a
+mock transport will silently never invoke it: the model returns cached
+production data first, so the test assertions are evaluated against
+whatever the prod API happened to return last time the simulator's app
+sandbox was written to.
+
+When you build a HostedView test that depends on the model load path,
+either:
+- Reset / wipe the persistent store before constructing the view, or
+- Plumb a test-specific cache into the model and assert on its contents
+  rather than relying on the default `.shared` instance.
+
+A passing test today is no guarantee under this contamination — it might
+fail on a colleague's machine with different cache contents and look
+flaky.
 
 ### Debugging SwiftUI Rendering — Start With `dumpAccessibilityTree`
 
