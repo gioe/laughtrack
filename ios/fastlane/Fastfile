@@ -113,9 +113,13 @@ platform :ios do
       path: ["../project.yml", "../LaughTrack.xcodeproj/project.pbxproj"],
       message: "[fastlane] Bump build to #{new_build}"
     )
+    # Omit local_branch so fastlane resolves the actual current branch via
+    # Actions.git_branch_name_using_HEAD; passing "HEAD" would assemble
+    # `git push origin HEAD:HEAD`, which the remote refuses (refusing to
+    # update checked out branch). tags: false keeps this push commits-only —
+    # tag_release pushes its own tag separately.
     push_to_git_remote(
       remote: "origin",
-      local_branch: "HEAD",
       tags: false
     )
 
