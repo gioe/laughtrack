@@ -32,7 +32,8 @@ struct ShowsDiscoveryView: View {
                     SearchField(
                         title: "Search",
                         prompt: unifiedSearchPrompt ?? "Search nearby comedy",
-                        text: unifiedSearchText
+                        text: unifiedSearchText,
+                        showsTitle: false
                     )
                 } else if displaysSearchFields {
                     SearchField(

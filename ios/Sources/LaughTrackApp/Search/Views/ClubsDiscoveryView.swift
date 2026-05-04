@@ -33,7 +33,8 @@ struct ClubsDiscoveryView: View {
                     SearchField(
                         title: "Search",
                         prompt: unifiedSearchPrompt ?? "Search club names",
-                        text: unifiedSearchText
+                        text: unifiedSearchText,
+                        showsTitle: false
                     )
                 } else if displaysSearchInput {
                     SearchField(

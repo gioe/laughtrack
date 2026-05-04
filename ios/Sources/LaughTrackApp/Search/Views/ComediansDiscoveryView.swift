@@ -35,7 +35,8 @@ struct ComediansDiscoveryView: View {
                     SearchField(
                         title: "Search",
                         prompt: unifiedSearchPrompt ?? "Search comedian names",
-                        text: unifiedSearchText
+                        text: unifiedSearchText,
+                        showsTitle: false
                     )
                 } else if displaysSearchInput {
                     SearchField(

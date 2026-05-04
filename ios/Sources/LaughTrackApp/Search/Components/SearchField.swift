@@ -7,13 +7,16 @@ struct SearchField: View {
     let title: String
     let prompt: String
     @Binding var text: String
+    var showsTitle: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            Text(title)
-                .font(theme.laughTrackTokens.typography.eyebrow)
-                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                .textCase(.uppercase)
+            if showsTitle {
+                Text(title)
+                    .font(theme.laughTrackTokens.typography.eyebrow)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                    .textCase(.uppercase)
+            }
 
             LaughTrackSearchField(placeholder: prompt, text: $text)
                 .modifier(SearchFieldInputBehavior())
