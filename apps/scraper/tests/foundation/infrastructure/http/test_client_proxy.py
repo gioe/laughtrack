@@ -205,3 +205,34 @@ class TestFetchHtmlProxyRouting:
             if "Residential proxy fetch returned None" in c.args[0]
         ]
         assert proxy_warns == []
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_warn_when_caller_pinned_explicit_proxy(self, monkeypatch):
+        """Explicit non-residential proxy_url must not trigger the residential WARN.
+
+        Test/dev callers sometimes pin a different proxy (e.g. a local mitmproxy
+        for traffic capture). The 'bot-block survived proxy' message would
+        falsely accuse the residential proxy when the residential one was
+        never even applied.
+        """
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ) as mock_warn:
+                result = await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    scraper_key=_ALLOWLISTED,
+                    proxy_url="http://mitmproxy.local:8888",
+                )
+
+        assert result is None
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch returned None" in c.args[0]
+        ]
+        assert proxy_warns == []

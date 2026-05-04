@@ -90,6 +90,11 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         logger_context = getattr(self, "logger_context", None) or {}
         normalized_url = URLUtils.normalize_url(url)
         proxy_url = kwargs.pop("proxy_url", None)
+        # Auto-apply the residential proxy for allowlisted JSON scrapers
+        # (e.g. tixr/ticketweb storefront APIs) so fetch_json reaches parity
+        # with the fetch_html auto-routing in HttpClient.fetch_html.
+        if proxy_url is None:
+            proxy_url = HttpClient.resolve_proxy_url(getattr(self, "key", None))
         request_kwargs = dict(kwargs)
         if proxy_url is not None:
             request_kwargs["proxies"] = {"http": proxy_url, "https": proxy_url}

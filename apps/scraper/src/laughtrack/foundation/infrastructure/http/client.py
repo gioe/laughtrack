@@ -487,9 +487,11 @@ class HttpClient:
             scraper_key: Identifier of the calling scraper (matches
                 ``BaseScraper.key``).  When provided and ``proxy_url`` is
                 ``None``, the residential-proxy allowlist
-                (:data:`PROXIED_SCRAPER_KEYS`) is consulted: allowlisted
-                scrapers route through ``RESIDENTIAL_PROXY_URL`` automatically
-                so per-call proxy plumbing is not required at every call site.
+                (:func:`scraper_proxy_registry.proxy_enabled_keys`, sourced
+                from the ``scrapers`` Postgres table) is consulted:
+                allowlisted scrapers route through ``RESIDENTIAL_PROXY_URL``
+                automatically so per-call proxy plumbing is not required at
+                every call site.
             **request_kwargs: Additional keyword arguments forwarded to
                 ``session.get`` (e.g. ``timeout``).  Reserved names
                 ``headers`` and ``proxies`` are handled explicitly.
@@ -521,12 +523,17 @@ class HttpClient:
             **request_kwargs,
         )
 
-        # When we paid for a residential-proxy fetch and still got nothing,
+        # When we auto-applied the residential proxy and still got nothing,
         # surface it so the nightly triage can distinguish "proxy didn't
-        # help" from "scraper has stale selectors".
+        # help" from "scraper has stale selectors". Caller-pinned proxy_url
+        # is excluded — that's a different (test/dev) proxy and the
+        # 'bot-block survived proxy' message would mislead.
+        residential_was_auto_applied = (
+            proxy_url is None and effective_proxy_url is not None
+        )
         if (
             html is None
-            and effective_proxy_url is not None
+            and residential_was_auto_applied
             and scraper_key in scraper_proxy_registry.proxy_enabled_keys()
         ):
             Logger.warn(
