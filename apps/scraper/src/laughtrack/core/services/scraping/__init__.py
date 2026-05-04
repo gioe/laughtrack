@@ -4,6 +4,7 @@ import asyncio
 import concurrent.futures
 import json
 import os
+import re
 import threading
 import uuid
 from collections import defaultdict
@@ -86,6 +87,69 @@ def _build_proxy_club(venue_club: Club, company: ProductionCompany) -> Club:
     proxy = copy.copy(venue_club)
     proxy.scraping_url = company.scraping_url or ""
     # Tag so scrape_one can stamp production_company_id before persistence
+    proxy._production_company_id = company.id  # type: ignore[attr-defined]
+    proxy._production_company = company  # type: ignore[attr-defined]
+    return proxy
+
+
+# Eventbrite organizer URLs come in two shapes the seed data uses:
+#   https://www.eventbrite.com/o/<slug>/<digits>/   (slash-separated id)
+#   https://www.eventbrite.com/o/<slug>-<digits>    (slug-suffix id)
+# We accept both. The id is always >=6 digits in practice; tightening to that
+# minimum avoids matching short numeric fragments that appear inside slugs.
+_EVENTBRITE_ORG_ID_RES = (
+    re.compile(r"/(\d{6,})/?(?:[?#]|$)"),
+    re.compile(r"-(\d{6,})/?(?:[?#]|$)"),
+)
+
+
+def _extract_eventbrite_organizer_id(url: str) -> Optional[str]:
+    """Extract the numeric organizer id from an Eventbrite ``/o/...`` URL."""
+    if not url or "eventbrite.com/o/" not in url:
+        return None
+    for pattern in _EVENTBRITE_ORG_ID_RES:
+        match = pattern.search(url)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _build_synthetic_proxy_for_company(company: ProductionCompany) -> Optional[Club]:
+    """Synthesize an in-memory Club for a production company with no venue mapping.
+
+    Used when ``production_company_venues`` has no row for the company — typical
+    for multi-venue organizers (e.g., Eventbrite organizers covering many states)
+    where seeding a single primary venue would defeat per-event venue routing.
+    The returned Club is never persisted; it exists solely to drive
+    ``_scrape_clubs_with_metrics`` and downstream per-event venue resolution
+    inside the chosen scraper (currently EventbriteScraper organizer mode).
+
+    Returns None when the company's scraping_url cannot be parsed into a
+    supported synthetic source (today: Eventbrite organizer URLs only).
+    """
+    url = company.scraping_url or ""
+    organizer_id = _extract_eventbrite_organizer_id(url)
+    if organizer_id is None:
+        return None
+    source = ScrapingSource(
+        platform="eventbrite",
+        scraper_key="eventbrite",
+        source_url=url,
+        external_id=organizer_id,
+        priority=0,
+        enabled=True,
+    )
+    proxy = Club(
+        id=-company.id,  # negative ids are never persisted by ShowService
+        name=f"{company.name} (organizer)",
+        address="",
+        website=company.website or "",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=False,
+        scraping_sources=[source],
+    )
     proxy._production_company_id = company.id  # type: ignore[attr-defined]
     proxy._production_company = company  # type: ignore[attr-defined]
     return proxy
@@ -239,21 +303,32 @@ class ScrapingService:
         proxy_clubs: List[tuple[Club, ProductionCompany]] = []
 
         for company in companies:
-            if not company.venue_club_ids:
-                Logger.warn(f"Production company '{company.name}' has no venue mappings — skipping")
-                continue
+            if company.venue_club_ids:
+                # Use the first mapped venue as the primary club for this scrape
+                primary_club_id = company.venue_club_ids[0]
+                venue_club = club_by_id.get(primary_club_id)
+                if not venue_club:
+                    Logger.warn(
+                        f"Production company '{company.name}': primary venue club_id={primary_club_id} "
+                        f"not found in active clubs — skipping"
+                    )
+                    continue
+                proxy = _build_proxy_club(venue_club, company)
+            else:
+                # No venue mapping — multi-venue organizers (e.g. Eventbrite organizer
+                # feeds covering many states) need per-event venue routing rather
+                # than aggregation under a single primary club. Synthesize an
+                # in-memory proxy from the company's scraping_url and let the
+                # downstream scraper (e.g. EventbriteScraper organizer mode) upsert
+                # one clubs row per actual event venue.
+                proxy = _build_synthetic_proxy_for_company(company)
+                if proxy is None:
+                    Logger.warn(
+                        f"Production company '{company.name}' has no venue mappings and "
+                        f"scraping_url={company.scraping_url!r} is not a supported synthetic source — skipping"
+                    )
+                    continue
 
-            # Use the first mapped venue as the primary club for this scrape
-            primary_club_id = company.venue_club_ids[0]
-            venue_club = club_by_id.get(primary_club_id)
-            if not venue_club:
-                Logger.warn(
-                    f"Production company '{company.name}': primary venue club_id={primary_club_id} "
-                    f"not found in active clubs — skipping"
-                )
-                continue
-
-            proxy = _build_proxy_club(venue_club, company)
             proxy_clubs.append((proxy, company))
 
         if not proxy_clubs:
