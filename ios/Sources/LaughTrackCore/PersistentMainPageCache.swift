@@ -1,13 +1,18 @@
 import Foundation
 import LaughTrackAPIClient
 
-actor PersistentMainPageCache {
-    struct CachedValue<Value: Sendable>: Sendable {
-        let value: Value
-        let expiresAt: Date
+public actor PersistentMainPageCache {
+    public struct CachedValue<Value: Sendable>: Sendable {
+        public let value: Value
+        public let expiresAt: Date
+
+        public init(value: Value, expiresAt: Date) {
+            self.value = value
+            self.expiresAt = expiresAt
+        }
     }
 
-    static let shared = PersistentMainPageCache()
+    public static let shared = PersistentMainPageCache()
 
     private struct Entry<Value: Codable>: Codable {
         let value: Value
@@ -19,7 +24,7 @@ actor PersistentMainPageCache {
     private let decoder = JSONDecoder()
     private let encoder = JSONEncoder()
 
-    init(
+    public init(
         directory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
             .first!
             .appendingPathComponent("LaughTrackMainPageCache", isDirectory: true),
@@ -29,27 +34,27 @@ actor PersistentMainPageCache {
         self.fileManager = fileManager
     }
 
-    func setHomeFeed(_ feed: Components.Schemas.HomeFeed, zipCode: String?, ttl: TimeInterval) {
+    public func setHomeFeed(_ feed: Components.Schemas.HomeFeed, zipCode: String?, ttl: TimeInterval) {
         set(feed, fileName: "home-feed-\(fileNameComponent(zipCode ?? "default"))", ttl: ttl)
     }
 
-    func getHomeFeed(zipCode: String?) -> Components.Schemas.HomeFeed? {
+    public func getHomeFeed(zipCode: String?) -> Components.Schemas.HomeFeed? {
         getCachedHomeFeed(zipCode: zipCode)?.value
     }
 
-    func getCachedHomeFeed(zipCode: String?) -> CachedValue<Components.Schemas.HomeFeed>? {
+    public func getCachedHomeFeed(zipCode: String?) -> CachedValue<Components.Schemas.HomeFeed>? {
         get(fileName: "home-feed-\(fileNameComponent(zipCode ?? "default"))")
     }
 
-    func setFavoriteShows(_ shows: [Components.Schemas.Show], requestKey: String, ttl: TimeInterval) {
+    public func setFavoriteShows(_ shows: [Components.Schemas.Show], requestKey: String, ttl: TimeInterval) {
         set(shows, fileName: "favorite-shows-\(fileNameComponent(requestKey))", ttl: ttl)
     }
 
-    func getFavoriteShows(requestKey: String) -> [Components.Schemas.Show]? {
+    public func getFavoriteShows(requestKey: String) -> [Components.Schemas.Show]? {
         getCachedFavoriteShows(requestKey: requestKey)?.value
     }
 
-    func getCachedFavoriteShows(requestKey: String) -> CachedValue<[Components.Schemas.Show]>? {
+    public func getCachedFavoriteShows(requestKey: String) -> CachedValue<[Components.Schemas.Show]>? {
         get(fileName: "favorite-shows-\(fileNameComponent(requestKey))")
     }
 

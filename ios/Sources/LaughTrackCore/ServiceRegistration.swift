@@ -14,6 +14,9 @@ public enum ServiceRegistration {
         container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel) {
             DataCache<LaughTrackCacheKey>(configuration: .init(defaultTTL: 60 * 60))
         }
+        container.register(PersistentMainPageCache.self, scope: .appLevel) {
+            PersistentMainPageCache.shared
+        }
 
         container.register(NearbyPreferenceStore.self, scope: .appLevel) {
             NearbyPreferenceStore(

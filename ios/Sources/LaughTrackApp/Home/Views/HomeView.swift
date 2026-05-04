@@ -101,7 +101,8 @@ struct HomeView: View {
             case .favoriteShows:
                 HomeFavoriteShowsRail(
                     apiClient: apiClient,
-                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+                    cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+                    persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
                 )
             case .comedians:
                 comediansSection
@@ -116,7 +117,8 @@ struct HomeView: View {
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
             searchNavigationBridge: searchNavigationBridge,
-            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
     }
 
@@ -124,7 +126,8 @@ struct HomeView: View {
         HomeTrendingComediansRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
-            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
     }
 
@@ -132,7 +135,8 @@ struct HomeView: View {
         HomePopularClubsRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
-            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
         )
     }
 }
@@ -177,6 +181,7 @@ private struct HomeShowsTonightRail: View {
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -202,7 +207,14 @@ private struct HomeShowsTonightRail: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache) },
+                    retry: {
+                        await model.refresh(
+                            apiClient: apiClient,
+                            zipCode: zipCode,
+                            cache: cache,
+                            persistentCache: persistentCache
+                        )
+                    },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let shows):
@@ -214,7 +226,12 @@ private struct HomeShowsTonightRail: View {
             }
         }
         .task(id: model.requestKey(for: zipCode)) {
-            await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache)
+            await model.refresh(
+                apiClient: apiClient,
+                zipCode: zipCode,
+                cache: cache,
+                persistentCache: persistentCache
+            )
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
@@ -592,6 +609,7 @@ final class HomeShowsTonightModel: ObservableObject {
 private struct HomeFavoriteShowsRail: View {
     let apiClient: Client
     let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -619,7 +637,12 @@ private struct HomeFavoriteShowsRail: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .task(id: requestKey) {
-            await model.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians, cache: cache)
+            await model.refresh(
+                apiClient: apiClient,
+                favoriteComedians: favoriteComedians,
+                cache: cache,
+                persistentCache: persistentCache
+            )
         }
     }
 
@@ -671,7 +694,8 @@ final class HomeFavoriteShowsModel: ObservableObject {
         apiClient: Client,
         favoriteComedians: [Components.Schemas.ComedianSearchItem],
         cache: DataCache<LaughTrackCacheKey>? = nil,
-        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async {
         let requestKey = Self.requestKey(for: favoriteComedians)
         guard !requestKey.isEmpty else {
@@ -686,7 +710,8 @@ final class HomeFavoriteShowsModel: ObservableObject {
 
         if let cachedShows: [Components.Schemas.Show] = await MainPageCache.get(
             .favoriteShows(requestKey: requestKey),
-            from: cache
+            from: cache,
+            persistentCache: persistentCache
         ) {
             apply(shows: cachedShows, requestKey: requestKey)
             return
@@ -723,7 +748,13 @@ final class HomeFavoriteShowsModel: ObservableObject {
         }
 
         let shows = showsByID.values.sorted { $0.date < $1.date }
-        await MainPageCache.set(shows, forKey: .favoriteShows(requestKey: requestKey), in: cache, ttl: cacheTTL)
+        await MainPageCache.set(
+            shows,
+            forKey: .favoriteShows(requestKey: requestKey),
+            in: cache,
+            ttl: cacheTTL,
+            persistentCache: persistentCache
+        )
         apply(shows: shows, requestKey: requestKey)
     }
 
@@ -759,6 +790,7 @@ private struct HomeTrendingComediansRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -784,7 +816,14 @@ private struct HomeTrendingComediansRail: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache) },
+                    retry: {
+                        await model.refresh(
+                            apiClient: apiClient,
+                            zipCode: zipCode,
+                            cache: cache,
+                            persistentCache: persistentCache
+                        )
+                    },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let items):
@@ -807,7 +846,12 @@ private struct HomeTrendingComediansRail: View {
             }
         }
         .task(id: model.requestKey(for: zipCode)) {
-            await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache)
+            await model.refresh(
+                apiClient: apiClient,
+                zipCode: zipCode,
+                cache: cache,
+                persistentCache: persistentCache
+            )
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
@@ -913,7 +957,8 @@ final class HomeTrendingComediansModel: ObservableObject {
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
-        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -922,7 +967,8 @@ final class HomeTrendingComediansModel: ObservableObject {
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
             .homeFeed(zipCode: zipCode),
-            from: cache
+            from: cache,
+            persistentCache: persistentCache
         ) {
             apply(feed: cachedFeed, requestKey: requestKey)
             return
@@ -939,7 +985,8 @@ final class HomeTrendingComediansModel: ObservableObject {
             rateLimitMessage: "LaughTrack is rate-limiting trending comedians right now.",
             undocumentedContext: "trending comedians",
             networkContext: "the home feed",
-            networkMessage: "LaughTrack couldn't reach the trending comedians service. Check your connection and try again."
+            networkMessage: "LaughTrack couldn't reach the trending comedians service. Check your connection and try again.",
+            persistentCache: persistentCache
         )
         guard !Task.isCancelled else { return }
 
@@ -984,6 +1031,7 @@ private struct HomePopularClubsRail: View {
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -1009,7 +1057,14 @@ private struct HomePopularClubsRail: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache) },
+                    retry: {
+                        await model.refresh(
+                            apiClient: apiClient,
+                            zipCode: zipCode,
+                            cache: cache,
+                            persistentCache: persistentCache
+                        )
+                    },
                     signIn: { coordinator.push(.profile) }
                 )
             case .success(let clubs):
@@ -1031,7 +1086,12 @@ private struct HomePopularClubsRail: View {
             }
         }
         .task(id: model.requestKey(for: zipCode)) {
-            await model.refresh(apiClient: apiClient, zipCode: zipCode, cache: cache)
+            await model.refresh(
+                apiClient: apiClient,
+                zipCode: zipCode,
+                cache: cache,
+                persistentCache: persistentCache
+            )
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
         .background(laughTrack.colors.surfaceElevated)
@@ -1142,7 +1202,8 @@ final class HomePopularClubsModel: ObservableObject {
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
-        cacheTTL: TimeInterval = MainPageCache.defaultTTL
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL,
+        persistentCache: PersistentMainPageCache? = .shared
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -1151,7 +1212,8 @@ final class HomePopularClubsModel: ObservableObject {
 
         if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
             .homeFeed(zipCode: zipCode),
-            from: cache
+            from: cache,
+            persistentCache: persistentCache
         ) {
             apply(feed: cachedFeed, requestKey: requestKey)
             return
@@ -1168,7 +1230,8 @@ final class HomePopularClubsModel: ObservableObject {
             rateLimitMessage: "LaughTrack is rate-limiting clubs right now.",
             undocumentedContext: "clubs",
             networkContext: "the home feed",
-            networkMessage: "LaughTrack couldn't reach the clubs service. Check your connection and try again."
+            networkMessage: "LaughTrack couldn't reach the clubs service. Check your connection and try again.",
+            persistentCache: persistentCache
         )
         guard !Task.isCancelled else { return }
 

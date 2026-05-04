@@ -64,12 +64,22 @@ enum LaughTrackHostedViewTestSupport {
         )
         let container = ServiceContainer()
         container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel, instance: DataCache<LaughTrackCacheKey>())
+        container.register(PersistentMainPageCache.self, scope: .appLevel, instance: makePersistentMainPageCache(name: name))
         container.register(NearbyPreferenceStore.self, scope: .appLevel, instance: store)
         container.register(NotificationPreferenceStore.self, scope: .appLevel, instance: notificationStore)
         container.register((any NearbyLocationResolving).self, scope: .appLevel, instance: resolver)
         container.register((any ZipLocationResolving).self, scope: .appLevel, instance: zipLocationResolver)
         container.register(NearbyLocationController.self, scope: .appLevel, instance: controller)
         return container
+    }
+
+    static func makePersistentMainPageCache(name: String) -> PersistentMainPageCache {
+        // Each HostedView test gets its own empty on-disk cache, so the simulator
+        // sandbox can't bleed real production data into the model load path.
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("LaughTrackHostedViewTestSupport")
+            .appendingPathComponent("\(name).\(UUID().uuidString)", isDirectory: true)
+        return PersistentMainPageCache(directory: directory)
     }
 
     static func makeAuthManager(name: String) async -> AuthManager {
