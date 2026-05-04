@@ -102,8 +102,8 @@ struct ContentViewNavigationTests {
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail) == nil)
     }
 
-    @Test("location header button only appears on the near me tab")
-    func locationHeaderButtonOnlyAppearsOnNearMeTab() async throws {
+    @Test("location header button stays on the near me tab when toggling primitive filters")
+    func locationHeaderButtonStaysOnNearMeWhenTogglingPrimitives() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "location-header")
         let host = HostedView(
@@ -118,10 +118,18 @@ struct ContentViewNavigationTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.locationHeaderButton)
 
+        // TASK-1881 unified Home around one location/time frame: tapping a
+        // primitive pill on Near Me toggles the focus filter in place instead
+        // of switching tabs (see AppShellState.selectPrimitive's nearMe/favorites
+        // branch). The location header is part of the Near Me shell header, so
+        // it must remain visible after the pill toggle. The original "only
+        // appears on the near me tab" coverage — verifying that the header is
+        // absent on Search/Favorites — is tracked separately and needs a
+        // different switch mechanism than primitive taps.
         try host.tapControl(withIdentifier: LaughTrackViewTestID.primitiveFilterButton("clubs"))
         await host.settle()
 
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.locationHeaderButton) == nil)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.locationHeaderButton)
     }
 
     @Test("Profile entry point from near me pushes the expected navigation intent")
@@ -209,6 +217,23 @@ struct ContentViewNavigationTests {
             .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
         )
+        // KNOWN-FAILING under TASK-1886 diagnosis: this test fails for two
+        // independent reasons that need a product fix to address (deferred to
+        // a follow-up):
+        //   1. HomeShowsTonightModel.refresh consults PersistentMainPageCache.shared
+        //      before the apiClient. The simulator's app sandbox persists across
+        //      runs, so a real-data cache from any prior launch (debug build of
+        //      the app, another test run) is returned to this test instead of
+        //      MockHomeFeedTransport's fixture. Tests need a way to either
+        //      clear the persistent cache or inject a non-default cache.
+        //   2. Under iOS 26, `.accessibilityIdentifier(homeShowsTonightRail)`
+        //      on the rail's outer VStack propagates down to every nested
+        //      accessibility element whose card uses `.accessibilityElement(
+        //      children: .combine)`, masking the hero button's own
+        //      `accessibilityIdentifier(homeShowsTonightHeroButton)`. The dump
+        //      shows the hero card's combined label living under the rail's id
+        //      with no separate hero-button node. Asserting the button by id is
+        //      impossible until the rail's identifier strategy changes.
         await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
@@ -313,7 +338,12 @@ struct ContentViewNavigationTests {
         )
 
         coordinator.push(.search)
-        host.render()
+        // host.render() pumps the runloop synchronously and isn't enough here:
+        // the .search route resolves to AppShellView, whose `.task(id: initialTab)`
+        // is the only thing that swaps shellState.selectedTab to .search and lets
+        // SearchRootView mount its searchTabScreen accessibility id. Without an
+        // async wait that .task never fires before requireView's pump expires.
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
     }
@@ -332,7 +362,9 @@ struct ContentViewNavigationTests {
         )
 
         coordinator.push(.library)
-        host.render()
+        // Same AppShellView .task(id: initialTab) async-mount dependency as
+        // contentViewShowsSearchShellRoute above.
+        await host.settle()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesTabScreen)
     }
