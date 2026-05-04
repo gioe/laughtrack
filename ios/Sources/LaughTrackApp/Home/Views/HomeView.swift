@@ -813,6 +813,11 @@ private struct HomeTrendingComediansRail: View {
                 title: "Comics drawing crowds later",
                 subtitle: "Photo-backed performers with upcoming shows."
             )
+            // Anchoring the rail's test identifier on the shelf header — not the
+            // inner VStack — keeps it from propagating to the combined-children
+            // accessibility nodes produced by HomeTrendingComedianCard under
+            // iOS 26, which would otherwise mask the inner Button identifiers.
+            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComediansRail)
 
             switch model.phase {
             case .idle, .loading:
@@ -845,7 +850,6 @@ private struct HomeTrendingComediansRail: View {
                             .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComedianButton(comedian.id))
                         }
                     }
-                    .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingComediansRail)
                 }
             }
         }
@@ -1054,6 +1058,11 @@ private struct HomePopularClubsRail: View {
                 title: "Clubs drawing crowds",
                 subtitle: "Venues with active comedians in the feed."
             )
+            // Anchoring the rail's test identifier on the shelf header — not the
+            // inner VStack — keeps it from propagating to the combined-children
+            // accessibility nodes produced by HomePopularClubCard under iOS 26,
+            // which would otherwise mask the inner Button identifiers.
+            .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
 
             switch model.phase {
             case .idle, .loading:
@@ -1085,7 +1094,6 @@ private struct HomePopularClubsRail: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .accessibilityIdentifier(LaughTrackViewTestID.homePopularClubsRail)
                 }
             }
         }
