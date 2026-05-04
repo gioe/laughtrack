@@ -369,6 +369,52 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesTabScreen)
     }
 
+    // Restores the original "location header is Near-Me-only" coverage that
+    // locationHeaderButtonStaysOnNearMeWhenTogglingPrimitives stopped exercising
+    // after TASK-1881 made primitive-pill taps preserve the .nearMe tab. Switch
+    // mechanism is now coordinator.push(.search/.library) → AppShellView mounts
+    // the matching tab → its shell header should not contain the Near Me
+    // location header button.
+    @Test("Search shell route does not surface the Near Me location header button")
+    func searchShellRouteHidesLocationHeaderButton() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "search-no-location-header")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+
+        coordinator.push(.search)
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.locationHeaderButton) == nil)
+    }
+
+    @Test("Library shell route does not surface the Near Me location header button")
+    func libraryShellRouteHidesLocationHeaderButton() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "library-no-location-header")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "content-view"))
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+                .environmentObject(LoginModalPresenter())
+        )
+
+        coordinator.push(.library)
+        await host.settle()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesTabScreen)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.locationHeaderButton) == nil)
+    }
+
     @Test("ContentView routes the profile route through the real profile surface")
     func contentViewShowsProfileShellRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
