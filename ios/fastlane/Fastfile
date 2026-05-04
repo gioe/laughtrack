@@ -98,6 +98,27 @@ platform :ios do
       sh("xcodegen", "generate")
     end
 
+    # Commit + push the bump so tag_release tags a HEAD that is reachable on origin.
+    # Without this, the working tree is dirty after release/beta runs end-to-end and
+    # tag_release adds the tag against the unbumped HEAD commit — git checkout v1.1-N
+    # would land on a commit whose project.yml + pbxproj still carry the old build
+    # number. Pushing the commit first is required for the subsequent tag_release
+    # step: push_git_tags refuses tags pointing at commits not reachable on the
+    # remote. tags: false keeps this push commits-only — tag_release pushes its own
+    # tag separately. The CI guard added in TASK-1902 (CURRENT_PROJECT_VERSION must
+    # not decrease vs origin/main) makes this drift between "bumped on disk" and
+    # "committed in git" especially dangerous, since the next operator can land a
+    # PR that silently regresses the build number.
+    git_commit(
+      path: ["../project.yml", "../LaughTrack.xcodeproj/project.pbxproj"],
+      message: "[fastlane] Bump build to #{new_build}"
+    )
+    push_to_git_remote(
+      remote: "origin",
+      local_branch: "HEAD",
+      tags: false
+    )
+
     UI.success("Bumped version #{current_version} → #{new_version}, build → #{new_build}")
   end
 
