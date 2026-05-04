@@ -52,6 +52,26 @@ from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.url import URLUtils
 
 # ---------------------------------------------------------------------------
+# Residential proxy allowlist
+# ---------------------------------------------------------------------------
+
+# Scraper keys whose target site is gated by an IP-level WAF (Vercel-class)
+# that residential egress can clear. When ``RESIDENTIAL_PROXY_URL`` is set in
+# the environment, ``fetch_html`` auto-routes these scrapers through it; all
+# other scrapers continue to fetch directly. The allowlist exists so a single
+# proxy credential covers exactly the venues that need it — every other
+# scraper would burn proxy bandwidth for no benefit.
+PROXIED_SCRAPER_KEYS: frozenset[str] = frozenset(
+    {
+        "comedy_mothership",
+        "comedy_clubhouse",
+        "palm_beach_improv",
+        "ticketweb",
+        "tixr",
+    }
+)
+
+# ---------------------------------------------------------------------------
 # Bot-block detection
 # ---------------------------------------------------------------------------
 
@@ -249,6 +269,20 @@ class HttpClient:
     """
 
     @staticmethod
+    def resolve_proxy_url(scraper_key: Optional[str]) -> Optional[str]:
+        """Return ``RESIDENTIAL_PROXY_URL`` when *scraper_key* is allowlisted.
+
+        Scrapers in :data:`PROXIED_SCRAPER_KEYS` route through the residential
+        proxy named by the env var; all other keys (and a missing env var)
+        return ``None`` so the request goes out direct. The env var is read at
+        call time so tests can monkeypatch and tomorrow's nightly picks up a
+        secret rotation without a redeploy.
+        """
+        if not scraper_key or scraper_key not in PROXIED_SCRAPER_KEYS:
+            return None
+        return os.environ.get("RESIDENTIAL_PROXY_URL") or None
+
+    @staticmethod
     async def _fetch_with_fallback(
         session: AsyncSession,
         url: str,
@@ -428,6 +462,7 @@ class HttpClient:
         proxy_url: Optional[str] = None,
         raise_on_failure: bool = False,
         allow_empty_body: bool = False,
+        scraper_key: Optional[str] = None,
         **request_kwargs: Any,
     ) -> Optional[str]:
         """
@@ -457,6 +492,12 @@ class HttpClient:
                 ``None`` immediately without warning or triggering the
                 Playwright fallback.  Use this when the caller knows an
                 empty body is a valid application-level signal.
+            scraper_key: Identifier of the calling scraper (matches
+                ``BaseScraper.key``).  When provided and ``proxy_url`` is
+                ``None``, the residential-proxy allowlist
+                (:data:`PROXIED_SCRAPER_KEYS`) is consulted: allowlisted
+                scrapers route through ``RESIDENTIAL_PROXY_URL`` automatically
+                so per-call proxy plumbing is not required at every call site.
             **request_kwargs: Additional keyword arguments forwarded to
                 ``session.get`` (e.g. ``timeout``).  Reserved names
                 ``headers`` and ``proxies`` are handled explicitly.
@@ -471,16 +512,37 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
+        # Auto-apply the residential proxy for allowlisted scrapers when the
+        # caller has not pinned a proxy_url explicitly.
+        effective_proxy_url = proxy_url
+        if effective_proxy_url is None and scraper_key is not None:
+            effective_proxy_url = HttpClient.resolve_proxy_url(scraper_key)
+
         html, _response, _fallback_invoked = await HttpClient._fetch_with_fallback(
             session,
             url,
             headers=headers,
             logger_context=logger_context,
-            proxy_url=proxy_url,
+            proxy_url=effective_proxy_url,
             raise_on_failure=raise_on_failure,
             allow_empty_body=allow_empty_body,
             **request_kwargs,
         )
+
+        # When we paid for a residential-proxy fetch and still got nothing,
+        # surface it so the nightly triage can distinguish "proxy didn't
+        # help" from "scraper has stale selectors".
+        if (
+            html is None
+            and effective_proxy_url is not None
+            and scraper_key in PROXIED_SCRAPER_KEYS
+        ):
+            Logger.warn(
+                f"[HttpClient] Residential proxy fetch returned None for "
+                f"scraper={scraper_key!r} url={url!r} — bot-block survived proxy",
+                logger_context or {},
+            )
+
         return html
 
     @staticmethod

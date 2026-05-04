@@ -185,6 +185,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         exponential backoff and ``except NetworkError`` retry loops.
         """
         logger_context = getattr(self, "logger_context", None)
+        # Forward the scraper key so HttpClient can auto-apply the residential
+        # proxy for allowlisted scrapers without per-call plumbing.
+        kwargs.setdefault("scraper_key", getattr(self, "key", None))
 
         async def _fetch_html():
             session = await self.get_session()

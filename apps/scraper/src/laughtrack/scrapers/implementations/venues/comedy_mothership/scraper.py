@@ -77,6 +77,7 @@ class ComedyMothershipScraper(BaseScraper):
                         page_url,
                         headers=None,
                         logger_context=self.logger_context,
+                        scraper_key=self.key,
                     )
                 except Exception as e:
                     Logger.error(
