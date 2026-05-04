@@ -61,6 +61,17 @@ Using the issue `title`, `body`, and `labels`, determine:
 
 Generate **3–7 acceptance criteria** from the issue body — concrete, testable conditions. For bug issues, always include a criterion that the failure case is resolved and a regression test criterion.
 
+### Failing Test Polarity Convention
+
+Every spec stored as a typed-criteria `test` (Step 4.1 → Step 6) must satisfy two invariants — Step 4.1 checks the first, Step 7.5 checks the second:
+
+1. **Exits nonzero against the broken codebase** (sandbox-validated at Step 4.1, when feasible).
+2. **Exits 0 against the fixed codebase** (re-run authoritatively at Step 7.5, post-implementation).
+
+Assertion-style specs — `test -z "$(...)"`, `test ! -e ...`, leading `!`, or any "negate the expected output" pattern — silently invert the polarity: they exit nonzero on broken AND fixed code, just for different reasons. Step 4.1 reads the broken-state nonzero as "fails as expected" and stores the spec verbatim, then `tusk criteria done` blocks merge indefinitely because the same spec still exits nonzero against the fix. Step 7.5 catches that mismatch authoritatively (issue #642, original incident TASK-287 / criterion #1291).
+
+If you must write an assertion-style reproducer, wrap it: `! ( test -z "$(...)" )` so the fixed-code state exits 0. The issue template's `failing_test` field describes the same convention from the author's side.
+
 ## Step 4.1: Extract Failing Test Criterion
 
 Scan the issue body for a `## Failing Test` section. If present:
@@ -114,6 +125,8 @@ Scan the issue body for a `## Failing Test` section. If present:
 
    If the effective token DOES resolve on `/usr/bin:/bin` (e.g. `grep`, `python3`, `find`, or a `bash -c '<on-PATH-cmd> ...'` wrapper whose body's first token is itself on PATH), fall through to sub-item **b** below — the existing approval + sandbox flow runs unchanged. The fast-path is an addition, not a replacement.
 
+   **Why language-interpreter wrappers (`python3 -c`, `node -e`, `ruby -e`, `perl -e`) fall through here.** Their first-token interpreter is always on `/usr/bin:/bin` in any normal install, so the `command -v "$CHECK_TOKEN"` check above always passes — the sandbox always runs. Step 4.1.a peels `bash`/`sh` wrappers because the body of a shell wrapper is itself a shell snippet whose first whitespace-token IS the executable (cheap to extract with awk). For language wrappers, the actual project tool is buried inside a subprocess invocation (`subprocess.run(['tusk', ...])`, `child_process.execSync('tusk')`, `system('tusk', ...)`, `qx(tusk ...)`, etc.) and can't be cheaply or robustly extracted from prose without per-language parsers — a heuristic regex would misfire on benign self-contained scripts whose quoted strings happen to look like command names (e.g. `python3 -c 'print("hello")'` would extract `hello`). Instead, the interpreter runs cleanly, the inner subprocess fails to find the project tool, and the spec exits 1 (not 126/127) with a recognizable missing-executable error in stderr — handled downstream by the **interpreter-wrapper bypass** branch in sub-item **c** below, which catches this post-hoc by stderr signature rather than pre-flight token extraction.
+
    **b. Display the spec and request approval:**
 
    > The issue body's `## Failing Test` section contains this spec. If approved, it runs in an isolated sandbox (`env -i`, `PATH=/usr/bin:/bin`, no `.git` parent) — project tools like `tusk`, `pytest`, and any project-installed binary are off PATH and will exit 127, which Step 4.1 treats as a command error and discards the spec. Step 4.1 only checks that the spec is a *runnable, shell-safe command*; the authoritative "does it actually fail on the current code" check happens later via `tusk criteria done`.
@@ -148,9 +161,22 @@ Scan the issue body for a `## Failing Test` section. If present:
 
    Interpret the result:
 
-   - **Exit nonzero, no command error** — spec fails as expected. Store as `test_spec` and proceed. (Before storing, verify the spec calls into the project under test — runs a CLI, imports a project module, references a real file. Self-contained specs with inline logic may exit nonzero yet pass trivially once that inline logic is fixed; surface this in Step 7 so the implementer validates manually.)
-   - **Exit 0** — spec passes before any fix (self-contained demo, already-resolved issue, or a self-skip guard fired in the sandbox — e.g. `git diff` against a missing `.git` parent). Ask the implementer: discard (`test_spec=null`, score `test_present="no"`) or keep with a `(warning: passed before fix)` note appended (score `test_present="unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `test_present="yes"` means the bug was observed to fail under our own execution; this rule is also recorded in the Step 4.7 `test_present` table to keep the two locations aligned)?
-   - **Command error** (exit 126/127, or stderr contains "command not found" / "syntax error") — not a runnable shell command. Set `test_spec=null`, score `test_present="no"`, and inform: > The `## Failing Test` spec produced a command error (`<first line of SPEC_STDERR>`). Treating as no failing test.
+   - **Exit nonzero, no command error** — spec fails as expected. Store as `test_spec` and proceed. (Before storing, verify the spec calls into the project under test — runs a CLI, imports a project module, references a real file. Self-contained specs with inline logic may exit nonzero yet pass trivially once that inline logic is fixed; surface this in Step 7 so the implementer validates manually.) **Polarity caveat:** the sandbox only confirms the spec exits nonzero on the *broken* state — it cannot tell whether `exit 1` means "the bug fails the assertion" (correct polarity, exit 0 ≡ pass after fix) or "the assertion's negation happens to fire on broken code too" (inverted polarity, still exits nonzero after fix). Step 7.5 re-runs the stored spec against the fixed code post-implementation and surfaces a polarity-mismatch warning if it then exits nonzero — see the Failing Test Polarity Convention above for the underlying invariant.
+   - **Exit 0** — spec passes before any fix (self-contained demo, already-resolved issue, or a self-skip guard fired in the sandbox — e.g. `git diff` against a missing `.git` parent). Ask the implementer: discard (`test_spec=null`, score `test_present="no"`) or keep with a `(warning: passed before fix)` note appended (score `test_present="unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `test_present="yes"` means the bug was observed to fail under our own execution; this rule is also recorded in the Step 4.7 `test_present` table to keep the two locations aligned)? If kept, Step 7.5 will re-run the spec against the fixed code post-implementation and apply the canonical convention (exit 0 ≡ pass after fix); if it then exits nonzero, the polarity-mismatch options surface there.
+   - **Command error — malformed spec** (stderr contains "command not found" or "syntax error", or exit 126/127 with stderr that matches neither the empty/"No such file" environmental signature below) — not a runnable shell command. Set `test_spec=null`, score `test_present="no"`, and inform: > The `## Failing Test` spec produced a command error (`<first line of SPEC_STDERR>`). Treating as no failing test.
+   - **Command error — environmental** (exit 126/127 with stderr empty OR containing "No such file or directory", and NOT containing "command not found" / "syntax error") — the spec invokes a tool or relative path (e.g. `bin/tusk`, `tests/...`) that is unreachable from the sandbox tempdir. The Step 4.1.a fast-path catches this when the *effective first token* is unreachable, but a spec whose first token IS on PATH (e.g. `test -n "$(bin/tusk version ...)"`) bypasses the fast-path and lands here instead. This is the same epistemic situation as the fast-path skip — the author supplied a concrete reproducer but it can't be validated under the sandbox's safety constraints. Set `test_spec=null`, score `test_present="unverifiable"`, and inform: > The `## Failing Test` spec exited 126/127 with sandbox unreachable-path signature (`<first line of SPEC_STDERR>` or empty stderr); a project-relative path or tool inside the spec was likely unreachable from the tempdir. Scoring `test_present` as `unverifiable` (the spec exists but can't be validated here). Failing-test verification deferred to `tusk criteria done` after task creation.
+   - **Command error — interpreter wrapper bypass** (exit nonzero AND NOT 126/127, with stderr containing a missing-executable signature that names an off-PATH token) — the spec is wrapped in a language interpreter (`python3 -c '<body>'`, `node -e '<body>'`, `ruby -e '<body>'`, `perl -e '<body>'`, or any analogous runtime invocation) whose interpreter itself runs cleanly on `/usr/bin:/bin` but whose body subprocesses an unreachable project tool. The Step 4.1.a fast-path can't catch this — the wrapper interpreter IS on PATH — and the "Command error — environmental" branch above only fires for exit 126/127 (the language runtime instead exits 1 and surfaces the missing executable through its own exception machinery). Recognize this case by these canonical stderr signatures, extracting `<token>`:
+     - **Python** — `FileNotFoundError: [Errno 2] No such file or directory: '<token>'`
+     - **Node** — `Error: spawn <token> ENOENT` or trailing `<token> ENOENT`
+     - **Ruby** — `Errno::ENOENT: No such file or directory - <token>`
+     - **Perl** — `Can't exec "<token>": No such file or directory`
+     - **Generic child-process** — any line ending `<token>: No such file or directory` where `<token>` is a bare command name (no path component)
+
+     Strip any path component from the extracted `<token>` (e.g. `bin/tusk` → `tusk`), then check whether the basename resolves on `PATH=/usr/bin:/bin` via `command -v`. If it does NOT resolve, this is the same epistemic situation as the Step 4.1.a fast-path skip — the author supplied a concrete reproducer but the inner subprocess can't be validated under the sandbox's safety constraints. Set `test_spec=null`, score `test_present="unverifiable"`, and inform: > The `## Failing Test` spec is an interpreter wrapper whose inner subprocess could not reach `<token>` (sandbox PATH = `/usr/bin:/bin`). Scoring `test_present` as `unverifiable` (the spec exists but can't be validated here). Failing-test verification deferred to `tusk criteria done` after task creation.
+
+     Adding a new interpreter or runtime to this branch is a one-line change — append the language's canonical missing-executable signature to the table above; the downstream "strip path component, check basename on `/usr/bin:/bin`, route to unverifiable" logic applies uniformly across every signature.
+
+     If the extracted `<token>` IS on `/usr/bin:/bin` (the inner subprocess called a system tool that genuinely failed) or no recognized signature matches the stderr, fall through to the **"Exit nonzero, no command error"** bullet above (treat as a real failure: store as `test_spec` and proceed).
 
 3. **If no `## Failing Test` section is found**, set `test_spec = null`. No test criterion is added in Step 6. For `bug`/`defect` task types, this lowers the Step 4.7 score via `test_present`; for other task types, `test_present` is N/A.
 
@@ -208,7 +234,7 @@ Evaluate each factor and look up its score contribution from `factors`:
 
 | Factor key | Condition to evaluate | Value key |
 |---|---|---|
-| `test_present` | Result from Step 4.1. Section absent → `"no"`. Section present and the spec was sandbox-executed to a non-zero exit (without a command-error signature) → `"yes"`. Section present but the spec was *not* sandbox-executed (Step 4.1.a fast-path skip for an off-PATH effective first token, or Step 4.1.b user-typed skip) → `"unverifiable"` — the issue author supplied a concrete reproducer but it can't be validated under the sandbox's safety constraints. Section present and the spec was sandbox-executed to exit 0 with the implementer choosing `keep` (the spec's self-skip guard fired in the sandbox tempdir — typically `git diff` against a missing `.git` parent — and the implementer kept the spec rather than discarding) → `"unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `"yes"` means we observed the bug fail under our own execution. (Step 4.1.c's exit-0 `discard` branch sets `test_present="no"` and is unaffected by this rule.) Section present and the spec was sandbox-executed but produced a command error (exit 126/127 from inside the body, or stderr containing `command not found` / `syntax error`) → `"no"` — distinct from the skip path because the spec was actually run and demonstrably malformed, not merely unsandboxable. **Only evaluate for `bug` and `defect` task types.** For all other task types (`docs`, `feature`, `refactor`, etc.), treat as N/A: contribution = 0 regardless of value. | `"yes"` / `"no"` / `"unverifiable"` |
+| `test_present` | Result from Step 4.1. Section absent → `"no"`. Section present and the spec was sandbox-executed to a non-zero exit (without a command-error signature) → `"yes"`. Section present but the spec was *not* sandbox-executed (Step 4.1.a fast-path skip for an off-PATH effective first token, or Step 4.1.b user-typed skip) → `"unverifiable"` — the issue author supplied a concrete reproducer but it can't be validated under the sandbox's safety constraints. Section present and the spec was sandbox-executed to exit 0 with the implementer choosing `keep` (the spec's self-skip guard fired in the sandbox tempdir — typically `git diff` against a missing `.git` parent — and the implementer kept the spec rather than discarding) → `"unverifiable"` — the spec was attempted but didn't reach validation logic, equivalent in epistemic value to a user-typed skip; this preserves the invariant that `"yes"` means we observed the bug fail under our own execution. (Step 4.1.c's exit-0 `discard` branch sets `test_present="no"` and is unaffected by this rule.) Section present and the spec was sandbox-executed but produced a *malformed-spec* command error (stderr containing `command not found` / `syntax error`, or exit 126/127 with stderr that matches neither the empty/`No such file` environmental signature) → `"no"` — distinct from the skip path because the spec was actually run and demonstrably malformed, not merely unsandboxable. Section present and the spec was sandbox-executed but produced an *environmental* command error (exit 126/127 with stderr empty OR containing `No such file or directory`, and NOT containing `command not found` / `syntax error`) → `"unverifiable"` — the spec invokes a tool or relative path unreachable from the sandbox tempdir (typically a project-relative path like `bin/tusk` or `tests/...` whose first token IS on PATH, so the Step 4.1.a fast-path didn't fire); same epistemic situation as the fast-path skip — author supplied a concrete reproducer but it can't be validated under the sandbox's safety constraints. Section present and the spec was sandbox-executed but produced an *interpreter-wrapper-bypass* command error (exit nonzero AND NOT 126/127, with stderr containing one of the canonical missing-executable signatures — Python's `FileNotFoundError: ... '<token>'`, Node's `spawn <token> ENOENT`, Ruby's `Errno::ENOENT: ... <token>`, Perl's `Can't exec "<token>"`, or a generic `<token>: No such file or directory` — naming a token whose basename does not resolve on `/usr/bin:/bin`) → `"unverifiable"` — the wrapper interpreter (`python3`, `node`, `ruby`, `perl`, etc.) ran cleanly on the sandbox PATH but the body's inner subprocess could not reach the project tool; same epistemic situation as the fast-path skip. **Only evaluate for `bug` and `defect` task types.** For all other task types (`docs`, `feature`, `refactor`, etc.), treat as N/A: contribution = 0 regardless of value. | `"yes"` / `"no"` / `"unverifiable"` |
 | `pillar_aligned` | Does the issue align with the project pillars (run `tusk pillars list` to fetch `[{id, name, core_claim}]`)? If the list is empty, skip (contribution = 0). | `"yes"` / `"no"` |
 | `duplicate` | Is an open task already covering this issue (from Step 3 backlog)? Include the task ID in the rationale if yes. | `"yes"` / `"no"` |
 | `in_scope` | Does the issue fit the project's stated purpose? | `"yes"` / `"no"` |
@@ -361,6 +387,47 @@ Then execute those instructions starting at **"Begin Work on a Task (with task I
 **Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail.
 
 Hold onto the `session_id` returned by `tusk task-start` in step 1 of the /tusk workflow — it is required in step 8 below.
+
+## Step 7.5: Polarity Check on Stored Failing-Test Specs
+
+Before merging, mark any remaining `test`-type acceptance criteria done — `tusk criteria done <cid>` re-runs the stored `verification_spec` against the current (now-fixed) code and only marks it done on exit 0. Step 4.1's pre-creation sandbox confirmed the spec was *runnable*; it did NOT confirm the polarity (exit 0 ≡ "fixed", nonzero ≡ "broken"). Assertion-style specs (`test -z "$(...)"`, `test ! -e ...`, leading `!`) exit nonzero on broken AND fixed code — Step 4.1 reads the broken-state nonzero as "fails as expected" and stores the spec verbatim, then `tusk criteria done` blocks merge indefinitely because the same spec still exits nonzero against the fix. This step catches that mismatch authoritatively (issue #642, original incident TASK-287 / criterion #1291).
+
+Run unconditionally — the fetch is cheap and produces an empty result set when no test-type criteria remain.
+
+### Procedure
+
+1. Fetch every open `test`-type criterion still attached to the task:
+
+   ```bash
+   TEST_ROWS=$(tusk -json "SELECT id, criterion, verification_spec FROM acceptance_criteria WHERE task_id = <id> AND criterion_type = 'test' AND verification_spec IS NOT NULL AND is_completed = 0 AND is_deferred = 0")
+   ```
+
+   If `TEST_ROWS` is `[]`, skip the rest of this step.
+
+2. For each row's `id` (`<cid>`), run:
+
+   ```bash
+   tusk criteria done <cid>
+   ```
+
+   `tusk criteria done` re-runs the spec from the repo root against the fixed code and only marks the criterion done on exit 0.
+
+3. **Exit 0** — the spec passes against the fixed code; the criterion is now marked done. Move on.
+
+4. **Exit 1 (verification failed)** — polarity mismatch suspected. The spec either uses inverted assertion polarity (e.g. `test -z`, `test ! -e`, leading `!`) or describes a different failure than the implementation actually addressed. Surface to the implementer:
+
+   > ⚠ **Polarity mismatch on criterion #<cid>.** The stored spec exits nonzero against the fixed code:
+   > ```
+   > <verification_spec>
+   > ```
+   > Options:
+   > - **invert** — re-run the spec wrapped as `bash -c '! ( <verification_spec> )'`. If it now exits 0, mark the criterion done with `tusk criteria done <cid> --skip-verify --note "polarity inverted: original spec used assertion polarity, wrapped form passes"`. The stored `verification_spec` is left as-is — the rationale lives in `skip_note`, which is durable and surfaces in retro/audit queries; live mutation would require a new tusk subcommand and is out of scope here.
+   > - **skip** — defer the criterion via `tusk criteria skip <cid> --reason "polarity mismatch — assertion-style spec from issue body, behavior verified manually"`.
+   > - **as-is** — accept that the spec is correct in shape but cannot auto-verify (e.g., the implementation reframed the failure differently); mark done with `tusk criteria done <cid> --skip-verify --note "polarity mismatch, behavior verified manually"`.
+
+   In auto mode, default to **skip** — never silently invoke `--skip-verify` against a spec known to fail, since that buries the polarity signal in the audit trail rather than acknowledging it explicitly. The **invert** path is only valid when the wrapped-`!` form actually exits 0 against the fixed code; if it still fails, fall back to **skip** (the assertion does not describe the bug we fixed).
+
+5. **Other exit codes** — `tusk criteria done` returns 2 if the criterion does not exist (already deferred between fetch and re-run, or hand-deleted). Skip it and continue with the next row.
 
 ## Steps 8–10: Finalize (Run as an Unbroken Sequence — No User Confirmation Between Steps)
 

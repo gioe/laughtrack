@@ -342,8 +342,12 @@ def cmd_add(args: argparse.Namespace, db_path: str, config: dict) -> int:
         conn.commit()
 
         cid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-        type_suffix = f" (type: {args.type})" if args.type != "manual" else ""
-        print(f"Added criterion #{cid} to task #{args.task_id}{type_suffix}")
+        print(json.dumps({
+            "id": cid,
+            "task_id": args.task_id,
+            "criterion_type": args.type,
+            "source": args.source,
+        }, separators=(",", ":")))
         return 0
     finally:
         conn.close()
@@ -370,6 +374,13 @@ def cmd_list(args: argparse.Namespace, db_path: str, config: dict) -> int:
         ).fetchall()
     finally:
         conn.close()
+
+    pretty = os.environ.get("TUSK_PRETTY", "").strip().lower() in ("1", "true", "yes", "on")
+
+    if not pretty:
+        payload = [dict(r) for r in rows]
+        print(json.dumps(payload, separators=(",", ":")))
+        return 0
 
     if not rows:
         print(f"No acceptance criteria for task #{args.task_id}: {task['summary']}")
@@ -427,7 +438,13 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
         return 2
 
     if row["is_completed"]:
-        print(f"Criterion #{criterion_id} is already completed")
+        print(json.dumps({
+            "id": criterion_id,
+            "task_id": row["task_id"],
+            "is_completed": True,
+            "already_completed": True,
+            "criterion": row["criterion"],
+        }, separators=(",", ":")))
         return 0
 
     # Cross-task HEAD guard (issue #573): if HEAD's commit message references a
@@ -506,12 +523,19 @@ def _done_single(conn: sqlite3.Connection, criterion_id: int, skip_verify: bool,
     capture_criterion_cost(conn, criterion_id, row["task_id"], completed_at_dt)
     conn.commit()
 
-    verified_msg = ""
-    if criterion_type != "manual" and not skip_verify:
-        verified_msg = " (verification passed)"
-    elif criterion_type != "manual" and skip_verify:
-        verified_msg = " (verification skipped)"
-    print(f"Criterion #{criterion_id} marked done{verified_msg}: {row['criterion']}")
+    verification = None
+    if criterion_type != "manual":
+        verification = "skipped" if skip_verify else "passed"
+    print(json.dumps({
+        "id": criterion_id,
+        "task_id": row["task_id"],
+        "is_completed": True,
+        "criterion": row["criterion"],
+        "criterion_type": criterion_type,
+        "commit_hash": commit_hash,
+        "verification": verification,
+        "skip_note": note,
+    }, separators=(",", ":")))
     return 0
 
 
@@ -644,14 +668,24 @@ def cmd_skip(args: argparse.Namespace, db_path: str, config: dict) -> int:
             return 2
 
         if row["is_completed"]:
-            print(f"Criterion #{args.criterion_id} is already completed")
+            print(json.dumps({
+                "id": args.criterion_id,
+                "task_id": row["task_id"],
+                "is_completed": True,
+                "already_completed": True,
+                "criterion": row["criterion"],
+            }, separators=(",", ":")))
             return 0
 
         if row["is_deferred"]:
-            print(
-                f"Criterion #{args.criterion_id} is already deferred "
-                f"(reason: {row['deferred_reason']}): {row['criterion']}"
-            )
+            print(json.dumps({
+                "id": args.criterion_id,
+                "task_id": row["task_id"],
+                "is_deferred": True,
+                "already_deferred": True,
+                "deferred_reason": row["deferred_reason"],
+                "criterion": row["criterion"],
+            }, separators=(",", ":")))
             return 0
 
         conn.execute(
@@ -660,7 +694,13 @@ def cmd_skip(args: argparse.Namespace, db_path: str, config: dict) -> int:
             (args.reason, args.criterion_id),
         )
         conn.commit()
-        print(f"Criterion #{args.criterion_id} marked as deferred (reason: {args.reason}): {row['criterion']}")
+        print(json.dumps({
+            "id": args.criterion_id,
+            "task_id": row["task_id"],
+            "is_deferred": True,
+            "deferred_reason": args.reason,
+            "criterion": row["criterion"],
+        }, separators=(",", ":")))
         return 0
     finally:
         conn.close()
@@ -679,7 +719,14 @@ def cmd_reset(args: argparse.Namespace, db_path: str, config: dict) -> int:
             return 2
 
         if not row["is_completed"] and not row["is_deferred"]:
-            print(f"Criterion #{args.criterion_id} is already incomplete and not deferred")
+            print(json.dumps({
+                "id": args.criterion_id,
+                "task_id": row["task_id"],
+                "is_completed": False,
+                "is_deferred": False,
+                "already_incomplete": True,
+                "criterion": row["criterion"],
+            }, separators=(",", ":")))
             return 0
 
         conn.execute(
@@ -691,7 +738,13 @@ def cmd_reset(args: argparse.Namespace, db_path: str, config: dict) -> int:
             (args.criterion_id,),
         )
         conn.commit()
-        print(f"Criterion #{args.criterion_id} reset to incomplete: {row['criterion']}")
+        print(json.dumps({
+            "id": args.criterion_id,
+            "task_id": row["task_id"],
+            "is_completed": False,
+            "is_deferred": False,
+            "criterion": row["criterion"],
+        }, separators=(",", ":")))
         return 0
     finally:
         conn.close()
