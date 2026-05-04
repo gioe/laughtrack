@@ -32,23 +32,38 @@ if [[ ! -f "$PROJECT_YML" ]]; then
     exit 2
 fi
 
-# Extract the LaughTrack app target's CURRENT_PROJECT_VERSION. project.yml
+# Extract the LaughTrack app target's CURRENT_PROJECT_VERSION. project.yml today
 # only defines this key under one target (LaughTrack), so a simple grep is
-# sufficient — no YAML parser needed in CI.
+# sufficient — no YAML parser needed in CI. Scan every occurrence so a future
+# engineer who adds CURRENT_PROJECT_VERSION to another target above LaughTrack
+# can't silently shift this script onto the wrong target's value: collapse to
+# unique values, accept iff exactly one, otherwise return non-zero so the caller
+# can surface a clear "values diverged" error.
 extract_version() {
     local content="$1"
-    local value
-    value="$(echo "$content" | grep -E '^\s*CURRENT_PROJECT_VERSION:' | head -n1 | sed -E 's/.*CURRENT_PROJECT_VERSION:[[:space:]]*"?([^"]*)"?.*/\1/')"
-    if [[ -z "$value" ]]; then
+    local values
+    values="$(echo "$content" | grep -E '^\s*CURRENT_PROJECT_VERSION:' | sed -E 's/.*CURRENT_PROJECT_VERSION:[[:space:]]*"?([^"]*)"?.*/\1/' | sort -u)"
+    if [[ -z "$values" ]]; then
         return 1
     fi
-    echo "$value"
+    if (( $(echo "$values" | wc -l) > 1 )); then
+        echo "ERROR: multiple distinct CURRENT_PROJECT_VERSION values found in project.yml:" >&2
+        echo "$values" | sed 's/^/  /' >&2
+        echo "Reconcile manually — the LaughTrack app target's value is the one that ships to TestFlight." >&2
+        return 2
+    fi
+    echo "$values"
 }
 
-current="$(extract_version "$(cat "$PROJECT_YML")")" || {
+extract_rc=0
+current="$(extract_version "$(cat "$PROJECT_YML")")" || extract_rc=$?
+if [[ $extract_rc -eq 1 ]]; then
     echo "ERROR: could not find CURRENT_PROJECT_VERSION in $PROJECT_YML" >&2
     exit 2
-}
+elif [[ $extract_rc -ne 0 ]]; then
+    # extract_version already wrote its own diagnostic to stderr
+    exit 2
+fi
 
 # Resolve the base ref to compare against.
 if [[ -n "${BASE_REF:-}" ]]; then
@@ -72,10 +87,17 @@ if [[ -z "$base_yml" ]]; then
     exit 0
 fi
 
-base="$(extract_version "$base_yml")" || {
+base_extract_rc=0
+base="$(extract_version "$base_yml")" || base_extract_rc=$?
+if [[ $base_extract_rc -eq 1 ]]; then
     echo "WARNING: could not find CURRENT_PROJECT_VERSION at $base_ref — skipping check" >&2
     exit 0
-}
+elif [[ $base_extract_rc -ne 0 ]]; then
+    # extract_version already wrote its own diagnostic; treat divergence at base
+    # as a non-fatal warning so the comparison can still complete on HEAD.
+    echo "WARNING: divergent CURRENT_PROJECT_VERSION values at $base_ref — skipping check" >&2
+    exit 0
+fi
 
 # CFBundleVersion is a dotted-integer string. Compare numerically by splitting on
 # dots and comparing component-wise; a non-integer component is a hard error.

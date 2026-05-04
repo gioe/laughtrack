@@ -15,11 +15,21 @@ TEAM_ID = "4HDNC3V5Q6"
 # project.yml is the source of truth for build/marketing version (TASK-1902) —
 # Info.plist embeds $(CURRENT_PROJECT_VERSION) / $(MARKETING_VERSION) and Xcode
 # substitutes at build time, so reading the plist returns the unresolved literal.
+#
+# Scans every occurrence of the key and asserts all targets carry the same value.
+# Falling back to the first match would silently grab a framework target's value
+# (LaughTrackCore appears before LaughTrack in project.yml) if the values ever
+# drifted; raising loudly forces a deliberate fix instead of guessing.
 def read_project_yml_setting(key)
   contents = File.read(PROJECT_YML_PATH)
-  match = contents.match(/#{Regexp.escape(key)}:\s*"([^"]*)"/)
-  raise "#{key} not found in #{PROJECT_YML_PATH}" unless match
-  match[1]
+  values = contents.scan(/#{Regexp.escape(key)}:\s*"([^"]*)"/).flatten
+  raise "#{key} not found in #{PROJECT_YML_PATH}" if values.empty?
+  unique = values.uniq
+  if unique.length > 1
+    raise "#{key} has divergent values across targets in #{PROJECT_YML_PATH}: #{unique.inspect}. " \
+          "Reconcile manually before bumping."
+  end
+  unique.first
 end
 
 # Replace every quoted occurrence of `key: "..."` in project.yml. CURRENT_PROJECT_VERSION
