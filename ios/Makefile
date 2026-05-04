@@ -1,4 +1,4 @@
-.PHONY: check-pbxproj check-ios-libs-pin
+.PHONY: check-pbxproj check-ios-libs-pin check-bundle-version
 
 ## Verify every Swift file under Sources/ is wired into LaughTrack.xcodeproj/project.pbxproj.
 ## Run before pushing to catch the "added a .swift file but forgot to run xcodegen" footgun
@@ -13,3 +13,11 @@ check-pbxproj:
 ## .github/workflows/ios-libs-pin-sync.yml.
 check-ios-libs-pin:
 	@bin/check-ios-libs-pin.sh
+
+## Verify ios/project.yml's CURRENT_PROJECT_VERSION (the LaughTrack app target's build number)
+## has not decreased relative to the base ref (defaults to origin/main). Catches the
+## regression class from TASK-1902 — TestFlight rejects uploads whose CFBundleVersion is not
+## strictly greater than the last accepted build, so a silent decrease breaks releases.
+## CI runs the same check via .github/workflows/ios-bundle-version.yml.
+check-bundle-version:
+	@bin/check-bundle-version.sh

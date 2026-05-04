@@ -1,0 +1,26 @@
+name: iOS bundle version guard
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "ios/project.yml"
+      - "ios/Sources/LaughTrackApp/Info.plist"
+      - "ios/bin/check-bundle-version.sh"
+      - ".github/workflows/ios-bundle-version.yml"
+
+jobs:
+  check-bundle-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Need full history (or at least the merge base) so the script can read
+          # ios/project.yml at the base ref via `git show`.
+          fetch-depth: 0
+
+      - name: Verify CURRENT_PROJECT_VERSION has not decreased vs base branch
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: ios/bin/check-bundle-version.sh
