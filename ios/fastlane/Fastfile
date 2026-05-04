@@ -7,8 +7,30 @@ APPLE_KEY_PATH = File.expand_path("~/Desktop/keys/AuthKey_UCV7S354H2.p8")
 APP_IDENTIFIER = "app.laughtrack.ios"
 SCHEME = "LaughTrack"
 INFO_PLIST_PATH = "Sources/LaughTrackApp/Info.plist"
+PROJECT_YML_PATH = "../project.yml"
 IPA_NAME = "LaughTrack.ipa"
 TEAM_ID = "4HDNC3V5Q6"
+
+# Read a project.yml build setting (e.g. "CURRENT_PROJECT_VERSION") by regex.
+# project.yml is the source of truth for build/marketing version (TASK-1902) —
+# Info.plist embeds $(CURRENT_PROJECT_VERSION) / $(MARKETING_VERSION) and Xcode
+# substitutes at build time, so reading the plist returns the unresolved literal.
+def read_project_yml_setting(key)
+  contents = File.read(PROJECT_YML_PATH)
+  match = contents.match(/#{Regexp.escape(key)}:\s*"([^"]*)"/)
+  raise "#{key} not found in #{PROJECT_YML_PATH}" unless match
+  match[1]
+end
+
+# Replace every quoted occurrence of `key: "..."` in project.yml. CURRENT_PROJECT_VERSION
+# appears once (LaughTrack target only). MARKETING_VERSION appears on every target —
+# they share the same marketing version by design, so replacing all is correct.
+def update_project_yml_setting(key, new_value)
+  contents = File.read(PROJECT_YML_PATH)
+  updated = contents.gsub(/(#{Regexp.escape(key)}:\s*)"[^"]*"/, "\\1\"#{new_value}\"")
+  raise "#{key} not found in #{PROJECT_YML_PATH}" if updated == contents
+  File.write(PROJECT_YML_PATH, updated)
+end
 
 platform :ios do
   before_all do
@@ -52,24 +74,19 @@ platform :ios do
     )
     new_build = current_build + 1
 
-    current_version = get_info_plist_value(
-      path: INFO_PLIST_PATH,
-      key: "CFBundleShortVersionString"
-    )
+    current_version = read_project_yml_setting("MARKETING_VERSION")
     version_parts = current_version.to_s.split(".")
     version_parts[-1] = (version_parts[-1].to_i + 1).to_s
     new_version = version_parts.join(".")
 
-    set_info_plist_value(
-      path: INFO_PLIST_PATH,
-      key: "CFBundleVersion",
-      value: new_build.to_s
-    )
-    set_info_plist_value(
-      path: INFO_PLIST_PATH,
-      key: "CFBundleShortVersionString",
-      value: new_version
-    )
+    update_project_yml_setting("CURRENT_PROJECT_VERSION", new_build.to_s)
+    update_project_yml_setting("MARKETING_VERSION", new_version)
+
+    # Regenerate LaughTrack.xcodeproj so the new build settings land in pbxproj. Info.plist
+    # embeds $(CURRENT_PROJECT_VERSION) / $(MARKETING_VERSION) and is unaffected.
+    Dir.chdir("..") do
+      sh("xcodegen", "generate")
+    end
 
     UI.success("Bumped version #{current_version} → #{new_version}, build → #{new_build}")
   end
@@ -203,8 +220,8 @@ platform :ios do
 
   desc "Tag the current commit with v{version}-{build}"
   lane :tag_release do
-    version = get_info_plist_value(path: INFO_PLIST_PATH, key: "CFBundleShortVersionString")
-    build_num = get_info_plist_value(path: INFO_PLIST_PATH, key: "CFBundleVersion")
+    version = read_project_yml_setting("MARKETING_VERSION")
+    build_num = read_project_yml_setting("CURRENT_PROJECT_VERSION")
     tag = "v#{version}-#{build_num}"
 
     if git_tag_exists(tag: tag)

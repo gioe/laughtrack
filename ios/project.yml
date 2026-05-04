@@ -83,6 +83,12 @@ targets:
     info:
       path: Sources/LaughTrackApp/Info.plist
       properties:
+        # Drive build/marketing version from project.yml build settings (CURRENT_PROJECT_VERSION /
+        # MARKETING_VERSION). Without these explicit overrides xcodegen materializes the
+        # build-setting values as literal strings into Info.plist on every regen, silently
+        # downgrading whatever fastlane wrote (TASK-1902).
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
@@ -132,7 +138,7 @@ targets:
         PRODUCT_MODULE_NAME: LaughTrackApp
         GENERATE_INFOPLIST_FILE: "NO"
         MARKETING_VERSION: "1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "3"
         SWIFT_EMIT_LOC_STRINGS: "YES"
     scheme:
       testTargets:
