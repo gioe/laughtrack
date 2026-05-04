@@ -318,7 +318,7 @@ private struct DateRangeFilterModal: View {
             VStack(alignment: .leading, spacing: theme.spacing.lg) {
                 HStack(alignment: .top, spacing: theme.spacing.md) {
                     VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Dates")
+                        Text("Date range")
                             .font(laughTrack.typography.cardTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
 
