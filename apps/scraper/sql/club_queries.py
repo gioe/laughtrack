@@ -118,7 +118,17 @@ class ClubQueries:
         ORDER BY ps.scraper_key
     """
 
-    UPSERT_CLUB_BY_EVENTBRITE_VENUE = f"""
+    # NOTE: the final SELECT projects from the upserted_club CTE rather than
+    # JOINing back to the clubs table. Data-modifying CTEs share a single
+    # snapshot with the rest of the statement, so a JOIN against `clubs`
+    # cannot see a freshly INSERTed row — for first-time per-venue upserts
+    # in EventbriteScraper organizer-mode, the JOIN returned 0 rows and
+    # ClubHandler.upsert_for_eventbrite_venue treated that as a failure
+    # (TASK-1927: 90 'Big Couch' shows silently dropped on 2026-05-05).
+    # scraping_sources is left as '[]' because organizer-mode callers only
+    # read .id and .timezone from the returned Club; existing-row reads of
+    # the full source list go through GET_CLUB_BY_ID, not this upsert.
+    UPSERT_CLUB_BY_EVENTBRITE_VENUE = """
         WITH upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
@@ -128,7 +138,7 @@ class ClubQueries:
             ON CONFLICT (name) DO UPDATE SET
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
-            RETURNING id
+            RETURNING *
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -143,7 +153,7 @@ class ClubQueries:
                 'https://www.eventbrite.com',
                 0,
                 TRUE,
-                '{{}}'::jsonb
+                '{}'::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
@@ -152,13 +162,14 @@ class ClubQueries:
                 enabled     = TRUE
             RETURNING club_id
         )
-        SELECT c.*, source_list.scraping_sources
-        FROM clubs c
-        JOIN upserted_club uc ON uc.id = c.id
-        { _SCRAPING_SOURCES_LATERAL }
+        SELECT uc.*, '[]'::json AS scraping_sources
+        FROM upserted_club uc
+        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
-    UPSERT_CLUB_BY_SEATENGINE_VENUE = f"""
+    # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
+    # SELECT projects from the CTE rather than JOINing the clubs table.
+    UPSERT_CLUB_BY_SEATENGINE_VENUE = """
         WITH upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
@@ -168,7 +179,7 @@ class ClubQueries:
             ON CONFLICT (name) DO UPDATE SET
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
-            RETURNING id
+            RETURNING *
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -183,7 +194,7 @@ class ClubQueries:
                 %s,
                 0,
                 TRUE,
-                '{{}}'::jsonb
+                '{}'::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
@@ -195,13 +206,14 @@ class ClubQueries:
                 enabled     = TRUE
             RETURNING club_id
         )
-        SELECT c.*, source_list.scraping_sources
-        FROM clubs c
-        JOIN upserted_club uc ON uc.id = c.id
-        { _SCRAPING_SOURCES_LATERAL }
+        SELECT uc.*, '[]'::json AS scraping_sources
+        FROM upserted_club uc
+        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
-    UPSERT_CLUB_BY_SEATENGINE_V3_VENUE = f"""
+    # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
+    # SELECT projects from the CTE rather than JOINing the clubs table.
+    UPSERT_CLUB_BY_SEATENGINE_V3_VENUE = """
         WITH upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
@@ -211,7 +223,7 @@ class ClubQueries:
             ON CONFLICT (name) DO UPDATE SET
                 city  = COALESCE(clubs.city,  EXCLUDED.city),
                 state = COALESCE(clubs.state, EXCLUDED.state)
-            RETURNING id
+            RETURNING *
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -226,7 +238,7 @@ class ClubQueries:
                 %s,
                 0,
                 TRUE,
-                '{{}}'::jsonb
+                '{}'::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
@@ -235,10 +247,9 @@ class ClubQueries:
                 enabled     = TRUE
             RETURNING club_id
         )
-        SELECT c.*, source_list.scraping_sources
-        FROM clubs c
-        JOIN upserted_club uc ON uc.id = c.id
-        { _SCRAPING_SOURCES_LATERAL }
+        SELECT uc.*, '[]'::json AS scraping_sources
+        FROM upserted_club uc
+        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
     GET_CLUBS_WITH_NULL_TIMEZONE = f"""

@@ -307,6 +307,42 @@ class TestUpsertForEventbriteVenueConflict:
         assert "EXTERNAL_ID" in sql
 
 
+class TestUpsertSqlAvoidsCteSnapshotBug:
+    """Regression tests for TASK-1927: the final SELECT must project from the
+    upserted_club CTE (which sees its own RETURNING rows) rather than JOINing
+    against the clubs table snapshot. PostgreSQL data-modifying CTEs share a
+    single statement-level snapshot, so a `JOIN clubs c ON uc.id = c.id`
+    cannot see a freshly INSERTed row — first-time per-venue upserts in
+    EventbriteScraper organizer-mode silently returned 0 rows on 2026-05-05,
+    dropping 90 'Big Couch' shows for hidden club 2287."""
+
+    def _normalized(self, sql: str) -> str:
+        # Collapse whitespace so multi-line SQL formatting doesn't defeat
+        # the substring match.
+        return " ".join(sql.split()).upper()
+
+    def test_eventbrite_upsert_selects_from_cte_not_clubs_table(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE)
+        # The buggy shape was `JOIN UPSERTED_CLUB UC ON UC.ID = C.ID` against
+        # the live clubs table; the fixed shape projects directly from the CTE.
+        assert "JOIN UPSERTED_CLUB" not in sql
+        assert "FROM UPSERTED_CLUB" in sql
+        # CTE must RETURNING * so the final SELECT can read the inserted row.
+        assert "RETURNING *" in sql
+
+    def test_seatengine_upsert_selects_from_cte_not_clubs_table(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE)
+        assert "JOIN UPSERTED_CLUB" not in sql
+        assert "FROM UPSERTED_CLUB" in sql
+        assert "RETURNING *" in sql
+
+    def test_seatengine_v3_upsert_selects_from_cte_not_clubs_table(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE)
+        assert "JOIN UPSERTED_CLUB" not in sql
+        assert "FROM UPSERTED_CLUB" in sql
+        assert "RETURNING *" in sql
+
+
 class TestUpsertForEventbriteVenueInvalidInput:
     """Criterion 670: None/missing venue fields returns None without raising."""
 
