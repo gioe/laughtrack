@@ -541,6 +541,105 @@ async def test_organizer_mode_skips_venue_when_upsert_fails():
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_warns_when_venue_group_yields_zero_shows():
+    """When a venue group has N>0 input events but _upsert_one returns an
+    empty list (every event.to_show returned None or raised), an aggregate
+    Logger.warn must surface the silent-drop. Mirrors TASK-1927's nightly
+    where 'Big Couch' produced a clubs row + scraping_source but 0 shows
+    with no aggregate warning anywhere in the run."""
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    silver = _api_venue(
+        venue_id="V_SILVER", name="Silver Diner", city="Cabin John", region="MD", postal="20818"
+    )
+    api_events = [
+        _domain_event("Bull Pen show 1", "https://www.eventbrite.com/e/bp-1", bull_pen),
+        _domain_event("Bull Pen show 2", "https://www.eventbrite.com/e/bp-2", bull_pen),
+        _domain_event("Silver show", "https://www.eventbrite.com/e/silver-1", silver),
+    ]
+
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+    silver_club = _fake_venue_club(1002, "Silver Diner", "Cabin John", "MD")
+
+    def _upsert(api_venue):
+        if api_venue.id == "V_BULL_PEN":
+            return bull_pen_club
+        if api_venue.id == "V_SILVER":
+            return silver_club
+        return None
+
+    # Force every Silver event's to_show to return None so the venue group
+    # yields 0 shows from 1 event — exactly the silent-drop shape we want
+    # the new aggregate warn to surface.
+    original_to_show = EventbriteEvent.to_show
+
+    def _to_show(self, club):
+        if getattr(club, "id", None) == silver_club.id:
+            return None
+        return original_to_show(self, club)
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    ), patch.object(
+        EventbriteEvent, "to_show", _to_show
+    ), patch(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
+    ) as logger_mock:
+        shows = await scraper.scrape_async()
+
+    # Bull Pen still produces its 2 shows; Silver's 1 event is dropped.
+    assert len(shows) == 2
+    assert all(s.club_id == bull_pen_club.id for s in shows)
+
+    warn_messages = [call.args[0] for call in logger_mock.warn.call_args_list]
+    assert any(
+        "Silver Diner" in msg and "0 shows from 1 event" in msg
+        for msg in warn_messages
+    ), f"expected aggregate zero-shows warn for Silver Diner, got: {warn_messages}"
+    # Bull Pen produced shows, so no aggregate warn should fire for it.
+    assert not any("Bull Pen Tap House" in msg and "0 shows" in msg for msg in warn_messages)
+
+
+@pytest.mark.asyncio
+async def test_organizer_mode_does_not_warn_when_every_venue_group_produces_shows():
+    """The aggregate zero-shows warn must NOT fire on the happy path — if every
+    venue group produces at least one show, the new code is silent."""
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    api_events = [
+        _domain_event("Bull Pen show", "https://www.eventbrite.com/e/bp-1", bull_pen),
+    ]
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=bull_pen_club
+    ), patch(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
+    ) as logger_mock:
+        shows = await scraper.scrape_async()
+
+    assert len(shows) == 1
+    warn_messages = [call.args[0] for call in logger_mock.warn.call_args_list]
+    assert not any("0 shows" in msg for msg in warn_messages), (
+        f"expected no zero-shows warn on happy path, got: {warn_messages}"
+    )
+
+
+@pytest.mark.asyncio
 async def test_single_venue_mode_falls_through_to_standard_pipeline():
     """When the source URL has no eventbrite.com/o/ segment, scrape_async defers
     to BaseScraper so single-venue scrapes keep their existing behavior (no
