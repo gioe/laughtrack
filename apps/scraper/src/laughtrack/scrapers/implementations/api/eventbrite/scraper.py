@@ -237,6 +237,23 @@ class EventbriteScraper(BaseScraper):
         per_venue_shows = await asyncio.gather(
             *[_upsert_one(key, group) for key, group in venue_groups.items()]
         )
+
+        # Aggregate warn whenever a venue group produced 0 shows from N>0
+        # input events. _upsert_one already logs each per-event failure
+        # (upsert error, venue_club None, to_show error), but the aggregate
+        # outcome was previously silent — making nightly silent-drop
+        # incidents (TASK-1927: 'Big Couch' produced clubs row + source
+        # but 0 shows with no aggregate warning) hard to detect at log
+        # read. Mirrors the events_without_venue pattern above.
+        for (venue_key, group), group_shows in zip(venue_groups.items(), per_venue_shows):
+            if group and not group_shows:
+                api_venue = group[0]._api_venue
+                venue_label = getattr(api_venue, "name", None) or str(venue_key)
+                Logger.warn(
+                    f"{self._log_prefix}: venue group '{venue_label}' yielded 0 shows from {len(group)} event(s)",
+                    self.logger_context,
+                )
+
         shows: List[Show] = [show for group_shows in per_venue_shows for show in group_shows]
 
         Logger.info(
