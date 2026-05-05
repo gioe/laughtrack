@@ -65,6 +65,22 @@ class PalmBeachImprovExtractor:
         return bool(_COMEDY_HINT_RE.search(blob))
 
     @staticmethod
+    def looks_like_improv_candidate(performance: dict[str, Any]) -> bool:
+        """Cheap pre-filter for performances worth a detail-page fetch.
+
+        Returns True when the AJAX metadata carries a comedy keyword OR the
+        location names the Kravis Improv room (Helen K. Persson Hall). The
+        room check covers touring comedians whose blob contains nothing but
+        a name (e.g. "KEVIN NEALON" → "/events/kevin-nealon/") — a real
+        false-negative for `has_comedy_hint` alone, since "Persson" is the
+        only stable Improv-series signal in their AJAX entries.
+        """
+        if PalmBeachImprovExtractor.has_comedy_hint(performance):
+            return True
+        location = str(performance.get("location") or "")
+        return "persson" in location.lower()
+
+    @staticmethod
     def events_from_performances(
         performances: Iterable[dict[str, Any]],
     ) -> List[PalmBeachImprovEvent]:

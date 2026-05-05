@@ -79,14 +79,21 @@ class PalmBeachImprovScraper(BaseScraper):
                 if not link:
                     continue
 
-                # Detail pages are the authoritative way to distinguish Improv
-                # series shows from the center-wide monthly calendar response.
+                # The Kravis AJAX feed is center-wide (~50 performances/month
+                # × 12 months); without a pre-filter we Playwright-fetch every
+                # ballet/opera/recital detail page just to discard it. Skip
+                # entries with no comedy keyword and no Improv-room location.
+                if not PalmBeachImprovExtractor.looks_like_improv_candidate(
+                    performance
+                ):
+                    continue
+
                 detail_html = await self._fetch_html_with_js(link)
                 if PalmBeachImprovExtractor.detail_page_is_improv(detail_html or ""):
                     improv_performances.append(performance)
-                elif PalmBeachImprovExtractor.has_comedy_hint(performance):
+                else:
                     Logger.info(
-                        f"{self._log_prefix}: skipped comedy-like non-Improv event {link}",
+                        f"{self._log_prefix}: skipped Improv-candidate non-Improv event {link}",
                         self.logger_context,
                     )
 

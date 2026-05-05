@@ -64,9 +64,9 @@ def _ajax_response() -> str:
                 },
                 {
                     "id": 2,
-                    "title": "NON COMEDY PERFORMANCE",
+                    "title": "GISELLE",
                     "dates": [{"date": "Sun, May 10 2026 @ 2:00pm"}],
-                    "link": "https://www.kravis.org/events/not-improv/",
+                    "link": "https://www.kravis.org/events/ballet-palm-beach-presents-giselle/",
                     "location": "Alexander W. Dreyfoos Concert Hall",
                 },
             ]
@@ -150,6 +150,65 @@ async def test_get_data_filters_to_detail_pages_with_improv(monkeypatch):
     assert isinstance(result, PalmBeachImprovPageData)
     assert len(result.event_list) == 2
     assert {event.title for event in result.event_list} == {"KEVIN NEALON"}
+
+
+def test_looks_like_improv_candidate_matches_comedy_keyword():
+    performance = {
+        "title": "Stand-Up Comedy Night",
+        "location": "Alexander W. Dreyfoos Concert Hall",
+    }
+
+    assert PalmBeachImprovExtractor.looks_like_improv_candidate(performance)
+
+
+def test_looks_like_improv_candidate_matches_persson_hall_location():
+    performance = {
+        "title": "KEVIN NEALON",
+        "location": "Helen K. Persson Hall",
+        "link": "https://www.kravis.org/events/kevin-nealon/",
+    }
+
+    assert PalmBeachImprovExtractor.looks_like_improv_candidate(performance)
+
+
+def test_looks_like_improv_candidate_rejects_unrelated_performance():
+    performance = {
+        "title": "GISELLE",
+        "location": "Alexander W. Dreyfoos Concert Hall",
+        "link": "https://www.kravis.org/events/ballet-palm-beach-presents-giselle/",
+    }
+
+    assert not PalmBeachImprovExtractor.looks_like_improv_candidate(performance)
+
+
+@pytest.mark.asyncio
+async def test_get_data_skips_detail_fetch_for_non_candidates(monkeypatch):
+    scraper = PalmBeachImprovScraper(_club())
+    fetched_urls: list[str] = []
+
+    async def fake_fetch_html_with_js(self, url: str) -> str:
+        fetched_urls.append(url)
+        if "admin-ajax.php" in url:
+            return _ajax_response()
+        if url == EVENT_URL:
+            return "<html><body><main>Palm Beach Improv at the Kravis Center</main></body></html>"
+        return "<html><body><main>Not an Improv page</main></body></html>"
+
+    monkeypatch.setattr(
+        PalmBeachImprovScraper,
+        "_fetch_html_with_js",
+        fake_fetch_html_with_js,
+    )
+
+    await scraper.get_data("https://www.kravis.org/wp-admin/admin-ajax.php")
+
+    # KEVIN NEALON's detail page must be fetched (Persson Hall), but the
+    # Dreyfoos-Hall non-comedy event must be skipped without a fetch.
+    assert EVENT_URL in fetched_urls
+    assert (
+        "https://www.kravis.org/events/ballet-palm-beach-presents-giselle/"
+        not in fetched_urls
+    )
 
 
 @pytest.mark.asyncio
