@@ -18,7 +18,10 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
-from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
+from laughtrack.foundation.infrastructure.http import (
+    residential_proxy_egress,
+    scraper_proxy_registry,
+)
 from laughtrack.foundation.infrastructure.http.client import (
     HttpClient,
     _bot_block_reason,
@@ -382,9 +385,12 @@ class TixrClient(BaseApiClient):
             and residential_was_auto_applied
             and self.key in scraper_proxy_registry.proxy_enabled_keys()
         ):
+            egress_ip = await residential_proxy_egress.resolve_egress_ip(
+                self.key, effective_proxy_url
+            )
             Logger.warn(
                 f"[TixrClient] Residential proxy fetch returned None for "
-                f"scraper={self.key!r} url={normalized_url!r}",
+                f"scraper={self.key!r} url={normalized_url!r} egress_ip={egress_ip!r}",
                 logger_context,
             )
         return fallback_html

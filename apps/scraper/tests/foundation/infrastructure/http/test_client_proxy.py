@@ -17,7 +17,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
+from laughtrack.foundation.infrastructure.http import (
+    residential_proxy_egress,
+    scraper_proxy_registry,
+)
 from laughtrack.foundation.infrastructure.http.client import HttpClient
 
 
@@ -37,6 +40,7 @@ def _make_response(status_code: int, text: str = ""):
 def _stub_registry():
     """Pin the registry so tests don't depend on a Postgres connection."""
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
     with patch.object(
         scraper_proxy_registry,
         "proxy_enabled_keys",
@@ -44,6 +48,7 @@ def _stub_registry():
     ):
         yield
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
 
 
 _NO_FALLBACK = patch(
@@ -422,3 +427,113 @@ class TestFetchJsonProxyRouting:
             if "Residential proxy fetch_json returned None" in c.args[0]
         ]
         assert proxy_warns == []
+
+
+# ---------------------------------------------------------------------------
+# Egress IP diagnostic — captured on first None-fetch per scraper-key per run
+# ---------------------------------------------------------------------------
+
+
+class TestResidentialProxyEgressIp:
+    """Egress-IP diagnostic added in TASK-1939.
+
+    The "Residential proxy fetch returned None" WARN tells on-call a
+    proxied request failed but not whether Decodo's egress IP itself was
+    blocked vs. the target being down or 5xx-ing. The egress IP is
+    captured on the first None-fetch per scraper-key per run so on-call
+    can cross-check against Decodo's dashboard or known-block lists.
+    """
+
+    @pytest.mark.asyncio
+    async def test_egress_ip_logged_on_first_failure(self, monkeypatch):
+        """First proxied-fetch failure resolves and logs the egress IP."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.residential_proxy_egress._fetch_egress_ip",
+                new_callable=AsyncMock,
+            ) as mock_fetch_ip:
+                mock_fetch_ip.return_value = "203.0.113.42"
+                with patch(
+                    "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+                ) as mock_warn:
+                    result = await HttpClient.fetch_html(
+                        session,
+                        "https://example.com/page",
+                        scraper_key=_ALLOWLISTED,
+                    )
+
+        assert result is None
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch returned None" in c.args[0]
+        ]
+        assert len(proxy_warns) == 1
+        assert "egress_ip='203.0.113.42'" in proxy_warns[0].args[0]
+        mock_fetch_ip.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_egress_ip_cached_per_key(self, monkeypatch):
+        """Subsequent failures for the same scraper key reuse the cached IP."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.residential_proxy_egress._fetch_egress_ip",
+                new_callable=AsyncMock,
+            ) as mock_fetch_ip:
+                mock_fetch_ip.return_value = "203.0.113.42"
+                with patch(
+                    "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+                ) as mock_warn:
+                    await HttpClient.fetch_html(
+                        session,
+                        "https://example.com/page1",
+                        scraper_key=_ALLOWLISTED,
+                    )
+                    await HttpClient.fetch_html(
+                        session,
+                        "https://example.com/page2",
+                        scraper_key=_ALLOWLISTED,
+                    )
+
+        # Resolver hit the network only on the first failure — the second
+        # WARN reuses the cached IP without re-resolving.
+        assert mock_fetch_ip.await_count == 1
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch returned None" in c.args[0]
+        ]
+        assert len(proxy_warns) == 2
+        assert all("egress_ip='203.0.113.42'" in c.args[0] for c in proxy_warns)
+
+    @pytest.mark.asyncio
+    async def test_egress_ip_skipped_when_unset(self, monkeypatch):
+        """No IP-resolution call is attempted when RESIDENTIAL_PROXY_URL is unset.
+
+        The residential WARN itself does not fire (residential proxy was
+        never auto-applied), so the egress-IP resolver must never be
+        invoked — otherwise we'd burn an unnecessary round-trip on every
+        nightly run that has the secret unwired.
+        """
+        monkeypatch.delenv("RESIDENTIAL_PROXY_URL", raising=False)
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.residential_proxy_egress._fetch_egress_ip",
+                new_callable=AsyncMock,
+            ) as mock_fetch_ip:
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    scraper_key=_ALLOWLISTED,
+                )
+
+        mock_fetch_ip.assert_not_awaited()

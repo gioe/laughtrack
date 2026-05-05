@@ -61,7 +61,10 @@ from laughtrack.foundation.utilities.url import URLUtils
 # rather than as a code constant so operators can flip a venue's proxy bit
 # via SQL without a redeploy. The Python registry loads the set once at
 # first use and caches it for the lifetime of the process.
-from laughtrack.foundation.infrastructure.http import scraper_proxy_registry  # noqa: E402
+from laughtrack.foundation.infrastructure.http import (  # noqa: E402
+    residential_proxy_egress,
+    scraper_proxy_registry,
+)
 
 # ---------------------------------------------------------------------------
 # Bot-block detection
@@ -538,9 +541,12 @@ class HttpClient:
             and residential_was_auto_applied
             and scraper_key in scraper_proxy_registry.proxy_enabled_keys()
         ):
+            egress_ip = await residential_proxy_egress.resolve_egress_ip(
+                scraper_key, effective_proxy_url
+            )
             Logger.warn(
                 f"[HttpClient] Residential proxy fetch returned None for "
-                f"scraper={scraper_key!r} url={url!r}",
+                f"scraper={scraper_key!r} url={url!r} egress_ip={egress_ip!r}",
                 logger_context or {},
             )
 
@@ -627,9 +633,12 @@ class HttpClient:
             and residential_was_auto_applied
             and scraper_key in scraper_proxy_registry.proxy_enabled_keys()
         ):
+            egress_ip = await residential_proxy_egress.resolve_egress_ip(
+                scraper_key, effective_proxy_url
+            )
             Logger.warn(
                 f"[HttpClient] Residential proxy fetch_json returned None for "
-                f"scraper={scraper_key!r} url={url!r}",
+                f"scraper={scraper_key!r} url={url!r} egress_ip={egress_ip!r}",
                 logger_context or {},
             )
 
