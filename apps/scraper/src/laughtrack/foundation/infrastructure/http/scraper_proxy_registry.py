@@ -94,13 +94,16 @@ def log_proxy_status() -> None:
     Surfaces the four states (configured + needed, configured + unused,
     unset + needed, unset + unused) so a missing ``RESIDENTIAL_PROXY_URL``
     secret produces one loud line at run start instead of being detectable
-    only via downstream WARNs. The ``unset + needed`` case logs WARN; the
-    others log INFO. The ``unset + unused`` case is silent.
+    only via downstream WARNs. The ``configured + needed`` and
+    ``unset + needed`` cases log WARN so the line survives the default
+    ``LAUGHTRACK_LOG_CONSOLE_LEVEL=WARNING`` filter that the GHA nightly
+    schedule runs under; ``configured + unused`` logs INFO; ``unset + unused``
+    is silent.
     """
     proxy_url = os.environ.get("RESIDENTIAL_PROXY_URL") or None
     allowlisted = sorted(proxy_enabled_keys())
     if allowlisted and proxy_url:
-        Logger.info(
+        Logger.warn(
             f"[ResidentialProxy] configured — {len(allowlisted)} scraper(s) "
             f"allowlisted: {', '.join(allowlisted)}",
             {},
