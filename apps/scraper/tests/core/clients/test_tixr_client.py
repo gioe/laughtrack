@@ -10,7 +10,10 @@ from laughtrack.core.clients.tixr.client import TixrClient
 from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
+from laughtrack.foundation.infrastructure.http import (
+    residential_proxy_egress,
+    scraper_proxy_registry,
+)
 from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.http.diagnostics import (
     ScrapeDiagnostics,
@@ -632,6 +635,7 @@ _RESIDENTIAL_PROXY_URL = "http://residential.example:8080"
 def stub_registry_tixr_allowlisted():
     """Pin the registry so the residential-proxy allowlist contains 'tixr'."""
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
     with patch.object(
         scraper_proxy_registry,
         "proxy_enabled_keys",
@@ -639,12 +643,14 @@ def stub_registry_tixr_allowlisted():
     ):
         yield
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
 
 
 @pytest.fixture
 def stub_registry_empty():
     """Pin the registry so no scraper is allowlisted."""
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
     with patch.object(
         scraper_proxy_registry,
         "proxy_enabled_keys",
@@ -652,6 +658,7 @@ def stub_registry_empty():
     ):
         yield
     scraper_proxy_registry.reset_cache()
+    residential_proxy_egress.reset_cache()
 
 
 class TestFetchTixrPageResidentialProxy:
@@ -864,12 +871,21 @@ class TestFetchTixrPageResidentialProxy:
             lambda: FakeBrowser(),
         )
 
+        async def _fake_egress_ip(_proxy_url):
+            return "203.0.113.99"
+
+        monkeypatch.setattr(
+            residential_proxy_egress, "_fetch_egress_ip", _fake_egress_ip
+        )
+
         result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
         assert result is None
         assert any(
-            "Residential proxy fetch returned None" in w and "scraper='tixr'" in w
+            "Residential proxy fetch returned None" in w
+            and "scraper='tixr'" in w
+            and "egress_ip='203.0.113.99'" in w
             for w in warns
-        ), f"Expected residential-proxy WARN, got: {warns}"
+        ), f"Expected residential-proxy WARN with egress_ip, got: {warns}"
 
     @pytest.mark.asyncio
     async def test_residential_applied_when_pool_exists_but_exhausted(

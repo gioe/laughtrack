@@ -17,6 +17,14 @@ briefly race into the cold-cache path; a duplicate resolve is harmless
 (both calls produce the same answer) and the alternative (locking the
 network call) would serialise unrelated scrapers.
 
+The captured IP reflects the egress *at first failure* for a given key —
+residential providers like Decodo rotate IPs per-session, so on a long
+nightly run the IP visible at minute 90 may not be the IP we logged at
+minute 1. The cached value is still useful as a "this scraper is on a
+residential IP that looked like X when it first started failing" signal,
+but operators cross-checking a block list should treat it as a starting
+point rather than a guaranteed match for the request that just failed.
+
 Failure modes
 -------------
 * Network error / non-200 from the IP echo service → cache the
@@ -36,9 +44,14 @@ from typing import Dict, Optional
 
 from curl_cffi.requests import AsyncSession
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+
 UNRESOLVED = "<unresolved>"
 _IP_ECHO_URL = "https://api.ipify.org"
-_IP_ECHO_TIMEOUT_SEC = 5
+# 2s is well above ipify's normal <500ms latency but tight enough that a
+# transient slow path doesn't add multi-second wall time to the first
+# failed fetch of every scraper in a nightly run (~200 scrapers worst case).
+_IP_ECHO_TIMEOUT_SEC = 2
 
 _lock = threading.Lock()
 _cache: Dict[str, str] = {}
@@ -51,12 +64,13 @@ async def resolve_egress_ip(
 
     First call for a key issues a GET to the IP echo service through
     *proxy_url* and caches the result. Subsequent calls for the same key
-    return the cached value without re-resolving. Returns ``None`` (no
-    network call, no cache write) when *proxy_url* is empty or
-    *scraper_key* is empty.
+    return the cached value without re-resolving. Returns the
+    ``UNRESOLVED`` sentinel (no network call, no cache write) when
+    *proxy_url* is empty or *scraper_key* is empty — gives callers one
+    consistent rendering regardless of why we couldn't determine the IP.
     """
     if not scraper_key or not proxy_url:
-        return None
+        return UNRESOLVED
     with _lock:
         cached = _cache.get(scraper_key)
     if cached is not None:
@@ -83,11 +97,16 @@ async def _fetch_egress_ip(proxy_url: str) -> Optional[str]:
             )
             if response.status_code == 200 and response.text:
                 return response.text.strip()
-    except Exception:
+    except Exception as exc:
         # The egress IP is a diagnostic signal, not a hard requirement —
         # any failure (timeout, DNS, malformed response) just means we log
         # "<unresolved>" so the rest of the WARN still surfaces normally.
-        pass
+        # Capture the exception at DEBUG so on-call has a breadcrumb when
+        # "<unresolved>" becomes the dominant pattern in nightly logs.
+        Logger.debug(
+            f"[ResidentialProxy] egress IP resolve failed: {type(exc).__name__}: {exc}",
+            {},
+        )
     return None
 
 

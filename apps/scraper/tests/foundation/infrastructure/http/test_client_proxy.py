@@ -513,6 +513,45 @@ class TestResidentialProxyEgressIp:
         assert all("egress_ip='203.0.113.42'" in c.args[0] for c in proxy_warns)
 
     @pytest.mark.asyncio
+    async def test_unresolved_sentinel_cached_on_resolver_failure(self, monkeypatch):
+        """Resolver failure caches the ``<unresolved>`` sentinel — no re-resolve loop.
+
+        When ipify is globally unreachable (DNS, timeout, non-200), the
+        helper must still cap network spend at one round-trip per scraper
+        key per run; otherwise a broken egress would multiply log noise
+        across hundreds of fetches in a long nightly scrape.
+        """
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.residential_proxy_egress._fetch_egress_ip",
+                new_callable=AsyncMock,
+            ) as mock_fetch_ip:
+                mock_fetch_ip.return_value = None
+                with patch(
+                    "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+                ) as mock_warn:
+                    await HttpClient.fetch_html(
+                        session, "https://example.com/page1",
+                        scraper_key=_ALLOWLISTED,
+                    )
+                    await HttpClient.fetch_html(
+                        session, "https://example.com/page2",
+                        scraper_key=_ALLOWLISTED,
+                    )
+
+        assert mock_fetch_ip.await_count == 1
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch returned None" in c.args[0]
+        ]
+        assert len(proxy_warns) == 2
+        assert all("egress_ip='<unresolved>'" in c.args[0] for c in proxy_warns)
+
+    @pytest.mark.asyncio
     async def test_egress_ip_skipped_when_unset(self, monkeypatch):
         """No IP-resolution call is attempted when RESIDENTIAL_PROXY_URL is unset.
 
