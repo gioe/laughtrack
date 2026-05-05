@@ -384,8 +384,7 @@ class TixrClient(BaseApiClient):
         ):
             Logger.warn(
                 f"[TixrClient] Residential proxy fetch returned None for "
-                f"scraper={self.key!r} url={normalized_url!r} — "
-                f"bot-block survived proxy",
+                f"scraper={self.key!r} url={normalized_url!r}",
                 logger_context,
             )
         return fallback_html
