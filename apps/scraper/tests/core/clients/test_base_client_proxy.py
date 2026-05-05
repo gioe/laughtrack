@@ -11,10 +11,37 @@ import pytest
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 
 
 PROXY_URL = "http://proxy-host:8080"
+RESIDENTIAL_PROXY_URL = "http://residential.example:8080"
+ALLOWLISTED_KEY = "tixr"
+
+
+@pytest.fixture
+def stub_registry():
+    """Pin the registry so key-driven routing tests don't hit Postgres.
+
+    Mirrors the fixture in tests/foundation/infrastructure/http/test_client_proxy.py.
+    Not autouse — only the key-driven routing tests at the bottom need it; the
+    legacy ProxyPool tests above must continue running without registry stubs.
+    """
+    scraper_proxy_registry.reset_cache()
+    with patch.object(
+        scraper_proxy_registry,
+        "proxy_enabled_keys",
+        return_value=frozenset({ALLOWLISTED_KEY}),
+    ):
+        yield
+    scraper_proxy_registry.reset_cache()
+
+
+_NO_FALLBACK = patch(
+    "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+    return_value=None,
+)
 
 
 def _make_club() -> Club:
@@ -424,3 +451,122 @@ class TestReportProxyOutcomeHelper:
         # Must not raise even though there is no pool to report to.
         client._report_proxy_outcome(PROXY_URL, success=True)
         client._report_proxy_outcome(PROXY_URL, success=False)
+
+
+# ---------------------------------------------------------------------------
+# Key-driven residential-proxy routing (TASK-1935)
+#
+# These tests verify the BaseApiClient.key ClassVar is forwarded into
+# HttpClient.fetch_html and HttpClient.fetch_json as scraper_key, so
+# allowlisted clients (TixrClient: key="tixr") pick up RESIDENTIAL_PROXY_URL
+# automatically. They use a session-mock that captures the proxies kwarg
+# rather than asserting on log calls — the fetch_html/fetch_json proxy
+# WARN behavior is covered exhaustively in test_client_proxy.py.
+# ---------------------------------------------------------------------------
+
+
+class AllowlistedClient(BaseApiClient):
+    """Subclass that opts into residential proxy via key ClassVar."""
+
+    key = ALLOWLISTED_KEY
+
+    def _initialize_headers(self):
+        return {}
+
+
+class UnkeyedClient(BaseApiClient):
+    """Subclass without a key — must NOT route through residential proxy."""
+
+    def _initialize_headers(self):
+        return {}
+
+
+class TestKeyDrivenResidentialProxyRouting:
+    @pytest.mark.asyncio
+    async def test_fetch_json_routes_allowlisted_key_through_residential_proxy(
+        self, stub_registry, monkeypatch
+    ):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", RESIDENTIAL_PROXY_URL)
+        client = AllowlistedClient(_make_club())
+        cm, session = _make_session_cm(200, json_data={"data": 1})
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with _NO_FALLBACK:
+                await client.fetch_json("https://example.com/api")
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") == {
+            "http": RESIDENTIAL_PROXY_URL,
+            "https": RESIDENTIAL_PROXY_URL,
+        }
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_routes_allowlisted_key_through_residential_proxy(
+        self, stub_registry, monkeypatch
+    ):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", RESIDENTIAL_PROXY_URL)
+        client = AllowlistedClient(_make_club())
+        cm, session = _make_session_cm(200, text="<html>ok</html>")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with _NO_FALLBACK:
+                await client.fetch_html("https://example.com/page")
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") == {
+            "http": RESIDENTIAL_PROXY_URL,
+            "https": RESIDENTIAL_PROXY_URL,
+        }
+
+    @pytest.mark.asyncio
+    async def test_unkeyed_client_does_not_route_through_residential_proxy(
+        self, stub_registry, monkeypatch
+    ):
+        """Subclass with no key forwards scraper_key=None — bypass stays silent."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", RESIDENTIAL_PROXY_URL)
+        client = UnkeyedClient(_make_club())
+        cm, session = _make_session_cm(200, json_data={"data": 1})
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with _NO_FALLBACK:
+                await client.fetch_json("https://example.com/api")
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") is None
+
+    @pytest.mark.asyncio
+    async def test_proxy_pool_url_wins_over_residential_resolution(
+        self, stub_registry, monkeypatch
+    ):
+        """A proxy_pool-supplied URL must take precedence over the auto-resolver.
+
+        This protects the TixrClient inline path: if a caller explicitly threads
+        a ProxyPool through, those proxies are honored instead of being silently
+        replaced by RESIDENTIAL_PROXY_URL.
+        """
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", RESIDENTIAL_PROXY_URL)
+        pool = _make_pool(PROXY_URL)
+        client = AllowlistedClient(_make_club(), proxy_pool=pool)
+        cm, session = _make_session_cm(200, json_data={"data": 1})
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with _NO_FALLBACK:
+                await client.fetch_json("https://example.com/api")
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") == {"http": PROXY_URL, "https": PROXY_URL}
+
+    @pytest.mark.asyncio
+    async def test_no_residential_proxy_when_env_unset(
+        self, stub_registry, monkeypatch
+    ):
+        monkeypatch.delenv("RESIDENTIAL_PROXY_URL", raising=False)
+        client = AllowlistedClient(_make_club())
+        cm, session = _make_session_cm(200, json_data={"data": 1})
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with _NO_FALLBACK:
+                await client.fetch_json("https://example.com/api")
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") is None
