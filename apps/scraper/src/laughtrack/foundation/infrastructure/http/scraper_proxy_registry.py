@@ -23,6 +23,7 @@ Failure modes
 
 from __future__ import annotations
 
+import os
 import threading
 from typing import FrozenSet, Optional
 
@@ -85,3 +86,35 @@ def reset_cache() -> None:
     global _cached_keys
     with _lock:
         _cached_keys = None
+
+
+def log_proxy_status() -> None:
+    """Announce residential-proxy wiring at startup.
+
+    Surfaces the four states (configured + needed, configured + unused,
+    unset + needed, unset + unused) so a missing ``RESIDENTIAL_PROXY_URL``
+    secret produces one loud line at run start instead of being detectable
+    only via downstream WARNs. The ``unset + needed`` case logs WARN; the
+    others log INFO. The ``unset + unused`` case is silent.
+    """
+    proxy_url = os.environ.get("RESIDENTIAL_PROXY_URL") or None
+    allowlisted = sorted(proxy_enabled_keys())
+    if allowlisted and proxy_url:
+        Logger.info(
+            f"[ResidentialProxy] configured — {len(allowlisted)} scraper(s) "
+            f"allowlisted: {', '.join(allowlisted)}",
+            {},
+        )
+    elif allowlisted and not proxy_url:
+        Logger.warn(
+            f"[ResidentialProxy] RESIDENTIAL_PROXY_URL unset — "
+            f"{len(allowlisted)} allowlisted scraper(s) will use direct "
+            f"egress: {', '.join(allowlisted)}",
+            {},
+        )
+    elif proxy_url and not allowlisted:
+        Logger.info(
+            "[ResidentialProxy] RESIDENTIAL_PROXY_URL set but no scrapers "
+            "have use_residential_proxy=true",
+            {},
+        )

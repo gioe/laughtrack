@@ -60,6 +60,10 @@ jobs:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
           EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
+          # Mirrors scraper-schedule.yml so single-club verification exercises
+          # the same residential-proxy egress as nightly. Unset secret = direct
+          # egress (ScraperProxyRegistry handles the missing-secret case).
+          RESIDENTIAL_PROXY_URL: ${{ secrets.RESIDENTIAL_PROXY_URL }}
         run: |
           python -m scripts.core.scrape_shows --club-id ${{ inputs.club_id }} --verbose 2>&1 | tee scrape-output.log
           echo "--- tail summary ---"

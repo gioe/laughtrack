@@ -36,6 +36,7 @@ from laughtrack.core.entities.club.service import ClubService
 from laughtrack.core.entities.scraper.service import ScraperService
 from laughtrack.core.services.scraping import ScrapingService
 from laughtrack.app.commands.scrape_all import run as run_scrape_all
+from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.core.services.metrics import MetricsService
 
@@ -119,6 +120,7 @@ Examples:
     )
     if will_scrape:
         validate_eventbrite_token()
+        scraper_proxy_registry.log_proxy_status()
 
     try:
         # Perform the primary action (scrape/list). "--open-dashboard" is an optional post-action flag
