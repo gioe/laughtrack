@@ -38,7 +38,8 @@
 #   tusk sync-skills            Regenerate .claude/skills/ symlinks from skills/ + skills-internal/
 #   tusk reconcile-skills       Re-run applies_to_project_types filter and sync .claude/skills/
 #   tusk pricing-update [--dry-run]  Fetch and update pricing.json from Anthropic docs
-#   tusk upgrade               Upgrade tusk from GitHub
+#   tusk dev-sync [--dry-run]   Refresh .claude/bin/ from source bin/ (source-repo only)
+#   tusk upgrade [--dry-run]   Upgrade tusk from GitHub (--dry-run previews without writing)
 #
 # Configuration:
 #   Project config:  <repo_root>/tusk/config.json
@@ -820,6 +821,26 @@ CREATE INDEX idx_retro_findings_category ON retro_findings(category);
 CREATE INDEX idx_retro_findings_created_at ON retro_findings(created_at);
 RF_SCHEMA
 
+  # Jots (mid-task friction notes captured at the source; read by /retro
+  # before conversation analysis as pre-classified finding candidates)
+  sqlite3 "$DB_PATH" <<'JOTS_SCHEMA'
+CREATE TABLE jots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    skill_run_id INTEGER NOT NULL,
+    task_id INTEGER,
+    category TEXT NOT NULL,
+    note TEXT NOT NULL,
+    file_hint TEXT,
+    skill_hint TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (skill_run_id) REFERENCES skill_runs(id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
+);
+CREATE INDEX idx_jots_skill_run_id ON jots(skill_run_id);
+CREATE INDEX idx_jots_task_id ON jots(task_id);
+CREATE INDEX idx_jots_category ON jots(category);
+JOTS_SCHEMA
+
   # Tool call stats (pre-computed per-tool-call cost aggregates per session or skill run)
   sqlite3 "$DB_PATH" <<'TCS_SCHEMA'
 CREATE TABLE tool_call_stats (
@@ -964,7 +985,7 @@ TEST_RUNS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 66;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 67;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -1053,15 +1074,15 @@ candidates = [
   'init','path','config','validate','sql-quote','typed-criteria-build','branch','commit',
   'lint','lint-rule','dupes','conventions','pillars','glossary','criteria','dashboard','chain','blockers',
   'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-wait','review-check-perms','review-agent-cost',
-  'deps','session-stats','session-recalc','session-close','skill-run','call-breakdown',
+  'deps','session-stats','session-recalc','session-close','skill-run','jot','jots','call-breakdown',
   'active-project','git-default-branch','branch-parse',
   'task-get','task-get-multi','task-select','task-start','task-done','task-insert','task-update','task-reopen','task-unstart','task-list','task-summary',
   'audit','autoclose','backlog-scan','groom','check-deliverables',
-  'retro','retro-signals','retro-themes','retro-finding',
+  'retro','retro-signals','retro-themes','retro-finding','retro-patches',
   'test-detect','test-precheck','add-lib','address-issue',
   'init-scan-codebase','init-scan-todos','init-fetch-bootstrap','init-write-config','init-write-manifest-files','init-wizard','init-scaffold',
   'loop','merge','abandon','bakeoff','progress','setup',
-  'token-audit','sync-skills','reconcile-skills','generate-manifest','uninstall-hooks','pricing-update','wsjf','shell',
+  'token-audit','sync-skills','reconcile-skills','generate-manifest','uninstall-hooks','pricing-update','dev-sync','wsjf','shell',
   'version','version-bump','report-issue','changelog-add','migrate','update-gitignore','regen-triggers','upgrade',
 ]
 matches = difflib.get_close_matches(sys.argv[1], candidates, n=1, cutoff=0.6)
@@ -1106,7 +1127,8 @@ cmd_version() {
 
 cmd_report_issue() {
   local title="" context="" observed="" steps="" expected=""
-  local usage="Usage: tusk report-issue --title <title> [--context <text>] [--observed <text>] [--steps <text>] [--expected <text>]"
+  local dry_run=0
+  local usage="Usage: tusk report-issue --title <title> [--context <text>] [--observed <text>] [--steps <text>] [--expected <text>] [--dry-run]"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1115,6 +1137,7 @@ cmd_report_issue() {
       --observed) observed="$2"; shift 2 ;;
       --steps)    steps="$2";    shift 2 ;;
       --expected) expected="$2"; shift 2 ;;
+      --dry-run)  dry_run=1;     shift ;;
       --help|-h)
         echo "$usage"
         exit 0
@@ -1158,6 +1181,15 @@ ${steps:-1.
 ${expected:-<!-- What did you expect to happen instead? -->}
 BODY
 )"
+
+  if [[ "$dry_run" == "1" ]]; then
+    printf 'Title:\n%s\n\n' "$title"
+    printf 'Body:\n%s\n\n' "$body"
+    printf 'Command (would run):\n'
+    printf 'gh issue create --repo %q --label instance-feedback --title %q --body %q\n' \
+      "$TUSK_GITHUB_REPO" "$title" "$body"
+    exit 0
+  fi
 
   exec gh issue create --repo "$TUSK_GITHUB_REPO" --label instance-feedback --title "$title" --body "$body"
 }
@@ -1415,9 +1447,9 @@ is_readonly_subcmd() {
   case "${1:-}" in
     ""|path|config|validate|sql-quote|typed-criteria-build|version|version-bump|\
     git-default-branch|branch-parse|report-issue|\
-    sync-skills|reconcile-skills|generate-manifest|pricing-update|token-audit|\
+    sync-skills|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit|\
     task-get|task-get-multi|task-list|task-select|task-summary|setup|\
-    backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|review-agent-cost|\
+    backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|review-agent-cost|jots|retro-patches|\
     init-fetch-bootstrap|init-scan-codebase|init-scan-todos)
       return 0 ;;
     *) return 1 ;;
@@ -1463,7 +1495,7 @@ preflight_schema_version() {
     # are exactly what this preflight needs to guard.
     ""|init|path|config|version|version-bump|upgrade|migrate|regen-triggers|\
       sql-quote|typed-criteria-build|git-default-branch|branch-parse|report-issue|update-gitignore|\
-      sync-skills|reconcile-skills|generate-manifest|pricing-update|token-audit)
+      sync-skills|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit)
       return 0 ;;
   esac
   local user_version supported_max
@@ -1523,6 +1555,8 @@ case "${1:-}" in
   session-stats) shift; exec python3 "$SCRIPT_DIR/tusk-session-stats.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-recalc) shift; exec python3 "$SCRIPT_DIR/tusk-session-recalc.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   skill-run) shift; exec python3 "$SCRIPT_DIR/tusk-skill-run.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  jot) shift; exec python3 "$SCRIPT_DIR/tusk-jot.py" "$DB_PATH" "$(resolve_config)" write "$@" ;;
+  jots) shift; exec python3 "$SCRIPT_DIR/tusk-jot.py" "$DB_PATH" "$(resolve_config)" list "$@" ;;
   call-breakdown) shift; exec python3 "$SCRIPT_DIR/tusk-call-breakdown.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-close) shift; cmd_session_close "$@" ;;
   active-project) shift; cmd_active_project "$@" ;;
@@ -1547,6 +1581,7 @@ case "${1:-}" in
   retro-signals) shift; exec python3 "$SCRIPT_DIR/tusk-retro-signals.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-themes) shift; exec python3 "$SCRIPT_DIR/tusk-retro-themes.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-finding) shift; exec python3 "$SCRIPT_DIR/tusk-retro-finding.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  retro-patches) shift; exec python3 "$SCRIPT_DIR/tusk-retro-patches.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro) shift; exec python3 "$SCRIPT_DIR/tusk-retro.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   test-detect) shift; exec python3 "$SCRIPT_DIR/tusk-test-detect.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   test-precheck) shift; exec python3 "$SCRIPT_DIR/tusk-test-precheck.py" "$REPO_ROOT" "$(resolve_config)" "$@" ;;
@@ -1573,6 +1608,7 @@ case "${1:-}" in
   generate-manifest) shift; exec python3 "$SCRIPT_DIR/tusk-generate-manifest.py" "$@" ;;
   uninstall-hooks) shift; exec python3 "$SCRIPT_DIR/tusk-uninstall-hooks.py" "$REPO_ROOT" "$@" ;;
   pricing-update) shift; exec python3 "$SCRIPT_DIR/tusk-pricing-update.py" "$@" ;;
+  dev-sync) shift; exec python3 "$SCRIPT_DIR/tusk-dev-sync.py" "$REPO_ROOT" "$@" ;;
   wsjf) shift; exec python3 "$SCRIPT_DIR/tusk-wsjf.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   shell)  shift; cmd_shell "$@" ;;
   version) shift; cmd_version "$@" ;;

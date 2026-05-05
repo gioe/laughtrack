@@ -28,6 +28,10 @@
   "merge": {
     "mode": "local"
   },
+  "retro": {
+    "auto_apply": false,
+    "auto_apply_max_chars": 200
+  },
   "issue_scoring": {
     "factors": {
       "test_present":   { "yes": 2, "no": -1, "unverifiable": 1 },
@@ -47,5 +51,6 @@
   "project_libs": {
     "python_service": { "repo": "gioe/python-libs", "ref": "main" },
     "ios_app": { "repo": "gioe/ios-libs", "ref": "main" }
-  }
+  },
+  "report_tusk_issue_footer": "_Filed via /report-tusk-issue from a Claude Code session._"
 }
