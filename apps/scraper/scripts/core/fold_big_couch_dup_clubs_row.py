@@ -66,7 +66,7 @@ from dotenv import load_dotenv
 
 load_dotenv(_root / ".env")
 
-from laughtrack.adapters.db import get_connection
+from laughtrack.adapters.db import get_transaction
 
 _DUP_CLUB_ID = 2287
 _DUP_CLUB_NAME = "Big Couch"
@@ -81,7 +81,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without writing")
     args = parser.parse_args()
 
-    with get_connection() as conn:
+    with get_transaction() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -224,8 +224,6 @@ def main() -> int:
                 src_after = cur.fetchone()
             else:
                 src_after = (_DUP_SOURCE_ID, src_metadata)
-
-        conn.commit()
 
         print("\n=== AFTER ===")
         print(f"  clubs.id={club_after[0]} visible={club_after[1]}")

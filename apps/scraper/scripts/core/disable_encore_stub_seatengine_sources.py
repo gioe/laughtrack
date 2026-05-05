@@ -47,7 +47,7 @@ from dotenv import load_dotenv
 
 load_dotenv(_root / ".env")
 
-from laughtrack.adapters.db import get_connection
+from laughtrack.adapters.db import get_transaction
 
 # (source_id, expected_club_id, expected_external_id)
 _TARGETS: list[tuple[int, int, str]] = [
@@ -67,7 +67,7 @@ def main() -> int:
 
     target_ids = [t[0] for t in _TARGETS]
 
-    with get_connection() as conn:
+    with get_transaction() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -135,7 +135,6 @@ def main() -> int:
                 (to_update,),
             )
             updated = cur.fetchall()
-        conn.commit()
 
         print("\n=== AFTER ===")
         for r in updated:
