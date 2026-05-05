@@ -128,6 +128,20 @@ def test_event_to_show_parses_kravis_datetime():
     assert show.tickets[0].purchase_url == EVENT_URL
 
 
+def test_event_to_show_returns_none_for_malformed_date_str():
+    # Missing AM/PM marker — does not match either _DATE_FORMATS pattern.
+    # Without this guard, a Kravis format change would silently zero out the
+    # venue: every performance's to_show would return None and be dropped.
+    event = PalmBeachImprovEvent(
+        title="KEVIN NEALON",
+        date_str="Fri, May 08 2026 @ 7:30",
+        event_url=EVENT_URL,
+        location="Helen K. Persson Hall",
+    )
+
+    assert event.to_show(_club()) is None
+
+
 @pytest.mark.asyncio
 async def test_get_data_filters_to_detail_pages_with_improv(monkeypatch):
     scraper = PalmBeachImprovScraper(_club())
