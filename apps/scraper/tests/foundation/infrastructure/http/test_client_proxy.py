@@ -236,3 +236,161 @@ class TestFetchHtmlProxyRouting:
             if "Residential proxy fetch returned None" in c.args[0]
         ]
         assert proxy_warns == []
+
+
+# ---------------------------------------------------------------------------
+# fetch_json — auto-applies proxy via scraper_key + warns on None
+# ---------------------------------------------------------------------------
+
+
+def _make_json_response(status_code: int, payload, text: str = '{"ok":true}'):
+    resp = MagicMock()
+    resp.status_code = status_code
+    resp.text = text
+    resp.json = MagicMock(return_value=payload)
+    return resp
+
+
+class TestFetchJsonProxyRouting:
+    @pytest.mark.asyncio
+    async def test_proxy_applied_for_allowlisted_scraper(self, monkeypatch):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(200, {"data": 1})
+
+        with _NO_FALLBACK:
+            result = await HttpClient.fetch_json(
+                session, "https://example.com/api", scraper_key=_ALLOWLISTED
+            )
+
+        assert result == {"data": 1}
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") == {"http": _PROXY_URL, "https": _PROXY_URL}
+
+    @pytest.mark.asyncio
+    async def test_proxy_omitted_for_non_allowlisted_scraper(self, monkeypatch):
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(200, {"data": 1})
+
+        with _NO_FALLBACK:
+            await HttpClient.fetch_json(
+                session, "https://example.com/api", scraper_key=_NOT_ALLOWLISTED
+            )
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") is None
+
+    @pytest.mark.asyncio
+    async def test_explicit_proxy_url_wins_over_allowlist(self, monkeypatch):
+        """Caller-pinned proxy_url must not be overwritten by the auto-resolver."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(200, {"data": 1})
+        explicit = "http://override.example:9090"
+
+        with _NO_FALLBACK:
+            await HttpClient.fetch_json(
+                session,
+                "https://example.com/api",
+                scraper_key=_ALLOWLISTED,
+                proxy_url=explicit,
+            )
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") == {"http": explicit, "https": explicit}
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_when_env_unset_even_for_allowlisted(self, monkeypatch):
+        monkeypatch.delenv("RESIDENTIAL_PROXY_URL", raising=False)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(200, {"data": 1})
+
+        with _NO_FALLBACK:
+            await HttpClient.fetch_json(
+                session, "https://example.com/api", scraper_key=_ALLOWLISTED
+            )
+
+        _, kwargs = session.get.call_args
+        assert kwargs.get("proxies") is None
+
+    @pytest.mark.asyncio
+    async def test_warn_logged_when_proxied_fetch_returns_none(self, monkeypatch):
+        """Proxied fetch_json returning None must emit a greppable WARN.
+
+        Same operational signal as fetch_html — once tixr is paying for the
+        residential proxy, on-call needs to distinguish 'proxy didn't help'
+        from 'API returned an unexpected payload'.
+        """
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        # 403 with no Playwright fallback → fetch_json returns None
+        session.get.return_value = _make_json_response(403, None, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ) as mock_warn:
+                result = await HttpClient.fetch_json(
+                    session,
+                    "https://example.com/api",
+                    scraper_key=_ALLOWLISTED,
+                )
+
+        assert result is None
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch_json returned None" in c.args[0]
+        ]
+        assert len(proxy_warns) == 1
+        assert _ALLOWLISTED in proxy_warns[0].args[0]
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_warn_for_non_allowlisted_scraper_returning_none(
+        self, monkeypatch
+    ):
+        """The proxy WARN must only fire for scrapers we actually proxied."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(403, None, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ) as mock_warn:
+                await HttpClient.fetch_json(
+                    session,
+                    "https://example.com/api",
+                    scraper_key=_NOT_ALLOWLISTED,
+                )
+
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch_json returned None" in c.args[0]
+        ]
+        assert proxy_warns == []
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_warn_when_caller_pinned_explicit_proxy(self, monkeypatch):
+        """Explicit non-residential proxy_url must not trigger the residential WARN."""
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(403, None, text="")
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ) as mock_warn:
+                result = await HttpClient.fetch_json(
+                    session,
+                    "https://example.com/api",
+                    scraper_key=_ALLOWLISTED,
+                    proxy_url="http://mitmproxy.local:8888",
+                )
+
+        assert result is None
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch_json returned None" in c.args[0]
+        ]
+        assert proxy_warns == []
