@@ -209,7 +209,8 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         let cacheKey = LaughTrackCacheKey.showsSearch(requestKey: query.cacheKey, page: page)
         if let cached: DiscoverySearchResponse<Components.Schemas.Show> = await MainPageCache.get(
             cacheKey,
-            from: cache
+            from: cache,
+            persistentCache: nil
         ) {
             return .success(cached)
         }
@@ -242,7 +243,7 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
                     total: response.total,
                     filters: response.filters
                 )
-                await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
                 return .success(pageResponse)
             case .badRequest(let badRequest):
                 return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))

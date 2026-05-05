@@ -21,7 +21,8 @@ struct MainPageCacheTests {
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
-            cache: cache
+            cache: cache,
+            persistentCache: nil
         )
 
         guard case .success(let shows) = model.phase else {
@@ -42,7 +43,8 @@ struct MainPageCacheTests {
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
-            cache: cache
+            cache: cache,
+            persistentCache: nil
         )
 
         let cached: Components.Schemas.HomeFeed? = await cache.get(forKey: .homeFeed(zipCode: zipCode))
@@ -61,7 +63,8 @@ struct MainPageCacheTests {
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
-            cacheTTL: 0.05
+            cacheTTL: 0.05,
+            persistentCache: nil
         )
         transport.result = .success(homeFeed(showID: 704))
         try await Task.sleep(for: .milliseconds(100))
@@ -69,7 +72,8 @@ struct MainPageCacheTests {
             apiClient: makeClient(transport),
             zipCode: zipCode,
             cache: cache,
-            cacheTTL: 0.05
+            cacheTTL: 0.05,
+            persistentCache: nil
         )
 
         guard case .success(let shows) = model.phase else {
@@ -91,7 +95,8 @@ struct MainPageCacheTests {
         await model.refresh(
             apiClient: makeClient(transport),
             zipCode: zipCode,
-            cache: cache
+            cache: cache,
+            persistentCache: nil
         )
 
         guard case .success(let shows) = model.phase else {

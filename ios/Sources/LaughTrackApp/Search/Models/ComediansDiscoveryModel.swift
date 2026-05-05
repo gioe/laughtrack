@@ -57,7 +57,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
         let cacheKey = LaughTrackCacheKey.comediansSearch(query: query.cacheKey, page: page)
         if let cached: DiscoverySearchResponse<Components.Schemas.ComedianSearchItem> = await MainPageCache.get(
             cacheKey,
-            from: cache
+            from: cache,
+            persistentCache: nil
         ) {
             cached.items.forEach { comedian in
                 favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
@@ -91,7 +92,7 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                     total: response.total,
                     filters: response.filters
                 )
-                await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL)
+                await MainPageCache.set(pageResponse, forKey: cacheKey, in: cache, ttl: cacheTTL, persistentCache: nil)
                 return .success(pageResponse)
             case .badRequest(let badRequest):
                 return .failure(.badParams((try? badRequest.body.json.error) ?? "LaughTrack could not apply those comedian filters."))

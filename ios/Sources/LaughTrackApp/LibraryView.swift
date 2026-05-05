@@ -32,7 +32,8 @@ struct LibraryView: View {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
                         selectedPrimitive: selectedPrimitive,
-                        cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
+                        cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+                        persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
                     )
                 } else {
                     LaughTrackInlineStateCard(
@@ -81,6 +82,7 @@ private struct FavoritePrimitiveSections: View {
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
     let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
 
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @StateObject private var favoriteShowsModel = HomeFavoriteShowsModel()
@@ -116,7 +118,12 @@ private struct FavoritePrimitiveSections: View {
             }
         }
         .task(id: requestKey) {
-            await favoriteShowsModel.refresh(apiClient: apiClient, favoriteComedians: favoriteComedians, cache: cache)
+            await favoriteShowsModel.refresh(
+                apiClient: apiClient,
+                favoriteComedians: favoriteComedians,
+                cache: cache,
+                persistentCache: persistentCache
+            )
         }
     }
 

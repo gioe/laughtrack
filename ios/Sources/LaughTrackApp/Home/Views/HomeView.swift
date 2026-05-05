@@ -527,7 +527,7 @@ final class HomeShowsTonightModel: ObservableObject {
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -699,7 +699,7 @@ final class HomeFavoriteShowsModel: ObservableObject {
         favoriteComedians: [Components.Schemas.ComedianSearchItem],
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async {
         let requestKey = Self.requestKey(for: favoriteComedians)
         guard !requestKey.isEmpty else {
@@ -966,7 +966,7 @@ final class HomeTrendingComediansModel: ObservableObject {
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -1215,7 +1215,7 @@ final class HomePopularClubsModel: ObservableObject {
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async {
         let requestKey = requestKey(for: zipCode)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
@@ -1273,7 +1273,7 @@ enum MainPageCache {
     static func get<Value>(
         _ key: LaughTrackCacheKey,
         from cache: DataCache<LaughTrackCacheKey>?,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async -> Value? {
         if let cached: Value = await cache?.get(forKey: key) {
             return cached
@@ -1302,7 +1302,7 @@ enum MainPageCache {
         forKey key: LaughTrackCacheKey,
         in cache: DataCache<LaughTrackCacheKey>?,
         ttl: TimeInterval = defaultTTL,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async {
         await cache?.set(value, forKey: key, ttl: ttl)
 
@@ -1339,7 +1339,7 @@ private enum HomeFeedRequest {
         undocumentedContext: String,
         networkContext: String,
         networkMessage: String,
-        persistentCache: PersistentMainPageCache? = .shared
+        persistentCache: PersistentMainPageCache?
     ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
         do {
             let output = try await apiClient.getHomeFeed(
