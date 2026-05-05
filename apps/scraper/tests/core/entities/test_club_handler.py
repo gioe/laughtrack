@@ -192,7 +192,9 @@ class TestUpsertForEventbriteVenueHappyPath:
         row = _make_club_row(name="Comedy Cellar", eventbrite_id="venue-abc", zip_code="10012")
 
         handler = ClubHandler()
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        # side_effect: location lookup returns no candidate (fuzzy match path skipped),
+        # then UPSERT returns the freshly-inserted row. See TASK-1926.
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [row]]):
             result = handler.upsert_for_eventbrite_venue(venue)
 
         assert result is not None
@@ -215,11 +217,13 @@ class TestUpsertForEventbriteVenueHappyPath:
         row = _make_club_row(name="Gotham Comedy Club", eventbrite_id="venue-xyz", zip_code="10011")
 
         handler = ClubHandler()
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        # side_effect: location lookup returns no candidate, then UPSERT runs. The
+        # UPSERT call is the second/last; mock_exec.call_args targets it. (TASK-1926)
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [row]]) as mock_exec:
             handler.upsert_for_eventbrite_venue(venue)
 
-        mock_exec.assert_called_once()
-        call_args = mock_exec.call_args
+        assert mock_exec.call_count == 2
+        call_args = mock_exec.call_args  # last call = UPSERT
         params = call_args[0][1]  # second positional arg is the params tuple
         # New CTE shape: (name, address, zip_code, city, state, venue_id)
         assert params[0] == "Gotham Comedy Club"   # name
@@ -237,10 +241,11 @@ class TestUpsertForEventbriteVenueHappyPath:
                              address="8001 Sunset Blvd, Los Angeles, CA")
 
         handler = ClubHandler()
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        # side_effect: location lookup returns no candidate, then UPSERT runs. (TASK-1926)
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [row]]) as mock_exec:
             handler.upsert_for_eventbrite_venue(venue)
 
-        params = mock_exec.call_args[0][1]
+        params = mock_exec.call_args[0][1]  # last call = UPSERT
         assert params[1] == "8001 Sunset Blvd, Los Angeles, CA"
 
     def test_zip_code_empty_when_no_address(self):
@@ -404,6 +409,123 @@ class TestUpsertForEventbriteVenueInvalidInput:
         with patch.object(handler, "execute_with_cursor", return_value=[]):
             result = handler.upsert_for_eventbrite_venue(venue)
         assert result is None
+
+
+class TestUpsertForEventbriteVenueFuzzyMatch:
+    """Criterion 6331 (TASK-1926): organizer-feed venues whose names differ only by
+    a trailing city suffix ('Big Couch' / 'Big Couch New Orleans') in the same
+    (city, state) collapse to one clubs row instead of inserting a duplicate.
+
+    Reproduces the TASK-1919 incident: club 654's Big Couch organizer feed emitted
+    25 distinct venue.id values across two name spellings, and ON CONFLICT (name)
+    in UPSERT_CLUB_BY_EVENTBRITE_VENUE produced two rows for one physical venue.
+    """
+
+    def test_trailing_city_suffix_returns_existing_club_no_upsert(self):
+        """A new venue named 'Big Couch New Orleans' must reuse the existing
+        'Big Couch' clubs row in (New Orleans, LA) — no second INSERT, no
+        second clubs row."""
+        existing = _make_club_row(
+            id=42,
+            name="Big Couch",
+            city="New Orleans",
+            state="LA",
+            eventbrite_id="venue-original",
+        )
+        venue = _FakeVenue(
+            id="venue-new-spelling",
+            name="Big Couch New Orleans",
+            address=_FakeAddress(
+                address_1="123 Frenchmen St",
+                city="New Orleans",
+                region="LA",
+            ),
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor") as mock_exec:
+            # Only the GET_CLUBS_BY_LOCATION query should fire — UPSERT must not.
+            mock_exec.return_value = [existing]
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 42
+        assert result.name == "Big Couch"
+        assert mock_exec.call_count == 1
+        called_sql = mock_exec.call_args_list[0][0][0]
+        assert "GET_CLUBS_BY_LOCATION" in called_sql or "WHERE LOWER(TRIM(c.city))" in called_sql
+
+    def test_no_match_falls_through_to_upsert(self):
+        """When no existing clubs row in (city, state) normalizes to the same
+        core form, the method falls through to UPSERT_CLUB_BY_EVENTBRITE_VENUE."""
+        venue = _FakeVenue(
+            id="v-fresh",
+            name="Brand New Venue",
+            address=_FakeAddress(city="Austin", region="TX"),
+        )
+        new_row = _make_club_row(
+            id=200,
+            name="Brand New Venue",
+            city="Austin",
+            state="TX",
+            eventbrite_id="v-fresh",
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [new_row]]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 200
+        # Two calls: location lookup (no match), then UPSERT.
+        assert mock_exec.call_count == 2
+
+    def test_missing_city_skips_fuzzy_match_entirely(self):
+        """When venue.address has no city, the (city, state) gate fails and
+        the fuzzy-match pre-check is skipped — only the UPSERT runs.
+
+        This is the structural guarantee that prevents brand-name false
+        positives: without (city, state), there's no safe gate, so the
+        normal name-keyed UPSERT path takes over."""
+        venue = _FakeVenue(
+            id="v-no-city",
+            name="Some Venue",
+            address=_FakeAddress(city=None, region="CA"),
+        )
+        new_row = _make_club_row(id=300, name="Some Venue", eventbrite_id="v-no-city")
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[new_row]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert mock_exec.call_count == 1
+        # The single call must be the UPSERT, not the location lookup.
+        called_sql = mock_exec.call_args_list[0][0][0]
+        assert "INSERT INTO clubs" in called_sql
+
+    def test_fuzzy_lookup_db_error_falls_through_to_upsert(self):
+        """If the GET_CLUBS_BY_LOCATION query raises, the helper logs and returns
+        None — the caller falls through to UPSERT so a transient lookup failure
+        never blocks ingestion."""
+        venue = _FakeVenue(
+            id="v-tx",
+            name="Existing Venue",
+            address=_FakeAddress(city="Austin", region="TX"),
+        )
+        new_row = _make_club_row(id=400, name="Existing Venue", city="Austin", state="TX")
+
+        handler = ClubHandler()
+        with patch.object(
+            handler,
+            "execute_with_cursor",
+            side_effect=[Exception("connection reset"), [new_row]],
+        ) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 400
+        assert mock_exec.call_count == 2
 
 
 # ---------------------------------------------------------------------------
@@ -613,10 +735,12 @@ class TestEventbriteVenueCityStateExtraction:
         )
         row = _make_club_row(name="Comedy Cellar", city="New York", state="NY")
         handler = ClubHandler()
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        # side_effect: location lookup returns no candidate (skips TASK-1926
+        # fuzzy match), then UPSERT runs and is the call we assert against.
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [row]]) as mock_exec:
             handler.upsert_for_eventbrite_venue(venue)
 
-        params = mock_exec.call_args[0][1]
+        params = mock_exec.call_args[0][1]  # last call = UPSERT
         # New CTE shape: (name, address, zip_code, city, state, venue_id)
         assert params[3] == "New York"  # city
         assert params[4] == "NY"        # state

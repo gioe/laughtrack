@@ -1,5 +1,6 @@
 """Club database handler for club-specific operations."""
 
+import re
 from typing import Dict, List, Optional, Set
 
 from sql.club_queries import ClubQueries
@@ -8,6 +9,63 @@ from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from .model import Club
+
+
+def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") -> str:
+    """Reduce a venue name to a comparable core form for same-(city, state) merge detection.
+
+    The transformation chain is intentionally deterministic — no edit-distance, no
+    token-set ratio, no learned thresholds. Two names match iff their normalized
+    forms are byte-equal. This is the conservative knob: typos or genuinely
+    different brands ('Big Couch' vs 'Bog Couch') stay distinct because no fuzzy
+    distance metric is applied.
+
+    The chain captures the dominant Eventbrite organizer-side pattern observed in
+    the TASK-1916 audit: one physical venue spelled both as 'Brand' and 'Brand
+    <City>' (TASK-1919: 'Big Couch' / 'Big Couch New Orleans'). It does not
+    attempt to fold every conceivable variation — middle-of-string city tokens,
+    abbreviations like 'NYC' for 'New York', or ampersand vs 'and' are out of
+    scope and get a separate clubs row, which is acceptable per the per-incident
+    manual-merge precedent (TASK-1925).
+
+    Steps:
+      1. Lowercase + collapse all non-alphanumeric runs to single spaces. This
+         normalizes punctuation, em-dashes, and unicode whitespace.
+      2. Strip leading 'the ' (so 'The Comedy Cellar' folds to 'comedy cellar').
+      3. Strip a trailing ' <city>', ' <state>', or ' <city> <state>' suffix —
+         longest match first so 'big couch new orleans la' strips before
+         'big couch new orleans'. Only the END of the string is considered;
+         middle/prefix occurrences are preserved (a venue genuinely named
+         'New Orleans Comedy Club' must NOT collapse to 'comedy club').
+      4. Refuse to reduce the name to an empty string — if stripping the suffix
+         would consume the entire name (e.g. a venue literally named after its
+         city), keep the pre-strip form.
+    """
+    s = re.sub(r"[^a-z0-9]+", " ", name.lower()).strip()
+    if s.startswith("the "):
+        s = s[4:]
+
+    norm_city = re.sub(r"[^a-z0-9]+", " ", (city or "").lower()).strip()
+    norm_state = re.sub(r"[^a-z0-9]+", " ", (state or "").lower()).strip()
+
+    suffix_candidates = []
+    if norm_city and norm_state:
+        suffix_candidates.append(f"{norm_city} {norm_state}")
+    if norm_city:
+        suffix_candidates.append(norm_city)
+    if norm_state:
+        suffix_candidates.append(norm_state)
+    suffix_candidates.sort(key=len, reverse=True)
+
+    for suffix in suffix_candidates:
+        if s == suffix:
+            # Stripping would empty the name — keep the original.
+            break
+        if s.endswith(" " + suffix):
+            s = s[: -(len(suffix) + 1)].strip()
+            break  # one strip per call; nested suffix structure is handled by ordering
+
+    return s
 
 
 class ClubHandler(BaseDatabaseHandler[Club]):
@@ -109,6 +167,35 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         search API.  On conflict (name), preserves any existing eventbrite_id
         and scraper values rather than overwriting them.
 
+        Fuzzy-name reconciliation (TASK-1926):
+            Eventbrite organizer feeds emit multiple venue.id values for one
+            physical venue, sometimes under inconsistent name spellings — TASK-1919
+            saw 'Big Couch' (90 events) and 'Big Couch New Orleans' (44 events)
+            sharing city='New Orleans', state='LA'. The SQL UPSERT below keys
+            ON CONFLICT (name) only, so two name spellings produce two distinct
+            clubs rows for the same venue.
+
+            Before falling through to the SQL UPSERT, this method checks for an
+            existing clubs row in the same (city, state) whose name normalizes
+            (via _normalize_venue_name_for_match: lowercase, strip 'the ',
+            strip trailing city/state token) to the same core form. Match is
+            EXACT equality of normalized strings — no edit-distance threshold,
+            no token-set ratio, no learned similarity score. The conservative
+            knob is the matching algorithm, not a tunable threshold:
+              - The (city, state) gate prevents cross-city brand collisions
+                ('Laugh Factory' Hollywood will never match 'Laugh Factory'
+                San Diego because their cities differ).
+              - Exact-equality on the post-normalization form means typos and
+                genuinely different brands stay distinct ('Big Couch' /
+                'Bog Couch' or 'Big Couch' / 'Big Smile' won't merge).
+              - Same-city distinct brands ('Comedy Cellar' / 'Comedy Cellar
+                Village' both in NY, NY) stay distinct because their cores
+                differ after the suffix-only city strip.
+            Edge cases beyond the dominant 'Brand' / 'Brand <City>' pattern
+            (mid-string city tokens, ampersand-vs-and, abbreviations) intentionally
+            still produce two rows; they fall back to the per-incident manual-merge
+            precedent (TASK-1925's fold script).
+
         Args:
             venue: EventbriteVenue from the API response
 
@@ -136,6 +223,16 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             city = venue.address.city or None
             state = venue.address.region or None
 
+        fuzzy_match = self._find_fuzzy_match_in_location(venue.name, city, state)
+        if fuzzy_match is not None:
+            Logger.info(
+                f"Eventbrite venue '{venue.name}' (venue.id={venue.id}) "
+                f"fuzzy-matched to existing club {fuzzy_match.id} "
+                f"'{fuzzy_match.name}' in ({city}, {state}); "
+                f"reusing existing row instead of inserting a duplicate."
+            )
+            return fuzzy_match
+
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE,
@@ -148,6 +245,54 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         except Exception as e:
             Logger.error(f"Error upserting club for Eventbrite venue {venue.id}: {e}")
             raise
+
+    def _find_fuzzy_match_in_location(
+        self, name: str, city: Optional[str], state: Optional[str]
+    ) -> Optional[Club]:
+        """Look for an existing clubs row in (city, state) whose name normalizes
+        to the same core form as `name`.
+
+        The (city, state) gate is mandatory — it is the structural guarantee that
+        prevents cross-city brand-name false positives (e.g. 'Laugh Factory'
+        Hollywood vs San Diego). Without both fields, this pre-check is skipped
+        and the caller falls through to the regular ON CONFLICT (name) UPSERT.
+
+        Returns None when no match is found, when (city, state) is incomplete,
+        or when the location query fails — in every None case the caller falls
+        through to the regular UPSERT path, so a fuzzy-match miss never blocks
+        ingestion.
+        """
+        if not city or not state:
+            return None
+
+        norm_target = _normalize_venue_name_for_match(name, city, state)
+        if not norm_target:
+            return None
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.GET_CLUBS_BY_LOCATION,
+                (city, state),
+                return_results=True,
+            ) or []
+        except Exception as e:
+            Logger.warn(
+                f"fuzzy-match lookup failed for ({city}, {state}): {e} — "
+                f"falling through to UPSERT"
+            )
+            return None
+
+        for row in results:
+            existing_name = row.get("name") or ""
+            if not existing_name:
+                continue
+            norm_existing = _normalize_venue_name_for_match(
+                existing_name, row.get("city") or "", row.get("state") or ""
+            )
+            if norm_existing and norm_existing == norm_target:
+                return Club.from_db_row(row)
+
+        return None
 
     def upsert_for_seatengine_venue(self, venue: dict) -> Optional[Club]:
         """

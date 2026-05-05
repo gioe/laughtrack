@@ -118,6 +118,23 @@ class ClubQueries:
         ORDER BY ps.scraper_key
     """
 
+    # Pre-upsert lookup for EventbriteScraper organizer-mode fuzzy-name
+    # reconciliation (TASK-1926). Returns every clubs row that shares the
+    # given (city, state) so ClubHandler can fold near-identical name
+    # spellings (e.g. 'Big Couch' / 'Big Couch New Orleans') into one row
+    # before UPSERT_CLUB_BY_EVENTBRITE_VENUE's ON CONFLICT (name) splits
+    # them. scraping_sources is projected as '[]' because the caller only
+    # needs id/name/city/state/timezone for routing; full source lists go
+    # through GET_CLUB_BY_ID.
+    GET_CLUBS_BY_LOCATION = """
+        SELECT
+            c.*,
+            '[]'::json AS scraping_sources
+        FROM clubs c
+        WHERE LOWER(TRIM(c.city)) = LOWER(TRIM(%s))
+          AND LOWER(TRIM(c.state)) = LOWER(TRIM(%s))
+    """
+
     # NOTE: the final SELECT projects from the upserted_club CTE rather than
     # JOINing back to the clubs table. Data-modifying CTEs share a single
     # snapshot with the rest of the statement, so a JOIN against `clubs`
