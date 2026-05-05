@@ -32,6 +32,19 @@ public actor PersistentMainPageCache {
     ) {
         self.directory = directory
         self.fileManager = fileManager
+        Self.purgeOrphanedNearbyShowsFiles(in: directory, fileManager: fileManager)
+    }
+
+    private static func purgeOrphanedNearbyShowsFiles(in directory: URL, fileManager: FileManager) {
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else { return }
+        for url in contents
+        where url.lastPathComponent.hasPrefix("nearby-shows-") && url.pathExtension == "json" {
+            try? fileManager.removeItem(at: url)
+        }
     }
 
     public func setHomeFeed(_ feed: Components.Schemas.HomeFeed, zipCode: String?, ttl: TimeInterval) {

@@ -158,6 +158,27 @@ struct MainPageCacheTests {
 
         #expect(cached?.map(\.id) == [709])
     }
+
+    @Test("init purges orphaned nearby-shows cache files left behind by TASK-1887 removal")
+    func initPurgesOrphanedNearbyShowsFiles() async throws {
+        let directory = try temporaryDirectory()
+        let fm = FileManager.default
+        let orphanA = directory.appendingPathComponent("nearby-shows-10801-25.json")
+        let orphanB = directory.appendingPathComponent("nearby-shows-default-50.json")
+        let keepHomeFeed = directory.appendingPathComponent("home-feed-10801.json")
+        let keepUnrelated = directory.appendingPathComponent("nearby-shows-readme.txt")
+        try Data("orphan".utf8).write(to: orphanA)
+        try Data("orphan".utf8).write(to: orphanB)
+        try Data("keep".utf8).write(to: keepHomeFeed)
+        try Data("keep".utf8).write(to: keepUnrelated)
+
+        _ = PersistentMainPageCache(directory: directory)
+
+        #expect(!fm.fileExists(atPath: orphanA.path))
+        #expect(!fm.fileExists(atPath: orphanB.path))
+        #expect(fm.fileExists(atPath: keepHomeFeed.path))
+        #expect(fm.fileExists(atPath: keepUnrelated.path))
+    }
 }
 
 private func temporaryDirectory() throws -> URL {
