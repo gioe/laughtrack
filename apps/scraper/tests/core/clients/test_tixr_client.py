@@ -1,6 +1,8 @@
 """Unit tests for TixrClient._fetch_tixr_page, _extract_jsonld_event, and _create_show_from_jsonld."""
 
 import json
+from unittest.mock import patch
+
 import pytest
 
 from laughtrack.core.clients.tixr import client as tixr_module
@@ -8,6 +10,7 @@ from laughtrack.core.clients.tixr.client import TixrClient
 from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
 from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.http.diagnostics import (
     ScrapeDiagnostics,
@@ -611,6 +614,307 @@ class _StubProxyPool:
 
     def report_failure(self, proxy_url):
         self.failures.append(proxy_url)
+
+
+# ---------------------------------------------------------------------------
+# Residential-proxy auto-routing for _fetch_tixr_page (TASK-1936)
+#
+# When the rotating proxy_pool returns None, allowlisted scrapers (TixrClient:
+# key="tixr") must fall back to RESIDENTIAL_PROXY_URL via
+# HttpClient.resolve_proxy_url so the inline group/event-page HTML path picks
+# up the same residential coverage as fetch_html / fetch_json.
+# ---------------------------------------------------------------------------
+
+_RESIDENTIAL_PROXY_URL = "http://residential.example:8080"
+
+
+@pytest.fixture
+def stub_registry_tixr_allowlisted():
+    """Pin the registry so the residential-proxy allowlist contains 'tixr'."""
+    scraper_proxy_registry.reset_cache()
+    with patch.object(
+        scraper_proxy_registry,
+        "proxy_enabled_keys",
+        return_value=frozenset({"tixr"}),
+    ):
+        yield
+    scraper_proxy_registry.reset_cache()
+
+
+@pytest.fixture
+def stub_registry_empty():
+    """Pin the registry so no scraper is allowlisted."""
+    scraper_proxy_registry.reset_cache()
+    with patch.object(
+        scraper_proxy_registry,
+        "proxy_enabled_keys",
+        return_value=frozenset(),
+    ):
+        yield
+    scraper_proxy_registry.reset_cache()
+
+
+class TestFetchTixrPageResidentialProxy:
+
+    @pytest.mark.asyncio
+    async def test_routes_through_residential_when_pool_is_none_and_key_allowlisted(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """No pool + allowlisted key + env set → request routes through residential proxy."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        client.proxy_pool = None
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result == "<html>ok</html>"
+        assert seen_proxies == [
+            {"http": _RESIDENTIAL_PROXY_URL, "https": _RESIDENTIAL_PROXY_URL}
+        ]
+
+    @pytest.mark.asyncio
+    async def test_no_residential_when_key_not_allowlisted(
+        self, monkeypatch, stub_base_init, stub_registry_empty
+    ):
+        """Empty allowlist → tixr key is not routed through residential proxy."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        client.proxy_pool = None
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html>ok</html>"
+        assert seen_proxies == [None]
+
+    @pytest.mark.asyncio
+    async def test_pool_url_wins_over_residential(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """A configured proxy_pool URL takes precedence over RESIDENTIAL_PROXY_URL."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        pool = _StubProxyPool("http://pool.example.com:8080")
+        client.proxy_pool = pool
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html>ok</html>"
+        assert seen_proxies == [
+            {"http": "http://pool.example.com:8080",
+             "https": "http://pool.example.com:8080"}
+        ]
+        # Pool URL was used → pool got the success report.
+        assert pool.successes == ["http://pool.example.com:8080"]
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_when_env_unset(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """RESIDENTIAL_PROXY_URL unset → no proxy, even for allowlisted key."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        monkeypatch.delenv("RESIDENTIAL_PROXY_URL", raising=False)
+        client = TixrClient(_club())
+        client.proxy_pool = None
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html>ok</html>"
+        assert seen_proxies == [None]
+
+    @pytest.mark.asyncio
+    async def test_residential_threads_into_playwright_fallback(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """Playwright rescue inherits the residential URL when curl-cffi is bot-blocked."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        client.proxy_pool = None
+        client._failure_monitor = _RecordingMonitor()
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        browser_calls: list = []
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                browser_calls.append({"url": url, "proxy_url": proxy_url})
+                return "<html>rescued</html>"
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result == "<html>rescued</html>"
+        assert browser_calls == [
+            {"url": "https://tixr.com/groups/x/events/y", "proxy_url": _RESIDENTIAL_PROXY_URL}
+        ]
+
+    @pytest.mark.asyncio
+    async def test_warn_emitted_when_residential_fails_to_recover(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """When residential is auto-applied and Playwright still returns None, log WARN."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        client.proxy_pool = None
+        client._failure_monitor = _RecordingMonitor()
+
+        warns: list = []
+        monkeypatch.setattr(
+            tixr_module.Logger,
+            "warn",
+            staticmethod(lambda msg, ctx=None: warns.append(msg)),
+        )
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                return None
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result is None
+        assert any(
+            "Residential proxy fetch returned None" in w and "scraper='tixr'" in w
+            for w in warns
+        ), f"Expected residential-proxy WARN, got: {warns}"
+
+    @pytest.mark.asyncio
+    async def test_warn_suppressed_when_pool_url_was_used(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """Caller-pinned proxy_pool URLs are not residential — suppress the WARN."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+        client.proxy_pool = _StubProxyPool("http://pool.example.com:8080")
+        client._failure_monitor = _RecordingMonitor()
+
+        warns: list = []
+        monkeypatch.setattr(
+            tixr_module.Logger,
+            "warn",
+            staticmethod(lambda msg, ctx=None: warns.append(msg)),
+        )
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                return None
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert not any(
+            "Residential proxy fetch returned None" in w for w in warns
+        ), f"Did not expect residential-proxy WARN, got: {warns}"
 
 
 # Async no-op coroutine used as stub for _apply_rate_limit

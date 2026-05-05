@@ -18,7 +18,12 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
-from laughtrack.foundation.infrastructure.http.client import _bot_block_reason, _get_js_browser
+from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
+from laughtrack.foundation.infrastructure.http.client import (
+    HttpClient,
+    _bot_block_reason,
+    _get_js_browser,
+)
 from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -221,6 +226,15 @@ class TixrClient(BaseApiClient):
         ``BaseApiClient.fetch_html``: a non-``None`` final return reports
         success to the pool; ``None`` reports failure.
 
+        When the pool returns ``None`` (no pool, or pool exhausted) and
+        ``self.key`` is allowlisted in ``scraper_proxy_registry``, the request
+        falls back to ``RESIDENTIAL_PROXY_URL`` so the inline group/event-page
+        path picks up the same residential coverage as the
+        ``HttpClient.fetch_html`` / ``fetch_json`` paths used elsewhere on the
+        client. Caller-pinned ``proxy_pool`` URLs win — residential applies
+        only when no pool URL is available. Pool reporting is unaffected: the
+        residential URL is never reported back to a pool that doesn't own it.
+
         Args:
             url: Tixr event page URL
             timeout: Request timeout in seconds (default 30)
@@ -236,7 +250,18 @@ class TixrClient(BaseApiClient):
         }
 
         proxy_url = self._get_proxy_url()
-        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        # When the pool yields no URL, fall back to the residential allowlist
+        # so allowlisted scrapers (self.key in scraper_proxy_registry) still
+        # route the inline group/event-page path through RESIDENTIAL_PROXY_URL.
+        # Pool URL takes precedence, mirroring HttpClient.fetch_html/fetch_json.
+        effective_proxy_url = (
+            proxy_url if proxy_url is not None else HttpClient.resolve_proxy_url(self.key)
+        )
+        proxies = (
+            {"http": effective_proxy_url, "https": effective_proxy_url}
+            if effective_proxy_url
+            else None
+        )
 
         try:
             async with AsyncSession(
@@ -334,7 +359,9 @@ class TixrClient(BaseApiClient):
             logger_context,
         )
         try:
-            fallback_html = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
+            fallback_html = await browser.fetch_html(
+                normalized_url, proxy_url=effective_proxy_url
+            )
         except Exception as exc:
             self.log_warning(
                 f"[TixrClient] Playwright fallback failed for {normalized_url}: {exc}"
@@ -342,6 +369,25 @@ class TixrClient(BaseApiClient):
             fallback_html = None
 
         self._report_proxy_outcome(proxy_url, success=fallback_html is not None)
+
+        # Surface "residential proxy didn't help" so triage can distinguish
+        # this from a stale-selector failure. Mirrors HttpClient.fetch_html
+        # / fetch_json's WARN. Skipped when a pool URL was used (different
+        # proxy class — that signal lives on the pool's health metrics).
+        residential_was_auto_applied = (
+            proxy_url is None and effective_proxy_url is not None
+        )
+        if (
+            fallback_html is None
+            and residential_was_auto_applied
+            and self.key in scraper_proxy_registry.proxy_enabled_keys()
+        ):
+            Logger.warn(
+                f"[TixrClient] Residential proxy fetch returned None for "
+                f"scraper={self.key!r} url={normalized_url!r} — "
+                f"bot-block survived proxy",
+                logger_context,
+            )
         return fallback_html
 
     @staticmethod
