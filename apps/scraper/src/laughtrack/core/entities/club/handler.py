@@ -225,6 +225,16 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         fuzzy_match = self._find_fuzzy_match_in_location(venue.name, city, state)
         if fuzzy_match is not None:
+            # Returning early skips the upserted_source CTE in
+            # UPSERT_CLUB_BY_EVENTBRITE_VENUE, so the existing club's
+            # scraping_sources rows are NOT touched: a disabled per-venue
+            # source stays disabled (organizer-mode dispatch via /o/ keeps
+            # routing the events anyway), and the new venue.id is not
+            # registered against the existing scraping_sources.external_id.
+            # Any consumer that relies on (eventbrite_id → club_id) reverse
+            # lookup will see only the original venue.id; folding the
+            # alternate ids requires an explicit alternate_external_id
+            # column we do not have today.
             Logger.info(
                 f"Eventbrite venue '{venue.name}' (venue.id={venue.id}) "
                 f"fuzzy-matched to existing club {fuzzy_match.id} "

@@ -126,6 +126,15 @@ class ClubQueries:
     # them. scraping_sources is projected as '[]' because the caller only
     # needs id/name/city/state/timezone for routing; full source lists go
     # through GET_CLUB_BY_ID.
+    #
+    # The visible/status filter mirrors the dominant pattern in every other
+    # club-fetch query in this file. Without it the fuzzy-match path could
+    # route fresh organizer events to a hidden vestigial row (e.g. one of the
+    # 8 clubs hidden in TASK-1918), which would silently ingest events that
+    # never surface to users. ORDER BY c.id makes the candidate selection
+    # deterministic when two same-(city, state) rows happen to normalize to
+    # the same core form — non-deterministic ordering across nightly runs
+    # would let the same fuzzy hit flip-flop between IDs.
     GET_CLUBS_BY_LOCATION = """
         SELECT
             c.*,
@@ -133,6 +142,9 @@ class ClubQueries:
         FROM clubs c
         WHERE LOWER(TRIM(c.city)) = LOWER(TRIM(%s))
           AND LOWER(TRIM(c.state)) = LOWER(TRIM(%s))
+          AND c.visible = TRUE
+          AND c.status = 'active'
+        ORDER BY c.id
     """
 
     # NOTE: the final SELECT projects from the upserted_club CTE rather than

@@ -411,6 +411,87 @@ class TestUpsertForEventbriteVenueInvalidInput:
         assert result is None
 
 
+class TestNormalizeVenueNameForMatch:
+    """Direct unit tests for _normalize_venue_name_for_match (TASK-1926).
+
+    The function is the core merge-or-not decision and has several non-trivial
+    branches: leading 'the ' strip, longest-first suffix candidate ordering,
+    empty-string protection, and non-alphanumeric collapsing. Pinning the
+    contract here documents the false-positive/false-negative behavior in
+    production directly rather than only via upsert integration tests.
+    """
+
+    @pytest.fixture
+    def normalize(self):
+        # Resolve the helper from the directly-loaded handler module — the
+        # module-level import in this test file is via _load_module, so the
+        # function isn't available under its package path.
+        return _club_handler_mod._normalize_venue_name_for_match
+
+    def test_the_prefix_strip_normalizes_to_same_core(self, normalize):
+        """'The Comedy Cellar' and 'Comedy Cellar' both yield 'comedy cellar'."""
+        assert normalize("The Comedy Cellar", "New York", "NY") == "comedy cellar"
+        assert normalize("Comedy Cellar", "New York", "NY") == "comedy cellar"
+
+    def test_longest_suffix_candidate_strips_first(self, normalize):
+        """'big couch new orleans la' must strip the 'new orleans la' suffix
+        before falling through to the shorter 'new orleans' candidate; both
+        yield 'big couch'."""
+        assert normalize("Big Couch New Orleans LA", "New Orleans", "LA") == "big couch"
+        assert normalize("Big Couch New Orleans", "New Orleans", "LA") == "big couch"
+
+    def test_name_equal_to_city_keeps_original_form(self, normalize):
+        """A venue literally named after its city ('New Orleans' in (New
+        Orleans, LA)) must not be reduced to an empty string — empty-string
+        protection keeps the pre-strip form so the row stays distinguishable."""
+        assert normalize("New Orleans", "New Orleans", "LA") == "new orleans"
+
+    def test_mid_string_city_token_is_preserved(self, normalize):
+        """'New Orleans Comedy Club' must NOT collapse to 'comedy club' — only
+        a TRAILING city/state token strips. Mid-string occurrences stay
+        because folding them would merge unrelated venues that legitimately
+        carry a city in the middle of the name."""
+        assert normalize("New Orleans Comedy Club", "New Orleans", "LA") == "new orleans comedy club"
+
+    def test_apostrophe_handling_documents_limitation(self, normalize):
+        """Apostrophes are non-alphanumeric and collapse to a space, so
+        'Joe's Pub' yields 'joe s pub' — intentionally distinct from
+        'Joes Pub' which yields 'joes pub'. This is a known limitation:
+        venues that vary only by apostrophe across spellings get two rows.
+        Documents the trade-off via assertion."""
+        assert normalize("Joe's Pub", "New York", "NY") == "joe s pub"
+        assert normalize("Joes Pub", "New York", "NY") == "joes pub"
+        # Confirm they do NOT collapse to the same form.
+        assert normalize("Joe's Pub", "New York", "NY") != normalize("Joes Pub", "New York", "NY")
+
+    def test_lone_the_does_not_strip_to_empty(self, normalize):
+        """A name that is just 'The' (after the leading-'the ' strip would
+        leave '') only strips when followed by content; a lone 'The' keeps
+        the 'the' (no trailing space to match the prefix pattern)."""
+        # 'The' alone (no trailing space) does not match the 'the ' prefix.
+        assert normalize("The", "New York", "NY") == "the"
+
+    def test_punctuation_collapses_to_space(self, normalize):
+        """Comma, parens, em-dash, and unicode whitespace all collapse to
+        single spaces before suffix stripping."""
+        assert normalize("Big Couch, New Orleans", "New Orleans", "LA") == "big couch"
+        assert normalize("Big Couch (New Orleans)", "New Orleans", "LA") == "big couch"
+
+    def test_empty_name_returns_empty_string(self, normalize):
+        """Empty input returns empty string; caller (_find_fuzzy_match_in_location)
+        treats empty as 'no candidate' and falls through to UPSERT."""
+        assert normalize("", "New York", "NY") == ""
+        assert normalize("   ", "New York", "NY") == ""
+
+    def test_missing_location_only_strips_prefix_and_punctuation(self, normalize):
+        """When city/state are empty, no suffix candidates are built — only
+        the 'the ' prefix and punctuation collapse run. This matches the
+        helper's caller, which skips the fuzzy-match path entirely when
+        location is missing, so this is the safe pass-through behavior."""
+        assert normalize("The Big Couch", "", "") == "big couch"
+        assert normalize("Big Couch New Orleans", "", "") == "big couch new orleans"
+
+
 class TestUpsertForEventbriteVenueFuzzyMatch:
     """Criterion 6331 (TASK-1926): organizer-feed venues whose names differ only by
     a trailing city suffix ('Big Couch' / 'Big Couch New Orleans') in the same
