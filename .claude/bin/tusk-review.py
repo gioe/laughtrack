@@ -358,7 +358,7 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
         if review_ids:
             placeholders = ",".join("?" * len(review_ids))
             for c in conn.execute(
-                f"SELECT id, review_id, file_path, line_start, category, severity, comment, resolution"
+                f"SELECT id, review_id, file_path, line_start, category, severity, comment, resolution, resolution_note"
                 f" FROM review_comments WHERE review_id IN ({placeholders}) ORDER BY review_id, category, id",
                 review_ids,
             ).fetchall():
@@ -383,6 +383,7 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
                         "severity": c["severity"],
                         "comment": c["comment"],
                         "resolution": c["resolution"],
+                        "resolution_note": c["resolution_note"],
                     }
                     for c in all_comments.get(rev["id"], [])
                 ],
@@ -421,7 +422,11 @@ def cmd_list(args: argparse.Namespace, db_path: str) -> int:
                 if c["line_start"]:
                     loc += f":{c['line_start']}"
             sev = f"[{c['severity']}] " if c["severity"] else ""
-            res = f" ({c['resolution']})" if c["resolution"] is not None else ""
+            if c["resolution"] is not None:
+                note = f": {c['resolution_note']}" if c["resolution_note"] else ""
+                res = f" ({c['resolution']}{note})"
+            else:
+                res = ""
             print(f"    #{c['id']}{loc}: {sev}{c['comment']}{res}")
 
         print()
@@ -450,15 +455,22 @@ def cmd_resolve(args: argparse.Namespace, db_path: str) -> int:
             print(f"Error: Comment {args.comment_id} not found", file=sys.stderr)
             return 2
 
+        set_clauses = ["resolution = ?", "updated_at = datetime('now')"]
+        params: list = [args.resolution]
+        if args.note is not None:
+            set_clauses.append("resolution_note = ?")
+            params.append(args.note or None)
+        params.append(args.comment_id)
         conn.execute(
-            "UPDATE review_comments SET resolution = ?, updated_at = datetime('now') WHERE id = ?",
-            (args.resolution, args.comment_id),
+            f"UPDATE review_comments SET {', '.join(set_clauses)} WHERE id = ?",
+            params,
         )
         conn.commit()
     finally:
         conn.close()
 
-    print(f"Comment #{args.comment_id} marked '{args.resolution}': {comment['comment'][:60]}")
+    note_str = f" ({args.note})" if args.note else ""
+    print(f"Comment #{args.comment_id} marked '{args.resolution}'{note_str}: {comment['comment'][:60]}")
     return 0
 
 
@@ -719,7 +731,7 @@ def cmd_verdict(args: argparse.Namespace, db_path: str) -> int:
 
     open_must_fix = row["cnt"] if row else 0
     verdict = "APPROVED" if open_must_fix == 0 else "CHANGES_REMAINING"
-    print(json.dumps({"verdict": verdict, "open_must_fix": open_must_fix}))
+    print(dumps({"verdict": verdict, "open_must_fix": open_must_fix}))
     return 0
 
 
@@ -755,7 +767,7 @@ def cmd_pass_status(args: argparse.Namespace, db_path: str, config_path: str) ->
     max_passes = cfg["max_passes"]
     can_retry = current_pass < max_passes and open_must_fix > 0
 
-    print(json.dumps({
+    print(dumps({
         "current_pass": current_pass,
         "max_passes": max_passes,
         "can_retry": can_retry,
@@ -780,7 +792,7 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
             return 2
 
         comments = conn.execute(
-            "SELECT id, file_path, line_start, line_end, category, severity, comment, resolution"
+            "SELECT id, file_path, line_start, line_end, category, severity, comment, resolution, resolution_note"
             " FROM review_comments WHERE review_id = ? ORDER BY severity, category, id",
             (args.review_id,),
         ).fetchall()
@@ -836,7 +848,8 @@ def cmd_summary(args: argparse.Namespace, db_path: str) -> int:
                 loc = f" {c['file_path']}"
                 if c["line_start"]:
                     loc += f":{c['line_start']}"
-            print(f"  #{c['id']}{loc} ({c['resolution']}): {c['comment']}")
+            note = f" — {c['resolution_note']}" if c["resolution_note"] else ""
+            print(f"  #{c['id']}{loc} ({c['resolution']}{note}): {c['comment']}")
         print()
 
     return 0
@@ -894,6 +907,11 @@ def main():
     resolve_p = subparsers.add_parser("resolve", help="Resolve a review comment")
     resolve_p.add_argument("comment_id", type=int, help="Comment ID")
     resolve_p.add_argument("resolution", choices=["fixed", "dismissed"], help="Resolution status")
+    resolve_p.add_argument(
+        "--note",
+        default=None,
+        help="Optional rationale stored alongside the resolution (e.g. 'Tracked as TASK-42')",
+    )
 
     # approve
     approve_p = subparsers.add_parser("approve", help="Approve a review")
