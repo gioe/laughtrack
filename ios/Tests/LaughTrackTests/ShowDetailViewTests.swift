@@ -166,8 +166,7 @@ private struct MockShowDetailTransport: ClientTransport {
 
         switch response {
         case .success(let payload):
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
+            let encoder = APIMockEncoder.make()
 
             return (
                 HTTPResponse(
