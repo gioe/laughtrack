@@ -528,6 +528,94 @@ class TestUpsertForEventbriteVenueFuzzyMatch:
         assert mock_exec.call_count == 2
 
 
+class TestUpsertForEventbriteVenueBrandNameSafety:
+    """Criterion 6332 (TASK-1926): same-brand venues across distinct (city, state)
+    must NOT collapse — a 'Laugh Factory' in San Diego is a real, distinct venue
+    from 'Laugh Factory' in Hollywood.
+
+    The (city, state) gate is the primary defense; the SQL query restricts the
+    candidate set to one location, so cross-city matches are impossible by
+    construction. These tests assert the gate works as designed.
+    """
+
+    def test_laugh_factory_san_diego_not_merged_with_hollywood(self):
+        """A 'Laugh Factory' in (San Diego, CA) does NOT merge with the
+        existing 'Laugh Factory' in (Hollywood, CA). The location query
+        returns rows scoped to (San Diego, CA) only, so the Hollywood row
+        is never even considered as a candidate."""
+        venue = _FakeVenue(
+            id="lf-sd",
+            name="Laugh Factory",
+            address=_FakeAddress(city="San Diego", region="CA"),
+        )
+        new_row = _make_club_row(
+            id=170,
+            name="Laugh Factory",
+            city="San Diego",
+            state="CA",
+            eventbrite_id="lf-sd",
+        )
+
+        handler = ClubHandler()
+        # First call (location lookup in San Diego CA) → empty (Hollywood row is
+        # excluded by the WHERE clause). Second call (UPSERT) → inserts the SD row.
+        with patch.object(
+            handler,
+            "execute_with_cursor",
+            side_effect=[[], [new_row]],
+        ) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 170
+        assert result.name == "Laugh Factory"
+        assert mock_exec.call_count == 2
+
+        # The location query was scoped to (San Diego, CA), not (Hollywood, CA).
+        location_call_params = mock_exec.call_args_list[0][0][1]
+        assert location_call_params == ("San Diego", "CA")
+
+    def test_same_city_distinct_brand_does_not_merge(self):
+        """Two genuinely distinct brands sharing a city ('Comedy Cellar' vs
+        'Comedy Cellar Village' in NY, NY) keep distinct rows. After
+        normalization their core forms differ ('comedy cellar' vs
+        'comedy cellar village') so exact-equality match fails and the
+        new venue falls through to UPSERT."""
+        existing_cellar = _make_club_row(
+            id=10,
+            name="Comedy Cellar",
+            city="New York",
+            state="NY",
+        )
+        venue = _FakeVenue(
+            id="v-village",
+            name="Comedy Cellar Village",
+            address=_FakeAddress(city="New York", region="NY"),
+        )
+        village_row = _make_club_row(
+            id=11,
+            name="Comedy Cellar Village",
+            city="New York",
+            state="NY",
+            eventbrite_id="v-village",
+        )
+
+        handler = ClubHandler()
+        # Location lookup returns the Cellar row, but normalization produces
+        # different cores — no merge. UPSERT then inserts Village as id=11.
+        with patch.object(
+            handler,
+            "execute_with_cursor",
+            side_effect=[[existing_cellar], [village_row]],
+        ) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 11
+        assert result.name == "Comedy Cellar Village"
+        assert mock_exec.call_count == 2
+
+
 # ---------------------------------------------------------------------------
 # Tests for upsert_for_seatengine_venue
 # ---------------------------------------------------------------------------
