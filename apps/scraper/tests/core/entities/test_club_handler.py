@@ -342,6 +342,18 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         assert "FROM UPSERTED_CLUB" in sql
         assert "RETURNING *" in sql
 
+    def test_ticketmaster_upsert_selects_from_cte_not_clubs_table(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE)
+        assert "JOIN UPSERTED_CLUB" not in sql
+        assert "FROM UPSERTED_CLUB" in sql
+        assert "RETURNING *" in sql
+
+    def test_tour_date_upsert_selects_from_cte_not_clubs_table(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE)
+        assert "JOIN UPSERTED_CLUB" not in sql
+        assert "FROM UPSERTED_CLUB" in sql
+        assert "RETURNING *" in sql
+
 
 class TestUpsertForEventbriteVenueInvalidInput:
     """Criterion 670: None/missing venue fields returns None without raising."""
