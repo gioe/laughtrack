@@ -91,7 +91,7 @@ Per-disposition rationale rejected alternatives:
   would only catch ~1 of N events. Keeping organizer-mode enabled
   preserves full coverage via the (name, city, state) dedupe key.
 
-Post-action verification (criterion 6312) is handed off to TASK-<TBD>
+Post-action verification (criterion 6312) is handed off to TASK-1932
 since the next nightly is 2026-05-06 06:00 UTC, ~14h after this commit.
 The follow-up will re-execute the TASK-1916 probe and confirm:
   - Repoint clubs (160, 184, 169, 170, 1038): show counts on the original
@@ -223,7 +223,13 @@ def _load_metadata(raw) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=(
+            "Apply per-club dispositions for the 9 Eventbrite organizer-mode "
+            "REROUTED clubs surfaced by TASK-1916. See module docstring for the "
+            "full disposition matrix and rationale."
+        )
+    )
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without writing")
     args = parser.parse_args()
 
@@ -294,11 +300,26 @@ def main() -> int:
                         f"REPOINT: ss.id={t.original_source_id} platform={platform!r} "
                         f"(expected 'eventbrite')"
                     )
-                # Allow already-repointed (idempotent re-run) OR the original organizer state
-                if ext_id not in (t.original_external_id, t.new_external_id):
+                # external_id, source_url, and enabled are all rewritten by the same
+                # UPDATE in a single transaction, so live state must reflect either the
+                # full pre-write tuple (organizer.id + /o/ URL) or the full post-write
+                # tuple (venue.id + bare eventbrite.com URL). enabled stays True in both.
+                # A partial state is impossible today but flagging it here keeps the
+                # "refuse to write on any mismatch" contract honest if the UPDATE is
+                # ever split across calls.
+                is_pre = ext_id == t.original_external_id and "/o/" in (src_url or "")
+                is_post = ext_id == t.new_external_id and src_url == _VENUE_MODE_SOURCE_URL
+                if not (is_pre or is_post):
                     problems.append(
-                        f"REPOINT: ss.id={t.original_source_id} external_id={ext_id!r} "
-                        f"(expected {t.original_external_id!r} or already-repointed {t.new_external_id!r})"
+                        f"REPOINT: ss.id={t.original_source_id} (ext_id, source_url) is in a partial "
+                        f"state: ext_id={ext_id!r} source_url={src_url!r}. Expected either pre-write "
+                        f"(ext_id={t.original_external_id!r}, source_url contains '/o/') or post-write "
+                        f"(ext_id={t.new_external_id!r}, source_url={_VENUE_MODE_SOURCE_URL!r})."
+                    )
+                if not enabled:
+                    problems.append(
+                        f"REPOINT: ss.id={t.original_source_id} enabled={enabled} "
+                        f"(expected True — disposition leaves source enabled in both pre- and post-write states)"
                     )
 
             new_src = sources.get(t.new_per_venue_source_id)
@@ -354,9 +375,34 @@ def main() -> int:
         for t in _DISABLE_SOURCE_TARGETS:
             if t.original_club_id not in clubs:
                 problems.append(f"DISABLE: clubs.id={t.original_club_id} missing")
+            else:
+                _, name, _ = clubs[t.original_club_id]
+                if name != t.original_club_name:
+                    problems.append(
+                        f"DISABLE: clubs.id={t.original_club_id} name={name!r} "
+                        f"(expected {t.original_club_name!r})"
+                    )
             src = sources.get(t.original_source_id)
             if src is None:
                 problems.append(f"DISABLE: ss.id={t.original_source_id} missing")
+            else:
+                _, src_club, platform, _, _, src_url, _, _, _ = src
+                if src_club != t.original_club_id:
+                    problems.append(
+                        f"DISABLE: ss.id={t.original_source_id} club_id={src_club} "
+                        f"(expected {t.original_club_id})"
+                    )
+                if platform != "eventbrite":
+                    problems.append(
+                        f"DISABLE: ss.id={t.original_source_id} platform={platform!r} "
+                        f"(expected 'eventbrite')"
+                    )
+                if "/o/" not in (src_url or ""):
+                    problems.append(
+                        f"DISABLE: ss.id={t.original_source_id} source_url={src_url!r} "
+                        f"(expected /o/ organizer URL — disable target is the misattributed "
+                        f"organizer feed)"
+                    )
 
         if problems:
             print("ABORT: shape mismatch — refusing to write:", file=sys.stderr)
@@ -370,12 +416,12 @@ def main() -> int:
             cid, cname, cvis = clubs[t.original_club_id]
             sid, _, _, _, ext, src_url, enabled, _, meta = sources[t.original_source_id]
             ncid, ncname, ncvis = clubs[t.new_per_venue_club_id]
-            nsid, _, _, _, next_ext, _, nenabled, _, nmeta = sources[t.new_per_venue_source_id]
+            nsid, _, _, _, vest_ext, _, nenabled, _, nmeta = sources[t.new_per_venue_source_id]
             print(
                 f"  REPOINT club={cid} {cname!r} visible={cvis}"
                 f" | ss={sid} ext={ext!r} url={src_url!r} enabled={enabled}"
                 f" | vestigial club={ncid} {ncname!r} visible={ncvis}"
-                f" | vestigial ss={nsid} ext={next_ext!r} enabled={nenabled}"
+                f" | vestigial ss={nsid} ext={vest_ext!r} enabled={nenabled}"
             )
         for t in _HIDE_ORIGINAL_TARGETS:
             cid, cname, cvis = clubs[t.original_club_id]
