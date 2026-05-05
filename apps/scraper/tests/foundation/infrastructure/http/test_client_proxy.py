@@ -315,6 +315,35 @@ class TestFetchJsonProxyRouting:
         assert kwargs.get("proxies") is None
 
     @pytest.mark.asyncio
+    async def test_no_warn_on_200_success_via_residential_proxy(self, monkeypatch):
+        """The residential-proxy WARN must NOT fire on the happy path.
+
+        Defensive guard against a future refactor that accidentally treats
+        every proxied call as a None return — the WARN is reserved for the
+        'paid for proxy and got nothing' triage signal.
+        """
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
+        session = AsyncMock()
+        session.get.return_value = _make_json_response(200, {"data": 1})
+
+        with _NO_FALLBACK:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ) as mock_warn:
+                result = await HttpClient.fetch_json(
+                    session,
+                    "https://example.com/api",
+                    scraper_key=_ALLOWLISTED,
+                )
+
+        assert result == {"data": 1}
+        proxy_warns = [
+            c for c in mock_warn.call_args_list
+            if "Residential proxy fetch_json returned None" in c.args[0]
+        ]
+        assert proxy_warns == []
+
+    @pytest.mark.asyncio
     async def test_warn_logged_when_proxied_fetch_returns_none(self, monkeypatch):
         """Proxied fetch_json returning None must emit a greppable WARN.
 
