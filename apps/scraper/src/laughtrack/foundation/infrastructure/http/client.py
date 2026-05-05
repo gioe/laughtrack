@@ -526,8 +526,10 @@ class HttpClient:
         # When we auto-applied the residential proxy and still got nothing,
         # surface it so the nightly triage can distinguish "proxy didn't
         # help" from "scraper has stale selectors". Caller-pinned proxy_url
-        # is excluded — that's a different (test/dev) proxy and the
-        # 'bot-block survived proxy' message would mislead.
+        # is excluded — that's a different (test/dev) proxy, so a residential
+        # WARN there would falsely surface when no residential proxy was
+        # applied. None can mean bot-block, 5xx, 4xx, or empty body — let
+        # operators inspect surrounding logs rather than asserting a cause.
         residential_was_auto_applied = (
             proxy_url is None and effective_proxy_url is not None
         )
@@ -538,7 +540,7 @@ class HttpClient:
         ):
             Logger.warn(
                 f"[HttpClient] Residential proxy fetch returned None for "
-                f"scraper={scraper_key!r} url={url!r} — bot-block survived proxy",
+                f"scraper={scraper_key!r} url={url!r}",
                 logger_context or {},
             )
 
@@ -627,7 +629,7 @@ class HttpClient:
         ):
             Logger.warn(
                 f"[HttpClient] Residential proxy fetch_json returned None for "
-                f"scraper={scraper_key!r} url={url!r} — bot-block survived proxy",
+                f"scraper={scraper_key!r} url={url!r}",
                 logger_context or {},
             )
 

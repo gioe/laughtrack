@@ -211,9 +211,8 @@ class TestFetchHtmlProxyRouting:
         """Explicit non-residential proxy_url must not trigger the residential WARN.
 
         Test/dev callers sometimes pin a different proxy (e.g. a local mitmproxy
-        for traffic capture). The 'bot-block survived proxy' message would
-        falsely accuse the residential proxy when the residential one was
-        never even applied.
+        for traffic capture). The residential WARN would falsely surface when
+        no residential proxy was applied.
         """
         monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _PROXY_URL)
         session = AsyncMock()
