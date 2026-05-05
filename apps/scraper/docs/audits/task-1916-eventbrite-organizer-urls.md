@@ -137,3 +137,18 @@ After the 2026-05-05 06:00 UTC nightly:
 1. Pull the Discord #laughtrack scraper-summary message for the run.
 2. Compare per-club show counts at the SAFE clubs against the pre-flip 2026-05-04 23:30 UTC baseline (Lincoln Lodge 601→~466 expected, etc. — note that the organizer feed only returns *upcoming* events, so a drop from the baseline to roughly the audit's `events` column for each SAFE club indicates the new path produced what was predicted).
 3. Confirm no SAFE club lost 100% of its shows (which would indicate the name-match prediction was wrong).
+
+## Disposition Decisions
+
+### club 654 — Big Couch New Orleans (TASK-1919) — LEAVE-AS-IS + post-nightly manual merge
+
+**Decision: leave-as-is.** Re-probe on 2026-05-05 01:58 UTC (~4 hours pre-nightly) reproduced the audit numbers exactly: 134 events split across **25 distinct Eventbrite venue.id values** under two name spellings — 90 events with `venue.name = 'Big Couch'`, 44 events with `venue.name = 'Big Couch New Orleans'`. All 25 venue.id records carry city='New Orleans', state='LA', confirming the same physical venue under inconsistent organizer-side naming.
+
+The (name, city, state) dedupe key in `EventbriteScraper._venue_dedupe_key` (apps/scraper/src/laughtrack/scrapers/implementations/api/eventbrite/scraper.py:120-144) collapses the 25 venue.ids into exactly 2 upsert groups, so under organizer mode the nightly will fire `upsert_for_eventbrite_venue` twice and produce one Show per event under whichever club the (name) UPSERT lands on.
+
+**Why the offered alternatives were rejected:**
+
+- **Rename club 654 to 'Big Couch'** — only inverts the split. The 90 'Big Couch' events would fold onto the renamed row, but the 44 'Big Couch New Orleans' events would now miss the name conflict and create a fresh clubs row under the *old* name. Net same outcome, just relocated.
+- **Repoint to a venue-mode URL** — not viable here. A venue-mode URL (`source_url` without `/o/`) drives single-venue mode in `EventbriteScraper.scrape_async`, but that fetches events for ONE venue.id. With 25 distinct venue.id values upstream, no single venue URL captures more than 30 events; switching modes would silently drop 100+ events.
+
+**Post-nightly follow-up (filed as a sibling task to satisfy criterion 6314-equivalent verification):** after 2026-05-05 06:00 UTC, manually fold the freshly-created 'Big Couch' clubs row into existing club 654: re-point all shows from the new club_id to 654, then either rename 654 to 'Big Couch' (if the brand-canonical spelling is preferred) or hide the new row. Greenfield insertion was confirmed in the original TASK-1916 audit (no name collisions against any *other* existing clubs row), so the manual-merge target is unambiguous.
