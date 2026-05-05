@@ -220,10 +220,9 @@ them, but tests built on top of it inherit the constraints.
    resolves to the expected route (e.g.
    `EntityNavigationTarget.show(_:).route == .showDetail(_:)`), and (c)
    drive the route via `coordinator.path.append(_:)` to verify
-   `NavigationPath.codable` round-trips. Canonical examples: the toolbar
-   workaround in `nearMeProfileButtonPushesProfileRoute` and the hero-button
-   workaround in `homeShowsTonightHeroOpensShowDetail` (both in
-   `ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
+   `NavigationPath.codable` round-trips. Canonical example: the toolbar
+   workaround in `nearMeProfileButtonPushesProfileRoute`
+   (`ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
 
 ### Async Lifecycle in HostedView Tests
 
