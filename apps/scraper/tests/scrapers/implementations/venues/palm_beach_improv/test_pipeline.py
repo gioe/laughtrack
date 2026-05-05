@@ -1,11 +1,15 @@
 """Tests for PalmBeachImprovScraper and Kravis calendar extraction."""
 
 import json
+from unittest.mock import patch
 
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.palm_beach_improv import PalmBeachImprovEvent
+from laughtrack.core.entities.event.palm_beach_improv import (
+    PalmBeachImprovEvent,
+    _parse_kravis_datetime,
+)
 from laughtrack.scrapers.implementations.venues.palm_beach_improv.data import (
     PalmBeachImprovPageData,
 )
@@ -140,6 +144,26 @@ def test_event_to_show_returns_none_for_malformed_date_str():
     )
 
     assert event.to_show(_club()) is None
+
+
+def test_parse_kravis_datetime_warns_and_falls_back_for_unknown_timezone():
+    # Per TASK-1908 (commit 8d44f66d), a typo'd / blank-but-non-empty
+    # clubs.timezone must not silently zero out the venue. _parse_kravis_datetime
+    # warns and falls back to America/New_York instead of returning None.
+    with patch(
+        "laughtrack.core.entities.event.palm_beach_improv.Logger"
+    ) as mock_logger:
+        result = _parse_kravis_datetime(
+            "Fri, May 08 2026 @ 7:30pm", "America/Bogus_Made_Up"
+        )
+
+    assert result is not None
+    assert result.tzinfo is not None
+    assert result.tzinfo.zone == "America/New_York"
+    assert result.hour == 19
+    assert result.minute == 30
+    mock_logger.warn.assert_called_once()
+    assert "America/Bogus_Made_Up" in mock_logger.warn.call_args[0][0]
 
 
 @pytest.mark.asyncio
