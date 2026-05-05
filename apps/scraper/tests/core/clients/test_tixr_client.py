@@ -872,6 +872,59 @@ class TestFetchTixrPageResidentialProxy:
         ), f"Expected residential-proxy WARN, got: {warns}"
 
     @pytest.mark.asyncio
+    async def test_residential_applied_when_pool_exists_but_exhausted(
+        self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
+    ):
+        """Pool configured but get_proxy() returns None → residential is auto-applied
+        and no success/failure is reported back to the pool."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", _RESIDENTIAL_PROXY_URL)
+        client = TixrClient(_club())
+
+        class ExhaustedPool:
+            def __init__(self):
+                self.successes: list = []
+                self.failures: list = []
+
+            def get_proxy(self):
+                return None
+
+            def report_success(self, proxy_url):
+                self.successes.append(proxy_url)
+
+            def report_failure(self, proxy_url):
+                self.failures.append(proxy_url)
+
+        pool = ExhaustedPool()
+        client.proxy_pool = pool
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html>ok</html>"
+        # Residential URL was used because pool yielded None.
+        assert seen_proxies == [
+            {"http": _RESIDENTIAL_PROXY_URL, "https": _RESIDENTIAL_PROXY_URL}
+        ]
+        # Pool received no outcome — it doesn't own the residential URL.
+        assert pool.successes == []
+        assert pool.failures == []
+
+    @pytest.mark.asyncio
     async def test_warn_suppressed_when_pool_url_was_used(
         self, monkeypatch, stub_base_init, stub_registry_tixr_allowlisted
     ):
