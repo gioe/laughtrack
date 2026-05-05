@@ -552,6 +552,7 @@ class HttpClient:
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
         allow_empty_body: bool = False,
+        scraper_key: Optional[str] = None,
     ) -> Optional[JSONDict]:
         """
         Fetch JSON data from a URL with standardized error handling.
@@ -578,6 +579,16 @@ class HttpClient:
                 Playwright fallback.  Use this for endpoints where an
                 empty body is the expected "no data" signal (e.g. a
                 Tessera stale-event response on Broadway Comedy Club).
+            scraper_key: Identifier of the calling scraper (matches
+                ``BaseScraper.key`` / ``BaseApiClient.key``).  When provided
+                and ``proxy_url`` is ``None``, the residential-proxy
+                allowlist (:func:`scraper_proxy_registry.proxy_enabled_keys`,
+                sourced from the ``scrapers`` Postgres table) is consulted:
+                allowlisted scrapers route through ``RESIDENTIAL_PROXY_URL``
+                automatically, mirroring ``fetch_html``'s semantics so
+                ``BaseApiClient.fetch_json`` callers (e.g. ``TixrClient``)
+                pick up the same residential-proxy coverage as the
+                ``HttpConvenienceMixin`` HTML path.
 
         Returns:
             JSON data as dictionary, or None if the response is not usable
@@ -587,14 +598,38 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
+        # Auto-apply the residential proxy for allowlisted scrapers when the
+        # caller has not pinned a proxy_url explicitly. Mirrors fetch_html.
+        effective_proxy_url = proxy_url
+        if effective_proxy_url is None and scraper_key is not None:
+            effective_proxy_url = HttpClient.resolve_proxy_url(scraper_key)
+
         html, response, fallback_invoked = await HttpClient._fetch_with_fallback(
             session,
             url,
             headers=headers,
             logger_context=logger_context,
-            proxy_url=proxy_url,
+            proxy_url=effective_proxy_url,
             allow_empty_body=allow_empty_body,
         )
+
+        # When we auto-applied the residential proxy and still got nothing,
+        # surface it so the nightly triage can distinguish "proxy didn't
+        # help" from "API returned unexpected payload". Caller-pinned
+        # proxy_url is excluded — that's a different (test/dev) proxy.
+        residential_was_auto_applied = (
+            proxy_url is None and effective_proxy_url is not None
+        )
+        if (
+            html is None
+            and residential_was_auto_applied
+            and scraper_key in scraper_proxy_registry.proxy_enabled_keys()
+        ):
+            Logger.warn(
+                f"[HttpClient] Residential proxy fetch_json returned None for "
+                f"scraper={scraper_key!r} url={url!r} — bot-block survived proxy",
+                logger_context or {},
+            )
 
         if html is None:
             return None
