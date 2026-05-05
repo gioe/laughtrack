@@ -1,5 +1,23 @@
 -- Palm Beach Improv's legacy domain redirects to the Kravis Center Improv page.
 -- SeatEngine venue 350 is still valid metadata but currently returns zero shows.
+--
+-- Rollback (no DOWN script — run by hand if Kravis scraping fails in prod):
+--   1) Re-enable the SeatEngine source. Its prior state was enabled=TRUE; the
+--      seatengine_id is preserved in the custom row's metadata.previous_seatengine_id
+--      so we can recover the external_id without DB archaeology:
+--        UPDATE scraping_sources
+--        SET enabled = TRUE, updated_at = NOW()
+--        WHERE club_id = 379 AND platform = 'seatengine';
+--   2) Disable (don't delete — preserves audit trail) the custom Kravis source:
+--        UPDATE scraping_sources
+--        SET enabled = FALSE, updated_at = NOW()
+--        WHERE club_id = 379 AND platform = 'custom' AND priority = 0
+--          AND scraper_key = 'palm_beach_improv';
+--   3) Club identity (website, address, phone, etc.) was overwritten without
+--      capturing prior values. If a revert of those fields is needed, recover
+--      from a pre-migration DB snapshot or hand-edit using historical data.
+--      The scraping source flip in steps 1-2 is sufficient to restore nightly
+--      show ingestion regardless of clubs row identity.
 
 UPDATE scraping_sources
 SET enabled = FALSE,
