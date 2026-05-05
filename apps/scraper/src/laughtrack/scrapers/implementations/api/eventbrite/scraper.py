@@ -25,7 +25,7 @@ This scraper has two operating modes:
 
 import asyncio
 from collections import defaultdict
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from laughtrack.core.clients.eventbrite.client import EventbriteClient
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -117,6 +117,32 @@ class EventbriteScraper(BaseScraper):
         finally:
             await self._cleanup_resources()
 
+    @staticmethod
+    def _venue_dedupe_key(api_venue) -> Optional[Tuple[str, str, str]]:
+        """Build a (name, city, state) dedupe key for the per-organizer upsert pass.
+
+        Returns ``None`` for events whose ``_api_venue`` is missing or has no
+        usable name — those events can't be routed to a per-venue club and are
+        dropped upstream with a single aggregate warning. Name is required
+        because the SQL UPSERT in ``upsert_for_eventbrite_venue`` keys on
+        ``clubs.name``; city/state default to empty strings when absent so two
+        events that share a name and have nothing else fill in still collapse
+        to one group rather than splitting on missing-vs-present address data.
+        """
+        if api_venue is None:
+            return None
+        name = getattr(api_venue, "name", None)
+        if not name or not str(name).strip():
+            return None
+        address = getattr(api_venue, "address", None)
+        city = getattr(address, "city", None) if address is not None else None
+        region = getattr(address, "region", None) if address is not None else None
+        return (
+            str(name).strip().lower(),
+            str(city or "").strip().lower(),
+            str(region or "").strip().lower(),
+        )
+
     async def _scrape_organizer_async(self) -> List[Show]:
         """Organizer-mode pipeline: group events by venue, upsert per-venue clubs.
 
@@ -130,15 +156,24 @@ class EventbriteScraper(BaseScraper):
             Logger.info(f"{self._log_prefix}: organizer feed returned no events", self.logger_context)
             return []
 
-        # Group events by venue id; events without venue data are dropped with a warning
+        # Group events by normalized (name, city, state). Eventbrite emits
+        # multiple distinct venue.id values for the same physical venue
+        # (TASK-1900: production_company id=2's organizer feed returned 4
+        # events with 4 distinct venue_ids but only 2 distinct physical
+        # venues), so grouping by venue.id over-fragments and triggers one
+        # redundant upsert_for_eventbrite_venue call per duplicate id —
+        # each acquiring the process-wide serialized_db_call write lock.
+        # The SQL UPSERT keys on clubs.name as a backstop, but the dedupe
+        # avoids the redundant lock acquisitions entirely.
         venue_groups: dict = defaultdict(list)
         events_without_venue = 0
         for event in events:
             api_venue = event._api_venue
-            if api_venue is not None and getattr(api_venue, "id", None):
-                venue_groups[api_venue.id].append(event)
-            else:
+            key = self._venue_dedupe_key(api_venue)
+            if key is None:
                 events_without_venue += 1
+                continue
+            venue_groups[key].append(event)
 
         if events_without_venue:
             Logger.warn(
@@ -151,8 +186,9 @@ class EventbriteScraper(BaseScraper):
 
         loop = asyncio.get_running_loop()
 
-        async def _upsert_one(venue_id, group) -> List[Show]:
+        async def _upsert_one(venue_key, group) -> List[Show]:
             api_venue = group[0]._api_venue
+            venue_label = getattr(api_venue, "name", None) or str(venue_key)
             try:
                 venue_club = await loop.run_in_executor(
                     None,
@@ -162,14 +198,14 @@ class EventbriteScraper(BaseScraper):
                 )
             except Exception as exc:
                 Logger.error(
-                    f"{self._log_prefix}: failed to upsert club for venue {venue_id}: {exc}",
+                    f"{self._log_prefix}: failed to upsert club for venue '{venue_label}': {exc}",
                     self.logger_context,
                 )
                 return []
 
             if venue_club is None:
                 Logger.warn(
-                    f"{self._log_prefix}: upsert returned None for venue {venue_id} — skipping {len(group)} event(s)",
+                    f"{self._log_prefix}: upsert returned None for venue '{venue_label}' — skipping {len(group)} event(s)",
                     self.logger_context,
                 )
                 return []
@@ -185,7 +221,7 @@ class EventbriteScraper(BaseScraper):
                     show = event.to_show(venue_club)
                 except Exception as exc:
                     Logger.error(
-                        f"{self._log_prefix}: to_show failed for venue {venue_id} event "
+                        f"{self._log_prefix}: to_show failed for venue '{venue_label}' event "
                         f"'{getattr(event, 'name', '?')}': {exc}",
                         self.logger_context,
                     )
@@ -199,7 +235,7 @@ class EventbriteScraper(BaseScraper):
         # only parallelizes the executor dispatch and Show construction —
         # overlapping clubs upserts are still impossible.
         per_venue_shows = await asyncio.gather(
-            *[_upsert_one(venue_id, group) for venue_id, group in venue_groups.items()]
+            *[_upsert_one(key, group) for key, group in venue_groups.items()]
         )
         shows: List[Show] = [show for group_shows in per_venue_shows for show in group_shows]
 
