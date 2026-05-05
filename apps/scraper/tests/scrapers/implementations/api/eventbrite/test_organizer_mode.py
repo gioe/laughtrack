@@ -427,6 +427,47 @@ async def test_organizer_mode_runs_per_venue_upserts_concurrently():
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_dedupes_distinct_venue_ids_with_identical_name_city_state():
+    """Eventbrite emits multiple distinct venue.id values for the same physical
+    venue (TASK-1900: production_company id=2's organizer feed returned 4
+    events with 4 distinct venue_ids but only 2 distinct physical venues).
+    Grouping by normalized (name, city, state) collapses those distinct ids
+    into a single ``upsert_for_eventbrite_venue`` call so the per-organizer
+    pipeline doesn't pay the process-wide ``serialized_db_call`` write-lock
+    cost N times for the same physical venue. The SQL UPSERT keys on
+    ``clubs.name`` as a backstop — this test asserts we don't even hit it."""
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    venue_a = _api_venue(
+        venue_id="V_A", name="Busboys and Poets TAKOMA", city="Washington", region="DC", postal="20012"
+    )
+    venue_b = _api_venue(
+        venue_id="V_B", name="Busboys and Poets TAKOMA", city="Washington", region="DC", postal="20012"
+    )
+    api_events = [
+        _domain_event(name="Show A", url="https://www.eventbrite.com/e/a", api_venue=venue_a),
+        _domain_event(name="Show B", url="https://www.eventbrite.com/e/b", api_venue=venue_b),
+    ]
+    busboys_club = _fake_venue_club(2001, "Busboys and Poets TAKOMA", "Washington", "DC")
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", return_value=busboys_club
+    ) as upsert_mock:
+        shows = await scraper.scrape_async()
+
+    # Two events, two distinct venue.id values, identical name+city+state →
+    # exactly one upsert call.
+    assert upsert_mock.call_count == 1
+    # Both events still produce Shows under the single deduped club_id.
+    assert len(shows) == 2
+    assert all(s.club_id == busboys_club.id for s in shows)
+
+
+@pytest.mark.asyncio
 async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_call():
     """Per-venue ``upsert_for_eventbrite_venue`` must run inside the process-wide
     ``serialized_db_call`` wrapper so it serializes against the orchestrator's
