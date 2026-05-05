@@ -196,6 +196,11 @@ def main() -> int:
                     (_DUP_CLUB_ID,),
                 )
                 club_after = cur.fetchone()
+                # Conditional UPDATE returns no row if visible was concurrently
+                # flipped between the BEFORE-snapshot and this write — treat as
+                # already-hidden so the AFTER print doesn't TypeError.
+                if club_after is None:
+                    club_after = (_DUP_CLUB_ID, False)
             else:
                 club_after = (_DUP_CLUB_ID, dup_visible)
 
