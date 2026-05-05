@@ -267,7 +267,9 @@ class ClubQueries:
         RETURNING c.id
     """
 
-    UPSERT_CLUB_BY_TICKETMASTER_VENUE = f"""
+    # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
+    # SELECT projects from the CTE rather than JOINing the clubs table.
+    UPSERT_CLUB_BY_TICKETMASTER_VENUE = """
         WITH upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
@@ -278,7 +280,7 @@ class ClubQueries:
                 timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
                 city     = COALESCE(clubs.city,     EXCLUDED.city),
                 state    = COALESCE(clubs.state,    EXCLUDED.state)
-            RETURNING id
+            RETURNING *
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -293,7 +295,7 @@ class ClubQueries:
                 'https://www.ticketmaster.com',
                 0,
                 TRUE,
-                '{{}}'::jsonb
+                '{}'::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
@@ -302,13 +304,14 @@ class ClubQueries:
                 enabled     = TRUE
             RETURNING club_id
         )
-        SELECT c.*, source_list.scraping_sources
-        FROM clubs c
-        JOIN upserted_club uc ON uc.id = c.id
-        { _SCRAPING_SOURCES_LATERAL }
+        SELECT uc.*, '[]'::json AS scraping_sources
+        FROM upserted_club uc
+        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
-    UPSERT_CLUB_BY_TOUR_DATE_VENUE = f"""
+    # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
+    # SELECT projects from the CTE rather than JOINing the clubs table.
+    UPSERT_CLUB_BY_TOUR_DATE_VENUE = """
         WITH upserted_club AS (
             INSERT INTO clubs (
                 name, address, website, visible,
@@ -319,7 +322,7 @@ class ClubQueries:
                 timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
                 city     = COALESCE(clubs.city,     EXCLUDED.city),
                 state    = COALESCE(clubs.state,    EXCLUDED.state)
-            RETURNING id
+            RETURNING *
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
@@ -334,7 +337,7 @@ class ClubQueries:
                 'tour_dates',
                 0,
                 TRUE,
-                '{{}}'::jsonb
+                '{}'::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
@@ -342,10 +345,9 @@ class ClubQueries:
                 enabled     = TRUE
             RETURNING club_id
         )
-        SELECT c.*, source_list.scraping_sources
-        FROM clubs c
-        JOIN upserted_club uc ON uc.id = c.id
-        { _SCRAPING_SOURCES_LATERAL }
+        SELECT uc.*, '[]'::json AS scraping_sources
+        FROM upserted_club uc
+        WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
     # Recomputes total_shows for every club by counting all Show rows per club_id.
