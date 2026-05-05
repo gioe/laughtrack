@@ -8,22 +8,32 @@ import pytz
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 _DATE_FORMATS = (
     "%a, %b %d %Y @ %I:%M%p",
     "%a, %b %d %Y @ %I:%M %p",
 )
+_DEFAULT_TIMEZONE = "America/New_York"
 
 
 def _parse_kravis_datetime(date_str: str, timezone_name: str) -> Optional[datetime]:
     """Parse Kravis calendar dates like ``Sun, May 31 2026 @ 2:00pm``."""
+    try:
+        tz = pytz.timezone(timezone_name)
+    except pytz.UnknownTimeZoneError:
+        Logger.warn(
+            f"PalmBeachImprovEvent: unknown timezone {timezone_name!r}; "
+            f"falling back to {_DEFAULT_TIMEZONE}"
+        )
+        tz = pytz.timezone(_DEFAULT_TIMEZONE)
     normalized = " ".join((date_str or "").replace("\xa0", " ").split())
     for fmt in _DATE_FORMATS:
         try:
             naive = datetime.strptime(normalized, fmt)
-            return pytz.timezone(timezone_name).localize(naive)
-        except (ValueError, pytz.UnknownTimeZoneError):
+            return tz.localize(naive)
+        except ValueError:
             continue
     return None
 
