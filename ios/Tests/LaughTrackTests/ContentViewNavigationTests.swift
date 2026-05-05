@@ -200,19 +200,17 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
     }
 
-    @Test("Home shows-tonight hero opens show detail")
-    func homeShowsTonightHeroOpensShowDetail() async throws {
-        // The hero button's action is `coordinator.open(.show(heroShow.id))`,
-        // which routes through `EntityNavigationTarget.show(_:).route` to
-        // `coordinator.push(.showDetail(_:))`. Two assertions cover the production
-        // wiring without depending on iOS 26's accessibilityActivate() firing
-        // through a SwiftUI Button whose label carries its own combined
-        // accessibility element (mirrors the toolbar workaround in
-        // `nearMeProfileButtonPushesProfileRoute`):
-        //   1. the hero button is mounted with the expected accessibility id
-        //      against the MockHomeFeedTransport-backed feed, and
-        //   2. `EntityNavigationTarget.show(_:).route` resolves to
-        //      `.showDetail(_:)` and round-trips through `NavigationPath.codable`.
+    @Test("home shows-tonight hero is mounted with the show-detail accessibility id")
+    func homeShowsTonightHeroIsMountedWithShowDetailAccessibilityId() async throws {
+        // End-to-end tap coverage isn't feasible here: under iOS 26,
+        // accessibilityActivate() silently no-ops on a SwiftUI Button whose
+        // label carries its own combined accessibility element (the hero card
+        // uses .accessibilityElement(children: .combine)). Same bucket as the
+        // toolbar workaround in `nearMeProfileButtonPushesProfileRoute`. The
+        // route-mapping (EntityNavigationTarget.show(_:).route) is covered by
+        // `EntityDataFlowTests.navigationTargetsMapToRoutes`, so this test
+        // only verifies the hero button is mounted with the expected
+        // accessibility id against the MockHomeFeedTransport-backed feed.
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-tonight")
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-shows-tonight")
@@ -232,12 +230,6 @@ struct ContentViewNavigationTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightHeroButton)
-
-        #expect(EntityNavigationTarget.show(701).route == .showDetail(701))
-
-        coordinator.path.append(EntityNavigationTarget.show(701).route)
-        let pushed = try decodedRoutes(in: coordinator, as: AppRoute.self)
-        #expect(pushed == [.showDetail(701)])
     }
 
     @Test("home removes the search entry rail from the body")
