@@ -1,7 +1,7 @@
 """Base API client class providing common functionality for all API clients."""
 
 from abc import ABC
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 
 from curl_cffi.requests import AsyncSession
 
@@ -64,6 +64,13 @@ def _log_post_bot_block(
 
 class BaseApiClient(ABC):
     """Base class for all API clients with common functionality."""
+
+    # Subclasses set this ClassVar to opt into residential-proxy routing —
+    # the value must match a row in the ``scrapers`` allowlist
+    # (``scraper_proxy_registry.proxy_enabled_keys()``). Mirrors
+    # ``BaseScraper.key`` so allowlisting works the same way for both
+    # the HttpConvenienceMixin path and the BaseApiClient path.
+    key: ClassVar[Optional[str]] = None
 
     def __init__(self, club: Club, rate_limiter=None, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the base API client.
@@ -255,6 +262,7 @@ class BaseApiClient(ABC):
                     session=session, url=url, headers=request_headers,
                     logger_context=context, proxy_url=proxy_url,
                     allow_empty_body=allow_empty_body,
+                    scraper_key=self.key,
                 )
                 # DEBUG summary of response
                 try:
@@ -381,6 +389,7 @@ class BaseApiClient(ABC):
                     session=session, url=url, headers=request_headers,
                     logger_context=context, proxy_url=proxy_url,
                     allow_empty_body=allow_empty_body,
+                    scraper_key=self.key,
                 )
                 # DEBUG summary of response
                 try:

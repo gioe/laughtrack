@@ -43,6 +43,8 @@ class TixrClient(BaseApiClient):
     Uses BaseApiClient for HTTP operations and focuses on core functionality.
     """
 
+    key = "tixr"
+
     def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """
         Initialize the Tixr client.
