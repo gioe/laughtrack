@@ -6,7 +6,9 @@ Usage:
     cd apps/scraper && python bin/migrate          # apply pending migrations
     cd apps/scraper && python bin/migrate --dry-run  # show what would run
 
-Reads DATABASE_URL from apps/scraper/.env. Tracks applied migrations in a
+Reads DATABASE_URL from apps/scraper/.env, or composes one from the
+DATABASE_HOST/USER/PASSWORD/NAME/PORT family (the same vars get_connection()
+uses) when DATABASE_URL is not set. Tracks applied migrations in a
 migrations_log table (auto-created on first run) so re-running is idempotent.
 Uses an advisory lock to serialize concurrent invocations.
 """
@@ -14,6 +16,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 # ---------------------------------------------------------------------------
 # Locate project root and load .env
@@ -34,10 +37,50 @@ if not ENV_FILE.exists():
 
 load_dotenv(ENV_FILE)
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    print(f"Error: DATABASE_URL not set. Add it to {ENV_FILE}", file=sys.stderr)
-    sys.exit(1)
+
+def _resolve_database_url() -> str:
+    """Return DATABASE_URL, composing from the DATABASE_HOST family if unset.
+
+    Mirrors the env vars get_connection() uses (DATABASE_HOST/USER/PASSWORD/
+    NAME/PORT) so a single .env works for both the migrator and runtime.
+    Appends sslmode=require for Neon.
+    """
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+
+    missing = [
+        var
+        for var, val in (
+            ("DATABASE_HOST", host),
+            ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password),
+            ("DATABASE_NAME", name),
+        )
+        if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT — missing: {', '.join(missing)}. "
+            f"Set DATABASE_URL or the host-family vars in {ENV_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+DATABASE_URL = _resolve_database_url()
 
 try:
     import psycopg2
