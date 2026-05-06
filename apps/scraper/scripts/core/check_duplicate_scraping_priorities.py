@@ -69,8 +69,13 @@ from laughtrack.adapters.db import get_connection
 # duplicate today is unintentional drift caused by seatengine_national's
 # nightly upsert into priority=0 (see audit doc for details).
 _INTENTIONAL_EXCEPTIONS: dict[tuple[int, int], str] = {
-    # Example shape (uncomment + fill in when adding a real exception):
-    # (144, 0): "TASK-XXXX: thecomedystudio.com runs v1+v3 SeatEngine in parallel; both endpoints serve disjoint historical archives.",
+    # Example shape (uncomment + fill in only for a venue whose two enabled
+    # priority-0 sources genuinely return DISJOINT events, e.g. a club that
+    # sells some shows through Eventbrite and others through a custom widget
+    # with no overlap. SeatEngine v1/v3 pairs are NOT this case — TASK-1953
+    # confirmed both endpoints return identical data, so the right
+    # disposition is to disable one, not allowlist the pair.
+    # (<club_id>, <priority>): "TASK-XXXX: rationale referencing the approving task.",
 }
 
 
