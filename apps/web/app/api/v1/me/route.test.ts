@@ -21,13 +21,21 @@ vi.mock("@/lib/auth/resolveAuth", () => ({
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $transaction: vi.fn(),
+        favoriteComedian: {
+            deleteMany: vi.fn(),
+        },
+        userProfile: {
+            delete: vi.fn(),
+        },
         user: {
+            delete: vi.fn(),
             findUnique: vi.fn(),
         },
     },
 }));
 
-import { GET } from "./route";
+import { DELETE, GET } from "./route";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
@@ -36,9 +44,13 @@ const mockResolveAuth = vi.mocked(resolveAuth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockFindUser = vi.mocked(db.user.findUnique);
+const mockTransaction = vi.mocked(db.$transaction);
+const mockDeleteFavorites = vi.mocked(db.favoriteComedian.deleteMany);
+const mockDeleteProfile = vi.mocked(db.userProfile.delete);
+const mockDeleteUser = vi.mocked(db.user.delete);
 
-function makeRequest(): NextRequest {
-    return new NextRequest("http://localhost/api/v1/me", { method: "GET" });
+function makeRequest(method = "GET"): NextRequest {
+    return new NextRequest("http://localhost/api/v1/me", { method });
 }
 
 beforeEach(() => {
@@ -50,6 +62,7 @@ beforeEach(() => {
         resetAt: 0,
     });
     mockRateLimitHeaders.mockReturnValue({ "X-RateLimit-Remaining": "99" });
+    mockTransaction.mockImplementation(async (fn: any) => fn(db));
 });
 
 describe("GET /api/v1/me", () => {
@@ -242,5 +255,118 @@ describe("GET /api/v1/me", () => {
             "me:user-abc",
             expect.any(Object),
         );
+    });
+});
+
+describe("DELETE /api/v1/me", () => {
+    it("returns 401 when resolveAuth returns null", async () => {
+        mockResolveAuth.mockResolvedValue(null);
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(401);
+        expect(mockTransaction).not.toHaveBeenCalled();
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
+    });
+
+    it("returns 422 when authenticated user has no UserProfile row", async () => {
+        mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(422);
+        const body = await res.json();
+        expect(body).toEqual({ error: "profile_missing" });
+        expect(mockTransaction).not.toHaveBeenCalled();
+        expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
+    });
+
+    it("returns 429 when the pre-auth IP rate limit is exceeded", async () => {
+        mockCheckRateLimit.mockResolvedValueOnce({
+            allowed: false,
+            limit: 10,
+            remaining: 0,
+            resetAt: 0,
+        });
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(429);
+        expect(mockResolveAuth).not.toHaveBeenCalled();
+    });
+
+    it("returns 429 when the per-user rate limit is exceeded", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockCheckRateLimit
+            .mockResolvedValueOnce({
+                allowed: true,
+                limit: 10,
+                remaining: 9,
+                resetAt: 0,
+            })
+            .mockResolvedValueOnce({
+                allowed: false,
+                limit: 100,
+                remaining: 0,
+                resetAt: 0,
+            });
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(429);
+        expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it("deletes only the caller profile-owned rows before deleting the user", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(200);
+        expect(await res.json()).toEqual({ data: { deleted: true } });
+        expect(mockDeleteFavorites).toHaveBeenCalledWith({
+            where: { profileId: "profile-123" },
+        });
+        expect(mockDeleteProfile).toHaveBeenCalledWith({
+            where: { id: "profile-123" },
+        });
+        expect(mockDeleteUser).toHaveBeenCalledWith({
+            where: { id: "user-123" },
+        });
+        expect(mockDeleteFavorites.mock.invocationCallOrder[0]).toBeLessThan(
+            mockDeleteProfile.mock.invocationCallOrder[0],
+        );
+        expect(mockDeleteProfile.mock.invocationCallOrder[0]).toBeLessThan(
+            mockDeleteUser.mock.invocationCallOrder[0],
+        );
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            1,
+            "me-delete-ip:127.0.0.1",
+            expect.any(Object),
+        );
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            2,
+            "me-delete:user-123",
+            expect.any(Object),
+        );
+    });
+
+    it("returns 500 when deletion fails", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockTransaction.mockRejectedValue(new Error("database unavailable"));
+
+        const res = await DELETE(makeRequest("DELETE"));
+
+        expect(res.status).toBe(500);
+        expect(await res.json()).toEqual({ error: "account_delete_failed" });
     });
 });

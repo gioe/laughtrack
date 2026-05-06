@@ -79,3 +79,56 @@ export async function GET(req: NextRequest) {
         { headers: rateLimitHeaders(rl) },
     );
 }
+
+export async function DELETE(req: NextRequest) {
+    const ipRl = await checkRateLimit(
+        `me-delete-ip:${getClientIp(req)}`,
+        RATE_LIMITS.authToken,
+    );
+    if (!ipRl.allowed) return rateLimitResponse(ipRl);
+
+    const authCtx = await resolveAuth(req);
+    if (authCtx === PROFILE_MISSING) {
+        return NextResponse.json(
+            { error: "profile_missing" },
+            { status: 422, headers: rateLimitHeaders(ipRl) },
+        );
+    }
+    if (!authCtx) {
+        return NextResponse.json(
+            { error: "unauthorized" },
+            { status: 401, headers: rateLimitHeaders(ipRl) },
+        );
+    }
+
+    const rl = await checkRateLimit(
+        `me-delete:${authCtx.userId}`,
+        RATE_LIMITS.authenticated,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+
+    try {
+        await db.$transaction(async (tx) => {
+            await tx.favoriteComedian.deleteMany({
+                where: { profileId: authCtx.profileId },
+            });
+            await tx.userProfile.delete({
+                where: { id: authCtx.profileId },
+            });
+            await tx.user.delete({
+                where: { id: authCtx.userId },
+            });
+        });
+    } catch (error) {
+        console.error("DELETE /api/v1/me error:", error);
+        return NextResponse.json(
+            { error: "account_delete_failed" },
+            { status: 500, headers: rateLimitHeaders(rl) },
+        );
+    }
+
+    return NextResponse.json(
+        { data: { deleted: true } },
+        { headers: rateLimitHeaders(rl) },
+    );
+}
