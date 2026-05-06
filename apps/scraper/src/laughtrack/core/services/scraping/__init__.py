@@ -621,6 +621,7 @@ class ScrapingService:
             "total_clubs": summary.total_clubs,
             "clubs_ok": summary.clubs_ok,
             "clubs_empty": summary.clubs_empty,
+            "clubs_empty_calendar": summary.clubs_empty_calendar,
             "clubs_errored": summary.clubs_errored,
             "per_club": [m.as_log_dict() for m in summary.per_club],
         }
@@ -781,7 +782,15 @@ class ScrapingService:
 
             title = f"Scrape run: {summary.clubs_ok}/{summary.total_clubs} clubs OK"
 
-            failing = [m for m in summary.per_club if m.success_rate < self.success_rate_threshold]
+            # Split below-threshold into "actionable" and EMPTY_CALENDAR so the
+            # empty bucket is visible (so a growing count doesn't mask a
+            # regression) without adding to the noisy alert list.
+            failing = [
+                m for m in summary.per_club
+                if m.success_rate < self.success_rate_threshold
+                and m.outcome != ScrapeOutcome.EMPTY_CALENDAR
+            ]
+            empty_calendar = summary.empty_calendar_clubs
             body_lines = [
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
@@ -796,6 +805,12 @@ class ScrapingService:
                     )
             else:
                 body_lines.append("All clubs at or above threshold ✅")
+            if empty_calendar:
+                body_lines += [
+                    "",
+                    f"📭 {len(empty_calendar)} club(s) with empty calendar (not actionable):",
+                ]
+                body_lines.extend(f"• {m.club_name}" for m in empty_calendar)
 
             gioe_alert = GioeAlert(
                 title=title,
@@ -804,6 +819,7 @@ class ScrapingService:
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
+                    "clubs_empty_calendar": summary.clubs_empty_calendar,
                     "shows_total": db_result.total,
                     "shows_inserted": db_result.inserts,
                     "shows_updated": db_result.updates,
@@ -838,11 +854,17 @@ class ScrapingService:
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
+                f"Empty calendar: {summary.clubs_empty_calendar}",
                 "",
                 "Per-club breakdown:",
             ]
             for m in summary.per_club:
-                icon = "OK" if m.success_rate >= self.success_rate_threshold else "WARN"
+                if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
+                    icon = "EMPTY"
+                elif m.success_rate >= self.success_rate_threshold:
+                    icon = "OK"
+                else:
+                    icon = "WARN"
                 body_lines.append(
                     f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                     f"{m.none_resp} empty, {m.error} errors)"
@@ -855,6 +877,7 @@ class ScrapingService:
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
+                    "clubs_empty_calendar": summary.clubs_empty_calendar,
                     "shows_total": db_result.total,
                     "shows_inserted": db_result.inserts,
                     "shows_updated": db_result.updates,
@@ -885,11 +908,17 @@ class ScrapingService:
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
+                f"Empty calendar: {summary.clubs_empty_calendar}",
                 "",
                 "Per-club breakdown:",
             ]
             for m in summary.per_club:
-                icon = "OK" if m.success_rate >= self.success_rate_threshold else "WARN"
+                if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
+                    icon = "EMPTY"
+                elif m.success_rate >= self.success_rate_threshold:
+                    icon = "OK"
+                else:
+                    icon = "WARN"
                 body_lines.append(
                     f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                     f"{m.none_resp} empty, {m.error} errors)"
@@ -902,6 +931,7 @@ class ScrapingService:
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
+                    "clubs_empty_calendar": summary.clubs_empty_calendar,
                     "shows_total": db_result.total,
                     "shows_inserted": db_result.inserts,
                     "shows_updated": db_result.updates,

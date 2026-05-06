@@ -571,6 +571,38 @@ class TestScrapeClubsWithMetrics:
             assert svc._max_concurrent_clubs == 5  # default
 
 
+class TestEmitSummary:
+    def _make_service(self):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+        return svc
+
+    def test_payload_includes_clubs_empty_calendar(self):
+        import json
+        svc = self._make_service()
+        empty = DomainRequestMetrics(
+            club_name="Empty",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=0,
+        )
+        good = _make_metric("Good", ok=1, error=0)
+        summary = _make_multi_club_summary([empty, good])
+
+        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+            svc._emit_summary(summary)
+
+        info_calls = [str(c) for c in mock_logger.info.call_args_list]
+        payload_call = next(c for c in info_calls if "scrape_all summary" in c)
+        # parse the json after the "summary: " prefix
+        json_blob = payload_call.split("scrape_all summary: ", 1)[1].rstrip("',)").rstrip(")")
+        data = json.loads(json_blob)
+        assert data["clubs_empty_calendar"] == 1
+
+
 class TestSendDiscordRunSummary:
     """Tests for _send_discord_run_summary — unconditional post-run Discord message."""
 
@@ -676,6 +708,60 @@ class TestSendDiscordRunSummary:
         desc = mock_alert_cls.call_args.kwargs.get('message', '')
         assert "⚠️" in desc
         assert "Bad Club" in desc
+
+    def test_empty_calendar_block_appears_in_discord_summary(self):
+        """A separate '📭 N club(s) with empty calendar' block surfaces empty
+        venues without listing them under '⚠️ below threshold'."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Palm Beach Improv",
+            total=1,
+            none_resp=1,
+            fetches_ok=12,
+            items_before_filter=0,
+        )
+        good = _make_metric("Good Club", ok=1, error=0)
+        summary = _make_multi_club_summary([empty, good])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        assert "📭" in desc
+        assert "empty calendar" in desc
+        assert "Palm Beach Improv" in desc
+        # And not buried inside a "below threshold" block
+        assert "below threshold" not in desc
+
+    def test_empty_calendar_count_in_discord_metadata(self):
+        """clubs_empty_calendar is exposed in alert metadata for downstream consumers."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Empty 1",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=0,
+        )
+        summary = _make_multi_club_summary([empty])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert metadata.get("clubs_empty_calendar") == 1
 
     def test_skips_when_discord_not_configured(self):
         """No alert is sent when Discord is not configured."""
