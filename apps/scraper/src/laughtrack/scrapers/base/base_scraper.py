@@ -257,6 +257,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Step 1: Collect URLs or identifiers to scrape
             targets = await self.collect_scraping_targets()
             count = len(targets)
+            diagnostics = current_diagnostics()
+            if diagnostics is not None:
+                diagnostics.record_targets_collected(count)
             if count > 1:
                 Logger.info(f"{self._log_prefix}: Found {count} targets to process", self.logger_context)
             elif count == 1:
@@ -308,6 +311,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
         async def fetch_single_target(target: ScrapingTarget) -> tuple[Optional[EventListContainer], ScrapingTarget]:
             """Fetch data from a single target with error handling and rate limiting."""
+            diagnostics = current_diagnostics()
             try:
                 # Apply domain-appropriate rate limiting before each fetch
                 await self.rate_limiter.await_if_needed(target)
@@ -318,10 +322,20 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
                 raw_data = await self.error_handler.execute_with_retry(_fetch_with_retry, f"Fetch Data: {target}")
 
+                # Exception-free return = the network round-trip completed.
+                # None vs non-None is a per-scraper decision (legitimate empty
+                # response vs. parse-rejected); fetches_failed is reserved for
+                # the exception path so EMPTY_CALENDAR classification can rely
+                # on it as a "fetch layer healthy" signal.
+                if diagnostics is not None:
+                    diagnostics.record_fetch_ok()
+
                 Logger.debug(f"{self._log_prefix}: Fetched data from {target}", self.logger_context)
                 return raw_data, target
 
             except Exception as e:
+                if diagnostics is not None:
+                    diagnostics.record_fetch_failed()
                 Logger.error(f"{self._log_prefix}: Failed to fetch data from {target}: {e}", self.logger_context)
                 return None, target
 
@@ -439,6 +453,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     bot_block_stage=diagnostics.bot_block_stage,
                     playwright_fallback_used=diagnostics.playwright_fallback_used,
                     items_before_filter=diagnostics.items_before_filter,
+                    targets_collected=diagnostics.targets_collected,
+                    fetches_ok=diagnostics.fetches_ok,
+                    fetches_failed=diagnostics.fetches_failed,
                 )
             except Exception as e:
                 execution_time = (datetime.now() - start_time).total_seconds()

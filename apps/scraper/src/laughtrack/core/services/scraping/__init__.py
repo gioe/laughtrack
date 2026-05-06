@@ -25,7 +25,7 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.app.wiring import build_services  # noqa: F401 (side-effects for wiring if needed)
 from laughtrack.core.models.results import ClubScrapingResult
-from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapingRunSummary
+from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapeOutcome, ScrapingRunSummary
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 
 _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
@@ -161,6 +161,24 @@ def _build_source_proxy_club(club: Club, source: ScrapingSource) -> Club:
     proxy = copy.copy(club)
     proxy.activate_scraping_source(source)
     return proxy
+
+
+def _copy_diagnostics_into_metrics(
+    result: ClubScrapingResult, metrics: DomainRequestMetrics
+) -> None:
+    """Carry per-stage scrape diagnostics from the result into run-end metrics.
+
+    The HEALTHY/EMPTY_CALENDAR/CLASSIFIER_REJECTED_ALL/DEGRADED outcome
+    classifier on DomainRequestMetrics needs the same per-stage counters that
+    BaseScraper records via ScrapeDiagnostics. Older or synthetic
+    ClubScrapingResult instances may have None for these fields; treat None
+    as 0 so they fall through to the DEGRADED fallback rather than silently
+    misclassifying as EMPTY_CALENDAR.
+    """
+    metrics.targets_collected = result.targets_collected or 0
+    metrics.fetches_ok = result.fetches_ok or 0
+    metrics.fetches_failed = result.fetches_failed or 0
+    metrics.items_before_filter = result.items_before_filter or 0
 
 
 class ScrapingService:
@@ -523,6 +541,10 @@ class ScrapingService:
                             metrics.none_resp += 1
                         else:
                             metrics.ok += 1
+                        # Carry per-stage diagnostics into the run-end metrics
+                        # so DomainRequestMetrics.outcome can distinguish an
+                        # empty calendar from a fetch/parse failure.
+                        _copy_diagnostics_into_metrics(result, metrics)
                         return result, metrics
                     except Exception as e:
                         Logger.error(f"Failed to scrape club '{club.name}' with scraper '{key}': {e}")
@@ -552,6 +574,7 @@ class ScrapingService:
                     metrics.none_resp += 1
                 else:
                     metrics.ok += 1
+                _copy_diagnostics_into_metrics(last_result, metrics)
                 return last_result, metrics
 
         # Close the shared Playwright browser while the event loop is still running

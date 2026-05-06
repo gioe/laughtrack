@@ -4,7 +4,24 @@ Tracks per-club request outcomes accumulated in-memory during a scrape_all run.
 """
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Dict, List, Optional
+
+
+class ScrapeOutcome(str, Enum):
+    """Per-venue classification of a scrape result.
+
+    The success-rate threshold alert previously fired on any zero-show venue,
+    conflating bot-blocked / parser-rejected scrapes with legitimately empty
+    calendars. ``outcome`` lets downstream filtering treat ``EMPTY_CALENDAR``
+    as non-actionable while still routing ``DEGRADED`` and
+    ``CLASSIFIER_REJECTED_ALL`` to alerts.
+    """
+
+    HEALTHY = "healthy"
+    EMPTY_CALENDAR = "empty_calendar"
+    CLASSIFIER_REJECTED_ALL = "classifier_rejected_all"
+    DEGRADED = "degraded"
 
 
 @dataclass
@@ -18,6 +35,15 @@ class DomainRequestMetrics:
     ok: int = 0          # successful scrape with shows
     none_resp: int = 0   # completed without error but returned no shows
     error: int = 0       # scrape raised an exception
+    # Per-stage counters populated from ScrapeDiagnostics. Optional because
+    # tests / older callers may construct DomainRequestMetrics without a real
+    # scrape pipeline; defaults of 0 produce a DEGRADED outcome by design when
+    # no signal is available, since "no fetches succeeded" is not safe to
+    # silently classify as EMPTY_CALENDAR.
+    targets_collected: int = 0
+    fetches_ok: int = 0
+    fetches_failed: int = 0
+    items_before_filter: int = 0
 
     @property
     def success_rate(self) -> float:
@@ -25,6 +51,34 @@ class DomainRequestMetrics:
         if self.total == 0:
             return 100.0
         return (self.ok / self.total) * 100.0
+
+    @property
+    def outcome(self) -> ScrapeOutcome:
+        """Classify this scrape using the per-stage counters.
+
+        Priority order:
+          1. HEALTHY — at least one OK scrape with shows.
+          2. DEGRADED — exception raised OR a fetch failed at the network layer.
+          3. EMPTY_CALENDAR — fetches completed cleanly, parser reached
+             ``transform_data`` with zero candidates (``items_before_filter ==
+             0``). Includes scrapers that ``return None`` from ``get_data``
+             when a page legitimately has no events.
+          4. CLASSIFIER_REJECTED_ALL — fetches completed cleanly and the
+             parser saw candidates, but every one was filtered out before
+             becoming a Show. Worth a parser look.
+          5. DEGRADED fallback — no fetches succeeded and no exception
+             surfaced; should not happen in practice, but classify as
+             actionable rather than silently treating as empty.
+        """
+        if self.ok > 0:
+            return ScrapeOutcome.HEALTHY
+        if self.error > 0 or self.fetches_failed > 0:
+            return ScrapeOutcome.DEGRADED
+        if self.fetches_ok > 0:
+            if self.items_before_filter == 0:
+                return ScrapeOutcome.EMPTY_CALENDAR
+            return ScrapeOutcome.CLASSIFIER_REJECTED_ALL
+        return ScrapeOutcome.DEGRADED
 
     def as_log_dict(self) -> Dict:
         return {
@@ -34,6 +88,7 @@ class DomainRequestMetrics:
             "none_resp": self.none_resp,
             "error": self.error,
             "success_rate_pct": round(self.success_rate, 1),
+            "outcome": self.outcome.value,
         }
 
 
@@ -63,6 +118,16 @@ class ScrapingRunSummary:
     @property
     def clubs_empty(self) -> int:
         return sum(1 for m in self.per_club if m.none_resp > 0 and m.ok == 0 and m.error == 0)
+
+    @property
+    def clubs_empty_calendar(self) -> int:
+        """Clubs whose outcome classifier marks the calendar as legitimately empty."""
+        return sum(1 for m in self.per_club if m.outcome == ScrapeOutcome.EMPTY_CALENDAR)
+
+    @property
+    def empty_calendar_clubs(self) -> List[DomainRequestMetrics]:
+        """Per-club metrics for venues classified as EMPTY_CALENDAR (low-priority list)."""
+        return [m for m in self.per_club if m.outcome == ScrapeOutcome.EMPTY_CALENDAR]
 
     def merge(self, other: "ScrapingRunSummary") -> "ScrapingRunSummary":
         """Combine two summaries into one (e.g. venue clubs + production companies)."""

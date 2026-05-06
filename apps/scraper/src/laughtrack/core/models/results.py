@@ -34,6 +34,12 @@ class ClubScrapingResult:
     bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: Optional[int] = None
+    # Per-stage counters used by the per-venue outcome classifier in
+    # DomainRequestMetrics — let the run-end summary distinguish a genuinely
+    # empty calendar from a fetch/parse failure.
+    targets_collected: Optional[int] = None
+    fetches_ok: Optional[int] = None
+    fetches_failed: Optional[int] = None
 
     @property
     def num_shows(self) -> int:

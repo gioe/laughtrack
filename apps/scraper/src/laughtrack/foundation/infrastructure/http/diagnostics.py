@@ -49,6 +49,13 @@ class ScrapeDiagnostics:
     bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: int = 0
+    # Per-stage counters used to distinguish a genuinely empty venue calendar
+    # from a broken-fetch / broken-parser failure at run-end. fetches_ok counts
+    # exception-free returns from get_data() (None or non-None); fetches_failed
+    # counts exceptions out of the retry-wrapped fetch.
+    targets_collected: int = 0
+    fetches_ok: int = 0
+    fetches_failed: int = 0
 
     def record_response(self, status_code: int) -> None:
         if self.http_status is None:
@@ -84,6 +91,16 @@ class ScrapeDiagnostics:
     def add_items_before_filter(self, n: int) -> None:
         if n > 0:
             self.items_before_filter += n
+
+    def record_targets_collected(self, n: int) -> None:
+        if n > 0:
+            self.targets_collected += n
+
+    def record_fetch_ok(self) -> None:
+        self.fetches_ok += 1
+
+    def record_fetch_failed(self) -> None:
+        self.fetches_failed += 1
 
 
 _current: ContextVar[Optional[ScrapeDiagnostics]] = ContextVar(
