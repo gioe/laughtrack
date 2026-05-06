@@ -184,3 +184,69 @@ labels documented in this file's "Deferred" section above; the
 disposition script intentionally does not touch them because their
 resolution requires a `clubs`-level merge decision, not a
 `scraping_sources` mismap fix.
+
+## Schema delta — typed columns (post-TASK-1985)
+
+The reproduction query at the top of this doc references
+`scraping_sources.external_id`, which was the generic id column at the
+time TASK-1956 ran. **TASK-1985 ('Recover Prisma typed scraping source
+migrations') replaced `external_id` with per-platform typed columns**:
+`seatengine_id`, `seatengine_v3_id`, `eventbrite_id`,
+`ticketmaster_id`, `squadup_id`, `wix_event_id`, `ovationtix_id`. The
+original query no longer runs as written. The equivalent typed-column
+query (used by TASK-1984 verification and `tusk conventions search
+scraping_sources` for the column reference) is:
+
+```sql
+SELECT 'seatengine' AS plat, seatengine_id::text AS ext,
+       COUNT(DISTINCT club_id), ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE seatengine_id IS NOT NULL
+ GROUP BY seatengine_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'seatengine_v3', seatengine_v3_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE seatengine_v3_id IS NOT NULL
+ GROUP BY seatengine_v3_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'eventbrite', eventbrite_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE eventbrite_id IS NOT NULL
+ GROUP BY eventbrite_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'ticketmaster', ticketmaster_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE ticketmaster_id IS NOT NULL
+ GROUP BY ticketmaster_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'squadup', squadup_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE squadup_id IS NOT NULL
+ GROUP BY squadup_id HAVING COUNT(DISTINCT club_id) > 1
+ ORDER BY 1, 2;
+```
+
+## Verification (2026-05-06 — TASK-1984 fold applied)
+
+`apps/scraper/scripts/core/fold_task_1984_dup_pairs.py` ran clean
+against prod on 2026-05-06: shape validation passed all 16 club refs
+and 16 source refs, all 8 targets applied, 622 dupe shows folded into
+canonicals (616 colliding deleted via ON DELETE CASCADE, 6 unique
+shows on Helium Buffalo's dupe migrated). Per-target deltas captured in
+the disposition script's per-pair `task_1984_disposition` metadata
+stamp on each dupe `scraping_sources` row, plus a
+`task_1984_canonical_pointer` stamp on the canonical row for
+discoverability from either side. Re-running the typed-column collision
+query above against prod returns **zero rows**, satisfying TASK-1984
+acceptance criterion 6512:
+
+```
+Collisions remaining: 0
+```
+
+The two HIGH urgency cases (ext=493 Mic Drop Chandler, ext=9086799
+Sunset Strip Austin) had their dupe club's `visible` flag flipped to
+false; the other 6 dupe clubs were already hidden. All 8 dupe
+`scraping_sources` rows are now `enabled=false` with the appropriate
+typed id (`seatengine_id` or `squadup_id`) cleared to NULL, so future
+SE national / SquadUp nightlies will not produce parallel shows on
+the dupe clubs.
