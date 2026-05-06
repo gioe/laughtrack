@@ -45,7 +45,7 @@ ORDER BY c.name;
 | 60 | The Comedy Zone - Cherokee | Cherokee, NC | 2026-02-04 | pending |
 | 518 | The Port Comedy Club |  | never | pending |
 | 521 | The Royal Comedy Theatre |  | never | pending |
-| 660 | The Setup Chicago | Chicago, IL | never | pending |
+| ~~660~~ | ~~The Setup Chicago~~ | ~~Chicago, IL~~ | ~~never~~ | [handled: hidden](setup-chicago.md) |
 | 661 | The Setup Vancouver | Vancouver, BC | 2026-04-25 | pending |
 | 5 | The Stand | New York, NY | 2026-04-25 | pending |
 | 1059 | West River Comedy Club | Rapid City, SD | never | pending |
