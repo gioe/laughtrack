@@ -163,6 +163,34 @@ def _build_source_proxy_club(club: Club, source: ScrapingSource) -> Club:
     return proxy
 
 
+def _run_summary_metadata(
+    summary: "ScrapingRunSummary", db_result: "DatabaseOperationResult"
+) -> dict:
+    """Shared run-summary metadata payload for email and webhook channels."""
+    return {
+        "clubs_ok": summary.clubs_ok,
+        "total_clubs": summary.total_clubs,
+        "clubs_empty_calendar": summary.clubs_empty_calendar,
+        "shows_total": db_result.total,
+        "shows_inserted": db_result.inserts,
+        "shows_updated": db_result.updates,
+    }
+
+
+def _format_per_club_line(m: "DomainRequestMetrics", threshold: float) -> str:
+    """Render the text-channel per-club breakdown row for email/webhook summaries."""
+    if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
+        icon = "EMPTY"
+    elif m.success_rate >= threshold:
+        icon = "OK"
+    else:
+        icon = "WARN"
+    return (
+        f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+        f"{m.none_resp} empty, {m.error} errors)"
+    )
+
+
 def _copy_diagnostics_into_metrics(
     result: ClubScrapingResult, metrics: DomainRequestMetrics
 ) -> None:
@@ -179,6 +207,7 @@ def _copy_diagnostics_into_metrics(
     metrics.fetches_ok = result.fetches_ok or 0
     metrics.fetches_failed = result.fetches_failed or 0
     metrics.items_before_filter = result.items_before_filter or 0
+    metrics.bot_block_detected = bool(result.bot_block_detected)
 
 
 class ScrapingService:
@@ -858,30 +887,15 @@ class ScrapingService:
                 "",
                 "Per-club breakdown:",
             ]
-            for m in summary.per_club:
-                if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
-                    icon = "EMPTY"
-                elif m.success_rate >= self.success_rate_threshold:
-                    icon = "OK"
-                else:
-                    icon = "WARN"
-                body_lines.append(
-                    f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
-                    f"{m.none_resp} empty, {m.error} errors)"
-                )
+            body_lines.extend(
+                _format_per_club_line(m, self.success_rate_threshold) for m in summary.per_club
+            )
 
             gioe_alert = GioeAlert(
                 title=title,
                 message=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=GioeSeverity.LOW,
-                metadata={
-                    "clubs_ok": summary.clubs_ok,
-                    "total_clubs": summary.total_clubs,
-                    "clubs_empty_calendar": summary.clubs_empty_calendar,
-                    "shows_total": db_result.total,
-                    "shows_inserted": db_result.inserts,
-                    "shows_updated": db_result.updates,
-                },
+                metadata=_run_summary_metadata(summary, db_result),
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
             channel.send(gioe_alert)
@@ -912,30 +926,15 @@ class ScrapingService:
                 "",
                 "Per-club breakdown:",
             ]
-            for m in summary.per_club:
-                if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
-                    icon = "EMPTY"
-                elif m.success_rate >= self.success_rate_threshold:
-                    icon = "OK"
-                else:
-                    icon = "WARN"
-                body_lines.append(
-                    f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
-                    f"{m.none_resp} empty, {m.error} errors)"
-                )
+            body_lines.extend(
+                _format_per_club_line(m, self.success_rate_threshold) for m in summary.per_club
+            )
 
             gioe_alert = GioeAlert(
                 title=title,
                 message=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=GioeSeverity.LOW,
-                metadata={
-                    "clubs_ok": summary.clubs_ok,
-                    "total_clubs": summary.total_clubs,
-                    "clubs_empty_calendar": summary.clubs_empty_calendar,
-                    "shows_total": db_result.total,
-                    "shows_inserted": db_result.inserts,
-                    "shows_updated": db_result.updates,
-                },
+                metadata=_run_summary_metadata(summary, db_result),
             )
             channel = WebhookAlertChannel(url=config.webhook_url, headers=config.webhook_headers)
             channel.send(gioe_alert)

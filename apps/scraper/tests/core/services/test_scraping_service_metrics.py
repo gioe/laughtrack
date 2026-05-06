@@ -622,11 +622,9 @@ class TestEmitSummary:
         with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
             svc._emit_summary(summary)
 
-        info_calls = [str(c) for c in mock_logger.info.call_args_list]
-        payload_call = next(c for c in info_calls if "scrape_all summary" in c)
-        # parse the json after the "summary: " prefix
-        json_blob = payload_call.split("scrape_all summary: ", 1)[1].rstrip("',)").rstrip(")")
-        data = json.loads(json_blob)
+        info_messages = [c.args[0] for c in mock_logger.info.call_args_list if c.args]
+        payload_msg = next(m for m in info_messages if m.startswith("scrape_all summary: "))
+        data = json.loads(payload_msg[len("scrape_all summary: "):])
         assert data["clubs_empty_calendar"] == 1
 
 
@@ -1008,6 +1006,37 @@ class TestSendEmailRunSummary:
             svc._send_email_run_summary(summary, db_result)
             MockChannel.return_value.send.assert_not_called()
 
+    def test_email_summary_surfaces_empty_calendar_line_and_metadata(self):
+        """Email run-summary body shows 'Empty calendar: N', uses [EMPTY] icon
+        in the per-club row, and exposes clubs_empty_calendar in metadata."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Empty Venue",
+            total=1,
+            none_resp=1,
+            fetches_ok=12,
+            items_before_filter=0,
+        )
+        summary = _make_multi_club_summary([empty])
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_email_configured.return_value = True
+        mock_config.alert_recipients = ["ops@example.com"]
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_email_run_summary(summary, db_result)
+
+        message = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "Empty calendar: 1" in message
+        assert "[EMPTY] Empty Venue" in message
+        assert metadata.get("clubs_empty_calendar") == 1
+
     def test_run_summary_body_never_exceeds_text_channel_limit(self):
         """Email run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
         from laughtrack.core.services.scraping import ScrapingService, _TEXT_CHANNEL_BODY_LIMIT
@@ -1102,6 +1131,38 @@ class TestSendWebhookRunSummary:
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(summary, db_result)
             MockChannel.return_value.send.assert_called_once()
+
+    def test_webhook_summary_surfaces_empty_calendar_line_and_metadata(self):
+        """Webhook run-summary body shows 'Empty calendar: N', uses [EMPTY]
+        icon in the per-club row, and exposes clubs_empty_calendar in metadata."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Empty Venue",
+            total=1,
+            none_resp=1,
+            fetches_ok=12,
+            items_before_filter=0,
+        )
+        summary = _make_multi_club_summary([empty])
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_webhook_configured.return_value = True
+        mock_config.webhook_url = "https://hooks.example.com/run"
+        mock_config.webhook_headers = {}
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.WebhookAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_webhook_run_summary(summary, db_result)
+
+        message = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "Empty calendar: 1" in message
+        assert "[EMPTY] Empty Venue" in message
+        assert metadata.get("clubs_empty_calendar") == 1
 
     def test_skips_when_webhook_not_configured(self):
         svc = self._make_service()

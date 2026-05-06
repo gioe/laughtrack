@@ -44,6 +44,12 @@ class DomainRequestMetrics:
     fetches_ok: int = 0
     fetches_failed: int = 0
     items_before_filter: int = 0
+    # A scraper can return non-None HTML for a 4xx body or a Cloudflare/DataDome
+    # interstitial without raising — fetches_ok would tick up but no shows would
+    # parse. Carrying bot_block_detected lets the outcome classifier downgrade
+    # those silent failures to DEGRADED instead of misclassifying them as
+    # EMPTY_CALENDAR and filtering them out of alerts.
+    bot_block_detected: bool = False
 
     @property
     def success_rate(self) -> float:
@@ -58,7 +64,12 @@ class DomainRequestMetrics:
 
         Priority order:
           1. HEALTHY — at least one OK scrape with shows.
-          2. DEGRADED — exception raised OR a fetch failed at the network layer.
+          2. DEGRADED — exception raised, a fetch failed at the network
+             layer, OR a bot-block (DataDome/Cloudflare/etc.) was detected
+             during the scrape. The bot-block branch is what prevents a
+             soft-failed venue (200 OK with an interstitial body) from
+             silently classifying as EMPTY_CALENDAR and getting filtered
+             out of alerts.
           3. EMPTY_CALENDAR — fetches completed cleanly, parser reached
              ``transform_data`` with zero candidates (``items_before_filter ==
              0``). Includes scrapers that ``return None`` from ``get_data``
@@ -72,7 +83,7 @@ class DomainRequestMetrics:
         """
         if self.ok > 0:
             return ScrapeOutcome.HEALTHY
-        if self.error > 0 or self.fetches_failed > 0:
+        if self.error > 0 or self.fetches_failed > 0 or self.bot_block_detected:
             return ScrapeOutcome.DEGRADED
         if self.fetches_ok > 0:
             if self.items_before_filter == 0:

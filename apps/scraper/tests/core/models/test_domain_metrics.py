@@ -139,6 +139,21 @@ class TestOutcomeClassification:
         m = DomainRequestMetrics(club_name="A", total=1, none_resp=1)
         assert m.outcome == ScrapeOutcome.DEGRADED
 
+    def test_bot_block_downgrades_to_degraded(self):
+        """A bot-blocked scrape (DataDome interstitial / Cloudflare challenge
+        served as 200 OK) would otherwise look like EMPTY_CALENDAR
+        (fetches_ok>0, items_before_filter==0). bot_block_detected forces
+        DEGRADED so the venue still routes to alerts."""
+        m = DomainRequestMetrics(
+            club_name="A",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=0,
+            bot_block_detected=True,
+        )
+        assert m.outcome == ScrapeOutcome.DEGRADED
+
     def test_outcome_appears_in_log_dict(self):
         m = DomainRequestMetrics(
             club_name="A",
