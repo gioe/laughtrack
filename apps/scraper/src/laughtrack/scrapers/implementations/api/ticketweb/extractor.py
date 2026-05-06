@@ -132,7 +132,7 @@ class TicketWebExtractor:
             if not (name_match and date_match and link_match):
                 continue
 
-            url = link_match.group(1).strip()
+            url = unescape(link_match.group(1).strip())
             if url in seen_urls:
                 continue
             seen_urls.add(url)
@@ -146,7 +146,9 @@ class TicketWebExtractor:
             # Parse time — format is "Show: 9:00 PM" or "9:00 PM"
             raw_time = ""
             if time_match:
-                raw_time = re.sub(r"<[^>]+>", "", time_match.group(1)).strip()
+                raw_time = unescape(
+                    re.sub(r"<[^>]+>", "", time_match.group(1)).strip()
+                )
                 raw_time = re.sub(r"^Show:\s*", "", raw_time).strip()
 
             date_str = f"{raw_date} {raw_time}".strip()

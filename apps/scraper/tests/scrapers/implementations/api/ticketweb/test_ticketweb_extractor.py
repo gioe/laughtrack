@@ -254,13 +254,21 @@ class TestExtractHtmlCalendarEvents:
                 name="Mike&#39;s Comedy Hour",
                 date="Aug 3 -", time="7:00 PM", url="/event/mikes",
             )
+            + self._make_event_block(
+                name="Entity URL and Time",
+                date="Aug 4 -", time="Show: 10:30&nbsp;PM",
+                url="/event/entity?utm=one&amp;ref=two",
+            )
         )
         events = TicketWebExtractor.extract_html_calendar_events(html)
 
-        assert len(events) == 3
+        assert len(events) == 4
         assert events[0]["title"] == "Yakov Smirnoff – Laugh Your Yak Off"
         assert events[1]["title"] == "HARTA COMEDIA (EN ESPAÑOL)"
         assert events[2]["title"] == "Mike's Comedy Hour"
+        assert events[3]["url"] == "/event/entity?utm=one&ref=two"
+        assert events[3]["start_date"].hour == 22
+        assert events[3]["start_date"].minute == 30
 
     def test_event_without_time_still_parsed(self):
         """Time element is optional — date alone should still parse."""
