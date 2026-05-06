@@ -14,6 +14,7 @@ public final class AuthManager: ObservableObject {
     }
 
     public typealias SignoutRequest = @Sendable () async throws -> Void
+    public typealias DeleteAccountRequest = @Sendable () async throws -> Void
     public typealias LoadUserRequest = @Sendable () async throws -> AuthenticatedUser?
     public typealias SignoutErrorObserver = @Sendable (Error) async -> Void
     public typealias LoadUserErrorObserver = @Sendable (Error) async -> Void
@@ -31,6 +32,11 @@ public final class AuthManager: ObservableObject {
     // middlewares capture authManager). Left nil in tests that don't exercise
     // the server sign-out path.
     public var signoutRequest: SignoutRequest?
+
+    // Bound after construction for the same reason as signoutRequest. Calls the
+    // authenticated account deletion endpoint while local Bearer tokens are
+    // still available, then clearSession() drains local state on success.
+    public var deleteAccountRequest: DeleteAccountRequest?
 
     // Bound after construction for the same reason as signoutRequest. Calls
     // /v1/me to fetch the user's real display name, email, and avatar URL.
@@ -165,6 +171,14 @@ public final class AuthManager: ObservableObject {
                 await signoutErrorObserver(error)
             }
         }
+        await clearSession(message: nil)
+    }
+
+    public func deleteAccount() async throws {
+        guard let deleteAccountRequest else {
+            throw URLError(.badURL)
+        }
+        try await deleteAccountRequest()
         await clearSession(message: nil)
     }
 

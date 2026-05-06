@@ -165,6 +165,64 @@ struct AuthManagerSignOutIntegrationTests {
         #expect(harness.tokenManager.retrieveAccessToken() == nil)
         #expect(harness.tokenManager.retrieveRefreshToken() == nil)
     }
+
+    @Test("deleteAccount() issues DELETE /me carrying the stored access token and drains to signedOut")
+    @MainActor
+    func deleteAccountHitsDeleteMeEndpointWithBearerAndClearsState() async throws {
+        let harness = try await AuthSignOutHarness.make()
+
+        await harness.transport.seed([.response(status: .ok, bodyJSON: #"{"data":{"deleted":true}}"#)])
+
+        try await harness.authManager.deleteAccount()
+
+        let recorded = await harness.transport.recordedRequests
+        #expect(recorded.count == 1)
+
+        let request = try #require(recorded.first)
+        #expect(request.operationID == "deleteMe")
+        #expect(request.method == .delete)
+        #expect(request.path == "/api/v1/me")
+        #expect(request.headers[.authorization] == "Bearer \(harness.initialAccess)")
+
+        guard case .signedOut = harness.authManager.state else {
+            Issue.record("Expected AuthManager to be .signedOut after deleteAccount(), got \(harness.authManager.state)")
+            return
+        }
+        #expect(harness.tokenManager.retrieveAccessToken() == nil)
+        #expect(harness.tokenManager.retrieveRefreshToken() == nil)
+        #expect(await harness.factory.authMiddleware.getAccessToken() == nil)
+    }
+
+    @Test("deleteAccount() keeps local auth state when the server returns 500")
+    @MainActor
+    func deleteAccountKeepsStateWhenServerReturns500() async throws {
+        let harness = try await AuthSignOutHarness.make()
+
+        await harness.transport.seed([
+            .response(status: .internalServerError, bodyJSON: #"{"error":"account_delete_failed"}"#)
+        ])
+
+        do {
+            try await harness.authManager.deleteAccount()
+            Issue.record("Expected deleteAccount() to throw on a non-OK server response")
+        } catch {
+            #expect((error as? URLError)?.code == .badServerResponse)
+        }
+
+        let recorded = await harness.transport.recordedRequests
+        #expect(recorded.count == 1)
+        let request = try #require(recorded.first)
+        #expect(request.operationID == "deleteMe")
+        #expect(request.headers[.authorization] == "Bearer \(harness.initialAccess)")
+
+        guard case .authenticated = harness.authManager.state else {
+            Issue.record("Expected AuthManager to stay authenticated after failed deleteAccount(), got \(harness.authManager.state)")
+            return
+        }
+        #expect(harness.tokenManager.retrieveAccessToken() == harness.initialAccess)
+        #expect(harness.tokenManager.retrieveRefreshToken() == harness.initialRefresh)
+        #expect(await harness.factory.authMiddleware.getAccessToken() == harness.initialAccess)
+    }
 }
 
 // MARK: - Harness
@@ -262,6 +320,12 @@ private struct AuthSignOutHarness {
 
         authManager.signoutRequest = { [apiClient] in
             let response = try await apiClient.signout()
+            guard case .ok = response else {
+                throw URLError(.badServerResponse)
+            }
+        }
+        authManager.deleteAccountRequest = { [apiClient] in
+            let response = try await apiClient.deleteMe()
             guard case .ok = response else {
                 throw URLError(.badServerResponse)
             }

@@ -355,6 +355,93 @@ struct AuthManagerTests {
         #expect(manager.currentUser == nil)
     }
 
+    @Test("deleteAccount calls the server deletion before clearing all local session state")
+    @MainActor
+    func deleteAccountCallsServerDeleteBeforeClearingTokens() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.deleteAccount.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        let user = AuthenticatedUser(
+            displayName: "X",
+            email: "x@example.com",
+            avatarURL: nil
+        )
+        manager.loadUserRequest = { user }
+        await manager.restoreSession()
+        #expect(manager.currentUser == user)
+
+        let recorder = DeleteAccountRecorder()
+        manager.deleteAccountRequest = { [authMiddleware] in
+            let hadToken = await authMiddleware.hasAccessToken
+            await recorder.record(hadAccessToken: hadToken)
+        }
+
+        try? await manager.deleteAccount()
+
+        #expect(await recorder.callCount == 1)
+        #expect(await recorder.observedAccessToken == true)
+        #expect(manager.state == .signedOut(message: nil))
+        #expect(manager.currentUser == nil)
+        #expect(!tokenManager.isAuthenticated)
+        #expect(!(await authMiddleware.hasAccessToken))
+    }
+
+    @Test("deleteAccount keeps the local session when the server deletion fails")
+    @MainActor
+    func deleteAccountKeepsLocalSessionWhenServerDeleteFails() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.deleteAccountFail.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+        await manager.restoreSession()
+
+        manager.deleteAccountRequest = {
+            throw URLError(.badServerResponse)
+        }
+
+        do {
+            try await manager.deleteAccount()
+            Issue.record("Expected deleteAccount() to throw when the server deletion fails")
+        } catch {
+            #expect((error as? URLError)?.code == .badServerResponse)
+        }
+
+        guard case .authenticated = manager.state else {
+            Issue.record("Expected deleteAccount() failure to keep the user authenticated")
+            return
+        }
+        #expect(tokenManager.isAuthenticated)
+        #expect(await authMiddleware.hasAccessToken)
+    }
+
     @Test("handleUnauthorizedResponse clears persisted auth state")
     @MainActor
     func unauthorizedResponseClearsAuth() async {
@@ -416,6 +503,16 @@ private actor SignoutErrorRecorder {
     func record(error: Error) {
         callCount += 1
         lastError = error
+    }
+}
+
+private actor DeleteAccountRecorder {
+    var callCount = 0
+    var observedAccessToken = false
+
+    func record(hadAccessToken: Bool) {
+        callCount += 1
+        observedAccessToken = hadAccessToken
     }
 }
 

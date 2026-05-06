@@ -127,6 +127,13 @@ public struct AppBootstrap {
             }
         }
 
+        authManager.deleteAccountRequest = { [apiClient] in
+            let response = try await apiClient.deleteMe()
+            guard case .ok = response else {
+                throw URLError(.badServerResponse)
+            }
+        }
+
         authManager.loadUserRequest = { [apiClient] in
             let response = try await apiClient.getMe()
             // Throw on non-200 so AuthManager.refreshCurrentUser keeps the
