@@ -152,9 +152,35 @@ duplicate club. Each is filed as a separate follow-up task.
 |----:|---|
 | 9086799 | club 175 Sunset Strip Comedy Club (visible, 107 fut) + club 571 Sunset Strip (visible, 102 fut) — same Austin venue, both `squadup` scraper |
 
-## Verification
+## Verification (2026-05-06 — applied)
 
-After applying `apps/scraper/migrations/20260506_resolve_scraping_source_collisions.sql`,
-the reproduction query at the top of this document should return **8
-rows** (the deferred cases). Each remaining row has an inline
-justification in the migration file referencing the follow-up task.
+`disposition_scraping_source_collisions_2026_05_06.py` ran clean against
+prod on 2026-05-06: 28 shape validations passed, 28 rows updated, 0
+skipped. Re-running the reproduction query at the top of this document
+returns exactly **8 rows** — the deferred same-venue duplicate-club
+cases enumerated above:
+
+```
+seatengine | ext=21       | clubs=[132, 1077]
+seatengine | ext=424      | clubs=[449, 855]
+seatengine | ext=428      | clubs=[453, 567]
+seatengine | ext=464      | clubs=[73, 488]
+seatengine | ext=493      | clubs=[120, 517]
+seatengine | ext=508      | clubs=[125, 532]
+seatengine | ext=556      | clubs=[114, 576]
+squadup    | ext=9086799  | clubs=[175, 571]
+```
+
+These 8 are tracked under follow-up **TASK-1984** ("Resolve 8 same-venue
+duplicate-club collisions (TASK-1956 deferred)"), which uses the
+`fold_clubs` / merge-shows pattern (precedent: TASK-1925's
+`scripts/core/fold_big_couch_dup_clubs_row.py`) to fold the duplicate
+club into the canonical one. The two highest-urgency cases are ext=493
+(Mic Drop Chandler — both clubs visible with 275 + 230 future shows,
+actively double-scraping) and ext=9086799 (Sunset Strip Austin — both
+visible with 107 + 102 future shows). Each remaining row has an inline
+metadata stamp explaining the deferral via the **B / C / SQ** pattern
+labels documented in this file's "Deferred" section above; the
+disposition script intentionally does not touch them because their
+resolution requires a `clubs`-level merge decision, not a
+`scraping_sources` mismap fix.
