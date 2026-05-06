@@ -1,2 +1,2 @@
 #!/bin/sh
-cd apps/web && npm run type-check
+cd apps/web && { [ -e node_modules ] || ln -s "$(git rev-parse --git-common-dir)/../apps/web/node_modules" node_modules; } && npm run type-check
