@@ -200,7 +200,22 @@ class ClubQueries:
                 scraper_key = EXCLUDED.scraper_key,
                 eventbrite_id = COALESCE(scraping_sources.eventbrite_id, EXCLUDED.eventbrite_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                enabled     = TRUE
+                -- Preserve the existing enabled flag when the row carries any
+                -- task_<id>_disposition stamp; otherwise re-enable. Eventbrite
+                -- organizer-mode re-emits every distinct per-venue
+                -- (name, city, state) on every nightly run, so without this
+                -- carve-out any dispositional disable on a venue that still
+                -- appears in any organizer's feed reverts within 24h
+                -- (TASK-1968 / TASK-1978).
+                enabled     = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
+                        WHERE k LIKE 'task_%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -364,7 +379,22 @@ class ClubQueries:
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                enabled     = TRUE
+                -- Preserve the existing enabled flag when the row carries any
+                -- task_<id>_disposition stamp; otherwise re-enable.
+                -- ticketmaster_national paginates the TM Discovery API for US
+                -- Comedy events each nightly and upserts every venue surfaced,
+                -- so without this carve-out any dispositional disable on a
+                -- still-listed TM venue reverts within 24h
+                -- (TASK-1968 / TASK-1978).
+                enabled     = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
+                        WHERE k LIKE 'task_%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -404,7 +434,22 @@ class ClubQueries:
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                enabled     = TRUE
+                -- Preserve the existing enabled flag when the row carries any
+                -- task_<id>_disposition stamp; otherwise re-enable. tour_dates
+                -- and comedian_websites iterate the full comedian universe
+                -- nightly and re-discover venues per artist, so without this
+                -- carve-out any dispositional disable on a venue any tracked
+                -- comedian still books reverts within 24h
+                -- (TASK-1968 / TASK-1978).
+                enabled     = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
+                        WHERE k LIKE 'task_%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
