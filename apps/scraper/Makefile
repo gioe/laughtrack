@@ -106,7 +106,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -219,6 +219,7 @@ help-analyze:
 	@echo "  seatengine-api-tool  - Start SeatEngine API testing tool (port 9247)"
 	@echo "  seatengine-check    - Check single SeatEngine venue (ID=<venue_id>)"
 	@echo "  seatengine-audit    - Bulk audit all SeatEngine venues for health"
+	@echo "  check-scraping-priorities - Detect enabled scraping_sources sharing (club_id, priority)"
 
 help-workflow:
 	@echo "🔄 AUTOMATED WORKFLOWS:"
@@ -873,6 +874,12 @@ endif
 # Usage: make seatengine-audit
 seatengine-audit:
 	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/seatengine_audit.py
+
+# Detect enabled scraping_sources rows that share (club_id, priority) — TASK-1967.
+# Exits 0 when clean, 2 when duplicates remain.
+# Usage: make check-scraping-priorities [ARGS='--json']
+check-scraping-priorities:
+	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/check_duplicate_scraping_priorities.py $(ARGS)
 
 # =============================================================================
 # AUTOMATED WORKFLOWS - Production Pipeline Orchestration
