@@ -244,7 +244,19 @@ class ClubQueries:
                     NULLIF(scraping_sources.source_url, 'https://www.seatengine.com'),
                     EXCLUDED.source_url
                 ),
-                enabled     = TRUE
+                -- Preserve the existing enabled flag when the row carries any
+                -- task_<id>_disposition stamp; otherwise re-enable. seatengine_national
+                -- sweeps v1 venue ids 1..N each nightly and would otherwise revert
+                -- every dispositional disable on a still-listed venue (TASK-1968).
+                enabled     = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
+                        WHERE k LIKE 'task_%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
@@ -285,7 +297,17 @@ class ClubQueries:
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
                 seatengine_v3_id = COALESCE(scraping_sources.seatengine_v3_id, EXCLUDED.seatengine_v3_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
-                enabled     = TRUE
+                -- See UPSERT_CLUB_BY_SEATENGINE_VENUE for the disposition carve-out
+                -- rationale (TASK-1968); same pattern, same risk on the v3 directory sweep.
+                enabled     = CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
+                        WHERE k LIKE 'task_%_disposition'
+                    )
+                    THEN scraping_sources.enabled
+                    ELSE TRUE
+                END
             RETURNING club_id
         )
         SELECT uc.*, '[]'::json AS scraping_sources
