@@ -1,0 +1,2119 @@
+{
+  "snapshot_date": "2026-05-06",
+  "patterns": {
+    "EB_DUPE_DISABLED_GHOST": 5,
+    "A_MANUAL_HAS_STALE_ID": 21,
+    "B_BOTH_MATCH_SAME_VENUE_DUPE": 1,
+    "C_BOTH_AUTO_DISCOVERED": 6,
+    "D_BOTH_WRONG_DEAD_VENUE": 1,
+    "SQ_BOTH_VISIBLE_DUPE": 1
+  },
+  "results": [
+    {
+      "platform": "eventbrite",
+      "external_id": "28808914",
+      "members": [
+        {
+          "source_id": 499,
+          "club_id": 160,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Laugh Factory Hollywood",
+          "club_website": "https://www.laughfactory.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 172,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 1272,
+          "club_id": 2273,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": false,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Laugh Factory - Hollywood",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "EB_DUPE_DISABLED_GHOST",
+      "recommendation": "Clear external_id on disabled ghost row club 2273 (already enabled=false; collision is metadata residue)"
+    },
+    {
+      "platform": "eventbrite",
+      "external_id": "35896069",
+      "members": [
+        {
+          "source_id": 161,
+          "club_id": 184,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "The Comedy Bar Chicago",
+          "club_website": "https://comedybar.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 110,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 1278,
+          "club_id": 2279,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": false,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "The Comedy Bar - Chicago Main Stage",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "EB_DUPE_DISABLED_GHOST",
+      "recommendation": "Clear external_id on disabled ghost row club 2279 (already enabled=false; collision is metadata residue)"
+    },
+    {
+      "platform": "eventbrite",
+      "external_id": "41248441",
+      "members": [
+        {
+          "source_id": 130,
+          "club_id": 169,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Laugh Factory Long Beach",
+          "club_website": "https://www.laughfactory.com/long-beach",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 94,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 1275,
+          "club_id": 2276,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": false,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Long Beach Laugh Factory",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "EB_DUPE_DISABLED_GHOST",
+      "recommendation": "Clear external_id on disabled ghost row club 2276 (already enabled=false; collision is metadata residue)"
+    },
+    {
+      "platform": "eventbrite",
+      "external_id": "60930661",
+      "members": [
+        {
+          "source_id": 365,
+          "club_id": 170,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Laugh Factory San Diego",
+          "club_website": "https://www.laughfactory.com/san-diego",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 50,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 1276,
+          "club_id": 2277,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": false,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Laugh Factory",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "EB_DUPE_DISABLED_GHOST",
+      "recommendation": "Clear external_id on disabled ghost row club 2277 (already enabled=false; collision is metadata residue)"
+    },
+    {
+      "platform": "eventbrite",
+      "external_id": "90437249",
+      "members": [
+        {
+          "source_id": 337,
+          "club_id": 1038,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Counter Weight Brewing",
+          "club_website": "https://www.counterweightbrewing.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 2,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 1287,
+          "club_id": 2288,
+          "scraper_key": "eventbrite",
+          "priority": 0,
+          "enabled": false,
+          "source_url": "https://www.eventbrite.com",
+          "club_name": "Counter Weight Brewing Company",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "EB_DUPE_DISABLED_GHOST",
+      "recommendation": "Clear external_id on disabled ghost row club 2288 (already enabled=false; collision is metadata residue)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "132",
+      "members": [
+        {
+          "source_id": 156,
+          "club_id": 108,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "st-louis.heliumcomedy.com/events",
+          "club_name": "Helium & Elements Restaurant -St. Louis",
+          "club_website": "https://st-louis.heliumcomedy.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 29,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 563,
+          "club_id": 334,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://leve-nw.org",
+          "club_name": "Lev\u00e9's 2015 Charity Ball",
+          "club_website": "https://leve-nw.org",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Lev\u00e9's 2015 Charity Ball",
+      "api_website": "https://leve-nw.org",
+      "match_table": [
+        {
+          "club_id": 108,
+          "club_name": "Helium & Elements Restaurant -St. Louis",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 29,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 334,
+          "club_name": "Lev\u00e9's 2015 Charity Ball",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 334,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 108 (manually-configured row with wrong/stale external_id; correct mapping is club 334)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "157",
+      "members": [
+        {
+          "source_id": 9,
+          "club_id": 359,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://royalcomedy.net",
+          "club_name": "Royal Comedy Theatre",
+          "club_website": "http://royalcomedy.net",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 480,
+          "club_id": 1031,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.tacomacomedyclub.com/events#location=Downtown",
+          "club_name": "Tacoma Comedy Club - Downtown",
+          "club_website": "https://www.tacomacomedyclub.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 96,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Royal Comedy Theatre",
+      "api_website": "http://royalcomedy.net",
+      "match_table": [
+        {
+          "club_id": 359,
+          "club_name": "Royal Comedy Theatre",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 1031,
+          "club_name": "Tacoma Comedy Club - Downtown",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 96,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        }
+      ],
+      "correct_club_id": 359,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 1031 (manually-configured row with wrong/stale external_id; correct mapping is club 359)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "21",
+      "members": [
+        {
+          "source_id": 55,
+          "club_id": 132,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://buffalo.heliumcomedy.com/events",
+          "club_name": "Helium & Elements Restaurant - Buffalo",
+          "club_website": "https://buffalo.heliumcomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 89,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 338,
+          "club_id": 1077,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://www.heliumcomedy.com/buffalo/",
+          "club_name": "Helium & Elements Restaurant",
+          "club_website": "http://www.heliumcomedy.com/buffalo/",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 88,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Helium & Elements Restaurant",
+      "api_website": "http://www.heliumcomedy.com/buffalo/",
+      "match_table": [
+        {
+          "club_id": 132,
+          "club_name": "Helium & Elements Restaurant - Buffalo",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 89,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 1077,
+          "club_name": "Helium & Elements Restaurant",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 88,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 132,
+      "pattern": "B_BOTH_MATCH_SAME_VENUE_DUPE",
+      "recommendation": "Both clubs match the SE venue \u2014 likely duplicate clubs. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "338",
+      "members": [
+        {
+          "source_id": 38,
+          "club_id": 69,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "thecomedyclubkc.com/events",
+          "club_name": "The Comedy Club of Kansas City",
+          "club_website": "http://www.thecomedyclubkc.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 43,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 356,
+          "club_id": 368,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://nautiparrotdockbar.com",
+          "club_name": "Nauti Parrot Dock Bar",
+          "club_website": "http://nautiparrotdockbar.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Nauti Parrot Dock Bar",
+      "api_website": "http://nautiparrotdockbar.com",
+      "match_table": [
+        {
+          "club_id": 69,
+          "club_name": "The Comedy Club of Kansas City",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 43,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 368,
+          "club_name": "Nauti Parrot Dock Bar",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 368,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 69 (manually-configured row with wrong/stale external_id; correct mapping is club 368)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "359",
+      "members": [
+        {
+          "source_id": 584,
+          "club_id": 90,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "bricktowncomedyclub.com/events",
+          "club_name": "Bricktown Comedy Club",
+          "club_website": "https://www.bricktowncomedyclub.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 114,
+          "future_se_show_count": 1
+        },
+        {
+          "source_id": 516,
+          "club_id": 388,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://houseofcomedymd.com",
+          "club_name": "HOUSE OF COMEDY",
+          "club_website": "http://houseofcomedymd.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "HOUSE OF COMEDY ",
+      "api_website": "http://houseofcomedymd.com",
+      "match_table": [
+        {
+          "club_id": 90,
+          "club_name": "Bricktown Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 114,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 388,
+          "club_name": "HOUSE OF COMEDY",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 388,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 90 (manually-configured row with wrong/stale external_id; correct mapping is club 388)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "368",
+      "members": [
+        {
+          "source_id": 333,
+          "club_id": 79,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "undergroundcomedydc.com/events",
+          "club_name": "Underground Comedy",
+          "club_website": "https://www.undergroundcomedydc.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 102,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 373,
+          "club_id": 394,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://campusjaxcharities.seatengine.com",
+          "club_name": "Campus  JAX Charities",
+          "club_website": "https://campusjaxcharities.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Campus  JAX Charities",
+      "api_website": "https://campusjaxcharities.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 79,
+          "club_name": "Underground Comedy",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 102,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 394,
+          "club_name": "Campus  JAX Charities",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 394,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 79 (manually-configured row with wrong/stale external_id; correct mapping is club 394)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "389",
+      "members": [
+        {
+          "source_id": 327,
+          "club_id": 72,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "comedyvaultbatavia.com/events",
+          "club_name": "The Comedy Vault",
+          "club_website": "https://www.comedyvaultbatavia.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 22,
+          "future_se_show_count": 5
+        },
+        {
+          "source_id": 78,
+          "club_id": 414,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.houseoflaffs.com",
+          "club_name": "House of Laffs",
+          "club_website": "https://www.houseoflaffs.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "House of Laffs",
+      "api_website": "https://www.houseoflaffs.com",
+      "match_table": [
+        {
+          "club_id": 72,
+          "club_name": "The Comedy Vault",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 22,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 414,
+          "club_name": "House of Laffs",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 414,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 72 (manually-configured row with wrong/stale external_id; correct mapping is club 414)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "392",
+      "members": [
+        {
+          "source_id": 147,
+          "club_id": 75,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "tiffscomedy.com/events",
+          "club_name": "The Dojo of Comedy",
+          "club_website": "https://www.tiffscomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 25,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 643,
+          "club_id": 417,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://1fcc31bd-2b23-439e-9521-c9ca1dabc300.seatengine.com",
+          "club_name": "Bridgestone Comedy",
+          "club_website": "https://1fcc31bd-2b23-439e-9521-c9ca1dabc300.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Bridgestone Comedy ",
+      "api_website": "https://1fcc31bd-2b23-439e-9521-c9ca1dabc300.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 75,
+          "club_name": "The Dojo of Comedy",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 25,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 417,
+          "club_name": "Bridgestone Comedy",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 417,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 75 (manually-configured row with wrong/stale external_id; correct mapping is club 417)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "402",
+      "members": [
+        {
+          "source_id": 139,
+          "club_id": 58,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "cltcomedyzone.com/events",
+          "club_name": "The Comedy Zone - Charlotte",
+          "club_website": "https://www.cltcomedyzone.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 116,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 220,
+          "club_id": 427,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://2b6d2779-d2db-41da-9559-dd8f8b59fa8a.seatengine.com",
+          "club_name": "Sandman Comedy Club",
+          "club_website": "https://2b6d2779-d2db-41da-9559-dd8f8b59fa8a.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Sandman Comedy Club ",
+      "api_website": "https://2b6d2779-d2db-41da-9559-dd8f8b59fa8a.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 58,
+          "club_name": "The Comedy Zone - Charlotte",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 116,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 427,
+          "club_name": "Sandman Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 427,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 58 (manually-configured row with wrong/stale external_id; correct mapping is club 427)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "419",
+      "members": [
+        {
+          "source_id": 326,
+          "club_id": 123,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "planetofthetapes.seatengine.com/events",
+          "club_name": "Planet Of The Tapes",
+          "club_website": "https://planetofthetapes.seatengine.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 53,
+          "future_se_show_count": 53
+        },
+        {
+          "source_id": 601,
+          "club_id": 444,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.bouldercomedyshow.com",
+          "club_name": "Boulder Comedy Show",
+          "club_website": "https://www.bouldercomedyshow.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Boulder Comedy Show",
+      "api_website": "https://www.bouldercomedyshow.com",
+      "match_table": [
+        {
+          "club_id": 123,
+          "club_name": "Planet Of The Tapes",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 53,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 444,
+          "club_name": "Boulder Comedy Show",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 444,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 123 (manually-configured row with wrong/stale external_id; correct mapping is club 444)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "424",
+      "members": [
+        {
+          "source_id": 279,
+          "club_id": 449,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://www.laughtonightcomedy.com",
+          "club_name": "Laugh Tonight Comedy @ Laugh Factory",
+          "club_website": "http://www.laughtonightcomedy.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 1,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 294,
+          "club_id": 855,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://www.laughtonightcomedy.com",
+          "club_name": "Laugh Tonight Comedy",
+          "club_website": "http://www.laughtonightcomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 3,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Laugh Tonight Comedy",
+      "api_website": "http://www.laughtonightcomedy.com",
+      "match_table": [
+        {
+          "club_id": 449,
+          "club_name": "Laugh Tonight Comedy @ Laugh Factory",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 1,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 855,
+          "club_name": "Laugh Tonight Comedy",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 3,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "425",
+      "members": [
+        {
+          "source_id": 114,
+          "club_id": 67,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "thecomedycatch.com/events",
+          "club_name": "The Comedy Catch",
+          "club_website": "https://www.thecomedycatch.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 48,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 166,
+          "club_id": 450,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://kestest.com",
+          "club_name": "Kes Test 2",
+          "club_website": "http://kestest.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Kes Test 2",
+      "api_website": "http://kestest.com",
+      "match_table": [
+        {
+          "club_id": 67,
+          "club_name": "The Comedy Catch",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 48,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 450,
+          "club_name": "Kes Test 2",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 450,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 67 (manually-configured row with wrong/stale external_id; correct mapping is club 450)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "428",
+      "members": [
+        {
+          "source_id": 62,
+          "club_id": 453,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.tocomedy.com",
+          "club_name": "J.R.'s Comedy Club (INSIDE THE JUNKYARD CAFE)",
+          "club_website": "https://www.tocomedy.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 476,
+          "club_id": 567,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.tocomedy.com",
+          "club_name": "J.R.'s Comedy Club",
+          "club_website": "https://www.tocomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 4,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "J.R.'s Comedy Club (INSIDE THE JUNKYARD CAFE) ",
+      "api_website": "https://www.tocomedy.com",
+      "match_table": [
+        {
+          "club_id": 453,
+          "club_name": "J.R.'s Comedy Club (INSIDE THE JUNKYARD CAFE)",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 567,
+          "club_name": "J.R.'s Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 4,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "442",
+      "members": [
+        {
+          "source_id": 98,
+          "club_id": 43,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "brokerage.govs.com/events",
+          "club_name": "Brokerage Comedy Club",
+          "club_website": "https://brokerage.govs.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 31,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 247,
+          "club_id": 467,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://Rahmein.seatengine.com",
+          "club_name": "Rahmein Presents...",
+          "club_website": "http://Rahmein.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Rahmein Presents...",
+      "api_website": "http://Rahmein.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 43,
+          "club_name": "Brokerage Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 31,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 467,
+          "club_name": "Rahmein Presents...",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 467,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 43 (manually-configured row with wrong/stale external_id; correct mapping is club 467)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "443",
+      "members": [
+        {
+          "source_id": 239,
+          "club_id": 42,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "bohemia.govs.com/events",
+          "club_name": "McGuire's Comedy Club",
+          "club_website": "https://bohemia.govs.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 27,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 95,
+          "club_id": 468,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://caravanfundraisers.seatengine.com",
+          "club_name": "The Caravan Fundraisers",
+          "club_website": "http://caravanfundraisers.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "The Caravan Fundraisers",
+      "api_website": "http://caravanfundraisers.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 42,
+          "club_name": "McGuire's Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 27,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 468,
+          "club_name": "The Caravan Fundraisers",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 468,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 42 (manually-configured row with wrong/stale external_id; correct mapping is club 468)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "448",
+      "members": [
+        {
+          "source_id": 99,
+          "club_id": 57,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "thecomedyzone.com/events",
+          "club_name": "The Comedy Zone Greensboro",
+          "club_website": "https://thecomedyzone.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 62,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 27,
+          "club_id": 473,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://b5d22f3e-ce6c-4dc9-b570-f90b0d8ff21a.seatengine.com",
+          "club_name": "Matt Stanley",
+          "club_website": "https://b5d22f3e-ce6c-4dc9-b570-f90b0d8ff21a.seatengine.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Matt Stanley",
+      "api_website": "https://b5d22f3e-ce6c-4dc9-b570-f90b0d8ff21a.seatengine.com",
+      "match_table": [
+        {
+          "club_id": 57,
+          "club_name": "The Comedy Zone Greensboro",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 62,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 473,
+          "club_name": "Matt Stanley",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 473,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 57 (manually-configured row with wrong/stale external_id; correct mapping is club 473)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "453",
+      "members": [
+        {
+          "source_id": 11,
+          "club_id": 59,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "comedyzone.com/events",
+          "club_name": "Comedy Zone Jacksonville",
+          "club_website": "https://www.comedyzone.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 210,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 473,
+          "club_id": 478,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.secretisland.shannonscorner.com",
+          "club_name": "Secret Island",
+          "club_website": "https://www.secretisland.shannonscorner.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Secret Island ",
+      "api_website": "https://www.secretisland.shannonscorner.com",
+      "match_table": [
+        {
+          "club_id": 59,
+          "club_name": "Comedy Zone Jacksonville",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 210,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 478,
+          "club_name": "Secret Island",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 478,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 59 (manually-configured row with wrong/stale external_id; correct mapping is club 478)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "460",
+      "members": [
+        {
+          "source_id": 633,
+          "club_id": 116,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "looneescc.com/events",
+          "club_name": "Loonees Comedy Corner",
+          "club_website": "http://www.looneescc.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 50,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 47,
+          "club_id": 484,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://venturaharborcomedyclub.com",
+          "club_name": "Copa Comedy Club",
+          "club_website": "https://venturaharborcomedyclub.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Copa Comedy Club",
+      "api_website": "https://venturaharborcomedyclub.com",
+      "match_table": [
+        {
+          "club_id": 116,
+          "club_name": "Loonees Comedy Corner",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 50,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 484,
+          "club_name": "Copa Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 484,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 116 (manually-configured row with wrong/stale external_id; correct mapping is club 484)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "464",
+      "members": [
+        {
+          "source_id": 32,
+          "club_id": 73,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "greenvillecomedyzone.com/events",
+          "club_name": "The Comedy Zone Greenville",
+          "club_website": "https://greenvillecomedyzone.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 207,
+          "future_se_show_count": 34
+        },
+        {
+          "source_id": 127,
+          "club_id": 488,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://greenvillecomedyzone.com",
+          "club_name": "Greenville Comedy Zone @ Revel Event Center",
+          "club_website": "http://greenvillecomedyzone.com",
+          "club_visible": false,
+          "club_status": "closed",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Greenville Comedy Zone @ Revel Event Center",
+      "api_website": "http://greenvillecomedyzone.com",
+      "match_table": [
+        {
+          "club_id": 73,
+          "club_name": "The Comedy Zone Greenville",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 207,
+          "name_match": false,
+          "site_match": true,
+          "match_strength": 1
+        },
+        {
+          "club_id": 488,
+          "club_name": "Greenville Comedy Zone @ Revel Event Center",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "466",
+      "members": [
+        {
+          "source_id": 76,
+          "club_id": 47,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "comedyinharlem.com/events",
+          "club_name": "Comedy In Harlem",
+          "club_website": "https://www.comedyinharlem.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 30,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 269,
+          "club_id": 490,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://thecavebigbear.com",
+          "club_name": "The Cave",
+          "club_website": "https://thecavebigbear.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "The Cave ",
+      "api_website": "https://thecavebigbear.com",
+      "match_table": [
+        {
+          "club_id": 47,
+          "club_name": "Comedy In Harlem",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 30,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 490,
+          "club_name": "The Cave",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 490,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 47 (manually-configured row with wrong/stale external_id; correct mapping is club 490)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "483",
+      "members": [
+        {
+          "source_id": 316,
+          "club_id": 124,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "rooster-t-feathers.seatengine-sites.com/events",
+          "club_name": "Rooster T. Feathers Comedy Club",
+          "club_website": "http://www.roostertfeathers.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 51,
+          "future_se_show_count": 51
+        },
+        {
+          "source_id": 223,
+          "club_id": 507,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://theallnewfirstfridays.com",
+          "club_name": "The All New First Fridays",
+          "club_website": "https://theallnewfirstfridays.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "The All New First Fridays ",
+      "api_website": "https://theallnewfirstfridays.com",
+      "match_table": [
+        {
+          "club_id": 124,
+          "club_name": "Rooster T. Feathers Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 51,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 507,
+          "club_name": "The All New First Fridays",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 507,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 124 (manually-configured row with wrong/stale external_id; correct mapping is club 507)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "493",
+      "members": [
+        {
+          "source_id": 96,
+          "club_id": 120,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "micdropcomedychandler.com/events",
+          "club_name": "Mic Drop Mania",
+          "club_website": "https://www.micdropcomedychandler.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 275,
+          "future_se_show_count": 45
+        },
+        {
+          "source_id": 548,
+          "club_id": 517,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.micdropcomedychandler.com/",
+          "club_name": "Mic Drop Comedy Chandler",
+          "club_website": "https://www.micdropcomedychandler.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 230,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Mic Drop Comedy Chandler",
+      "api_website": "https://www.micdropcomedychandler.com/",
+      "match_table": [
+        {
+          "club_id": 120,
+          "club_name": "Mic Drop Mania",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 275,
+          "name_match": false,
+          "site_match": true,
+          "match_strength": 1
+        },
+        {
+          "club_id": 517,
+          "club_name": "Mic Drop Comedy Chandler",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 230,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "504",
+      "members": [
+        {
+          "source_id": 314,
+          "club_id": 60,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "cherokeecomedyzone.com/events",
+          "club_name": "The Comedy Zone - Cherokee",
+          "club_website": "https://www.cherokeecomedyzone.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 323,
+          "club_id": 528,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": null,
+          "club_name": "Test Site",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Test Site",
+      "api_website": "",
+      "match_table": [
+        {
+          "club_id": 60,
+          "club_name": "The Comedy Zone - Cherokee",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 0,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 528,
+          "club_name": "Test Site",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": false,
+          "match_strength": 2
+        }
+      ],
+      "correct_club_id": 528,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 60 (manually-configured row with wrong/stale external_id; correct mapping is club 528)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "508",
+      "members": [
+        {
+          "source_id": 267,
+          "club_id": 125,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "sticksandstonescomedyclub.com/events",
+          "club_name": "Sticks and Stones Comedy Club",
+          "club_website": "http://sticksandstonescomedyclub.com/",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 191,
+          "future_se_show_count": 178
+        },
+        {
+          "source_id": 412,
+          "club_id": 532,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "http://sticksandstonescomedyclub.com/",
+          "club_name": "STICKS AND STONES COMEDY CLUB",
+          "club_website": "http://sticksandstonescomedyclub.com/",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 11,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "STICKS AND STONES COMEDY CLUB",
+      "api_website": "http://sticksandstonescomedyclub.com/",
+      "match_table": [
+        {
+          "club_id": 125,
+          "club_name": "Sticks and Stones Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 191,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 532,
+          "club_name": "STICKS AND STONES COMEDY CLUB",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 11,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "530",
+      "members": [
+        {
+          "source_id": 407,
+          "club_id": 134,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://atlanta.heliumcomedy.com/events",
+          "club_name": "Helium Comedy Club - Atlanta",
+          "club_website": "https://atlanta.heliumcomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 37,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 502,
+          "club_id": 550,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.sillybeavercomedy.com",
+          "club_name": "Silly Beaver Comedy Club",
+          "club_website": "https://www.sillybeavercomedy.com",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Silly Beaver Comedy Club",
+      "api_website": "https://www.sillybeavercomedy.com",
+      "match_table": [
+        {
+          "club_id": 134,
+          "club_name": "Helium Comedy Club - Atlanta",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 37,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 550,
+          "club_name": "Silly Beaver Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 550,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 134 (manually-configured row with wrong/stale external_id; correct mapping is club 550)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "556",
+      "members": [
+        {
+          "source_id": 383,
+          "club_id": 114,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "camp-bar.net/events",
+          "club_name": "Laugh Camp Comedy Club",
+          "club_website": "https://www.camp-bar.net",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 50,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 424,
+          "club_id": 576,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.camp-bar.net",
+          "club_name": "Laugh Camp Comedy Club - Saint Paul MN at Camp Bar",
+          "club_website": "https://www.camp-bar.net",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 31,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Laugh Camp Comedy Club - Saint Paul MN at Camp Bar",
+      "api_website": "https://www.camp-bar.net",
+      "match_table": [
+        {
+          "club_id": 114,
+          "club_name": "Laugh Camp Comedy Club",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": true,
+          "future": 50,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        },
+        {
+          "club_id": 576,
+          "club_name": "Laugh Camp Comedy Club - Saint Paul MN at Camp Bar",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 31,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "pattern": "C_BOTH_AUTO_DISCOVERED",
+      "recommendation": "Both rows auto-discovered \u2014 likely duplicate clubs of same venue. Requires merge/disable decision."
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "561",
+      "members": [
+        {
+          "source_id": 537,
+          "club_id": 92,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "brickyscomedy.com/events",
+          "club_name": "Bricky's Comedy Club",
+          "club_website": "https://www.brickyscomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 34,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 203,
+          "club_id": 581,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": null,
+          "club_name": "Lotus Store",
+          "club_website": "",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Lotus Store ",
+      "api_website": "",
+      "match_table": [
+        {
+          "club_id": 92,
+          "club_name": "Bricky's Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 34,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 581,
+          "club_name": "Lotus Store",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": false,
+          "match_strength": 2
+        }
+      ],
+      "correct_club_id": 581,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 92 (manually-configured row with wrong/stale external_id; correct mapping is club 581)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "564",
+      "members": [
+        {
+          "source_id": 86,
+          "club_id": 95,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "coastalcomedynight.com/events",
+          "club_name": "Coastal Creative",
+          "club_website": "https://coastalcomedynight.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 22,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 305,
+          "club_id": 584,
+          "scraper_key": "seatengine",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://cafecorretto.romannosejc.com/",
+          "club_name": "Cafe Corretto",
+          "club_website": "https://cafecorretto.romannosejc.com/",
+          "club_visible": false,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "Cafe Corretto",
+      "api_website": "https://cafecorretto.romannosejc.com/",
+      "match_table": [
+        {
+          "club_id": 95,
+          "club_name": "Coastal Creative",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 22,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 584,
+          "club_name": "Cafe Corretto",
+          "scraper_key": "seatengine",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": true,
+          "site_match": true,
+          "match_strength": 3
+        }
+      ],
+      "correct_club_id": 584,
+      "pattern": "A_MANUAL_HAS_STALE_ID",
+      "recommendation": "Clear external_id on club 95 (manually-configured row with wrong/stale external_id; correct mapping is club 584)"
+    },
+    {
+      "platform": "seatengine",
+      "external_id": "588",
+      "members": [
+        {
+          "source_id": 304,
+          "club_id": 94,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "comedyslashbar.com/events",
+          "club_name": "Capitol Hill Comedy Bar",
+          "club_website": "https://www.comedyslashbar.com/",
+          "club_visible": false,
+          "club_status": "closed",
+          "club_closed_at": null,
+          "future_show_count": 0,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 14,
+          "club_id": 106,
+          "scraper_key": "seatengine_classic",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "emeraldcitycomedy.com/events",
+          "club_name": "Emerald City Comedy Club",
+          "club_website": "https://emeraldcitycomedy.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 73,
+          "future_se_show_count": 0
+        }
+      ],
+      "api_name": "",
+      "api_website": "",
+      "match_table": [
+        {
+          "club_id": 94,
+          "club_name": "Capitol Hill Comedy Bar",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": false,
+          "future": 0,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        },
+        {
+          "club_id": 106,
+          "club_name": "Emerald City Comedy Club",
+          "scraper_key": "seatengine_classic",
+          "enabled": true,
+          "visible": true,
+          "future": 73,
+          "name_match": false,
+          "site_match": false,
+          "match_strength": 0
+        }
+      ],
+      "pattern": "D_BOTH_WRONG_DEAD_VENUE",
+      "recommendation": "Clear external_id on both rows (SE API returns empty \u2014 venue deleted/missing upstream)"
+    },
+    {
+      "platform": "squadup",
+      "external_id": "9086799",
+      "members": [
+        {
+          "source_id": 511,
+          "club_id": 175,
+          "scraper_key": "squadup",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.sunsetstripatx.com/events",
+          "club_name": "Sunset Strip Comedy Club",
+          "club_website": "https://www.sunsetstripatx.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 107,
+          "future_se_show_count": 0
+        },
+        {
+          "source_id": 216,
+          "club_id": 571,
+          "scraper_key": "squadup",
+          "priority": 0,
+          "enabled": true,
+          "source_url": "https://www.sunsetstripatx.com/events",
+          "club_name": "Sunset Strip",
+          "club_website": "https://www.sunsetstripatx.com",
+          "club_visible": true,
+          "club_status": "active",
+          "club_closed_at": null,
+          "future_show_count": 102,
+          "future_se_show_count": 0
+        }
+      ],
+      "pattern": "SQ_BOTH_VISIBLE_DUPE",
+      "recommendation": "Both clubs visible with shows \u2014 duplicate club entries. Requires merge/disable decision."
+    }
+  ]
+}
