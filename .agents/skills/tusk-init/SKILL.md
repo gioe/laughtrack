@@ -16,6 +16,26 @@ tusk "SELECT COUNT(*) FROM tasks;"
 - **Non-zero task count**: offer backup (`cp "$(tusk path)" "$(tusk path).bak"`), warn that `tusk init --force` destroys all existing tasks. Stop if user declines.
 - **Zero tasks**: proceed without warning.
 
+## Step 1.5: Detect / Initialize Git Repository
+
+Tusk works best inside a git repository — branch-per-task, commit history, and hooks all assume one. `install.sh` no longer requires a git repo to run, so fresh projects may reach this skill without one.
+
+Detect:
+
+```bash
+git rev-parse --show-toplevel >/dev/null 2>&1 && echo "git" || echo "no-git"
+```
+
+- **`git`** — proceed to Step 2 silently.
+- **`no-git`** — ask the user a single yes/no:
+
+  > No git repository detected at the project root. Tusk relies on git for branch-per-task tracking, commit hashing, and hooks. Run `git init` here?
+  >
+  > Options: **yes** (init now) · **no** (continue without git — branch/commit/merge features will be limited)
+
+  - **yes** — run `git init` and continue to Step 2.
+  - **no** — print a one-line warning and continue to Step 2: `Skipped git init — branch/commit features will fail until a repo exists.`
+
 ## Step 2: Scan the Codebase
 
 Gather project context silently using parallel tool calls. Do not ask the user anything yet.
@@ -94,6 +114,12 @@ Ask the user these three questions in a single message:
 > 3. **Which areas of work do you expect? (pick all that apply)**
 >    UI / frontend · backend / API · database · infrastructure / CI-CD · data / ML · mobile · docs · CLI · auth · other
 
+**Mobile follow-up — fires only when Q1 is "mobile app".** Ask this single question before continuing to Q2/Q3 mapping:
+
+> **Which platform — iOS, Android, or cross-platform (React Native / Flutter)?**
+
+Map the answer to `project_type` using the table below. The Q1 "mobile app" row in the project_type table uses this answer to pick the right key.
+
 Map answers to domain and agent suggestions using these rules. Evaluate all three answers together:
 
 | Signal | Domain | Agent |
@@ -110,12 +136,14 @@ Map answers to domain and agent suggestions using these rules. Evaluate all thre
 
 Always include `general` agent regardless of answers.
 
-Also derive a `project_type` key from question 1 using this table and store it for Step 6:
+Also derive a `project_type` key from question 1 (and the mobile follow-up, when Q1 = "mobile app") using this table and store it for Step 6:
 
 | Answer | `project_type` |
 |---|---|
 | web app | `web_app` |
-| mobile app | `ios_app` |
+| mobile app — iOS | `ios_app` |
+| mobile app — Android | `android_app` |
+| mobile app — cross-platform (React Native / Flutter) | `mobile_cross_platform` |
 | CLI tool | `cli_tool` |
 | API / backend service | `python_service` |
 | data pipeline / ML | `data_pipeline` |
@@ -124,7 +152,73 @@ Also derive a `project_type` key from question 1 using this table and store it f
 | monorepo | `monorepo` |
 | other | `null` |
 
-Once you have a proposed domain, agent list, and `project_type`, proceed to **Step 3** and **Step 4** using these suggestions. In Step 3, substitute the user's stated plans as the evidence string (e.g., "planned React + FastAPI stack" instead of a scanned directory path).
+> **Note:** `config.default.json:project_libs` ships entries only for `ios_app` and `python_service` today. `android_app` and `mobile_cross_platform` are valid `project_type` values but have no auto-populated `project_libs` entry — those are deferred until corresponding lib repos exist. Step 8.5 will simply skip lib-fetching for those types until then.
+
+Once you have a proposed domain, agent list, and `project_type`, proceed to **Step 2f** for directory scaffolding, then to **Step 3** and **Step 4** using these suggestions. In Step 3, substitute the user's stated plans as the evidence string (e.g., "planned React + FastAPI stack" instead of a scanned directory path).
+
+### 2f: Fresh-project directory scaffolding
+
+**Run only when Step 2e was reached** — i.e., Step 2c/2d found no codebase signals. Existing-codebase paths skip this entire step; tusk does not propose directories or write stubs into projects that already have code.
+
+Tusk does not run language-specific scaffolders (`npm init`, `cargo new`, `xcodegen`). It only creates the directory plus a `.gitkeep` and a per-directory routing stub (`AGENTS.md` in Claude installs, `AGENTS.md` in Codex installs) so future agents know what each directory is for and which agent owns it.
+
+Map the domains and agents confirmed in Step 2e to a directory layout using the table below. Each row produces one directory entry — combine entries from every row whose signal applies. Use plural/canonical names (`backend`, not `api-server-v1`).
+
+| Domain (from 2e) | `project_type` (from 2e) | Directory | Purpose stub | Agent |
+|---|---|---|---|---|
+| `frontend` | (any) | `frontend` | UI / client-side sources | `frontend` |
+| `api` | (any) | `backend` | API and service code | `backend` |
+| `database` | (any) | (covered by `backend`) | — | — |
+| `mobile` | `ios_app` | `ios` | iOS app sources (Swift, UIKit, SwiftUI) | `mobile` |
+| `mobile` | `android_app` | `android` | Android app sources (Kotlin/Java) | `mobile` |
+| `mobile` | `mobile_cross_platform` | `mobile` | React Native / Flutter sources | `mobile` |
+| `infrastructure` | (any) | `infra` | Terraform / Docker / CI configs | `infrastructure` |
+| `data` / `ml` | (any) | `data` | Pipelines, notebooks, ML models | `data` |
+| `docs` | (any) | `docs` | User-facing documentation | `docs` |
+| `cli` | (any) | `cli` | CLI command sources | `cli` |
+
+When `domain = mobile`, pick exactly one row using the `project_type` value derived from Step 2e's mobile follow-up — never combine multiple mobile rows. If `project_type` is unset for a mobile project (the user skipped the follow-up), default to the `mobile_cross_platform` row.
+
+Present the proposed layout to the user as **a single batch**, not one directory at a time:
+
+> **Proposed project skeleton:**
+>
+> - `frontend/` — UI / client-side sources (agent: `frontend`)
+> - `backend/`  — API and service code (agent: `backend`)
+> - `docs/`     — User-facing documentation (agent: `docs`)
+>
+> Options: **accept all** · **edit list** (specify which to keep, rename, or drop) · **skip** (no directories created)
+
+- **accept all** — proceed to the scaffolding call below with the full list.
+- **edit list** — incorporate the user's edits, then proceed.
+- **skip** — print `Skipped directory scaffolding — run /tusk-init again later if you want it.` and proceed to Step 3.
+
+Build a JSON spec from the confirmed list (one object per directory) and call `tusk init-scaffold`:
+
+```bash
+tusk init-scaffold --spec '[
+  {"name": "frontend", "purpose": "UI / client-side sources",         "agent": "frontend"},
+  {"name": "backend",  "purpose": "API and service code",             "agent": "backend"},
+  {"name": "docs",     "purpose": "User-facing documentation",        "agent": "docs"}
+]'
+```
+
+`init-scaffold` auto-detects the install mode (`.claude/` present → Claude / writes `AGENTS.md`; `AGENTS.md` present → Codex / writes `AGENTS.md`). For each entry it creates the directory, writes a `.gitkeep`, and writes the routing-stub file. Existing directories that already contain files are skipped — your code is never overwritten.
+
+The command returns JSON describing what was created and what was skipped:
+
+```json
+{
+  "success": true,
+  "mode": "claude",
+  "created": [{"directory": "frontend", "stub": "frontend/AGENTS.md", "files": [".gitkeep", "AGENTS.md"]}],
+  "skipped": []
+}
+```
+
+Surface a one-line summary to the user (e.g., `Scaffolded 3 directories — frontend/, backend/, docs/`) and proceed to Step 3.
+
+**Non-interactive opt-out:** Callers that want the rest of the wizard but no scaffolding (CI seeds, automation) should skip this step entirely — there is no scaffold prompt unless Step 2e was reached.
 
 ## Step 3: Suggest and Confirm Domains
 
@@ -270,16 +364,18 @@ Store the confirmed value (empty string if skipped) for Step 6.
 
 Call `tusk init-write-config` with the values confirmed in the previous steps. This command reads the existing config, merges only the keys you provide (carrying forward everything else), backs up the config, writes the new file, runs `tusk init --force`, and restores the backup on failure — all atomically.
 
-Example call using values confirmed in Steps 3–5 (domains `["api","frontend"]`, agents `{"backend":{"model":"sonnet"}}`, task types `["bug","feature","docs"]`, test command `pytest`, project type `python_service`):
+Example call using values confirmed in Steps 3–5 (domains `["api","frontend"]`, agents `{"backend":"APIs and database work"}`, task types `["bug","feature","docs"]`, test command `pytest`, project type `python_service`):
 
 ```bash
 tusk init-write-config \
   --domains '["api","frontend"]' \
-  --agents '{"backend":{"model":"sonnet"}}' \
+  --agents '{"backend":"APIs and database work"}' \
   --task-types '["bug","feature","docs"]' \
   --test-command 'pytest' \
   --project-type 'python_service'
 ```
+
+> **Agents value shape:** the config validator requires `agents` to be a JSON object mapping agent name → **description string**, not name → dict. Passing `{"backend":{"model":"sonnet"}}` will fail validation with `"agents.backend" value must be a string (got dict: ...)`.
 
 Pass only the flags for values the user explicitly confirmed; keys not passed are carried forward from the existing config unchanged. To clear `test_command`, pass `--test-command ''`. To set `project_type` to null, pass `--project-type ''`.
 
@@ -297,6 +393,14 @@ The command returns JSON: `{"success": true, "config_path": "...", "backed_up": 
 2. Stop — do not proceed to Step 7.
 
 **On `"success": true`:** Print summary: confirmed domains, agents, task types, DB reinitialized.
+
+Then reconcile project_type-gated skills against the freshly-written config:
+
+```bash
+tusk reconcile-skills
+```
+
+`applies_to_project_types`-gated skills are deferred when `project_type` is unset, so the initial `install.sh` run on a fresh project skipped them. With `project_type` now persisted, this call installs any newly-matching skills (and removes any that no longer match if a previous value was overwritten). Print the one-line summary the command emits — typically either `Skills already in sync (project_type=<pt>).` or `Reconciled skills (project_type=<pt>): Installed N: <names>`.
 
 ## Step 7: AGENTS.md Snippet
 
@@ -338,8 +442,8 @@ This reads `project_libs` from config, fetches each lib's `tusk-bootstrap.json` 
 ```json
 {
   "libs": [
-    { "name": "ios_app", "repo": "gioe/ios-libs", "tasks": [...], "error": null },
-    { "name": "bad_lib", "repo": "owner/repo", "tasks": [], "error": "404: tusk-bootstrap.json not found" }
+    { "name": "ios_app", "repo": "gioe/ios-libs", "tasks": [...], "manifest_files": [...], "error": null },
+    { "name": "bad_lib", "repo": "owner/repo", "tasks": [], "manifest_files": [], "error": "404: tusk-bootstrap.json not found" }
   ]
 }
 ```
@@ -350,6 +454,14 @@ For each lib entry:
 
 - If `error` is non-null, print a one-line warning and skip:
   > Warning: could not fetch bootstrap for `<repo>` — <error>.
+- If `error` is null and `manifest_files` is non-empty, write the deterministic files first via:
+
+  ```bash
+  tusk init-write-manifest-files --spec '<json array of manifest_files>'
+  ```
+
+  This creates files that don't exist yet (`mode: create_only`, the default) and idempotently appends lines to existing files (`mode: append_if_missing`). The writer returns `{wrote: [...], skipped: [...], summary: "wrote N files, skipped M existing"}` — surface the `summary` line to the user before the seed-tasks prompt below.
+
 - If `error` is null and `tasks` is non-empty, present the task list to the user:
 
   > **`<lib-name>` bootstrap tasks found** — `tusk-bootstrap.json` from `<owner>/<repo>` contains N tasks to help you set up <lib-name> integration:
@@ -404,6 +516,6 @@ If no tasks were seeded during this run, omit the next-steps block — finish wi
 
 ## Edge Cases
 
-- **Fresh project (no code)**: Skip Steps 2a–2d. Run the **Step 2e fresh-project interview** to collect domain/agent signals from the user's stated plans. After Steps 3–4 confirm the domain and agent list, direct the user to **Step 9** (seed from project description) as the primary task-seeding path — there are no TODOs to scan, so Step 9 is both the first and most important seeding route.
+- **Fresh project (no code)**: Skip Steps 2a–2d. Run the **Step 2e fresh-project interview** to collect domain/agent signals from the user's stated plans, then **Step 2f** to propose and (optionally) write the directory skeleton with per-directory `AGENTS.md` / `AGENTS.md` routing stubs. After Steps 3–4 confirm the domain and agent list, direct the user to **Step 9** (seed from project description) as the primary task-seeding path — there are no TODOs to scan, so Step 9 is both the first and most important seeding route.
 - **Monorepo** (`packages/*/` or `apps/*/`): One domain per package; let user trim.
 - **>20 TODOs**: Summarize by file/category; let user pick which to seed.

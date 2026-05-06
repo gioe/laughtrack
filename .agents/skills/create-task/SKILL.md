@@ -20,16 +20,6 @@ If the user didn't provide any text after the command, ask:
 
 > What would you like to turn into tasks? Paste any text — feature specs, meeting notes, bug reports, requirements, etc.
 
-### Deferred Mode Detection
-
-Check whether deferred insertion was requested before proceeding:
-- **Caller flag**: The invocation includes `--deferred` (e.g., `/create-task --deferred <text>`)
-- **Inline request**: The input text contains an explicit deferred intent phrase such as "add as deferred", "add these as deferred", "insert as deferred", or "create as deferred"
-
-If either condition is met, set **deferred mode = on** and strip the `--deferred` flag (if present) from the input text before proceeding. Do not ask the user to confirm deferred mode — it was explicitly requested.
-
-If neither condition is met, **deferred mode = off** and all tasks are inserted as active (existing behavior, no change).
-
 ## Step 2: Fetch Config and Backlog
 
 Fetch everything needed for analysis in a single call:
@@ -48,13 +38,32 @@ Break the input into discrete, actionable tasks. For each task, determine:
 
 | Field | How to Determine |
 |-------|-----------------|
-| **summary** | Clear, imperative sentence describing the deliverable (e.g., "Add login endpoint with JWT authentication"). Max ~100 chars. |
-| **description** | Expanded context from the input — acceptance criteria, technical notes, relevant quotes from the source text. |
+| **summary** | Clear, imperative sentence describing the deliverable (e.g., "Add login endpoint with JWT authentication"). Aim for ~100 chars; hard cap **150 chars** (enforced in Step 3.7). |
+| **description** | Expanded context from the input — motivation, constraints, links to source material. Hard cap **1200 chars** (enforced in Step 3.7) — move acceptance criteria and step-by-step details out into the criteria list. |
 | **priority** | Infer from language cues: "critical"/"urgent"/"blocking" → `Highest`/`High`; "nice to have"/"eventually" → `Low`/`Lowest`; default to `Medium`. Must be one of the configured priorities. |
 | **domain** | Match to a configured domain based on the task's subject area. Leave NULL if no domains are configured or none fit. |
 | **task_type** | Categorize as one of the configured task types (bug, feature, refactor, test, docs, infrastructure). Default to `feature` for new work, `bug` for fixes. For `test` and `docs`: use as `task_type` only when writing tests or docs **is the primary deliverable** — otherwise use acceptance criteria. See **Task Type Decision Guide** below. |
 | **assignee** | Match to a configured agent if the task clearly falls in their area. Leave NULL if unsure. |
 | **complexity** | Estimate effort: `XS` = partial session, `S` = 1 session, `M` = 2-3 sessions, `L` = 3-5 sessions, `XL` = 5+. Default to `M` if unclear. Must be one of the configured complexity values. |
+
+### Description shape
+
+Each task carries three text fields with distinct intents — keep them sharp. Blurring them produces brittle tasks that rot the moment any code edit lands:
+
+| Field | Intent | Contains |
+|-------|--------|----------|
+| **summary** | **WHAT** — the deliverable in one imperative sentence | "Add JWT login endpoint", "Fix race in session-close" |
+| **description** | **WHY** — motivation, constraints, links to source material | The user complaint, the audit finding, the design decision; links to RFCs, retros, PRs |
+| **criteria** | **HOW** — testable conditions that prove the WHAT was delivered | "POST /auth/login returns 401 on bad password", "tests/integration/test_login.py passes" |
+
+**Forbidden in descriptions:** file-and-line references (e.g. `bin/tusk:1234`, `skills/foo/SKILL.md:88`) and step-by-step implementation plans. Line numbers rot the moment any edit lands above them, and step-by-step plans over-anchor `/tusk` to a stale approach when the implementer should re-derive from current code. The description should explain *why* the work matters, not encode *how* a single past reading of the codebase suggested doing it.
+
+**Encouraged:** stable identifiers as anchors — function and class names, config keys, table and column names, environment variables, constant names, and file paths *without* line numbers. These survive refactors and let the implementer use grep/LSP to locate current call sites:
+
+- **Good:** "The `cmd_init` function in `bin/tusk` stamps `PRAGMA user_version` on fresh installs"
+- **Avoid:** "bin/tusk:1456 sets the user_version pragma"
+- **Good:** "Migration 55 added `tasks.fixes_task_id`; views need to be recreated to pick it up"
+- **Avoid:** "See line 88 of bin/tusk-migrate.py for the migration logic"
 
 ### Task Type Decision Guide
 
@@ -134,6 +143,29 @@ Apply the user's answer to that task's `fixes_task_id` and continue.
 
 **Borderline phrasing** — mere mentions like "see TASK-N" or "related to TASK-N" (without `fixes`, `follow-up from`, or `retro follow-up from`) do **not** qualify. Leave `fixes_task_id` unset in those cases.
 
+## Step 3.7: Validate Length Limits
+
+Before presenting the task list, verify every proposed task complies with the hard length caps:
+
+- **summary** — at most **150 characters**
+- **description** — at most **1200 characters**
+
+These caps prevent bloated text from being re-sent on every `tusk task-list` and `tusk task-get` call. An audit found tasks where the entire description had been pasted verbatim into the summary field, producing 600+ char summaries that polluted every subsequent listing.
+
+For each proposed task, count `len(summary)` and `len(description)`. If **either** exceeds its cap, refuse to insert that task — surface the violation and prompt the user before continuing:
+
+> **Length violation in task #<i>** ("<short title>"):
+> - summary: <S> chars (max 150) — over by <S - 150>
+> - description: <D> chars (max 1200) — over by <D - 1200>
+>
+> How would you like to fix this? You can:
+> - **Trim** — propose a shorter version (suggest one if useful)
+> - **Split** — break the task into multiple smaller tasks (helpful when the description is long because it covers multiple deliverables)
+> - **Move** detail from description into acceptance criteria (the criteria list has no length cap and is the right home for HOW-style content)
+> - **Cancel** this task
+
+Apply the user's chosen fix, recount lengths against the same caps (150 / 1200), and only proceed to Step 4 once **every** task is within both limits. Do not skip this validation — a task that exceeds either cap must not reach `tusk task-insert`.
+
 ## Step 4: Present Task List for Review
 
 ### Single-task fast path
@@ -180,21 +212,85 @@ Then ask:
 > - **Edit** a task (e.g., "change 2 priority to High")
 > - **Add** a task you think is missing
 
-### Deferred mode notice
-
-If **deferred mode = on**, add a notice directly below the task list (before asking for confirmation):
-
-> **Note: deferred mode is on — all tasks will be inserted with `--deferred` (60-day expiry, `[Deferred]` prefix).**
-
-This lets the user opt out (e.g., by editing or cancelling) before insertion.
-
 ### For both paths
 
 Wait for explicit user approval before proceeding. Do NOT insert anything until the user confirms.
 
 ## Step 5: Deduplicate, Insert, and Generate Criteria
 
-For each approved task, generate **3–7 acceptance criteria** — concrete, testable conditions that define "done." Derive them from the description: each distinct requirement or expected behavior maps to a criterion. For **bug** tasks, include a criterion that the failure case is resolved. For **feature** tasks, include the happy path and at least one edge case. For any task that creates a new database table (or is in a schema-related domain), always include the criterion: "DOMAIN.md updated with schema entry for `<table_name>`".
+For each approved task, generate **2–5 acceptance criteria** — concrete, testable conditions that define "done."
+
+### Test-first default
+
+**Default to `criterion_type=test` with a proposed pytest node ID** (e.g. `tests/integration/test_foo.py::TestBar::test_baz`) for any criterion that names a behavior, output shape, edge case, or invariant. The test does not need to exist yet — pinning the node ID at planning time forces the author to enumerate input cases before any code is written, and the criterion's contract becomes executable rather than prose.
+
+Prose criteria can be satisfied by partial implementations that match the wording but miss edge cases. Pinning a test name forecloses that gap: `/tusk` cannot mark the criterion done until the named pytest invocation exits 0, so the implementer either writes the test or amends the criterion deliberately. There is no quiet path from "looks plausible" to "marked done."
+
+The only criteria that should remain `manual` are genuine judgment calls: exploratory spikes, prose/UX/visual review, PR-description quality, design tradeoffs, and one-off manual operations. The **Manual fallback** subsection below enumerates these in detail.
+
+Other typed criteria — `code` (presence/absence grep) and `file` (path glob) — remain useful for non-behavioral checks. All typed criteria auto-verify on `tusk criteria done`, removing reasoning cost from /tusk's output tokens; fewer-but-sharper typed criteria beat long manual checklists.
+
+### Type-inference rubric
+
+After drafting each criterion, pick its verification type. Most criteria become `test` (per the test-first default above) — the table below covers the remaining cases. Default to `manual` only when none of the rows fit *and* the criterion belongs in the Manual fallback list.
+
+| Signal in the criterion text | Type | `spec` is | How verification runs |
+|---|---|---|---|
+| Names a **behavior, output shape, edge case, or invariant** that could be expressed as a pytest assertion (default per the test-first rule above) — or already mentions a test command, file, or name | `test` | The exact shell command that runs the test, typically a pytest node ID like `python3 -m pytest tests/foo/test_bar.py::TestBaz::test_quux -q` | Runs `spec`; pass = exit 0; 300s timeout |
+| Mentions a **file path that should exist** (e.g. "CHANGELOG.md has an entry", "migration file in bin/ exists") | `file` | A glob pattern matching the expected path | Pass if **any** file matches |
+| Mentions a **code symbol, string, or pattern that must (or must not) appear** (e.g. "`PRAGMA user_version = 56` stamped in cmd_init", "no raw `sqlite3` call in skills/") | `code` | A shell command (typically `grep -q …` or `! grep -q …`) whose exit code answers the question. **`grep` is line-based** — for assertions that must match across lines (most commonly "Python function accepts param X" against signatures formatted under PEP8/black, which routinely span multiple lines), use a small `ast.parse` Python one-liner instead; see the AST worked example below. Reaching for `grep -Pzq` (PCRE multi-line) is portable on GNU grep but BSD grep on macOS often lacks `-P`, so it is not a safe default. | Runs `spec`; pass = exit 0; 120s timeout |
+| Anything else — visual review, design judgment, prose correctness, behavior in a UI | `manual` | — | None; /tusk asserts it during work |
+
+### Worked `--typed-criteria` examples
+
+One per non-manual type. These are valid arguments to `tusk task-insert` — copy the shape:
+
+```bash
+# test type — auto-runs the named test on `tusk criteria done`
+--typed-criteria '{"text":"Migration test passes","type":"test","spec":"python3 -m pytest tests/integration/test_migrate_56.py -q"}'
+
+# file type — auto-checks the glob matches at least one path
+--typed-criteria '{"text":"Migration test file present","type":"file","spec":"tests/integration/test_migrate_*.py"}'
+
+# code type — auto-greps for presence (or absence) of a symbol or pattern
+--typed-criteria '{"text":"cmd_init stamps user_version 56","type":"code","spec":"grep -q \"PRAGMA user_version = 56\" bin/tusk"}'
+--typed-criteria '{"text":"Skills do not call raw sqlite3","type":"code","spec":"! grep -rE \"(^|[|;&])\\s*sqlite3\\b\" .agents/skills/"}'
+
+# code type, multi-line Python signature — `ast.parse` walks the AST so the
+# match works whether the signature spans one line or twenty. Pass the file
+# path, fn name, and param name as argv so you never interpolate user data
+# into the Python source. Pipe through `tusk typed-criteria-build` to avoid
+# quote-escaping hazards (the spec contains both `"` and `'`):
+read -r -d '' SPEC <<'TUSK_EOF'
+python3 -c "import ast,sys; t=ast.parse(open(sys.argv[1]).read()); assert any(isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name==sys.argv[2] and any(a.arg==sys.argv[3] for a in n.args.args+n.args.kwonlyargs+n.args.posonlyargs) for n in ast.walk(t))" apps/scraper/src/laughtrack/foundation/infrastructure/http/client.py fetch_json scraper_key
+TUSK_EOF
+JSON=$(printf '%s' "$SPEC" | tusk typed-criteria-build --type code --text "fetch_json accepts scraper_key")
+--typed-criteria "$JSON"
+```
+
+For `test` and `code`, `spec` is a shell command — exit 0 = pass; use `! …` to invert. For `file`, `spec` is a glob (recursive `**` works).
+
+### Manual fallback
+
+Reach for plain `--criteria` only when the check requires genuine human judgment and cannot be encoded as a test, code grep, or file glob. The test-first default does **not** apply in these cases:
+
+- **Exploratory spikes / investigations** — the deliverable is a written takeaway, recommendation, or decision document, not code. There is nothing to assert on. The criterion is "the writeup answers the question" and only a human can judge that.
+- **Prose / UX / visual review** — e.g. "the error message reads naturally to a non-technical user", "the screenshot looks right on mobile at 320px", "the README explains the migration clearly to someone seeing it for the first time". Wording quality and visual fidelity have no automated proxy.
+- **PR descriptions and other prose deliverables** — the bar is the quality of the writing itself; no test substitutes for a careful read.
+- **Design judgment calls** — whether an architectural choice is the right tradeoff, whether an API shape feels idiomatic, whether a refactor's diff size is justified by the win.
+- **One-off manual operations** — a one-time DB inspection, environment check, or vendor-portal click-through that won't recur in CI.
+
+For everything else — behaviors, output shapes, edge cases, regression coverage, file presence, code patterns, schema invariants — pin a test name (or a `code` / `file` spec). If a check feels like it should be manual but the *consequence* of getting it wrong is a recurring bug, write the test instead.
+
+Examples:
+
+```bash
+--criteria "DOMAIN.md updated with schema entry for <table_name>"
+--criteria "Error message in confirm dialog reads naturally to a non-technical user"
+--criteria "PR description summarizes the migration steps and rollback plan"
+```
+
+For **bug** tasks, include a criterion that the failure case is resolved (often expressible as a typed `test` criterion — the failing test now passes). For **feature** tasks, include the happy path and at least one edge case. For any task that creates a new database table (or is in a schema-related domain), always include the manual criterion: "DOMAIN.md updated with schema entry for `<table_name>`".
 
 ### Dangerous Criterion Guard
 
@@ -243,31 +339,7 @@ tusk task-insert "<summary>" "<description>" \
   --fixes-task-id <N>
 ```
 
-When **deferred mode = on**, append `--deferred` to every `tusk task-insert` call. This flag applies uniformly to all tasks in the batch — it cannot be set per-task mid-flow:
-
-```bash
-tusk task-insert "<summary>" "<description>" \
-  --priority "<priority>" \
-  --domain "<domain>" \
-  --task-type "<task_type>" \
-  --assignee "<assignee>" \
-  --complexity "<complexity>" \
-  --criteria "<criterion 1>" \
-  --criteria "<criterion 2>" \
-  --criteria "<criterion 3>" \
-  --deferred
-```
-
-For typed criteria with automated verification, use `--typed-criteria` with a JSON object:
-
-```bash
-tusk task-insert "<summary>" "<description>" \
-  --criteria "Manual criterion" \
-  --typed-criteria '{"text":"Tests pass","type":"test","spec":"pytest tests/"}' \
-  --typed-criteria '{"text":"Config exists","type":"file","spec":"config/*.json"}'
-```
-
-Valid types: `manual` (default), `code`, `test`, `file`. Non-manual types require a `spec` field.
+Mix `--criteria` (manual) and `--typed-criteria` (test/file/code) freely in the same call — one flag per criterion. `--typed-criteria` takes a JSON object `{"text": "...", "type": "test|file|code|manual", "spec": "..."}`; non-manual types require `spec`. Pick the type using the rubric in this step: `test` → spec is the test-runner command (exit 0 = pass); `file` → spec is a glob (passes if any file matches); `code` → spec is a `grep -q` (or `! grep -q`) command (exit 0 = pass).
 
 Omit `--domain` or `--assignee` entirely if the value is NULL/empty — do not pass empty strings.
 
@@ -315,12 +387,6 @@ After processing all tasks, show a summary:
 | 14 | Add signup page with form validation | Medium | frontend |
 | 15 | Fix broken CSS on mobile nav | High | frontend |
 | 16 | Add rate limiting middleware | Medium | api |
-```
-
-When **deferred mode = on**, label the created line as `**Created (deferred)**` instead of `**Created**`:
-
-```markdown
-**Created (deferred)**: 3 tasks (#14, #15, #16)
 ```
 
 Include the **Dependencies added** line only when Step 7 was executed (i.e., two or more tasks were created). If Step 7 was skipped (all duplicates, single-task fast path, or user skipped all dependencies), omit the line. If dependencies were proposed but the user removed some, only list the ones actually inserted.

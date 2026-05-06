@@ -11,6 +11,23 @@ The primary interface for working with tasks from the project task database (via
 
 ## Setup: Discover Project Config
 
+When running from a git worktree, use the project-local tusk binary from the
+active checkout for every DB-mutating task command:
+
+```bash
+./.claude/bin/tusk <subcommand>
+```
+
+If you use bare `tusk`, first verify it resolves inside the active project:
+
+```bash
+command -v tusk
+```
+
+Bare `tusk` can resolve to another project's installed scripts while still
+pointing at this project's task database. The failure mode is misleading schema
+or DB errors from the wrong codebase, such as `no such column: is_deferred`.
+
 Before any operation that needs domain or agent values, run:
 
 ```bash
@@ -29,7 +46,7 @@ Finds the highest-priority task that is ready to work on (no incomplete dependen
 tusk task-start --force --skill tusk
 ```
 
-The `--force` flag ensures the workflow proceeds even if the task has no acceptance criteria (emits a warning rather than hard-failing). The `--skill tusk` flag opens a `skill_runs` row attributed to this task; `run_id` is returned under `skill_run.run_id` in the JSON — capture it for the cancel/finish calls later.
+The `--force` flag bypasses the **zero-criteria** guard only (emits a warning rather than hard-failing). It does **not** bypass dep blocking or unresolved external blockers — those are separate guards. To bypass an unmet `blocks`-type dependency, pass `--force-deps` (use sparingly — `blocks` deps exist for a reason). The `--skill tusk` flag opens a `skill_runs` row attributed to this task; `run_id` is returned under `skill_run.run_id` in the JSON — capture it for the cancel/finish calls later.
 
 **Empty backlog**: If the command exits with code 1, the backlog has no ready tasks. Check why:
 
@@ -55,7 +72,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    ```bash
    tusk task-start <id> --force --skill tusk
    ```
-   The `--force` flag ensures the workflow proceeds even if the task has no acceptance criteria (emits a warning rather than hard-failing). The `--skill tusk` flag opens a `skill_runs` row so this session's spend can be attributed to the task. This returns a JSON blob with these keys:
+   The `--force` flag bypasses the **zero-criteria** guard only (emits a warning rather than hard-failing) — it does **not** bypass dep blocking or unresolved external blockers. If the task has unmet `blocks`-type dependencies, the call exits 2 with the blocker list; pass `--force-deps` to bypass that guard with a warning (use sparingly — `blocks` deps exist for a reason). The `--skill tusk` flag opens a `skill_runs` row so this session's spend can be attributed to the task. This returns a JSON blob with these keys:
    - `task` — full task row (summary, description, priority, domain, assignee, etc.)
    - `progress` — array of prior progress checkpoints (most recent first). If non-empty, the first entry's `next_steps` tells you exactly where to pick up. Skip steps you've already completed (branch may already exist, some commits may already be made). Use `git log --oneline` on the existing branch to see what's already been done.
    - `criteria` — array of acceptance criteria objects (id, criterion, source, is_completed, criterion_type, verification_spec). These are the implementation checklist. Work through them in order during implementation. Mark each criterion done (`tusk criteria done <cid>`) as you complete it — do not defer this to the end. Non-manual criteria (type: code, test, file) run automated verification on `done`; use `--skip-verify` if needed. If the array is empty, proceed normally using the description as scope.
@@ -66,7 +83,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    > **Early-exit cleanup:** If any step below causes the skill to stop before reaching the final `/retro` invocation in Step 12, first call `tusk skill-run cancel <run_id>` to close the open row, then stop. Otherwise the row lingers as `(open)` in `tusk skill-run list` forever. The explicit cancel calls below cover the known post-start early-exit paths; if you hit an unexpected bail-out, cancel before returning.
    >
-   > **Pre-start exits don't need cancel.** If `tusk task-start --force --skill tusk` exits 1 (empty backlog — "No ready tasks found") or exits 2 (task not found, already Done, blocked, or missing criteria without `--force`), the skill-run row is never opened, so there is no `run_id` to cancel. Just stop.
+   > **Pre-start exits don't need cancel.** If `tusk task-start --force --skill tusk` exits 1 (empty backlog — "No ready tasks found") or exits 2 (task not found, already Done, has unmet `blocks`-deps without `--force-deps`, has open external blockers, or missing criteria without `--force`), the skill-run row is never opened, so there is no `run_id` to cancel. Just stop.
 
 1b. **Workflow routing** — If the task's `workflow` field (from the `task` object in step 1) is non-null, the task uses a custom workflow instead of the default development cycle. Look up the corresponding skill:
    ```
@@ -89,9 +106,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    tusk check-deliverables <id>
    ```
    (Replace `<id>` with the actual task ID.) This command checks all branches for commits referencing the task and, if none are found, scans the task description and criteria for referenced file paths and tests whether they exist on disk. Act on the `recommendation` field:
-   - **`"commits_found"`** — commits exist on another branch. Switch to it or cherry-pick the relevant commits before proceeding to Explore.
+   - **`"commits_found"`** — `[TASK-<id>]` commits exist on a non-default branch (typically a stale feature branch from a prior session). Switch to it or cherry-pick the relevant commits before proceeding to Explore.
+   - **`"merged_not_closed"`** — `[TASK-<id>]` commits already exist on the default branch AND their diff overlaps with files referenced in this task (or there is no scope signal to compare against). Treat as the orphaned-task case: work was merged without being finalized through `tusk merge`. The SHAs are listed in `default_branch_commits`. Skip implementation entirely. Mark all criteria done with `--skip-verify`, then jump straight to step 12 to close out the session — `tusk merge` will detect the already-merged state and finalize without re-merging.
+   - **`"merged_not_closed_low_confidence"`** — `[TASK-<id>]` commits exist on the default branch but their diff (listed in `default_branch_commit_files`) does NOT overlap with files referenced in this task's description / acceptance criteria / verification specs, NOR with files modified on any `[TASK-<id>]` commit on a feature branch. This is the prefix-match false-positive case (issue #606, original incident TASK-1691): another task's commit was likely tagged with this task's `[TASK-N]` prefix by mistake. **Verify before acting** — inspect each commit listed in `default_branch_commits` (`git show <sha>`) and confirm whether it actually represents this task's work. If yes, treat as `merged_not_closed` (skip implementation, jump to step 12). If no, ignore the on-default commits and proceed normally with Explore → Implement as if the recommendation were `implement_fresh`.
    - **`"mark_done"`** — no commits, but deliverable files listed in `files` already exist on disk. Mark all criteria done with `--skip-verify` and proceed directly to step 9 (commit + merge) without reimplementing.
-   - **`"implement_fresh"`** — no commits and no deliverable files found. The criteria completions were marked without corresponding code — proceed normally and implement from scratch.
+   - **`"criteria_complete_no_commits"`** — every non-deferred acceptance criterion is already marked `is_completed=1`, but there are no `[TASK-<id>]` commits anywhere AND no deliverable files on disk. This is a **salvage / converged-work / speculative-mark** signal (issue #578, original incident TASK-1714): a prior session marked criteria done without producing any committed deliverable. Common causes: (1) lost-work — a prior agent did real work but couldn't commit cleanly (dirty worktree, branch protection, bundled unrelated changes on a salvage branch); (2) convergent-evolution — separate tasks effectively achieved the goal, so no fresh commits are needed for THIS task; (3) speculative pre-marking — criteria were marked done at the start of a prior session without backing code. **Do NOT silently proceed as `implement_fresh`.** Instead: (a) read the task's progress notes via `tusk task-get <id>` and inspect any `next_steps` references; (b) `git branch -a | grep TASK-<id>` for stale branches and inspect their diff against the default branch (`git log <branch>..origin/<default>` and `git show <sha>`) to determine whether the work is obsolete vs. still relevant; (c) surface the options to the user — **re-implement** (proceed with Explore → Implement as if `implement_fresh`), **accept-as-converged** (close via `tusk abandon <id> --reason completed --note "<rationale referencing the converging task or commits>"`), or **abandon** (close via `tusk abandon <id> --reason wont_do --note "..."`). Do not pick the path unilaterally.
+   - **`"implement_fresh"`** — no commits, no deliverable files found, and at least one non-deferred criterion is still incomplete (or the task has no criteria at all). Proceed normally and implement from scratch.
 
 3. **Determine the best subagent(s)** based on:
    - Task domain
@@ -119,7 +139,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    Report findings before writing any code.
 
-5. **Scope check — only implement what the task describes.**
+5b. **Scope check — only implement what the task describes.**
    The task's `summary` and `description` fields define the full scope of work for this session. If the description references or links to external documents (evaluation docs, design specs, RFCs), treat them as **background context only** — do not implement items from those docs that go beyond what the task's own description asks for. Referenced docs often describe multi-task plans; implementing the entire plan collapses future tasks into one PR and defeats dependency ordering.
 
 6. **Delegate the work** to the chosen subagent(s).
@@ -138,16 +158,31 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
        **Always quote file paths** — zsh expands unquoted brackets (`[id]`, `[slug]`) as glob patterns before the shell passes arguments to `tusk commit`. Any path component containing `[`, `]`, `*`, `?`, or spaces must be wrapped in double quotes (e.g., `"apps/api/[id]/route.ts"`).
 
+       **Avoid backticks and unescaped `$` in commit messages** — even inside double quotes, zsh and bash treat backticks as command substitution and `$VAR` / `$(…)` as variable expansion. A message that references code (e.g. explaining a `flatMap { $0.isEmpty ? nil : $0 } ?? "US"` change) fails with `zsh: parse error near '}'` before tusk ever sees the args. Drop the backticks (use plain identifiers) or escape every metacharacter — double-quoting alone does not protect them. This is the same class of zsh-quoting hazard as the file-paths note above, just hitting the message argument instead.
+
        **Grouping criteria:** 2–3 genuinely co-located criteria (e.g., a schema change and its migration) may share one commit — use one `--criteria` flag per ID:
        ```bash
        tusk commit <id> "<message>" "<file1>" ["<file2>" ...] --criteria <cid1> --criteria <cid2>
        ```
        Always include a brief rationale in the commit message when grouping. **Never** bundle all criteria onto a single end-of-task commit.
 
-    **If the task has no git-trackable file changes** (e.g., a venv install, a runtime config change, an OS-level operation), skip `tusk commit` entirely — it requires at least one file argument and will fail with exit code 1 (usage error) if none are provided. Mark criteria done directly:
+    **If a criterion does not apply to the implementation path you chose** (e.g., a mutually-exclusive "do X OR document why exempt" pair where you did X), use `tusk criteria skip` — NOT `tusk criteria done --skip-verify`:
+    ```bash
+    tusk criteria skip <cid> --reason "not applicable: chose <chosen-branch> over <skipped-branch>"
+    ```
+    `done --skip-verify` stamps the criterion with HEAD's commit hash, leaking an unrelated commit into the audit trail and triggering "shares commit" warnings between unrelated criteria. `skip` sets `is_deferred=1` with the rationale recorded in `deferred_reason`; the `task-done` gate and `v_criteria_coverage` view exclude deferred criteria automatically, so the task closes cleanly. Reserve `done --skip-verify` for criteria that ARE satisfied but cannot be auto-verified (the cases below).
+
+    **If the task has no git-trackable file changes** (e.g., a venv install, a runtime config change, an OS-level operation, or a DB-only deliverable like `tusk conventions update` / `tusk lint-rule add`), skip `tusk commit` entirely — it requires at least one file argument and will fail with exit code 1 (usage error) if none are provided. Mark criteria done directly:
     ```bash
     tusk criteria done <cid> --skip-verify
     ```
+    Once every criterion is marked done, the feature branch will have no `[TASK-<id>]` commits to merge — close out via Step 12's `tusk abandon <id> --reason completed --note "<rationale>"` path rather than `tusk merge` (which refuses on an empty branch).
+
+    **If a criterion requires filing follow-up tasks** (typical for investigation/triage tasks whose criteria read "file focused follow-up tasks covering each distinct break"), do NOT call `tusk task-insert` directly. Dupe-check first so a freshly-filed sibling task isn't immediately superseded by an existing one:
+    ```bash
+    tusk dupes check "<proposed summary>"
+    ```
+    If the check returns a match, amend the existing task (e.g., `tusk criteria add <id> "<criterion>"` or `tusk task-update <id>`) instead of creating a new one. If no match is found, prefer `/create-task` over a raw `tusk task-insert` — `/create-task` runs the same dedup check, decomposes scope, and applies the project's task conventions in one call. Use `tusk task-insert` only when scripting bulk inserts where the dedup step has already been done.
 
     **After each `tusk commit` in foreground mode**, run `git status --short` to confirm your files were staged and committed — a zero-exit commit that produced no diff (e.g. all files were already tracked with no changes) will silently succeed without staging anything.
 
@@ -183,6 +218,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk commit <id> "<message>" "<file>" --skip-lint --criteria <cid>
     ```
     Lint output during commit is now filtered: only rules with violations print — passing rules are suppressed. If the last lint pass was clean, you won't see any lint output at all.
+
+    **If `tusk commit` exits 5 (test_command timeout)** — the configured `test_command` exceeded its timeout and was killed before producing an exit code. The stderr message names the resolved timeout and source. The resolution chain is `TUSK_TEST_COMMAND_TIMEOUT` env var > `config.test_command_timeout_sec` in `tusk/config.json` > default (240s). If the failure is just slow first-run compilation (cold xcodebuild, Bazel cold cache, large Rust compile), retry with a per-invocation override:
+    ```bash
+    TUSK_TEST_COMMAND_TIMEOUT=600 tusk commit <id> "<message>" "<file>" --criteria <cid>
+    ```
+    If the slow path is permanent for this project, raise `test_command_timeout_sec` in `tusk/config.json` instead of overriding on every call. **Do not blindly raise the timeout** when the command genuinely hangs (e.g. waiting on interactive input or a missing dependency) — make the command non-interactive and fix the underlying hang first.
 
     **If `tusk commit` hard-fails because tests fail** (exit code 2 — `test_command` is set and returned non-zero), **first verify the failure is not pre-existing** before entering the diagnosis loop:
 
@@ -269,16 +310,32 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     This squash-merges via `gh pr merge` instead of a local fast-forward.
 
-    **No-commit closure (`wont_do` / `duplicate`):** If the task should be closed *without* shipping any code — an evaluation/spike whose answer is "don't do it", or a task that turns out to be a duplicate — use `tusk abandon` instead of `tusk merge`:
+    **No-commit closure (`wont_do` / `duplicate` / `completed`):** If the task should be closed *without* shipping any code, use `tusk abandon` instead of `tusk merge`:
     ```bash
-    tusk abandon <id> --reason wont_do|duplicate --session $SESSION_ID [--note "<rationale>"]
+    tusk abandon <id> --reason wont_do|duplicate|completed --session $SESSION_ID [--note "<rationale>"]
     ```
+    Three reason values are accepted:
+    - **`wont_do`** — an evaluation/spike whose answer is "don't do it".
+    - **`duplicate`** — the task turns out to overlap an already-tracked one.
+    - **`completed`** — the goal was met but no `[TASK-N]` commits land on the default branch. Two sub-cases:
+        - *convergent-completion* (issue #580): separate work landing on the default branch between filing and pickup already satisfied the goal, so there is nothing left to ship.
+        - *DB-only deliverable* (issue #669): the deliverable is a SQLite row written via a tusk subcommand (`tusk conventions update`, `tusk conventions add`, `tusk lint-rule add`, `tusk glossary set-definition`, etc.) — the feature branch is intentionally empty because nothing in the working tree changes.
+
+      Pass `--note "<rationale>"` in both cases and reference the converging task(s)/commit(s) or the DB write performed — `tusk abandon` records it on `task_progress` as `[abandon: completed] <note>`, which is the audit signal that distinguishes this case from a normal `tusk merge` close (no `[TASK-N]` commits will be on the default branch for this task either).
+
     `tusk abandon` switches off the feature branch, deletes it (force), closes the session, and marks the task Done with the given `closed_reason` in one call. **Refuses** if the feature branch has commits not on the default branch — in that case use `tusk merge` to ship the work, or delete the branch manually if you really want to discard it. The optional `--note` records the decision rationale on `task_progress` so the audit trail survives. After `tusk abandon` exits 0, run `/retro` exactly as you would after `tusk merge`.
 
     After `tusk merge` (or `tusk abandon`) exits 0, close out the /tusk skill-run so its cost is captured before `/retro` starts its own run:
     ```bash
     tusk skill-run finish <run_id>
     ```
+
+    Then emit the canonical end-of-run summary before handing off to /retro:
+    ```bash
+    tusk task-summary <id> --format markdown
+    ```
+
+    This prints a single markdown block with the task identity, closed reason, total cost, wall/active duration, diff stats (files changed, lines added/removed, commit count), criteria counts, review pass count, and reopen count. Show it verbatim to the user — do not re-render or summarize it. Runs on both the merge and abandon paths; diff stats are filtered to commits that reference `[TASK-<id>]` so shared-branch pollution never appears in the numbers.
 
     Then run `/retro` immediately — do not ask "shall I run retro?". Invoke it to review the session, surface process improvements, and create follow-up tasks.
 

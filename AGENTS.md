@@ -66,6 +66,28 @@ When editing repo-local skills:
 The sync script also refreshes `.claude/tusk-manifest.json`, so do **not** hand-edit
 `.agents/skills/` or manually maintain the Claude manifest entries for skill files.
 
+## Tusk in Worktrees — Use the Active Checkout's Binary
+
+When running task workflow commands from a git worktree, use the project-local
+tusk binary from that active checkout:
+
+```bash
+./.claude/bin/tusk <subcommand>
+```
+
+If you use bare `tusk`, first verify it resolves inside the current LaughTrack
+checkout:
+
+```bash
+command -v tusk
+```
+
+Failure mode: bare `tusk` can resolve to another project's installed tusk
+scripts while the active database is still LaughTrack's. That mismatched code
+and DB schema produces false errors such as `no such column: is_deferred`, and
+can affect DB-mutating operations like `task-start`, `criteria done`, `commit`,
+`merge`, `review`, `skill-run`, and `retro`.
+
 ## Scraper Platform Reference
 
 For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, Ninkashi, Tixr, Eventbrite, SeatEngine, Squarespace, Tockify, OvationTix, OpenDate, TicketSource, and more), see `apps/scraper/SCRAPERS.md`.

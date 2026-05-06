@@ -1,6 +1,7 @@
 ---
 name: tusk-insights
 description: Read-only DB health audit with interactive recommendations, plus on-demand HTML task dashboard generation
+model: sonnet
 ---
 
 # Tusk Insights

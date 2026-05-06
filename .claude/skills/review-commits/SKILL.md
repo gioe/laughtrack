@@ -18,6 +18,17 @@ Optional: `/review-commits <task_id>` — if omitted, task ID is inferred from t
 
 ## Step 0: Start Cost Tracking
 
+When reviewing from a git worktree, run tusk commands through the project-local
+binary in the active checkout:
+
+```bash
+./.claude/bin/tusk <subcommand>
+```
+
+If you use bare `tusk`, first verify `command -v tusk` points inside this
+project. Otherwise it can resolve to another project's installed tusk scripts
+and produce false schema or DB errors, such as `no such column: is_deferred`.
+
 First, resolve the task ID so the skill run can be attributed to it. Use the argument if one was passed, otherwise parse it from the current branch:
 
 ```bash

@@ -1,6 +1,7 @@
 ---
 name: groom-backlog
 description: Groom the backlog by closing completed tickets, removing redundant/stale tickets, reprioritizing, and assigning agents
+model: sonnet
 ---
 
 # Groom Backlog Skill
@@ -35,17 +36,14 @@ This returns a JSON object with two keys:
 
 ## Pre-Check: Auto-Close Stale Tasks
 
-Run all three auto-close checks (expired deferred, merged PRs, moot contingent) in a single command:
+Run the auto-close check for moot contingent tasks:
 
 ```bash
 tusk autoclose
 ```
 
 This returns a JSON summary with counts and task IDs per category:
-- `expired_deferred` — deferred tasks past their 60-day expiry (closed as `expired`)
-- `merged_prs` — In Progress tasks whose GitHub PR is already merged (closed as `completed`)
 - `moot_contingent` — tasks contingent on upstream work that closed as `wont_do`/`expired` (closed as `wont_do`)
-- `flagged_for_review` — (if present) In Progress tasks whose PR was closed without merging — flag these for user review in Step 3
 
 If `total_closed` is 0, report "No auto-close candidates found" and proceed to Step 1. Otherwise, report the counts before continuing.
 
@@ -262,4 +260,4 @@ claude -p /groom-backlog
 
 ## Important Guideline
 
-**Keep the backlog lean (< 20 open tasks)**: The full backlog dump scales at ~700 tokens/task and is repeated across ~15+ agentic turns during grooming. A 30-task backlog can consume over 300k tokens in a single session. Aggressively close, merge, or defer tasks to stay under 20 open items.
+**Keep the backlog lean (< 20 open tasks)**: The full backlog dump scales at ~700 tokens/task and is repeated across ~15+ agentic turns during grooming. A 30-task backlog can consume over 300k tokens in a single session. Aggressively close or merge tasks to stay under 20 open items.

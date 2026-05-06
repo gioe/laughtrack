@@ -34,7 +34,6 @@ tusk retro-signals $RETRO_TASK_ID
 Parse the JSON. The fields consumed by the steps below are:
 
 - **`review_themes`** — `(category, severity)` pairs with ≥ 2 occurrences across this task's review passes, plus a short sample comment. Each theme is a candidate Category A (conventions) or Category D (lint rules) finding. Seed Step 3 directly from this list — **do not** re-query `review_comments` with SQL.
-- **`deferred_review_comments`** — individual review comments with `resolution='deferred'`, each with its `deferred_task_id` (may be null). These are open follow-up threads and must be surfaced in the Step 4 report so reviewers can see what was punted forward.
 - **`reopen_count`** — integer count of `to_status='To Do'` transitions on this task. When > 0, render a `**Reopened N times**` line in Step 4's "Rework Context" section so the reviewer pauses on whether the close actually stuck.
 - **`rework_chain`** — `{fixes, fixed_by}`. `fixes` is the upstream task this one was filed to address (via `fixes_task_id`); `fixed_by` is the downstream follow-ups that were filed to fix *this* one. When either list is non-empty, render the entries in Step 4's "Rework Context" section and append the explicit "**Was the root cause addressed?**" prompt — recurring fix chains are the strongest signal that an earlier pass treated symptoms rather than the underlying issue.
 
@@ -70,7 +69,7 @@ Consume `tool_errors` from this same `tusk retro-signals` JSON — **do not** op
 
 This signal drives the full retro only — the lightweight retro path (XS/S in `SKILL.md`) is intentionally unchanged to keep it lean.
 
-If the task has no review activity at all, both `review_themes` and `deferred_review_comments` will be empty arrays. In that case, **omit** the "Review Theme Summary" section from Step 4 silently — do not add a "(none)" placeholder.
+If the task has no review activity at all, `review_themes` will be an empty array. In that case, **omit** the "Review Theme Summary" section from Step 4 silently — do not add a "(none)" placeholder.
 
 ## Step 2c: Cross-retro Themes (from Step 0b output)
 
@@ -79,6 +78,16 @@ Step 0b in `SKILL.md` already ran `tusk retro-themes --window-days 30 --min-recu
 If `$RECURRING_THEMES` is empty, no recurring pattern has crossed the 3×/30-day bar yet — nothing to flag in Step 3.
 
 If one or more themes are present, carry the list into Step 3: for every finding whose category matches a recurring theme, append an inline recurrence note (`— recurring theme: seen N times in last 30 days`) next to that finding in both the categorization table and the Step 4 report. This tells the reviewer "this isn't the first time we've surfaced something in this bucket" before they approve a new task for it, which raises the bar for duplicate work.
+
+## Step 2d: Read Mid-task Jots
+
+Fetch any friction notes the implementer captured during the task via `tusk jot`:
+
+```bash
+tusk jots --task-id $RETRO_TASK_ID
+```
+
+The output is an array of `{id, skill_run_id, task_id, category, note, file_hint, skill_hint, created_at}` rows. Each jot is a **pre-classified finding candidate** captured at the moment of friction — treat its `category` as a strong hint when bucketing into the categories below in Step 3, and quote the `note` verbatim in the resulting finding's summary. Jots are the highest-fidelity input to retro because they were not reconstructed from memory at close time; for M/L/XL tasks where hours of context have elapsed, they are typically more reliable than re-reading the conversation. Empty array → no jots were filed; proceed using conversation context alone.
 
 ## Step 3: Categorize Findings
 
@@ -156,15 +165,11 @@ Brief (2-3 sentence) overview of what the session accomplished.
 
 > **Was the root cause addressed?** (include only when `rework_chain.fixes` or `rework_chain.fixed_by` is non-empty)
 
-### Review Theme Summary (omit if both tables below are empty)
+### Review Theme Summary (omit if review_themes is empty)
 
 **Recurring themes** (from `review_themes` — omit table if empty)
 | Category | Severity | Count | Sample |
 |----------|----------|-------|--------|
-
-**Deferred review comments** (from `deferred_review_comments` — omit table if empty)
-| # | Category | Severity | File | Deferred Task | Comment |
-|---|----------|----------|------|---------------|---------|
 
 ### Known gaps at close (omit if skipped_criteria is empty AND no next_steps survive the heuristic match)
 
@@ -210,9 +215,7 @@ Brief (2-3 sentence) overview of what the session accomplished.
 ```
 
 **Review Theme Summary rendering rules:**
-- If both `review_themes` and `deferred_review_comments` are empty, omit the entire "Review Theme Summary" section silently (no heading, no placeholder).
-- If only one of the two tables has rows, include the section with just that table and omit the empty one.
-- Each `deferred_review_comments` row shows `deferred_task_id` as `TASK-<id>` when non-null; render `—` when null (no follow-up task was linked). This keeps the "what happened to it" link visible even after the comment is closed out.
+- If `review_themes` is empty, omit the entire "Review Theme Summary" section silently (no heading, no placeholder).
 - Sample columns are already truncated to 80 chars by `retro-signals`; do not re-quote or pad them.
 
 **Rework Context rendering rules:**
@@ -348,6 +351,8 @@ Fill in `<pattern>` (grep regex), `<file_glob>` (e.g., `*.md` or `bin/tusk-*.py`
 
 Before creating tasks for Category A (process improvement) or Category E (debugging velocity) findings, check if any can be applied as inline patches to an existing skill or AGENTS.md. Run this step **before** 5b for Category A and Category E findings.
 
+Initialize an empty list `$AUTO_APPLIED` for the Step 6 summary — auto-apply gate hits in step 3 below append one line per applied edit.
+
 For each approved Category A finding:
 
 1. **Classify the finding as rule-like or narrative:**
@@ -379,7 +384,26 @@ For each approved Category A finding:
    **If a target file is identified**:
    a. Read the file (`Read .agents/skills/<name>/SKILL.md` or `Read AGENTS.md`)
    b. Produce a **concrete proposed edit** — the exact text to add, change, or remove. Show the specific diff, not a vague description.
-   c. Present the patch with three options:
+
+   c. **Auto-apply gate (only for skill-frontmatter edits).** Before showing the three-option prompt, read the `retro` config once:
+
+      ```bash
+      tusk config retro
+      ```
+
+      The command prints the `retro` JSON object (or exits non-zero / prints nothing when the key is unset). If `retro.auto_apply` is not exactly `true` — i.e. the key is missing, the value is `false`/`null`, or `tusk config retro` printed nothing — **skip this gate entirely** and proceed to step 3d (three-option prompt). Behavior must match the pre-auto-apply flow exactly when the feature is disabled. When `retro.auto_apply` is `true`, also read `retro.auto_apply_max_chars` (default `200` if unset) for the size budget below.
+
+      If `retro.auto_apply` is `true`, the proposed edit qualifies for auto-apply only when **ALL** of the following hold:
+
+      - **Frontmatter-only**: every changed line lies inside the YAML frontmatter block (between the opening `---` and closing `---` at the top of `.agents/skills/<name>/SKILL.md`), and each changed line is either a `description:` line or a `#`-prefixed comment line. Body changes (anything below the closing `---`), `name:` / `allowed-tools:` / other frontmatter fields, and `AGENTS.md` edits never qualify.
+      - **Size budget**: the total character count of the diff (sum of `old_string` length + `new_string` length, or for additions just the `new_string` length) is strictly less than `retro.auto_apply_max_chars` (default 200).
+      - **Additive or character-level**: either (a) the change is a pure addition — `new_string` extends `old_string` with appended content and contains no deletions — or (b) the change is character-level on a single line — exactly one frontmatter line is modified, and the modification only inserts or replaces characters within that line (no full-line removals, no multi-line removals).
+
+      If **any** condition fails, fall through to step 3d (three-option prompt). Do not partially auto-apply.
+
+      If **all** conditions hold and `retro.auto_apply` is enabled, **apply the edit immediately using the Edit tool — skip the three-option prompt entirely**. Record a one-line entry in `$AUTO_APPLIED` (file path + brief description, one entry per line) for the Step 6 summary, and do **not** create a task for this finding. Proceed to the next finding.
+
+   d. Otherwise, present the patch with three options:
 
       > **Skill Patch Proposal** — [finding title]
       > File: `.agents/skills/<name>/SKILL.md`
@@ -393,11 +417,13 @@ For each approved Category A finding:
       > **defer** — create a task with this diff included in the description (handled in 5b)
       > **skip** — create a generic task via 5b as usual
 
-   d. **If approved**: apply the edit in-session using the Edit tool. Do **not** create a task for this finding.
-   e. **If deferred**: proceed to 5b for this finding, including the proposed diff verbatim in the task description.
-   f. **If skipped, or if no target file was identified**: proceed to 5b normally.
+   e. **If approved**: apply the edit in-session using the Edit tool. Do **not** create a task for this finding.
+   f. **If deferred**: proceed to 5b for this finding, including the proposed diff verbatim in the task description.
+   g. **If skipped, or if no target file was identified**: proceed to 5b normally.
 
 ## Step 6: Report Results
+
+The /tusk skill already printed the task summary block (`tusk task-summary <id> --format markdown`) immediately before invoking /retro, so the user has already seen the canonical identity/cost/duration/diff/criteria rollup for the just-closed task. Do **not** re-emit that block here — start directly with the retrospective findings so the two sections read as one continuous report.
 
 ```markdown
 ## Retrospective Complete
@@ -407,6 +433,7 @@ For each approved Category A finding:
 **Created**: N tasks (#id, #id)
 **GitHub issues filed**: N (tusk-issues routed via tusk report-issue — omit line if zero)
 **Lint rules**: K applied inline, M deferred as tasks
+**Auto-applied**: P frontmatter edits — <one entry per item from $AUTO_APPLIED, format: `path/to/SKILL.md (brief description)`> (omit line if P == 0)
 **Subsumed**: S findings into existing tasks (#id)
 **Dependencies added**: D (if any were created)
 **Skipped**: M duplicates

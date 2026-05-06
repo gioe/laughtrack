@@ -1,11 +1,11 @@
 ---
 name: review-commits
-description: Run an AI code reviewer against the task's git diff, fix must_fix issues, and defer or dismiss suggestions
+description: Run an AI code reviewer against the task's git diff, fix must_fix issues, and dismiss or spin off suggestions
 ---
 
 # Review Commits Skill
 
-Orchestrates a single code review against the task's git diff (commits on the current branch vs the base branch). Spawns at most one background reviewer agent (or zero, if no reviewer is configured), monitors completion, fixes must_fix findings, handles suggest findings interactively, and creates deferred tasks for defer findings.
+Orchestrates a single code review against the task's git diff (commits on the current branch vs the base branch). Spawns at most one background reviewer agent (or zero, if no reviewer is configured), monitors completion, fixes must_fix findings, and handles suggest findings interactively (fix now, spin off into a follow-up task, or dismiss).
 
 > Use `/create-task` for task creation — handles decomposition, deduplication, criteria, and deps. Use `tusk task-insert` only for bulk/automated inserts.
 
@@ -16,6 +16,17 @@ Optional: `/review-commits <task_id>` — if omitted, task ID is inferred from t
 ---
 
 ## Step 0: Start Cost Tracking
+
+When reviewing from a git worktree, run tusk commands through the project-local
+binary in the active checkout:
+
+```bash
+./.claude/bin/tusk <subcommand>
+```
+
+If you use bare `tusk`, first verify `command -v tusk` points inside this
+project. Otherwise it can resolve to another project's installed tusk scripts
+and produce false schema or DB errors, such as `no such column: is_deferred`.
 
 First, resolve the task ID so the skill run can be attributed to it. Use the argument if one was passed, otherwise parse it from the current branch:
 
@@ -45,9 +56,9 @@ Parse the returned JSON. Extract:
 - `review.mode` — if `"disabled"`, run `tusk skill-run cancel <run_id>`, print "Review mode is disabled in config (review.mode = disabled). Enable it in tusk/config.json to use /review-commits." and **stop**.
 - `review.max_passes` — maximum fix-and-re-review cycles (default: 2)
 - `review.reviewer` — a single reviewer object with `name` and `description` fields, or absent. When absent, the review is created as unassigned and Step 5 falls back to inline review (no agent is spawned).
-- `review_categories` — valid comment categories (typically `["must_fix", "suggest", "defer"]`)
+- `review_categories` — valid comment categories (typically `["must_fix", "suggest"]`)
 - `review_severities` — valid severity levels (typically `["critical", "major", "minor"]`)
-- `task_types` — list of valid task type strings. Resolve the best type for deferred tasks now: prefer `"refactor"`, then `"chore"`, then the first entry that is not `"bug"`. Store as `DEFERRED_TASK_TYPE`. If the list is empty or every entry is `"bug"`, set `DEFERRED_TASK_TYPE = null`.
+- `task_types` — list of valid task type strings. Resolve the best type for follow-up tasks created from `suggest` findings now: prefer `"refactor"`, then `"chore"`, then the first entry that is not `"bug"`. Store as `FOLLOWUP_TASK_TYPE`. If the list is empty or every entry is `"bug"`, set `FOLLOWUP_TASK_TYPE = null`.
 
 ## Step 2: Verify Task and Capture Domain
 
@@ -59,49 +70,31 @@ tusk -header -column "SELECT id, summary, status, domain FROM tasks WHERE id = $
 
 If no row is returned, run `tusk skill-run cancel <run_id>` to close the open row, then abort: "Task `$TASK_ID` not found."
 
-Store the task's `domain` value — Step 7 uses it when dupe-checking and creating deferred tasks.
+Store the task's `domain` value — Step 7 uses it when dupe-checking and creating follow-up tasks from `suggest` findings.
 
-## Step 3: Get the Git Diff
+## Step 3: Compute Diff Range and Start the Review
 
-Compute the diff range in one call — the helper handles the default-branch resolution (`tusk git-default-branch`), the `<default>...HEAD` primary range, and the `[TASK-<id>]` commit-range recovery fallback used when the feature branch has already been merged and deleted:
+Bundle the diff-range computation and the `code_reviews` row creation into one call. The helper handles the default-branch resolution (`tusk git-default-branch`), the `<default>...HEAD` primary range, the `[TASK-<id>]` commit-range recovery fallback used when the feature branch has already been merged and deleted, and stamps the captured diff summary onto the new review row internally — so the dangerous summary string never has to round-trip through shell variables:
 
 ```bash
-DIFF_RANGE_JSON=$(tusk review-diff-range $TASK_ID)
+REVIEW_BEGIN_JSON=$(tusk review begin $TASK_ID)
 ```
 
-On success the helper prints a single JSON object with four keys (`range`, `diff_lines`, `summary`, `recovered_from_task_commits`) and exits 0. Capture:
+On success the helper prints a single JSON object with `review_id`, `task_id`, `reviewer`, `range`, `diff_lines`, and `recovered_from_task_commits`, and exits 0. Capture:
 
 ```bash
-DIFF_RANGE=$(echo "$DIFF_RANGE_JSON" | jq -r .range)
-DIFF_LINES=$(echo "$DIFF_RANGE_JSON" | jq -r .diff_lines)
-DIFF_SUMMARY=$(echo "$DIFF_RANGE_JSON" | jq -r .summary)
+REVIEW_ID=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .review_id)
+DIFF_RANGE=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .range)
+DIFF_LINES=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .diff_lines)
 ```
 
 If the helper exits non-zero, it means no diff is recoverable — either no `[TASK-<id>]` commits were found in recent history, or the recovered range is still empty. The helper's stderr message is the same one Step 3 used to print inline. Run `tusk skill-run cancel <run_id>` and stop, surfacing the helper's stderr verbatim.
 
-Use `$DIFF_RANGE` for any subsequent `git diff` call in this skill, and pass `$DIFF_SUMMARY` to `tusk review start` (Step 4). **Do not pass the diff to reviewer agents** — they will fetch it themselves via `git diff` to avoid transcription errors.
-
-## Step 4: Start the Review
-
-Start a review record for the task. This creates one `code_reviews` row using the configured reviewer (or unassigned if `review.reviewer` is absent):
-
-```bash
-tusk review start <task_id> --diff-summary "$DIFF_SUMMARY"
-```
-
-`$DIFF_SUMMARY` was captured from the `tusk review-diff-range` JSON in Step 3 — already truncated to the first 120 characters of the diff.
-
-The command prints a single line, for example:
-
-```
-Started review #12 for task #42 (reviewer: general): Fix login bug
-```
-
-Capture the printed `review_id`.
+Use `$DIFF_RANGE` for any subsequent `git diff` call in this skill. **Do not pass the diff to reviewer agents** — they will fetch it themselves via `git diff` to avoid transcription errors.
 
 ## Step 5: Spawn the Reviewer Agent
 
-Only when the diff is non-empty and a review has been started in Step 4, proceed with the steps below.
+Only when the diff is non-empty and a review has been started in Step 3, proceed with the steps below.
 
 ### Step 5.1: Choose review strategy and verify permissions
 
@@ -110,6 +103,19 @@ Only when the diff is non-empty and a review has been started in Step 4, proceed
 **Inline-review path (no agent spawned).** Use the inline path when *any* of the following is true:
 - The diff is small (fewer than ~200 lines) or contains only non-code files (`.md`, `.json`, `.yaml`).
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
+- Tusk is running under a Codex install AND the user did not explicitly opt into subagent-based review for this `/review-commits` invocation. Codex session policy disallows spawning subagents unless the operator asks for one, so the inline path is the safe default — it keeps the real-diff review workflow without violating session policy.
+
+**Detecting Codex install mode and the opt-in.** Read the `install-mode` marker stamped by `install.sh` (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`):
+
+```bash
+TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
+case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
+```
+
+Treat the user as having opted into the agent path only when their `/review-commits` invocation explicitly contains a phrase like `use the reviewer agent`, `delegate review`, `spawn the reviewer`, or `agent review`. A bare `/review-commits` (or one with only a task ID argument) is **not** an opt-in. When `IS_CODEX=1` and no opt-in phrase is present, surface the routing decision before reading the diff — e.g. *"Codex install detected — running inline review. Re-run with `use the reviewer agent` to opt into agent-based review."* — so the operator can re-invoke with the opt-in flag if they want a full agent review.
+
+**Why install-mode and not a runtime signal?** Codex (the `openai/codex` CLI) does not document or inject a `CODEX_*` env var into subprocess environments to mark "running under Codex" — `CODEX_HOME` is a configuration input pointing at Codex's local state, not an output marker, and `shell_environment_policy` lets users strip inherited variables freely (so even if a marker existed, it would not be reliable). install-mode is therefore the most durable signal we have: `install.sh` chooses it from `.claude/` (claude) vs `AGENTS.md`-only (codex) at install time and stamps the marker once. **Mixed-mode caveat:** a repo with both `.claude/` and `AGENTS.md` is marked `claude-*` by `install.sh`. If `/review-commits` is invoked from a Codex session in such a repo, `IS_CODEX=0` and the agent path is taken — under Codex's subagent policy that spawn may fail. If it does, perform a manual inline review: read the diff yourself, then use `tusk review approve` or `tusk review request-changes` + `tusk review add-comment`.
 
 Read the diff yourself, evaluate it, and record the result directly. Always pass `--model <your_model_id>` — the canonical ID matching the format in `task_sessions.model` (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`). Strip any suffixes like `[1m]` or date-stamps from your system prompt's ID so the value joins cleanly against other model-tagged tables (e.g. `claude-opus-4-7[1m]` → `claude-opus-4-7`):
 
@@ -135,6 +141,15 @@ On success the command prints `OK` and exits 0. On failure it prints a single `M
 
 Proceed to spawn the agent only if the check prints `OK`.
 
+**Capture cost-attribution anchors before spawning.** The reviewer agent runs in its own Task sandbox and writes to a separate `<session-uuid>.jsonl` under `~/.claude/projects/<project-hash>/`. The orchestrator's auto-compute path uses `find_transcript()`, which returns whichever JSONL has the most recent mtime — typically the orchestrator's own (continuously updated by tool results), so the cost recorded on `code_reviews` reflects orchestrator wait time, not the actual reviewer-agent spend. To attribute correctly, snapshot the orchestrator's JSONL path and the spawn timestamp now, before spawning:
+
+```bash
+ORCH_JSONL=$(tusk review-agent-cost --print-orchestrator-jsonl)
+SPAWN_TS=$(date +%s)
+```
+
+Hold both values for Step 6, where the orchestrator runs `tusk review-agent-cost --since "$SPAWN_TS" --exclude-jsonl "$ORCH_JSONL"` after the agent completes and pipes the result into `tusk review backfill-cost --force <review_id> --cost-dollars X --tokens-in Y --tokens-out Z`. If `tusk review-agent-cost --print-orchestrator-jsonl` exits non-zero (no transcript found), fall through without setting `ORCH_JSONL` — Step 6 will skip the cost-correction step and the row keeps its (orchestrator-only) auto-compute.
+
 Read the reviewer prompt template:
 
 ```
@@ -155,10 +170,10 @@ Task tool call:
 
 Fill in these placeholders from the template:
 - `{task_id}` — the task ID
-- `{review_id}` — the review ID captured in Step 4
+- `{review_id}` — the review ID captured in Step 3
 - `{reviewer_name}` — `review.reviewer.name` from config
 - `{reviewer_focus}` — `review.reviewer.description` from config
-- `{review_categories}` — comma-separated list from config (e.g., `must_fix, suggest, defer`)
+- `{review_categories}` — comma-separated list from config (e.g., `must_fix, suggest`)
 - `{review_severities}` — comma-separated list from config (e.g., `critical, major, minor`)
 
 **Do not pass the diff inline.** The reviewer agent fetches the diff itself via `git diff` (see REVIEWER-PROMPT.md Step 1). This prevents transcription errors from the orchestrator-to-agent copy.
@@ -167,46 +182,70 @@ After spawning, record the agent task ID.
 
 ## Step 6: Monitor Reviewer Completion
 
-Wait for the reviewer agent to finish.
+Wait for the reviewer agent to finish. The agent was spawned with `run_in_background: true` in Step 5, so the runtime emits an automatic completion notification when the agent exits. **Do not chain `sleep 30 && tusk review status <task_id>`** — the runtime blocks long leading sleeps and emits a tool error every time, even though the run still completes via the auto-notification.
 
-**Setup before entering the loop:**
+**Primary path: wait for the auto-completion notification.**
 
+No active polling required — the runtime delivers a notification when the background agent exits. When it arrives, fall through to the **Resolve the verdict** sub-step below.
+
+**Stall detection (no notification within ~2.5 min):**
+
+If you have been waiting for the agent without a completion notification for ~2.5 minutes (matching the previous `STALL_THRESHOLD = 5 × 30s` semantics), the agent may be looping or running a long-running command. Use a short-sleep until-loop — the runtime sleep guard allows `sleep 2` inside an `until` body — that exits as soon as `tusk review status` returns a terminal verdict OR the wall-clock deadline elapses:
+
+```bash
+DEADLINE=$(($(date +%s) + 150))
+until [ "$(tusk review status <task_id> | jq -r .status)" != "pending" ] || [ "$(date +%s)" -ge "$DEADLINE" ]; do
+  sleep 2
+done
 ```
-stall_count = 0
-STALL_THRESHOLD = 5   # iterations (~2.5 min at 30 s/iter)
+
+After the loop exits, fall through to the **Resolve the verdict** sub-step.
+
+**Resolve the verdict:**
+
+Re-read the review status and decide how to proceed:
+
+```bash
+tusk review status <task_id>
 ```
 
-**Monitoring loop:**
+Parse the JSON.
 
-1. Wait 30 seconds:
-   ```bash
-   sleep 30
-   ```
+- **`status` is `"approved"` or `"changes_requested"`** → the agent posted its verdict normally. Now correct the cost attribution before moving on (see "Apply agent cost" below), then proceed to Step 7.
 
-2. Check whether the review is still pending:
-   ```bash
-   tusk review status <task_id>
-   ```
-   Parse the JSON. If the review's `status` is `"approved"` or `"changes_requested"`, exit the loop.
+- **`status` is still `"pending"`** → check whether the agent has finished using `TaskOutput` with `block: false` and the agent task ID:
 
-3. If still pending, check whether the agent has finished using `TaskOutput` with `block: false` and the agent task ID:
+  **Agent has completed** (TaskOutput shows the agent is done) but the review is still `"pending"`:
+  - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note. Pass `--model <your_model_id>` (the orchestrator's own ID from its system prompt) since the orchestrator, not the silent agent, is closing this review. **Cost note:** because the orchestrator is closing the review, the row's `cost_dollars` is auto-computed from the orchestrator's transcript window and reflects only orchestrator-side spend (the agent never recorded a verdict, so its API tokens cannot be attributed via the normal flow). After the approve call, attempt the agent-cost correction below — the agent did exit, so its JSONL may exist:
+    ```bash
+    tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
+    ```
+    The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. Continue as if the review returned no findings.
 
-   **Agent still running:**
-   - Increment `stall_count` by 1.
-   - If `stall_count >= STALL_THRESHOLD`, the agent has been running for too long without posting a verdict. Auto-approve immediately with a stall warning note and exit the loop. Pass `--model <your_model_id>` (the orchestrator's own ID from its system prompt) since the orchestrator, not the stalled agent, is closing this review:
-     ```bash
-     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (stall): reviewer agent has been running for ≥5 monitoring iterations (~2.5 min) without posting a verdict. The agent may be looping or running a long-running command such as a full test suite. Check REVIEWER-PROMPT.md Step 2.6 constraints. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
-     ```
-     Continue as if the review returned no findings.
+  **Agent is still running** after the stall deadline elapsed:
+  - Auto-approve with a stall warning note. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the stalled agent, is closing this review. **Cost note:** the row's `cost_dollars` here reflects orchestrator-only attribution — the agent is still mid-run, so its in-progress JSONL is not safe to aggregate. **Skip the agent-cost correction** in this branch and accept the orchestrator-side cost; document the gap with the stall note already on the row:
+    ```bash
+    tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (stall): reviewer agent has been running for ≥2.5 min without posting a verdict. The agent may be looping or running a long-running command such as a full test suite. Check REVIEWER-PROMPT.md Step 2.6 constraints. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
+    ```
+    Continue as if the review returned no findings.
 
-   **Agent has completed** (TaskOutput shows the agent is done) but the review is still `"pending"`:
-   - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the silent agent, is closing this review:
-     ```bash
-     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
-     ```
-     The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. Continue as if the review returned no findings.
+**Apply agent cost (normal-completion path only).** When the agent posted its verdict normally — i.e. the `status` check above returned `"approved"` or `"changes_requested"` — its `tusk review approve` / `tusk review request-changes` call ran inside the agent sandbox and the auto-compute resolved against `find_transcript()`, which (because the orchestrator's JSONL is being continuously updated) typically attributed to the orchestrator's transcript window. Override the row with the agent's actual spend now:
 
-4. If the agent is still running and has not been stall-auto-approved, go back to step 1.
+```bash
+if [ -n "$ORCH_JSONL" ]; then
+  AGENT_COST_JSON=$(tusk review-agent-cost --since "$SPAWN_TS" --exclude-jsonl "$ORCH_JSONL")
+  AGENT_COST_RC=$?
+  if [ "$AGENT_COST_RC" -eq 0 ]; then
+    AGENT_COST=$(printf '%s' "$AGENT_COST_JSON" | jq -r .cost_dollars)
+    AGENT_TIN=$(printf '%s' "$AGENT_COST_JSON"  | jq -r .tokens_in)
+    AGENT_TOUT=$(printf '%s' "$AGENT_COST_JSON" | jq -r .tokens_out)
+    tusk review backfill-cost --force "$REVIEW_ID" \
+      --cost-dollars "$AGENT_COST" --tokens-in "$AGENT_TIN" --tokens-out "$AGENT_TOUT"
+  fi
+fi
+```
+
+`tusk review-agent-cost` reads the project's Claude transcripts dir, lists JSONLs modified at or after `$SPAWN_TS`, excludes `$ORCH_JSONL`, and aggregates token usage and cost across the remaining (agent) transcripts. Exit 0 means the override flags carry the agent's actual spend; exit 1 means no agent transcripts were discoverable (subagent JSONLs may live elsewhere on this host) and the row keeps its (orchestrator-only) auto-compute. Skip the block entirely if `$ORCH_JSONL` was not captured in Step 5.1.
 
 ## Step 7: Process Findings
 
@@ -259,34 +298,29 @@ Task tool call:
 
 ### suggest comments
 
-These are optional improvements. For each `suggest` comment, **decide autonomously** whether to fix or dismiss — do not ask the user:
+These are optional improvements. For each `suggest` comment, **decide autonomously** between three branches — do not ask the user:
 
 - **Fix**: implement the suggestion, append every file you modified to `REVIEW_FIX_FILES` (`REVIEW_FIX_FILES+=("<file_path>")`), then run `tusk review resolve <comment_id> fixed`
-  - Apply when the fix is small, clearly correct, and within the current task's scope
-- **Dismiss**: run `tusk review resolve <comment_id> dismissed`
-  - Apply when the suggestion is out of scope, low-value, or would require significant rework
+  - Apply when the fix is small, clearly correct, and within the current task's scope.
+- **Spin off into a follow-up task**: create a new task that captures the finding, then dismiss the comment with the new task ID in the dismissal trail.
+  - Apply when the suggestion is real and worth doing, but out of scope for the current task.
+  - Procedure (run inline; do NOT call any defer-style helper — the comment text and follow-up task summary live exclusively in the description and dismissal note):
+    1. Pick a one-line summary from the comment text. Run `tusk dupes check "<summary>" --json --domain <task domain captured in Step 2>`. Exit code 0 means no duplicate; exit code 1 means a duplicate was found and `matched_task_id` points at it (note it and skip to step 4).
+    2. If `FOLLOWUP_TASK_TYPE` (resolved in Step 1) is null, print "Skipped follow-up task — no suitable task_type in config (not 'bug'): <summary>", run `tusk review resolve <comment_id> dismissed`, and continue. Do NOT create the follow-up.
+    3. Otherwise insert the follow-up:
+       ```bash
+       tusk task-insert "<summary>" "<comment text + file path + line range>" \
+         --priority Medium \
+         --domain <task domain captured in Step 2> \
+         --task-type "$FOLLOWUP_TASK_TYPE" \
+         --criteria "Address review finding: <summary>"
+       ```
+       Capture the new `task_id` from the JSON output.
+    4. Resolve the comment as dismissed: `tusk review resolve <comment_id> dismissed`. In the rationale you record below, include `Tracked as TASK-<new_id>` (or `Duplicate of TASK-<matched_task_id>` for the dupe path) so the audit trail of "where did this go" survives.
+- **Dismiss outright**: run `tusk review resolve <comment_id> dismissed`
+  - Apply when the suggestion is low-value, would require significant rework with no clear payoff, or is genuinely a non-issue.
 
-Record every decision (fix or dismiss) with a one-line rationale — these will be included in the final summary so the user can review them.
-
-### defer comments
-
-These are valid issues but out of scope for the current work. If `DEFERRED_TASK_TYPE` (resolved in Step 1) is **null** — config has no suitable task type — skip helper invocation entirely. For each `defer` comment, print a warning "Skipped deferred task — no suitable task_type in config (not 'bug'): <summary>" and mark the comment resolved manually via `tusk review resolve <comment_id> deferred`.
-
-Otherwise, call the helper per comment to atomically run the dupe check, insert the deferred task (when not a duplicate), and mark the comment resolved — one call replaces the prior three-step dance:
-
-```bash
-tusk review-defer <comment_id> --domain <same domain as current task> --task-type <DEFERRED_TASK_TYPE>
-```
-
-The helper reads the comment text from `review_comments`, runs `tusk dupes check` on the derived summary against the given domain, and:
-- inserts a new deferred task (`--priority Medium`, `--task-type <DEFERRED_TASK_TYPE>`, `--deferred`, criterion "Address deferred finding: <summary>") when there is no duplicate;
-- records the match and skips insertion when a duplicate already exists;
-- records the failure and skips insertion when the dupe check itself errored.
-
-In all three branches the comment is marked resolved. The helper exits 0 and prints JSON `{created_task_id, skipped_reason, matched_task_id}` on stdout:
-- `created_task_id` set, `skipped_reason` null — new deferred task was created; note the id.
-- `skipped_reason: "duplicate"` — `matched_task_id` points at an open task already covering this finding; print a note (e.g., "Skipped deferred task — duplicate of #<id>: <summary>").
-- `skipped_reason: "dupe_check_failed"` — the dupe check itself errored; print a warning (e.g., "Skipped deferred task — dupe check failed: <summary>") so the user can re-file manually if needed.
+Record every decision (fix, spin off, or dismiss) with a one-line rationale — these will be included in the final summary so the user can review them.
 
 After processing all findings, check the current verdict:
 
@@ -314,18 +348,29 @@ If `can_retry` is false (either no open `must_fix` items, or `current_pass >= ma
 
 Otherwise, loop while `can_retry` is true:
 
-1. Start a new review pass:
+1. Start a new review pass and capture the diff size in one call. `tusk review begin` resolves the default branch (`tusk git-default-branch`), computes the `<default>...HEAD` primary range, falls back to the `[TASK-<id>]` commit-range recovery when the feature branch has already been merged and deleted, stamps the captured diff summary onto the new `code_reviews` row internally, and prints a single JSON object with `review_id`, `task_id`, `reviewer`, `range`, `diff_lines`, and `recovered_from_task_commits`. Pass `--pass-num` to bump the pass counter:
    ```bash
-   tusk review start <task_id> --pass-num <current_pass + 1> --diff-summary "Re-review pass <n>"
+   REVIEW_BEGIN_JSON=$(tusk review begin $TASK_ID --pass-num <current_pass + 1>)
+   DIFF_LINES=$(printf '%s' "$REVIEW_BEGIN_JSON" | jq -r .diff_lines)
    ```
 
-2. **Check diff size before deciding review strategy.** Recompute the range with the same helper used in Step 3 — it transparently handles both the default-branch (TASK-commit recovery) and feature-branch (`<default>...HEAD`) cases:
+   If the helper exits non-zero, no diff is recoverable for this pass — surface its stderr verbatim and stop the loop.
+
+2. **Branch on diff size to decide review strategy.**
+
+   **For small or documentation-only diffs (`$DIFF_LINES` below ~200, or only non-code files), when `review.reviewer` is absent from config, or when Tusk is running under a Codex install without an explicit subagent opt-in:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). After recording the inline decision, skip to step 3.
+
+   To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 
    ```bash
-   DIFF_LINES=$(tusk review-diff-range $TASK_ID | jq -r .diff_lines)
+   TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+   INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
+   case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
    ```
 
-   **For small or documentation-only diffs (`$DIFF_LINES` below ~200, or only non-code files), or when `review.reviewer` is absent from config:** skip agent spawning and perform an inline review. Read the diff yourself, evaluate it against the reviewer focus area, and record the result directly (approve or request-changes + add-comment). After recording the inline decision, skip to step 3.
+   The user has opted into the agent path only when their invocation explicitly contains a phrase like `use the reviewer agent`, `delegate review`, `spawn the reviewer`, or `agent review`. A bare `/review-commits` (or one with only a task ID argument) is **not** an opt-in. When `IS_CODEX=1` without an opt-in phrase, take the inline path on this re-review pass too.
+
+   **Mixed-mode caveat:** a repo with both `.claude/` and `AGENTS.md` is marked `claude-*` by `install.sh` (install-mode is decided at install time, not at runtime, and Codex does not inject a `CODEX_*` env var into subprocess environments that we could read instead). If this re-review pass is running from a Codex session in such a repo, `IS_CODEX=0` and the agent path will be attempted — under Codex's subagent policy that spawn may fail. If it does, perform a manual inline review on this pass: read the diff yourself, then use `tusk review approve` or `tusk review request-changes` + `tusk review add-comment`, and skip to step 3.
 
    **For all other diffs:** verify the required agent sandbox permissions are configured before spawning the re-review agent. Run:
 
@@ -336,7 +381,14 @@ Otherwise, loop while `can_retry` is true:
    On failure the command prints a single `MISSING: …` line and exits 1. When the check fails, surface to the user:
    > Re-review agent aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
-   Proceed to spawn the re-review agent only if the check prints `OK`. The re-review agent fetches the diff itself — no diff is passed inline.
+   Proceed to spawn the re-review agent only if the check prints `OK`. The re-review agent fetches the diff itself — no diff is passed inline. Refresh the cost-attribution anchors before spawning so Step 6's "Apply agent cost" block can correct this pass's row too:
+
+   ```bash
+   ORCH_JSONL=$(tusk review-agent-cost --print-orchestrator-jsonl)
+   SPAWN_TS=$(date +%s)
+   ```
+
+   Both variables shadow the values captured in Step 5.1 — that's intended; each pass writes a fresh `code_reviews` row, and the agent JSONL spawned for this pass is the only one that should attribute to it.
 
 3. Monitor completion (Step 6) and process findings (Step 7).
 
@@ -388,8 +440,10 @@ Once the list is reconciled, stage, commit, and push in a single pass:
 ```bash
 git add -- "${REVIEW_FIX_FILES[@]}"
 git commit -m "[TASK-<task_id>] Apply review fixes"
-git push
+git push --set-upstream origin HEAD
 ```
+
+`--set-upstream origin HEAD` is required on the **first** push of a brand-new feature branch when `push.autoSetupRemote` is not set in the user's git config — bare `git push` aborts with "no upstream branch". The flag is idempotent on subsequent pushes (just re-binds the existing tracking ref), so it is safe to use unconditionally.
 
 ## Step 10: Final Summary
 
@@ -408,12 +462,11 @@ Pass:      <pass number of this review>
 
 must_fix:  <total_count> found, <fixed_count> fixed
 suggest:   <total_count> found, <fixed_count> fixed, <dismissed_count> dismissed
-defer:     <total_count> found, <created_count> tasks created, <skipped_count> skipped (duplicate)
 
 Verdict: <APPROVED | CHANGES REMAINING>
 ```
 
-Counts aggregate across **all** of the task's reviews (including superseded passes) so the block reflects cumulative findings — but the verdict considers only non-superseded reviews, matching `tusk review verdict`. A deferred finding counts as "created" when `review_comments.deferred_task_id` is populated and as "skipped" (duplicate) when it is NULL.
+Counts aggregate across **all** of the task's reviews (including superseded passes) so the block reflects cumulative findings — but the verdict considers only non-superseded reviews, matching `tusk review verdict`. Suggest findings that were spun off into a follow-up task land in the `dismissed` count (the comment is resolved as dismissed with the new task ID in the rationale); the follow-up task itself shows up in the backlog, not in this block.
 
 ## Step 11: Finish Cost Tracking
 
