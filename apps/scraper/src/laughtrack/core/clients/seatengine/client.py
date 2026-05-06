@@ -72,6 +72,7 @@ class SeatEngineClient(BaseApiClient):
             cb.record_success()
             shows = data.get("data", data.get("shows", []))
             self.log_info(f"Extracted {len(shows)} shows from response")
+            shows = await self._fetch_missing_show_details(shows)
 
             # Fetch venue website once per scrape run for public show URL construction.
             # Isolated try/except prevents any failure here from contaminating the
@@ -125,11 +126,43 @@ class SeatEngineClient(BaseApiClient):
             # A successful ticket fetch signals the API is reachable — reset the counter
             # in case a prior fetch_events() failure left the count partially elevated.
             cb.record_success()
-            return data
+            return data.get("data", data) if isinstance(data, dict) else data
         except (CircuitBreakerOpenError, NetworkError):
             raise
         except Exception as e:
             raise NetworkError(f"Failed to fetch ticket data from SeatEngine: {e}") from e
+
+    async def _fetch_missing_show_details(self, shows: List[JSONDict]) -> List[JSONDict]:
+        """Enrich venue-list shows with per-show detail when inventories are absent."""
+        enriched_shows = []
+        for show in shows:
+            if not isinstance(show, dict) or self._has_inventories(show):
+                enriched_shows.append(show)
+                continue
+
+            show_id = show.get("id")
+            if not show_id:
+                enriched_shows.append(show)
+                continue
+
+            try:
+                detail = await self.get_ticket_data(str(show_id))
+            except Exception as e:
+                self.log_warning(f"Failed to fetch SeatEngine show detail for {show_id}: {e}")
+                enriched_shows.append(show)
+                continue
+
+            if isinstance(detail, dict):
+                enriched_shows.append({**show, **detail})
+            else:
+                enriched_shows.append(show)
+
+        return enriched_shows
+
+    @staticmethod
+    def _has_inventories(show: JSONDict) -> bool:
+        inventories = show.get("inventories")
+        return isinstance(inventories, list) and len(inventories) > 0
 
     def create_show(self, show_dict: JSONDict) -> Optional[Show]:
         """Create a Show object from the SeatEngine response data."""
@@ -181,26 +214,38 @@ class SeatEngineClient(BaseApiClient):
         else:
             purchase_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
 
-        sold_out = show_dict.get("sold_out", False)
-
-        if sold_out:
-            return [Ticket(
-                price=0.0,
-                purchase_url=purchase_url,
-                sold_out=True,
-                type="General Admission",
-            )]
-
-        # Extract price from inventories if present (integer cents → float dollars)
+        show_sold_out = bool(show_dict.get("sold_out", False))
         inventories = show_dict.get("inventories", [])
-        price = 0.0
-        if inventories:
-            price = (inventories[0].get("price") or 0) / 100
+        tickets = []
+        for inventory in inventories if isinstance(inventories, list) else []:
+            if not isinstance(inventory, dict):
+                continue
+            if inventory.get("active") is False and not show_sold_out:
+                continue
+
+            price = (inventory.get("price") or 0) / 100
+            ticket_type = inventory.get("title") or inventory.get("name") or "General Admission"
+            inventory_sold_out = (
+                show_sold_out
+                or bool(inventory.get("sold_out", False))
+                or inventory.get("available") is False
+            )
+            tickets.append(
+                Ticket(
+                    price=price,
+                    purchase_url=purchase_url,
+                    sold_out=inventory_sold_out,
+                    type=ticket_type,
+                )
+            )
+
+        if tickets:
+            return tickets
 
         return [Ticket(
-            price=price,
+            price=0.0,
             purchase_url=purchase_url,
-            sold_out=False,
+            sold_out=show_sold_out,
             type="General Admission",
         )]
 
