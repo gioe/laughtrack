@@ -144,7 +144,8 @@ async def test_fetch_events_populates_venue_website(monkeypatch, stub_base_init)
     # Second call must NOT re-fetch venue details (only one venue API call per run)
     prev_len = len(call_urls)
     await client.fetch_events("venue-abc")
-    venue_calls = [u for u in call_urls[prev_len:] if "shows" not in u.split("/")[-1]]
+    venue_url = "https://services.seatengine.com/api/v1/venues/venue-abc"
+    venue_calls = [u for u in call_urls[prev_len:] if u == venue_url]
     assert len(venue_calls) == 0, "venue endpoint should not be re-fetched on second call"
 
 
@@ -172,6 +173,70 @@ async def test_fetch_events_venue_website_failure_degrades_gracefully(monkeypatc
     shows = await client.fetch_events("venue-abc")
     assert shows == shows_payload["data"]
     assert client.venue_website == ""  # sentinel: fetched, no website (failure path)
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_enriches_show_without_inventories_from_detail(monkeypatch, stub_base_init):
+    """fetch_events fetches per-show detail when the venue-list show has no inventories."""
+    client = _make_client(monkeypatch)
+    list_show = _make_show_dict(show_id=356465, inventories=[])
+    detail_show = _make_show_dict(
+        show_id=356465,
+        sold_out=True,
+        inventories=[{"price": 4500, "service_charge": 500, "title": "VIP"}],
+    )
+    call_urls = []
+
+    async def fake_fetch_json(url, headers=None):
+        call_urls.append(url)
+        if url.endswith("/shows"):
+            return {"data": [list_show]}
+        if url.endswith("/shows/356465"):
+            return {"data": detail_show}
+        return {"data": {"website": "https://townsquare.seatengine.com"}}
+
+    monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
+
+    from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
+
+    shows = await client.fetch_events("venue-abc")
+
+    assert shows[0]["inventories"] == detail_show["inventories"]
+    assert shows[0]["sold_out"] is True
+    assert any(url.endswith("/shows/356465") for url in call_urls)
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_detail_failure_keeps_fallback_show(monkeypatch, stub_base_init):
+    """Per-show detail failures keep venue-list data and log visible context."""
+    client = _make_client(monkeypatch)
+    list_show = _make_show_dict(show_id=356465, inventories=[])
+    warnings = []
+
+    async def fake_fetch_json(url, headers=None):
+        if url.endswith("/shows"):
+            return {"data": [list_show]}
+        if url.endswith("/shows/356465"):
+            raise RuntimeError("detail API exploded")
+        return {"data": {"website": "https://townsquare.seatengine.com"}}
+
+    monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
+    monkeypatch.setattr(client, "log_warning", lambda msg, *a, **k: warnings.append(msg))
+
+    from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
+
+    shows = await client.fetch_events("venue-abc")
+
+    assert shows == [list_show]
+    assert any("356465" in warning and "detail API exploded" in warning for warning in warnings)
 
 
 _FAKE_DATE = "2026-04-01T20:00:00+00:00"
@@ -229,6 +294,23 @@ def test_create_show_price_from_inventories(monkeypatch, stub_base_init):
 
     assert show is not None
     assert show.tickets[0].price == 25.0
+
+
+def test_create_show_uses_inventory_type_and_price_when_sold_out(monkeypatch, stub_base_init):
+    """Inventory fields drive ticket price/type while show sold_out maps to Ticket.sold_out."""
+    client = _make_client(monkeypatch)
+    client.venue_website = "https://comedyzoneclt.seatengine.com"
+    _patch_dates(monkeypatch)
+
+    inventories = [{"price": 4500, "service_charge": 500, "title": "VIP Table"}]
+    show = client.create_show(_make_show_dict(sold_out=True, inventories=inventories))
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    ticket = show.tickets[0]
+    assert ticket.price == 45.0
+    assert ticket.type == "VIP Table"
+    assert ticket.sold_out is True
 
 
 def test_create_show_price_defaults_to_zero_without_inventories(monkeypatch, stub_base_init):
