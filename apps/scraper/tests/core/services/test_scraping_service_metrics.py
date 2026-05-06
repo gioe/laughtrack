@@ -167,6 +167,33 @@ class TestCheckAndAlert:
                 assert "Broken Club" in names
                 assert "Empty Club" not in names
 
+    def test_palm_beach_improv_2026_05_05_replay_emits_no_alert(self):
+        """End-to-end replay of the 2026-05-05 palm_beach_improv artifact
+        through _check_and_alert. Pre-fix this venue showed as 'down (1/1)'
+        in the WARNING summary; post-fix the EMPTY_CALENDAR outcome filters
+        it before any alert channel is invoked. See TASK-1941 for the
+        artifact-derived state."""
+        svc = self._make_service(threshold=70.0)
+        replay = DomainRequestMetrics(
+            club_name="Palm Beach Improv",
+            club_id=379,
+            scraper_type="palm_beach_improv",
+            total=1,
+            none_resp=1,
+            targets_collected=12,
+            fetches_ok=12,
+            fetches_failed=0,
+            items_before_filter=0,
+        )
+        summary = _make_multi_club_summary([replay])
+        with patch.object(svc, '_send_discord_alert') as mock_discord, \
+             patch.object(svc, '_send_email_alert') as mock_email, \
+             patch.object(svc, '_send_webhook_alert') as mock_webhook:
+            svc._check_and_alert(summary)
+            mock_discord.assert_not_called()
+            mock_email.assert_not_called()
+            mock_webhook.assert_not_called()
+
     def test_outage_lines_contain_correct_summary_format(self):
         """Outage summary string contains scraper type and N/total count."""
         svc = self._make_service(threshold=70.0)

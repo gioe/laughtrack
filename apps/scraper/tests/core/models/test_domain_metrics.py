@@ -151,6 +151,62 @@ class TestOutcomeClassification:
         assert d["outcome"] == "empty_calendar"
 
 
+class TestPalmBeachImprovReplay:
+    """Replay the 2026-05-05 nightly artifact for palm_beach_improv (TASK-1941).
+
+    Per the closed TASK-1941 investigation, the venue produced this scrape
+    state on 2026-05-05:
+      - 12 monthly Kravis AJAX URLs collected (Apr 2026 through Mar 2027)
+      - All 12 fetched cleanly (14k–17k char HTML each, no exceptions)
+      - Only 1 Persson-Hall candidate surfaced across the full year, and
+        the detail-page check correctly rejected it as non-Improv
+      - Because the scraper returns None from get_data when the filtered
+        event list is empty, transform_data was never invoked, so
+        items_before_filter stayed at 0
+      - shows = 0, error = None → metrics.none_resp = 1
+
+    The pre-fix WARNING summary surfaced this venue as 'palm_beach_improv
+    appears to be down (1/1 venues failed)' — exactly the conflation this
+    task is meant to resolve.
+    """
+
+    def test_routes_to_empty_calendar_not_failed_bucket(self):
+        m = DomainRequestMetrics(
+            club_name="Palm Beach Improv",
+            club_id=379,
+            scraper_type="palm_beach_improv",
+            total=1,
+            none_resp=1,
+            targets_collected=12,
+            fetches_ok=12,
+            fetches_failed=0,
+            items_before_filter=0,
+        )
+        assert m.outcome == ScrapeOutcome.EMPTY_CALENDAR
+        assert m.outcome != ScrapeOutcome.DEGRADED
+        assert m.outcome != ScrapeOutcome.CLASSIFIER_REJECTED_ALL
+
+    def test_below_threshold_still_lists_it_but_outcome_excludes_it(self):
+        """The success-rate is 0% so .below_threshold(70) still returns it —
+        the alert layer is what filters by outcome, not the metric struct."""
+        s = ScrapingRunSummary()
+        s.per_club.append(DomainRequestMetrics(
+            club_name="Palm Beach Improv",
+            club_id=379,
+            scraper_type="palm_beach_improv",
+            total=1,
+            none_resp=1,
+            targets_collected=12,
+            fetches_ok=12,
+            items_before_filter=0,
+        ))
+        below = s.below_threshold(70.0)
+        assert len(below) == 1
+        # And the run summary's empty_calendar_clubs aggregator picks it up.
+        assert s.clubs_empty_calendar == 1
+        assert s.empty_calendar_clubs[0].club_name == "Palm Beach Improv"
+
+
 class TestRunSummaryEmptyCalendarCounts:
     def test_clubs_empty_calendar_counts_only_empty_outcomes(self):
         s = ScrapingRunSummary()
