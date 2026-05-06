@@ -136,7 +136,7 @@ def _build_synthetic_proxy_for_company(company: ProductionCompany) -> Optional[C
         platform="eventbrite",
         scraper_key="eventbrite",
         source_url=url,
-        external_id=organizer_id,
+        eventbrite_id=organizer_id,
         priority=0,
         enabled=True,
     )

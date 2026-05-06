@@ -253,7 +253,7 @@ def main() -> int:
 
             cur.execute(
                 """
-                SELECT id, club_id, platform, scraper_key, external_id, source_url,
+                SELECT id, club_id, platform, scraper_key, eventbrite_id, source_url,
                        enabled, priority, metadata
                 FROM scraping_sources WHERE id = ANY(%s)
                 """,
@@ -300,7 +300,7 @@ def main() -> int:
                         f"REPOINT: ss.id={t.original_source_id} platform={platform!r} "
                         f"(expected 'eventbrite')"
                     )
-                # external_id, source_url, and enabled are all rewritten by the same
+                # eventbrite_id, source_url, and enabled are all rewritten by the same
                 # UPDATE in a single transaction, so live state must reflect either the
                 # full pre-write tuple (organizer.id + /o/ URL) or the full post-write
                 # tuple (venue.id + bare eventbrite.com URL). enabled stays True in both.
@@ -476,7 +476,7 @@ def main() -> int:
                         cur.execute(
                             """
                             UPDATE scraping_sources
-                            SET external_id = %s,
+                            SET eventbrite_id = %s,
                                 source_url = %s,
                                 enabled = TRUE,
                                 metadata = %s,
@@ -623,7 +623,7 @@ def main() -> int:
 
             cur.execute(
                 """
-                SELECT id, club_id, external_id, source_url, enabled
+                SELECT id, club_id, eventbrite_id, source_url, enabled
                 FROM scraping_sources WHERE id = ANY(%s) ORDER BY id
                 """,
                 (all_source_ids,),

@@ -10,7 +10,13 @@ class ClubQueries:
             'club_id', ss.club_id,
             'platform', ss.platform,
             'scraper_key', ss.scraper_key,
-            'external_id', ss.external_id,
+            'seatengine_id', ss.seatengine_id,
+            'eventbrite_id', ss.eventbrite_id,
+            'ticketmaster_id', ss.ticketmaster_id,
+            'wix_event_id', ss.wix_event_id,
+            'ovationtix_id', ss.ovationtix_id,
+            'squadup_id', ss.squadup_id,
+            'seatengine_v3_id', ss.seatengine_v3_id,
             'source_url', ss.source_url,
             'priority', ss.priority,
             'enabled', ss.enabled,
@@ -39,7 +45,13 @@ class ClubQueries:
                 ss.id,
                 ss.platform,
                 ss.scraper_key,
-                ss.external_id,
+                ss.seatengine_id,
+                ss.eventbrite_id,
+                ss.ticketmaster_id,
+                ss.wix_event_id,
+                ss.ovationtix_id,
+                ss.squadup_id,
+                ss.seatengine_v3_id,
                 ss.source_url,
                 ss.priority,
                 ss.enabled,
@@ -171,7 +183,7 @@ class ClubQueries:
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
-                club_id, platform, scraper_key, external_id, source_url,
+                club_id, platform, scraper_key, eventbrite_id, source_url,
                 priority, enabled, metadata
             )
             SELECT
@@ -186,7 +198,7 @@ class ClubQueries:
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
-                external_id = COALESCE(scraping_sources.external_id, EXCLUDED.external_id),
+                eventbrite_id = COALESCE(scraping_sources.eventbrite_id, EXCLUDED.eventbrite_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
                 enabled     = TRUE
             RETURNING club_id
@@ -212,14 +224,14 @@ class ClubQueries:
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
-                club_id, platform, scraper_key, external_id, source_url,
+                club_id, platform, scraper_key, seatengine_id, source_url,
                 priority, enabled, metadata
             )
             SELECT
                 id,
                 'seatengine',
                 'seatengine',
-                %s,
+                %s::integer,
                 %s,
                 0,
                 TRUE,
@@ -227,7 +239,7 @@ class ClubQueries:
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
-                external_id = COALESCE(scraping_sources.external_id, EXCLUDED.external_id),
+                seatengine_id = COALESCE(scraping_sources.seatengine_id, EXCLUDED.seatengine_id),
                 source_url  = COALESCE(
                     NULLIF(scraping_sources.source_url, 'https://www.seatengine.com'),
                     EXCLUDED.source_url
@@ -256,7 +268,7 @@ class ClubQueries:
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
-                club_id, platform, scraper_key, external_id, source_url,
+                club_id, platform, scraper_key, seatengine_v3_id, source_url,
                 priority, enabled, metadata
             )
             SELECT
@@ -271,7 +283,7 @@ class ClubQueries:
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
-                external_id = COALESCE(scraping_sources.external_id, EXCLUDED.external_id),
+                seatengine_v3_id = COALESCE(scraping_sources.seatengine_v3_id, EXCLUDED.seatengine_v3_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
                 enabled     = TRUE
             RETURNING club_id
@@ -313,7 +325,7 @@ class ClubQueries:
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
-                club_id, platform, scraper_key, external_id, source_url,
+                club_id, platform, scraper_key, ticketmaster_id, source_url,
                 priority, enabled, metadata
             )
             SELECT
@@ -328,7 +340,7 @@ class ClubQueries:
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = COALESCE(scraping_sources.scraper_key, EXCLUDED.scraper_key),
-                external_id = COALESCE(scraping_sources.external_id, EXCLUDED.external_id),
+                ticketmaster_id = COALESCE(scraping_sources.ticketmaster_id, EXCLUDED.ticketmaster_id),
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
                 enabled     = TRUE
             RETURNING club_id
@@ -355,14 +367,13 @@ class ClubQueries:
         ),
         upserted_source AS (
             INSERT INTO scraping_sources (
-                club_id, platform, scraper_key, external_id, source_url,
+                club_id, platform, scraper_key, source_url,
                 priority, enabled, metadata
             )
             SELECT
                 id,
                 'tour_dates',
                 'tour_dates',
-                NULL,
                 'tour_dates',
                 0,
                 TRUE,

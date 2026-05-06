@@ -94,20 +94,34 @@ class _FakeVenue:
 
 
 def _scraping_sources_entry(*, platform, scraper_key="", source_url="",
-                             external_id=None, club_id=None, source_id=1):
+                             platform_id=None, club_id=None, source_id=1):
     """Build one element of the scraping_sources list as produced by the
     json_agg LATERAL in ClubQueries — the shape Club.from_db_row consumes."""
-    return {
+    source = {
         "id": source_id,
         "club_id": club_id,
         "platform": platform,
         "scraper_key": scraper_key or "",
-        "external_id": external_id,
         "source_url": source_url or "",
         "priority": 0,
         "enabled": True,
         "metadata": {},
     }
+    if platform == "seatengine":
+        source["seatengine_id"] = int(platform_id) if platform_id is not None else None
+    elif platform == "seatengine_v3":
+        source["seatengine_v3_id"] = platform_id
+    elif platform == "eventbrite":
+        source["eventbrite_id"] = platform_id
+    elif platform == "ticketmaster":
+        source["ticketmaster_id"] = platform_id
+    elif platform == "ovationtix":
+        source["ovationtix_id"] = platform_id
+    elif platform == "wix_events":
+        source["wix_event_id"] = platform_id
+    elif platform == "squadup":
+        source["squadup_id"] = platform_id
+    return source
 
 
 def _row_with_source(defaults, *, platform, legacy):
@@ -119,7 +133,7 @@ def _row_with_source(defaults, *, platform, legacy):
             platform=platform,
             scraper_key=legacy.get("scraper", "") or "",
             source_url=legacy.get("scraping_url", "") or "",
-            external_id=legacy.get("external_id"),
+            platform_id=legacy.get("platform_id"),
             club_id=defaults.get("id"),
         )
     ]
@@ -167,7 +181,7 @@ def _make_club_row(**overrides):
     return _row_with_source(defaults, platform="eventbrite", legacy={
         "scraper": legacy["scraper"],
         "scraping_url": legacy["scraping_url"],
-        "external_id": legacy["eventbrite_id"],
+        "platform_id": legacy["eventbrite_id"],
     })
 
 
@@ -228,7 +242,7 @@ class TestUpsertForEventbriteVenueHappyPath:
         # New CTE shape: (name, address, zip_code, city, state, venue_id)
         assert params[0] == "Gotham Comedy Club"   # name
         assert params[2] == "10011"                # zip_code
-        assert params[5] == "venue-xyz"            # venue_id (scraping_sources.external_id)
+        assert params[5] == "venue-xyz"            # venue_id (scraping_sources.eventbrite_id)
 
     def test_address_concatenated_from_parts(self):
         """Address is joined from address_1, city, region with ', '."""
@@ -305,11 +319,11 @@ class TestUpsertForEventbriteVenueConflict:
 
     def test_sql_uses_coalesce_for_eventbrite_id(self):
         """SQL contract: UPSERT_CLUB_BY_EVENTBRITE_VENUE must COALESCE the
-        scraping_sources.external_id (the Eventbrite venue id) so existing
+        scraping_sources.eventbrite_id (the Eventbrite venue id) so existing
         rows are preserved on conflict."""
         sql = ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE.upper()
         assert "SCRAPING_SOURCES" in sql
-        assert "EXTERNAL_ID" in sql
+        assert "EVENTBRITE_ID" in sql
 
 
 class TestUpsertSqlAvoidsCteSnapshotBug:
@@ -728,7 +742,7 @@ def _make_seatengine_club_row(**overrides):
     return _row_with_source(defaults, platform="seatengine", legacy={
         "scraper": legacy["scraper"],
         "scraping_url": legacy["scraping_url"],
-        "external_id": legacy["seatengine_id"],
+        "platform_id": legacy["seatengine_id"],
     })
 
 
@@ -765,7 +779,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
         assert params[1] == "200 Elm St"              # address
         assert params[2] == "https://brokerage.com"   # website
         assert params[3] == "11795"                   # zip_code
-        assert params[6] == "457"                     # venue_id (external_id, stringified)
+        assert params[6] == "457"                     # venue_id (seatengine_id, stringified)
         assert params[7] == "https://brokerage.com"   # source_url (mirrors website)
 
     def test_venue_id_stringified(self):
@@ -802,7 +816,7 @@ class TestUpsertForSeatEngineVenueConflict:
         existing_row = _make_seatengine_club_row(
             name="Broadway Comedy Club",
             scraper="broadway",
-            seatengine_id="original-se-id",
+            seatengine_id="457",
         )
 
         handler = ClubHandler()
@@ -817,7 +831,7 @@ class TestUpsertForSeatEngineVenueConflict:
         venue = {"id": 999, "name": "Broadway Comedy Club", "address": "", "zip": "", "website": ""}
         existing_row = _make_seatengine_club_row(
             name="Broadway Comedy Club",
-            seatengine_id="original-se-id",
+            seatengine_id="457",
             scraper="broadway",
         )
 
@@ -825,15 +839,15 @@ class TestUpsertForSeatEngineVenueConflict:
         with patch.object(handler, "execute_with_cursor", return_value=[existing_row]):
             result = handler.upsert_for_seatengine_venue(venue)
 
-        assert result.seatengine_id == "original-se-id"
+        assert result.seatengine_id == "457"
 
     def test_sql_uses_coalesce_for_seatengine_id(self):
         """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must COALESCE the
-        scraping_sources.external_id (the SeatEngine venue id)."""
+        scraping_sources.seatengine_id (the SeatEngine venue id)."""
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE.upper()
         assert "COALESCE" in sql
         assert "SCRAPING_SOURCES" in sql
-        assert "EXTERNAL_ID" in sql
+        assert "SEATENGINE_ID" in sql
 
     def test_sql_uses_coalesce_for_scraper(self):
         """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must use COALESCE for scraper."""
@@ -989,7 +1003,7 @@ def _make_ticketmaster_club_row(**overrides):
     return _row_with_source(defaults, platform="ticketmaster", legacy={
         "scraper": legacy["scraper"],
         "scraping_url": legacy["scraping_url"],
-        "external_id": legacy["ticketmaster_id"],
+        "platform_id": legacy["ticketmaster_id"],
     })
 
 
@@ -1059,7 +1073,7 @@ def _make_backfill_club_row(**overrides):
     return _row_with_source(defaults, platform="eventbrite", legacy={
         "scraper": legacy["scraper"],
         "scraping_url": legacy["scraping_url"],
-        "external_id": None,
+        "platform_id": None,
     })
 
 
@@ -1184,7 +1198,7 @@ def _make_seatengine_v3_club_row(**overrides):
     return _row_with_source(defaults, platform="seatengine_v3", legacy={
         "scraper": legacy["scraper"],
         "scraping_url": legacy["scraping_url"],
-        "external_id": legacy["seatengine_id"],
+        "platform_id": legacy["seatengine_id"],
     })
 
 
@@ -1217,7 +1231,7 @@ class TestUpsertForSeatEngineV3VenueHappyPath:
         assert params[7] == f"https://v-{_V3_UUID}.seatengine.net"
 
     def test_venue_uuid_stored_as_seatengine_id(self):
-        """UUID is passed as the scraping_sources.external_id column value."""
+        """UUID is passed as the scraping_sources.seatengine_v3_id column value."""
         venue = {"uuid": _V3_UUID, "name": "The Comedy Studio", "address": ""}
 
         handler = ClubHandler()
@@ -1296,7 +1310,7 @@ class TestUpsertForSeatEngineV3VenueConflict:
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE.upper()
         assert "COALESCE" in sql
         assert "SCRAPING_SOURCES" in sql
-        assert "EXTERNAL_ID" in sql
+        assert "SEATENGINE_V3_ID" in sql
 
     def test_sql_uses_coalesce_for_scraper(self):
         sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE.upper()

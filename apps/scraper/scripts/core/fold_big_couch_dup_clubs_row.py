@@ -94,7 +94,7 @@ def main() -> int:
 
             cur.execute(
                 """
-                SELECT id, club_id, platform, external_id, enabled, metadata
+                SELECT id, club_id, platform, eventbrite_id, enabled, metadata
                 FROM scraping_sources WHERE id = %s
                 """,
                 (_DUP_SOURCE_ID,),
@@ -139,7 +139,7 @@ def main() -> int:
                 )
             if ext_id != _DUP_SOURCE_EXTERNAL_ID:
                 problems.append(
-                    f"scraping_sources.id={_DUP_SOURCE_ID} external_id={ext_id!r} "
+                    f"scraping_sources.id={_DUP_SOURCE_ID} eventbrite_id={ext_id!r} "
                     f"(expected {_DUP_SOURCE_EXTERNAL_ID!r})"
                 )
 
@@ -170,7 +170,7 @@ def main() -> int:
         )
         print(
             f"  scraping_sources.id={src_id} club_id={src_club_id} platform={src_platform!r} "
-            f"external_id={src_ext_id!r} enabled={src_enabled} metadata={src_metadata!r}"
+            f"eventbrite_id={src_ext_id!r} enabled={src_enabled} metadata={src_metadata!r}"
         )
 
         will_hide_club = bool(dup_visible)

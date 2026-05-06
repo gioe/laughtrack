@@ -16,12 +16,37 @@ class ScrapingSource:
     platform: str
     scraper_key: str
     source_url: Optional[str] = None
-    external_id: Optional[str] = None
+    seatengine_id: Optional[int] = None
+    eventbrite_id: Optional[str] = None
+    ticketmaster_id: Optional[str] = None
+    wix_event_id: Optional[str] = None
+    ovationtix_id: Optional[str] = None
+    squadup_id: Optional[str] = None
+    seatengine_v3_id: Optional[str] = None
     priority: int = 0
     enabled: bool = True
     metadata: JSONDict = field(default_factory=dict)
     id: Optional[int] = None
     club_id: Optional[int] = None
+    external_id: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if self.external_id is None:
+            return
+        if self.platform == "seatengine" and self.seatengine_id is None and self.external_id.isdigit():
+            self.seatengine_id = int(self.external_id)
+        elif self.platform == "seatengine_v3" and self.seatengine_v3_id is None:
+            self.seatengine_v3_id = self.external_id
+        elif self.platform == "eventbrite" and self.eventbrite_id is None:
+            self.eventbrite_id = self.external_id
+        elif self.platform == "ticketmaster" and self.ticketmaster_id is None:
+            self.ticketmaster_id = self.external_id
+        elif self.platform == "wix_events" and self.wix_event_id is None:
+            self.wix_event_id = self.external_id
+        elif self.platform == "ovationtix" and self.ovationtix_id is None:
+            self.ovationtix_id = self.external_id
+        elif self.platform == "squadup" and self.squadup_id is None:
+            self.squadup_id = self.external_id
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "ScrapingSource":
@@ -34,17 +59,51 @@ class ScrapingSource:
         if not isinstance(metadata, dict):
             metadata = {}
 
+        seatengine_id = raw.get("seatengine_id")
+        if isinstance(seatengine_id, str) and seatengine_id.isdigit():
+            seatengine_id = int(seatengine_id)
+
         return cls(
             id=raw.get("id"),
             club_id=raw.get("club_id"),
             platform=(raw.get("platform") or "custom"),
             scraper_key=(raw.get("scraper_key") or ""),
             source_url=raw.get("source_url"),
-            external_id=raw.get("external_id"),
+            seatengine_id=seatengine_id,
+            eventbrite_id=raw.get("eventbrite_id"),
+            ticketmaster_id=raw.get("ticketmaster_id"),
+            wix_event_id=raw.get("wix_event_id"),
+            ovationtix_id=raw.get("ovationtix_id"),
+            squadup_id=raw.get("squadup_id"),
+            seatengine_v3_id=raw.get("seatengine_v3_id"),
             priority=int(raw.get("priority") or 0),
             enabled=bool(raw.get("enabled", True)),
             metadata=metadata,
         )
+
+    def typed_id_for_platform(self, *platforms: str) -> Optional[str]:
+        if self.platform not in platforms:
+            return None
+
+        value: Any
+        if self.platform == "seatengine":
+            value = self.seatengine_id
+        elif self.platform == "seatengine_v3":
+            value = self.seatengine_v3_id
+        elif self.platform == "eventbrite":
+            value = self.eventbrite_id
+        elif self.platform == "ticketmaster":
+            value = self.ticketmaster_id
+        elif self.platform == "wix_events":
+            value = self.wix_event_id
+        elif self.platform == "ovationtix":
+            value = self.ovationtix_id
+        elif self.platform == "squadup":
+            value = self.squadup_id
+        else:
+            value = None
+
+        return str(value) if value is not None else None
 
 
 @dataclass
@@ -120,31 +179,31 @@ class Club(DatabaseEntity):
         value = self.source_metadata.get(key)
         return str(value) if value is not None else None
 
-    def external_id_for_platform(self, *platforms: str) -> Optional[str]:
+    def source_id_for_platform(self, *platforms: str) -> Optional[str]:
         source = self.scraping_source
         if source and source.platform in platforms:
-            return source.external_id
+            return source.typed_id_for_platform(*platforms)
         return None
 
     @property
     def eventbrite_id(self) -> Optional[str]:
-        return self.external_id_for_platform("eventbrite")
+        return self.source_id_for_platform("eventbrite")
 
     @property
     def ticketmaster_id(self) -> Optional[str]:
-        return self.external_id_for_platform("ticketmaster")
+        return self.source_id_for_platform("ticketmaster")
 
     @property
     def seatengine_id(self) -> Optional[str]:
-        return self.external_id_for_platform("seatengine", "seatengine_v3")
+        return self.source_id_for_platform("seatengine", "seatengine_v3")
 
     @property
     def ovationtix_client_id(self) -> Optional[str]:
-        return self.external_id_for_platform("ovationtix")
+        return self.source_id_for_platform("ovationtix")
 
     @property
     def wix_comp_id(self) -> Optional[str]:
-        return self.external_id_for_platform("wix_events")
+        return self.source_id_for_platform("wix_events")
 
     @property
     def wix_category_id(self) -> Optional[str]:
@@ -152,7 +211,7 @@ class Club(DatabaseEntity):
 
     @property
     def squadup_user_id(self) -> Optional[str]:
-        return self.external_id_for_platform("squadup")
+        return self.source_id_for_platform("squadup")
 
     @property
     def schema_dir(self) -> str:

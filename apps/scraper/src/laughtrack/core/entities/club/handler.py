@@ -230,10 +230,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             # scraping_sources rows are NOT touched: a disabled per-venue
             # source stays disabled (organizer-mode dispatch via /o/ keeps
             # routing the events anyway), and the new venue.id is not
-            # registered against the existing scraping_sources.external_id.
+            # registered against the existing scraping_sources.eventbrite_id.
             # Any consumer that relies on (eventbrite_id → club_id) reverse
             # lookup will see only the original venue.id; folding the
-            # alternate ids requires an explicit alternate_external_id
+            # alternate ids requires an explicit alternate_eventbrite_id
             # column we do not have today.
             Logger.info(
                 f"Eventbrite venue '{venue.name}' (venue.id={venue.id}) "

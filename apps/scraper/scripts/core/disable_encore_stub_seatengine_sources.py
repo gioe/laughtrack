@@ -49,7 +49,7 @@ load_dotenv(_root / ".env")
 
 from laughtrack.adapters.db import get_transaction
 
-# (source_id, expected_club_id, expected_external_id)
+# (source_id, expected_club_id, expected_seatengine_id)
 _TARGETS: list[tuple[int, int, str]] = [
     (375, 639, "644"),  # Encore Comedy - Virginia
     (83,  640, "645"),  # Encore Comedy - Maryland
@@ -71,7 +71,7 @@ def main() -> int:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, club_id, platform, scraper_key, external_id, source_url, enabled
+                SELECT id, club_id, platform, scraper_key, seatengine_id, source_url, enabled
                 FROM scraping_sources WHERE id = ANY(%s) ORDER BY id
                 """,
                 (target_ids,),
@@ -88,7 +88,7 @@ def main() -> int:
         mismatches: list[str] = []
         for src_id, exp_club, exp_ext in _TARGETS:
             row = by_id[src_id]
-            _, club_id, platform, scraper_key, external_id, source_url, _ = row
+            _, club_id, platform, scraper_key, seatengine_id, source_url, _ = row
             if club_id != exp_club:
                 mismatches.append(f"id={src_id}: club_id={club_id} (expected {exp_club})")
             if platform != "seatengine" or scraper_key != "seatengine":
@@ -96,8 +96,8 @@ def main() -> int:
                     f"id={src_id}: platform/scraper_key={platform}/{scraper_key} "
                     f"(expected seatengine/seatengine)"
                 )
-            if external_id != exp_ext:
-                mismatches.append(f"id={src_id}: external_id={external_id} (expected {exp_ext})")
+            if str(seatengine_id) != exp_ext:
+                mismatches.append(f"id={src_id}: seatengine_id={seatengine_id} (expected {exp_ext})")
             if "encorecomedyshows.com" not in (source_url or ""):
                 mismatches.append(f"id={src_id}: source_url={source_url!r} (expected encorecomedyshows.com)")
         if mismatches:
@@ -109,7 +109,7 @@ def main() -> int:
         print("=== BEFORE ===")
         for src_id, _, _ in _TARGETS:
             r = by_id[src_id]
-            print(f"  id={r[0]} club_id={r[1]} external_id={r[4]} enabled={r[6]}")
+            print(f"  id={r[0]} club_id={r[1]} seatengine_id={r[4]} enabled={r[6]}")
 
         already_disabled = [sid for sid in target_ids if not by_id[sid][6]]
         to_update = [sid for sid in target_ids if by_id[sid][6]]

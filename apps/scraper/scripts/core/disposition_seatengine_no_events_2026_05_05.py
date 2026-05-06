@@ -392,8 +392,8 @@ def main() -> int:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, club_id, platform, scraper_key, external_id, source_url,
-                       priority, enabled, metadata
+                SELECT id, club_id, platform, scraper_key, seatengine_id, seatengine_v3_id,
+                       source_url, priority, enabled, metadata
                 FROM scraping_sources WHERE id = ANY(%s) ORDER BY id
                 """,
                 (target_ids,),
@@ -409,7 +409,8 @@ def main() -> int:
             row = rows.get(t.source_id)
             if row is None:
                 continue
-            _, club_id, platform, scraper_key, external_id, _, priority, _, _ = row
+            _, club_id, platform, scraper_key, seatengine_id, seatengine_v3_id, _, priority, _, _ = row
+            source_id = seatengine_v3_id if platform == "seatengine_v3" else seatengine_id
             if club_id != t.expected_club_id:
                 problems.append(
                     f"ss.id={t.source_id}: club_id={club_id} (expected {t.expected_club_id})"
@@ -423,9 +424,9 @@ def main() -> int:
                     f"ss.id={t.source_id}: scraper_key={scraper_key!r} "
                     f"(expected {t.expected_platform!r})"
                 )
-            if external_id != t.expected_external_id:
+            if str(source_id) != t.expected_external_id:
                 problems.append(
-                    f"ss.id={t.source_id}: external_id={external_id!r} "
+                    f"ss.id={t.source_id}: platform id={source_id!r} "
                     f"(expected {t.expected_external_id!r})"
                 )
             if priority != 0:
@@ -443,9 +444,10 @@ def main() -> int:
         print("=== BEFORE ===")
         for t in _DISABLE_TARGETS:
             r = rows[t.source_id]
-            sid, cid, p, sk, ext, src_url, pri, en, _ = r
+            sid, cid, p, sk, se_id, se_v3_id, src_url, pri, en, _ = r
+            source_id = se_v3_id if p == "seatengine_v3" else se_id
             print(
-                f"  ss.id={sid:>4} club={cid:>4} {p:<14} ext={ext:<10} "
+                f"  ss.id={sid:>4} club={cid:>4} {p:<14} platform_id={str(source_id):<10} "
                 f"pri={pri} enabled={en} kind={t.kind}"
             )
         if _KEEP_AS_IS_CLUBS:
@@ -461,7 +463,7 @@ def main() -> int:
         with conn.cursor() as cur:
             for t in _DISABLE_TARGETS:
                 row = rows[t.source_id]
-                _, _, _, _, _, _, _, enabled, meta_raw = row
+                _, _, _, _, _, _, _, _, enabled, meta_raw = row
                 meta = _load_metadata(meta_raw)
                 needs_disable = bool(enabled)
                 needs_meta = _METADATA_KEY not in meta
@@ -505,13 +507,14 @@ def main() -> int:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, club_id, platform, external_id, enabled
+                SELECT id, club_id, platform, seatengine_id, seatengine_v3_id, enabled
                 FROM scraping_sources WHERE id = ANY(%s) ORDER BY id
                 """,
                 (target_ids,),
             )
-            for sid, cid, p, ext, en in cur.fetchall():
-                print(f"  ss.id={sid:>4} club={cid:>4} {p:<14} ext={ext:<10} enabled={en}")
+            for sid, cid, p, se_id, se_v3_id, en in cur.fetchall():
+                source_id = se_v3_id if p == "seatengine_v3" else se_id
+                print(f"  ss.id={sid:>4} club={cid:>4} {p:<14} platform_id={str(source_id):<10} enabled={en}")
 
     return 0
 

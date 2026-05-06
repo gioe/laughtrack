@@ -17,25 +17,25 @@ def _attach_source(club: Club, *, scraping_url=None, scraper=None,
                 squadup_user_id)):
         return
     if eventbrite_id is not None:
-        platform, external_id = "eventbrite", eventbrite_id
+        platform, typed_id = "eventbrite", {"eventbrite_id": eventbrite_id}
     elif seatengine_id is not None:
         platform = "seatengine_v3" if scraper == "seatengine_v3" else "seatengine"
-        external_id = seatengine_id
+        typed_id = {"seatengine_v3_id": seatengine_id} if platform == "seatengine_v3" else {"seatengine_id": int(seatengine_id)}
     elif ticketmaster_id is not None:
-        platform, external_id = "ticketmaster", ticketmaster_id
+        platform, typed_id = "ticketmaster", {"ticketmaster_id": ticketmaster_id}
     elif ovationtix_client_id is not None:
-        platform, external_id = "ovationtix", ovationtix_client_id
+        platform, typed_id = "ovationtix", {"ovationtix_id": ovationtix_client_id}
     elif wix_comp_id is not None:
-        platform, external_id = "wix_events", wix_comp_id
+        platform, typed_id = "wix_events", {"wix_event_id": wix_comp_id}
     elif squadup_user_id is not None:
-        platform, external_id = "squadup", squadup_user_id
+        platform, typed_id = "squadup", {"squadup_id": squadup_user_id}
     elif scraper:
-        platform, external_id = scraper, None
+        platform, typed_id = scraper, {}
     else:
-        platform, external_id = "custom", None
+        platform, typed_id = "custom", {}
     club.active_scraping_source = ScrapingSource(
         id=1, club_id=club.id, platform=platform,
-        scraper_key=scraper or "", source_url=scraping_url, external_id=external_id,
+        scraper_key=scraper or "", source_url=scraping_url, **typed_id,
     )
     club.scraping_sources = [club.active_scraping_source]
 
@@ -128,3 +128,53 @@ class TestClubFromDbRow:
         row = self._base_row(status="closed")
         club = Club.from_db_row(row)
         assert club.status == "closed"
+
+    def test_reads_typed_scraping_source_ids(self):
+        row = self._base_row(
+            scraping_sources=[
+                {
+                    "id": 10,
+                    "club_id": 1,
+                    "platform": "seatengine",
+                    "scraper_key": "seatengine",
+                    "source_url": "https://example.com",
+                    "seatengine_id": 502,
+                    "eventbrite_id": None,
+                    "ticketmaster_id": None,
+                    "wix_event_id": None,
+                    "ovationtix_id": None,
+                    "squadup_id": None,
+                    "seatengine_v3_id": None,
+                }
+            ],
+        )
+
+        club = Club.from_db_row(row)
+
+        assert club.seatengine_id == "502"
+        assert club.scraping_sources[0].seatengine_id == 502
+
+    def test_platform_properties_read_their_typed_columns(self):
+        cases = [
+            ("eventbrite", {"eventbrite_id": "295549203"}, "eventbrite_id", "295549203"),
+            ("ticketmaster", {"ticketmaster_id": "KovZ917ARvk"}, "ticketmaster_id", "KovZ917ARvk"),
+            ("seatengine_v3", {"seatengine_v3_id": "364f13ff-86b9-479f-9720-bd191e285ac3"}, "seatengine_id", "364f13ff-86b9-479f-9720-bd191e285ac3"),
+            ("ovationtix", {"ovationtix_id": "client-123"}, "ovationtix_client_id", "client-123"),
+            ("wix_events", {"wix_event_id": "comp-test"}, "wix_comp_id", "comp-test"),
+            ("squadup", {"squadup_id": "99999"}, "squadup_user_id", "99999"),
+        ]
+
+        for platform, typed_id, property_name, expected in cases:
+            source = ScrapingSource.from_dict(
+                {
+                    "platform": platform,
+                    "scraper_key": platform,
+                    "source_url": "https://example.com",
+                    **typed_id,
+                }
+            )
+            club = _make_club(scraping_url=None)
+            club.active_scraping_source = source
+            club.scraping_sources = [source]
+
+            assert getattr(club, property_name) == expected
