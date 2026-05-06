@@ -220,6 +220,61 @@
             }
           }
         }
+      },
+      "delete": {
+        "operationId": "deleteMe",
+        "summary": "Delete the authenticated user account",
+        "description": "Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Account deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AccountDeletionResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Account deletion failed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
       }
     },
     "/clubs": {
@@ -1351,6 +1406,19 @@
           "revoked": {
             "type": "integer",
             "description": "Number of refresh tokens that were revoked."
+          }
+        }
+      },
+      "AccountDeletionResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["deleted"],
+            "properties": {
+              "deleted": { "type": "boolean" }
+            }
           }
         }
       },

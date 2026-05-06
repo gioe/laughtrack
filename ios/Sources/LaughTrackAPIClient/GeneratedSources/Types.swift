@@ -39,6 +39,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /me`.
     /// - Remark: Generated from `#/paths//me/get(getMe)`.
     func getMe(_ input: Operations.GetMe.Input) async throws -> Operations.GetMe.Output
+    /// Delete the authenticated user account
+    ///
+    /// Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.
+    ///
+    /// - Remark: HTTP `DELETE /me`.
+    /// - Remark: Generated from `#/paths//me/delete(deleteMe)`.
+    func deleteMe(_ input: Operations.DeleteMe.Input) async throws -> Operations.DeleteMe.Output
     /// List active clubs with upcoming shows
     ///
     /// - Remark: HTTP `GET /clubs`.
@@ -167,6 +174,15 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//me/get(getMe)`.
     public func getMe(headers: Operations.GetMe.Input.Headers = .init()) async throws -> Operations.GetMe.Output {
         try await getMe(Operations.GetMe.Input(headers: headers))
+    }
+    /// Delete the authenticated user account
+    ///
+    /// Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.
+    ///
+    /// - Remark: HTTP `DELETE /me`.
+    /// - Remark: Generated from `#/paths//me/delete(deleteMe)`.
+    public func deleteMe(headers: Operations.DeleteMe.Input.Headers = .init()) async throws -> Operations.DeleteMe.Output {
+        try await deleteMe(Operations.DeleteMe.Input(headers: headers))
     }
     /// List active clubs with upcoming shows
     ///
@@ -477,6 +493,36 @@ public enum Components {
                 case revoked
             }
         }
+        /// - Remark: Generated from `#/components/schemas/AccountDeletionResponse`.
+        public struct AccountDeletionResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/AccountDeletionResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// - Remark: Generated from `#/components/schemas/AccountDeletionResponse/data/deleted`.
+                public var deleted: Swift.Bool
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - deleted:
+                public init(deleted: Swift.Bool) {
+                    self.deleted = deleted
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case deleted
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/AccountDeletionResponse/data`.
+            public var data: Components.Schemas.AccountDeletionResponse.DataPayload
+            /// Creates a new `AccountDeletionResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.AccountDeletionResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/MeResponse`.
         public struct MeResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/MeResponse/data`.
@@ -536,8 +582,8 @@ public enum Components {
                 displayName: Swift.String? = nil,
                 email: Swift.String,
                 avatarUrl: Swift.String? = nil,
-                emailShowNotifications: Swift.Bool = false,
-                pushShowNotifications: Swift.Bool = false,
+                emailShowNotifications: Swift.Bool,
+                pushShowNotifications: Swift.Bool,
                 zipCode: Swift.String? = nil,
                 nearbyDistanceMiles: Swift.Int? = nil
             ) {
@@ -2976,6 +3022,343 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Delete the authenticated user account
+    ///
+    /// Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.
+    ///
+    /// - Remark: HTTP `DELETE /me`.
+    /// - Remark: Generated from `#/paths//me/delete(deleteMe)`.
+    public enum DeleteMe {
+        public static let id: Swift.String = "deleteMe"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/DELETE/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DeleteMe.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.DeleteMe.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.DeleteMe.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.DeleteMe.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/200/content/application\/json`.
+                    case json(Components.Schemas.AccountDeletionResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.AccountDeletionResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMe.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMe.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Account deleted
+            ///
+            /// - Remark: Generated from `#/paths//me/delete(deleteMe)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.DeleteMe.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.DeleteMe.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMe.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMe.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/delete(deleteMe)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.DeleteMe.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.DeleteMe.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMe.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMe.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/delete(deleteMe)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.DeleteMe.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.DeleteMe.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.DeleteMe.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMe.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.DeleteMe.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.DeleteMe.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/delete(deleteMe)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.DeleteMe.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.DeleteMe.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/DELETE/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/DELETE/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.DeleteMe.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.DeleteMe.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Account deletion failed
+            ///
+            /// - Remark: Generated from `#/paths//me/delete(deleteMe)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.DeleteMe.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.DeleteMe.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
                             response: self
                         )
                     }
