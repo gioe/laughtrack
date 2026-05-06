@@ -88,12 +88,12 @@
   "merge": {
     "mode": "local"
   },
-  "test_command": "cd apps/scraper && .venv/bin/python3 -m pytest && cd ../web && npm test",
+  "test_command": "cd apps/scraper && \"$(git rev-parse --git-common-dir)/../apps/scraper/.venv/bin/python3\" -m pytest && cd ../web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
   "domain_test_commands": {
-    "frontend": "cd apps/web && npm test",
-    "api": "cd apps/web && npm test",
-    "database": "cd apps/web && npm test",
-    "scraper": "cd apps/scraper && .venv/bin/python3 -m pytest"
+    "frontend": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
+    "api": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
+    "database": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
+    "scraper": "cd apps/scraper && \"$(git rev-parse --git-common-dir)/../apps/scraper/.venv/bin/python3\" -m pytest"
   },
   "issue_scoring": {
     "factors": {
