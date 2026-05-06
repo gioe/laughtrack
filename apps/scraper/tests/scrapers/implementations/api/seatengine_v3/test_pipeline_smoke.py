@@ -29,7 +29,7 @@ VENUE_URL = "https://v-cf2b1561-bf36-40b8-8380-9c2a3bd0e4e3.seatengine.net"
 
 def _club(seatengine_id: str = VENUE_UUID) -> Club:
     _c = Club(id=999, name='The Comedy Studio', address='5 John F. Kennedy St', website='https://thecomedystudio.com', popularity=0, zip_code='02138', phone_number='', visible=True, timezone='America/New_York')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine', scraper_key='', source_url=VENUE_URL, external_id=seatengine_id)
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='seatengine_v3', scraper_key='seatengine_v3', source_url=VENUE_URL, external_id=seatengine_id)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 

@@ -32,6 +32,9 @@ class ScrapingSource:
 
     def __post_init__(self) -> None:
         if self.external_id is None:
+            typed_id = self.typed_id_for_platform(self.platform)
+            if typed_id is not None:
+                self.external_id = typed_id
             return
         if self.platform == "seatengine" and self.seatengine_id is None and self.external_id.isdigit():
             self.seatengine_id = int(self.external_id)

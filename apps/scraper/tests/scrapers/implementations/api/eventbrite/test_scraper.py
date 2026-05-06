@@ -28,11 +28,13 @@ async def test_collect_targets_returns_venue_id(club):
 
 @pytest.mark.asyncio
 async def test_collect_targets_empty_when_missing_id(club):
-    # Clear the scraping source's external_id (formerly clubs.eventbrite_id).
+    # Clear both the legacy alias and typed source id.
     if club.active_scraping_source is not None:
         club.active_scraping_source.external_id = None
+        club.active_scraping_source.eventbrite_id = None
     for source in club.scraping_sources:
         source.external_id = None
+        source.eventbrite_id = None
     with pytest.raises(ValueError):
         EventbriteScraper(club)
 
