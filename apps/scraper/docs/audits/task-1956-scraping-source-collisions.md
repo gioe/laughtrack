@@ -14,16 +14,42 @@ classified every pair, and recorded a per-case resolution decision.
 
 ## Reproduction query
 
+> **Schema note:** TASK-1985 ('Recover Prisma typed scraping source migrations')
+> dropped the generic `scraping_sources.external_id` column in favour of
+> per-platform typed columns (`seatengine_id`, `seatengine_v3_id`,
+> `eventbrite_id`, `ticketmaster_id`, `squadup_id`, `wix_event_id`,
+> `ovationtix_id`). The query below is the post-TASK-1985 typed-column form
+> and is what TASK-1984's verification ran against prod. The original
+> pre-TASK-1985 form (`SELECT platform, external_id, …`) lives in this
+> document's git history and is no longer runnable at HEAD; see "Schema
+> delta — typed columns (post-TASK-1985)" below for additional context.
+
 ```sql
-SELECT platform,
-       external_id,
-       COUNT(DISTINCT club_id),
-       ARRAY_AGG(club_id ORDER BY club_id)
-  FROM scraping_sources
- WHERE external_id IS NOT NULL AND external_id != ''
- GROUP BY platform, external_id
-HAVING COUNT(DISTINCT club_id) > 1
- ORDER BY platform, external_id;
+SELECT 'seatengine' AS plat, seatengine_id::text AS ext,
+       COUNT(DISTINCT club_id), ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE seatengine_id IS NOT NULL
+ GROUP BY seatengine_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'seatengine_v3', seatengine_v3_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE seatengine_v3_id IS NOT NULL
+ GROUP BY seatengine_v3_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'eventbrite', eventbrite_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE eventbrite_id IS NOT NULL
+ GROUP BY eventbrite_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'ticketmaster', ticketmaster_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE ticketmaster_id IS NOT NULL
+ GROUP BY ticketmaster_id HAVING COUNT(DISTINCT club_id) > 1
+UNION ALL
+SELECT 'squadup', squadup_id, COUNT(DISTINCT club_id),
+       ARRAY_AGG(DISTINCT club_id ORDER BY club_id)
+  FROM scraping_sources WHERE squadup_id IS NOT NULL
+ GROUP BY squadup_id HAVING COUNT(DISTINCT club_id) > 1
+ ORDER BY 1, 2;
 ```
 
 ## 2026-05-06 snapshot
