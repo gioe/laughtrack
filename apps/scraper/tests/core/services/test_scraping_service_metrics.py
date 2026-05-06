@@ -167,6 +167,38 @@ class TestCheckAndAlert:
                 assert "Broken Club" in names
                 assert "Empty Club" not in names
 
+    def test_classifier_rejected_all_routes_to_parser_bucket_in_alert(self):
+        """Classifier-rejected venues stay actionable but are separated from
+        generic degraded venues before alert dispatch."""
+        svc = self._make_service(threshold=70.0)
+        parser_rejected = DomainRequestMetrics(
+            club_name="Parser Rejected Club",
+            scraper_type=None,
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=3,
+        )
+        broken = DomainRequestMetrics(
+            club_name="Broken Club",
+            scraper_type=None,
+            total=1,
+            error=1,
+            fetches_failed=1,
+        )
+        summary = _make_multi_club_summary([parser_rejected, broken])
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+
+        mock_alert.assert_called_once()
+        individual_arg = mock_alert.call_args[0][0]
+        parser_kwarg = mock_alert.call_args.kwargs.get("parser_rejected_all")
+        assert [m.club_name for m in individual_arg] == ["Broken Club"]
+        assert [m.club_name for m in parser_kwarg] == ["Parser Rejected Club"]
+
     def test_palm_beach_improv_2026_05_05_replay_emits_no_alert(self):
         """End-to-end replay of the 2026-05-05 palm_beach_improv artifact
         through _check_and_alert. Pre-fix this venue showed as 'down (1/1)'
@@ -627,6 +659,26 @@ class TestEmitSummary:
         data = json.loads(payload_msg[len("scrape_all summary: "):])
         assert data["clubs_empty_calendar"] == 1
 
+    def test_payload_includes_clubs_classifier_rejected_all(self):
+        import json
+        svc = self._make_service()
+        rejected = DomainRequestMetrics(
+            club_name="Parser Rejected",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=2,
+        )
+        summary = _make_multi_club_summary([rejected])
+
+        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+            svc._emit_summary(summary)
+
+        info_messages = [c.args[0] for c in mock_logger.info.call_args_list if c.args]
+        payload_msg = next(m for m in info_messages if m.startswith("scrape_all summary: "))
+        data = json.loads(payload_msg[len("scrape_all summary: "):])
+        assert data["clubs_classifier_rejected_all"] == 1
+
 
 class TestSendDiscordRunSummary:
     """Tests for _send_discord_run_summary — unconditional post-run Discord message."""
@@ -787,6 +839,41 @@ class TestSendDiscordRunSummary:
 
         metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
         assert metadata.get("clubs_empty_calendar") == 1
+
+    def test_classifier_rejected_all_block_and_count_in_discord_summary(self):
+        """Parser-rejected venues appear in their own Discord summary block and
+        metadata count, not under generic below-threshold failures."""
+        svc = self._make_service(threshold=70.0)
+        rejected = DomainRequestMetrics(
+            club_name="Parser Rejected Club",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=2,
+        )
+        broken = DomainRequestMetrics(
+            club_name="Broken Club",
+            total=1,
+            error=1,
+            fetches_failed=1,
+        )
+        summary = _make_multi_club_summary([rejected, broken])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "parser rejected all candidates" in desc
+        assert "Parser Rejected Club" in desc
+        assert "Broken Club" in desc
+        assert metadata.get("clubs_classifier_rejected_all") == 1
 
     def test_skips_when_discord_not_configured(self):
         """No alert is sent when Discord is not configured."""

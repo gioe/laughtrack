@@ -136,9 +136,19 @@ class ScrapingRunSummary:
         return sum(1 for m in self.per_club if m.outcome == ScrapeOutcome.EMPTY_CALENDAR)
 
     @property
+    def clubs_classifier_rejected_all(self) -> int:
+        """Clubs whose parser saw candidates but the classifier rejected all of them."""
+        return sum(1 for m in self.per_club if m.outcome == ScrapeOutcome.CLASSIFIER_REJECTED_ALL)
+
+    @property
     def empty_calendar_clubs(self) -> List[DomainRequestMetrics]:
         """Per-club metrics for venues classified as EMPTY_CALENDAR (low-priority list)."""
         return [m for m in self.per_club if m.outcome == ScrapeOutcome.EMPTY_CALENDAR]
+
+    @property
+    def classifier_rejected_all_clubs(self) -> List[DomainRequestMetrics]:
+        """Per-club metrics for venues where candidates were all filtered out."""
+        return [m for m in self.per_club if m.outcome == ScrapeOutcome.CLASSIFIER_REJECTED_ALL]
 
     def merge(self, other: "ScrapingRunSummary") -> "ScrapingRunSummary":
         """Combine two summaries into one (e.g. venue clubs + production companies)."""

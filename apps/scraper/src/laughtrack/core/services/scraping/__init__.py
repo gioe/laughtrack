@@ -171,6 +171,7 @@ def _run_summary_metadata(
         "clubs_ok": summary.clubs_ok,
         "total_clubs": summary.total_clubs,
         "clubs_empty_calendar": summary.clubs_empty_calendar,
+        "clubs_classifier_rejected_all": summary.clubs_classifier_rejected_all,
         "shows_total": db_result.total,
         "shows_inserted": db_result.inserts,
         "shows_updated": db_result.updates,
@@ -181,6 +182,8 @@ def _format_per_club_line(m: "DomainRequestMetrics", threshold: float) -> str:
     """Render the text-channel per-club breakdown row for email/webhook summaries."""
     if m.outcome == ScrapeOutcome.EMPTY_CALENDAR:
         icon = "EMPTY"
+    elif m.outcome == ScrapeOutcome.CLASSIFIER_REJECTED_ALL:
+        icon = "PARSER"
     elif m.success_rate >= threshold:
         icon = "OK"
     else:
@@ -651,6 +654,7 @@ class ScrapingService:
             "clubs_ok": summary.clubs_ok,
             "clubs_empty": summary.clubs_empty,
             "clubs_empty_calendar": summary.clubs_empty_calendar,
+            "clubs_classifier_rejected_all": summary.clubs_classifier_rejected_all,
             "clubs_errored": summary.clubs_errored,
             "per_club": [m.as_log_dict() for m in summary.per_club],
         }
@@ -670,8 +674,20 @@ class ScrapingService:
         if not failing:
             return
 
-        outage_lines, individual_failing = self._classify_failing(failing, summary)
+        parser_rejected_all = [
+            m for m in failing
+            if m.outcome == ScrapeOutcome.CLASSIFIER_REJECTED_ALL
+        ]
+        degraded_failing = [
+            m for m in failing
+            if m.outcome != ScrapeOutcome.CLASSIFIER_REJECTED_ALL
+        ]
+
+        outage_lines, individual_failing = self._classify_failing(degraded_failing, summary)
         warn_parts = outage_lines + [m.club_name for m in individual_failing]
+        if parser_rejected_all:
+            parser_names = ", ".join(m.club_name for m in parser_rejected_all)
+            warn_parts.append(f"parser rejected all candidates: {parser_names}")
         Logger.warn(
             f"{len(failing)} domain(s) below {self.success_rate_threshold}% success threshold: "
             + ", ".join(warn_parts)
@@ -686,11 +702,23 @@ class ScrapingService:
 
         for channel in channels:
             if channel == "discord":
-                self._send_discord_alert(individual_failing, outage_lines=outage_lines)
+                self._send_discord_alert(
+                    individual_failing,
+                    outage_lines=outage_lines,
+                    parser_rejected_all=parser_rejected_all,
+                )
             elif channel == "email":
-                self._send_email_alert(individual_failing, outage_lines=outage_lines)
+                self._send_email_alert(
+                    individual_failing,
+                    outage_lines=outage_lines,
+                    parser_rejected_all=parser_rejected_all,
+                )
             elif channel == "webhook":
-                self._send_webhook_alert(individual_failing, outage_lines=outage_lines)
+                self._send_webhook_alert(
+                    individual_failing,
+                    outage_lines=outage_lines,
+                    parser_rejected_all=parser_rejected_all,
+                )
 
     def _classify_failing(
         self, failing: List[DomainRequestMetrics], summary: ScrapingRunSummary
@@ -732,7 +760,13 @@ class ScrapingService:
 
         return outage_lines, individual_failing
 
-    def _send_discord_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
+    def _send_discord_alert(
+        self,
+        failing: List[DomainRequestMetrics],
+        *,
+        outage_lines: Optional[List[str]] = None,
+        parser_rejected_all: Optional[List[DomainRequestMetrics]] = None,
+    ) -> None:
         # Import guard is separate from execution guard so misconfigured environments
         # surface a distinct error rather than silently swallowing an ImportError.
         try:
@@ -751,6 +785,9 @@ class ScrapingService:
             all_lines: List[str] = []
             if outage_lines:
                 all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            if parser_rejected_all:
+                all_lines.append(f"🔎 {len(parser_rejected_all)} club(s) where parser rejected all candidates:")
+                all_lines.extend(f"• {m.club_name}" for m in parser_rejected_all)
             all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
@@ -758,14 +795,18 @@ class ScrapingService:
             )
             if not all_lines:
                 return
+            title = f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold"
+            if parser_rejected_all and not failing and not outage_lines:
+                title = "Scraping parser rejected all candidates"
             gioe_alert = GioeAlert(
-                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                title=title,
                 message=_truncate_description_lines(all_lines),
                 severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
                     "failing_domains": [m.club_name for m in failing],
+                    "classifier_rejected_all_domains": [m.club_name for m in parser_rejected_all or []],
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
@@ -818,8 +859,10 @@ class ScrapingService:
                 m for m in summary.per_club
                 if m.success_rate < self.success_rate_threshold
                 and m.outcome != ScrapeOutcome.EMPTY_CALENDAR
+                and m.outcome != ScrapeOutcome.CLASSIFIER_REJECTED_ALL
             ]
             empty_calendar = summary.empty_calendar_clubs
+            parser_rejected_all = summary.classifier_rejected_all_clubs
             body_lines = [
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
@@ -840,6 +883,12 @@ class ScrapingService:
                     f"📭 {len(empty_calendar)} club(s) with empty calendar (not actionable):",
                 ]
                 body_lines.extend(f"• {m.club_name}" for m in empty_calendar)
+            if parser_rejected_all:
+                body_lines += [
+                    "",
+                    f"🔎 {len(parser_rejected_all)} club(s) where parser rejected all candidates:",
+                ]
+                body_lines.extend(f"• {m.club_name}" for m in parser_rejected_all)
 
             gioe_alert = GioeAlert(
                 title=title,
@@ -849,6 +898,7 @@ class ScrapingService:
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
                     "clubs_empty_calendar": summary.clubs_empty_calendar,
+                    "clubs_classifier_rejected_all": summary.clubs_classifier_rejected_all,
                     "shows_total": db_result.total,
                     "shows_inserted": db_result.inserts,
                     "shows_updated": db_result.updates,
@@ -884,6 +934,7 @@ class ScrapingService:
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
                 f"Empty calendar: {summary.clubs_empty_calendar}",
+                f"Parser rejected all: {summary.clubs_classifier_rejected_all}",
                 "",
                 "Per-club breakdown:",
             ]
@@ -923,6 +974,7 @@ class ScrapingService:
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
                 f"Empty calendar: {summary.clubs_empty_calendar}",
+                f"Parser rejected all: {summary.clubs_classifier_rejected_all}",
                 "",
                 "Per-club breakdown:",
             ]
@@ -941,7 +993,13 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send webhook run summary: {e}")
 
-    def _send_email_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
+    def _send_email_alert(
+        self,
+        failing: List[DomainRequestMetrics],
+        *,
+        outage_lines: Optional[List[str]] = None,
+        parser_rejected_all: Optional[List[DomainRequestMetrics]] = None,
+    ) -> None:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
@@ -959,6 +1017,9 @@ class ScrapingService:
             all_lines: List[str] = []
             if outage_lines:
                 all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            if parser_rejected_all:
+                all_lines.append(f"Parser rejected all candidates ({len(parser_rejected_all)} club(s)):")
+                all_lines.extend(f"• {m.club_name}" for m in parser_rejected_all)
             all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
@@ -966,14 +1027,18 @@ class ScrapingService:
             )
             if not all_lines:
                 return
+            title = f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold"
+            if parser_rejected_all and not failing and not outage_lines:
+                title = "Scraping parser rejected all candidates"
             gioe_alert = GioeAlert(
-                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                title=title,
                 message=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
                     "failing_domains": [m.club_name for m in failing],
+                    "classifier_rejected_all_domains": [m.club_name for m in parser_rejected_all or []],
                 },
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
@@ -981,7 +1046,13 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send email scraping alert: {e}")
 
-    def _send_webhook_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
+    def _send_webhook_alert(
+        self,
+        failing: List[DomainRequestMetrics],
+        *,
+        outage_lines: Optional[List[str]] = None,
+        parser_rejected_all: Optional[List[DomainRequestMetrics]] = None,
+    ) -> None:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from gioe_libs.alerting import WebhookAlertChannel, Alert as GioeAlert, AlertSeverity as GioeSeverity
@@ -998,6 +1069,9 @@ class ScrapingService:
             all_lines: List[str] = []
             if outage_lines:
                 all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            if parser_rejected_all:
+                all_lines.append(f"Parser rejected all candidates ({len(parser_rejected_all)} club(s)):")
+                all_lines.extend(f"• {m.club_name}" for m in parser_rejected_all)
             all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
@@ -1005,14 +1079,18 @@ class ScrapingService:
             )
             if not all_lines:
                 return
+            title = f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold"
+            if parser_rejected_all and not failing and not outage_lines:
+                title = "Scraping parser rejected all candidates"
             gioe_alert = GioeAlert(
-                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                title=title,
                 message=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
                     "failing_domains": [m.club_name for m in failing],
+                    "classifier_rejected_all_domains": [m.club_name for m in parser_rejected_all or []],
                 },
             )
             channel = WebhookAlertChannel(url=config.webhook_url, headers=config.webhook_headers)
