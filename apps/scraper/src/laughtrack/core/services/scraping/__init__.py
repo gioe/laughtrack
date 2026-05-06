@@ -627,7 +627,16 @@ class ScrapingService:
         Logger.info(f"scrape_all summary: {json.dumps(payload)}")
 
     def _check_and_alert(self, summary: ScrapingRunSummary) -> None:
-        failing = summary.below_threshold(self.success_rate_threshold)
+        # EMPTY_CALENDAR venues fall below the success-rate threshold by virtue
+        # of shows==0 but represent a legitimate "no programming scheduled"
+        # outcome, not a scraper failure. Excluding them here is what
+        # distinguishes "broken" from "empty" in the nightly alert; the empty
+        # bucket is still surfaced via _send_run_summary so a growing count
+        # can't silently mask a regression.
+        failing = [
+            m for m in summary.below_threshold(self.success_rate_threshold)
+            if m.outcome != ScrapeOutcome.EMPTY_CALENDAR
+        ]
         if not failing:
             return
 

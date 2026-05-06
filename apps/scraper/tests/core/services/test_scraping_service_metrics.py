@@ -114,6 +114,59 @@ class TestCheckAndAlert:
                 assert individual_arg[0].club_name == "Bad Club"
                 assert outage_lines_kwarg == []
 
+    def test_empty_calendar_club_does_not_trigger_alert(self):
+        """A venue with fetches_ok>0 and items_before_filter==0 (genuinely empty
+        calendar) must not appear in the failed-venues alert list. This is the
+        palm_beach_improv case from TASK-1941 — closed not-actionable purely
+        because the alert couldn't distinguish empty from broken."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Palm Beach Improv",
+            scraper_type="palm_beach_improv",
+            total=1,
+            none_resp=1,
+            targets_collected=12,
+            fetches_ok=12,
+            fetches_failed=0,
+            items_before_filter=0,
+        )
+        summary = _make_multi_club_summary([empty])
+        with patch.object(svc, '_send_discord_alert') as mock_alert:
+            svc._check_and_alert(summary)
+            mock_alert.assert_not_called()
+
+    def test_empty_calendar_filtered_but_real_failure_still_alerts(self):
+        """When one venue is EMPTY_CALENDAR and another is genuinely failing,
+        only the genuine failure routes to the alert."""
+        svc = self._make_service(threshold=70.0)
+        empty = DomainRequestMetrics(
+            club_name="Empty Club",
+            scraper_type="palm_beach_improv",
+            total=1,
+            none_resp=1,
+            fetches_ok=12,
+            items_before_filter=0,
+        )
+        broken = DomainRequestMetrics(
+            club_name="Broken Club",
+            scraper_type=None,
+            total=1,
+            error=1,
+            fetches_ok=0,
+            fetches_failed=1,
+        )
+        summary = _make_multi_club_summary([empty, broken])
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                mock_alert.assert_called_once()
+                individual_arg = mock_alert.call_args[0][0]
+                names = [m.club_name for m in individual_arg]
+                assert "Broken Club" in names
+                assert "Empty Club" not in names
+
     def test_outage_lines_contain_correct_summary_format(self):
         """Outage summary string contains scraper type and N/total count."""
         svc = self._make_service(threshold=70.0)
