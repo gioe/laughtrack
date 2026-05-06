@@ -108,7 +108,11 @@ Only when the diff is non-empty and a review has been started in Step 3, proceed
 **Detecting Codex install mode and the opt-in.** Read the `install-mode` marker stamped by `install.sh` (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`):
 
 ```bash
-TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+if [ -x ./.claude/bin/tusk ]; then
+  TUSK_BIN_DIR="./.claude/bin"
+else
+  TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+fi
 INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
 case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
 ```
@@ -363,7 +367,11 @@ Otherwise, loop while `can_retry` is true:
    To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 
    ```bash
-   TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+   if [ -x ./.claude/bin/tusk ]; then
+     TUSK_BIN_DIR="./.claude/bin"
+   else
+     TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
+   fi
    INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
    case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
    ```
