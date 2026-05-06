@@ -13,6 +13,9 @@ struct ProfileView: View {
     @Environment(\.appTheme) private var theme
     @StateObject private var settingsModel: SettingsNearbyPreferenceModel
     @StateObject private var notificationModel: SettingsNotificationPreferenceModel
+    @State private var showingDeleteAccountConfirmation = false
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountErrorMessage: String?
 
     init(
         apiClient: Client,
@@ -85,6 +88,20 @@ struct ProfileView: View {
         .onChange(of: authManager.currentUser) { user in
             refreshProfileLocation(from: user)
             refreshNotificationPreferences(from: user)
+        }
+        .confirmationDialog(
+            "Delete your LaughTrack account?",
+            isPresented: $showingDeleteAccountConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete account permanently", role: .destructive) {
+                Task {
+                    await deleteAccount()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently removes your account and saved favorites. This cannot be undone.")
         }
     }
 
@@ -278,7 +295,36 @@ struct ProfileView: View {
                         await authManager.signOut()
                     }
                 }
+
+                LaughTrackButton(
+                    "Delete account",
+                    systemImage: "trash",
+                    tone: .destructive
+                ) {
+                    showingDeleteAccountConfirmation = true
+                }
+                .disabled(isDeletingAccount)
+                .accessibilityIdentifier(LaughTrackViewTestID.profileDeleteAccountButton)
+
+                if let deleteAccountErrorMessage {
+                    Text(deleteAccountErrorMessage)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.danger)
+                }
             }
+        }
+    }
+
+    private func deleteAccount() async {
+        guard !isDeletingAccount else { return }
+        isDeletingAccount = true
+        deleteAccountErrorMessage = nil
+        defer { isDeletingAccount = false }
+
+        do {
+            try await authManager.deleteAccount()
+        } catch {
+            deleteAccountErrorMessage = "Could not delete your account. Please try again."
         }
     }
 

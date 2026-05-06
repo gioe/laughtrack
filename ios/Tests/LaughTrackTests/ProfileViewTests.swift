@@ -41,7 +41,7 @@ struct ProfileViewTests {
         #expect(host.findText("Open Settings") == nil)
     }
 
-    @Test("signed-in profile shows account card with provider name and Sign out")
+    @Test("signed-in profile shows account card with provider name, Sign out, and Delete account")
     func signedInProfileShowsAccountCardAndSignOut() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "shell-profile-signed-in")
         authManager.loadUserRequest = {
@@ -74,10 +74,47 @@ struct ProfileViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileHero)
         try host.requireText("Ada Lovelace")
         try host.requireLabel("Sign out")
+        try host.requireLabel("Delete account")
         try host.requireText("Profile settings")
         try host.requireView(withIdentifier: LaughTrackViewTestID.profileSettingsPanel)
         try host.requireText("Favorite comedian alerts")
         #expect(host.findText("Open Settings") == nil)
+    }
+
+    @Test("Delete account action is behind an irreversible confirmation dialog")
+    func signedInDeleteAccountRequiresConfirmation() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(name: "shell-profile-delete-confirm")
+        authManager.loadUserRequest = {
+            AuthenticatedUser(
+                displayName: "Ada Lovelace",
+                email: "ada@example.com",
+                avatarURL: nil
+            )
+        }
+        await authManager.refreshCurrentUser()
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-profile-delete-confirm")
+        let host = HostedView(
+            ProfileView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                signedOutMessage: nil,
+                nearbyLocationController: container.resolve(NearbyLocationController.self),
+                notificationPreferenceStore: container.resolve(NotificationPreferenceStore.self)
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+            .environmentObject(LoginModalPresenter())
+        )
+
+        #expect(host.findText("Delete your LaughTrack account?") == nil)
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.profileDeleteAccountButton)
+
+        try host.requireText("Delete your LaughTrack account?")
+        try host.requireLabel("Delete account permanently")
+        try host.requireLabel("Cancel")
     }
 }
 #endif

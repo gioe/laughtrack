@@ -15,6 +15,7 @@ enum LaughTrackViewTestID {
     static let profileTabScreen = "laughtrack.profile-tab.screen"
     static let profileHero = "laughtrack.profile.hero"
     static let profileSettingsPanel = "laughtrack.profile.settings-panel"
+    static let profileDeleteAccountButton = "laughtrack.profile.delete-account-button"
     static let settingsNotificationsSection = "laughtrack.settings.notifications.section"
     static let settingsFavoriteComedianEmailAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-email-alerts"
     static let settingsFavoriteComedianPushAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-push-alerts"
