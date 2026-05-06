@@ -64,3 +64,16 @@ def test_task_1955_targets_stale_future_inventory_for_both_disabled_sources():
     }
     assert mod._METADATA_KEY == "task_1955_show_cleanup"
     assert mod._STALE_LAST_SCRAPED_CUTOFF == "2026-03-26T23:59:59+00:00"
+
+
+def test_existing_metadata_stamp_is_preserved_when_rerun_has_no_rows_to_delete():
+    mod = _load_module()
+
+    meta = {
+        mod._METADATA_KEY: {
+            "kind": "delete_stale_future_shows",
+            "deleted_future_show_count": 94,
+        }
+    }
+
+    assert mod._needs_metadata_update(meta, stale_future=0) is False

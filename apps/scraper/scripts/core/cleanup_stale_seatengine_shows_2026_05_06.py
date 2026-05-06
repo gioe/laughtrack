@@ -122,6 +122,12 @@ def _metadata_stamp(target: CleanupTarget, deleted_count: int | None) -> dict:
     return stamp
 
 
+def _needs_metadata_update(meta: dict, stale_future: int) -> bool:
+    if _METADATA_KEY not in meta:
+        return True
+    return stale_future > 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
@@ -287,15 +293,17 @@ def main() -> int:
 
                 source_row = source_rows[target.source_id]
                 meta = _load_metadata(source_row[6])
-                needs_meta = meta.get(_METADATA_KEY) != _metadata_stamp(
-                    target,
-                    None if args.dry_run else stale_future,
-                )
+                needs_meta = _needs_metadata_update(meta, stale_future)
                 action = "PLAN " if args.dry_run else "WRITE"
+                metadata_action = (
+                    f"stamp metadata[{_METADATA_KEY}]={target.disposition_kind!r}"
+                    if needs_meta
+                    else f"preserve existing metadata[{_METADATA_KEY}]"
+                )
 
                 print(
                     f"  {action} club={target.club_id}: delete {stale_future} stale future shows "
-                    f"+ metadata[{_METADATA_KEY}]={target.disposition_kind!r}"
+                    f"+ {metadata_action}"
                 )
 
                 if args.dry_run:
