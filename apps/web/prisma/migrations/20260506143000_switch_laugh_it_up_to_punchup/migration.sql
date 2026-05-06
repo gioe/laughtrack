@@ -23,7 +23,6 @@ INSERT INTO scraping_sources (
     club_id,
     platform,
     scraper_key,
-    external_id,
     source_url,
     enabled,
     priority,
@@ -35,7 +34,6 @@ SELECT
     485,
     'custom',
     'laugh_it_up_comedy',
-    NULL,
     'https://www.laughitupcomedy.com/calendar',
     TRUE,
     0,
@@ -58,7 +56,6 @@ WHERE NOT EXISTS (
 
 UPDATE scraping_sources
 SET scraper_key = 'laugh_it_up_comedy',
-    external_id = NULL,
     source_url = 'https://www.laughitupcomedy.com/calendar',
     enabled = TRUE,
     metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object(

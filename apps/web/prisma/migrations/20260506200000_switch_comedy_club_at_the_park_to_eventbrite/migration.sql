@@ -26,7 +26,7 @@ INSERT INTO scraping_sources (
     club_id,
     platform,
     scraper_key,
-    external_id,
+    eventbrite_id,
     source_url,
     priority,
     enabled,
