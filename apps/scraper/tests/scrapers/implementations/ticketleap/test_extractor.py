@@ -1,9 +1,13 @@
 """Tests for TicketLeap listing-page event ID extraction."""
 
+from pathlib import Path
+
 from laughtrack.scrapers.implementations.ticketleap.extractor import (
     build_event_detail_url,
     extract_event_ids,
 )
+
+_FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
 def _listing_html(payload_json: str) -> str:
@@ -88,6 +92,49 @@ def test_extract_event_ids_coerces_string_ids_and_skips_non_numeric():
     )
     ids = extract_event_ids(_listing_html(payload))
     assert ids == [100, 200, 300]
+
+
+def test_extract_event_ids_handles_singular_event_id_in_datalayer_push():
+    # Some TicketLeap pages have emitted per-event dataLayer.push payloads
+    # carrying a singular `event_id` int instead of a batched `event_ids`
+    # array. Both forms must extract.
+    first = '{"event":"event_view","event_id":2053571}'
+    second = '{"event":"event_view","event_id":2053540}'
+    html = _listing_html(first) + _listing_html(second)
+    ids = extract_event_ids(html)
+    assert ids == [2053571, 2053540]
+
+
+def test_extract_event_ids_handles_appwrapper_default_events_array():
+    # Current (2026-05) TicketLeap listing form: events are nested in the
+    # AppWrapper.default(...) initialization arguments rather than dataLayer.
+    html = """
+    <script>
+      AppWrapper.default(
+        document.getElementById('listing'),
+        {"serverTimezoneName":"America/New_York","slug":"funny"},
+        {"sellerId":"119485","shortName":"funny"},
+        [
+          {"type":"listing","resource":"Listing","event_id":2053571,"primary_event_id":2053571},
+          {"type":"listing","resource":"Listing","event_id":2053540,"primary_event_id":2053540},
+          {"type":"listing","resource":"Listing","event_id":2055152,"primary_event_id":2055152},
+          {"type":"listing","resource":"Listing","event_id":2102204,"primary_event_id":2102204}
+        ]
+      );
+    </script>
+    """
+    ids = extract_event_ids(html)
+    assert ids == [2053571, 2053540, 2055152, 2102204]
+
+
+def test_extract_event_ids_live_funny_listing_fixture():
+    # Captured 2026-05 from https://events.ticketleap.com/events/funny via
+    # the scraper's HttpClient (curl-cffi). Locks in the four currently-active
+    # Mesquite St. Comedy Club events that pre-fix returned [].
+    fixture = _FIXTURE_DIR / "funny_listing_2026_05.html"
+    html = fixture.read_text()
+    ids = extract_event_ids(html)
+    assert ids == [2053571, 2053540, 2055152, 2102204]
 
 
 def test_build_event_detail_url_uses_canonical_path():

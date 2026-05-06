@@ -1,28 +1,28 @@
 """TicketLeap listing-page event ID extractor.
 
 The TicketLeap public listing page (events.ticketleap.com/events/{org_slug})
-does NOT include per-event JSON-LD on the listing itself. Instead, it emits a
-dataLayer.push() call that carries the full list of event IDs:
+serializes the visible events into different inline-JS containers depending on
+the page version:
 
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({"event":"orglisting_page_view", ...,
-                           "event_ids":[2053571, 2091519, ...],
-                           ...})
+1. (legacy) ``window.dataLayer.push({"event":"orglisting_page_view", ...,
+   "event_ids":[2053571, 2091519, ...], ...})``
+2. (current, observed 2026-05) ``AppWrapper.default(
+   document.getElementById('listing'), {<config>}, {<seller>},
+   [{..., "event_id": <int>, ...}, ...])`` — events live in one of the JSON
+   arguments and each event object carries a singular ``event_id`` field.
 
-This module extracts that integer array so the scraper can then visit each
-event detail page (events.ticketleap.com/event/{id}) to parse its JSON-LD.
+Rather than chase whichever container TicketLeap is using this week, scan
+every JSON object literal in the HTML and recursively pull out any
+``event_id`` integers and any ``event_ids`` arrays we encounter. Brute-force
+JSON scanning is cheap (~10 ms even on a fully-rendered Playwright page) and
+shields the scraper from another silent-zero regression the next time the
+listing template changes.
 """
 
 from __future__ import annotations
 
 import json
-from typing import List
-
-# Marker scanned at every offset in the HTML. From each match we hand the
-# payload body to JSONDecoder.raw_decode, which uses the JSON grammar to find
-# the closing brace — so a literal '})' inside a string value cannot truncate
-# the payload the way a non-greedy regex would.
-_PUSH_MARKER = "dataLayer.push("
+from typing import Any, List
 
 _DECODER = json.JSONDecoder()
 
@@ -30,9 +30,10 @@ _DECODER = json.JSONDecoder()
 def extract_event_ids(html_content: str) -> List[int]:
     """Return event IDs from a TicketLeap org listing page.
 
-    Scans every dataLayer.push JSON payload in the HTML and returns the union
-    of their `event_ids` arrays (deduplicated, order-preserving). Returns [] if
-    no payload is present or none carry event IDs.
+    Scans every JSON object literal in the HTML and returns the deduplicated,
+    order-preserving union of every ``event_ids`` array entry and every
+    singular ``event_id`` field found while walking each parsed payload.
+    Returns ``[]`` if no event IDs are found.
     """
     if not html_content:
         return []
@@ -40,53 +41,51 @@ def extract_event_ids(html_content: str) -> List[int]:
     seen: set[int] = set()
     ordered: List[int] = []
 
-    search_from = 0
-    while True:
-        marker_idx = html_content.find(_PUSH_MARKER, search_from)
-        if marker_idx == -1:
-            break
-
-        payload_start = marker_idx + len(_PUSH_MARKER)
-        # Skip whitespace between '(' and the payload's opening brace so
-        # reformatted HTML ("push( { ... })") still parses.
-        while (
-            payload_start < len(html_content)
-            and html_content[payload_start].isspace()
-        ):
-            payload_start += 1
-
-        # Advance past this marker even when the payload is unparseable so we
-        # never re-enter the same branch on the next iteration.
-        search_from = payload_start
-
-        if payload_start >= len(html_content) or html_content[payload_start] != "{":
+    cursor = 0
+    end_pos = len(html_content)
+    while cursor < end_pos:
+        if html_content[cursor] != "{":
+            cursor += 1
             continue
 
         try:
-            payload, end = _DECODER.raw_decode(html_content, payload_start)
+            payload, end = _DECODER.raw_decode(html_content, cursor)
         except json.JSONDecodeError:
+            cursor += 1
             continue
 
-        search_from = end
-
-        if not isinstance(payload, dict):
-            continue
-
-        ids = payload.get("event_ids")
-        if not isinstance(ids, list):
-            continue
-
-        for raw_id in ids:
-            try:
-                event_id = int(raw_id)
-            except (TypeError, ValueError):
-                continue
-            if event_id in seen:
-                continue
-            seen.add(event_id)
-            ordered.append(event_id)
+        _walk(payload, seen, ordered)
+        cursor = end
 
     return ordered
+
+
+def _walk(payload: Any, seen: set[int], ordered: List[int]) -> None:
+    """Recursively pull ``event_id`` ints and ``event_ids`` arrays from a payload."""
+    if isinstance(payload, dict):
+        ids = payload.get("event_ids")
+        if isinstance(ids, list):
+            for raw in ids:
+                _add(raw, seen, ordered)
+        eid = payload.get("event_id")
+        if eid is not None and not isinstance(eid, (dict, list)):
+            _add(eid, seen, ordered)
+        for value in payload.values():
+            _walk(value, seen, ordered)
+    elif isinstance(payload, list):
+        for item in payload:
+            _walk(item, seen, ordered)
+
+
+def _add(raw: Any, seen: set[int], ordered: List[int]) -> None:
+    try:
+        event_id = int(raw)
+    except (TypeError, ValueError):
+        return
+    if event_id in seen:
+        return
+    seen.add(event_id)
+    ordered.append(event_id)
 
 
 def build_event_detail_url(event_id: int) -> str:
