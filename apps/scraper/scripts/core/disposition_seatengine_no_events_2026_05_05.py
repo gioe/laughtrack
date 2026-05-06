@@ -376,7 +376,13 @@ def _load_metadata(raw) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser = argparse.ArgumentParser(
+        description=(
+            "Disable 14 SeatEngine scraping_sources across 12 of the 14 venues "
+            "that emitted 'no events found' WARNs in the 2026-05-05 nightly. "
+            "See module docstring for the full disposition matrix and rationale."
+        )
+    )
     parser.add_argument("--dry-run", action="store_true", help="Preview changes without writing")
     args = parser.parse_args()
 
@@ -467,8 +473,9 @@ def main() -> int:
                     "kind": t.kind,
                     "rationale": t.rationale,
                 }
+                action = "PLAN " if args.dry_run else "WRITE"
                 print(
-                    f"  WRITE ss={t.source_id} (club {t.expected_club_id}): "
+                    f"  {action} ss={t.source_id} (club {t.expected_club_id}): "
                     f"enabled={enabled}→FALSE + metadata[{_METADATA_KEY}]={t.kind!r}"
                 )
                 if not args.dry_run:
@@ -492,7 +499,7 @@ def main() -> int:
             print(f"\n--dry-run: {writes_planned} writes planned (none applied).")
             return 0
 
-        print(f"\n=== AFTER ({writes_planned} writes committed on transaction exit) ===")
+        print(f"\n=== AFTER ({writes_planned} writes pending commit on transaction exit) ===")
 
     with get_transaction() as conn:
         with conn.cursor() as cur:
