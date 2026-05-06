@@ -11,6 +11,7 @@ Phase 2: Parse each event detail page to extract the TicketWeb ticket purchase U
 
 import re
 from datetime import datetime
+from html import unescape
 from typing import Dict, List, Optional, Tuple
 
 from dateutil import parser as dateutil_parser
@@ -87,9 +88,9 @@ class TicketWebExtractor:
             if not (title_match and start_match and url_match):
                 continue
 
-            title = title_match.group(1).replace("\\'", "'")
+            title = unescape(title_match.group(1).replace("\\'", "'"))
             date_str = start_match.group(1)
-            url = url_match.group(1).replace("\\'", "'")
+            url = unescape(url_match.group(1).replace("\\'", "'"))
 
             try:
                 start_date = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
@@ -136,10 +137,10 @@ class TicketWebExtractor:
                 continue
             seen_urls.add(url)
 
-            title = re.sub(r"<[^>]+>", "", name_match.group(1)).strip()
+            title = unescape(re.sub(r"<[^>]+>", "", name_match.group(1)).strip())
 
             # Parse date — format is typically "Apr 17 -" or "May 9 -"
-            raw_date = re.sub(r"<[^>]+>", "", date_match.group(1)).strip()
+            raw_date = unescape(re.sub(r"<[^>]+>", "", date_match.group(1)).strip())
             raw_date = raw_date.rstrip(" -")
 
             # Parse time — format is "Show: 9:00 PM" or "9:00 PM"
