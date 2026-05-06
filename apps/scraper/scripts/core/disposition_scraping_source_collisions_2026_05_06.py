@@ -3,6 +3,30 @@
 Disposition the 27 actionable (platform, external_id) collisions from the
 TASK-1956 audit (2026-05-06 snapshot).
 
+ARCHIVED — DO NOT RE-RUN
+------------------------
+This script was applied against prod on 2026-05-06 and is retained in
+``scripts/core/`` as audit trail per convention #79 (one-shot disposition
+scripts stay in place as the forensic record of what was changed and why).
+It is **not runnable at HEAD**: the SQL in ``fetch_current_state`` and the
+``UPDATE`` block both reference ``scraping_sources.external_id``, which
+was the generic id column at the time of execution but was dropped by
+TASK-1985 ('Recover Prisma typed scraping source migrations') in favor of
+per-platform typed columns (``seatengine_id``, ``seatengine_v3_id``,
+``eventbrite_id``, ``ticketmaster_id``, ``squadup_id``, ``wix_event_id``,
+``ovationtix_id``). Re-executing this file would raise
+``psycopg2.errors.UndefinedColumn: column "external_id" does not exist``.
+
+The dispositions captured in this file are still in effect — every
+modified row carries a ``metadata.task_1956_disposition`` stamp recording
+the per-row rationale, so the forensic story survives in-place even
+though the column it cleared no longer exists. Future TASK-1956-style
+``(platform, typed_id)`` collision audits should target the typed columns
+directly; the post-TASK-1985 reproduction query lives at the top of
+``apps/scraper/docs/audits/task-1956-scraping-source-collisions.md`` and
+TASK-1984's ``fold_task_1984_dup_pairs.py`` is the matching modern
+disposition pattern.
+
 Background
 ----------
 TASK-1956 audited the live ``scraping_sources`` table for cases where two
