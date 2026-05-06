@@ -374,6 +374,75 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         assert "RETURNING *" in sql
 
 
+class TestSeatEngineUpsertRespectsDispositionMetadata:
+    """Regression tests for TASK-1968: UPSERT_CLUB_BY_SEATENGINE_VENUE and
+    UPSERT_CLUB_BY_SEATENGINE_V3_VENUE must not unconditionally re-enable a row
+    whose metadata carries any ``task_<id>_disposition`` stamp. seatengine_national
+    iterates v1 venue ids 1..N every night and upserts every still-listed venue,
+    so the prior bare ``enabled = TRUE`` reverted dispositional disables within
+    24h (concrete prior-art: ss=924 club 602 'Laugh And Enjoy' was disabled on
+    2026-05-02 and back to enabled=true by 2026-05-03 07:42:54). The fix replaces
+    the bare TRUE with a CASE that preserves ``scraping_sources.enabled`` when
+    any matching disposition key exists on the existing row, while leaving the
+    new-venue INSERT path emitting enabled=true."""
+
+    def _normalized(self, sql: str) -> str:
+        # Collapse whitespace so multi-line SQL formatting doesn't defeat
+        # substring matches.
+        return " ".join(sql.split()).upper()
+
+    def _conflict_clause(self, sql: str) -> str:
+        """Return only the scraping_sources ON CONFLICT … RETURNING segment.
+
+        Both upserts have two ON CONFLICT clauses — the first on `clubs.name`
+        for the upserted_club CTE, the second on `(club_id, platform, priority)`
+        for the upserted_source CTE. Anchor on the (CLUB_ID, … so we only see
+        the scraping_sources branch we are guarding.
+        """
+        normalized = self._normalized(sql)
+        start = normalized.index("ON CONFLICT (CLUB_ID")
+        end = normalized.index("RETURNING CLUB_ID", start)
+        return normalized[start:end]
+
+    def _seatengine_sqls(self):
+        return [
+            ("seatengine", ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE),
+            ("seatengine_v3", ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE),
+        ]
+
+    def test_conflict_branch_preserves_existing_enabled_on_disposition_metadata(self):
+        for label, raw in self._seatengine_sqls():
+            conflict = self._conflict_clause(raw)
+            # The conflict branch must inspect existing-row metadata for any
+            # disposition key and short-circuit the re-enable when found.
+            assert "JSONB_OBJECT_KEYS" in conflict, label
+            assert "SCRAPING_SOURCES.METADATA" in conflict, label
+            assert "TASK_%_DISPOSITION" in conflict, label
+            # Preserves the existing enabled flag (not EXCLUDED.enabled, which
+            # would defeat the carve-out by always re-enabling).
+            assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
+            assert "ELSE TRUE" in conflict, label
+            # Must NOT contain a bare unconditional re-enable in this branch.
+            assert "ENABLED = TRUE" not in conflict, label
+
+    def test_insert_branch_still_emits_enabled_true_for_new_venues(self):
+        # The first-time-discovery path lives in the SELECT inside the
+        # upserted_source CTE, BEFORE the (club_id, platform, priority) ON
+        # CONFLICT clause. Slice that segment and confirm a bare TRUE is still
+        # being inserted. (There is an earlier ON CONFLICT on clubs.name for
+        # the upserted_club CTE; we want the one on the scraping_sources CTE.)
+        for label, raw in self._seatengine_sqls():
+            normalized = self._normalized(raw)
+            select_start = normalized.index("INSERT INTO SCRAPING_SOURCES")
+            conflict_start = normalized.index("ON CONFLICT (CLUB_ID", select_start)
+            insert_segment = normalized[select_start:conflict_start]
+            # Bare TRUE literal in the SELECT projection — confirms the
+            # disposition guard didn't accidentally bleed into the insert path.
+            assert ", TRUE," in insert_segment, label
+            # And the conflict guard must not appear in the insert segment.
+            assert "JSONB_OBJECT_KEYS" not in insert_segment, label
+
+
 class TestUpsertForEventbriteVenueInvalidInput:
     """Criterion 670: None/missing venue fields returns None without raising."""
 
