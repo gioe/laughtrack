@@ -230,6 +230,8 @@ help-discover:
 	@echo "🔍 DISCOVERY & INFORMATION:"
 	@echo "  list-scrapers        - Show all available scraper types"
 	@echo "  list-clubs           - Show all venues with IDs and names"
+	@echo "  club CLUB=<name|id>  - Print full JSON record for a club by name or integer id"
+	@echo "  club ID=<id>         - Same as 'club CLUB=<id>' — exact lookup by integer id"
 	@echo "  discover-venues      - Discover new venues from comedian tour pages"
 
 help-clean:
@@ -698,12 +700,13 @@ list-clubs-json:
 	@$(PYTHON) -m scripts.core.scrape_shows --list-clubs-json
 
 # Look up a club by name or ID and print full record as JSON
-# Usage: make club CLUB='Baltimore Comedy Factory'   (partial match)
+# Usage: make club CLUB='Baltimore Comedy Factory'   (partial name match)
+#        make club CLUB=845                           (integer id — same as ID=845)
 #        make club ID=845                             (exact ID)
 club: check-env
 ifndef CLUB
 ifndef ID
-	@echo "❌ Usage: make club CLUB='<name>' or make club ID=<id>"
+	@echo "❌ Usage: make club CLUB='<name-or-id>' or make club ID=<id>"
 	@exit 1
 endif
 endif
@@ -733,6 +736,8 @@ endif
 		'' \
 		'if id_arg:' \
 		'    cur.execute("SELECT * FROM clubs WHERE id = %s", (int(id_arg),))' \
+		'elif club_arg and club_arg.isdigit():' \
+		'    cur.execute("SELECT * FROM clubs WHERE id = %s", (int(club_arg),))' \
 		'elif club_arg:' \
 		'    cur.execute("SELECT * FROM clubs WHERE LOWER(name) LIKE LOWER(%s)", (f"%{club_arg}%",))' \
 		'else:' \
