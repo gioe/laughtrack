@@ -70,6 +70,33 @@ class TestExtractCalendarEvents:
         assert len(events) == 1
         assert events[0]["title"] == "Mike's Comedy Hour"
 
+    def test_decodes_html_entities_in_title(self):
+        """JS string literals that the WordPress plugin HTML-escapes leak the
+        raw entity through to the browser since <script> contents are not
+        decoded by the HTML parser. Match the symmetric fallback-path fix.
+        """
+        html = """
+        <script>
+        var all_events = [
+            { title: 'Yakov Smirnoff &#8211; Laugh Your Yak Off',
+              start: new Date('2099-08-01 20:00:00'),
+              url: '/event/yakov' },
+            { title: 'HARTA COMEDIA (EN ESPA&Ntilde;OL)',
+              start: new Date('2099-08-02 21:00:00'),
+              url: '/event/harta' },
+            { title: 'Mike&#39;s Comedy Hour',
+              start: new Date('2099-08-03 19:00:00'),
+              url: '/event/mikes' }
+        ];
+        </script>
+        """
+        events = TicketWebExtractor.extract_calendar_events(html)
+
+        assert len(events) == 3
+        assert events[0]["title"] == "Yakov Smirnoff – Laugh Your Yak Off"
+        assert events[1]["title"] == "HARTA COMEDIA (EN ESPAÑOL)"
+        assert events[2]["title"] == "Mike's Comedy Hour"
+
     def test_returns_empty_when_no_js_array(self):
         html = "<html><body><p>No calendar here</p></body></html>"
         events = TicketWebExtractor.extract_calendar_events(html)
@@ -207,6 +234,33 @@ class TestExtractHtmlCalendarEvents:
         html = "<html><body><p>Empty page</p></body></html>"
         events = TicketWebExtractor.extract_html_calendar_events(html)
         assert events == []
+
+    def test_decodes_html_entities_in_title(self):
+        """Live TicketWeb HTML on 2026-05-06 (Stand Up Comedy Club) returned
+        titles with numeric (&#8211;), named (&Ntilde;), and apostrophe (&#39;)
+        entities that previously persisted verbatim.
+        """
+        html = (
+            "<div>header</div>"
+            + self._make_event_block(
+                name="Yakov Smirnoff &#8211; Laugh Your Yak Off",
+                date="Aug 1 -", time="8:00 PM", url="/event/yakov",
+            )
+            + self._make_event_block(
+                name="HARTA COMEDIA (EN ESPA&Ntilde;OL)",
+                date="Aug 2 -", time="9:00 PM", url="/event/harta",
+            )
+            + self._make_event_block(
+                name="Mike&#39;s Comedy Hour",
+                date="Aug 3 -", time="7:00 PM", url="/event/mikes",
+            )
+        )
+        events = TicketWebExtractor.extract_html_calendar_events(html)
+
+        assert len(events) == 3
+        assert events[0]["title"] == "Yakov Smirnoff – Laugh Your Yak Off"
+        assert events[1]["title"] == "HARTA COMEDIA (EN ESPAÑOL)"
+        assert events[2]["title"] == "Mike's Comedy Hour"
 
     def test_event_without_time_still_parsed(self):
         """Time element is optional — date alone should still parse."""
