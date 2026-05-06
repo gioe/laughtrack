@@ -93,7 +93,20 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+check-env:
+	@if [ ! -f .env ]; then \
+		gitdir=$$(git rev-parse --git-common-dir 2>/dev/null); \
+		main_env=$$(realpath "$$gitdir/..")/apps/scraper/.env; \
+		if [ -f "$$main_env" ]; then \
+			echo "⚙️  .env missing (worktree?) — symlinking from $$main_env"; \
+			ln -s "$$main_env" .env; \
+		else \
+			echo "❌ apps/scraper/.env missing. Copy from .env.example."; \
+			exit 1; \
+		fi \
+	fi
+
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -610,7 +623,7 @@ else
 endif
 
 # Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraper IS NULL check)
-diagnose-club:
+diagnose-club: check-env
 ifndef ID
 	@echo "Error: ID parameter is required"
 	@echo "Usage: make diagnose-club ID=123"
@@ -686,7 +699,7 @@ list-clubs-json:
 # Look up a club by name or ID and print full record as JSON
 # Usage: make club CLUB='Baltimore Comedy Factory'   (partial match)
 #        make club ID=845                             (exact ID)
-club:
+club: check-env
 ifndef CLUB
 ifndef ID
 	@echo "❌ Usage: make club CLUB='<name>' or make club ID=<id>"
@@ -754,14 +767,14 @@ endif
 
 # Apply pending SQL migrations - reads DATABASE_URL from .env, tracks applied
 # migrations in migrations_log, and applies any unapplied .sql files in order.
-migrate:
+migrate: check-env
 	@echo "🗄️  Applying pending SQL migrations..."
 	@echo "   → Migrations directory: apps/scraper/migrations/"
 	@echo "   → Tracking applied migrations in migrations_log table"
 	$(activate_venv) $(PYTHON) bin/migrate
 
 # Preview pending migrations without applying them
-migrate-dry-run:
+migrate-dry-run: check-env
 	@echo "🔍 Dry run — showing pending migrations (no changes made)..."
 	$(activate_venv) $(PYTHON) bin/migrate --dry-run
 
@@ -937,7 +950,7 @@ full-maintenance:
 # literal for closed_at (deterministic replay across environments) and a
 # `WHERE ... AND status <> 'closed'` guard (idempotent: re-applying will not
 # overwrite a historical closed_at).
-close-club:
+close-club: check-env
 ifndef ID
 	@echo "❌ Usage: make close-club ID=<club_id>"
 	@exit 1
@@ -1023,7 +1036,7 @@ endif
 # Hide a club - set visible=false, create Prisma migration, record in _prisma_migrations
 # Usage: make hide-club ID=413
 # Use this for reversible hiding (pending investigation, duplicates). For permanent closure, use `make close-club`.
-hide-club:
+hide-club: check-env
 ifndef ID
 	@echo "❌ Usage: make hide-club ID=<club_id>"
 	@exit 1
