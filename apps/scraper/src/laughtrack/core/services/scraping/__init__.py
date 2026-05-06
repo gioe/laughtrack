@@ -875,7 +875,7 @@ class ScrapingService:
                         f"⚠️ {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                         f"{m.none_resp} empty, {m.error} errors)"
                     )
-            else:
+            elif not parser_rejected_all:
                 body_lines.append("All clubs at or above threshold ✅")
             if empty_calendar:
                 body_lines += [

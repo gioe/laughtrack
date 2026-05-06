@@ -875,6 +875,32 @@ class TestSendDiscordRunSummary:
         assert "Broken Club" in desc
         assert metadata.get("clubs_classifier_rejected_all") == 1
 
+    def test_classifier_rejected_all_only_run_does_not_show_all_clear(self):
+        """A run with only parser-rejected venues must not claim every club is
+        at or above threshold."""
+        svc = self._make_service(threshold=70.0)
+        rejected = DomainRequestMetrics(
+            club_name="Parser Rejected Club",
+            total=1,
+            none_resp=1,
+            fetches_ok=1,
+            items_before_filter=2,
+        )
+        summary = _make_multi_club_summary([rejected])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        assert "All clubs at or above threshold" not in desc
+        assert "parser rejected all candidates" in desc
+
     def test_skips_when_discord_not_configured(self):
         """No alert is sent when Discord is not configured."""
         svc = self._make_service()
