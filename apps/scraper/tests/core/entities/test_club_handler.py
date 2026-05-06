@@ -443,6 +443,85 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
             assert "JSONB_OBJECT_KEYS" not in insert_segment, label
 
 
+class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
+    """Regression tests for TASK-1978: UPSERT_CLUB_BY_EVENTBRITE_VENUE,
+    UPSERT_CLUB_BY_TICKETMASTER_VENUE, and UPSERT_CLUB_BY_TOUR_DATE_VENUE must
+    respect the same dispositional disable contract as the seatengine pair fixed
+    in TASK-1968. Each query's caller drives a recurring nightly sweep that
+    re-emits previously-disposed venues — eventbrite organizer-mode replays
+    every distinct (name, city, state) per organizer feed, ticketmaster_national
+    paginates the TM Discovery API for US Comedy events, and the two
+    tour_date callers (TourDatesScraper + ComedianWebsiteScraper) iterate the
+    full bandsintown_id / personal-website comedian set and re-discover
+    venues per artist. The bare 'enabled = TRUE' that originally lived on each
+    of these queries' (club_id, platform, priority) ON CONFLICT branch reverted
+    any dispositional disable on a still-listed venue within 24h, exactly the
+    pattern that TASK-1968 first observed on seatengine_national (ss=924 club
+    602 'Laugh And Enjoy' was disabled on 2026-05-02 and back to enabled=true
+    by 2026-05-03 07:42:54). The fix mirrors the seatengine carve-out: when the
+    existing scraping_sources row carries any 'task_<id>_disposition' metadata
+    key, the UPDATE branch preserves scraping_sources.enabled instead of
+    re-setting it to TRUE; otherwise (no disposition stamp, including all
+    first-time-discovery rows) the upsert continues to flip enabled to TRUE."""
+
+    def _normalized(self, sql: str) -> str:
+        # Collapse whitespace so multi-line SQL formatting doesn't defeat
+        # substring matches.
+        return " ".join(sql.split()).upper()
+
+    def _conflict_clause(self, sql: str) -> str:
+        """Return only the scraping_sources ON CONFLICT … RETURNING segment.
+
+        Each upsert has two ON CONFLICT clauses — the first on `clubs.name`
+        for the upserted_club CTE, the second on `(club_id, platform, priority)`
+        for the upserted_source CTE. Anchor on the (CLUB_ID, … so we only see
+        the scraping_sources branch we are guarding.
+        """
+        normalized = self._normalized(sql)
+        start = normalized.index("ON CONFLICT (CLUB_ID")
+        end = normalized.index("RETURNING CLUB_ID", start)
+        return normalized[start:end]
+
+    def _at_risk_sqls(self):
+        return [
+            ("eventbrite", ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE),
+            ("ticketmaster", ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE),
+            ("tour_date", ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE),
+        ]
+
+    def test_conflict_branch_preserves_existing_enabled_on_disposition_metadata(self):
+        for label, raw in self._at_risk_sqls():
+            conflict = self._conflict_clause(raw)
+            # The conflict branch must inspect existing-row metadata for any
+            # disposition key and short-circuit the re-enable when found.
+            assert "JSONB_OBJECT_KEYS" in conflict, label
+            assert "SCRAPING_SOURCES.METADATA" in conflict, label
+            assert "TASK_%_DISPOSITION" in conflict, label
+            # Preserves the existing enabled flag (not EXCLUDED.enabled, which
+            # would defeat the carve-out by always re-enabling).
+            assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
+            assert "ELSE TRUE" in conflict, label
+            # Must NOT contain a bare unconditional re-enable in this branch.
+            assert "ENABLED = TRUE" not in conflict, label
+
+    def test_insert_branch_still_emits_enabled_true_for_new_venues(self):
+        # The first-time-discovery path lives in the SELECT inside the
+        # upserted_source CTE, BEFORE the (club_id, platform, priority) ON
+        # CONFLICT clause. Slice that segment and confirm a bare TRUE is still
+        # being inserted. (There is an earlier ON CONFLICT on clubs.name for
+        # the upserted_club CTE; we want the one on the scraping_sources CTE.)
+        for label, raw in self._at_risk_sqls():
+            normalized = self._normalized(raw)
+            select_start = normalized.index("INSERT INTO SCRAPING_SOURCES")
+            conflict_start = normalized.index("ON CONFLICT (CLUB_ID", select_start)
+            insert_segment = normalized[select_start:conflict_start]
+            # Bare TRUE literal in the SELECT projection — confirms the
+            # disposition guard didn't accidentally bleed into the insert path.
+            assert ", TRUE," in insert_segment, label
+            # And the conflict guard must not appear in the insert segment.
+            assert "JSONB_OBJECT_KEYS" not in insert_segment, label
+
+
 class TestUpsertForEventbriteVenueInvalidInput:
     """Criterion 670: None/missing venue fields returns None without raising."""
 
