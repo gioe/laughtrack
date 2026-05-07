@@ -11,14 +11,35 @@
 VENV_DIR := .venv
 VENV_ACTIVATE := $(VENV_DIR)/bin/activate
 
+# Worktree fallback: if local .venv is missing but the primary worktree has one,
+# auto-symlink it. Mirrors the .env auto-symlink in `check-env` below, but runs
+# at parse time because $(wildcard) and $(activate_venv) capture the venv state
+# during variable expansion — a target-level prerequisite would run too late.
+ifeq ($(wildcard $(VENV_ACTIVATE)),)
+_VENV_AUTOLINK := $(shell \
+	if [ -L .venv ] && [ ! -e .venv ]; then rm -f .venv; fi; \
+	if [ ! -e .venv ]; then \
+		gitdir=$$(git rev-parse --git-common-dir 2>/dev/null); \
+		if [ -n "$$gitdir" ]; then \
+			main_venv=$$(realpath "$$gitdir/..")/apps/scraper/.venv; \
+			if [ -d "$$main_venv" ]; then \
+				echo "🐍 .venv missing (worktree?) — symlinking from $$main_venv" >&2; \
+				ln -s "$$main_venv" .venv; \
+			fi; \
+		fi; \
+	fi)
+endif
+
 # Check if we're already in a virtual environment
 ifdef VIRTUAL_ENV
     PYTHON := python
     PIP := pip
     VENV_ACTIVE := true
 else
-    # Check if .venv directory exists
-    ifneq ($(wildcard $(VENV_ACTIVATE)),)
+    # Use shell test (not $(wildcard)) so a symlink the auto-link block just
+    # created in the same parse pass is observed — wildcard reads from make's
+    # pre-resolved file cache and misses parse-time-created entries.
+    ifeq ($(shell test -e $(VENV_ACTIVATE) && echo yes),yes)
         PYTHON := $(VENV_DIR)/bin/python
         PIP := $(VENV_DIR)/bin/pip
         VENV_ACTIVE := false
