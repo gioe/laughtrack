@@ -22,6 +22,8 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
     """Fetch Phoenix shows from the site's ShowClix WordPress AJAX endpoint."""
 
     key = "house_of_comedy_phoenix"
+    default_source_url = _DEFAULT_SOURCE_URL
+    default_ajax_url = _DEFAULT_AJAX_URL
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -33,11 +35,11 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
 
     @property
     def _source_url(self) -> str:
-        return self.club.scraping_url or _DEFAULT_SOURCE_URL
+        return self.club.scraping_url or self.default_source_url
 
     @property
     def _ajax_url(self) -> str:
-        return self.club.metadata_value("ajax_url") or _DEFAULT_AJAX_URL
+        return self.club.metadata_value("ajax_url") or self.default_ajax_url
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         today = self._today()
@@ -94,6 +96,7 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
         events = HouseOfComedyPhoenixExtractor.extract_events(
             html,
             year=year,
+            month=month,
             source_url=self._source_url,
         )
         if not events:

@@ -3,6 +3,7 @@
 import re
 from datetime import datetime
 from typing import List, Optional
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup, Tag
 
@@ -53,7 +54,13 @@ class HouseOfComedyPhoenixExtractor:
     """Parse show cards returned by the Phoenix WordPress get_comedy_shows action."""
 
     @staticmethod
-    def extract_events(html: str, *, year: int, source_url: str) -> List[HouseOfComedyPhoenixEvent]:
+    def extract_events(
+        html: str,
+        *,
+        year: int,
+        source_url: str,
+        month: Optional[int] = None,
+    ) -> List[HouseOfComedyPhoenixEvent]:
         if not html:
             return []
 
@@ -65,7 +72,12 @@ class HouseOfComedyPhoenixExtractor:
         events: List[HouseOfComedyPhoenixEvent] = []
         seen: set[tuple[str, str, str, str]] = set()
         for container in containers:
-            event = HouseOfComedyPhoenixExtractor._parse_container(container, year=year, source_url=source_url)
+            event = HouseOfComedyPhoenixExtractor._parse_container(
+                container,
+                year=year,
+                month=month,
+                source_url=source_url,
+            )
             if event is None:
                 continue
             key = (event.title, event.date, event.time, event.ticket_url)
@@ -83,6 +95,7 @@ class HouseOfComedyPhoenixExtractor:
             ".comedy_show_event",
             ".comedy-show-card",
             ".event-card",
+            ".grid-view-comedy_show_item",
         )
         matches: List[Tag] = []
         seen_ids: set[int] = set()
@@ -100,17 +113,36 @@ class HouseOfComedyPhoenixExtractor:
             if isinstance(card, Tag) and id(card) not in seen_ids:
                 seen_ids.add(id(card))
                 matches.append(card)
+
+        source_host = urlparse(str(soup.base.get("href")) if soup.base else "").netloc
+        for link in soup.find_all("a", href=True):
+            href = str(link.get("href") or "")
+            parsed = urlparse(href)
+            if "/events/" not in parsed.path:
+                continue
+            if source_host and parsed.netloc and parsed.netloc != source_host:
+                continue
+            card = link.find_parent(["article", "li", "div"])
+            if isinstance(card, Tag) and id(card) not in seen_ids:
+                seen_ids.add(id(card))
+                matches.append(card)
         return matches
 
     @staticmethod
-    def _parse_container(container: Tag, *, year: int, source_url: str) -> Optional[HouseOfComedyPhoenixEvent]:
-        ticket_url = HouseOfComedyPhoenixExtractor._ticket_url(container)
+    def _parse_container(
+        container: Tag,
+        *,
+        year: int,
+        source_url: str,
+        month: Optional[int],
+    ) -> Optional[HouseOfComedyPhoenixEvent]:
+        ticket_url = HouseOfComedyPhoenixExtractor._ticket_url(container, source_url=source_url)
         if not ticket_url:
             return None
 
         text = " ".join(container.get_text(" ", strip=True).split())
         title = HouseOfComedyPhoenixExtractor._title(container, ticket_url=ticket_url)
-        date = HouseOfComedyPhoenixExtractor._date(text, year=year)
+        date = HouseOfComedyPhoenixExtractor._date(text, year=year, month=month)
         time = HouseOfComedyPhoenixExtractor._time(text)
         if not title or not date or not time:
             return None
@@ -124,13 +156,22 @@ class HouseOfComedyPhoenixExtractor:
         )
 
     @staticmethod
-    def _ticket_url(container: Tag) -> str:
+    def _ticket_url(container: Tag, *, source_url: str) -> str:
         hrefs = [str(a.get("href") or "") for a in container.find_all("a", href=True)]
         haystack = " ".join(hrefs + [str(container)])
         match = _SHOWCLIX_RE.search(haystack)
-        if not match:
-            return ""
-        return normalize_showclix_url(match.group(0).rstrip("/"))
+        if match:
+            return normalize_showclix_url(match.group(0).rstrip("/"))
+
+        source_host = urlparse(source_url).netloc
+        for href in hrefs:
+            if not href or href == "#":
+                continue
+            absolute = urljoin(source_url, href)
+            parsed = urlparse(absolute)
+            if parsed.netloc == source_host and "/events/" in parsed.path:
+                return absolute
+        return ""
 
     @staticmethod
     def _title(container: Tag, *, ticket_url: str) -> str:
@@ -138,6 +179,7 @@ class HouseOfComedyPhoenixExtractor:
             ".comedy_show_title",
             ".show_title",
             ".event-title",
+            ".grid-view-comedy_show_title",
             "h1",
             "h2",
             "h3",
@@ -159,12 +201,19 @@ class HouseOfComedyPhoenixExtractor:
         return ""
 
     @staticmethod
-    def _date(text: str, *, year: int) -> str:
+    def _date(text: str, *, year: int, month: Optional[int] = None) -> str:
         match = _DATE_RE.search(text)
-        if not match:
+        if match:
+            month = _MONTHS[match.group(1).lower().rstrip(".")]
+            day = int(match.group(2))
+            return f"{year:04d}-{month:02d}-{day:02d}"
+
+        if month is None:
             return ""
-        month = _MONTHS[match.group(1).lower().rstrip(".")]
-        day = int(match.group(2))
+        day_match = re.search(r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(\d{1,2})\b", text, re.I)
+        if not day_match:
+            return ""
+        day = int(day_match.group(1))
         return f"{year:04d}-{month:02d}-{day:02d}"
 
     @staticmethod
