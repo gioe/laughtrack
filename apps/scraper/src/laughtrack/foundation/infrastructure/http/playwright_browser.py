@@ -46,6 +46,13 @@ import weakref
 from typing import Optional
 from urllib.parse import urlparse
 
+from laughtrack.foundation.infrastructure.http.protection.aws_waf_solver import (
+    AWS_WAF_MARKERS,
+    AwsWafSolver,
+    AwsWafSolverError,
+    build_default_aws_waf_solver,
+    is_aws_waf_interactive_challenge,
+)
 from laughtrack.foundation.infrastructure.http.protection.datadome_solver import (
     DATADOME_IFRAME_HOST,
     DataDomeSolver,
@@ -131,15 +138,15 @@ _LAUNCH_ARGS: tuple[str, ...] = (
     "--disable-blink-features=AutomationControlled",
 )
 
-# Markers present in AWS WAF passive JS challenge pages. When the initial
-# ``page.goto(..., wait_until='domcontentloaded')`` resolves, the challenge
-# script is still executing — the rendered HTML contains these globals but not
-# the real content. fetch_html waits briefly for the challenge to complete
-# (cookie set, JS reload) before returning.
-_AWS_WAF_MARKERS: tuple[str, ...] = (
-    "awsWafCookieDomainList",
-    "gokuProps",
-)
+# Markers present in AWS WAF challenge pages — passive AND interactive.
+# When the initial ``page.goto(..., wait_until='domcontentloaded')`` resolves
+# the challenge script is still executing; the rendered HTML contains these
+# globals but not the real content. fetch_html waits briefly for the passive
+# crypto to clear them; if they are STILL present after the wait, the page
+# is on the interactive "Human Verification" path and the AWS WAF solver
+# handles it. Imported from ``aws_waf_solver`` so detection (here) and the
+# solver (there) cannot drift apart.
+_AWS_WAF_MARKERS: tuple[str, ...] = AWS_WAF_MARKERS
 
 # Maximum time to wait for the AWS WAF passive challenge to resolve after
 # the initial DOMContentLoaded. 8s comfortably covers the typical 1-3s
@@ -175,6 +182,13 @@ _DATADOME_RELOAD_TIMEOUT_MS = 30_000
 # so a query_selector that fires immediately on ``domcontentloaded``
 # typically misses it. 5 s comfortably covers the typical injection delay.
 _DATADOME_IFRAME_WAIT_MS = 5_000
+
+# Timeout for ``page.reload`` after an AWS WAF cookie has been injected.
+# Mirrors :data:`_DATADOME_RELOAD_TIMEOUT_MS`. Once the aws-waf-token cookie
+# is set the origin returns the real content directly; reload should finish
+# in 1-3s, so 30 s is a generous ceiling that accommodates slow first-byte
+# on the post-challenge page without masking a genuine hang.
+_AWS_WAF_RELOAD_TIMEOUT_MS = 30_000
 
 
 def _parse_proxy(proxy_url: str) -> dict:
@@ -593,6 +607,96 @@ class PlaywrightBrowser:
             )
             return None
 
+    @staticmethod
+    async def _solve_aws_waf_if_stuck(
+        *,
+        page: object,
+        context: object,
+        url: str,
+        proxy_url: Optional[str],
+        html: str,
+        solver: Optional[AwsWafSolver],
+    ) -> Optional[str]:
+        """Solve an AWS WAF interactive challenge after the passive wait failed.
+
+        Called AFTER :meth:`_wait_for_waf_challenge` has run. If the WAF
+        markers are still in *html*, the passive crypto did not clear and
+        the page is on the visible "Human Verification" path — the only
+        way past it is the capsolver ``AntiAwsWafTask`` flow. Returns the
+        post-solve HTML on success, or ``None`` to leave *html* unchanged.
+
+        Failure modes are logged but never raised: an unsolvable WAF
+        challenge is functionally identical to the pre-integration state
+        (caller's bot-block detector marks the fetch as blocked and moves
+        on). Mirrors :meth:`_solve_datadome_if_present` so the two
+        protection layers behave identically from fetch_html's vantage.
+        """
+        if not is_aws_waf_interactive_challenge(html):
+            return None
+
+        if solver is None:
+            Logger.warn(
+                "[PlaywrightBrowser] AWS WAF interactive CAPTCHA detected but "
+                "CAPSOLVER_API_KEY is unset — returning challenge HTML unchanged",
+                {"url": url},
+            )
+            return None
+
+        Logger.info(
+            f"[PlaywrightBrowser] Solving AWS WAF CAPTCHA for {url}",
+            {"url": url},
+        )
+        try:
+            solved = await solver.solve(
+                website_url=url,
+                user_agent=_USER_AGENT,
+                proxy_url=proxy_url,
+            )
+        except AwsWafSolverError as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] capsolver rejected AWS WAF solve: {exc}",
+                {"url": url},
+            )
+            return None
+        except Exception as exc:  # network / unexpected
+            Logger.warn(
+                f"[PlaywrightBrowser] AWS WAF solver raised "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
+        if solved is None:
+            return None
+
+        # capsolver's AWS WAF response sometimes returns a bare
+        # ``aws-waf-token=value`` without a Domain attribute; falling back
+        # to the origin hostname keeps Playwright happy. parse_set_cookie
+        # is shared with the DataDome path — same Set-Cookie syntax.
+        default_domain = urlparse(url).hostname
+        cookie = parse_set_cookie(solved.cookie, default_domain=default_domain)
+        if cookie is None:
+            Logger.warn(
+                "[PlaywrightBrowser] AWS WAF solver returned an unparseable cookie",
+                {"url": url},
+            )
+            return None
+
+        try:
+            await context.add_cookies([cookie])
+            await page.reload(
+                wait_until="domcontentloaded",
+                timeout=_AWS_WAF_RELOAD_TIMEOUT_MS,
+            )
+            return await page.content()
+        except Exception as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] Reload after AWS WAF solve failed: "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
         """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
 
@@ -642,6 +746,23 @@ class PlaywrightBrowser:
                 html = await page.content()
                 if any(marker in html for marker in _AWS_WAF_MARKERS):
                     html = await self._wait_for_waf_challenge(page, html)
+                    # If the markers are still present after the passive
+                    # wait, the page is on the AWS WAF interactive
+                    # "Human Verification" path — capsolver can break it
+                    # via AntiAwsWafTaskProxyless. Solver is built fresh
+                    # so a missing API key just degrades to the original
+                    # challenge HTML (matches the criterion 6568 spec:
+                    # detect AFTER _wait_for_waf_challenge has run).
+                    solved_waf_html = await self._solve_aws_waf_if_stuck(
+                        page=page,
+                        context=context,
+                        url=normalized_url,
+                        proxy_url=proxy_url,
+                        html=html,
+                        solver=build_default_aws_waf_solver(),
+                    )
+                    if solved_waf_html is not None:
+                        html = solved_waf_html
                 # DataDome interactive-CAPTCHA fallback (TASK-1658). Only
                 # reached when the rendered DOM contains the geo.captcha-
                 # delivery.com iframe; on missing iframe / missing API key /
@@ -671,6 +792,21 @@ class PlaywrightBrowser:
                                 html,
                                 timeout_ms=_WAF_CHALLENGE_POST_DATADOME_WAIT_MS,
                             )
+                            # Same interactive-WAF fallback as the first
+                            # WAF wait — etix's post-DataDome WAF page is
+                            # exactly where the visible CAPTCHA appears
+                            # in production, so this is the load-bearing
+                            # call site for the 16 affected venues.
+                            solved_waf_html = await self._solve_aws_waf_if_stuck(
+                                page=page,
+                                context=context,
+                                url=normalized_url,
+                                proxy_url=proxy_url,
+                                html=html,
+                                solver=build_default_aws_waf_solver(),
+                            )
+                            if solved_waf_html is not None:
+                                html = solved_waf_html
                 Logger.debug(
                     f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
                     {},
