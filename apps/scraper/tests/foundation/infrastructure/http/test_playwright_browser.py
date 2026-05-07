@@ -799,6 +799,201 @@ class TestPlaywrightBrowser:
         fake_solver.solve.assert_not_called()
         assert result == challenge_html
 
+    # -------------------------------------------------------------------
+    # AWS WAF solver path (TASK-2003)
+    # -------------------------------------------------------------------
+
+    @pytest.mark.asyncio
+    async def test_no_waf_markers_means_aws_waf_solver_never_built(self):
+        """Solver fires only when AWS WAF markers are present in the HTML.
+
+        A regular page that does not contain any WAF markers must never
+        even *construct* an AWS WAF solver. Mirrors the criterion-5520
+        guard from the DataDome path: detection happens first, the
+        solver is built fresh per-fetch only when needed.
+        """
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value="<html>regular page</html>")
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_aws_waf_solver") as mock_build,
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_build.assert_not_called()
+        assert result == "<html>regular page</html>"
+
+    @pytest.mark.asyncio
+    async def test_aws_waf_solver_skipped_when_passive_wait_clears_markers(self):
+        """Criterion 6573 (gating): solver fires ONLY when markers persist.
+
+        First content() returns a WAF challenge page; after
+        wait_for_function (the passive challenge succeeded) the second
+        content() returns the resolved page with no markers. The AWS
+        WAF solver must NOT be consulted — the passive challenge cleared
+        on its own.
+        """
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(
+            side_effect=[
+                "<html><script>window.awsWafCookieDomainList=['etix.com'];window.gokuProps={};</script></html>",
+                "<html>passive-challenge-cleared content</html>",
+            ]
+        )
+        mock_page.wait_for_function = AsyncMock()
+        fake_solver = AsyncMock()
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_aws_waf_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        # Passive wait ran, but markers cleared → solver.solve was NOT called.
+        mock_page.wait_for_function.assert_called_once()
+        fake_solver.solve.assert_not_called()
+        assert result == "<html>passive-challenge-cleared content</html>"
+
+    @pytest.mark.asyncio
+    async def test_aws_waf_solver_fires_when_passive_wait_leaves_markers(self):
+        """Criterion 6573 (positive): solver fires when markers persist post-wait.
+
+        First content() returns a WAF challenge; passive wait runs and
+        the second content() STILL contains the marker — meaning the
+        passive crypto failed and the page is on the interactive
+        "Human Verification" path. Solver must be called, cookie
+        injected, page reloaded, and the post-reload HTML returned.
+        """
+        from laughtrack.foundation.infrastructure.http.protection.aws_waf_solver import (
+            SolvedAwsWafCookie,
+        )
+
+        challenge_html = (
+            "<html><script>window.awsWafCookieDomainList=['etix.com'];"
+            "window.gokuProps={};</script></html>"
+        )
+        post_solve_html = "<html>real etix content after waf solve</html>"
+
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(
+            side_effect=[
+                # initial page.content() inside fetch_html
+                challenge_html,
+                # post-passive-wait page.content() — markers still present
+                challenge_html,
+                # post-solver-reload page.content()
+                post_solve_html,
+            ]
+        )
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(
+            return_value=SolvedAwsWafCookie(
+                cookie="aws-waf-token=ABC123; Domain=.example.com; Path=/",
+                user_agent="Mozilla/5.0 …",
+            )
+        )
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_aws_waf_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com/show")
+
+        fake_solver.solve.assert_awaited_once()
+        # Cookie was injected
+        mock_context.add_cookies.assert_awaited_once()
+        added = mock_context.add_cookies.call_args[0][0]
+        assert isinstance(added, list) and len(added) == 1
+        assert added[0]["name"] == "aws-waf-token"
+        assert added[0]["value"] == "ABC123"
+        # Page reloaded after cookie injection
+        mock_page.reload.assert_awaited_once()
+        # Final HTML is the post-reload content
+        assert result == post_solve_html
+
+    @pytest.mark.asyncio
+    async def test_aws_waf_markers_with_no_api_key_preserves_existing_html(self):
+        """Guardrail: missing CAPSOLVER_API_KEY is a no-op for AWS WAF.
+
+        Mirrors criterion 5518 from the DataDome path. When markers
+        persist post-wait but build_default_aws_waf_solver returns None,
+        the helper logs a warning and falls through — fetch_html returns
+        the original challenge HTML unchanged so the caller's bot-block
+        detector keeps working as before.
+        """
+        challenge_html = (
+            "<html><script>window.awsWafCookieDomainList=['etix.com'];"
+            "</script></html>"
+        )
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_aws_waf_solver", return_value=None),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        # No solver to consult, no cookie injection, no reload — the
+        # original challenge HTML is what flows back to the caller.
+        assert result == challenge_html
+        mock_context.add_cookies.assert_not_called()
+        mock_page.reload.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_aws_waf_solver_failure_returns_original_html(self):
+        """Solver returns None → fetch_html keeps the original challenge HTML.
+
+        Reinforces the failure-mode contract: capsolver errors,
+        unparseable solutions, or reload exceptions must not propagate.
+        Same observable behavior as the no-API-key guardrail.
+        """
+        challenge_html = (
+            "<html><script>window.awsWafCookieDomainList=['etix.com'];"
+            "</script></html>"
+        )
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_function = AsyncMock()
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(return_value=None)  # solver failure
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(
+                _pb_mod, "build_default_aws_waf_solver", return_value=fake_solver
+            ),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        fake_solver.solve.assert_awaited_once()
+        mock_context.add_cookies.assert_not_called()
+        mock_page.reload.assert_not_called()
+        assert result == challenge_html
+
     @pytest.mark.asyncio
     async def test_fetch_after_close_relaunches_browser(self):
         """fetch_html called after close() must re-launch the browser without raising.
