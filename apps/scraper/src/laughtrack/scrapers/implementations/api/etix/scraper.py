@@ -15,9 +15,12 @@ A new Etix venue can be onboarded with only a DB row — no Python changes.
 """
 
 import re
+from datetime import date
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -28,6 +31,12 @@ from .transformer import EtixEventTransformer
 _ETIX_VENUE_URL = (
     "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue"
     "?venue_id={venue_id}&orderBy=1&pageNumber={page}"
+)
+_LAUGH_PATRIOT_PLACE_VENUE_ID = "32411"
+_LAUGH_PATRIOT_PLACE_CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
+_ETIX_TICKET_HREF_RE = re.compile(
+    r'href=["\'](https://www\.etix\.com/ticket/[^"\']+)["\']',
+    re.IGNORECASE,
 )
 _MAX_PAGES = 10
 
@@ -105,6 +114,10 @@ class EtixScraper(BaseScraper):
 
             events = EtixExtractor.extract_events(html)
             if not events:
+                if self._uses_laugh_patriot_place_fallback(url):
+                    fallback_data = await self._get_laugh_patriot_place_fallback_data()
+                    if fallback_data and fallback_data.event_list:
+                        return fallback_data
                 Logger.info(
                     f"{self._log_prefix}: no events found on {url}",
                     self.logger_context,
@@ -123,3 +136,100 @@ class EtixScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
+        return (
+            self._venue_id == _LAUGH_PATRIOT_PLACE_VENUE_ID
+            and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+        )
+
+    async def _get_laugh_patriot_place_fallback_data(self) -> Optional[EtixPageData]:
+        """Use Laugh Patriot Place's public calendar when Etix is DataDome-blocked."""
+        calendar_html = await self.fetch_html(_LAUGH_PATRIOT_PLACE_CALENDAR_URL)
+        if not calendar_html:
+            Logger.warn(
+                f"{self._log_prefix}: Laugh Patriot Place fallback calendar returned no HTML",
+                self.logger_context,
+            )
+            return None
+
+        candidates = self._extract_laugh_patriot_place_calendar_events(calendar_html)
+        events: List[EtixEvent] = []
+        for event in candidates:
+            detail_html = await self.fetch_html(event.event_url or "")
+            ticket_url = self._extract_laugh_patriot_place_ticket_url(detail_html or "")
+            if not ticket_url:
+                Logger.warn(
+                    f"{self._log_prefix}: Laugh Patriot Place fallback missing Etix ticket URL "
+                    f"for '{event.title}' at {event.event_url}",
+                    self.logger_context,
+                )
+                continue
+            event.ticket_url = ticket_url
+            events.append(event)
+
+        if events:
+            Logger.info(
+                f"{self._log_prefix}: Laugh Patriot Place fallback extracted {len(events)} events",
+                self.logger_context,
+            )
+            return EtixPageData(event_list=events)
+
+        Logger.warn(
+            f"{self._log_prefix}: Laugh Patriot Place fallback found no usable events",
+            self.logger_context,
+        )
+        return None
+
+    def _extract_laugh_patriot_place_calendar_events(self, html: str) -> List[EtixEvent]:
+        """Extract event title/date/public URL from the venue-owned WordPress calendar."""
+        try:
+            from bs4 import BeautifulSoup
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: BeautifulSoup unavailable for Laugh Patriot Place fallback: {e}",
+                self.logger_context,
+            )
+            return []
+
+        soup = BeautifulSoup(html, "html.parser")
+        today = date.today()
+        events: List[EtixEvent] = []
+        seen: set[tuple[str, str, str]] = set()
+
+        for cell in soup.select("td.has-events"):
+            if cell.select_one(".post-details.disable-events"):
+                continue
+            day_el = cell.select_one(".calendar-date")
+            title_el = cell.select_one("h3")
+            link_el = cell.select_one('a.btn[href*="/shows/"]')
+            if not (day_el and title_el and link_el):
+                continue
+
+            try:
+                event_day = int(day_el.get_text(strip=True))
+                event_date = date(today.year, today.month, event_day).isoformat()
+            except (TypeError, ValueError):
+                continue
+
+            title = title_el.get_text(" ", strip=True)
+            event_url = urljoin(_LAUGH_PATRIOT_PLACE_CALENDAR_URL, link_el["href"])
+            key = (title, event_date, event_url)
+            if key in seen:
+                continue
+            seen.add(key)
+            events.append(
+                EtixEvent(
+                    title=title,
+                    start_date=event_date,
+                    time_str="",
+                    ticket_url="",
+                    event_url=event_url,
+                )
+            )
+
+        return events
+
+    def _extract_laugh_patriot_place_ticket_url(self, html: str) -> Optional[str]:
+        match = _ETIX_TICKET_HREF_RE.search(html or "")
+        return match.group(1) if match else None

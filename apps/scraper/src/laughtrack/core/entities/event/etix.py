@@ -29,6 +29,7 @@ class EtixEvent(ShowConvertible):
     start_date: str     # ISO 8601: "2026-04-23T20:00:00-0400" or "2026-04-23"
     time_str: str       # e.g. "Doors at 7:00 PM, Show at 8:00 PM"
     ticket_url: str     # e.g. "https://www.etix.com/ticket/p/99601250/..."
+    event_url: Optional[str] = None  # public venue event page, when available
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -41,14 +42,15 @@ class EtixEvent(ShowConvertible):
         if start_dt is None:
             return None
 
-        ticket_url = url or self.ticket_url
+        ticket_url = self.ticket_url
+        show_page_url = url or self.event_url or ticket_url
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self._clean_title(),
             club=club,
             date=start_dt,
-            show_page_url=ticket_url,
+            show_page_url=show_page_url,
             lineup=[],
             tickets=tickets,
             enhanced=enhanced,
