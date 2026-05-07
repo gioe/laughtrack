@@ -224,6 +224,64 @@ them, but tests built on top of it inherit the constraints.
    workaround in `nearMeProfileButtonPushesProfileRoute`
    (`ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
 
+### iOS 26 Accessibility-Tree Wiring Regression (TASK-1921)
+
+As of 2026-05-07, on iPhone 17 / iOS 26.1 and iOS 26.2 simulators, the
+HostedView first-window-makeKeyAndVisible mitigation no longer wires
+SwiftUI's accessibility tree at all. `dumpAccessibilityTree()` returns just
+`<view> _UIHostingView<AnyView>` — zero `accessibilityElements`, zero
+identifiers (not even on the root ScrollView). 18 tests across 16 suites
+fail: HomeFavoriteShowsRailTests, ContentViewNavigationTests,
+AppShellViewTests, ProfileViewTests, SearchRootViewTests,
+SettingsViewStateTests, ShowDetailViewTests.
+
+**Bisect** (Xcode 26.3, build 17C519, same source revision, minimal
+`HostedViewDumpTreeTests` content tree of `Text` + `Button` in `VStack`):
+
+| Sim runtime | Result |
+|---|---|
+| iOS 18.3.1 | ✅ 2/2 PASS |
+| iOS 26.1 | ❌ 0/2 FAIL |
+| iOS 26.2 | ❌ 0/2 FAIL |
+
+Same Xcode toolchain, different sim runtime → confirmed iOS 26 SDK
+runtime regression in `_UIHostingView` accessibility wiring under
+test-process hosting. Apple has not fixed it in 26.2. Three prior
+code-level workaround attempts (UIAccessibilityContainer traversal,
+delaying `makeKeyAndVisible` until after `rootViewController` assignment,
+reusing the existing app key window) all failed. The mitigation
+documented in items 1–4 above remains correct on iOS 18.3.1; it simply
+has no effect on iOS 26.x.
+
+**Workaround pattern: model / recorder-layer tests.** When you need to
+verify product behavior in a HostedView-style test suite under iOS 26.x,
+do NOT assert via `host.requireView` / `host.requireText` — those will
+fail unconditionally on the broken wiring. Instead test the underlying
+view model or transport recorder directly. Two reference points:
+
+- `AppShellViewTests.authenticatedShellTriggersFavoritesFetch` — uses a
+  custom `ClientTransport` (`MockShellFavoritesTransport`) with an
+  `@unchecked Sendable` recorder counter. Still hosts the view (so the
+  view's `.task(id:)` fires through `host.settle()`) but asserts on
+  `recorder.getFavoritesCalls`, not on UIView traversal.
+- `HomeFavoriteShowsRailTests.favoriteShowsModelLoadsUpcomingShowsForSavedFavorites`
+  (TASK-1921 pilot) — bypasses HostedView entirely; constructs
+  `HomeFavoriteShowsModel` directly and asserts `model.phase` is
+  `.success([show])` after `await model.refresh(...)`. Use this shape
+  when the state under test is a discrete `ObservableObject` that can
+  be exercised in isolation.
+
+Prefer model-direct construction (second pattern) when a clean
+`ObservableObject` boundary exists; fall back to the transport-recorder
+pattern (first) when state is wired through a view hierarchy that's hard
+to disentangle.
+
+`findView == nil` assertions still "pass" under broken wiring, but they
+pass vacuously — anything is "missing" when nothing is wired. When
+migrating a suite, re-shape those negative assertions into model-layer
+checks (e.g., assert the model's phase remains `.idle` or its filtered
+output is empty under the corresponding inputs).
+
 ### Async Lifecycle in HostedView Tests
 
 SwiftUI's `.task` / `.task(id:)` modifiers don't fire reliably while
