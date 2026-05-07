@@ -114,6 +114,10 @@ class AwsWafSolver:
         website_url: str,
         user_agent: str,
         proxy_url: Optional[str] = None,
+        aws_key: Optional[str] = None,
+        aws_iv: Optional[str] = None,
+        aws_context: Optional[str] = None,
+        aws_challenge_js: Optional[str] = None,
     ) -> Optional[SolvedAwsWafCookie]:
         """Submit an AWS WAF challenge and poll until ready.
 
@@ -128,19 +132,38 @@ class AwsWafSolver:
         used by AWS routinely takes 30–90 s to clear. The wider ceiling
         is the difference between a solved fetch and a false-positive
         timeout.
+
+        ``aws_key``/``aws_iv``/``aws_context`` are the per-challenge
+        crypto material AWS WAF embeds in ``window.gokuProps`` on the
+        Human Verification page; ``aws_challenge_js`` is the challenge
+        bootstrapper URL (typically
+        ``https://<id>.token.awswaf.com/.../challenge.js``). Live
+        verification on 2026-05-07 confirmed that capsolver returns a
+        token bound to *that specific* challenge instance — omitting
+        them yields a generic etix.com token that AWS WAF rejects on
+        reload (issuing a fresh challenge with new key/iv/context).
+        Callers without access to the challenge page can still call
+        without these args, but the resulting token will not unlock the
+        origin.
         """
         # AntiAwsWafTaskProxyless accepts websiteURL + userAgent as the
-        # minimal payload; for the visible "Human Verification" page that
-        # is enough — capsolver's worker fetches the challenge JS itself.
-        # Optional awsKey/awsIv/awsContext/awsChallengeJS fields exist
-        # for the inline-challenge variant; omitted here because etix
-        # serves the visible page and adding them would require parsing
-        # WAF's obfuscated bootstrapper.
+        # minimal payload, but for a token to actually unlock AWS WAF
+        # the per-challenge key/iv/context must be passed through —
+        # capsolver's worker computes a signature against THOSE values
+        # and AWS WAF rejects any other.
         task_payload: dict[str, Any] = {
             "type": "AntiAwsWafTaskProxyless",
             "websiteURL": website_url,
             "userAgent": user_agent,
         }
+        if aws_key is not None:
+            task_payload["awsKey"] = aws_key
+        if aws_iv is not None:
+            task_payload["awsIv"] = aws_iv
+        if aws_context is not None:
+            task_payload["awsContext"] = aws_context
+        if aws_challenge_js is not None:
+            task_payload["awsChallengeJS"] = aws_challenge_js
         if proxy_url:
             # Switch to the proxied task type so capsolver routes the
             # solve through the caller's proxy. Required when WAF binds
@@ -193,11 +216,30 @@ class AwsWafSolver:
                     return None
                 # Normalize bare-token responses to Set-Cookie shape so
                 # the downstream parse_set_cookie call works uniformly.
-                # The presence of ``=`` distinguishes a full Set-Cookie
-                # ("aws-waf-token=v; Domain=…") from a raw token value
-                # ("uuid:…:signature").
-                if "=" not in cookie:
-                    cookie = f"{AWS_WAF_TOKEN_COOKIE_NAME}={cookie}"
+                # The bare token is ``uuid:envelope:base64-signature``
+                # — colons separate the parts, but the base64 signature
+                # routinely contains ``=`` padding, which means a naive
+                # ``"=" not in cookie`` check trips on those padding
+                # bytes and skips the prefix. The reliable signal is the
+                # canonical cookie name itself: a real Set-Cookie starts
+                # with ``aws-waf-token=`` (capsolver, when it returns the
+                # full form, always uses that name).
+                #
+                # Attributes matter: AWS WAF rejects the cookie unless
+                # it matches what its own challenge.js would set.
+                # Headed-mode capture on 2026-05-07 against
+                # www.etix.com confirmed: ``Secure; SameSite=Lax`` (no
+                # HttpOnly, no Domain — the caller's
+                # ``default_domain`` argument provides it). Adding
+                # these here keeps the integration site simple — it
+                # just calls ``parse_set_cookie`` and trusts the
+                # solver to have produced a syntactically complete
+                # cookie.
+                if not cookie.startswith(f"{AWS_WAF_TOKEN_COOKIE_NAME}="):
+                    cookie = (
+                        f"{AWS_WAF_TOKEN_COOKIE_NAME}={cookie}; "
+                        "Path=/; Secure; SameSite=Lax"
+                    )
                 return SolvedAwsWafCookie(
                     cookie=cookie,
                     user_agent=solution.get("userAgent") or user_agent,

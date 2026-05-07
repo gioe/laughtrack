@@ -270,7 +270,51 @@ class TestAwsWafSolverSolve:
         )
         result = await solver.solve(website_url="https://x.com/", user_agent="ua")
         assert result is not None
-        assert result.cookie == f"aws-waf-token={raw_token}"
+        assert result.cookie.startswith(f"aws-waf-token={raw_token}")
+        # Per the live capture on www.etix.com, AWS WAF expects the
+        # cookie to carry Path/Secure/SameSite — without those
+        # attributes the cookie is silently rejected on reload.
+        assert "Path=/" in result.cookie
+        assert "Secure" in result.cookie
+        assert "SameSite=Lax" in result.cookie
+
+    @pytest.mark.asyncio
+    async def test_bare_token_with_base64_padding_is_still_normalized(self):
+        # Regression for live debug 2026-05-07: capsolver's signature
+        # tail is base64-encoded and frequently contains ``=`` padding
+        # bytes. A naive ``"=" not in cookie`` check tripped on the
+        # padding and skipped the prefix, leaving parse_set_cookie to
+        # treat the entire token as a cookie *name* with empty value.
+        # Detection must use the canonical name prefix instead.
+        raw_token_with_padding = (
+            "61cbd1a4-7d5d-49ea-8cf9-cbda57074e51:FAoAvV9l2pEBAAAA:"
+            "zff177O6LL23R4TGgPOpzo/T1ceCImciGotE/uJncJF=="
+        )
+        assert "=" in raw_token_with_padding  # the trap
+
+        solver = _FakeSolver(
+            responses=[
+                {"errorId": 0, "taskId": "t-1"},
+                {
+                    "errorId": 0,
+                    "status": "ready",
+                    "solution": {"cookie": raw_token_with_padding},
+                },
+            ]
+        )
+        result = await solver.solve(website_url="https://x.com/", user_agent="ua")
+        assert result is not None
+        # Must be prefixed despite the embedded ``=``.
+        assert result.cookie.startswith(f"aws-waf-token={raw_token_with_padding}")
+        # Sanity: parse_set_cookie now reads the right name/value.
+        from laughtrack.foundation.infrastructure.http.protection.datadome_solver import (
+            parse_set_cookie,
+        )
+
+        parsed = parse_set_cookie(result.cookie, default_domain="x.com")
+        assert parsed is not None
+        assert parsed["name"] == "aws-waf-token"
+        assert parsed["value"] == raw_token_with_padding
 
     @pytest.mark.asyncio
     async def test_full_set_cookie_response_passed_through_unchanged(self):

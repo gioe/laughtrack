@@ -642,15 +642,57 @@ class PlaywrightBrowser:
             )
             return None
 
+        # AWS WAF binds the issued token to the per-challenge crypto
+        # parameters embedded in window.gokuProps (key/iv/context) plus
+        # the challenge JS bootstrapper URL. capsolver only returns a
+        # token that the origin will accept when those values are passed
+        # through — without them WAF re-issues a fresh challenge on
+        # reload because the generic token's signature was for a
+        # different (capsolver-side-fetched) challenge instance.
+        aws_key = aws_iv = aws_context = aws_challenge_js = None
+        try:
+            goku = await page.evaluate(
+                "() => window.gokuProps ? "
+                "{key: window.gokuProps.key, iv: window.gokuProps.iv, "
+                "context: window.gokuProps.context} : null"
+            )
+            if isinstance(goku, dict):
+                aws_key = goku.get("key")
+                aws_iv = goku.get("iv")
+                aws_context = goku.get("context")
+        except Exception as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] Could not read window.gokuProps: "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+        try:
+            challenge_scripts = await page.evaluate(
+                "() => Array.from(document.querySelectorAll('script[src]'))"
+                ".map(s => s.src).filter(s => s.includes('.token.awswaf.com'))"
+            )
+            if isinstance(challenge_scripts, list) and challenge_scripts:
+                aws_challenge_js = challenge_scripts[0]
+        except Exception:
+            pass  # optional — capsolver tolerates omission
+
         Logger.info(
             f"[PlaywrightBrowser] Solving AWS WAF CAPTCHA for {url}",
-            {"url": url},
+            {
+                "url": url,
+                "has_key": aws_key is not None,
+                "has_challenge_js": aws_challenge_js is not None,
+            },
         )
         try:
             solved = await solver.solve(
                 website_url=url,
                 user_agent=_USER_AGENT,
                 proxy_url=proxy_url,
+                aws_key=aws_key,
+                aws_iv=aws_iv,
+                aws_context=aws_context,
+                aws_challenge_js=aws_challenge_js,
             )
         except AwsWafSolverError as exc:
             Logger.warn(
@@ -669,11 +711,25 @@ class PlaywrightBrowser:
         if solved is None:
             return None
 
-        # capsolver's AWS WAF response sometimes returns a bare
-        # ``aws-waf-token=value`` without a Domain attribute; falling back
-        # to the origin hostname keeps Playwright happy. parse_set_cookie
-        # is shared with the DataDome path — same Set-Cookie syntax.
-        default_domain = urlparse(url).hostname
+        # AWS WAF wants the cookie set on the domain listed in
+        # ``window.awsWafCookieDomainList`` (typically the parent
+        # domain — e.g. etix.com, not www.etix.com). Falling back to
+        # ``urlparse(url).hostname`` is too narrow for sites that serve
+        # the challenge from a subdomain but expect the cookie at the
+        # parent. parse_set_cookie is shared with the DataDome path —
+        # same Set-Cookie syntax.
+        default_domain: Optional[str] = None
+        try:
+            domain_list = await page.evaluate(
+                "() => Array.isArray(window.awsWafCookieDomainList) "
+                "? window.awsWafCookieDomainList : null"
+            )
+            if isinstance(domain_list, list) and domain_list:
+                default_domain = domain_list[0]
+        except Exception:
+            pass
+        if not default_domain:
+            default_domain = urlparse(url).hostname
         cookie = parse_set_cookie(solved.cookie, default_domain=default_domain)
         if cookie is None:
             Logger.warn(
