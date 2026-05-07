@@ -46,6 +46,13 @@ import weakref
 from typing import Optional
 from urllib.parse import urlparse
 
+from laughtrack.foundation.infrastructure.http.protection.datadome_solver import (
+    DATADOME_IFRAME_HOST,
+    DataDomeSolver,
+    DataDomeSolverError,
+    build_default_solver,
+    parse_set_cookie,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 
@@ -133,6 +140,20 @@ _AWS_WAF_MARKERS: tuple[str, ...] = (
 # challenge + reload path; on timeout, fetch_html returns whatever HTML is
 # present and the caller's bot-block detector handles the rest.
 _WAF_CHALLENGE_WAIT_MS = 8_000
+
+# CSS selector used to detect a DataDome interactive-CAPTCHA iframe in the
+# rendered DOM. DataDome embeds the visible challenge from the dedicated
+# host ``geo.captcha-delivery.com``; the iframe carries the ``cid``,
+# ``hash``, and ``t`` query params capsolver needs in its ``captchaUrl``
+# field. The matching string is centralized in datadome_solver so the
+# detection heuristic and the solver client never drift apart.
+_DATADOME_IFRAME_SELECTOR = f'iframe[src*="{DATADOME_IFRAME_HOST}"]'
+
+# Timeout for ``page.reload`` after a DataDome cookie has been injected.
+# Once the cookie is set, the origin server returns the real content
+# without re-issuing a challenge; reload should finish in ~1–2 s, so 30 s
+# is a generous ceiling. Matches the default ``timeout_ms`` used elsewhere.
+_DATADOME_RELOAD_TIMEOUT_MS = 30_000
 
 
 def _parse_proxy(proxy_url: str) -> dict:
@@ -431,6 +452,102 @@ class PlaywrightBrowser:
             return html
         return await page.content()
 
+    @staticmethod
+    async def _solve_datadome_if_present(
+        *,
+        page: object,
+        context: object,
+        url: str,
+        proxy_url: Optional[str],
+        solver: Optional[DataDomeSolver],
+    ) -> Optional[str]:
+        """Detect a DataDome challenge iframe and solve it via *solver*.
+
+        Returns the post-solve HTML on success. Returns ``None`` when no
+        DataDome iframe is present (caller falls through with the original
+        HTML), when *solver* is ``None`` (the guardrail required by
+        criterion 5518 — preserves existing behavior when
+        ``CAPSOLVER_API_KEY`` is unset), or when the solve itself fails.
+
+        Failure modes are logged but never raised: an unsolvable challenge
+        is functionally identical to the pre-integration state, where the
+        caller's bot-block detector marked the fetch as blocked and moved
+        on. Raising here would leak through ``fetch_html`` and break
+        unrelated callers.
+        """
+        try:
+            iframe = await page.query_selector(_DATADOME_IFRAME_SELECTOR)
+        except Exception:
+            return None
+        if iframe is None:
+            return None
+
+        try:
+            captcha_url = await iframe.get_attribute("src")
+        except Exception:
+            captcha_url = None
+        if not captcha_url:
+            return None
+
+        if solver is None:
+            Logger.warn(
+                "[PlaywrightBrowser] DataDome interactive CAPTCHA detected but "
+                "CAPSOLVER_API_KEY is unset — returning challenge HTML unchanged",
+                {"url": url},
+            )
+            return None
+
+        Logger.info(
+            f"[PlaywrightBrowser] Solving DataDome CAPTCHA for {url}",
+            {"url": url, "captcha_host": DATADOME_IFRAME_HOST},
+        )
+        try:
+            solved = await solver.solve(
+                captcha_url=captcha_url,
+                website_url=url,
+                user_agent=_USER_AGENT,
+                proxy_url=proxy_url,
+            )
+        except DataDomeSolverError as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] capsolver rejected DataDome solve: {exc}",
+                {"url": url},
+            )
+            return None
+        except Exception as exc:  # network / unexpected
+            Logger.warn(
+                f"[PlaywrightBrowser] DataDome solver raised {type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
+        if solved is None:
+            return None
+
+        default_domain = urlparse(url).hostname
+        cookie = parse_set_cookie(solved.cookie, default_domain=default_domain)
+        if cookie is None:
+            Logger.warn(
+                "[PlaywrightBrowser] DataDome solver returned an unparseable cookie",
+                {"url": url},
+            )
+            return None
+
+        try:
+            await context.add_cookies([cookie])
+            await page.reload(
+                wait_until="domcontentloaded",
+                timeout=_DATADOME_RELOAD_TIMEOUT_MS,
+            )
+            return await page.content()
+        except Exception as exc:
+            Logger.warn(
+                f"[PlaywrightBrowser] Reload after DataDome solve failed: "
+                f"{type(exc).__name__}: {exc}",
+                {"url": url},
+            )
+            return None
+
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
         """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
 
@@ -480,6 +597,22 @@ class PlaywrightBrowser:
                 html = await page.content()
                 if any(marker in html for marker in _AWS_WAF_MARKERS):
                     html = await self._wait_for_waf_challenge(page, html)
+                # DataDome interactive-CAPTCHA fallback (TASK-1658). Only
+                # reached when the rendered DOM contains the geo.captcha-
+                # delivery.com iframe; on missing iframe / missing API key /
+                # solver failure, the helper returns None and the original
+                # HTML flows through unchanged — preserving existing
+                # behavior for non-DataDome sites.
+                if DATADOME_IFRAME_HOST in html:
+                    solved_html = await self._solve_datadome_if_present(
+                        page=page,
+                        context=context,
+                        url=normalized_url,
+                        proxy_url=proxy_url,
+                        solver=build_default_solver(),
+                    )
+                    if solved_html is not None:
+                        html = solved_html
                 Logger.debug(
                     f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
                     {},
