@@ -103,6 +103,30 @@ make test-critical
 - `streamlit`, `plotly`, `pandas` - Visualization dashboards
 - `Pillow` - Image processing
 
+## Environment variables
+
+All variables below are optional — the scraper degrades gracefully when
+they are unset. See `.env.example` for the canonical comment style and
+copy that file to `.env` to configure them locally.
+
+- `RESIDENTIAL_PROXY_URL` — egress proxy for scrapers flagged
+  `use_residential_proxy=true` in the `scrapers` table (currently `tixr`,
+  `ticketweb`, `comedy_mothership`, `comedy_clubhouse`,
+  `palm_beach_improv`). Unset = direct egress for everyone.
+- `CAPSOLVER_API_KEY` — capsolver.com API key for the DataDome
+  interactive-CAPTCHA solver (TASK-1658). Required to recover the etix.com
+  venues that DataDome 'bv' mode has been blocking since 2026-04-16, plus
+  any tixr venue serving DataDome challenges. When unset, the Playwright
+  browser still detects the DataDome iframe but logs a warning and returns
+  the challenge HTML unchanged — non-DataDome scrapers are unaffected.
+  DataDome solves cost ~$2/1000; expected steady-state spend at current
+  scrape volume is ~$1.50/month. Get a key at https://capsolver.com.
+- `SEATENGINE_AUTH_TOKEN` — only needed for SeatEngine-backed venues; run
+  `bash apps/scraper/scripts/fetch_seatengine_token.sh` to refresh.
+- `DISCORD_WEBHOOK_URL`, `HEALTHCHECKS_PING_URL`,
+  `BUNNYCDN_STORAGE_*` — alerting / heartbeat / image-upload helpers; see
+  `.env.example` for full descriptions.
+
 ## Documentation
 
 - docs/architecture-diagram.md - Visual system architecture
