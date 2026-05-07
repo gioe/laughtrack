@@ -34,6 +34,7 @@ _ETIX_VENUE_URL = (
 )
 _LAUGH_PATRIOT_PLACE_VENUE_ID = "32411"
 _LAUGH_PATRIOT_PLACE_CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
+_LAUGH_PATRIOT_PLACE_FALLBACK_MONTHS = 6
 _ETIX_TICKET_HREF_RE = re.compile(
     r'href=["\'](https://www\.etix\.com/ticket/[^"\']+)["\']',
     re.IGNORECASE,
@@ -145,19 +146,34 @@ class EtixScraper(BaseScraper):
 
     async def _get_laugh_patriot_place_fallback_data(self) -> Optional[EtixPageData]:
         """Use Laugh Patriot Place's public calendar when Etix is DataDome-blocked."""
-        calendar_html = await self.fetch_html(_LAUGH_PATRIOT_PLACE_CALENDAR_URL)
-        if not calendar_html:
-            Logger.warn(
-                f"{self._log_prefix}: Laugh Patriot Place fallback calendar returned no HTML",
-                self.logger_context,
+        candidates: List[EtixEvent] = []
+        for calendar_url, year, month in self._laugh_patriot_place_calendar_targets():
+            calendar_html = await self.fetch_html(calendar_url)
+            if not calendar_html:
+                Logger.warn(
+                    f"{self._log_prefix}: Laugh Patriot Place fallback calendar returned no HTML "
+                    f"for {calendar_url}",
+                    self.logger_context,
+                )
+                continue
+            candidates.extend(
+                self._extract_laugh_patriot_place_calendar_events(
+                    calendar_html,
+                    year=year,
+                    month=month,
+                )
             )
-            return None
 
-        candidates = self._extract_laugh_patriot_place_calendar_events(calendar_html)
         events: List[EtixEvent] = []
+        ticket_urls_by_event_url: dict[str, Optional[str]] = {}
         for event in candidates:
-            detail_html = await self.fetch_html(event.event_url or "")
-            ticket_url = self._extract_laugh_patriot_place_ticket_url(detail_html or "")
+            event_url = event.event_url or ""
+            if event_url not in ticket_urls_by_event_url:
+                detail_html = await self.fetch_html(event_url)
+                ticket_urls_by_event_url[event_url] = self._extract_laugh_patriot_place_ticket_url(
+                    detail_html or ""
+                )
+            ticket_url = ticket_urls_by_event_url[event_url]
             if not ticket_url:
                 Logger.warn(
                     f"{self._log_prefix}: Laugh Patriot Place fallback missing Etix ticket URL "
@@ -181,7 +197,27 @@ class EtixScraper(BaseScraper):
         )
         return None
 
-    def _extract_laugh_patriot_place_calendar_events(self, html: str) -> List[EtixEvent]:
+    def _laugh_patriot_place_calendar_targets(self) -> List[tuple[str, int, int]]:
+        today = date.today()
+        targets: List[tuple[str, int, int]] = []
+        for offset in range(_LAUGH_PATRIOT_PLACE_FALLBACK_MONTHS):
+            month_index = today.month - 1 + offset
+            year = today.year + month_index // 12
+            month = month_index % 12 + 1
+            if offset == 0:
+                url = _LAUGH_PATRIOT_PLACE_CALENDAR_URL
+            else:
+                url = f"{_LAUGH_PATRIOT_PLACE_CALENDAR_URL}?cal_year={year}&month={month}"
+            targets.append((url, year, month))
+        return targets
+
+    def _extract_laugh_patriot_place_calendar_events(
+        self,
+        html: str,
+        *,
+        year: int,
+        month: int,
+    ) -> List[EtixEvent]:
         """Extract event title/date/public URL from the venue-owned WordPress calendar."""
         try:
             from bs4 import BeautifulSoup
@@ -193,7 +229,6 @@ class EtixScraper(BaseScraper):
             return []
 
         soup = BeautifulSoup(html, "html.parser")
-        today = date.today()
         events: List[EtixEvent] = []
         seen: set[tuple[str, str, str]] = set()
 
@@ -208,7 +243,7 @@ class EtixScraper(BaseScraper):
 
             try:
                 event_day = int(day_el.get_text(strip=True))
-                event_date = date(today.year, today.month, event_day).isoformat()
+                event_date = date(year, month, event_day).isoformat()
             except (TypeError, ValueError):
                 continue
 

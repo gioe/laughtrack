@@ -6,7 +6,9 @@ import pytest
 ETIX_URL = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=32411&orderBy=1&pageNumber=1"
 CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
 DETAIL_URL = "https://laughpatriotplace.com/shows/agostino-zoida/"
+NEXT_MONTH_DETAIL_URL = "https://laughpatriotplace.com/shows/mike-hanley/"
 TICKET_URL = "https://www.etix.com/ticket/e/1057557/az-foxboro-laugh-patriot-place"
+NEXT_MONTH_TICKET_URL = "https://www.etix.com/ticket/e/1057556/hanley-foxboro-laugh-patriot-place"
 
 
 def _club():
@@ -35,18 +37,17 @@ def _club():
     return club
 
 
-def _calendar_html() -> str:
-    today = date.today()
+def _calendar_html(day: int, title: str = "Agostino Zoida", detail_url: str = DETAIL_URL) -> str:
     return f"""
     <html><body>
       <table><tbody>
         <tr>
           <td class="has-events">
-            <span class="calendar-date">{today.day}</span>
+            <span class="calendar-date">{day}</span>
             <div class="post-details">
               <div class="post-flex">
-                <h3>Agostino Zoida</h3>
-                <a class="btn" href="{DETAIL_URL}">Buy Tickets</a>
+                <h3>{title}</h3>
+                <a class="btn" href="{detail_url}">Buy Tickets</a>
               </div>
             </div>
           </td>
@@ -65,11 +66,11 @@ def _calendar_html() -> str:
     """
 
 
-def _detail_html() -> str:
+def _detail_html(ticket_url: str = TICKET_URL) -> str:
     return f"""
     <html><body>
       <h1>Agostino Zoida</h1>
-      <a href="{TICKET_URL}">Buy Tickets</a>
+      <a href="{ticket_url}">Buy Tickets</a>
     </body></html>
     """
 
@@ -81,15 +82,26 @@ async def test_laugh_patriot_place_fallback_uses_public_calendar(monkeypatch):
 
     scraper = EtixScraper(_club())
     calls = []
+    today = date.today()
+    next_month_index = today.month
+    next_year = today.year + next_month_index // 12
+    next_month = next_month_index % 12 + 1
+    next_month_url = f"{CALENDAR_URL}?cal_year={next_year}&month={next_month}"
 
     async def fake_fetch_html(self, url: str, **kwargs) -> str:
         calls.append(url)
         if url == ETIX_URL:
             return "<html><title>DataDome</title></html>"
         if url == CALENDAR_URL:
-            return _calendar_html()
+            return _calendar_html(today.day)
+        if url == next_month_url:
+            return _calendar_html(4, title="Mike Hanley", detail_url=NEXT_MONTH_DETAIL_URL)
+        if url.startswith(f"{CALENDAR_URL}?cal_year="):
+            return "<html><body><table></table></body></html>"
         if url == DETAIL_URL:
             return _detail_html()
+        if url == NEXT_MONTH_DETAIL_URL:
+            return _detail_html(NEXT_MONTH_TICKET_URL)
         raise AssertionError(f"unexpected URL: {url}")
 
     monkeypatch.setattr(EtixScraper, "fetch_html", fake_fetch_html)
@@ -97,13 +109,17 @@ async def test_laugh_patriot_place_fallback_uses_public_calendar(monkeypatch):
     result = await scraper.get_data(ETIX_URL)
 
     assert isinstance(result, EtixPageData)
-    assert calls == [ETIX_URL, CALENDAR_URL, DETAIL_URL]
-    assert len(result.event_list) == 1
-    event = result.event_list[0]
-    assert event.title == "Agostino Zoida"
-    assert event.event_url == DETAIL_URL
-    assert event.ticket_url == TICKET_URL
-    assert event.start_date == date.today().isoformat()
+    assert calls[:3] == [ETIX_URL, CALENDAR_URL, next_month_url]
+    assert DETAIL_URL in calls
+    assert NEXT_MONTH_DETAIL_URL in calls
+    assert len(result.event_list) == 2
+    events_by_title = {event.title: event for event in result.event_list}
+    assert events_by_title["Agostino Zoida"].event_url == DETAIL_URL
+    assert events_by_title["Agostino Zoida"].ticket_url == TICKET_URL
+    assert events_by_title["Agostino Zoida"].start_date == today.isoformat()
+    assert events_by_title["Mike Hanley"].event_url == NEXT_MONTH_DETAIL_URL
+    assert events_by_title["Mike Hanley"].ticket_url == NEXT_MONTH_TICKET_URL
+    assert events_by_title["Mike Hanley"].start_date == date(next_year, next_month, 4).isoformat()
 
 
 def test_etix_event_can_use_public_event_page_for_show_page_url():
