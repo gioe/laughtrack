@@ -607,6 +607,198 @@ class TestPlaywrightBrowser:
         assert result == "<html>rendered</html>"
         assert browser._browser is None  # close() ran after fetch completed
 
+    # -------------------------------------------------------------------
+    # DataDome solver path (TASK-1658)
+    # -------------------------------------------------------------------
+
+    @pytest.mark.asyncio
+    async def test_no_datadome_iframe_means_solver_never_built(self):
+        """Solver fires only when geo.captcha-delivery.com is in the HTML.
+
+        Verifies the criterion-5520 guard: a normal page that does not
+        contain the DataDome host string must not even *construct* a
+        solver, let alone invoke one. Patches build_default_solver and
+        asserts it was never called.
+        """
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value="<html>regular page</html>")
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_solver") as mock_build,
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_build.assert_not_called()
+        assert result == "<html>regular page</html>"
+
+    @pytest.mark.asyncio
+    async def test_datadome_iframe_with_no_api_key_preserves_existing_html(self):
+        """Guardrail (criterion 5518): missing CAPSOLVER_API_KEY is a no-op.
+
+        When the DataDome iframe is detected but build_default_solver
+        returns None, the helper logs a warning and falls through —
+        fetch_html must return the original challenge HTML unchanged so
+        the caller's bot-block detector keeps working as before.
+        """
+        challenge_html = (
+            '<html><iframe src="https://geo.captcha-delivery.com/c/?cid=X">'
+            "</iframe></html>"
+        )
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_solver", return_value=None),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        assert result == challenge_html
+        # Sanity: the helper never tried to talk to a solver since none
+        # was constructed.
+        mock_page.reload.assert_not_called() if hasattr(
+            mock_page, "reload"
+        ) and isinstance(mock_page.reload, AsyncMock) else None
+
+    @pytest.mark.asyncio
+    async def test_datadome_iframe_with_solver_injects_cookie_and_reloads(self):
+        """Happy path: solver returns a cookie, helper injects + reloads.
+
+        Verifies criterion 5517: when the iframe is present AND a solver
+        is configured, fetch_html submits to the solver, injects the
+        returned cookie via context.add_cookies, reloads the page, and
+        returns the post-reload HTML.
+        """
+        from laughtrack.foundation.infrastructure.http.protection.datadome_solver import (
+            SolvedCookie,
+        )
+
+        challenge_html = (
+            '<html><iframe src="https://geo.captcha-delivery.com/c/?cid=X">'
+            "</iframe></html>"
+        )
+        post_solve_html = "<html>real etix content</html>"
+
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        # First content() returns the challenge page; after reload, the
+        # second call returns the resolved page.
+        mock_page.content = AsyncMock(
+            side_effect=[challenge_html, post_solve_html]
+        )
+        # iframe element returned by wait_for_selector
+        mock_iframe = AsyncMock()
+        mock_iframe.get_attribute = AsyncMock(
+            return_value="https://geo.captcha-delivery.com/c/?cid=X"
+        )
+        mock_page.wait_for_selector = AsyncMock(return_value=mock_iframe)
+        mock_page.reload = AsyncMock()
+        # context.add_cookies must accept the parsed dict
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        # Fake solver that records the call and returns a usable cookie.
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(
+            return_value=SolvedCookie(
+                cookie="datadome=ABC123; Domain=.example.com; Path=/",
+                user_agent="Mozilla/5.0 …",
+            )
+        )
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_solver", return_value=fake_solver),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com/show")
+
+        fake_solver.solve.assert_awaited_once()
+        # Cookie was injected
+        mock_context.add_cookies.assert_awaited_once()
+        added = mock_context.add_cookies.call_args[0][0]
+        assert isinstance(added, list) and len(added) == 1
+        assert added[0]["name"] == "datadome"
+        assert added[0]["value"] == "ABC123"
+        # Page was reloaded after cookie injection
+        mock_page.reload.assert_awaited_once()
+        # Final HTML is the post-reload content
+        assert result == post_solve_html
+
+    @pytest.mark.asyncio
+    async def test_datadome_iframe_solver_failure_returns_original_html(self):
+        """If the solver fails / times out, fetch_html falls through.
+
+        Reinforces the contract behind criterion 5517's failure modes:
+        capsolver errors or unparseable solutions must not propagate;
+        the helper logs and returns None, leaving fetch_html with the
+        original challenge HTML — same observable behavior as the
+        no-API-key guardrail.
+        """
+        challenge_html = (
+            '<html><iframe src="https://geo.captcha-delivery.com/c/?cid=X">'
+            "</iframe></html>"
+        )
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_iframe = AsyncMock()
+        mock_iframe.get_attribute = AsyncMock(
+            return_value="https://geo.captcha-delivery.com/c/?cid=X"
+        )
+        mock_page.wait_for_selector = AsyncMock(return_value=mock_iframe)
+        mock_page.reload = AsyncMock()
+        mock_context = mock_browser.new_context.return_value
+        mock_context.add_cookies = AsyncMock()
+
+        fake_solver = AsyncMock()
+        fake_solver.solve = AsyncMock(return_value=None)  # solver failure
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_solver", return_value=fake_solver),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com/show")
+
+        # Solver was called; cookie was NOT injected; reload was NOT issued.
+        fake_solver.solve.assert_awaited_once()
+        mock_context.add_cookies.assert_not_called()
+        mock_page.reload.assert_not_called()
+        assert result == challenge_html
+
+    @pytest.mark.asyncio
+    async def test_datadome_substring_without_iframe_element_falls_through(self):
+        """Host substring in HTML but no iframe element → no solver call.
+
+        Etix's challenge page server-renders the dd JS config (which
+        mentions geo.captcha-delivery.com inline) before injecting the
+        iframe element. If the iframe never materializes — because we
+        timed out, or the page is unrelated content that just happens to
+        mention the host string — wait_for_selector returns None and we
+        must not consult the solver.
+        """
+        challenge_html = (
+            "<html>script var dd={'host':'geo.captcha-delivery.com'};"
+            "</html>"
+        )
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_selector = AsyncMock(return_value=None)
+
+        fake_solver = AsyncMock()
+
+        with (
+            _patch_playwright(mock_pw_module),
+            patch.object(_pb_mod, "build_default_solver", return_value=fake_solver),
+        ):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        fake_solver.solve.assert_not_called()
+        assert result == challenge_html
+
     @pytest.mark.asyncio
     async def test_fetch_after_close_relaunches_browser(self):
         """fetch_html called after close() must re-launch the browser without raising.
