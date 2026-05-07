@@ -249,6 +249,50 @@ class TestAwsWafSolverSolve:
         assert result is None
 
     @pytest.mark.asyncio
+    async def test_bare_token_response_normalized_to_set_cookie_shape(self):
+        # Live capsolver behaviour observed 2026-05-07: AntiAwsWafTaskProxyless
+        # returns the raw token value (no ``aws-waf-token=`` prefix, no
+        # Domain attribute). The solver must normalize so the downstream
+        # parse_set_cookie call always sees a valid name=value form.
+        raw_token = (
+            "61cbd1a4-7d5d-49ea-8cf9-cbda57074e51:FAoAsc5i4nkKAAAA:"
+            "signature_blob_here"
+        )
+        solver = _FakeSolver(
+            responses=[
+                {"errorId": 0, "taskId": "t-1"},
+                {
+                    "errorId": 0,
+                    "status": "ready",
+                    "solution": {"cookie": raw_token},
+                },
+            ]
+        )
+        result = await solver.solve(website_url="https://x.com/", user_agent="ua")
+        assert result is not None
+        assert result.cookie == f"aws-waf-token={raw_token}"
+
+    @pytest.mark.asyncio
+    async def test_full_set_cookie_response_passed_through_unchanged(self):
+        # When capsolver returns a full Set-Cookie string the solver
+        # must NOT prepend its own name — that would produce a malformed
+        # ``aws-waf-token=aws-waf-token=v`` value.
+        full = "aws-waf-token=ABC; Domain=.x.com; Path=/"
+        solver = _FakeSolver(
+            responses=[
+                {"errorId": 0, "taskId": "t-1"},
+                {
+                    "errorId": 0,
+                    "status": "ready",
+                    "solution": {"cookie": full},
+                },
+            ]
+        )
+        result = await solver.solve(website_url="https://x.com/", user_agent="ua")
+        assert result is not None
+        assert result.cookie == full
+
+    @pytest.mark.asyncio
     async def test_user_agent_threaded_into_task_payload(self):
         # DataDome bound the issued cookie to the UA used during solve;
         # AWS WAF doesn't have the same documented constraint, but the

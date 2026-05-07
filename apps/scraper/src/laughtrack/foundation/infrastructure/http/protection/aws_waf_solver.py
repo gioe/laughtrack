@@ -45,6 +45,16 @@ AWS_WAF_MARKERS: tuple[str, ...] = (
     "gokuProps",
 )
 
+# Cookie name AWS WAF expects for its issued token. capsolver's
+# AntiAwsWafTask* response shape is inconsistent: some flows return a
+# full ``aws-waf-token=<v>; Domain=...; Path=...`` Set-Cookie string,
+# others return only the raw signed token value. The solver normalizes
+# both into the Set-Cookie shape :func:`parse_set_cookie` expects, using
+# this constant as the canonical name when the response was a bare
+# token. Verified live against capsolver on 2026-05-07 — etix's
+# AntiAwsWafTaskProxyless flow returns the bare-token form.
+AWS_WAF_TOKEN_COOKIE_NAME = "aws-waf-token"
+
 _CAPSOLVER_BASE_URL = "https://api.capsolver.com"
 _DEFAULT_POLL_INTERVAL_SEC = 3.0
 _DEFAULT_TIMEOUT_SEC = 180.0
@@ -181,6 +191,13 @@ class AwsWafSolver:
                 cookie = solution.get("cookie")
                 if not cookie:
                     return None
+                # Normalize bare-token responses to Set-Cookie shape so
+                # the downstream parse_set_cookie call works uniformly.
+                # The presence of ``=`` distinguishes a full Set-Cookie
+                # ("aws-waf-token=v; Domain=…") from a raw token value
+                # ("uuid:…:signature").
+                if "=" not in cookie:
+                    cookie = f"{AWS_WAF_TOKEN_COOKIE_NAME}={cookie}"
                 return SolvedAwsWafCookie(
                     cookie=cookie,
                     user_agent=solution.get("userAgent") or user_agent,
@@ -236,6 +253,7 @@ def build_default_aws_waf_solver() -> Optional[AwsWafSolver]:
 
 __all__ = [
     "AWS_WAF_MARKERS",
+    "AWS_WAF_TOKEN_COOKIE_NAME",
     "AwsWafSolver",
     "AwsWafSolverError",
     "SolvedAwsWafCookie",
