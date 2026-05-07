@@ -70,6 +70,6 @@ const nextConfig = {
 
 export default withSentryConfig(nextConfig, {
     silent: true,
-    disableLogger: true,
+    removeDebugLogging: true,
     tunnelRoute: '/monitoring',
 })
