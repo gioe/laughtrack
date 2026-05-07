@@ -12,31 +12,36 @@ import LaughTrackCore
 @Suite("Home favorite shows rail")
 @MainActor
 struct HomeFavoriteShowsRailTests {
-    @Test("signed-in users with saved favorites see upcoming shows before trending")
-    func signedInFavoritesShowRail() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
-            name: "home-favorite-shows"
-        )
-        let favorites = ComedianFavoriteStore()
+    // TASK-1921 pilot for the model-layer test pattern under the iOS 26
+    // accessibility-tree wiring regression. The original test asserted via
+    // host.requireView / requireText / requireLabel after mounting HomeView
+    // through HostedView; under iOS 26.1+ the HostingView's accessibility
+    // tree is empty, so those assertions fail unconditionally regardless of
+    // product correctness. See ios/CLAUDE.md "iOS 26 Accessibility-Tree
+    // Wiring Regression" for the bisect data and migration pattern.
+    @Test("favorite shows model loads upcoming shows for saved favorites")
+    func favoriteShowsModelLoadsUpcomingShowsForSavedFavorites() async throws {
         let apiClient = makeClient(
             favoriteResponse: .init(data: [favoriteComedian]),
             showResponses: [
                 "Taylor Tomlinson": .init(data: [favoriteShow], total: 1, filters: [], zipCapTriggered: false),
             ]
         )
-        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
-        #expect(favorites.savedFavoritesPhase == .loaded)
-        #expect(favorites.savedFavoriteComedians.map(\.name) == ["Taylor Tomlinson"])
+        let model = HomeFavoriteShowsModel()
 
-        let host = HostedView(
-            homeView(apiClient: apiClient, authManager: authManager, favorites: favorites)
+        await model.refresh(
+            apiClient: apiClient,
+            favoriteComedians: [favoriteComedian],
+            cache: nil,
+            persistentCache: nil
         )
-        await host.settle()
-        host.scrollDown(pages: 2)
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeFavoriteShowsRail)
-        try host.requireText("Your favorites are touring")
-        try host.requireLabel("Taylor Tomlinson at The Stand")
+        guard case let .success(shows) = model.phase else {
+            Issue.record("Expected .success phase, got \(model.phase)")
+            return
+        }
+        #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
+        #expect(shows.map(\.id) == [favoriteShow.id])
     }
 
     @Test("signed-out users do not see the favorite shows rail")
