@@ -235,7 +235,8 @@ class TestMain:
 
     def test_all_already_denied_exits_0(self, capsys):
         with patch('sys.argv', ['script', '--name', 'John Doe']), \
-             patch.object(_mod, '_check_deny_list', return_value={"John Doe"}):
+             patch.object(_mod, '_check_deny_list', return_value={"John Doe"}), \
+             patch.object(_mod, '_lookup_comedians', return_value={}):
             result = _mod.main()
         assert result == 0
         out = capsys.readouterr().out
