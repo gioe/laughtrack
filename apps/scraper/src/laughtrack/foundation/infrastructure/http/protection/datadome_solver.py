@@ -208,13 +208,27 @@ class DataDomeSolver:
         Isolated as a method so tests can override it without dragging in
         aiohttp. Production path uses aiohttp.ClientSession (already a
         declared core dependency in ``pyproject.toml``).
-        """
-        # Lazy import — keeps aiohttp out of the import graph for callers
-        # that never trigger a DataDome solve.
-        import aiohttp  # noqa: PLC0415
 
+        Uses ``certifi``'s CA bundle for TLS verification — Python's stdlib
+        ssl module on macOS does not ship with a usable trust store, so a
+        plain ``aiohttp.ClientSession()`` raises
+        ``CERTIFICATE_VERIFY_FAILED`` against ``api.capsolver.com``. certifi
+        is already a transitive dependency of ``requests`` / ``aiohttp``
+        and is present in the scraper venv.
+        """
+        # Lazy imports — keep aiohttp/ssl/certifi off the cold path for
+        # callers that never trigger a DataDome solve.
+        import ssl  # noqa: PLC0415
+
+        import aiohttp  # noqa: PLC0415
+        import certifi  # noqa: PLC0415
+
+        ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+        connector = aiohttp.TCPConnector(ssl=ssl_ctx)
         timeout = aiohttp.ClientTimeout(total=_HTTP_TIMEOUT_SEC)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with aiohttp.ClientSession(
+            timeout=timeout, connector=connector
+        ) as session:
             async with session.post(url, json=payload) as resp:
                 return await resp.json(content_type=None)
 

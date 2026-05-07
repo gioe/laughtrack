@@ -102,9 +102,15 @@ Object.defineProperty(navigator, 'languages', {
 })();
 """
 
-# Realistic Chrome 124 macOS user-agent to match the curl-cffi impersonation
+# Realistic Chrome 124 Windows user-agent. Matches the canonical UA listed
+# in capsolver's DataDome documentation
+# (https://docs.capsolver.com/guide/captcha/Datadome.html), so the solver
+# accepts the request — capsolver rejects mac OS UAs with
+# ERROR_INVALID_TASK_DATA. DataDome binds the issued cookie to the UA used
+# during solve, so the browser context and the solver MUST send the same
+# value; keeping a single ``_USER_AGENT`` constant guarantees that.
 _USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/124.0.0.0 Safari/537.36"
 )
@@ -141,6 +147,13 @@ _AWS_WAF_MARKERS: tuple[str, ...] = (
 # present and the caller's bot-block detector handles the rest.
 _WAF_CHALLENGE_WAIT_MS = 8_000
 
+# Same idea, but for the WAF challenge that arrives *after* a DataDome
+# solve has been injected. Etix stacks WAF behind DataDome — by the time
+# the cookie-loaded reload hits the WAF script, the browser is doing
+# extra crypto work and the typical 8 s ceiling is not enough. 25 s keeps
+# the worst case bounded while letting the steady-state path complete.
+_WAF_CHALLENGE_POST_DATADOME_WAIT_MS = 25_000
+
 # CSS selector used to detect a DataDome interactive-CAPTCHA iframe in the
 # rendered DOM. DataDome embeds the visible challenge from the dedicated
 # host ``geo.captcha-delivery.com``; the iframe carries the ``cid``,
@@ -154,6 +167,14 @@ _DATADOME_IFRAME_SELECTOR = f'iframe[src*="{DATADOME_IFRAME_HOST}"]'
 # without re-issuing a challenge; reload should finish in ~1–2 s, so 30 s
 # is a generous ceiling. Matches the default ``timeout_ms`` used elsewhere.
 _DATADOME_RELOAD_TIMEOUT_MS = 30_000
+
+# Maximum time to wait for the DataDome iframe to be injected into the DOM
+# after ``domcontentloaded`` resolves. The challenge page server-renders the
+# ``dd`` JS config but injects the actual ``<iframe src="https://geo.
+# captcha-delivery.com/...">`` element asynchronously after the page boots,
+# so a query_selector that fires immediately on ``domcontentloaded``
+# typically misses it. 5 s comfortably covers the typical injection delay.
+_DATADOME_IFRAME_WAIT_MS = 5_000
 
 
 def _parse_proxy(proxy_url: str) -> dict:
@@ -431,7 +452,9 @@ class PlaywrightBrowser:
                     self._pw = None
 
     @staticmethod
-    async def _wait_for_waf_challenge(page: object, html: str) -> str:
+    async def _wait_for_waf_challenge(
+        page: object, html: str, timeout_ms: int = _WAF_CHALLENGE_WAIT_MS
+    ) -> str:
         """Wait for an AWS WAF passive JS challenge to resolve, then return the final HTML.
 
         Polls the live DOM for the absence of the challenge's inline globals
@@ -440,16 +463,30 @@ class PlaywrightBrowser:
         reloads the page into the real content. Falls back to returning the
         original challenge HTML on timeout — ``HttpClient._bot_block_reason``
         and caller-level error handling will surface the unresolved block.
+
+        ``timeout_ms`` defaults to :data:`_WAF_CHALLENGE_WAIT_MS` for the
+        first-hit path; callers reaching the WAF after a DataDome solve
+        pass :data:`_WAF_CHALLENGE_POST_DATADOME_WAIT_MS` so the challenge
+        has room to crunch its post-cookie-injection crypto.
         """
         try:
             await page.wait_for_function(
                 "() => !window.awsWafCookieDomainList && !window.gokuProps",
-                timeout=_WAF_CHALLENGE_WAIT_MS,
+                timeout=timeout_ms,
             )
         except Exception:
-            # Any exception (TimeoutError, navigation racing the script) —
-            # return current HTML; bot-block detection handles the rest.
-            return html
+            # ``wait_for_function`` aborts with "execution context was
+            # destroyed" the moment the WAF challenge JS triggers its own
+            # ``location.reload()`` / cookie-driven redirect — that's a
+            # *successful* outcome from our perspective, the page just
+            # navigated to the real content while we were polling. Fetch
+            # the post-navigation HTML so the caller sees the resolved
+            # page; if the navigation actually failed and the markers
+            # remain, the caller's bot-block detector still picks it up.
+            try:
+                return await page.content()
+            except Exception:
+                return html
         return await page.content()
 
     @staticmethod
@@ -475,10 +512,18 @@ class PlaywrightBrowser:
         on. Raising here would leak through ``fetch_html`` and break
         unrelated callers.
         """
+        # The challenge page server-renders the ``dd`` JS config, then
+        # injects the visible iframe asynchronously. If we query
+        # immediately after ``domcontentloaded`` the iframe element is
+        # often not yet attached — wait briefly for it to appear before
+        # falling through.
         try:
-            iframe = await page.query_selector(_DATADOME_IFRAME_SELECTOR)
+            iframe = await page.wait_for_selector(
+                _DATADOME_IFRAME_SELECTOR,
+                timeout=_DATADOME_IFRAME_WAIT_MS,
+            )
         except Exception:
-            return None
+            iframe = None
         if iframe is None:
             return None
 
@@ -613,6 +658,19 @@ class PlaywrightBrowser:
                     )
                     if solved_html is not None:
                         html = solved_html
+                        # Etix layers AWS WAF *behind* DataDome — once the
+                        # DataDome cookie unlocks the origin, the next
+                        # response is the WAF passive challenge. Re-run
+                        # the WAF wait against the post-solve HTML, with
+                        # the longer post-DataDome budget — the cookie-
+                        # injected reload starts the WAF crypto from a
+                        # heavier baseline than the first-hit path.
+                        if any(marker in html for marker in _AWS_WAF_MARKERS):
+                            html = await self._wait_for_waf_challenge(
+                                page,
+                                html,
+                                timeout_ms=_WAF_CHALLENGE_POST_DATADOME_WAIT_MS,
+                            )
                 Logger.debug(
                     f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
                     {},
