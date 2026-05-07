@@ -11,8 +11,8 @@ import { useStyleContext } from "@/contexts/StyleProvider";
 // Props for the standalone variant
 interface DropdownDisplayProps {
     placeholder?: string;
-    onChange: (value: any) => void;
-    value?: any;
+    onChange: (value: string) => void;
+    value?: string;
     items: Selectable[];
     // Static id for SelectContent and SelectTrigger aria-controls — bypasses
     // Radix's internal useId which can drift across SSR/hydration. Callers

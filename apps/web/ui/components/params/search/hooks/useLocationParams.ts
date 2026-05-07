@@ -11,8 +11,8 @@ export function useLocationParams() {
 
     const getLocationState = useCallback(
         (): DistanceData => ({
-            distance: getTypedParam(QueryProperty.Distance),
-            zipCode: getTypedParam(QueryProperty.Zip),
+            distance: getTypedParam(QueryProperty.Distance) ?? null,
+            zipCode: getTypedParam(QueryProperty.Zip) ?? null,
         }),
         [getTypedParam],
     );

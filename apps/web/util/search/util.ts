@@ -1,11 +1,18 @@
 import { DateRange, DateRangeInput } from "@/objects/interface";
 
-export const getDateRangeFromParams = (input: DateRangeInput): DateRange => {
-    const from = new Date(input.from ?? "");
-    const to = new Date(input.to ?? "");
+type DateRangeParam = DateRangeInput | DateRange;
+
+const parseDateParam = (value: string | Date | null | undefined) => {
+    if (value instanceof Date) return value;
+    return new Date(value ?? "");
+};
+
+export const getDateRangeFromParams = (input: DateRangeParam): DateRange => {
+    const from = parseDateParam(input.from);
+    const to = parseDateParam(input.to);
 
     return {
-        from: isNaN(from.getTime()) ? undefined: from,
-        to: isNaN(to.getTime()) ? undefined : to
+        from: isNaN(from.getTime()) ? undefined : from,
+        to: isNaN(to.getTime()) ? undefined : to,
     };
 };

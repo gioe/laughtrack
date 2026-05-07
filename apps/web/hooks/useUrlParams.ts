@@ -10,7 +10,7 @@ export function useUrlParams() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const getTypedParam = useCallback(
-        <K extends ParamKeys>(key: K): any => {
+        <K extends ParamKeys>(key: K): ParamTypes[K] | undefined => {
             const config = paramConfigs[key];
             const value = searchParams.get(config.key);
             const parsed = config.parse(value);

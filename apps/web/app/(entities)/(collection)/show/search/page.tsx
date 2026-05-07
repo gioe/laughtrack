@@ -14,9 +14,13 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { readTimezoneCookie } from "@/util/timezone";
 
-export async function generateMetadata(props: {
+type SearchPageProps = {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
-}): Promise<Metadata> {
+};
+
+export async function generateMetadata(
+    props: SearchPageProps,
+): Promise<Metadata> {
     const searchParams = await props.searchParams;
     const comedian =
         typeof searchParams.comedian === "string"
@@ -94,7 +98,7 @@ export async function generateMetadata(props: {
     };
 }
 
-export default async function ShowSearchPage(props: any) {
+export default async function ShowSearchPage(props: SearchPageProps) {
     const [session, cookieStore, searchParams] = await Promise.all([
         auth(),
         cookies(),

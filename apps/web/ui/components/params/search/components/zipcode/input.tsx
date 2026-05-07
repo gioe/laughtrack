@@ -1,4 +1,5 @@
 import { ChangeEvent } from "react";
+import { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 import { ComponentVariant } from "@/objects/enum";
 import {
     FormControl,
@@ -15,10 +16,11 @@ interface ZipCodeInputBaseProps {
     id?: string;
 }
 
-interface ZipCodeInputFormProps extends ZipCodeInputBaseProps {
+interface ZipCodeInputFormProps<TFieldValues extends FieldValues>
+    extends ZipCodeInputBaseProps {
     variant: ComponentVariant.Form;
-    name: string;
-    form: any;
+    name: FieldPath<TFieldValues>;
+    form: UseFormReturn<TFieldValues>;
 }
 
 interface ZipCodeInputStandaloneProps extends ZipCodeInputBaseProps {
@@ -27,11 +29,13 @@ interface ZipCodeInputStandaloneProps extends ZipCodeInputBaseProps {
     value?: string;
 }
 
-type ZipCodeInputComponentProps =
-    | ZipCodeInputFormProps
+type ZipCodeInputComponentProps<TFieldValues extends FieldValues> =
+    | ZipCodeInputFormProps<TFieldValues>
     | ZipCodeInputStandaloneProps;
 
-const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
+const ZipCodeInput = <TFieldValues extends FieldValues>(
+    props: ZipCodeInputComponentProps<TFieldValues>,
+) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 

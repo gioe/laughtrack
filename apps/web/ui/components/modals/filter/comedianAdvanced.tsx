@@ -19,16 +19,15 @@ export default function ComedianAdvancedFilters() {
         useUrlParams();
 
     const distance: DistanceData = {
-        distance: getTypedParam(QueryProperty.Distance),
-        zipCode: getTypedParam(QueryProperty.Zip),
+        distance: getTypedParam(QueryProperty.Distance) ?? null,
+        zipCode: getTypedParam(QueryProperty.Zip) ?? null,
     };
     const dateRange = getDateRangeFromParams({
         from: getTypedParam(QueryProperty.FromDate),
         to: getTypedParam(QueryProperty.ToDate),
     });
-    const minUpcomingShows: number = getTypedParam(
-        QueryProperty.MinUpcomingShows,
-    );
+    const minUpcomingShows: number =
+        getTypedParam(QueryProperty.MinUpcomingShows) ?? 0;
 
     const handleZip = (v: string) => setTypedParam(QueryProperty.Zip, v);
     const handleDistance = (v: string) =>

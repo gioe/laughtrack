@@ -1,6 +1,10 @@
 import { Ticket } from "@/objects/class/ticket/Ticket";
+import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 
-export function mapTickets(tickets: any[]) {
+type TicketPrice = number | string | { toNumber: () => number } | null;
+type TicketSource = Omit<TicketDTO, "price"> & { price: TicketPrice };
+
+export function mapTickets(tickets: TicketSource[]): TicketDTO[] {
     const val = tickets
         ? tickets.map((ticket) => ({
               price: mapTicketPrice(ticket.price),
@@ -13,10 +17,12 @@ export function mapTickets(tickets: any[]) {
     return val;
 }
 
-function mapTicketPrice(price: any): number | null {
+function mapTicketPrice(price: TicketPrice): number | null {
     if (price == null) return null;
     if (typeof price === "number") return price;
-    if (typeof price.toNumber === "function") return price.toNumber();
+    if (typeof price === "object" && typeof price.toNumber === "function") {
+        return price.toNumber();
+    }
 
     const numericPrice = Number(price);
     return Number.isFinite(numericPrice) ? numericPrice : null;

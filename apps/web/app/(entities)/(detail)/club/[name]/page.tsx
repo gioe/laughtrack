@@ -24,6 +24,8 @@ import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
 import { readTimezoneCookie } from "@/util/timezone";
 
+type DetailSearchParams = Record<string, string | string[] | undefined>;
+
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
 }): Promise<Metadata> {
@@ -70,7 +72,7 @@ export async function generateMetadata(props: {
 }
 
 export default async function ClubDetailPage(props: {
-    searchParams: Promise<any>;
+    searchParams: Promise<DetailSearchParams>;
     params: Promise<{ name: string }> | undefined;
 }) {
     const [session, cookieStore, searchParams, slug] = await Promise.all([

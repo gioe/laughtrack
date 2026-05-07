@@ -1,7 +1,12 @@
 // ShowLocationComponent.tsx
 "use client";
 
-import { UseFormReturn } from "react-hook-form";
+import {
+    FieldPath,
+    FieldValues,
+    PathValue,
+    UseFormReturn,
+} from "react-hook-form";
 import React, { useCallback, useRef, useState } from "react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { MapPin, Loader2 } from "lucide-react";
@@ -22,9 +27,9 @@ const selectableDistances = allDistanceOptions.map(
     }),
 );
 
-type ShowDistanceFormProps = {
+type ShowDistanceFormProps<TFieldValues extends FieldValues> = {
     variant: ComponentVariant.Form;
-    form: UseFormReturn<any>;
+    form: UseFormReturn<TFieldValues>;
     inputId?: string;
     dropdownId?: string;
 };
@@ -38,8 +43,8 @@ type ShowDistanceStandaloneProps = {
     dropdownId?: string;
 };
 
-type ShowLocationComponentProps =
-    | ShowDistanceFormProps
+type ShowLocationComponentProps<TFieldValues extends FieldValues> =
+    | ShowDistanceFormProps<TFieldValues>
     | ShowDistanceStandaloneProps;
 
 const ERROR_MESSAGES: Record<GeolocationError, string> = {
@@ -49,7 +54,9 @@ const ERROR_MESSAGES: Record<GeolocationError, string> = {
     no_zip: "Could not determine zip code from your location.",
 };
 
-const ShowLocationComponent = (props: ShowLocationComponentProps) => {
+const ShowLocationComponent = <TFieldValues extends FieldValues>(
+    props: ShowLocationComponentProps<TFieldValues>,
+) => {
     const { getCurrentStyles } = useStyleContext();
     const { updateDistance, updateZipCode } = useLocationParams();
     const [showTooltip, setShowTooltip] = useState(false);
@@ -71,10 +78,14 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 const handler = props.onZipcodeInput ?? updateZipCode;
                 handler(zip);
             } else {
-                props.form.setValue("distance.zipCode", zip, {
-                    shouldDirty: true,
-                    shouldTouch: true,
-                });
+                props.form.setValue(
+                    "distance.zipCode" as FieldPath<TFieldValues>,
+                    zip as PathValue<TFieldValues, FieldPath<TFieldValues>>,
+                    {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                    },
+                );
             }
         },
 
@@ -130,12 +141,14 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         [],
     );
 
-    const buildDropdownComponent = (props: ShowLocationComponentProps) => {
+    const buildDropdownComponent = (
+        props: ShowLocationComponentProps<TFieldValues>,
+    ) => {
         if (props.variant === ComponentVariant.Form) {
             return (
                 <DropdownComponent
                     items={selectableDistances}
-                    name="distance.distance"
+                    name={"distance.distance" as FieldPath<TFieldValues>}
                     form={props.form}
                     variant={props.variant}
                     contentId={props.dropdownId}
@@ -154,7 +167,9 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         );
     };
 
-    const buildZipCodeComponent = (props: ShowLocationComponentProps) => {
+    const buildZipCodeComponent = (
+        props: ShowLocationComponentProps<TFieldValues>,
+    ) => {
         if (props.variant === ComponentVariant.Form) {
             return (
                 <ZipCodeInput
@@ -162,7 +177,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                     form={props.form}
                     placeholder="City or zip code"
                     disabled={false}
-                    name="distance.zipCode"
+                    name={"distance.zipCode" as FieldPath<TFieldValues>}
                     id={props.inputId}
                 />
             );

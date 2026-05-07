@@ -5,7 +5,7 @@ import {
     FormMessage,
 } from "../../../../ui/form";
 import { Selectable } from "@/objects/interface";
-import { UseFormReturn } from "react-hook-form";
+import { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 import { ComponentVariant } from "@/objects/enum";
 import DropdownDisplay from "./display";
 
@@ -17,10 +17,11 @@ interface BaseDropdownProps {
 }
 
 // Props for the form variant
-interface FormDropdownProps extends BaseDropdownProps {
+interface FormDropdownProps<TFieldValues extends FieldValues>
+    extends BaseDropdownProps {
     variant: ComponentVariant.Form;
-    form: UseFormReturn<any>;
-    name: string;
+    form: UseFormReturn<TFieldValues>;
+    name: FieldPath<TFieldValues>;
 }
 
 // Props for the standalone variant
@@ -31,9 +32,13 @@ interface StandaloneDropdownProps extends BaseDropdownProps {
 }
 
 // Combined type using discriminated union
-type DropdownProps = FormDropdownProps | StandaloneDropdownProps;
+type DropdownProps<TFieldValues extends FieldValues> =
+    | FormDropdownProps<TFieldValues>
+    | StandaloneDropdownProps;
 
-export function DropdownComponent(props: DropdownProps) {
+export function DropdownComponent<TFieldValues extends FieldValues>(
+    props: DropdownProps<TFieldValues>,
+) {
     if (props.variant == ComponentVariant.Form) {
         return (
             <FormField

@@ -18,6 +18,8 @@ import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import { readTimezoneCookie } from "@/util/timezone";
 import { getComedianHeroPalette } from "@/lib/data/comedian/detail/getComedianHeroPalette";
 
+type DetailSearchParams = Record<string, string | string[] | undefined>;
+
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
 }): Promise<Metadata> {
@@ -67,7 +69,7 @@ export async function generateMetadata(props: {
 }
 
 export default async function ComedianDetailsPage(props: {
-    searchParams: Promise<any>;
+    searchParams: Promise<DetailSearchParams>;
     params: Promise<{ name: string }> | undefined;
 }) {
     const [session, cookieStore, searchParams, slug] = await Promise.all([

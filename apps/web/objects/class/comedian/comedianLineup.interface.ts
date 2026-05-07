@@ -18,5 +18,9 @@ export interface ComedianLineupDTO {
     show_count?: number;
     isAlias?: boolean;
     parentComedian?: ComedianLineupDTO;
-    lineupItems?: any[];
+    lineupItems?: ComedianLineupItemDTO[];
+}
+
+export interface ComedianLineupItemDTO {
+    comedian: ComedianLineupDTO;
 }

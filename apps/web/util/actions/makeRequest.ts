@@ -6,7 +6,7 @@ import { RestAPIAction } from "../../objects/enum";
 interface ExecuteOptions {
     method?: RestAPIAction;
     token?: JWT;
-    body?: any;
+    body?: BodyInit | Record<string, unknown> | null;
     searchParams?: URLSearchParams;
     revalidate?: false | 0 | number;
     session?: Session | null;
