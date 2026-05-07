@@ -97,6 +97,18 @@ async def test_get_data_posts_to_wordpress_ajax_and_returns_page_data(monkeypatc
     assert len(result.event_list) == 2
 
 
+@pytest.mark.asyncio
+async def test_get_data_returns_none_when_wordpress_ajax_fails(monkeypatch):
+    scraper = HouseOfComedyPhoenixScraper(_club())
+
+    async def fake_post_form(self, url: str, data, **kwargs):
+        raise RuntimeError("blocked")
+
+    monkeypatch.setattr(HouseOfComedyPhoenixScraper, "post_form", fake_post_form)
+
+    assert await scraper.get_data("2026-05") is None
+
+
 def test_to_show_sets_phoenix_time_and_showclix_ticket_url():
     event = HouseOfComedyPhoenixEvent(
         title="K-von",

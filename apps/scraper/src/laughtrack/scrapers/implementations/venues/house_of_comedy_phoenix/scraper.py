@@ -77,11 +77,16 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
         headers["x-requested-with"] = "XMLHttpRequest"
         headers["referer"] = self._source_url
 
-        html = await self.post_form(
-            self._ajax_url,
-            payload,
-            headers=headers,
-        )
+        try:
+            html = await self.post_form(
+                self._ajax_url,
+                payload,
+                headers=headers,
+            )
+        except Exception as e:
+            Logger.warn(f"{self._log_prefix}: failed to fetch Phoenix AJAX target {target}: {e}", self.logger_context)
+            return None
+
         if not html:
             Logger.info(f"{self._log_prefix}: no AJAX response for {target}", self.logger_context)
             return None
