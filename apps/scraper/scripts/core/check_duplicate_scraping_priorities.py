@@ -95,7 +95,15 @@ _DUPLICATE_QUERY = """
         ss.id AS source_id,
         ss.platform::text AS platform,
         ss.scraper_key,
-        ss.external_id,
+        COALESCE(
+            ss.seatengine_id::text,
+            ss.seatengine_v3_id,
+            ss.eventbrite_id,
+            ss.ticketmaster_id,
+            ss.wix_event_id,
+            ss.ovationtix_id,
+            ss.squadup_id
+        ) AS external_id,
         ss.source_url,
         ss.metadata
     FROM duplicate_groups dg
