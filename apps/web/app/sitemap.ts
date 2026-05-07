@@ -4,18 +4,29 @@ import { db } from "@/lib/db";
 const SITE_URL = "https://www.laugh-track.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const [clubs, comedians] = await Promise.all([
-        db.club.findMany({
-            where: { visible: true },
-            select: { name: true },
-            orderBy: { popularity: "desc" },
-        }),
-        db.comedian.findMany({
-            where: { totalShows: { gt: 0 } },
-            select: { name: true },
-            orderBy: { popularity: "desc" },
-        }),
-    ]);
+    let clubs: { name: string }[] = [];
+    let comedians: { name: string }[] = [];
+    try {
+        [clubs, comedians] = await Promise.all([
+            db.club.findMany({
+                where: { visible: true },
+                select: { name: true },
+                orderBy: { popularity: "desc" },
+            }),
+            db.comedian.findMany({
+                where: { totalShows: { gt: 0 } },
+                select: { name: true },
+                orderBy: { popularity: "desc" },
+            }),
+        ]);
+    } catch (err) {
+        // Falling back to a static-only sitemap keeps `next build` from
+        // failing when Prisma can't reach the DB (e.g. offline dev box).
+        console.warn(
+            "[sitemap] Prisma unreachable; returning static pages only.",
+            err,
+        );
+    }
 
     const staticPages: MetadataRoute.Sitemap = [
         { url: SITE_URL, changeFrequency: "daily", priority: 1.0 },
