@@ -168,7 +168,7 @@ class DataDomeSolver:
         if not task_id:
             return None
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         deadline = loop.time() + self._timeout_sec
         while True:
             if loop.time() >= deadline:
