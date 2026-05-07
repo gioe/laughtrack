@@ -22,7 +22,7 @@ vi.mock("next/image", () => ({
 
 const baseShow: ShowDTO = {
     id: 42,
-    date: "2026-04-28T20:00:00Z" as unknown as Date,
+    date: "2026-04-28T20:00:00Z" as never as Date,
     name: "Late Show",
     clubName: "The Copper Room",
     address: "123 Main St",

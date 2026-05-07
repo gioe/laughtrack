@@ -63,7 +63,7 @@ describe("DELETE /api/v1/favorites/[comedianId]", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockDelete.mockResolvedValue({} as any);
+        mockDelete.mockResolvedValue({} as never);
 
         const [req, ctx] = makeRequest();
         await DELETE(req, ctx);
@@ -115,7 +115,7 @@ describe("DELETE /api/v1/favorites/[comedianId]", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockDelete.mockResolvedValue({} as any);
+        mockDelete.mockResolvedValue({} as never);
 
         const [req, ctx] = makeRequest();
         const res = await DELETE(req, ctx);

@@ -130,7 +130,7 @@ describe("POST /api/v1/favorites", () => {
                     _count: { lineupItems: 5 },
                 },
             },
-        ] as any);
+        ] as never);
 
         const res = await GET(
             new NextRequest("http://localhost/api/v1/favorites"),
@@ -176,8 +176,8 @@ describe("POST /api/v1/favorites", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue({ uuid: "comedian-uuid-1" } as any);
-        mockUpsert.mockResolvedValue({} as any);
+        mockFindUnique.mockResolvedValue({ uuid: "comedian-uuid-1" } as never);
+        mockUpsert.mockResolvedValue({} as never);
 
         await POST(makeRequest());
 
@@ -224,8 +224,8 @@ describe("POST /api/v1/favorites", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue({ uuid: "comedian-uuid-1" } as any);
-        mockUpsert.mockResolvedValue({} as any);
+        mockFindUnique.mockResolvedValue({ uuid: "comedian-uuid-1" } as never);
+        mockUpsert.mockResolvedValue({} as never);
 
         const res = await POST(makeRequest());
         const body = await res.json();

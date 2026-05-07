@@ -8,6 +8,13 @@ function makeHelper(params: Record<string, string | undefined> = {}) {
     });
 }
 
+type DateClause = {
+    date: {
+        gte: string;
+        lte?: string;
+    };
+};
+
 describe("QueryHelper.getDateClause", () => {
     describe("no date params", () => {
         it("returns an empty object when both fromDate and toDate are absent", () => {
@@ -42,7 +49,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "not-a-date",
                 toDate: "2026-06-30",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             const after = Date.now();
 
             expect(result).toHaveProperty("date.gte");
@@ -56,7 +63,7 @@ describe("QueryHelper.getDateClause", () => {
         it("returns a gte filter at the specified date midnight in the timezone", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             expect(result).toHaveProperty("date.gte");
             expect(result.date.gte).toContain("2026-06-15");
         });
@@ -64,7 +71,7 @@ describe("QueryHelper.getDateClause", () => {
         it("does not include lte when toDate is not provided", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             expect(result.date.lte).toBeUndefined();
         });
 
@@ -72,7 +79,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
                 toDate: "2026-06-30",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             expect(result.date.lte).toBeDefined();
         });
 
@@ -80,7 +87,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
                 toDate: "not-a-date",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             expect(result).toHaveProperty("date.gte");
             expect(result.date.gte).toContain("2026-06-15");
             expect(result.date.lte).toBeUndefined();
@@ -90,7 +97,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
                 toDate: "2026-99-99",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             expect(result).toHaveProperty("date.gte");
             expect(result.date.lte).toBeUndefined();
         });
@@ -98,7 +105,7 @@ describe("QueryHelper.getDateClause", () => {
         it("converts fromDate midnight in America/New_York (EDT) to exact UTC", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             // Midnight EDT (UTC-4) → 04:00 UTC
             expect(result.date.gte).toBe("2026-06-15T04:00:00.000Z");
         });
@@ -107,7 +114,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "2026-06-15",
                 toDate: "2026-06-30",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             // 23:59:59.999 EDT (UTC-4) → 03:59:59.999 UTC next day
             expect(result.date.gte).toBe("2026-06-15T04:00:00.000Z");
             expect(result.date.lte).toBe("2026-07-01T03:59:59.999Z");
@@ -117,7 +124,7 @@ describe("QueryHelper.getDateClause", () => {
             // January is EST (UTC-5)
             const result = makeHelper({
                 fromDate: "2026-01-10",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             // Midnight EST (UTC-5) → 05:00 UTC
             expect(result.date.gte).toBe("2026-01-10T05:00:00.000Z");
         });
@@ -126,7 +133,7 @@ describe("QueryHelper.getDateClause", () => {
             const result = makeHelper({
                 fromDate: "2026-01-10",
                 toDate: "2026-01-15",
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             // 23:59:59.999 EST (UTC-5) → 04:59:59.999 UTC next day
             expect(result.date.gte).toBe("2026-01-10T05:00:00.000Z");
             expect(result.date.lte).toBe("2026-01-16T04:59:59.999Z");
@@ -140,7 +147,7 @@ describe("QueryHelper.getDateClause", () => {
             const before = Date.now();
             const result = makeHelper({
                 fromDate: todayNYC,
-            }).getDateClause() as any;
+            }).getDateClause() as DateClause;
             const after = Date.now();
 
             const gte = new Date(result.date.gte).getTime();

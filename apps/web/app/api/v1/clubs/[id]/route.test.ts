@@ -57,7 +57,7 @@ describe("GET /api/v1/clubs/[id]", () => {
             zipCode: "10012",
             phoneNumber: "212-254-3480",
             hasImage: true,
-        } as any);
+        } as never);
 
         const res = await GET(makeRequest(), {
             params: Promise.resolve({ id: "7" }),

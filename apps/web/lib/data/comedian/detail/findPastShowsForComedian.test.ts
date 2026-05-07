@@ -5,6 +5,14 @@ const { mockCount, mockFindMany } = vi.hoisted(() => ({
     mockFindMany: vi.fn(),
 }));
 
+type PastShowsFindManyArgs = {
+    skip?: number;
+    take?: number;
+    select: {
+        club: { select: { timezone: boolean } };
+    };
+};
+
 vi.mock("@/lib/db", () => ({
     db: { show: { count: mockCount, findMany: mockFindMany } },
 }));
@@ -17,7 +25,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
     filterAndMapLineupItems: vi.fn(() => []),
 }));
 vi.mock("@/util/ticket/ticketUtil", () => ({
-    mapTickets: vi.fn((tickets: any[]) => tickets),
+    mapTickets: vi.fn((tickets: object[]) => tickets),
 }));
 
 import { findPastShowsForComedian } from "./findPastShowsForComedian";
@@ -45,7 +53,7 @@ function makeShow(
         description: string | null;
         popularity: number;
         room: string | null;
-        tickets: any[];
+        tickets: object[];
         club: {
             name: string;
             address: string;
@@ -53,7 +61,7 @@ function makeShow(
             hasImage?: boolean;
             timezone?: string | null;
         };
-        lineupItems: any[];
+        lineupItems: object[];
     }> = {},
 ) {
     return {
@@ -87,7 +95,7 @@ describe("findPastShowsForComedian", () => {
         it("returns empty result without hitting the database when comedian is missing", async () => {
             const helper = makeHelper({ comedian: undefined });
 
-            const result = await findPastShowsForComedian(helper as any);
+            const result = await findPastShowsForComedian(helper as never);
 
             expect(result).toEqual({ shows: [], totalCount: 0 });
             expect(mockCount).not.toHaveBeenCalled();
@@ -101,7 +109,9 @@ describe("findPastShowsForComedian", () => {
             mockCount.mockResolvedValue(3);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findPastShowsForComedian(makeHelper() as any);
+            const result = await findPastShowsForComedian(
+                makeHelper() as never,
+            );
 
             expect(result.totalCount).toBe(3);
             expect(result.shows).toHaveLength(1);
@@ -113,13 +123,13 @@ describe("findPastShowsForComedian", () => {
 
     describe("timezone mapping", () => {
         it("selects club.timezone from the database", async () => {
-            let capturedSelect: any;
-            mockFindMany.mockImplementation((args: any) => {
-                capturedSelect = args.select;
+            let capturedSelect!: PastShowsFindManyArgs["select"];
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as PastShowsFindManyArgs).select;
                 return Promise.resolve([]);
             });
 
-            await findPastShowsForComedian(makeHelper() as any);
+            await findPastShowsForComedian(makeHelper() as never);
 
             expect(capturedSelect.club.select.timezone).toBe(true);
         });
@@ -137,7 +147,9 @@ describe("findPastShowsForComedian", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findPastShowsForComedian(makeHelper() as any);
+            const result = await findPastShowsForComedian(
+                makeHelper() as never,
+            );
 
             expect(result.shows[0].timezone).toBe("America/Los_Angeles");
         });
@@ -155,7 +167,9 @@ describe("findPastShowsForComedian", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findPastShowsForComedian(makeHelper() as any);
+            const result = await findPastShowsForComedian(
+                makeHelper() as never,
+            );
 
             expect(result.shows[0].timezone).toBe("America/Chicago");
         });
@@ -163,26 +177,26 @@ describe("findPastShowsForComedian", () => {
 
     describe("pagination", () => {
         it("defaults to skip=0, take=20 when no options are passed", async () => {
-            let capturedArgs: any;
-            mockFindMany.mockImplementation((args: any) => {
-                capturedArgs = args;
+            let capturedArgs: Pick<PastShowsFindManyArgs, "skip" | "take"> = {};
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedArgs = args as PastShowsFindManyArgs;
                 return Promise.resolve([]);
             });
 
-            await findPastShowsForComedian(makeHelper() as any);
+            await findPastShowsForComedian(makeHelper() as never);
 
             expect(capturedArgs.skip).toBe(0);
             expect(capturedArgs.take).toBe(20);
         });
 
         it("applies skip = page * size for subsequent pages", async () => {
-            let capturedArgs: any;
-            mockFindMany.mockImplementation((args: any) => {
-                capturedArgs = args;
+            let capturedArgs: Pick<PastShowsFindManyArgs, "skip" | "take"> = {};
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedArgs = args as PastShowsFindManyArgs;
                 return Promise.resolve([]);
             });
 
-            await findPastShowsForComedian(makeHelper() as any, {
+            await findPastShowsForComedian(makeHelper() as never, {
                 page: 2,
                 size: 20,
             });
@@ -192,13 +206,13 @@ describe("findPastShowsForComedian", () => {
         });
 
         it("coerces negative page to 0 and undersized size to 1", async () => {
-            let capturedArgs: any;
-            mockFindMany.mockImplementation((args: any) => {
-                capturedArgs = args;
+            let capturedArgs: Pick<PastShowsFindManyArgs, "skip" | "take"> = {};
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedArgs = args as PastShowsFindManyArgs;
                 return Promise.resolve([]);
             });
 
-            await findPastShowsForComedian(makeHelper() as any, {
+            await findPastShowsForComedian(makeHelper() as never, {
                 page: -5,
                 size: 0,
             });
@@ -222,7 +236,9 @@ describe("findPastShowsForComedian", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findPastShowsForComedian(makeHelper() as any);
+            const result = await findPastShowsForComedian(
+                makeHelper() as never,
+            );
 
             expect(result.shows[0].timezone).toBeNull();
         });

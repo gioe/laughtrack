@@ -47,10 +47,10 @@ describe("findRelatedShowsForShow", () => {
     describe("return value", () => {
         it("returns whatever findShowsForHome returns", async () => {
             const fakeShows = [
-                { id: 2 } as any,
-                { id: 3 } as any,
-                { id: 4 } as any,
-                { id: 5 } as any,
+                { id: 2 } as never,
+                { id: 3 } as never,
+                { id: 4 } as never,
+                { id: 5 } as never,
             ];
             mockFindShowsForHome.mockResolvedValueOnce(fakeShows);
 

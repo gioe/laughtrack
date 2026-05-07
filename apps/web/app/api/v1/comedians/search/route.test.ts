@@ -82,7 +82,7 @@ describe("GET /api/v1/comedians/search", () => {
             userId: "user-abc",
             role: "admin",
         });
-        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as any);
+        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as never);
 
         const res = await GET(makeRequest({ comedian: "taylor" }));
         const body = await res.json();
@@ -101,7 +101,7 @@ describe("GET /api/v1/comedians/search", () => {
 
     it("degrades PROFILE_MISSING to anonymous search", async () => {
         mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
-        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as any);
+        mockGetSearchedComedians.mockResolvedValue(mockSearchResult as never);
 
         const res = await GET(makeRequest());
 

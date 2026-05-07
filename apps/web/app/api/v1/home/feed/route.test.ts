@@ -87,7 +87,7 @@ function primeHappyPath() {
 beforeEach(() => {
     vi.clearAllMocks();
     mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
-    mockAuth.mockResolvedValue(null as any);
+    mockAuth.mockResolvedValue(null as never);
     mockGetHeroContext.mockResolvedValue({
         zipCode: null,
         city: null,
@@ -135,7 +135,7 @@ describe("GET /api/v1/home/feed", () => {
         it("passes ?zip= to getHeroContext when query param is set (overrides session zip)", async () => {
             mockAuth.mockResolvedValue({
                 profile: { zipCode: "90210", userid: "user-1" },
-            } as any);
+            } as never);
 
             await GET(makeRequest({ zip: "10001" }));
 
@@ -145,7 +145,7 @@ describe("GET /api/v1/home/feed", () => {
         it("falls back to session profile zipCode when ?zip is absent", async () => {
             mockAuth.mockResolvedValue({
                 profile: { zipCode: "90210", userid: "user-1" },
-            } as any);
+            } as never);
 
             await GET(makeRequest());
 
@@ -187,7 +187,7 @@ describe("GET /api/v1/home/feed", () => {
                 { id: 3 },
                 { id: 4 },
                 { id: 5 },
-            ] as any);
+            ] as never);
 
             const res = await GET(makeRequest({ zip: "10001" }));
             const body = await res.json();
@@ -210,7 +210,7 @@ describe("GET /api/v1/home/feed", () => {
             mockGetShowsNearZip.mockResolvedValue([
                 { id: 1 },
                 { id: 2 },
-            ] as any);
+            ] as never);
 
             const res = await GET(makeRequest({ zip: "10001" }));
             const body = await res.json();

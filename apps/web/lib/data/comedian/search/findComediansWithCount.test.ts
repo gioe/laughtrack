@@ -51,7 +51,7 @@ function makeHelper(
             take: Math.min(10, total),
             skip: 0,
         }),
-    } as unknown as QueryHelper;
+    } as never as QueryHelper;
 }
 
 function makeComedianRow(id: number, showCount = 0, name = `Comedian ${id}`) {
@@ -95,7 +95,7 @@ describe("findComediansWithCount", () => {
             helper.getGenericClauses = vi.fn((...args: unknown[]) => {
                 capturedArgs.push(args);
                 return originalFn(args[0] as number, args[1] as never);
-            }) as unknown as typeof helper.getGenericClauses;
+            }) as never as typeof helper.getGenericClauses;
 
             await findComediansWithCount(helper);
 
@@ -259,8 +259,7 @@ describe("findComediansWithCount", () => {
             // The second $queryRaw call builds the sorted-IDs query; it must retain
             // the NOT EXISTS "comedian_deny_list" predicate so the show-count path
             // can't silently regress back to the original TASK-1547 bug.
-            const secondCallArgs = mockQueryRaw.mock
-                .calls[1]?.[0] as unknown as
+            const secondCallArgs = mockQueryRaw.mock.calls[1]?.[0] as never as
                 | { sql?: string; strings?: readonly string[] }
                 | undefined;
             const sqlText =
@@ -304,7 +303,7 @@ describe("findComediansWithCount", () => {
             helper.getGenericClauses = vi.fn((...args: unknown[]) => {
                 capturedMaps.push(args[1]);
                 return originalFn(args[0] as number, args[1] as never);
-            }) as unknown as typeof helper.getGenericClauses;
+            }) as never as typeof helper.getGenericClauses;
 
             await findComediansWithCount(helper);
 
@@ -328,7 +327,7 @@ describe("findComediansWithCount", () => {
             helper.getGenericClauses = vi.fn((...args: unknown[]) => {
                 capturedMaps.push(args[1]);
                 return originalFn(args[0] as number, args[1] as never);
-            }) as unknown as typeof helper.getGenericClauses;
+            }) as never as typeof helper.getGenericClauses;
 
             await findComediansWithCount(helper);
 
@@ -422,9 +421,13 @@ describe("findComediansWithCount", () => {
 
     describe("hasImage propagation", () => {
         it("sets hasImage=true when the row has hasImage=true and false otherwise", async () => {
-            const withImage: any = makeComedianRow(1);
+            const withImage: ReturnType<typeof makeComedianRow> & {
+                hasImage?: boolean;
+            } = makeComedianRow(1);
             withImage.hasImage = true;
-            const withoutImage: any = makeComedianRow(2);
+            const withoutImage: ReturnType<typeof makeComedianRow> & {
+                hasImage?: boolean;
+            } = makeComedianRow(2);
             withoutImage.hasImage = false;
             mockCount.mockResolvedValue(2);
             mockFindMany.mockResolvedValue([withImage, withoutImage] as never);
@@ -523,7 +526,7 @@ describe("findComediansWithCount", () => {
             );
             // Override the default empty zip clause to return a real Prisma shape.
             (
-                helper as unknown as { getZipCodeClause: () => unknown }
+                helper as never as { getZipCodeClause: () => unknown }
             ).getZipCodeClause = () => ({
                 zipCode: { in: ["10001", "10002"] },
             });
@@ -552,7 +555,7 @@ describe("findComediansWithCount", () => {
                 { fromDate: "2026-05-01", toDate: "2026-05-31" },
             );
             (
-                helper as unknown as { getDateClause: () => unknown }
+                helper as never as { getDateClause: () => unknown }
             ).getDateClause = () => ({
                 date: {
                     gte: "2026-05-01T00:00:00Z",
@@ -630,12 +633,12 @@ describe("findComediansWithCount", () => {
                 },
             );
             (
-                helper as unknown as { getZipCodeClause: () => unknown }
+                helper as never as { getZipCodeClause: () => unknown }
             ).getZipCodeClause = () => ({
                 zipCode: { in: ["10001", "10002"] },
             });
             (
-                helper as unknown as { getDateClause: () => unknown }
+                helper as never as { getDateClause: () => unknown }
             ).getDateClause = () => ({
                 date: {
                     gte: "2026-05-01T00:00:00Z",
@@ -698,12 +701,12 @@ describe("findComediansWithCount", () => {
             );
             // Real Prisma shapes for the predicates the raw-SQL branch unpacks.
             (
-                helper as unknown as { getZipCodeClause: () => unknown }
+                helper as never as { getZipCodeClause: () => unknown }
             ).getZipCodeClause = () => ({
                 zipCode: { in: ["10001", "10002"] },
             });
             (
-                helper as unknown as { getDateClause: () => unknown }
+                helper as never as { getDateClause: () => unknown }
             ).getDateClause = () => ({
                 date: {
                     gte: "2026-05-01T00:00:00Z",

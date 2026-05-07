@@ -21,6 +21,10 @@ import zipcodesMod from "zipcodes";
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockZipRadius = vi.mocked(zipcodesMod.radius);
 
+type ComedianZipRow = ReturnType<typeof makeRow> & {
+    has_image?: boolean | null;
+};
+
 function makeRow(
     overrides: Partial<{
         id: number;
@@ -314,14 +318,14 @@ describe("getComediansByZip", () => {
         });
 
         it("propagates has_image to the DTO as hasImage", async () => {
-            (mockZipRadius as any).mockReturnValue(["10001", "10002", "10003"]);
-            const rowWithImage: any = makeRow({
+            mockZipRadius.mockReturnValue(["10001", "10002", "10003"]);
+            const rowWithImage: ComedianZipRow = makeRow({
                 id: 1,
                 uuid: "uuid-1",
                 name: "Has Pic",
             });
             rowWithImage.has_image = true;
-            const rowWithoutImage: any = makeRow({
+            const rowWithoutImage: ComedianZipRow = makeRow({
                 id: 2,
                 uuid: "uuid-2",
                 name: "No Pic",

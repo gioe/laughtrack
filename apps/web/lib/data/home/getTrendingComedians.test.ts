@@ -221,7 +221,7 @@ describe("getTrendingComedians", () => {
         it("coerces BigInt show_count from Postgres COUNT() to a JS number via Number()", async () => {
             // Postgres COUNT(*) returns BigInt in the Prisma $queryRaw result; Number() must
             // convert it to a plain JS number before it reaches the caller.
-            const row = { ...makeRow(), show_count: BigInt(12) } as any;
+            const row = { ...makeRow(), show_count: BigInt(12) } as never;
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getTrendingComedians(8, 0);
@@ -336,7 +336,9 @@ describe("getTrendingComedians", () => {
 
     describe("hasImage propagation", () => {
         it("sets hasImage=true when the DB row's has_image is true", async () => {
-            const row: any = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            const row: ReturnType<typeof makeRow> & {
+                has_image?: boolean | null;
+            } = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
             row.has_image = true;
             mockQueryRaw.mockResolvedValue([row]);
 
@@ -346,7 +348,9 @@ describe("getTrendingComedians", () => {
         });
 
         it("sets hasImage=false when the DB row's has_image is falsy (null/false)", async () => {
-            const row: any = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            const row: ReturnType<typeof makeRow> & {
+                has_image?: boolean | null;
+            } = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
             row.has_image = null;
             mockQueryRaw.mockResolvedValue([row]);
 

@@ -39,7 +39,7 @@ function makeRequest(): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(null as any);
+    mockAuth.mockResolvedValue(null as never);
     mockRateLimitHeaders.mockReturnValue(RATE_LIMIT_SENTINEL_HEADERS);
 });
 

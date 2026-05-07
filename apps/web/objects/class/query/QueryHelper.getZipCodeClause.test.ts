@@ -9,6 +9,13 @@ function makeHelper(zip?: string, distance?: string): QueryHelper {
     });
 }
 
+type ZipCodeClause = {
+    zipCode: {
+        equals?: string;
+        in?: string[];
+    };
+};
+
 describe("QueryHelper.getZipCodeClause", () => {
     describe("no location input", () => {
         it("returns empty object when zip is undefined", () => {
@@ -29,7 +36,7 @@ describe("QueryHelper.getZipCodeClause", () => {
         it("returns an IN clause with nearby zips when distance is provided", () => {
             const clause = makeHelper("10001", "10").getZipCodeClause();
             expect(clause).toHaveProperty("zipCode.in");
-            const zips = (clause as any).zipCode.in as string[];
+            const zips = (clause as ZipCodeClause).zipCode.in as string[];
             expect(zips.length).toBeGreaterThan(1);
             expect(zips).toContain("10001");
         });
@@ -39,14 +46,14 @@ describe("QueryHelper.getZipCodeClause", () => {
         it("returns IN clause for a known city name with state", () => {
             const clause = makeHelper("Chicago, IL", "25").getZipCodeClause();
             expect(clause).toHaveProperty("zipCode.in");
-            const zips = (clause as any).zipCode.in as string[];
+            const zips = (clause as ZipCodeClause).zipCode.in as string[];
             expect(zips.length).toBeGreaterThan(0);
         });
 
         it("returns IN clause for a known city name without state", () => {
             const clause = makeHelper("Chicago", "25").getZipCodeClause();
             expect(clause).toHaveProperty("zipCode.in");
-            const zips = (clause as any).zipCode.in as string[];
+            const zips = (clause as ZipCodeClause).zipCode.in as string[];
             expect(zips.length).toBeGreaterThan(0);
         });
 
@@ -69,8 +76,10 @@ describe("QueryHelper.getZipCodeClause", () => {
                 "25",
             ).getZipCodeClause();
 
-            const singleZips = (singleCityClause as any).zipCode.in as string[];
-            const multiZips = (multiCityClause as any).zipCode.in as string[];
+            const singleZips = (singleCityClause as ZipCodeClause).zipCode
+                .in as string[];
+            const multiZips = (multiCityClause as ZipCodeClause).zipCode
+                .in as string[];
 
             // Portland across many states should yield more unique zips than
             // a single-state city at the same radius
@@ -86,8 +95,8 @@ describe("QueryHelper.getZipCodeClause", () => {
             // Could be { equals: "xxxxx" } or { in: [...] } depending on number of zips
             expect(
                 "zipCode" in clause &&
-                    ("equals" in (clause as any).zipCode ||
-                        "in" in (clause as any).zipCode),
+                    ("equals" in (clause as ZipCodeClause).zipCode ||
+                        "in" in (clause as ZipCodeClause).zipCode),
             ).toBe(true);
         });
     });
@@ -112,10 +121,10 @@ describe("QueryHelper.getZipCodeClause", () => {
             );
             radiusSpy = vi
                 .spyOn(zipcodes, "radius")
-                .mockReturnValue(bigList as any);
+                .mockReturnValue(bigList as never);
 
             const clause = makeHelper("10001", "25").getZipCodeClause();
-            const zips = (clause as any).zipCode.in as string[];
+            const zips = (clause as ZipCodeClause).zipCode.in as string[];
             expect(zips.length).toBe(500);
         });
 
@@ -125,7 +134,7 @@ describe("QueryHelper.getZipCodeClause", () => {
             );
             radiusSpy = vi
                 .spyOn(zipcodes, "radius")
-                .mockReturnValue(bigList as any);
+                .mockReturnValue(bigList as never);
 
             makeHelper("Portland", "25").getZipCodeClause();
 
@@ -142,7 +151,7 @@ describe("QueryHelper.getZipCodeClause", () => {
             );
             radiusSpy = vi
                 .spyOn(zipcodes, "radius")
-                .mockReturnValue(normalList as any);
+                .mockReturnValue(normalList as never);
 
             makeHelper("10001", "25").getZipCodeClause();
             expect(warnSpy).not.toHaveBeenCalled();
@@ -154,7 +163,7 @@ describe("QueryHelper.getZipCodeClause", () => {
             );
             radiusSpy = vi
                 .spyOn(zipcodes, "radius")
-                .mockReturnValue(bigList as any);
+                .mockReturnValue(bigList as never);
 
             const helper = makeHelper("10001", "25");
             helper.getZipCodeClause();
@@ -167,7 +176,7 @@ describe("QueryHelper.getZipCodeClause", () => {
             );
             radiusSpy = vi
                 .spyOn(zipcodes, "radius")
-                .mockReturnValue(normalList as any);
+                .mockReturnValue(normalList as never);
 
             const helper = makeHelper("10001", "25");
             helper.getZipCodeClause();

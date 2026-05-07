@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+type TicketInput = {
+    price?: number | null;
+    purchaseUrl?: string | null;
+    type?: string;
+    soldOut?: boolean;
+};
+
 vi.mock("@/lib/db", () => ({
     db: { show: { findUnique: vi.fn() } },
 }));
@@ -9,7 +16,7 @@ vi.mock("@/util/imageUtil", () => ({
     ),
 }));
 vi.mock("@/util/ticket/ticketUtil", () => ({
-    mapTickets: vi.fn((tickets: any[]) =>
+    mapTickets: vi.fn((tickets: TicketInput[]) =>
         tickets.map((t) => ({
             price: t.price ? t.price.toFixed(2) : null,
             purchaseUrl: t.purchaseUrl,
@@ -41,7 +48,7 @@ function makeShowRow(
         description: string | null;
         room: string | null;
         showPageUrl: string;
-        tickets: any[];
+        tickets: TicketInput[];
         club: {
             id: number;
             name: string;
@@ -50,7 +57,7 @@ function makeShowRow(
             timezone: string | null;
             visible: boolean;
         };
-        lineupItems: any[];
+        lineupItems: object[];
     }> = {},
 ) {
     return {
@@ -96,7 +103,7 @@ describe("findShowById", () => {
                     visible: true,
                 },
             });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(42);
 
@@ -120,7 +127,7 @@ describe("findShowById", () => {
             ];
             const lineupItems = [{ comedian: { id: 1, name: "Alice" } }];
             const row = makeShowRow({ tickets, lineupItems });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             await findShowById(1);
 
@@ -130,7 +137,7 @@ describe("findShowById", () => {
 
         it("propagates description when present", async () => {
             const row = makeShowRow({ description: "A great show" });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(1);
 
@@ -139,7 +146,7 @@ describe("findShowById", () => {
 
         it("maps null description to undefined", async () => {
             const row = makeShowRow({ description: null });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(1);
 
@@ -158,7 +165,7 @@ describe("findShowById", () => {
                     },
                 ],
             });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(1);
 
@@ -177,7 +184,7 @@ describe("findShowById", () => {
                     },
                 ],
             });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(1);
 
@@ -186,7 +193,7 @@ describe("findShowById", () => {
 
         it("computes soldOut=false when there are no tickets", async () => {
             const row = makeShowRow({ tickets: [] });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             const result = await findShowById(1);
 
@@ -219,7 +226,7 @@ describe("findShowById", () => {
                     visible: false,
                 },
             });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             await expect(findShowById(7)).rejects.toThrow(NotFoundError);
         });
@@ -236,12 +243,12 @@ describe("findShowById", () => {
                     visible: false,
                 },
             });
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
 
             await expect(findShowById(7)).rejects.toThrow(/7/);
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
             await expect(findShowById(7)).rejects.not.toThrow(/Hidden Club/);
-            mockFindUnique.mockResolvedValue(row as any);
+            mockFindUnique.mockResolvedValue(row as never);
             await expect(findShowById(7)).rejects.not.toThrow(/somewhere/);
         });
     });

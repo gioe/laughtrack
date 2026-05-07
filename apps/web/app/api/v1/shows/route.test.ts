@@ -69,7 +69,7 @@ describe("GET /api/v1/shows", () => {
         it("passes profileId and userId to getSearchedShows and returns lineup with isFavorite", async () => {
             const authCtx = { profileId: "profile-abc", userId: "user-abc" };
             mockResolveAuth.mockResolvedValue(authCtx);
-            mockGetSearchedShows.mockResolvedValue(mockShowResult as any);
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
 
             const req = makeRequest();
             const res = await GET(req);
@@ -163,7 +163,7 @@ describe("GET /api/v1/shows", () => {
     describe("PROFILE_MISSING request", () => {
         it("degrades to anonymous (200, no profileId/userId passed) when resolveAuth returns PROFILE_MISSING", async () => {
             mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
-            mockGetSearchedShows.mockResolvedValue(mockShowResult as any);
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as never);
 
             const req = makeRequest();
             const res = await GET(req);
@@ -186,7 +186,7 @@ describe("GET /api/v1/shows", () => {
                 data: [{ id: "show-1", lineup: [{ comedianId: "c1" }] }],
                 filters: [],
             };
-            mockGetSearchedShows.mockResolvedValue(unauthResult as any);
+            mockGetSearchedShows.mockResolvedValue(unauthResult as never);
 
             const req = makeRequest();
             const res = await GET(req);

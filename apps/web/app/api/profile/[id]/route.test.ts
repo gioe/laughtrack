@@ -129,7 +129,7 @@ describe("PUT /api/profile/[id]", () => {
             zipCode: "10001",
             emailOptin: false,
         };
-        mockUpdateProfile.mockResolvedValue(updatedProfile as any);
+        mockUpdateProfile.mockResolvedValue(updatedProfile as never);
 
         const [req, ctx] = makeRequest();
         const res = await PUT(req, ctx);
@@ -148,7 +148,7 @@ describe("PUT /api/profile/[id]", () => {
             id: "profile-1",
             pushOptin: true,
         };
-        mockUpdateProfile.mockResolvedValue(updatedProfile as any);
+        mockUpdateProfile.mockResolvedValue(updatedProfile as never);
 
         const [req, ctx] = makeRequest({ pushOptin: true });
         const res = await PUT(req, ctx);

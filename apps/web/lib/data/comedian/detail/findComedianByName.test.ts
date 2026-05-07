@@ -23,7 +23,7 @@ function makeHelper(
     return {
         getSlug: () => slug,
         getProfileId: () => profileId,
-    } as unknown as QueryHelper;
+    } as never as QueryHelper;
 }
 
 function makeComedianRow(

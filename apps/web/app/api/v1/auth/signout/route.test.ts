@@ -50,7 +50,7 @@ describe("POST /api/v1/auth/signout", () => {
     });
 
     it("returns 422 when profile is missing", async () => {
-        mockResolveAuth.mockResolvedValue("PROFILE_MISSING" as any);
+        mockResolveAuth.mockResolvedValue("PROFILE_MISSING" as never);
 
         const res = await POST(makeRequest());
         expect(res.status).toBe(422);

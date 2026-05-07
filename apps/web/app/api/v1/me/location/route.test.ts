@@ -15,7 +15,9 @@ vi.mock("@/lib/rateLimit", () => ({
     })),
     getClientIp: vi.fn(() => "127.0.0.1"),
     RATE_LIMITS: { authenticated: {}, authToken: {} },
-    rateLimitResponse: vi.fn(() => new Response(null, { status: 429 }) as any),
+    rateLimitResponse: vi.fn(
+        () => new Response(null, { status: 429 }) as never,
+    ),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -77,7 +79,7 @@ describe("PATCH /api/v1/me/location", () => {
         mockUpdateProfile.mockResolvedValue({
             zipCode: "94108",
             nearbyDistanceMiles: 25,
-        } as any);
+        } as never);
 
         const res = await PATCH(
             makeRequest({ zip_code: "94108", nearby_distance_miles: 25 }),
@@ -111,7 +113,7 @@ describe("PATCH /api/v1/me/location", () => {
         mockUpdateProfile.mockResolvedValue({
             zipCode: null,
             nearbyDistanceMiles: null,
-        } as any);
+        } as never);
 
         const res = await PATCH(
             makeRequest({ zip_code: null, nearby_distance_miles: null }),

@@ -15,7 +15,9 @@ vi.mock("@/lib/rateLimit", () => ({
     })),
     getClientIp: vi.fn(() => "127.0.0.1"),
     RATE_LIMITS: { authenticated: {}, authToken: {} },
-    rateLimitResponse: vi.fn(() => new Response(null, { status: 429 }) as any),
+    rateLimitResponse: vi.fn(
+        () => new Response(null, { status: 429 }) as never,
+    ),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -96,7 +98,7 @@ describe("PATCH /api/v1/me/notifications", () => {
         mockUpdateProfile.mockResolvedValue({
             emailShowNotifications: true,
             pushShowNotifications: false,
-        } as any);
+        } as never);
 
         const res = await PATCH(
             makeRequest({

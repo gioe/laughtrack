@@ -61,7 +61,7 @@ beforeEach(() => {
 
 describe("POST /api/v1/auth/token", () => {
     it("returns 401 when auth() returns null", async () => {
-        mockAuth.mockResolvedValue(null as any);
+        mockAuth.mockResolvedValue(null as never);
 
         const res = await POST(makeRequest());
 
@@ -69,7 +69,7 @@ describe("POST /api/v1/auth/token", () => {
     });
 
     it("returns 401 when session has no user email", async () => {
-        mockAuth.mockResolvedValue({ user: {} } as any);
+        mockAuth.mockResolvedValue({ user: {} } as never);
 
         const res = await POST(makeRequest());
 
@@ -79,7 +79,7 @@ describe("POST /api/v1/auth/token", () => {
     it("returns 401 when user row is missing", async () => {
         mockAuth.mockResolvedValue({
             user: { email: "user@example.com" },
-        } as any);
+        } as never);
         mockFindUser.mockResolvedValue(null);
 
         const res = await POST(makeRequest());
@@ -90,8 +90,8 @@ describe("POST /api/v1/auth/token", () => {
     it("returns 200 with both tokens and expiresIn on valid session", async () => {
         mockAuth.mockResolvedValue({
             user: { email: "user@example.com" },
-        } as any);
-        mockFindUser.mockResolvedValue({ id: "user-123" } as any);
+        } as never);
+        mockFindUser.mockResolvedValue({ id: "user-123" } as never);
 
         const res = await POST(makeRequest());
         const body = await res.json();

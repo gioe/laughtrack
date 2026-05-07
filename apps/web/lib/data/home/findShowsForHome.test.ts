@@ -1,5 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+type TicketInput = {
+    price?: number | null;
+    purchaseUrl?: string | null;
+    type?: string;
+    soldOut?: boolean;
+};
+
+type LineupInput = {
+    comedian: {
+        id: number;
+        uuid: string;
+        name: string;
+        hasImage: boolean;
+        _count?: { lineupItems?: number };
+    };
+};
+
 vi.mock("@/lib/db", () => ({
     db: { show: { findMany: vi.fn() } },
 }));
@@ -9,7 +26,7 @@ vi.mock("@/util/imageUtil", () => ({
     ),
 }));
 vi.mock("@/util/ticket/ticketUtil", () => ({
-    mapTickets: vi.fn((tickets: any[]) =>
+    mapTickets: vi.fn((tickets: TicketInput[]) =>
         tickets.map((t) => ({
             price: t.price ? t.price.toFixed(2) : null,
             purchaseUrl: t.purchaseUrl,
@@ -31,7 +48,7 @@ vi.mock("@/util/distanceUtil", () => ({
     ),
 }));
 vi.mock("@/util/comedian/comedianUtil", () => ({
-    filterAndMapLineupItems: vi.fn((items: any[]) =>
+    filterAndMapLineupItems: vi.fn((items: LineupInput[]) =>
         items.map((item) => ({
             id: item.comedian.id,
             uuid: item.comedian.uuid,
@@ -140,7 +157,7 @@ describe("findShowsForHome", () => {
                     makeTicket({ soldOut: true }),
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -154,7 +171,7 @@ describe("findShowsForHome", () => {
                     makeTicket({ soldOut: false }),
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -163,7 +180,7 @@ describe("findShowsForHome", () => {
 
         it("returns soldOut=false when there are no tickets", async () => {
             const row = makeShowRow({ tickets: [] });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -174,7 +191,7 @@ describe("findShowsForHome", () => {
             const row = makeShowRow({
                 tickets: [makeTicket({ soldOut: false })],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -194,7 +211,7 @@ describe("findShowsForHome", () => {
                 makeLineupItem({ id: 2, uuid: "uuid-2", name: "Comedian B" }),
             ];
             const row = makeShowRow({ lineupItems });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             await findShowsForHome({}, { date: "asc" });
 
@@ -208,7 +225,7 @@ describe("findShowsForHome", () => {
             vi.mocked(filterAndMapLineupItems).mockReturnValueOnce([]);
 
             const row = makeShowRow({ lineupItems: [makeLineupItem()] });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -234,7 +251,7 @@ describe("findShowsForHome", () => {
             ]);
 
             const row = makeShowRow({ lineupItems: [makeLineupItem()] });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -249,7 +266,7 @@ describe("findShowsForHome", () => {
                 name: "Friday Night Comedy",
                 club: { name: "Comedy Cellar", address: "117 Macdougal St" },
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -278,7 +295,7 @@ describe("findShowsForHome", () => {
                     }),
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -299,7 +316,7 @@ describe("findShowsForHome", () => {
                     }),
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -355,7 +372,7 @@ describe("findShowsForHome", () => {
                 farPopular,
                 nearLessPopular,
                 nearMorePopular,
-            ] as any);
+            ] as never);
 
             const result = await findShowsForHome({}, { date: "asc" }, 2, {
                 zipCode: "10801",
@@ -372,7 +389,7 @@ describe("findShowsForHome", () => {
 
             const tickets = [makeTicket({ price: 25, type: "vip" })];
             const row = makeShowRow({ tickets });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             await findShowsForHome({}, { date: "asc" });
 
@@ -382,7 +399,7 @@ describe("findShowsForHome", () => {
         it("includes the date field from the DB row", async () => {
             const date = new Date("2026-07-04");
             const row = makeShowRow({ date });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -397,7 +414,7 @@ describe("findShowsForHome", () => {
                     timezone: "America/Los_Angeles",
                 },
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -412,7 +429,7 @@ describe("findShowsForHome", () => {
                     timezone: null,
                 },
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -420,7 +437,7 @@ describe("findShowsForHome", () => {
         });
 
         it("selects club.timezone from the database", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             await findShowsForHome({}, { date: "asc" });
 
@@ -431,7 +448,7 @@ describe("findShowsForHome", () => {
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             const result = await findShowsForHome({}, { date: "asc" });
 
@@ -441,7 +458,7 @@ describe("findShowsForHome", () => {
 
     describe("LIMIT=8 cap (take parameter)", () => {
         it("calls findMany with take=8 by default", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             await findShowsForHome({}, { date: "asc" });
 
@@ -451,7 +468,7 @@ describe("findShowsForHome", () => {
         });
 
         it("calls findMany with a custom take when provided", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             await findShowsForHome({}, { date: "asc" }, 4);
 
@@ -461,7 +478,7 @@ describe("findShowsForHome", () => {
         });
 
         it("passes where and orderBy through to findMany", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             const where = { date: { gte: new Date() } };
             const orderBy = { date: "asc" as const };
 

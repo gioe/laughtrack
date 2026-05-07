@@ -51,6 +51,8 @@ const SESSION = {
     profile: { userid: TEST_USER_ID },
 };
 
+type FavoriteComedianDTO = { hasImage: boolean };
+
 function makeComedian(id: number) {
     return {
         id,
@@ -78,7 +80,7 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
 
 beforeEach(() => {
     vi.clearAllMocks();
-    mockAuth.mockResolvedValue(SESSION as any);
+    mockAuth.mockResolvedValue(SESSION as never);
 });
 
 describe("GET /api/favorites", () => {
@@ -89,7 +91,7 @@ describe("GET /api/favorites", () => {
                 makeComedian(i + 1),
             );
             mockFindMany.mockResolvedValue(
-                comedians.map((c) => ({ comedian: c })) as any,
+                comedians.map((c) => ({ comedian: c })) as never,
             );
             mockCount.mockResolvedValue(3);
 
@@ -140,7 +142,7 @@ describe("GET /api/favorites", () => {
 
     describe("auth and authorization", () => {
         it("returns 401 when not authenticated", async () => {
-            mockAuth.mockResolvedValue(null as any);
+            mockAuth.mockResolvedValue(null as never);
 
             const res = await GET(makeRequest({ userId: TEST_USER_ID }));
 
@@ -148,7 +150,7 @@ describe("GET /api/favorites", () => {
         });
 
         it("returns 422 when session has no profile", async () => {
-            mockAuth.mockResolvedValue({ profile: undefined } as any);
+            mockAuth.mockResolvedValue({ profile: undefined } as never);
 
             const res = await GET(makeRequest({ userId: TEST_USER_ID }));
             const body = await res.json();
@@ -171,17 +173,18 @@ describe("GET /api/favorites", () => {
             mockFindMany.mockResolvedValue([
                 { comedian: withImage },
                 { comedian: withoutImage },
-            ] as any);
+            ] as never);
             mockCount.mockResolvedValue(2);
 
             const res = await GET(makeRequest({ userId: TEST_USER_ID }));
             const body = await res.json();
 
             expect(res.status).toBe(200);
-            expect(body.comedians.map((c: any) => c.hasImage)).toEqual([
-                true,
-                false,
-            ]);
+            expect(
+                (body.comedians as FavoriteComedianDTO[]).map(
+                    (c) => c.hasImage,
+                ),
+            ).toEqual([true, false]);
         });
     });
 

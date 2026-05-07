@@ -1,6 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 
+type FindManyArgs = {
+    take?: number;
+    skip?: number;
+    select: {
+        club: { select: { timezone: boolean } };
+        lineupItems: {
+            select: {
+                comedian: {
+                    select: {
+                        favoriteComedians?: {
+                            where: { profileId: string };
+                            select: { id: boolean };
+                        };
+                        _count?: unknown;
+                        parentComedian: { select: { _count: unknown } };
+                    };
+                };
+            };
+        };
+    };
+};
+
 const { mockCount, mockFindMany } = vi.hoisted(() => ({
     mockCount: vi.fn(),
     mockFindMany: vi.fn(),
@@ -18,7 +40,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
     filterAndMapLineupItems: vi.fn(() => []),
 }));
 vi.mock("@/util/ticket/ticketUtil", () => ({
-    mapTickets: vi.fn((tickets: any[]) => tickets),
+    mapTickets: vi.fn((tickets: object[]) => tickets),
 }));
 
 import { findShowsWithCount } from "./findShowsWithCount";
@@ -55,7 +77,7 @@ function makeShow(
         date: Date;
         description: string | null;
         popularity: number;
-        tickets: any[];
+        tickets: object[];
         club: {
             name: string;
             address: string;
@@ -63,7 +85,7 @@ function makeShow(
             hasImage?: boolean;
             timezone?: string | null;
         };
-        lineupItems: any[];
+        lineupItems: object[];
     }> = {},
 ) {
     return {
@@ -98,7 +120,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(3);
             mockFindMany.mockResolvedValue([fakeShow]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.totalCount).toBe(3);
             expect(result.shows).toHaveLength(1);
@@ -110,7 +132,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(0);
             mockFindMany.mockResolvedValue([]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.totalCount).toBe(0);
             expect(result.shows).toEqual([]);
@@ -123,7 +145,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([fakeShow]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].clubName).toBe("Laugh Factory");
             expect(result.shows[0].address).toBe("456 Sunset Blvd");
@@ -135,8 +157,8 @@ describe("findShowsWithCount", () => {
             const DB_COUNT = 47;
             mockCount.mockResolvedValue(DB_COUNT);
 
-            const helper = makeHelper() as any;
-            await findShowsWithCount(helper);
+            const helper = makeHelper();
+            await findShowsWithCount(helper as never);
 
             expect(helper.getGenericClauses).toHaveBeenCalledWith(
                 DB_COUNT,
@@ -147,14 +169,14 @@ describe("findShowsWithCount", () => {
 
         it("spreads the result of getGenericClauses into the findMany call", async () => {
             mockCount.mockResolvedValue(20);
-            let capturedArgs: any;
-            mockFindMany.mockImplementation((args: any) => {
-                capturedArgs = args;
+            let capturedArgs: Pick<FindManyArgs, "take" | "skip"> = {};
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedArgs = args as FindManyArgs;
                 return Promise.resolve([]);
             });
 
-            const helper = makeHelper() as any;
-            await findShowsWithCount(helper);
+            const helper = makeHelper();
+            await findShowsWithCount(helper as never);
 
             // getGenericClauses returns { take: 10, skip: 0, orderBy: [...] }
             expect(capturedArgs.take).toBe(10);
@@ -176,15 +198,15 @@ describe("findShowsWithCount", () => {
                 })),
             };
 
-            await findShowsWithCount(helper as any);
+            await findShowsWithCount(helper as never);
 
             expect(helper.getClubNameClause).toHaveBeenCalledTimes(1);
             expect(helper.getZipCodeClause).toHaveBeenCalledTimes(1);
         });
 
         it("calls getClubNameClause and getZipCodeClause each once when clauses are empty", async () => {
-            const helper = makeHelper() as any;
-            await findShowsWithCount(helper);
+            const helper = makeHelper();
+            await findShowsWithCount(helper as never);
 
             expect(helper.getClubNameClause).toHaveBeenCalledTimes(1);
             expect(helper.getZipCodeClause).toHaveBeenCalledTimes(1);
@@ -197,7 +219,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockRejectedValue(dbError);
 
             await expect(
-                findShowsWithCount(makeHelper() as any),
+                findShowsWithCount(makeHelper() as never),
             ).rejects.toThrow("DB count failed");
         });
 
@@ -205,7 +227,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockRejectedValue("string error");
 
             await expect(
-                findShowsWithCount(makeHelper() as any),
+                findShowsWithCount(makeHelper() as never),
             ).rejects.toThrow("An unknown error occurred while fetching shows");
         });
 
@@ -215,7 +237,7 @@ describe("findShowsWithCount", () => {
             mockFindMany.mockRejectedValue(dbError);
 
             await expect(
-                findShowsWithCount(makeHelper() as any),
+                findShowsWithCount(makeHelper() as never),
             ).rejects.toThrow("DB findMany failed");
         });
     });
@@ -226,7 +248,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].soldOut).toBe(false);
         });
@@ -238,7 +260,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].soldOut).toBe(true);
         });
@@ -250,7 +272,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].soldOut).toBe(false);
         });
@@ -258,37 +280,37 @@ describe("findShowsWithCount", () => {
 
     describe("favoriteComedians select", () => {
         it("includes favoriteComedians in the comedian select when profileId is set", async () => {
-            let capturedSelect: any;
+            let capturedSelect!: FindManyArgs["select"];
             mockCount.mockResolvedValue(1);
-            mockFindMany.mockImplementation((args: any) => {
-                capturedSelect = args.select;
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as FindManyArgs).select;
                 return Promise.resolve([makeShow()]);
             });
 
             const helper = makeHelper({ profileId: "profile-123" });
-            await findShowsWithCount(helper as any);
+            await findShowsWithCount(helper as never);
 
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
             expect(comedianSelect.favoriteComedians).toBeDefined();
-            expect(comedianSelect.favoriteComedians.where.profileId).toBe(
+            expect(comedianSelect.favoriteComedians!.where.profileId).toBe(
                 "profile-123",
             );
-            expect(comedianSelect.favoriteComedians.select).toEqual({
+            expect(comedianSelect.favoriteComedians!.select).toEqual({
                 id: true,
             });
             expect(helper.getProfileId).toHaveBeenCalledTimes(2);
         });
 
         it("selects comedian lineup counts for native featured-comedian rows", async () => {
-            let capturedSelect: any;
+            let capturedSelect!: FindManyArgs["select"];
             mockCount.mockResolvedValue(1);
-            mockFindMany.mockImplementation((args: any) => {
-                capturedSelect = args.select;
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as FindManyArgs).select;
                 return Promise.resolve([makeShow()]);
             });
 
-            await findShowsWithCount(makeHelper() as any);
+            await findShowsWithCount(makeHelper() as never);
 
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
@@ -301,15 +323,15 @@ describe("findShowsWithCount", () => {
         });
 
         it("excludes favoriteComedians from the comedian select when profileId is not set", async () => {
-            let capturedSelect: any;
+            let capturedSelect!: FindManyArgs["select"];
             mockCount.mockResolvedValue(1);
-            mockFindMany.mockImplementation((args: any) => {
-                capturedSelect = args.select;
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as FindManyArgs).select;
                 return Promise.resolve([makeShow()]);
             });
 
             await findShowsWithCount(
-                makeHelper({ profileId: undefined }) as any,
+                makeHelper({ profileId: undefined }) as never,
             );
 
             const comedianSelect =
@@ -320,14 +342,14 @@ describe("findShowsWithCount", () => {
 
     describe("timezone mapping", () => {
         it("selects club.timezone from the database", async () => {
-            let capturedSelect: any;
+            let capturedSelect!: FindManyArgs["select"];
             mockCount.mockResolvedValue(0);
-            mockFindMany.mockImplementation((args: any) => {
-                capturedSelect = args.select;
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as FindManyArgs).select;
                 return Promise.resolve([]);
             });
 
-            await findShowsWithCount(makeHelper() as any);
+            await findShowsWithCount(makeHelper() as never);
 
             expect(capturedSelect.club.select.timezone).toBe(true);
         });
@@ -345,7 +367,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].timezone).toBe("America/Los_Angeles");
         });
@@ -363,7 +385,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].timezone).toBe("America/Chicago");
         });
@@ -381,7 +403,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].timezone).toBe("America/Denver");
         });
@@ -399,7 +421,7 @@ describe("findShowsWithCount", () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([show]);
 
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].timezone).toBeNull();
         });
@@ -412,13 +434,13 @@ describe("findShowsWithCount", () => {
                 isZipCapTriggered: vi.fn(() => true),
             };
 
-            const result = await findShowsWithCount(helper as any);
+            const result = await findShowsWithCount(helper as never);
 
             expect(result.zipCapTriggered).toBe(true);
         });
 
         it("returns zipCapTriggered: false when helper.isZipCapTriggered() returns false", async () => {
-            const result = await findShowsWithCount(makeHelper() as any);
+            const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.zipCapTriggered).toBe(false);
         });

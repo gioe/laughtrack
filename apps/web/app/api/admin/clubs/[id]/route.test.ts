@@ -58,7 +58,7 @@ beforeEach(() => {
 
 describe("PATCH /api/admin/clubs/[id]", () => {
     it("returns 401 when auth() returns null", async () => {
-        mockAuth.mockResolvedValue(null as any);
+        mockAuth.mockResolvedValue(null as never);
 
         const [req, ctx] = makeRequest();
         const res = await PATCH(req, ctx);
@@ -67,7 +67,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 422 when session has no profile", async () => {
-        mockAuth.mockResolvedValue({ user: {} } as any);
+        mockAuth.mockResolvedValue({ user: {} } as never);
 
         const [req, ctx] = makeRequest();
         const res = await PATCH(req, ctx);
@@ -78,7 +78,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("returns 403 when profile.role !== 'admin'", async () => {
         mockAuth.mockResolvedValue({
             profile: { id: "p", userid: "u", role: "user" },
-        } as any);
+        } as never);
 
         const [req, ctx] = makeRequest();
         const res = await PATCH(req, ctx);
@@ -87,7 +87,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 400 for invalid club id", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
 
         const [req, ctx] = makeRequest(
             { description: null, hours: null },
@@ -99,7 +99,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 400 for non-JSON body", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
 
         const [req, ctx] = makeRequest("not-json-{{{");
         const res = await PATCH(req, ctx);
@@ -108,7 +108,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 400 when hours has unknown day", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
 
         const [req, ctx] = makeRequest({
             description: null,
@@ -120,7 +120,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 400 when description is missing from payload", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
 
         const [req, ctx] = makeRequest({ hours: null });
         const res = await PATCH(req, ctx);
@@ -129,7 +129,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("returns 404 when Prisma reports the club is missing", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockRejectedValue({ code: "P2025" });
 
         const [req, ctx] = makeRequest({ description: "x", hours: null });
@@ -139,11 +139,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("happy path: updates, revalidates, returns 200", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
             id: CLUB_ID,
             name: "Comedy Cellar",
-        } as any);
+        } as never);
 
         const hours = {
             monday: "Closed",
@@ -185,11 +185,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     });
 
     it("passes Prisma.DbNull when hours is null", async () => {
-        mockAuth.mockResolvedValue(adminSession as any);
+        mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
             id: CLUB_ID,
             name: "Gotham",
-        } as any);
+        } as never);
 
         const [req, ctx] = makeRequest({ description: null, hours: null });
         const res = await PATCH(req, ctx);

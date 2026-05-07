@@ -11,7 +11,9 @@ vi.mock("@/lib/rateLimit", () => ({
     getClientIp: vi.fn(() => "127.0.0.1"),
     RATE_LIMITS: { authenticated: {}, authToken: {} },
     rateLimitHeaders: vi.fn(() => ({ "X-RateLimit-Remaining": "99" })),
-    rateLimitResponse: vi.fn(() => new Response(null, { status: 429 }) as any),
+    rateLimitResponse: vi.fn(
+        () => new Response(null, { status: 429 }) as never,
+    ),
 }));
 
 vi.mock("@/lib/auth/resolveAuth", () => ({
@@ -49,6 +51,8 @@ const mockDeleteFavorites = vi.mocked(db.favoriteComedian.deleteMany);
 const mockDeleteProfile = vi.mocked(db.userProfile.delete);
 const mockDeleteUser = vi.mocked(db.user.delete);
 
+type TransactionCallback = (tx: typeof db) => unknown | Promise<unknown>;
+
 function makeRequest(method = "GET"): NextRequest {
     return new NextRequest("http://localhost/api/v1/me", { method });
 }
@@ -62,7 +66,9 @@ beforeEach(() => {
         resetAt: 0,
     });
     mockRateLimitHeaders.mockReturnValue({ "X-RateLimit-Remaining": "99" });
-    mockTransaction.mockImplementation(async (fn: any) => fn(db));
+    mockTransaction.mockImplementation(async (fn: TransactionCallback) =>
+        fn(db),
+    );
 });
 
 describe("GET /api/v1/me", () => {
@@ -156,7 +162,7 @@ describe("GET /api/v1/me", () => {
                 zipCode: "94108",
                 nearbyDistanceMiles: 25,
             },
-        } as any);
+        } as never);
 
         const res = await GET(makeRequest());
 
@@ -207,7 +213,7 @@ describe("GET /api/v1/me", () => {
                 zipCode: null,
                 nearbyDistanceMiles: null,
             },
-        } as any);
+        } as never);
 
         const res = await GET(makeRequest());
 
@@ -241,7 +247,7 @@ describe("GET /api/v1/me", () => {
                 zipCode: null,
                 nearbyDistanceMiles: null,
             },
-        } as any);
+        } as never);
 
         await GET(makeRequest());
 

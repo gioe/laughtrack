@@ -28,7 +28,7 @@ describe("getFavoriteComedianShows", () => {
 
     it("finds upcoming visible shows whose lineup includes a favorited comedian", async () => {
         const shows = [{ id: 7, name: "Favorite Comic Night" }];
-        mockFindShowsForHome.mockResolvedValue(shows as any);
+        mockFindShowsForHome.mockResolvedValue(shows as never);
 
         await expect(getFavoriteComedianShows("profile-1")).resolves.toBe(
             shows,

@@ -48,7 +48,7 @@ describe("getClubs", () => {
                 address: "456 Elm St",
                 zipCode: "90210",
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await getClubs();
 
@@ -65,7 +65,7 @@ describe("getClubs", () => {
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             const result = await getClubs();
             expect(result).toEqual([]);
         });
@@ -76,7 +76,7 @@ describe("getClubs", () => {
         });
 
         it("requests all active clubs by default for non-home callers", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             await getClubs();
 
@@ -88,7 +88,7 @@ describe("getClubs", () => {
         });
 
         it("can require venue images for the home carousel", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
 
             await getClubs(8, 0, { requireImage: true });
 
@@ -108,7 +108,7 @@ describe("getClubs", () => {
                     { lineupItems: [{ comedianId: 2 }, { comedianId: 3 }] },
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
 
             const result = await getClubs();
             // IDs 1, 2, 3 — comedian 2 appears in two shows but is counted once
@@ -116,7 +116,9 @@ describe("getClubs", () => {
         });
 
         it("returns 0 when a club has no shows", async () => {
-            mockFindMany.mockResolvedValue([makeClubRow({ shows: [] })] as any);
+            mockFindMany.mockResolvedValue([
+                makeClubRow({ shows: [] }),
+            ] as never);
             const result = await getClubs();
             expect(result[0].active_comedian_count).toBe(0);
         });
@@ -125,7 +127,7 @@ describe("getClubs", () => {
             const row = makeClubRow({
                 shows: [{ lineupItems: [] }, { lineupItems: [] }],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
             const result = await getClubs();
             expect(result[0].active_comedian_count).toBe(0);
         });
@@ -138,7 +140,7 @@ describe("getClubs", () => {
                     { lineupItems: [{ comedianId: 5 }] },
                 ],
             });
-            mockFindMany.mockResolvedValue([row] as any);
+            mockFindMany.mockResolvedValue([row] as never);
             const result = await getClubs();
             expect(result[0].active_comedian_count).toBe(1);
         });
@@ -158,7 +160,7 @@ describe("getClubs", () => {
                     shows: [{ lineupItems: [{ comedianId: 3 }] }],
                 }),
             ];
-            mockFindMany.mockResolvedValue(rows as any);
+            mockFindMany.mockResolvedValue(rows as never);
             const result = await getClubs();
             expect(result[0].active_comedian_count).toBe(2);
             expect(result[1].active_comedian_count).toBe(1);
@@ -167,7 +169,7 @@ describe("getClubs", () => {
 
     describe("safeLimit clamp (1–100)", () => {
         it("passes the default limit of 8 to findMany", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs();
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 8, orderBy: { id: "asc" } }),
@@ -175,7 +177,7 @@ describe("getClubs", () => {
         });
 
         it("clamps limit below 1 to 1", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(0);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 1 }),
@@ -183,7 +185,7 @@ describe("getClubs", () => {
         });
 
         it("clamps negative limit to 1", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(-50);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 1 }),
@@ -191,7 +193,7 @@ describe("getClubs", () => {
         });
 
         it("clamps limit above 100 to 100", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(500);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 100 }),
@@ -199,7 +201,7 @@ describe("getClubs", () => {
         });
 
         it("preserves a valid limit within 1–100", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(50);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 50 }),
@@ -207,7 +209,7 @@ describe("getClubs", () => {
         });
 
         it("preserves the boundary value 1", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(1);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 1 }),
@@ -215,7 +217,7 @@ describe("getClubs", () => {
         });
 
         it("preserves the boundary value 100", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(100);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 100 }),
@@ -225,7 +227,7 @@ describe("getClubs", () => {
 
     describe("offset (skip) parameter", () => {
         it("passes the default offset of 0 to findMany", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs();
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ skip: 0 }),
@@ -233,7 +235,7 @@ describe("getClubs", () => {
         });
 
         it("passes a custom offset to findMany", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(8, 16);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ skip: 16 }),
@@ -241,7 +243,7 @@ describe("getClubs", () => {
         });
 
         it("passes offset and clamped limit together", async () => {
-            mockFindMany.mockResolvedValue([] as any);
+            mockFindMany.mockResolvedValue([] as never);
             await getClubs(500, 10);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 100, skip: 10 }),
