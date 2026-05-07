@@ -1,10 +1,17 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { withSentryConfig } from '@sentry/nextjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 // Note: DATABASE_URL and DIRECT_URL are intentionally omitted from the `env` block.
 // They are server-side-only credentials read directly via process.env in lib/db.ts
 // and prisma/schema.prisma. Listing them here would expose them in the client bundle.
 const nextConfig = {
+  // Pin workspace root to apps/web/ so Next.js doesn't infer it from a stray
+  // lockfile in a parent directory (e.g. ~/package-lock.json).
+  outputFileTracingRoot: __dirname,
   async redirects() {
     return [
       {
