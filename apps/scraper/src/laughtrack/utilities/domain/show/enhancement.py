@@ -87,6 +87,9 @@ class ShowEnhancement:
     @staticmethod
     def _determine_ticket_type(offer: Offer) -> str:
         """Determine ticket type from offer data with intelligent defaults."""
+        if offer.name:
+            return offer.name
+
         # Use availability as type if it looks like a ticket type
         availability_token = ShowEnhancement._normalized_schema_org_token(offer.availability)
         if availability_token and availability_token not in ["instock", "soldout", "limitedavailability"]:
