@@ -31,10 +31,22 @@ struct ProfileViewTests {
                 == "Sign in to sync favorites and recover your account."
         )
 
-        // Sign-in CTA labels the original test asserted via requireLabel —
-        // they are stable enum-driven values.
-        #expect(AuthProvider.apple.title == "Continue with Apple")
-        #expect(AuthProvider.google.title == "Continue with Google")
+        // Middle branch: session restored before loadUserRequest resolves
+        // (or it returns nil). Locks in the "<provider> account" / "Favorites
+        // sync through <provider> is on." path so a regression that swaps the
+        // helpers' if-let order would not pass on the endpoint cases alone.
+        let sessionWithoutUser = AuthSessionMetadata(
+            provider: .apple,
+            signedInAt: Date(),
+            expiresAt: nil
+        )
+        #expect(
+            ProfileView.makeHeroTitle(user: nil, session: sessionWithoutUser) == "Apple account"
+        )
+        #expect(
+            ProfileView.makeHeroSubtitle(user: nil, session: sessionWithoutUser)
+                == "Favorites sync through Apple is on."
+        )
     }
 
     @Test("signed-in auth state surfaces display-name hero and unlocks settings panel")
@@ -68,16 +80,14 @@ struct ProfileViewTests {
         )
     }
 
-    @Test("delete-account path runs only when invoked explicitly, not by view construction")
-    func deleteAccountIsGatedByExplicitInvocation() async throws {
-        // ProfileView's "Delete account" button writes the @State flag
-        // showingDeleteAccountConfirmation; the dialog's destructive button is
-        // the only call site for AuthManager.deleteAccount(). Driving the tap
-        // requires accessibility wiring that iOS 26.1 no longer provides, so
-        // this recorder asserts the structural contract: (a) merely setting up
-        // an authenticated AuthManager + delete-recorder must not fire delete,
-        // and (b) the explicit invocation path the dialog uses runs delete and
-        // drains the local session.
+    @Test("authManager.deleteAccount() invokes deleteAccountRequest and drains the local session")
+    func deleteAccountInvokesRequestAndDrainsSession() async throws {
+        // The dialog's "Delete account permanently" destructive button is the
+        // only call site for AuthManager.deleteAccount() in ProfileView; that
+        // tap path requires accessibility wiring iOS 26.1 no longer provides.
+        // This recorder verifies the back-half of the gating contract — that
+        // when the destructive button DOES invoke deleteAccount, the request
+        // closure fires once and the local session is drained.
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "profile-delete-confirm"
         )
