@@ -29,7 +29,8 @@ from .extractor import EtixExtractor
 from .transformer import EtixEventTransformer
 
 _ETIX_VENUE_URL = (
-    "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue" "?venue_id={venue_id}&orderBy=1&pageNumber={page}"
+    "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue"
+    "?venue_id={venue_id}&orderBy=1&pageNumber={page}"
 )
 _LAUGH_PATRIOT_PLACE_VENUE_ID = "32411"
 _LAUGH_PATRIOT_PLACE_CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
@@ -42,8 +43,12 @@ _ETIX_TICKET_HREF_RE = re.compile(
     r'href=["\'](https://www\.etix\.com/ticket/[^"\']+)["\']',
     re.IGNORECASE,
 )
-_FB_MONTH_DAY_RE = re.compile(r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE)
-_FB_SHOW_TIME_RE = re.compile(r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE)
+_FB_MONTH_DAY_RE = re.compile(
+    r"(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2})", re.IGNORECASE
+)
+_FB_SHOW_TIME_RE = re.compile(
+    r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE
+)
 _FB_MONTH_YEAR_RE = re.compile(r"([A-Za-z]+)\s+(\d{4})")
 _TITLE_YEAR_PREFIX_RE = re.compile(r"^\s*(\d{4})\s+(.+)$")
 _MAX_PAGES = 10
@@ -70,7 +75,9 @@ class EtixScraper(BaseScraper):
         m = re.search(r"/v/(\d+)/", url)
         if m:
             return m.group(1)
-        Logger.warn(f"{self._log_prefix}: could not extract venue_id from scraping_url '{url}'")
+        Logger.warn(
+            f"{self._log_prefix}: could not extract venue_id from scraping_url '{url}'"
+        )
         return ""
 
     async def collect_scraping_targets(self) -> List[str]:
@@ -149,7 +156,8 @@ class EtixScraper(BaseScraper):
 
     def _uses_laugh_patriot_place_fallback(self, url: str) -> bool:
         return (
-            self._venue_id == _LAUGH_PATRIOT_PLACE_VENUE_ID and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+            self._venue_id == _LAUGH_PATRIOT_PLACE_VENUE_ID
+            and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 
     async def _get_laugh_patriot_place_fallback_data(self) -> Optional[EtixPageData]:
@@ -178,7 +186,9 @@ class EtixScraper(BaseScraper):
             event_url = event.event_url or ""
             if event_url not in ticket_urls_by_event_url:
                 detail_html = await self.fetch_html(event_url)
-                ticket_urls_by_event_url[event_url] = self._extract_laugh_patriot_place_ticket_url(detail_html or "")
+                ticket_urls_by_event_url[event_url] = (
+                    self._extract_laugh_patriot_place_ticket_url(detail_html or "")
+                )
             ticket_url = ticket_urls_by_event_url[event_url]
             if not ticket_url:
                 Logger.warn(
@@ -276,10 +286,16 @@ class EtixScraper(BaseScraper):
         return match.group(1) if match else None
 
     def _uses_tampa_funny_bone_fallback(self, url: str) -> bool:
-        return self._venue_id == _TAMPA_FUNNY_BONE_VENUE_ID and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+        return (
+            self._venue_id == _TAMPA_FUNNY_BONE_VENUE_ID
+            and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+        )
 
     def _uses_zanies_nashville_fallback(self, url: str) -> bool:
-        return self._venue_id == _ZANIES_NASHVILLE_VENUE_ID and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+        return (
+            self._venue_id == _ZANIES_NASHVILLE_VENUE_ID
+            and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
+        )
 
     async def _get_zanies_nashville_fallback_data(self) -> Optional[EtixPageData]:
         """Use Nashville Zanies' public homepage when Etix is DataDome-blocked."""
@@ -287,14 +303,16 @@ class EtixScraper(BaseScraper):
             html = await self.fetch_html(_ZANIES_NASHVILLE_HOME_URL)
         except Exception as e:
             Logger.warn(
-                f"{self._log_prefix}: Zanies Nashville fallback fetch failed " f"for {_ZANIES_NASHVILLE_HOME_URL}: {e}",
+                f"{self._log_prefix}: Zanies Nashville fallback fetch failed "
+                f"for {_ZANIES_NASHVILLE_HOME_URL}: {e}",
                 self.logger_context,
             )
             return None
 
         if not html:
             Logger.warn(
-                f"{self._log_prefix}: Zanies Nashville fallback returned no HTML " f"for {_ZANIES_NASHVILLE_HOME_URL}",
+                f"{self._log_prefix}: Zanies Nashville fallback returned no HTML "
+                f"for {_ZANIES_NASHVILLE_HOME_URL}",
                 self.logger_context,
             )
             return None
@@ -340,8 +358,12 @@ class EtixScraper(BaseScraper):
         return events
 
     def _zanies_nashville_single_event(self, wrapper, seen: set) -> Optional[EtixEvent]:
-        title_el = wrapper.select_one("h2.rhp-event__title--grid, h2.rhp-event__title--list, h2")
-        title, title_year = self._clean_zanies_nashville_title(title_el.get_text(" ", strip=True) if title_el else "")
+        title_el = wrapper.select_one(
+            "h2.rhp-event__title--grid, h2.rhp-event__title--list, h2"
+        )
+        title, title_year = self._clean_zanies_nashville_title(
+            title_el.get_text(" ", strip=True) if title_el else ""
+        )
         date_el = wrapper.select_one(".eventMonth.singleEventDate, .eventMonth")
         ticket_a = wrapper.select_one('a[href*="etix.com/ticket/"]')
         event_a = wrapper.select_one("a.url[href]")
@@ -373,9 +395,15 @@ class EtixScraper(BaseScraper):
         )
 
     def _zanies_nashville_series_events(self, wrapper, seen: set) -> List[EtixEvent]:
-        title_el = wrapper.select_one(".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--grid, h2")
-        title, title_year = self._clean_zanies_nashville_title(title_el.get_text(" ", strip=True) if title_el else "")
-        event_a = wrapper.select_one(".rhpEventHeader a[href], .eventSeriesTitle a[href], a.url[href]")
+        title_el = wrapper.select_one(
+            ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--grid, h2"
+        )
+        title, title_year = self._clean_zanies_nashville_title(
+            title_el.get_text(" ", strip=True) if title_el else ""
+        )
+        event_a = wrapper.select_one(
+            ".rhpEventHeader a[href], .eventSeriesTitle a[href], a.url[href]"
+        )
         event_url = event_a.get("href") if event_a else None
         if not title:
             return []
@@ -435,7 +463,8 @@ class EtixScraper(BaseScraper):
 
         if not html:
             Logger.warn(
-                f"{self._log_prefix}: Tampa Funny Bone fallback returned no HTML " f"for {_TAMPA_FUNNY_BONE_SHOWS_URL}",
+                f"{self._log_prefix}: Tampa Funny Bone fallback returned no HTML "
+                f"for {_TAMPA_FUNNY_BONE_SHOWS_URL}",
                 self.logger_context,
             )
             return None
@@ -473,7 +502,9 @@ class EtixScraper(BaseScraper):
         # Walk separators and event wrappers in document order so each
         # event picks up the year context from its preceding "MMMM YYYY" header.
         nodes = soup.select(
-            ".rhp-events-list-separator-month, " ".rhp-event__single-event--list, " ".rhp-event__single-series--list"
+            ".rhp-events-list-separator-month, "
+            ".rhp-event__single-event--list, "
+            ".rhp-event__single-series--list"
         )
         for node in nodes:
             classes = node.get("class") or []
@@ -487,7 +518,9 @@ class EtixScraper(BaseScraper):
                 continue
 
             if "rhp-event__single-series--list" in classes:
-                events.extend(self._tampa_funny_bone_series_events(node, current_year, seen))
+                events.extend(
+                    self._tampa_funny_bone_series_events(node, current_year, seen)
+                )
             else:
                 event = self._tampa_funny_bone_single_event(node, current_year, seen)
                 if event is not None:
@@ -495,8 +528,12 @@ class EtixScraper(BaseScraper):
 
         return events
 
-    def _tampa_funny_bone_single_event(self, wrapper, year: int, seen: set) -> Optional[EtixEvent]:
-        title_el = wrapper.select_one("h2.rhp-event__title--list, .rhp-event__title--list a")
+    def _tampa_funny_bone_single_event(
+        self, wrapper, year: int, seen: set
+    ) -> Optional[EtixEvent]:
+        title_el = wrapper.select_one(
+            "h2.rhp-event__title--list, .rhp-event__title--list a"
+        )
         title = (title_el.get_text(" ", strip=True) if title_el else "").strip()
         date_el = wrapper.select_one(".eventMonth.singleEventDate, .eventMonth")
         time_el = wrapper.select_one(".rhp-event__time-text--list")
@@ -526,8 +563,12 @@ class EtixScraper(BaseScraper):
             event_url=event_url,
         )
 
-    def _tampa_funny_bone_series_events(self, wrapper, year: int, seen: set) -> List[EtixEvent]:
-        title_el = wrapper.select_one(".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--list")
+    def _tampa_funny_bone_series_events(
+        self, wrapper, year: int, seen: set
+    ) -> List[EtixEvent]:
+        title_el = wrapper.select_one(
+            ".rhpEventHeader a, .eventSeriesTitle a, h2.rhp-event__title--list"
+        )
         title = (title_el.get_text(" ", strip=True) if title_el else "").strip()
         event_a = wrapper.select_one(".rhpEventHeader a, .eventSeriesTitle a, a.url[href]")
         event_url = event_a.get("href") if event_a else None
@@ -563,7 +604,9 @@ class EtixScraper(BaseScraper):
         return results
 
     @staticmethod
-    def _tampa_funny_bone_iso_datetime(date_text: str, time_text: str, year: int) -> Optional[str]:
+    def _tampa_funny_bone_iso_datetime(
+        date_text: str, time_text: str, year: int
+    ) -> Optional[str]:
         """Build an ISO 8601 datetime from "May 07" / "Doors: ... // Show: 7 pm"."""
         from laughtrack.scrapers.implementations.api.etix.extractor import _MONTHS
 
@@ -621,7 +664,9 @@ class EtixScraper(BaseScraper):
         return m.group(2).strip(), year
 
     @staticmethod
-    def _zanies_nashville_iso_datetime(date_text: str, time_text: str, title_year: Optional[int]) -> Optional[str]:
+    def _zanies_nashville_iso_datetime(
+        date_text: str, time_text: str, title_year: Optional[int]
+    ) -> Optional[str]:
         from laughtrack.scrapers.implementations.api.etix.extractor import _MONTHS
 
         m = _FB_MONTH_DAY_RE.search(date_text or "")
