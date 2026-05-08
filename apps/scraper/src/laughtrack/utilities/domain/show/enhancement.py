@@ -88,7 +88,8 @@ class ShowEnhancement:
     def _determine_ticket_type(offer: Offer) -> str:
         """Determine ticket type from offer data with intelligent defaults."""
         # Use availability as type if it looks like a ticket type
-        if offer.availability and offer.availability.lower() not in ["instock", "soldout", "limitedavailability"]:
+        availability_token = ShowEnhancement._normalized_schema_org_token(offer.availability)
+        if availability_token and availability_token not in ["instock", "soldout", "limitedavailability"]:
             return offer.availability
 
         # Use price currency as fallback if it's not a standard currency
@@ -104,8 +105,17 @@ class ShowEnhancement:
         if not offer.availability:
             return False
 
-        availability_lower = offer.availability.lower()
+        availability_lower = ShowEnhancement._normalized_schema_org_token(offer.availability)
         return availability_lower in ["soldout", "sold out", "unavailable"]
+
+    @staticmethod
+    def _normalized_schema_org_token(value: str) -> str:
+        """Normalize bare or schema.org availability values to their final token."""
+        value_lower = value.lower().rstrip("/")
+        for prefix in ("http://schema.org/", "https://schema.org/"):
+            if value_lower.startswith(prefix):
+                return value_lower.removeprefix(prefix)
+        return value_lower
 
     @staticmethod
     def extract_advanced_tags_from_event(event: JsonLdEvent) -> List[str]:
