@@ -268,9 +268,9 @@ UPDATE clubs SET scraper = 'seatengine_v3', seatengine_id = 'cf2b1561-bf36-40b8-
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `the_stand_nyc`, `haha_comedy_club`, `st_marks`) |
+| **Scraper key** | `tixr`, `tixr_public_card`, or venue-specific (e.g. `haha_comedy_club`) |
 | **DB field** | `scraping_url` |
-| **Generic?** | ❌ Requires a new venue-specific scraper |
+| **Generic?** | ✅ for detail-page enrichment and supported public-card pages |
 
 **Detection signals:**
 - Buy buttons linking to `tixr.com/groups/{group}/events/{slug}-{id}` (long form)
@@ -283,22 +283,43 @@ UPDATE clubs SET scraper = 'seatengine_v3', seatengine_id = 'cf2b1561-bf36-40b8-
 | Short form (`/e/{id}`) | `tixr.com/e/12345` | ✅ Full — redirect followed, JSON-LD extracted |
 | Double-dash (`--{id}`) | `tixr.com/groups/foo/events/show-name--12345` | ❌ Silently skipped — no JSON-LD in SSR |
 
-**Implementation pattern:** Copy an existing Tixr scraper (e.g. `the_stand_nyc`) and adjust the calendar URL and pagination logic. `TixrClient.get_event_detail_from_url()` handles both URL formats transparently.
+**Implementation pattern:** First decide which Tixr identity applies:
+- `tixr`: the source page only provides Tixr event URLs, so the scraper must fetch each Tixr-hosted event page and parse JSON-LD detail data.
+- `tixr_public_card`: the source page is venue-owned and each event card already exposes title, date, time, and a Tixr ticket URL. Tixr is only the checkout provider; event-detail pages are not fetched.
+- Venue-specific key: the source shape is not covered by either generic path, such as a custom API feed or markup that needs bespoke extraction.
 
-**Generic `tixr` scraper (server-rendered calendar pages):**
+**Generic `tixr` scraper (server-rendered calendar pages with Tixr detail enrichment):**
 When a venue's calendar page (own website or a Tixr group page like `tixr.com/groups/<slug>`) embeds Tixr event links in server-rendered HTML, use the generic `tixr` scraper — no custom Python code needed:
-- `scraper = 'tixr'`
-- `scraping_url = '<venue calendar page URL>'`
+- `scraper_key = 'tixr'`
+- `source_url = '<venue calendar page URL>'`
 
 The `TixrScraper` fetches the page, extracts all Tixr URLs (both short-form and long-form) via `TixrExtractor`, then batch-resolves each to a `TixrEvent` via `TixrClient`.
 
+**Generic `tixr_public_card` scraper (venue-owned public cards):**
+When a venue-owned page already contains complete event cards plus Tixr ticket URLs, use `tixr_public_card` instead of `tixr`:
+- `scraper_key = 'tixr_public_card'`
+- `source_url = '<venue-owned calendar page URL>'`
+
+`TixrPublicCardScraper` parses the venue page directly and does not call `TixrClient.get_event_detail_from_url()`. Use this for St. Marks Comedy Club and House of Comedy Bloomington style Webflow cards where DataDome blocks Tixr detail enrichment but the public card has enough data to build shows.
+
+**Audit remaining DataDome-dependent Tixr sources:**
+```sql
+SELECT c.id, c.name, ss.source_url, ss.metadata
+FROM scraping_sources ss
+JOIN clubs c ON c.id = ss.club_id
+WHERE ss.platform = 'tixr'::"ScrapingPlatform"
+  AND ss.scraper_key = 'tixr'
+  AND ss.enabled = true
+ORDER BY c.name;
+```
+
 **When to use a custom scraper instead:** If the venue's Tixr group page triggers DataDome bot-detection (returns 403 or empty results when fetched via `fetch_html`), use a Covina-style venue scraper that calls `tixr_client._fetch_tixr_page(url)` instead — this uses a bare curl_cffi session with no application headers, bypassing DataDome.
 
-**When per-event Tixr fetches are blocked in CI:** Tixr's DataDome WAF can block GitHub Actions IP ranges even with curl_cffi impersonation. If a venue's calendar page already embeds all needed show data (name, date, time, performer, ticket URL), build a custom scraper that extracts directly from the calendar HTML instead of fetching individual Tixr pages:
+**When per-event Tixr fetches are blocked in CI:** Tixr's DataDome WAF can block GitHub Actions IP ranges even with curl_cffi impersonation. If a venue's calendar page already embeds all needed show data (name, date, time, performer, ticket URL), prefer `tixr_public_card` when the markup matches the shared public-card parser; otherwise build a custom scraper that extracts directly from the calendar HTML:
 - `haha_comedy_club`: Webflow calendar with JSON-LD Event blocks (name, date, performer, ticket URL) + time in `<div class="month day time">` — see `scrapers/implementations/venues/haha_comedy_club/`
 - `laugh_boston`: Pixl Calendar API response includes all show data (title, start, timezone, sales) — `LaughBostonEventExtractor.parse_events_from_pixl()` builds `TixrEvent` objects directly
 
-**Decision notes — should HAHA / Laugh Boston become generic `tixr` with fallback?**
+**Decision notes — should HAHA / Laugh Boston become `tixr_public_card`?**
 
 `TixrScraper` is generic only when the upstream page can be treated as:
 1. fetch calendar HTML
@@ -306,17 +327,10 @@ The `TixrScraper` fetches the page, extracts all Tixr URLs (both short-form and 
 3. fetch each Tixr event page
 4. parse JSON-LD from the Tixr event page
 
-Both `haha_comedy_club` and `laugh_boston` intentionally break step 3 because the upstream source already contains the show data that generic `tixr` would otherwise try to recover from Tixr event pages.
+`TixrPublicCardScraper` is narrower: it expects venue-owned Webflow-style event cards with title, month, day, time, and a Tixr ticket link. Both `haha_comedy_club` and `laugh_boston` intentionally break the `tixr` detail-enrichment path, but neither is a drop-in `tixr_public_card` source today.
 
-- `haha_comedy_club` should stay custom for now. The Webflow calendar page already contains one JSON-LD `Event` block per show plus the start time in nearby HTML, and the linked short-form `tixr.com/e/{id}` pages hit 100% HTTP 403 failure in the 2026-04-01 nightly run. Generic `tixr` can extract the ticket URLs from the page, but it cannot recover when the per-event Tixr fetch is blocked. Supporting HAHA as "generic `tixr` with fallback" would require a new fallback contract that can build `TixrEvent` objects directly from venue-page markup after URL extraction fails.
-- `laugh_boston` should stay custom for now. The Pixl Calendar API became the source because the homepage-based Tixr flow only surfaced a small subset of shows, and the Pixl endpoint returns the full catalogue plus the fields needed to build `Show`/`TixrEvent` objects directly. Generic `tixr` does not operate on JSON feeds and still assumes per-event Tixr page fetches; modeling Laugh Boston as "`tixr` with fallback" would really mean teaching the generic scraper to accept a non-HTML upstream feed and a direct-event parser, which is broader than a Tixr-only fallback.
-
-**Shared fallback behavior missing from generic `tixr`:**
-- A way to short-circuit per-event Tixr page fetches when the source page/feed already includes enough structured event data to build `TixrEvent` objects directly
-- A source-specific parser hook for turning that structured venue data into `TixrEvent` objects
-- Clear selection rules for when to trust direct upstream data vs. the Tixr event page as the source of truth
-
-**Recommendation:** keep both clubs on custom scrapers today. The only generic change worth considering is a narrow extension point on `TixrScraper` for "direct event fallback" sources, but only if more clubs appear with the same high-level shape: Tixr ticket URLs plus complete upstream event data. Even then, the shared abstraction should stop at the control flow ("use direct event data instead of per-event Tixr fetches") and not try to unify HAHA's Webflow HTML parsing with Laugh Boston's Pixl API parsing into one parser implementation.
+- `haha_comedy_club` should stay custom for now. The Webflow calendar page already contains one JSON-LD `Event` block per show plus the start time in nearby HTML, and the linked short-form `tixr.com/e/{id}` pages hit 100% HTTP 403 failure in the 2026-04-01 nightly run. Its markup is not the same card structure used by St. Marks / House of Comedy Bloomington.
+- `laugh_boston` should stay custom for now. The Pixl Calendar API became the source because the homepage-based Tixr flow only surfaced a small subset of shows, and the Pixl endpoint returns the full catalogue plus the fields needed to build `Show`/`TixrEvent` objects directly. `tixr_public_card` does not operate on JSON feeds.
 
 **Short URL format:** Tixr event links appear in two formats:
 1. **Long form**: `https://www.tixr.com/groups/{group}/events/{slug}-{id}` — regex: `r"https?://[^\s\"]*tixr\.com/[^\s\"]*/events/[^\s\"]*"`
@@ -328,7 +342,7 @@ Both `haha_comedy_club` and `laugh_boston` intentionally break step 3 because th
 The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup = { eventId: {id} }` in SSR HTML — no JSON-LD, no date, no performers. Event data requires a DataDome CAPTCHA-solved JS session to fetch from the client-side API, which curl_cffi impersonation cannot provide. These events are silently skipped with a specific warning:
 > "Tixr special-event page (--ID format) has no JSON-LD; data requires JS execution — skipping: {url}"
 
-**Smoke test pattern:** venue-specific tests for `tixr` scraper venues instantiate `TixrScraper(club)`, mock `TixrScraper.fetch_html` (not `_fetch_tixr_page`), and verify `TixrPageData` is returned with ≥1 event.
+**Smoke test pattern:** `tixr` scraper tests instantiate `TixrScraper(club)`, mock `TixrScraper.fetch_html` (not `_fetch_tixr_page`), and assert `get_event_detail_from_url()` is awaited. `tixr_public_card` tests instantiate `TixrPublicCardScraper(club)`, mock `TixrPublicCardScraper.fetch_html`, and assert `get_event_detail_from_url()` is not called.
 
 ---
 
@@ -1560,7 +1574,8 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Ninkashi | `ninkashi` | No | `scraping_url` (tickets subdomain URL) |
 | Vivenu | `vivenu` | No | `scraping_url` |
 | ShowSlinger | `show_slinger` | No | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
-| Tixr | venue-specific | **Yes** — new scraper dir | `scraping_url` |
+| Tixr detail pages | `tixr` | No | `scraping_url` / `source_url` |
+| Tixr public cards | `tixr_public_card` | No | `scraping_url` / `source_url` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
 | Squarespace | venue-specific | **Yes** — replace collectionId | `scraping_url` |
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
