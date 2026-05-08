@@ -19,11 +19,13 @@ pytestmark = pytest.mark.skipif(
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
+from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
+from laughtrack.scrapers.implementations.api.tixr.scraper import TixrScraper
 from laughtrack.scrapers.implementations.venues.st_marks.scraper import StMarksScraper
 from laughtrack.scrapers.implementations.venues.st_marks.data import StMarksPageData
 
 
-SCRAPING_URL = "www.stmarkscomedy.com"
+SCRAPING_URL = "https://www.stmarkscomedyclub.com/calendar"
 TIXR_URL = "https://www.tixr.com/groups/stmarks/events/comedy-night-12345"
 
 
@@ -38,6 +40,26 @@ def _venue_html() -> str:
     """Minimal HTML containing one Tixr event URL."""
     return f"""<html><body>
 <a href="{TIXR_URL}">Buy Tickets</a>
+</body></html>"""
+
+
+def _venue_card_html() -> str:
+    """Minimal venue-owned Webflow card with complete public event data."""
+    return f"""<html><body>
+<div class="event-item w-dyn-item" role="listitem">
+  <a class="ticket-links grid w-inline-block" href="{TIXR_URL}">
+    <div class="text-block-35">St. Marks Comedy Night</div>
+    <div class="event-card grid">
+      <div class="date-info grid">
+        <div class="month grid date">Wed</div>
+        <div class="month grid">Jun</div>
+        <div class="month grid custom-filter">Jun</div>
+        <div class="month day grid">10</div>
+        <div class="month day time">7:30 pm</div>
+      </div>
+    </div>
+  </a>
+</div>
 </body></html>"""
 
 
@@ -109,3 +131,36 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
             all_events.extend(page_data.event_list)
 
     assert len(all_events) > 0, "Full pipeline produced 0 events"
+
+
+@pytest.mark.asyncio
+async def test_generic_tixr_public_card_fallback_avoids_blocked_detail_fetch(monkeypatch):
+    """
+    The current production source uses the generic Tixr scraper. St. Marks'
+    venue-owned calendar carries title, date/time, and ticket URL, so the scraper
+    should build shows from that page instead of fetching blocked Tixr detail pages.
+    """
+    scraper = TixrScraper(_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _venue_card_html()
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
+    )
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 1
+    event = result.event_list[0]
+    assert event.title == "St. Marks Comedy Night"
+    assert event.source_url == TIXR_URL
+    assert event.show.show_page_url == TIXR_URL
+    assert event.show.tickets[0].purchase_url == TIXR_URL
+    assert event.show.date.hour == 19
+    assert event.show.date.minute == 30
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()

@@ -42,6 +42,7 @@ from .data import TixrPageData
 
 _MAX_DISCOVERY_PAGES = 12
 _HOUSE_OF_COMEDY_BLOOMINGTON_HOST = "moa.houseofcomedy.net"
+_ST_MARKS_COMEDY_HOST = "www.stmarkscomedyclub.com"
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
@@ -355,7 +356,10 @@ class TixrScraper(BaseScraper):
 
     def _parse_public_calendar_events(self, html_content: str, url: str) -> List[TixrEvent]:
         """Parse venue-owned Webflow cards when Tixr detail pages are blocked."""
-        if urlparse(URLUtils.normalize_url(url)).netloc.lower() != _HOUSE_OF_COMEDY_BLOOMINGTON_HOST:
+        if urlparse(URLUtils.normalize_url(url)).netloc.lower() not in {
+            _HOUSE_OF_COMEDY_BLOOMINGTON_HOST,
+            _ST_MARKS_COMEDY_HOST,
+        }:
             return []
 
         soup = BeautifulSoup(html_content, "html.parser")
