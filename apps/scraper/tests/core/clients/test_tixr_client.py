@@ -479,6 +479,17 @@ class TestFetchTixrPage:
     async def test_no_proxy_pool_omits_proxies_kwarg(self, monkeypatch, stub_base_init):
         """With no proxy_pool configured, session.get receives proxies=None."""
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        # apps/scraper/.env defines RESIDENTIAL_PROXY_URL for dev runs, and
+        # tixr is allowlisted in scraper_proxy_registry — so without this,
+        # _fetch_tixr_page's HttpClient.resolve_proxy_url fallback leaks the
+        # dev proxy into the session.get call. Setting to "" (rather than
+        # delenv) is required because resolve_proxy_url's call into
+        # scraper_proxy_registry.proxy_enabled_keys triggers a DB connection
+        # via ConfigManager, which re-runs load_dotenv and would re-populate
+        # a deleted RESIDENTIAL_PROXY_URL from .env. load_dotenv defaults to
+        # override=False, so an explicitly-empty value sticks; the
+        # `or None` in resolve_proxy_url then yields None.
+        monkeypatch.setenv("RESIDENTIAL_PROXY_URL", "")
         client = TixrClient(_club())
         # stub_base_init already sets proxy_pool=None; be explicit for the test.
         client.proxy_pool = None
