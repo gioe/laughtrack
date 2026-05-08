@@ -12,23 +12,6 @@ The primary interface for working with tasks from the project task database (via
 
 ## Setup: Discover Project Config
 
-When running from a git worktree, use the project-local tusk binary from the
-active checkout for every DB-mutating task command:
-
-```bash
-./.claude/bin/tusk <subcommand>
-```
-
-If you use bare `tusk`, first verify it resolves inside the active project:
-
-```bash
-command -v tusk
-```
-
-Bare `tusk` can resolve to another project's installed scripts while still
-pointing at this project's task database. The failure mode is misleading schema
-or DB errors from the wrong codebase, such as `no such column: is_deferred`.
-
 Before any operation that needs domain or agent values, run:
 
 ```bash
