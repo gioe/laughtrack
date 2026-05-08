@@ -65,7 +65,7 @@ class ShowEnhancement:
     @staticmethod
     def _extract_price_from_offer(offer: Offer) -> Optional[float]:
         """Extract price using primitive FormattingUtils with fallback logic."""
-        if not offer.price:
+        if offer.price is None or offer.price == "":
             return None
 
         try:
