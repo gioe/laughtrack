@@ -24,7 +24,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
-from laughtrack.scrapers.implementations.api.tixr.scraper import TixrScraper
+from laughtrack.scrapers.implementations.api.tixr.scraper import TixrPublicCardScraper, TixrScraper
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 
 
@@ -117,17 +117,36 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_uses_public_card_fallback_without_tixr_detail_fetch(monkeypatch):
-    """
-    get_data() builds events from the venue-owned card HTML when title, date/time,
-    and Tixr URL are present, avoiding blocked Tixr event-detail pages.
-    """
+async def test_detail_scraper_attempts_tixr_event_detail_fetch_for_public_cards(monkeypatch):
+    """The detail scraper extracts URLs from cards and enriches through Tixr pages."""
     scraper = TixrScraper(_club())
 
     async def fake_fetch_html(self, url, **kwargs):
         return _venue_card_html()
 
+    detail_fetch = AsyncMock(return_value=_tixr_event())
     monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper.tixr_client, "get_event_detail_from_url", detail_fetch)
+
+    result = await scraper.get_data(VENUE_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 1
+    detail_fetch.assert_awaited_once_with(EVENT_URL)
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_builds_events_without_tixr_detail_fetch(monkeypatch):
+    """
+    tixr_public_card builds events from the venue-owned card HTML when title,
+    date/time, and Tixr URL are present, avoiding blocked Tixr event-detail pages.
+    """
+    scraper = TixrPublicCardScraper(_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _venue_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(
         scraper.tixr_client,
         "get_event_detail_from_url",
