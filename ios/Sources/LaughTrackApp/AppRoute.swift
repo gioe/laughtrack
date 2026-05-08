@@ -7,6 +7,19 @@ enum AppRoute: Hashable, Codable {
     case comedianDetail(Int)
     case clubDetail(Int)
 
+    var shellTab: AppTab? {
+        switch self {
+        case .nearMe:
+            return .nearMe
+        case .search:
+            return .search
+        case .library:
+            return .favorites
+        case .profile, .showDetail, .comedianDetail, .clubDetail:
+            return nil
+        }
+    }
+
     /// Route the near-me toolbar button pushes when tapped. Extracted so test code can assert the
     /// resolution without driving the SwiftUI toolbar item via accessibility,
     /// which under iOS 26 / Xcode 26 doesn't activate reliably inside HostedView.

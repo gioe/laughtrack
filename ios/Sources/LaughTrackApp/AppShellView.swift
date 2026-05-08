@@ -16,6 +16,10 @@ final class AppShellState: ObservableObject {
         selectedPrimitive ?? cachedSearchPrimitive
     }
 
+    var showsLocationHeader: Bool {
+        selectedTab == .nearMe
+    }
+
     func selectTab(_ tab: AppTab) {
         switch tab {
         case .search:
@@ -225,7 +229,7 @@ struct AppShellView: View {
 
             primitiveFilterScroller
 
-            if shellState.selectedTab == .nearMe {
+            if shellState.showsLocationHeader {
                 locationHeaderButton
             }
         }
