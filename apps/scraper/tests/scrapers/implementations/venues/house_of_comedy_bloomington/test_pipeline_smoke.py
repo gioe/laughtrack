@@ -62,6 +62,26 @@ def _venue_page_html() -> str:
 </body></html>"""
 
 
+def _venue_card_html() -> str:
+    """Minimal venue-owned Webflow card with enough public data for fallback parsing."""
+    return f"""<html><body>
+<div class="event-item w-dyn-item" role="listitem">
+  <a class="ticket-links grid w-inline-block" href="{EVENT_URL}">
+    <div class="text-block-35">Comedy Night</div>
+    <div class="event-card grid">
+      <div class="date-info grid">
+        <div class="month grid date">Wed</div>
+        <div class="month grid">Jun</div>
+        <div class="month grid custom-filter">Jun</div>
+        <div class="month day grid">10</div>
+        <div class="month day time">7:30 pm</div>
+      </div>
+    </div>
+  </a>
+</div>
+</body></html>"""
+
+
 # ---------------------------------------------------------------------------
 # Smoke tests
 # ---------------------------------------------------------------------------
@@ -94,6 +114,39 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
         "get_data() returned 0 events from valid venue page HTML — "
         "check extract_tixr_urls() or batch_scraper processing"
     )
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_public_card_fallback_without_tixr_detail_fetch(monkeypatch):
+    """
+    get_data() builds events from the venue-owned card HTML when title, date/time,
+    and Tixr URL are present, avoiding blocked Tixr event-detail pages.
+    """
+    scraper = TixrScraper(_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _venue_card_html()
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
+    )
+
+    result = await scraper.get_data(VENUE_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert result.get_event_count() == 1
+    event = result.event_list[0]
+    assert event.title == "Comedy Night"
+    assert event.event_id == "178358"
+    assert event.source_url == EVENT_URL
+    assert event.show.show_page_url == EVENT_URL
+    assert event.show.tickets[0].purchase_url == EVENT_URL
+    assert event.show.date.hour == 19
+    assert event.show.date.minute == 30
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 
 @pytest.mark.asyncio

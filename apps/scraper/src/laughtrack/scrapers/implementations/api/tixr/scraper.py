@@ -16,8 +16,16 @@ Pipeline:
 4. Return TixrPageData containing the resolved events.
 """
 
+from datetime import datetime
 from typing import List, Optional
+from urllib.parse import urlparse
 
+import pytz
+from bs4 import BeautifulSoup
+
+from laughtrack.core.entities.event.tixr import TixrEvent
+from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.tixr import TixrVenueEventTransformer
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -32,6 +40,10 @@ from .extractor import TixrExtractor
 from .data import TixrPageData
 
 _MAX_DISCOVERY_PAGES = 12
+_HOUSE_OF_COMEDY_BLOOMINGTON_HOST = "moa.houseofcomedy.net"
+_MONTH_FORMATS = ("%b", "%B")
+_TIME_FORMATS = ("%I:%M %p", "%I %p")
+_MAX_YEAR_ROLLOVER_DAYS = 180
 
 
 class TixrScraper(BaseScraper):
@@ -168,6 +180,15 @@ class TixrScraper(BaseScraper):
                 Logger.info(f"{self._log_prefix}: No processable Tixr URLs after filtering on {url}", self.logger_context)
                 return None
 
+            fallback_events = self._parse_public_calendar_events(html_content, url)
+            if fallback_events:
+                Logger.info(
+                    f"{self._log_prefix}: Parsed {len(fallback_events)} events from venue-owned public cards on {url}; "
+                    "skipping blocked Tixr detail fetches",
+                    self.logger_context,
+                )
+                return TixrPageData(event_list=fallback_events)
+
             Logger.info(f"{self._log_prefix}: Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
 
             results = await self.batch_scraper.process_batch(
@@ -193,3 +214,124 @@ class TixrScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
+
+    def _parse_public_calendar_events(self, html_content: str, url: str) -> List[TixrEvent]:
+        """Parse venue-owned Webflow cards when Tixr detail pages are blocked."""
+        if urlparse(URLUtils.normalize_url(url)).netloc.lower() != _HOUSE_OF_COMEDY_BLOOMINGTON_HOST:
+            return []
+
+        soup = BeautifulSoup(html_content, "html.parser")
+        events: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+
+        for item in soup.select(".event-item"):
+            link = item.select_one('a.ticket-links[href*="tixr.com"]')
+            title_el = item.select_one(".text-block-35")
+            month_el = item.select_one(".date-info .month.grid:not(.date):not(.custom-filter)")
+            day_el = item.select_one(".date-info .month.day.grid")
+            time_el = item.select_one(".date-info .month.day.time")
+
+            if not all((link, title_el, month_el, day_el, time_el)):
+                continue
+
+            ticket_url = str(link.get("href") or "").strip()
+            title = title_el.get_text(" ", strip=True)
+            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            if not title or not ticket_url or (event_id and event_id in seen_ids):
+                continue
+
+            show_date = self._parse_public_card_datetime(
+                month_el.get_text(" ", strip=True),
+                day_el.get_text(" ", strip=True),
+                time_el.get_text(" ", strip=True),
+            )
+            if show_date is None:
+                Logger.warn(
+                    f"{self._log_prefix}: Skipping public card with unparseable date/time "
+                    f"for '{title}' at {ticket_url}",
+                    self.logger_context,
+                )
+                continue
+
+            if event_id:
+                seen_ids.add(event_id)
+
+            show = Show(
+                name=title,
+                club_id=self.club.id,
+                date=show_date,
+                show_page_url=ticket_url,
+                lineup=[],
+                tickets=[
+                    Ticket(
+                        price=None,
+                        purchase_url=ticket_url,
+                        sold_out=False,
+                        type="General Admission",
+                    )
+                ],
+                supplied_tags=["event"],
+                description=None,
+                timezone=self.club.timezone,
+                room="",
+            )
+            events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
+
+        return events
+
+    def _parse_public_card_datetime(self, month_text: str, day_text: str, time_text: str) -> Optional[datetime]:
+        timezone_name = self.club.timezone or "UTC"
+        tz = pytz.timezone(timezone_name)
+        now = datetime.now(tz)
+
+        month_num: Optional[int] = None
+        for month_format in _MONTH_FORMATS:
+            try:
+                month_num = datetime.strptime(month_text.strip(), month_format).month
+                break
+            except ValueError:
+                continue
+
+        if month_num is None:
+            return None
+
+        try:
+            day_num = int(day_text.strip())
+        except ValueError:
+            return None
+
+        parsed_time = None
+        normalized_time = time_text.strip().upper()
+        for time_format in _TIME_FORMATS:
+            try:
+                parsed_time = datetime.strptime(normalized_time, time_format).time()
+                break
+            except ValueError:
+                continue
+
+        if parsed_time is None:
+            return None
+
+        candidate = tz.localize(
+            datetime(
+                now.year,
+                month_num,
+                day_num,
+                parsed_time.hour,
+                parsed_time.minute,
+            )
+        )
+        if candidate < now:
+            next_year = tz.localize(
+                datetime(
+                    now.year + 1,
+                    month_num,
+                    day_num,
+                    parsed_time.hour,
+                    parsed_time.minute,
+                )
+            )
+            if (next_year - now).days > _MAX_YEAR_ROLLOVER_DAYS:
+                return None
+            candidate = next_year
+        return candidate
