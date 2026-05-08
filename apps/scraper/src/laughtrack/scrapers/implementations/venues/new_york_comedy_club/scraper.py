@@ -241,7 +241,7 @@ def _event_from_rendered_card(
             Offer(
                 url=event_url,
                 price_currency="USD",
-                price="",
+                price="0",
                 availability="",
             )
         ],

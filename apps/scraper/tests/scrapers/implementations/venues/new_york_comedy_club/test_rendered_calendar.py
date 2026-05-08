@@ -99,3 +99,11 @@ async def test_get_data_reads_current_rendered_calendar_cards(monkeypatch):
         "Erin Maguire",
         "Fumi Abe",
     ]
+
+    show = event.to_show(_club())
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == (
+        "https://newyorkcomedyclub.com/events/"
+        "usama-siddiquee-pat-mcgann-erin-maguire-fumi-abe"
+    )
+    assert show.tickets[0].price == 0.0
