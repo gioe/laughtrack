@@ -95,6 +95,9 @@ class JsonLdEvent(ShowConvertible):
             tickets = [Ticket.from_offer(offer) for offer in self.offers] if self.offers else []
             supplied_tags = []
 
+        if not tickets and not self.offers and self.url:
+            tickets = [Ticket(price=0.0, purchase_url=self.url, sold_out=False, type="General Admission")]
+
         # Prefer sameAs for show_page_url when it points to the club's own site,
         # keeping self.url (often a third-party ticket link) for ticket purchase
         show_page_url = self.same_as if self.same_as else self.url

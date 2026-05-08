@@ -188,3 +188,36 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
     assert len(shows) > 0, "transformation_pipeline.transform() returned 0 Shows"
     assert all(isinstance(s, Show) for s in shows)
     assert shows[0].name == "Thunderdome - An Improv Show"
+
+
+@pytest.mark.asyncio
+async def test_transformation_pipeline_creates_fallback_ticket_without_offers(monkeypatch):
+    """Events with a top-level URL but no offers still persist a ticket row."""
+    scraper = JsonLdScraper(_club())
+    ticket_url = "https://events.humanitix.com/no-offers-show"
+    events = [
+        {
+            "@context": "https://schema.org",
+            "@type": "Event",
+            "name": "No Offers Show",
+            "url": ticket_url,
+            "startDate": "2026-04-10T19:00:00-05:00",
+            "location": {"@type": "Place", "name": "Stomping Ground"},
+            "description": "",
+        },
+    ]
+
+    async def fake_fetch_html(self, url: str) -> str:
+        return _humanitix_host_html(events)
+
+    monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html)
+
+    page_data = await scraper.get_data(SCRAPING_URL)
+    assert page_data is not None
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    assert len(shows[0].tickets) == 1
+    assert shows[0].tickets[0].purchase_url == ticket_url
+    assert shows[0].tickets[0].type == "General Admission"
