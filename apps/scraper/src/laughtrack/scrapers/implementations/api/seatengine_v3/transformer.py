@@ -76,4 +76,18 @@ class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
                     type=title,
                 )
             )
+        # SeatEngine v3 returns inventories=[] for free / RSVP-only events
+        # (e.g. The Comedy Studio's "Free Comedy Open-Mic"). A ticket row is
+        # the show's access record, not a purchase row, so synthesize a $0 GA
+        # ticket pointing at the venue page so downstream surfaces still get
+        # an access affordance.
+        if not tickets:
+            tickets.append(
+                Ticket(
+                    price=0.0,
+                    purchase_url=show_page_url,
+                    sold_out=show_sold_out,
+                    type="General Admission",
+                )
+            )
         return tickets

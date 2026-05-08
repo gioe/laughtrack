@@ -162,8 +162,42 @@ class TestBuildTickets:
         assert show is not None
         assert show.tickets[0].type == "General Admission"
 
-    def test_no_inventories_yields_no_tickets(self):
+    def test_no_inventories_yields_synthesized_free_ticket(self):
+        """Free / RSVP-only events return inventories=[] from the v3 API.
+        Synthesize a $0 GA ticket so the show still has an access record."""
         transformer = SeatEngineV3EventTransformer(_make_club())
-        show = transformer.transform_to_show(_make_record(inventories=[]))
+        url = "https://www.thecomedystudio.com/events/free-open-mic"
+        show = transformer.transform_to_show(
+            _make_record(inventories=[], show_page_url=url),
+        )
         assert show is not None
-        assert show.tickets == []
+        assert len(show.tickets) == 1
+        ticket = show.tickets[0]
+        assert ticket.price == pytest.approx(0.0)
+        assert ticket.type == "General Admission"
+        assert ticket.purchase_url == url
+        assert ticket.sold_out is False
+
+    def test_all_inactive_inventories_yields_synthesized_free_ticket(self):
+        """If every inventory is active=False, fall back to the synthesized ticket."""
+        transformer = SeatEngineV3EventTransformer(_make_club())
+        inventories = [
+            _make_inventory(title="Reserved", price=5000, active=False),
+            _make_inventory(title="VIP", price=10000, active=False),
+        ]
+        show = transformer.transform_to_show(_make_record(inventories=inventories))
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == pytest.approx(0.0)
+        assert show.tickets[0].type == "General Admission"
+
+    def test_synthesized_ticket_propagates_sold_out(self):
+        """Sold-out shows with no active inventories still synthesize a ticket,
+        flagged sold_out=True so the UI renders the correct affordance."""
+        transformer = SeatEngineV3EventTransformer(_make_club())
+        show = transformer.transform_to_show(
+            _make_record(inventories=[], sold_out=True),
+        )
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].sold_out is True
