@@ -196,23 +196,35 @@ struct ProfileView: View {
     }
 
     private var heroTitle: String {
-        if let user = authManager.currentUser, let displayName = user.displayName, !displayName.isEmpty {
+        Self.makeHeroTitle(user: authManager.currentUser, session: authManager.currentSession)
+    }
+
+    private var heroSubtitle: String {
+        Self.makeHeroSubtitle(user: authManager.currentUser, session: authManager.currentSession)
+    }
+
+    // Pure helpers extracted from instance computed properties so ProfileViewTests
+    // can verify hero text without HostedView traversal — iOS 26.1+ leaves the
+    // SwiftUI accessibility tree unwired in test hosts (TASK-1921), making
+    // requireText assertions vacuous.
+    static func makeHeroTitle(user: AuthenticatedUser?, session: AuthSessionMetadata?) -> String {
+        if let user, let displayName = user.displayName, !displayName.isEmpty {
             return displayName
         }
 
-        if let providerName = authManager.currentSession?.provider?.displayName {
+        if let providerName = session?.provider?.displayName {
             return "\(providerName) account"
         }
 
         return "Guest mode"
     }
 
-    private var heroSubtitle: String {
-        if let user = authManager.currentUser, let displayName = user.displayName, !displayName.isEmpty {
+    static func makeHeroSubtitle(user: AuthenticatedUser?, session: AuthSessionMetadata?) -> String {
+        if let user, let displayName = user.displayName, !displayName.isEmpty {
             return "Favorites sync is on for \(displayName)."
         }
 
-        if let providerName = authManager.currentSession?.provider?.displayName {
+        if let providerName = session?.provider?.displayName {
             return "Favorites sync through \(providerName) is on."
         }
 
