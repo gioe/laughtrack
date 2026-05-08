@@ -18,6 +18,8 @@ class Grove34Event:
     show_page_url: str
     timezone_id: str = "America/New_York"
     description: Optional[str] = None
+    ticket_url: Optional[str] = None
+    sold_out: bool = False
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
         try:
@@ -30,13 +32,22 @@ class Grove34Event:
             if not event_datetime:
                 return None
 
+            tickets = []
+            if self.ticket_url:
+                tickets = [
+                    ShowFactoryUtils.create_fallback_ticket(
+                        self.ticket_url,
+                        sold_out=self.sold_out,
+                    )
+                ]
+
             return ShowFactoryUtils.create_enhanced_show_base(
                 name=self.title,
                 club=club,
                 date=event_datetime,
                 show_page_url=self.show_page_url,
                 lineup=[],
-                tickets=[],
+                tickets=tickets,
                 description=self.description,
                 room="",
                 supplied_tags=["event"],

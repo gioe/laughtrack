@@ -31,7 +31,14 @@ def _make_listing_html(show_hrefs: list[str], next_page_href: str | None = None)
     """
 
 
-def _make_detail_html(name: str, start_date: str, description: str | None = None, schema_type: str = "Event") -> str:
+def _make_detail_html(
+    name: str,
+    start_date: str,
+    description: str | None = None,
+    schema_type: str = "Event",
+    extra_body: str = "",
+    offers: dict | None = None,
+) -> str:
     """Build a minimal show detail page with JSON-LD."""
     ld = {
         "@context": "https://schema.org",
@@ -41,10 +48,12 @@ def _make_detail_html(name: str, start_date: str, description: str | None = None
     }
     if description is not None:
         ld["description"] = description
+    if offers is not None:
+        ld["offers"] = offers
     return f"""
     <html><head>
       <script type="application/ld+json">{json.dumps(ld)}</script>
-    </head><body></body></html>
+    </head><body>{extra_body}</body></html>
     """
 
 
@@ -147,6 +156,30 @@ def test_extract_event_returns_grove34_event_from_valid_json_ld():
     assert event.description == "A great comedy show"
 
 
+def test_extract_event_adds_tito_ticket_url_from_widget():
+    html = _make_detail_html(
+        name="Improv Night",
+        start_date="2026-05-10T23:00:00.000Z",
+        extra_body='<tito-widget event="grove34/improv-night-may10"></tito-widget>',
+    )
+    event = Grove34EventExtractor.extract_event(html, "https://grove34.com/shows/improv-night-may10")
+
+    assert event is not None
+    assert event.ticket_url == "https://ti.to/grove34/improv-night-may10"
+
+
+def test_extract_event_ignores_generic_shows_offer_url():
+    html = _make_detail_html(
+        name="Improv Night",
+        start_date="2026-05-10T23:00:00.000Z",
+        offers={"@type": "Offer", "availability": "https://schema.org/InStock", "url": "/shows"},
+    )
+    event = Grove34EventExtractor.extract_event(html, "https://grove34.com/shows/improv-night-may10")
+
+    assert event is not None
+    assert event.ticket_url is None
+
+
 def test_extract_event_returns_none_when_type_is_not_event():
     html = _make_detail_html(
         name="Some Organization",
@@ -246,6 +279,21 @@ def test_grove34_event_to_show_with_milliseconds():
     assert show.name == "Friday Night Comedy"
     assert show.date is not None
     assert show.date.tzinfo is not None  # timezone-aware
+
+
+def test_grove34_event_to_show_includes_ticket_when_url_present():
+    club = _make_club()
+    event = Grove34Event(
+        title="Improv Night",
+        start_date="2026-05-10T23:00:00.000Z",
+        show_page_url="https://grove34.com/shows/improv-night-may10",
+        ticket_url="https://ti.to/grove34/improv-night-may10",
+    )
+    show = event.to_show(club)
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://ti.to/grove34/improv-night-may10"
 
 
 def test_grove34_event_to_show_without_milliseconds():
