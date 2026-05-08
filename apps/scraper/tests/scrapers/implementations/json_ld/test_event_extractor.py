@@ -145,3 +145,80 @@ def test_extract_events_skips_invalid_missing_url_and_offers():
     html = _wrap_ldjson([invalid])
     events = EventExtractor.extract_events(html)
     assert events == []
+
+
+def test_extract_events_aggregate_offer_uses_low_price():
+    """AggregateOffer with lowPrice/highPrice exposes lowPrice as the offer price.
+
+    Without this, ShowEnhancement.enhance_tickets_from_event drops the offer for
+    empty `price` and the show persists with zero tickets — see Uptown Theater
+    (uptownpvd.com) where every event page emits a single AggregateOffer.
+    """
+    obj = {
+        "@type": "ComedyEvent",
+        "name": "Aggregate Offer Show",
+        "startDate": "2026-07-25T19:30:00-04:00",
+        "url": "https://example.com/events/aggregate",
+        "location": {"@type": "Place", "name": "Aggregate Venue"},
+        "offers": {
+            "@type": "AggregateOffer",
+            "url": "https://example.com/events/aggregate",
+            "lowPrice": 59,
+            "highPrice": 94,
+            "priceCurrency": "USD",
+            "offerCount": 6,
+            "availability": "https://schema.org/InStock",
+        },
+    }
+    html = _wrap_ldjson(obj)
+    events = EventExtractor.extract_events(html)
+    assert len(events) == 1
+    assert len(events[0].offers) == 1
+    assert events[0].offers[0].price == "59"
+    assert events[0].offers[0].price_currency == "USD"
+
+
+def test_extract_events_aggregate_offer_falls_back_to_high_price():
+    """When AggregateOffer omits lowPrice, fall back to highPrice."""
+    obj = {
+        "@type": "Event",
+        "name": "High Price Only",
+        "startDate": "2026-08-01T20:00:00-04:00",
+        "url": "https://example.com/events/high-only",
+        "location": {"@type": "Place", "name": "Venue"},
+        "offers": {
+            "@type": "AggregateOffer",
+            "url": "https://example.com/events/high-only",
+            "highPrice": "75.00",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+        },
+    }
+    html = _wrap_ldjson(obj)
+    events = EventExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].offers[0].price == "75.00"
+
+
+def test_extract_events_aggregate_offer_with_explicit_price_preserved():
+    """An AggregateOffer that explicitly declares `price` keeps that value (no override)."""
+    obj = {
+        "@type": "Event",
+        "name": "Explicit Price",
+        "startDate": "2026-09-10T19:00:00-04:00",
+        "url": "https://example.com/events/explicit",
+        "location": {"@type": "Place", "name": "Venue"},
+        "offers": {
+            "@type": "AggregateOffer",
+            "url": "https://example.com/events/explicit",
+            "price": "42.00",
+            "lowPrice": 30,
+            "highPrice": 60,
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+        },
+    }
+    html = _wrap_ldjson(obj)
+    events = EventExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].offers[0].price == "42.00"

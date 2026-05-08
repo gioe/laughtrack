@@ -219,3 +219,84 @@ class TestGetData:
         monkeypatch.setattr(UptownTheaterScraper, "fetch_html", raise_error, raising=False)
         result = await self.scraper.get_data("https://www.uptownpvd.com/events")
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Regression: AggregateOffer ticket extraction (TASK-2028)
+# ---------------------------------------------------------------------------
+
+class TestAggregateOfferTickets:
+    """Live uptownpvd.com event pages emit a single offers dict with
+    @type=AggregateOffer (lowPrice/highPrice, no `price`). Without dedicated
+    handling, every show persisted with zero tickets.
+    """
+
+    def _aggregate_offer_event_html(self) -> str:
+        payload = {
+            "@context": "https://schema.org",
+            "@type": "ComedyEvent",
+            "name": "Tracy Morgan",
+            "startDate": "2026-05-23T19:00:00-04:00",
+            "url": "https://www.uptownpvd.com/events/tracy-morgan",
+            "location": {
+                "@type": "Place",
+                "name": "Uptown Theater",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "270 Broadway",
+                    "addressLocality": "Providence",
+                    "addressRegion": "RI",
+                    "postalCode": "02903",
+                    "addressCountry": "US",
+                },
+            },
+            "offers": {
+                "@type": "AggregateOffer",
+                "url": "https://www.uptownpvd.com/events/tracy-morgan",
+                "lowPrice": 59,
+                "highPrice": 94,
+                "priceCurrency": "USD",
+                "offerCount": 6,
+                "availability": "https://schema.org/InStock",
+            },
+        }
+        return f'<html><head><script type="application/ld+json">{json.dumps(payload)}</script></head><body></body></html>'
+
+    def test_aggregate_offer_event_yields_one_ticket_at_low_price(self):
+        from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
+        from laughtrack.utilities.domain.show.enhancement import ShowEnhancement
+
+        events = EventExtractor.extract_events(self._aggregate_offer_event_html())
+        assert len(events) == 1
+        tickets = ShowEnhancement.enhance_tickets_from_event(events[0])
+        assert len(tickets) == 1
+        assert tickets[0].price == 59.0
+        assert tickets[0].purchase_url == "https://www.uptownpvd.com/events/tracy-morgan"
+        assert tickets[0].sold_out is False
+
+    def test_aggregate_offer_sold_out_flag_propagates(self):
+        from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
+        from laughtrack.utilities.domain.show.enhancement import ShowEnhancement
+
+        payload = {
+            "@context": "https://schema.org",
+            "@type": "MusicEvent",
+            "name": "Joe Jackson",
+            "startDate": "2026-07-10T20:00:00-04:00",
+            "url": "https://www.uptownpvd.com/events/joe-jackson",
+            "location": {"@type": "Place", "name": "Uptown Theater"},
+            "offers": {
+                "@type": "AggregateOffer",
+                "url": "https://www.uptownpvd.com/events/joe-jackson",
+                "lowPrice": 64,
+                "highPrice": 109,
+                "priceCurrency": "USD",
+                "availability": "https://schema.org/SoldOut",
+            },
+        }
+        html = f'<html><head><script type="application/ld+json">{json.dumps(payload)}</script></head></html>'
+        events = EventExtractor.extract_events(html)
+        tickets = ShowEnhancement.enhance_tickets_from_event(events[0])
+        assert len(tickets) == 1
+        assert tickets[0].sold_out is True
+        assert tickets[0].price == 64.0
