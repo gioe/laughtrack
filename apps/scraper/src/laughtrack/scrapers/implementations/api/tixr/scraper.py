@@ -18,6 +18,7 @@ Pipeline:
 
 from datetime import datetime
 import html
+import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -45,6 +46,9 @@ _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/i
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
 _MAX_YEAR_ROLLOVER_DAYS = 180
+_STAND_SHOW_PATH_RE = re.compile(
+    r"/shows/show/\d+/(\d{4})-(\d{2})-(\d{2})-(\d{2})(\d{2})(\d{2})"
+)
 
 
 class TixrScraper(BaseScraper):
@@ -344,8 +348,20 @@ class TixrScraper(BaseScraper):
             return None
 
     def _parse_public_calendar_events(self, html_content: str) -> List[TixrEvent]:
-        """Parse venue-owned Webflow cards that carry complete event data."""
+        """Parse venue-owned public cards that carry complete event data.
+
+        Tries Webflow-style cards first (Bloomington, St Marks); if none
+        match, falls through to The Stand NYC's Bootstrap-style ``.show_row``
+        layout. Each format returns events from its own selectors and an
+        empty list when the HTML doesn't match, so the union is safe.
+        """
         soup = BeautifulSoup(html_content, "html.parser")
+        events = self._parse_webflow_public_cards(soup)
+        if events:
+            return events
+        return self._parse_stand_public_cards(soup)
+
+    def _parse_webflow_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
         events: List[TixrEvent] = []
         seen_ids: set[str] = set()
 
@@ -403,6 +419,84 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    def _parse_stand_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
+        """Parse The Stand NYC's Bootstrap-style ``.show_row`` cards.
+
+        The title link's href encodes a ``/shows/show/<id>/<YYYY-MM-DD>-<HHMMSS>-...``
+        slug — that is the source of truth for date/time. The Tixr ticket URL
+        lives on ``a.btn-stand``; sold-out shows replace the buy button with a
+        ``span.btn-outline-danger`` and are skipped (no Tixr URL means the
+        Tixr API path can't reach them either).
+        """
+        events: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+
+        for row in soup.select(".show_row"):
+            title_el = row.select_one("h2.showtitle a")
+            buy_btn = row.select_one('a.btn-stand[href*="tixr.com"]')
+            if not title_el or not buy_btn:
+                continue
+
+            title = title_el.get_text(" ", strip=True)
+            title_href = str(title_el.get("href") or "")
+            ticket_url = str(buy_btn.get("href") or "").strip()
+            if not title or not ticket_url:
+                continue
+
+            event_id = TixrExtractor.get_event_id(ticket_url) or ""
+            if event_id and event_id in seen_ids:
+                continue
+
+            show_date = self._parse_stand_show_datetime(title_href)
+            if show_date is None:
+                Logger.warn(
+                    f"{self._log_prefix}: Skipping Stand card with unparseable show URL "
+                    f"for '{title}' at {ticket_url} (href={title_href!r})",
+                    self.logger_context,
+                )
+                continue
+
+            if event_id:
+                seen_ids.add(event_id)
+
+            room_el = row.select_one(".list-show-room") or row.select_one(".list-show-room-new")
+            room = room_el.get_text(" ", strip=True) if room_el else ""
+
+            show = Show(
+                name=title,
+                club_id=self.club.id,
+                date=show_date,
+                show_page_url=ticket_url,
+                lineup=[],
+                tickets=[
+                    Ticket(
+                        price=None,
+                        purchase_url=ticket_url,
+                        sold_out=False,
+                        type="General Admission",
+                    )
+                ],
+                supplied_tags=["event"],
+                description=None,
+                timezone=self.club.timezone,
+                room=room,
+            )
+            events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
+
+        return events
+
+    def _parse_stand_show_datetime(self, href: str) -> Optional[datetime]:
+        """Extract a localized datetime from The Stand's `/shows/show/<id>/<YYYY-MM-DD>-<HHMMSS>-...` path."""
+        match = _STAND_SHOW_PATH_RE.search(href)
+        if not match:
+            return None
+        try:
+            year, month, day, hour, minute, second = (int(g) for g in match.groups())
+            tz = pytz.timezone(self.club.timezone or "America/New_York")
+            return tz.localize(datetime(year, month, day, hour, minute, second))
+        except (ValueError, pytz.UnknownTimeZoneError):
+            return None
 
     def _parse_public_card_datetime(self, month_text: str, day_text: str, time_text: str) -> Optional[datetime]:
         timezone_name = self.club.timezone or "UTC"
