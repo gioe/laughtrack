@@ -127,11 +127,14 @@ class RodneyEventExtractor:
                 Logger.warn(f"Could not parse date on {source_url}")
                 return []
 
-            # Ticket URL (parde.app checkout link)
+            # Ticket URL (parde.app checkout link).
+            # Some show pages render hrefs with leading whitespace (e.g. ` https://parde.app/...`),
+            # so strip before matching to keep ticket capture resilient to that markup variant.
             ticket_url: Optional[str] = None
             for a in soup.find_all("a", href=True):
-                if a["href"].startswith("https://parde.app"):
-                    ticket_url = a["href"]
+                href = a["href"].strip()
+                if href.startswith("https://parde.app"):
+                    ticket_url = href
                     break
 
             event = RodneyEvent(

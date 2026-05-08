@@ -100,6 +100,13 @@ class TestExtractEventFromHtmlPage:
         assert len(events) == 1
         assert events[0].ticket_info is None
 
+    def test_parde_link_with_leading_whitespace_captured(self):
+        """Some show pages render hrefs with a leading space (observed on the live
+        Jackie Martling show page); the extractor must tolerate that markup variant."""
+        html = _page_html(ticket_url=" https://parde.app/attending/events/abc123")
+        events = RodneyEventExtractor._extract_event_from_html_page(html, SOURCE_URL)
+        assert events[0].ticket_info == {"purchase_url": "https://parde.app/attending/events/abc123"}
+
     def test_missing_title_returns_empty(self):
         html = """<html><body>
 <h4 class="fg-red text-bold">Ticket Price</h4>
