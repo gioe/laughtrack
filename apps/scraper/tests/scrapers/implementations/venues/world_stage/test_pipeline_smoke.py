@@ -189,6 +189,69 @@ async def test_get_data_returns_empty_page_data_when_ciright_returns_no_events(m
     assert result.event_list == []
 
 
+def test_extractor_passes_through_all_day_time_field():
+    """Ciright returns 'All Day' for some bookings; the extractor must keep
+    the literal so the transformer can apply its 19:00 fallback (the dedup
+    invariant is on date+room, not start hour)."""
+    payload = {
+        "status": True,
+        "message": "ok",
+        "data": [
+            {
+                "childEventId": 9999001,
+                "eventId": 9999001,
+                "eventName": "Non Comm",
+                "roomId": _LOUNGE_ROOM_ID,
+                "room": "The Lounge",
+                "time": "All Day",
+                "startDate": "01/01/2099",
+                "endDate": "01/01/2099",
+                "status": "Confirmed",
+            },
+        ],
+    }
+
+    events = WorldStageExtractor.extract_events(
+        payload, room_ids=[_LOUNGE_ROOM_ID], source_url=_SOURCE_URL
+    )
+
+    assert len(events) == 1
+    assert events[0].time == "All Day"
+
+
+def test_to_show_falls_back_to_19_00_for_all_day_events():
+    """All-Day or unparseable times resolve to a fallback start hour so the
+    Show still inserts cleanly (dedup is on (clubId, date, room))."""
+    scraper = WorldStageScraper(_club())
+    page = WorldStagePageData(
+        event_list=WorldStageExtractor.extract_events(
+            {
+                "status": True,
+                "data": [
+                    {
+                        "childEventId": 9999002,
+                        "eventId": 9999002,
+                        "eventName": "Non Comm",
+                        "roomId": _LOUNGE_ROOM_ID,
+                        "room": "The Lounge",
+                        "time": "All Day",
+                        "startDate": "01/01/2099",
+                        "endDate": "01/01/2099",
+                        "status": "Confirmed",
+                    },
+                ],
+            },
+            room_ids=[_LOUNGE_ROOM_ID],
+            source_url=_SOURCE_URL,
+        )
+    )
+
+    shows = scraper.transformation_pipeline.transform(page)
+
+    assert len(shows) == 1
+    assert shows[0].date == datetime(2099, 1, 1, 19, 0, tzinfo=shows[0].date.tzinfo)
+
+
 def test_transformation_pipeline_produces_lounge_shows():
     scraper = WorldStageScraper(_club())
     events = WorldStageExtractor.extract_events(
