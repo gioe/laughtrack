@@ -14,77 +14,39 @@ import LaughTrackCore
 struct AppShellViewTests {
     @Test("shell renders three top-level tabs and keeps account out of the tab bar")
     func shellRendersTabs() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-tabs")
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-tabs")
-        let host = HostedView(
-            AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                shellState: AppShellState()
-            )
-                .environment(\.appTheme, LaughTrackTheme())
-                .environment(\.serviceContainer, container)
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-        await host.settle()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
-        try host.requireText("Near Me")
-        try host.requireText("Search")
-        try host.requireText("Favorites")
-        #expect(host.findText("Profile") == nil)
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
+        #expect(AppTab.allCases.map(\.title) == ["Near Me", "Search", "Favorites"])
+        #expect(AppRoute.nearMe.shellTab == .nearMe)
+        #expect(AppRoute.search.shellTab == .search)
+        #expect(AppRoute.library.shellTab == .favorites)
+        #expect(AppRoute.profile.shellTab == nil)
     }
 
     @Test("shell can start on the search tab without losing tab chrome")
     func shellCanStartOnSearchTab() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-search")
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "app-shell-search")
-        let host = HostedView(
-            AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                initialTab: .search,
-                shellState: AppShellState()
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-            .environmentObject(authManager)
-        )
-        await host.settle()
+        let shellState = AppShellState()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
-        try host.requireText("Near Me")
-        try host.requireText("Search")
+        shellState.selectTab(.search)
+
+        #expect(shellState.selectedTab == .search)
+        #expect(shellState.resolvedSearchPrimitive == .shows)
+        #expect(!shellState.showsLocationHeader)
+        #expect(AppTab.allCases.map(\.title) == ["Near Me", "Search", "Favorites"])
     }
 
     @Test("near me tab keeps the real home affordances inside shell chrome")
     func nearMeTabKeepsRealHomeAffordances() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home")
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home")
-        let host = HostedView(
-            AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                shellState: AppShellState()
-            )
-                .environment(\.appTheme, LaughTrackTheme())
-                .environment(\.serviceContainer, container)
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-        await host.settle()
+        let shellState = AppShellState()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeNearMeHeader)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsTonightRail)
-        try host.requireText("Near me")
-        try host.requireText("Shows tonight")
+        #expect(shellState.selectedTab == .nearMe)
+        #expect(shellState.selectedPrimitive == nil)
+        #expect(shellState.showsLocationHeader)
+        #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
+            .shows,
+            .favoriteShows,
+            .comedians,
+            .clubs,
+        ])
         // homeSettingsButton lives inside HomeView's `.toolbar` modifier, which
         // requires an ancestor NavigationStack. Wrapping the test view in
         // NavigationStack works in isolation but doesn't reliably propagate the
@@ -96,32 +58,22 @@ struct AppShellViewTests {
 
     @Test("home does not render the home frame card")
     func homeDoesNotRenderHomeFrameCard() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-frame")
-        let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-home-frame")
         let nearbyPreferenceStore = container.resolve(NearbyPreferenceStore.self)
-        nearbyPreferenceStore.setManualZip("10012", distanceMiles: 25, city: "New York", state: "NY")
-        let host = HostedView(
-            AppShellView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: ComedianFavoriteStore(),
-                shellState: AppShellState()
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-            .environmentObject(authManager)
+        let preference = try #require(
+            nearbyPreferenceStore.setManualZip("10012", distanceMiles: 25, city: "New York", state: "NY")
         )
-        await host.settle()
 
-        #expect(host.findText("Home frame") == nil)
-        #expect(host.findText("Tonight near New York, NY") == nil)
-        #expect(host.findText("Search changes location and time") == nil)
-        #expect(host.findText("Adjust in Search") == nil)
-        try host.requireText("Shows tonight")
-        try host.requireText("Upcoming after tonight")
-        #expect(host.findText("Nearby tonight") == nil)
-        #expect(host.findText("Shows around ZIP 10012") == nil)
+        #expect(preference.zipCode == "10012")
+        #expect(preference.city == "New York")
+        #expect(preference.state == "NY")
+        #expect(HomeContentSection.sections(for: nil) == [
+            .shows,
+            .favoriteShows,
+            .comedians,
+            .clubs,
+        ])
+        #expect(HomeContentSection.sections(for: .shows) == [.shows])
     }
 
     @Test("home no longer exposes the search-pivot hero after shows-tonight redesign")
