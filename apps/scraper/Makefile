@@ -646,7 +646,7 @@ else
 	$(activate_venv) $(RUN_ENV) $(PYTHON) $(SCRIPT) $(ARGS)
 endif
 
-# Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraper IS NULL check)
+# Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraping source check)
 diagnose-club: check-env
 ifndef ID
 	@echo "Error: ID parameter is required"
@@ -660,16 +660,24 @@ else
 		'id_ = int("$(ID)")' \
 		'with get_connection() as conn:' \
 		'    with conn.cursor() as cur:' \
-		'        cur.execute("SELECT id, name, scraper FROM clubs WHERE id = %s", (id_,))' \
+		'        cur.execute("""' \
+		'            SELECT c.id, c.name, ss.platform, ss.scraper_key, ss.source_url, ss.enabled, ss.priority' \
+		'            FROM clubs c' \
+		'            LEFT JOIN scraping_sources ss ON ss.club_id = c.id' \
+		'            WHERE c.id = %s' \
+		'            ORDER BY ss.enabled DESC NULLS LAST, ss.priority ASC NULLS LAST, ss.id ASC NULLS LAST' \
+		'            LIMIT 1' \
+		'        """, (id_,))' \
 		'        row = cur.fetchone()' \
 		'if not row:' \
 		'    print("No club with id=%d found in the database" % id_)' \
 		'elif row[2] is None:' \
-		'    print("Club %d: %r  scraper=NULL" % (row[0], row[1]))' \
-		'    print("  -> scraper is NULL: cannot be scraped via --id until scraper is configured")' \
+		'    print("Club %d: %r  scraping_sources=NULL" % (row[0], row[1]))' \
+		'    print("  -> no scraping source is configured for this club_id")' \
 		'else:' \
-		'    print("Club %d: %r  scraper=%r" % (row[0], row[1], row[2]))' \
-		'    print("  -> scraper is configured; check other causes")' \
+		'    print("Club %d: %r" % (row[0], row[1]))' \
+		'    print("  platform=%r scraper_key=%r source_url=%r enabled=%r priority=%r" % row[2:])' \
+		'    print("  -> scraping source is configured; check other causes")' \
 		| $(PYTHON)
 endif
 
