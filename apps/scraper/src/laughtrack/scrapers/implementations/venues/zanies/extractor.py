@@ -3,9 +3,9 @@ HTML extraction for Zanies Comedy Club pages.
 
 Two page types are handled:
 
-- Series pages (/calendar/category/series/...): multiple performances per
-  headliner run, rendered as ``li.rhp-event-series-individual`` list items
-  inside an accordion widget.
+- Series pages (/calendar/category/series/... or /show/category/series/...):
+  multiple performances per headliner run, rendered as
+  ``li.rhp-event-series-individual`` list items inside an accordion widget.
 - Single-show pages (/show/...): standalone events with an ``eventStDate``
   span and a "Doors/Show" time span.
 """
@@ -87,7 +87,10 @@ class ZaniesExtractor:
     """
 
     @staticmethod
-    def extract_series_events(html: str) -> List[ZaniesEvent]:
+    def extract_series_events(
+        html: str,
+        event_url: Optional[str] = None,
+    ) -> List[ZaniesEvent]:
         """
         Extract all individual performances from a series page.
 
@@ -112,14 +115,21 @@ class ZaniesExtractor:
         # First segment is page preamble, not a performance block.
         blocks = _SERIES_ITEM_SPLIT.split(html)
         for block in blocks[1:]:
-            event = ZaniesExtractor._parse_series_block(block, title)
+            event = ZaniesExtractor._parse_series_block(
+                block,
+                title,
+                event_url=event_url,
+            )
             if event is not None:
                 events.append(event)
 
         return events
 
     @staticmethod
-    def extract_single_show_events(html: str) -> List[ZaniesEvent]:
+    def extract_single_show_events(
+        html: str,
+        event_url: Optional[str] = None,
+    ) -> List[ZaniesEvent]:
         """
         Extract the single event from a ``/show/.../`` page.
 
@@ -154,11 +164,16 @@ class ZaniesExtractor:
                 date_str=date_str,
                 time_str=time_str,
                 ticket_url=ticket_url,
+                event_url=event_url,
             )
         ]
 
     @staticmethod
-    def _parse_series_block(block_html: str, title: str) -> Optional[ZaniesEvent]:
+    def _parse_series_block(
+        block_html: str,
+        title: str,
+        event_url: Optional[str] = None,
+    ) -> Optional[ZaniesEvent]:
         """Parse a single ``li.rhp-event-series-individual`` block."""
         date_m = _SERIES_DATE_RE.search(block_html)
         time_m = _SERIES_TIME_RE.search(block_html)
@@ -182,4 +197,5 @@ class ZaniesExtractor:
             date_str=date_str,
             time_str=time_str,
             ticket_url=ticket_url,
+            event_url=event_url,
         )
