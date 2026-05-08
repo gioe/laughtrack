@@ -35,8 +35,15 @@ _ETIX_VENUE_URL = (
 _LAUGH_PATRIOT_PLACE_VENUE_ID = "32411"
 _LAUGH_PATRIOT_PLACE_CALENDAR_URL = "https://laughpatriotplace.com/calendar/"
 _LAUGH_PATRIOT_PLACE_FALLBACK_MONTHS = 6
-_TAMPA_FUNNY_BONE_VENUE_ID = "31600"
-_TAMPA_FUNNY_BONE_SHOWS_URL = "https://tampa.funnybone.com/shows/"
+# Funny Bone venues whose Etix venue page is DataDome-blocked but whose
+# venue-owned Rockhouse-Partners /shows/ page exposes the same data.
+# Add new entries here as `venue_id: "https://<sub>.funnybone.com/shows/"` —
+# the parser is shared because every Funny Bone WordPress site uses the
+# identical Rockhouse Partners event widget.
+_FUNNY_BONE_FALLBACKS: dict[str, str] = {
+    "31600": "https://tampa.funnybone.com/shows/",
+    "31602": "https://vb.funnybone.com/shows/",
+}
 _ZANIES_NASHVILLE_VENUE_ID = "21745"
 _ZANIES_NASHVILLE_HOME_URL = "https://nashville.zanies.com/"
 _ETIX_TICKET_HREF_RE = re.compile(
@@ -127,8 +134,8 @@ class EtixScraper(BaseScraper):
                     fallback_data = await self._get_laugh_patriot_place_fallback_data()
                     if fallback_data and fallback_data.event_list:
                         return fallback_data
-                if self._uses_tampa_funny_bone_fallback(url):
-                    fallback_data = await self._get_tampa_funny_bone_fallback_data()
+                if self._uses_funny_bone_fallback(url):
+                    fallback_data = await self._get_funny_bone_fallback_data()
                     if fallback_data and fallback_data.event_list:
                         return fallback_data
                 if self._uses_zanies_nashville_fallback(url):
@@ -285,9 +292,9 @@ class EtixScraper(BaseScraper):
         match = _ETIX_TICKET_HREF_RE.search(html or "")
         return match.group(1) if match else None
 
-    def _uses_tampa_funny_bone_fallback(self, url: str) -> bool:
+    def _uses_funny_bone_fallback(self, url: str) -> bool:
         return (
-            self._venue_id == _TAMPA_FUNNY_BONE_VENUE_ID
+            self._venue_id in _FUNNY_BONE_FALLBACKS
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 
@@ -439,57 +446,62 @@ class EtixScraper(BaseScraper):
             )
         return results
 
-    async def _get_tampa_funny_bone_fallback_data(self) -> Optional[EtixPageData]:
-        """Use Tampa Funny Bone's public listing when Etix is DataDome-blocked.
+    async def _get_funny_bone_fallback_data(self) -> Optional[EtixPageData]:
+        """Use a Funny Bone venue's public listing when Etix is DataDome-blocked.
 
-        The venue's Rockhouse-Partners-on-WordPress page exposes title, date,
-        show time, ticket URL (etix.com/ticket/p/...), and event URL on a
-        single listing — no detail-page round-trips required.
+        Every Funny Bone WordPress site exposes a Rockhouse-Partners-on-WordPress
+        ``/shows/`` page with title, date, show time, ticket URL
+        (etix.com/ticket/p/...), and event URL on a single listing — no detail-page
+        round-trips required. The venue's ``shows`` URL is looked up in
+        ``_FUNNY_BONE_FALLBACKS`` keyed on the Etix venue id parsed from
+        ``scraping_url``.
 
-        ``fetch_html_bare`` is used (not ``fetch_html``) because tampa.funnybone.com
+        ``fetch_html_bare`` is used (not ``fetch_html``) because *.funnybone.com
         is also DataDome-protected: the curl_cffi impersonation fingerprint alone
         clears the challenge, but the application headers ``fetch_html`` adds
         trigger a 403.
         """
+        shows_url = _FUNNY_BONE_FALLBACKS.get(self._venue_id)
+        if not shows_url:
+            return None
+
         try:
-            html = await self.fetch_html_bare(_TAMPA_FUNNY_BONE_SHOWS_URL)
+            html = await self.fetch_html_bare(shows_url)
         except Exception as e:
             Logger.warn(
-                f"{self._log_prefix}: Tampa Funny Bone fallback fetch failed "
-                f"for {_TAMPA_FUNNY_BONE_SHOWS_URL}: {e}",
+                f"{self._log_prefix}: Funny Bone fallback fetch failed for {shows_url}: {e}",
                 self.logger_context,
             )
             return None
 
         if not html:
             Logger.warn(
-                f"{self._log_prefix}: Tampa Funny Bone fallback returned no HTML "
-                f"for {_TAMPA_FUNNY_BONE_SHOWS_URL}",
+                f"{self._log_prefix}: Funny Bone fallback returned no HTML for {shows_url}",
                 self.logger_context,
             )
             return None
 
-        events = self._extract_tampa_funny_bone_events(html)
+        events = self._extract_funny_bone_events(html)
         if events:
             Logger.info(
-                f"{self._log_prefix}: Tampa Funny Bone fallback extracted {len(events)} events",
+                f"{self._log_prefix}: Funny Bone fallback extracted {len(events)} events from {shows_url}",
                 self.logger_context,
             )
             return EtixPageData(event_list=events)
 
         Logger.warn(
-            f"{self._log_prefix}: Tampa Funny Bone fallback found no usable events",
+            f"{self._log_prefix}: Funny Bone fallback found no usable events at {shows_url}",
             self.logger_context,
         )
         return None
 
-    def _extract_tampa_funny_bone_events(self, html: str) -> List[EtixEvent]:
-        """Parse the Rockhouse Partners /shows/ widget on tampa.funnybone.com."""
+    def _extract_funny_bone_events(self, html: str) -> List[EtixEvent]:
+        """Parse the Rockhouse Partners /shows/ widget shared across Funny Bone venues."""
         try:
             from bs4 import BeautifulSoup
         except Exception as e:
             Logger.warn(
-                f"{self._log_prefix}: BeautifulSoup unavailable for Tampa Funny Bone fallback: {e}",
+                f"{self._log_prefix}: BeautifulSoup unavailable for Funny Bone fallback: {e}",
                 self.logger_context,
             )
             return []
@@ -519,16 +531,16 @@ class EtixScraper(BaseScraper):
 
             if "rhp-event__single-series--list" in classes:
                 events.extend(
-                    self._tampa_funny_bone_series_events(node, current_year, seen)
+                    self._funny_bone_series_events(node, current_year, seen)
                 )
             else:
-                event = self._tampa_funny_bone_single_event(node, current_year, seen)
+                event = self._funny_bone_single_event(node, current_year, seen)
                 if event is not None:
                     events.append(event)
 
         return events
 
-    def _tampa_funny_bone_single_event(
+    def _funny_bone_single_event(
         self, wrapper, year: int, seen: set
     ) -> Optional[EtixEvent]:
         title_el = wrapper.select_one(
@@ -546,7 +558,7 @@ class EtixScraper(BaseScraper):
         ticket_url = ticket_a.get("href", "")
         date_text = date_el.get_text(" ", strip=True)
         time_text = time_el.get_text(" ", strip=True) if time_el else ""
-        iso_dt = self._tampa_funny_bone_iso_datetime(date_text, time_text, year)
+        iso_dt = self._funny_bone_iso_datetime(date_text, time_text, year)
         if iso_dt is None:
             return None
 
@@ -563,7 +575,7 @@ class EtixScraper(BaseScraper):
             event_url=event_url,
         )
 
-    def _tampa_funny_bone_series_events(
+    def _funny_bone_series_events(
         self, wrapper, year: int, seen: set
     ) -> List[EtixEvent]:
         title_el = wrapper.select_one(
@@ -584,7 +596,7 @@ class EtixScraper(BaseScraper):
                 continue
             date_text = date_el.get_text(" ", strip=True)
             time_text = time_el.get_text(" ", strip=True) if time_el else ""
-            iso_dt = self._tampa_funny_bone_iso_datetime(date_text, time_text, year)
+            iso_dt = self._funny_bone_iso_datetime(date_text, time_text, year)
             if iso_dt is None:
                 continue
             ticket_url = ticket_a.get("href", "")
@@ -604,7 +616,7 @@ class EtixScraper(BaseScraper):
         return results
 
     @staticmethod
-    def _tampa_funny_bone_iso_datetime(
+    def _funny_bone_iso_datetime(
         date_text: str, time_text: str, year: int
     ) -> Optional[str]:
         """Build an ISO 8601 datetime from "May 07" / "Doors: ... // Show: 7 pm"."""

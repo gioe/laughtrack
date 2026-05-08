@@ -187,4 +187,4 @@ def test_tampa_funny_bone_fallback_only_triggers_for_venue_31600():
     scraper = EtixScraper(other)
 
     other_etix = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=12345&orderBy=1&pageNumber=1"
-    assert not scraper._uses_tampa_funny_bone_fallback(other_etix)
+    assert not scraper._uses_funny_bone_fallback(other_etix)
