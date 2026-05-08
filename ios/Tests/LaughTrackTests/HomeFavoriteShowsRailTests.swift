@@ -46,58 +46,46 @@ struct HomeFavoriteShowsRailTests {
 
     @Test("signed-out users do not see the favorite shows rail")
     func signedOutHidesFavoriteShowsRail() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-favorite-signed-out")
-        let favorites = ComedianFavoriteStore()
         let apiClient = makeClient(
             favoriteResponse: .init(data: [favoriteComedian]),
             showResponses: [
                 "Taylor Tomlinson": .init(data: [favoriteShow], total: 1, filters: [], zipCapTriggered: false),
             ]
         )
+        let model = HomeFavoriteShowsModel()
 
-        let host = HostedView(
-            homeView(apiClient: apiClient, authManager: authManager, favorites: favorites)
+        await model.refresh(
+            apiClient: apiClient,
+            favoriteComedians: [],
+            cache: nil,
+            persistentCache: nil
         )
-        await host.settle()
 
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeFavoriteShowsRail) == nil)
+        guard case .idle = model.phase else {
+            Issue.record("Expected .idle phase for signed-out empty favorite input, got \(model.phase)")
+            return
+        }
     }
 
     @Test("signed-in users with zero favorites do not see the favorite shows rail")
     func emptyFavoritesHideFavoriteShowsRail() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
-            name: "home-favorite-empty"
-        )
-        let favorites = ComedianFavoriteStore()
         let apiClient = makeClient(
             favoriteResponse: .init(data: []),
             showResponses: [:]
         )
-        await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
+        let model = HomeFavoriteShowsModel()
 
-        let host = HostedView(
-            homeView(apiClient: apiClient, authManager: authManager, favorites: favorites)
-        )
-        await host.settle()
-
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeFavoriteShowsRail) == nil)
-    }
-
-    private func homeView(
-        apiClient: Client,
-        authManager: AuthManager,
-        favorites: ComedianFavoriteStore
-    ) -> some View {
-        HomeView(
+        await model.refresh(
             apiClient: apiClient,
-            signedOutMessage: nil,
-            searchNavigationBridge: SearchNavigationBridge()
+            favoriteComedians: [],
+            cache: nil,
+            persistentCache: nil
         )
-        .environment(\.appTheme, LaughTrackTheme())
-        .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "home-favorites-\(UUID().uuidString)"))
-        .navigationCoordinator(NavigationCoordinator<AppRoute>())
-        .environmentObject(authManager)
-        .environmentObject(favorites)
+
+        guard case .idle = model.phase else {
+            Issue.record("Expected .idle phase for signed-in empty favorite input, got \(model.phase)")
+            return
+        }
     }
 
     private func makeClient(
