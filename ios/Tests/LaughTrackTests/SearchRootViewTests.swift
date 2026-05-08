@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 import Testing
 import Combine
 import LaughTrackAPIClient
@@ -6,75 +6,76 @@ import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
 
-#if canImport(UIKit)
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
-    @Test("search root uses one search field and keeps primitive filters out of the content card")
-    func searchRootOmitsMarketingHeader() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let favorites = ComedianFavoriteStore()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "search-root-default")
-        let store = container.resolve(NearbyPreferenceStore.self)
-        let host = HostedView(
-            SearchRootView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                favorites: favorites,
-                coordinator: coordinator,
-                searchNavigationBridge: SearchNavigationBridge(),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store)
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
+    @Test("search root model keeps unified search state out of primitive model defaults")
+    func searchRootModelUsesUnifiedSearchState() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            initialUseDateRange: false
+        )
+        let comediansModel = ComediansDiscoveryModel()
+        let clubsModel = ClubsDiscoveryModel()
+
+        #expect(model.activePivot == .shows)
+        #expect(model.query == "")
+        #expect(model.selectedShortcut == "Near Me")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
+        #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
+        #expect(!showsModel.useDateRange)
+
+        model.query = "Comedy Cellar"
+        model.activePivot = .clubs
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
         )
 
-        #expect(host.findText("Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.") == nil)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.searchHeader)
-        try host.requireText("Search")
-        #expect(host.findText("Shows") == nil)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
-        #expect(host.findText("Near Me") == nil)
-        #expect(host.findText("Tonight") == nil)
-        #expect(host.findText("This Week") == nil)
-        try host.requireText("10 mi")
-        try host.requireText("25 mi")
-        try host.requireText("50 mi")
-        try host.requireText("100 mi")
-
-        #expect(host.findText("Tune the search") == nil)
-        #expect(host.findText("Keep location, sort, and dates in reach.") == nil)
-        #expect(host.findText("Keep filters close and results dense.") == nil)
+        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(comediansModel.searchText == "")
+        #expect(showsModel.comedianSearchText == "")
     }
 
-    @Test("inactive search root does not start discovery loads")
-    func inactiveSearchRootDoesNotStartDiscoveryLoads() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let favorites = ComedianFavoriteStore()
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "search-root-inactive")
-        let store = container.resolve(NearbyPreferenceStore.self)
+    @Test("shows search reload debounces typed root queries before issuing transport calls")
+    func showsSearchReloadDebouncesTypedRootQuery() async throws {
         let transport = StubClientTransport.alwaysFails()
         let apiClient = Client(
             serverURL: URL(string: "https://example.com")!,
             transport: transport
         )
-        let host = HostedView(
-            SearchRootView(
-                apiClient: apiClient,
-                favorites: favorites,
-                coordinator: coordinator,
-                searchNavigationBridge: SearchNavigationBridge(),
-                nearbyLocationController: LaughTrackHostedViewTestSupport.makeNearbyLocationController(store: store),
-                isActive: false
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            ),
+            initialUseDateRange: false
         )
-        await host.settle()
 
+        model.query = "Atsuko"
+        model.applyQuery(to: showsModel)
+        let reloadTask = Task {
+            await showsModel.reload(apiClient: apiClient)
+        }
+
+        try await Task.sleep(for: .milliseconds(100))
         #expect(transport.capturedRequests.isEmpty)
+
+        await reloadTask.value
+
+        let request = try #require(transport.capturedRequests.last)
+        #expect(request.operationID == "searchShows")
+        #expect(searchRootQueryValue("comedian", from: request.path) == "Atsuko")
     }
 }
-#endif
 
 @Suite("Search root model")
 @MainActor
@@ -485,4 +486,9 @@ private final class MockSearchNearbyLocationResolver: NearbyLocationResolving {
     func requestCurrentZip() async throws -> String {
         try result.get()
     }
+}
+
+private func searchRootQueryValue(_ name: String, from path: String?) -> String? {
+    guard let path, let components = URLComponents(string: "https://test.example.com\(path)") else { return nil }
+    return components.queryItems?.first(where: { $0.name == name })?.value
 }
