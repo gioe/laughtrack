@@ -26,11 +26,19 @@ from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 
 CALENDAR_URL = "https://www.hahacomedyclub.com/calendar"
+IMPROV_ASYLUM_TIXR_URL = "https://www.tixr.com/groups/improvasylum"
 
 
 def _club(scraping_url: str = CALENDAR_URL) -> Club:
     _c = Club(id=999, name='Test Tixr Venue', address='123 Main St', website='https://example.com', popularity=0, zip_code='90001', phone_number='', visible=True, timezone='America/Los_Angeles')
     _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=scraping_url, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _improv_asylum_club() -> Club:
+    _c = Club(id=141, name='Improv Asylum', address='216 Hanover St', website='https://improvasylum.com', popularity=0, zip_code='02113', phone_number='', visible=True, timezone='America/New_York')
+    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tixr', scraper_key='tixr', source_url=IMPROV_ASYLUM_TIXR_URL, external_id=None)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -97,6 +105,39 @@ def _calendar_html_with_more_shows(next_href: str, event_ids: list[str]) -> str:
     <a class="btn btn-outline-light loading-btn" href="{next_href}">More Shows</a>
     </body></html>
     """
+
+
+def _improv_asylum_pixl_response() -> dict:
+    return {
+        "events": [
+            {
+                "id": "d3b148b6-0c3c-4f11-86fa-ef5c6a24c800",
+                "title": "Improv Asylum&#39;s Main Stage Show",
+                "description": "Fast-paced improv",
+                "start": "2026-05-08T23:00:00.000Z",
+                "end": "2026-05-09T00:30:00.000Z",
+                "price": 30,
+                "venue": "Improv Asylum",
+                "ticketUrl": "https://www.tixr.com/groups/improvasylum/events/improv-asylum-s-main-stage-show-169028",
+                "status": "available",
+                "timezone": "America/New_York",
+                "sales": [
+                    {
+                        "id": 1852654,
+                        "name": "General Admission",
+                        "currentPrice": 33.54,
+                        "state": "OPEN",
+                    },
+                    {
+                        "id": 1852658,
+                        "name": "Premium",
+                        "currentPrice": 37.18,
+                        "state": "OPEN",
+                    },
+                ],
+            }
+        ]
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -416,6 +457,38 @@ async def test_get_data_returns_none_when_no_tixr_urls(monkeypatch):
 
     result = await scraper.get_data(CALENDAR_URL)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_is_blocked(monkeypatch):
+    """Improv Asylum falls back to the venue-owned Pixl API when the Tixr group page has no event links."""
+    scraper = TixrScraper(_improv_asylum_club())
+
+    async def fake_fetch_calendar_html(url):
+        return "<html><title>tixr.com</title><body>DataDome challenge</body></html>"
+
+    async def fake_fetch_json(url, **kwargs):
+        assert url == "https://calendar.improvasylum.com/api/events/improv-asylum"
+        return _improv_asylum_pixl_response()
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data(IMPROV_ASYLUM_TIXR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    event = result.event_list[0]
+    assert event.title == "Improv Asylum's Main Stage Show"
+    assert event.event_id == "169028"
+    assert event.show.date.isoformat() == "2026-05-08T19:00:00-04:00"
+    assert event.show.show_page_url == (
+        "https://www.tixr.com/groups/improvasylum/events/improv-asylum-s-main-stage-show-169028"
+    )
+    assert [ticket.type for ticket in event.show.tickets] == ["General Admission", "Premium"]
+    assert [ticket.price for ticket in event.show.tickets] == [33.54, 37.18]
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 
 @pytest.mark.asyncio

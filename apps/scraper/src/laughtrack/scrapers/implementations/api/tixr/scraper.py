@@ -17,7 +17,8 @@ Pipeline:
 """
 
 from datetime import datetime
-from typing import List, Optional
+import html
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import pytz
@@ -41,6 +42,7 @@ from .data import TixrPageData
 
 _MAX_DISCOVERY_PAGES = 12
 _HOUSE_OF_COMEDY_BLOOMINGTON_HOST = "moa.houseofcomedy.net"
+_IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
 _MAX_YEAR_ROLLOVER_DAYS = 180
@@ -140,6 +142,15 @@ class TixrScraper(BaseScraper):
             all_tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
 
             if not all_tixr_urls:
+                fallback_events = await self._fetch_improv_asylum_pixl_events(url)
+                if fallback_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Improv Asylum Pixl Calendar "
+                        "fallback after Tixr group-page extraction returned no URLs",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=fallback_events)
+
                 Logger.warn(
                     f"{self._log_prefix}: page fetch succeeded (html_len={len(html_content)}) "
                     f"but no Tixr URLs were extracted from {url} — either a bot-block "
@@ -213,6 +224,133 @@ class TixrScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
+            return None
+
+    async def _fetch_improv_asylum_pixl_events(self, url: str) -> List[TixrEvent]:
+        """
+        Fetch Improv Asylum events from its venue-owned Pixl Calendar API.
+
+        The active DB source still points at the Tixr group page, which is
+        DataDome-blocked in automation. The public Improv Asylum site links to
+        calendar.improvasylum.com, whose API exposes complete event/ticket data.
+        """
+        if not self._is_improv_asylum_tixr_source(url):
+            return []
+
+        data = await self.fetch_json(_IMPROV_ASYLUM_PIXL_EVENTS_URL)
+        if not isinstance(data, dict):
+            return []
+
+        return self._parse_pixl_calendar_events(data)
+
+    def _is_improv_asylum_tixr_source(self, url: str) -> bool:
+        normalized = URLUtils.normalize_url(url).lower()
+        return (
+            self.club.id == 141
+            or self.club.name.strip().lower() == "improv asylum"
+        ) and "tixr.com/groups/improvasylum" in normalized
+
+    def _parse_pixl_calendar_events(self, data: Dict[str, Any]) -> List[TixrEvent]:
+        events = data.get("events")
+        if not isinstance(events, list):
+            return []
+
+        parsed: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+
+            tixr_event = self._build_pixl_tixr_event(event)
+            if tixr_event is None:
+                continue
+
+            if tixr_event.event_id and tixr_event.event_id in seen_ids:
+                continue
+            if tixr_event.event_id:
+                seen_ids.add(tixr_event.event_id)
+
+            parsed.append(tixr_event)
+
+        return parsed
+
+    def _build_pixl_tixr_event(self, event: Dict[str, Any]) -> Optional[TixrEvent]:
+        title = html.unescape(str(event.get("title") or "").strip())
+        start_str = str(event.get("start") or "").strip()
+        ticket_url = str(event.get("ticketUrl") or "").strip()
+        if not title or not start_str or not ticket_url:
+            return None
+
+        timezone_name = str(event.get("timezone") or self.club.timezone or "America/New_York")
+        try:
+            date = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
+            local_tz = pytz.timezone(timezone_name)
+            date = date.astimezone(local_tz)
+        except Exception as exc:
+            Logger.warn(
+                f"{self._log_prefix}: Skipping Pixl event '{title}' with unparseable start {start_str!r}: {exc}",
+                self.logger_context,
+            )
+            return None
+
+        raw_desc = event.get("description")
+        description = html.unescape(str(raw_desc)) if raw_desc else None
+        tickets = self._build_pixl_tickets(event, ticket_url)
+        event_id = TixrExtractor.get_event_id(ticket_url) or ""
+
+        show = Show(
+            name=title,
+            club_id=self.club.id,
+            date=date,
+            show_page_url=ticket_url,
+            lineup=[],
+            tickets=tickets,
+            supplied_tags=["event"],
+            description=description,
+            timezone=timezone_name,
+            room=str(event.get("venue") or ""),
+        )
+        return TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id)
+
+    def _build_pixl_tickets(self, event: Dict[str, Any], ticket_url: str) -> List[Ticket]:
+        tickets: List[Ticket] = []
+        sales = event.get("sales")
+        if isinstance(sales, list):
+            for sale in sales:
+                if not isinstance(sale, dict):
+                    continue
+                price = self._parse_price(sale.get("currentPrice"))
+                ticket_type = str(sale.get("name") or "General Admission")
+                state = str(sale.get("state") or "OPEN").upper()
+                tickets.append(
+                    Ticket(
+                        price=price,
+                        purchase_url=ticket_url,
+                        sold_out=state != "OPEN",
+                        type=ticket_type,
+                    )
+                )
+
+        if tickets:
+            return tickets
+
+        status = str(event.get("status") or "available").lower()
+        return [
+            Ticket(
+                price=self._parse_price(event.get("price")),
+                purchase_url=ticket_url,
+                sold_out=status not in ("available", "open"),
+                type="General Admission",
+            )
+        ]
+
+    @staticmethod
+    def _parse_price(value: Any) -> Optional[float]:
+        if value in (None, ""):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
             return None
 
     def _parse_public_calendar_events(self, html_content: str, url: str) -> List[TixrEvent]:
