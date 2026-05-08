@@ -21,7 +21,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
-from laughtrack.scrapers.implementations.api.tixr.scraper import TixrScraper
+from laughtrack.scrapers.implementations.api.tixr.scraper import TixrPublicCardScraper, TixrScraper
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 
@@ -143,6 +143,12 @@ def _improv_asylum_pixl_response() -> dict:
 # ---------------------------------------------------------------------------
 # TixrExtractor unit tests
 # ---------------------------------------------------------------------------
+
+
+def test_tixr_scraper_keys_are_distinct():
+    """Detail-page and venue-owned public-card Tixr paths are queryable separately."""
+    assert TixrScraper.key == "tixr"
+    assert TixrPublicCardScraper.key == "tixr_public_card"
 
 
 def test_extractor_finds_short_form_urls():

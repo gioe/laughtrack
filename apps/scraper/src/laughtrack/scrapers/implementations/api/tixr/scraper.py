@@ -41,8 +41,6 @@ from .extractor import TixrExtractor
 from .data import TixrPageData
 
 _MAX_DISCOVERY_PAGES = 12
-_HOUSE_OF_COMEDY_BLOOMINGTON_HOST = "moa.houseofcomedy.net"
-_ST_MARKS_COMEDY_HOST = "www.stmarkscomedyclub.com"
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
@@ -191,15 +189,6 @@ class TixrScraper(BaseScraper):
             if not tixr_urls:
                 Logger.info(f"{self._log_prefix}: No processable Tixr URLs after filtering on {url}", self.logger_context)
                 return None
-
-            fallback_events = self._parse_public_calendar_events(html_content, url)
-            if fallback_events:
-                Logger.info(
-                    f"{self._log_prefix}: Parsed {len(fallback_events)} events from venue-owned public cards on {url}; "
-                    "skipping blocked Tixr detail fetches",
-                    self.logger_context,
-                )
-                return TixrPageData(event_list=fallback_events)
 
             Logger.info(f"{self._log_prefix}: Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
 
@@ -354,14 +343,8 @@ class TixrScraper(BaseScraper):
         except (TypeError, ValueError):
             return None
 
-    def _parse_public_calendar_events(self, html_content: str, url: str) -> List[TixrEvent]:
-        """Parse venue-owned Webflow cards when Tixr detail pages are blocked."""
-        if urlparse(URLUtils.normalize_url(url)).netloc.lower() not in {
-            _HOUSE_OF_COMEDY_BLOOMINGTON_HOST,
-            _ST_MARKS_COMEDY_HOST,
-        }:
-            return []
-
+    def _parse_public_calendar_events(self, html_content: str) -> List[TixrEvent]:
+        """Parse venue-owned Webflow cards that carry complete event data."""
         soup = BeautifulSoup(html_content, "html.parser")
         events: List[TixrEvent] = []
         seen_ids: set[str] = set()
@@ -477,3 +460,57 @@ class TixrScraper(BaseScraper):
                 return None
             candidate = next_year
         return candidate
+
+
+class TixrPublicCardScraper(TixrScraper):
+    """
+    Scraper for venue-owned public calendar cards that link to Tixr tickets.
+
+    Unlike ``TixrScraper``, this key never fetches Tixr-hosted event detail
+    pages. It is for venue pages whose cards already expose title, date/time,
+    and ticket URL, making Tixr only the ticket URL provider.
+    """
+
+    key = "tixr_public_card"
+
+    async def get_data(self, url: str) -> Optional[TixrPageData]:
+        normalized_url = URLUtils.normalize_url(str(url))
+        try:
+            parsed = urlparse(normalized_url)
+            if "tixr.com" in parsed.netloc.lower():
+                Logger.warn(
+                    f"{self._log_prefix}: tixr_public_card requires a venue-owned source URL, got {normalized_url}",
+                    self.logger_context,
+                )
+                return None
+
+            html_content = await self.fetch_html(normalized_url)
+            if not html_content:
+                Logger.info(
+                    f"{self._log_prefix}: No HTML content returned from public-card source {normalized_url}",
+                    self.logger_context,
+                )
+                return None
+
+            events = self._parse_public_calendar_events(html_content)
+            if not events:
+                tixr_url_count = len(TixrExtractor.extract_tixr_urls(html_content))
+                Logger.warn(
+                    f"{self._log_prefix}: Found {tixr_url_count} Tixr URL(s) but no parseable "
+                    f"venue-owned public cards at {normalized_url}",
+                    self.logger_context,
+                )
+                return None
+
+            Logger.info(
+                f"{self._log_prefix}: Parsed {len(events)} events from venue-owned public cards on {normalized_url}; "
+                "Tixr detail pages were not fetched",
+                self.logger_context,
+            )
+            return TixrPageData(event_list=events)
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: Error extracting public-card data from {normalized_url}: {str(e)}",
+                self.logger_context,
+            )
+            return None
