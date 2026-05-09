@@ -183,6 +183,33 @@ async def test_get_data_filters_foreign_group_cards(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_deduplicates_cards_with_identical_ticket_url(monkeypatch):
+    scraper = TixrWebflowDayCardScraper(_bc_club())
+
+    duplicated = f"""<html><body>
+<a class="day-card w-inline-block" href="{_BC_EVENT_URL}" target="_blank">
+  <div class="event-name show">Rell Battle</div>
+  <p class="event-name spaced">East Village</p>
+  <div class="date"><p class="b-venue">May 7, 2026</p><p class="b-venue">7:30 pm</p></div>
+</a>
+<a class="day-card w-inline-block" href="{_BC_EVENT_URL}" target="_blank">
+  <div class="event-name show">Rell Battle Duplicate</div>
+  <div class="date"><p class="b-venue">May 7, 2026</p><p class="b-venue">7:30 pm</p></div>
+</a>
+</body></html>"""
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return duplicated
+
+    monkeypatch.setattr(TixrWebflowDayCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(_BC_SOURCE_URL)
+
+    assert isinstance(result, WebflowDayCardPageData)
+    assert len(result.event_list) == 1
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_when_no_event_cards(monkeypatch):
     scraper = TixrWebflowDayCardScraper(_bc_club())
 

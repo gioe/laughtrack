@@ -358,19 +358,21 @@ The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup =
 
 **Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (Comic Strip Edmonton, House of Comedy BC, ...).
 
-**DB setup:**
+**DB setup — fresh onboarding (no prior scraping_sources row):**
 ```sql
-UPDATE scraping_sources
-SET
-    scraper_key = 'tixr_webflow_day_card',
-    source_url = 'https://<venue-webflow-homepage>/',
-    metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object(
-        'tixr_group_fragment', 'tixr.com/groups/<group-slug>/events/'
-    )
-WHERE club_id = <id>
-  AND platform = 'custom'::"ScrapingPlatform"
-  AND priority = 0;
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, enabled, priority, metadata)
+VALUES (
+    <id>,
+    'custom',
+    'tixr_webflow_day_card',
+    'https://<venue-webflow-homepage>/',
+    TRUE,
+    0,
+    jsonb_build_object('tixr_group_fragment', 'tixr.com/groups/<group-slug>/events/')
+);
 ```
+
+**DB setup — folding an existing per-venue wrapper onto the generic key:** match by the legacy `scraper_key` (not by `priority`, which would also pick up other platforms' rows). See `migrations/20260509161000_fold_webflow_day_card_venues_into_generic/migration.sql` for a worked example covering The Comic Strip Edmonton and House of Comedy BC.
 
 **When NOT to use it:** If the venue's calendar page exposes JSON-LD `Event` blocks with the start time in adjacent visible HTML (e.g. `<div class="month day time">`), keep a custom scraper — `haha_comedy_club` is the canonical example. The day-card extractor relies on `a.day-card` markup; venues that don't follow that exact card structure won't match.
 
