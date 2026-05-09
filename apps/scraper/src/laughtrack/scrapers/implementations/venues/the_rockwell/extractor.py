@@ -1,13 +1,11 @@
 """The Rockwell event extraction from Tribe Events REST API response."""
 
-import re
 from html import unescape
 from typing import Any, Dict, List
 
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
-
 from laughtrack.core.entities.event.rockwell import RockwellEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 
 class RockwellEventExtractor:
@@ -43,5 +41,5 @@ class RockwellEventExtractor:
             url=raw.get("url", ""),
             cost=raw.get("cost", ""),
             cost_values=[str(v) for v in cost_values],
-            description=unescape(_HTML_TAG_RE.sub("", raw.get("description", ""))).strip(),
+            description=HtmlUtils.strip_tags(raw.get("description", "")),
         )

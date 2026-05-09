@@ -95,6 +95,21 @@ def test_normalize_decodes_entities():
     )
 
 
+def test_normalize_dr_grins_body_shape():
+    # Regression: the dr_grins extractor concatenates multiple <span>/<div>/<p>
+    # blocks that contain entities and \xa0 padding. The previous local helper
+    # produced a single space-separated string; preserve that contract here.
+    body = (
+        "<div>Sat, Jan 18 &nbsp; 7:30pm</div>"
+        "<span class=\"bold\">9:30pm</span>"
+        "<p>Headliner&nbsp;&amp;&nbsp;guests</p>"
+    )
+    assert (
+        HtmlUtils.strip_tags(body, normalize_whitespace=True)
+        == "Sat, Jan 18 7:30pm 9:30pm Headliner & guests"
+    )
+
+
 # ---------------------------------------------------------------------------
 # None / empty inputs
 # ---------------------------------------------------------------------------

@@ -1,6 +1,5 @@
 """Data model for a single event from a Squarespace-powered venue."""
 
-import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
@@ -9,9 +8,8 @@ from zoneinfo import ZoneInfo
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
-
-_HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 
 @dataclass
@@ -57,7 +55,7 @@ class SquarespaceEvent(ShowConvertible):
 
         show_page_url = url or (self.base_domain.rstrip("/") + self.full_url)
 
-        description = _HTML_TAG_RE.sub("", self.excerpt).strip() or None
+        description = HtmlUtils.strip_tags(self.excerpt) or None
 
         ticket_purchase_url = self.ticketing_url or show_page_url
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_purchase_url)]
