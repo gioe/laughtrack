@@ -1,11 +1,11 @@
 """HTML extraction for Kellar's: Modern Magic and Comedy Club listing pages."""
 
 import re
-from html import unescape
 from typing import List
 
 from laughtrack.core.entities.event.kellars import KellarsEvent, parse_date_range
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 # Regex to match each event card: <a href="..." class="event-item">...</a>
 _CARD_RE = re.compile(
@@ -23,11 +23,6 @@ _TIME_RE = re.compile(
     r'class="small-header event-time">(.*?)</p>', re.DOTALL
 )
 _PRICE_RE = re.compile(r'class="event-price">(.*?)</p>', re.DOTALL)
-
-
-def _strip_tags(text: str) -> str:
-    """Remove all HTML tags from *text* and decode HTML entities."""
-    return unescape(re.sub(r"<[^>]+>", "", text)).strip()
 
 
 class KellarsExtractor:
@@ -64,11 +59,11 @@ class KellarsExtractor:
                 )
                 continue
 
-            title = _strip_tags(title_m.group(1))
-            date_str = _strip_tags(date_m.group(1))
-            time_str = _strip_tags(time_m.group(1)) if time_m else ""
-            price_str = _strip_tags(price_m.group(1)) if price_m else ""
-            subtitle = _strip_tags(subtitle_m.group(1)) if subtitle_m else ""
+            title = HtmlUtils.strip_tags(title_m.group(1))
+            date_str = HtmlUtils.strip_tags(date_m.group(1))
+            time_str = HtmlUtils.strip_tags(time_m.group(1)) if time_m else ""
+            price_str = HtmlUtils.strip_tags(price_m.group(1)) if price_m else ""
+            subtitle = HtmlUtils.strip_tags(subtitle_m.group(1)) if subtitle_m else ""
 
             if not title or not date_str:
                 continue

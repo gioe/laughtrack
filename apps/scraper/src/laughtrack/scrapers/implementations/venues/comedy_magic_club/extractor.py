@@ -1,11 +1,11 @@
 """HTML extraction for The Comedy & Magic Club listing pages."""
 
 import re
-from html import unescape
 from typing import List, Optional
 
 from laughtrack.core.entities.event.comedy_magic_club import ComedyMagicClubEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 # Each event card begins immediately after this comment in the HTML.
 _CARD_SPLIT = "<!-- Event List Wrapper -->"
@@ -26,11 +26,6 @@ _TICKET_RE = re.compile(
 _PAGE_RE = re.compile(
     r'events/page/(\d+)/', re.IGNORECASE
 )
-
-
-def _strip_tags(text: str) -> str:
-    """Remove all HTML tags from *text* and decode HTML entities."""
-    return unescape(re.sub(r"<[^>]+>", "", text)).strip()
 
 
 class ComedyMagicClubExtractor:
@@ -83,9 +78,9 @@ class ComedyMagicClubExtractor:
             )
             return None
 
-        title = _strip_tags(title_m.group(1))
-        date_str = _strip_tags(date_m.group(1))
-        time_str = _strip_tags(time_m.group(1)) if time_m else ""
+        title = HtmlUtils.strip_tags(title_m.group(1))
+        date_str = HtmlUtils.strip_tags(date_m.group(1))
+        time_str = HtmlUtils.strip_tags(time_m.group(1)) if time_m else ""
         ticket_url = ticket_m.group(1)
 
         if not title or not date_str or not ticket_url:

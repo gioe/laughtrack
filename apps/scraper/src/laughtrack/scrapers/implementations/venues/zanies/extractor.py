@@ -11,20 +11,11 @@ Two page types are handled:
 """
 
 import re
-from html import unescape
 from typing import List, Optional
 
 from laughtrack.core.entities.event.zanies import ZaniesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-
-
-# ---------------------------------------------------------------------------
-# Shared helpers
-# ---------------------------------------------------------------------------
-
-def _strip_tags(text: str) -> str:
-    """Remove all HTML tags from *text* and decode HTML entities."""
-    return unescape(re.sub(r"<[^>]+>", "", text)).strip()
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +94,7 @@ class ZaniesExtractor:
             Logger.debug("ZaniesExtractor: no <h1> found on series page")
             return []
 
-        raw_title = _strip_tags(title_m.group(1))
+        raw_title = HtmlUtils.strip_tags(title_m.group(1))
         title = _YEAR_PREFIX_RE.sub("", raw_title).strip()
         if not title:
             return []
@@ -140,8 +131,8 @@ class ZaniesExtractor:
             )
             return []
 
-        title = _strip_tags(title_m.group(1))
-        date_str = _strip_tags(date_m.group(1))
+        title = HtmlUtils.strip_tags(title_m.group(1))
+        date_str = HtmlUtils.strip_tags(date_m.group(1))
         time_str = time_m.group(0).strip() if time_m else ""
         ticket_url = ticket_m.group(1)
 
@@ -170,8 +161,8 @@ class ZaniesExtractor:
             )
             return None
 
-        date_str = _strip_tags(date_m.group(1))
-        time_str = _strip_tags(time_m.group(1)) if time_m else ""
+        date_str = HtmlUtils.strip_tags(date_m.group(1))
+        time_str = HtmlUtils.strip_tags(time_m.group(1)) if time_m else ""
         ticket_url = ticket_m.group(1)
 
         if not date_str or not ticket_url:
