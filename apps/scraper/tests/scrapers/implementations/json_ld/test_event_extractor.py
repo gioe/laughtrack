@@ -101,6 +101,61 @@ def test_extract_events_handles_graph_and_list_type_and_dedup():
     assert ev.location.name == "Graph Venue"
 
 
+def test_extract_event_field_values_reads_same_as_from_graph_events():
+    graph = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Event",
+                "name": "First",
+                "startDate": "2099-01-01T20:00:00-05:00",
+                "url": "https://tickets.example.com/first",
+                "sameAs": "https://venue.example.com/comic/first",
+                "location": {"name": "Venue", "address": "1 Main"},
+            },
+            {
+                "@type": "ComedyEvent",
+                "name": "Second",
+                "startDate": "2099-01-02T20:00:00-05:00",
+                "url": "https://tickets.example.com/second",
+                "sameAs": [
+                    "https://venue.example.com/comic/second",
+                    "https://venue.example.com/comic/first",
+                ],
+                "location": {"name": "Venue", "address": "1 Main"},
+            },
+            {"@type": "Organization", "sameAs": "https://ignore.example.com"},
+        ],
+    }
+
+    urls = EventExtractor.extract_event_field_values(_wrap_ldjson(graph), "sameAs")
+
+    assert urls == {
+        "https://venue.example.com/comic/first",
+        "https://venue.example.com/comic/second",
+    }
+
+
+def test_extract_events_can_override_same_as_for_detail_page_events():
+    event = {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": "Detail Showtime",
+        "startDate": "2099-01-01T20:00:00-05:00",
+        "url": "https://ticketweb.com/detail-showtime",
+        "location": {"name": "Venue", "address": "1 Main"},
+    }
+
+    events = EventExtractor.extract_events(
+        _wrap_ldjson(event),
+        same_as_override="https://venue.example.com/comic/detail",
+    )
+
+    assert len(events) == 1
+    assert events[0].url == "https://ticketweb.com/detail-showtime"
+    assert events[0].same_as == "https://venue.example.com/comic/detail"
+
+
 def test_extract_events_handles_offers_list_and_top_level_url():
     obj = {
         "@type": "Event",

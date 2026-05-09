@@ -14,7 +14,7 @@ Clean single-responsibility architecture:
 - JsonLdScraper: Orchestrates extraction and transformation
 """
 
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -47,6 +47,59 @@ class JsonLdScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(JsonLdTransformer(club))
 
+    async def scrape_async(self) -> list[Show]:
+        """Scrape either a single JSON-LD page or metadata-configured detail pages."""
+        detail_fetch = self._detail_fetch_config()
+        if not detail_fetch:
+            return await super().scrape_async()
+
+        try:
+            from .extractor import EventExtractor
+
+            calendar_url = URLUtils.normalize_url(self.club.scraping_url)
+            url_field = str(detail_fetch.get("url_field") or "sameAs")
+
+            Logger.info(
+                f"{self._log_prefix}: Fetching JSON-LD index page for detail URLs: {calendar_url}",
+                self.logger_context,
+            )
+            calendar_html = await self.fetch_html(calendar_url)
+            if not calendar_html:
+                Logger.warn(
+                    f"{self._log_prefix}: Empty response from JSON-LD index page: {calendar_url}",
+                    self.logger_context,
+                )
+                return []
+
+            detail_urls = EventExtractor.extract_event_field_values(calendar_html, url_field)
+            if not detail_urls:
+                Logger.warn(
+                    f"{self._log_prefix}: No JSON-LD detail URLs found via field '{url_field}' on {calendar_url}",
+                    self.logger_context,
+                )
+                return []
+
+            targets = sorted(detail_urls)
+            Logger.info(
+                f"{self._log_prefix}: Found {len(targets)} JSON-LD detail pages to process",
+                self.logger_context,
+            )
+
+            raw_data_results = await self._fetch_all_raw_data(targets)
+            all_shows = self._transform_all_raw_data(raw_data_results)
+
+            Logger.info(
+                f"{self._log_prefix}: Scraped {len(all_shows)} total shows from {len(targets)} detail pages",
+                self.logger_context,
+            )
+            return all_shows
+
+        except Exception as e:
+            Logger.error(f"{self._log_prefix}: Scraping failed: {e}", self.logger_context)
+            raise
+        finally:
+            await self._cleanup_resources()
+
     async def get_data(self, url: str) -> Optional["JsonLdPageData"]:
         """
         Extract JSON-LD data from a webpage using standardized fetch methods.
@@ -70,8 +123,18 @@ class JsonLdScraper(BaseScraper):
             normalized_url = URLUtils.normalize_url(url)
             html_content = await self.fetch_html(normalized_url)
 
+            detail_fetch = self._detail_fetch_config()
+            same_as_override = (
+                normalized_url
+                if detail_fetch and detail_fetch.get("set_same_as_to_detail_url")
+                else None
+            )
+
             # Parse HTML and extract JSON-LD (events only)
-            event_list = EventExtractor.extract_events(html_content)
+            event_list = EventExtractor.extract_events(
+                html_content,
+                same_as_override=same_as_override,
+            )
 
             if not event_list:
                 if html_content:
@@ -101,3 +164,11 @@ class JsonLdScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
+
+    def _detail_fetch_config(self) -> Optional[dict[str, Any]]:
+        raw = (self.club.source_metadata or {}).get("detail_fetch")
+        if not isinstance(raw, dict):
+            return None
+        if raw.get("enabled") is False:
+            return None
+        return raw

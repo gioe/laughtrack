@@ -1,6 +1,6 @@
 """JSON-LD data extraction utilities."""
 
-from typing import List
+from typing import Any, List, Set
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.json.utils import JSONUtils
@@ -12,7 +12,11 @@ class EventExtractor:
     """Utility class for extracting JSON-LD event dictionaries from HTML content."""
 
     @staticmethod
-    def extract_events(html_content: str) -> List[JsonLdEvent]:
+    def extract_events(
+        html_content: str,
+        *,
+        same_as_override: str | None = None,
+    ) -> List[JsonLdEvent]:
         """
         Extract JSON-LD data from HTML content.
 
@@ -35,7 +39,46 @@ class EventExtractor:
             return []
 
         # For non-event-only extraction, return all JSON-LD objects that look like events
-        return EventExtractor._extract_events_from_data(json_objects)
+        return EventExtractor._extract_events_from_data(
+            json_objects,
+            same_as_override=same_as_override,
+        )
+
+    @staticmethod
+    def extract_event_field_values(html_content: str, field_path: str) -> Set[str]:
+        """Extract string values from a JSON-LD field on Event objects.
+
+        ``field_path`` supports dotted lookup for nested dictionaries. If the
+        resolved value is a list, string members are returned.
+        """
+        script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
+        if not script_contents:
+            return set()
+
+        json_objects = JSONUtils.parse_json_ld_contents(script_contents)
+        if not json_objects:
+            return set()
+
+        values: Set[str] = set()
+        for item in json_objects:
+            for event in EventExtractor._extract_events_recursively(item):
+                for value in EventExtractor._field_values(event, field_path):
+                    values.add(value)
+        return values
+
+    @staticmethod
+    def _field_values(obj: dict[str, Any], field_path: str) -> List[str]:
+        value: Any = obj
+        for part in field_path.split("."):
+            if not isinstance(value, dict):
+                return []
+            value = value.get(part)
+
+        if isinstance(value, str) and value:
+            return [value]
+        if isinstance(value, list):
+            return [item for item in value if isinstance(item, str) and item]
+        return []
 
     @staticmethod
     def _extract_events_recursively(obj, processed_keys=None):
@@ -82,7 +125,11 @@ class EventExtractor:
         return events
 
     @staticmethod
-    def _extract_events_from_data(json_ld_data: List[JSONDict]) -> List[JsonLdEvent]:
+    def _extract_events_from_data(
+        json_ld_data: List[JSONDict],
+        *,
+        same_as_override: str | None = None,
+    ) -> List[JsonLdEvent]:
         """
         Extract events from already-parsed JSON-LD data using recursive logic.
 
@@ -107,7 +154,10 @@ class EventExtractor:
             seen.add(event_str)
             # Build using the model factory to tolerate extra keys like '@context'
             try:
-                unique_events.append(JsonLdEvent.from_json_ld(event))
+                parsed_event = JsonLdEvent.from_json_ld(event)
+                if same_as_override:
+                    parsed_event.same_as = same_as_override
+                unique_events.append(parsed_event)
             except Exception:
                 # If parsing fails, skip the event; upstream scrapers may log details
                 continue

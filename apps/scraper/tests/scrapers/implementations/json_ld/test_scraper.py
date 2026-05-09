@@ -69,6 +69,50 @@ def _multi_venue_html() -> str:
     return f"<html><head>{_wrap_ldjson([river_event, other_venue_event])}</head></html>"
 
 
+def _calendar_with_detail_urls() -> str:
+    calendar_graph = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Event",
+                "name": "Calendar Comic",
+                "startDate": "2099-06-05T20:00:00-04:00",
+                "url": "https://ticketweb.com/calendar-placeholder",
+                "sameAs": "https://levity.example.com/comic/calendar-comic",
+                "location": {"name": "Levity Example", "address": "1 Main"},
+            },
+            {
+                "@type": "ComedyEvent",
+                "name": "Other Comic",
+                "startDate": "2099-06-06T20:00:00-04:00",
+                "url": "https://ticketweb.com/calendar-placeholder-2",
+                "sameAs": "https://levity.example.com/comic/other-comic",
+                "location": {"name": "Levity Example", "address": "1 Main"},
+            },
+        ],
+    }
+    return f"<html><head>{_wrap_ldjson(calendar_graph)}</head></html>"
+
+
+def _detail_html(name: str, ticket_url: str) -> str:
+    event = {
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": name,
+        "startDate": "2099-06-05T20:00:00-04:00",
+        "url": ticket_url,
+        "location": {"name": "Levity Example", "address": "1 Main"},
+        "offers": {
+            "@type": "Offer",
+            "url": ticket_url,
+            "price": "25",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+        },
+    }
+    return f"<html><head>{_wrap_ldjson(event)}</head></html>"
+
+
 def _make_club(metadata: dict | None = None) -> Club:
     club = Club(
         id=1350,
@@ -95,6 +139,59 @@ def _make_club(metadata: dict | None = None) -> Club:
     )
     club.scraping_sources = [club.active_scraping_source]
     return club
+
+
+class TestDetailFetch:
+    """Verify metadata-driven two-pass JSON-LD detail page scraping."""
+
+    @pytest.mark.asyncio
+    async def test_detail_fetch_harvests_urls_and_rewrites_show_page_url(self, monkeypatch):
+        detail_html = {
+            "https://levity.example.com/comic/calendar-comic": _detail_html(
+                "Calendar Comic Late",
+                "https://ticketweb.com/calendar-comic-late",
+            ),
+            "https://levity.example.com/comic/other-comic": _detail_html(
+                "Other Comic Early",
+                "https://ticketweb.com/other-comic-early",
+            ),
+        }
+        club = _make_club(metadata={
+            "detail_fetch": {
+                "url_field": "sameAs",
+                "set_same_as_to_detail_url": True,
+            },
+        })
+        scraper = JsonLdScraper(club)
+        fetched_urls = []
+
+        async def fake_fetch_html(self, url):
+            fetched_urls.append(url)
+            if url == "https://comedycraftbeer.com/calendar":
+                return _calendar_with_detail_urls()
+            return detail_html[url]
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        shows = await scraper.scrape_async()
+
+        assert fetched_urls == [
+            "https://comedycraftbeer.com/calendar",
+            "https://levity.example.com/comic/calendar-comic",
+            "https://levity.example.com/comic/other-comic",
+        ]
+        assert sorted(show.name for show in shows) == [
+            "Calendar Comic Late",
+            "Other Comic Early",
+        ]
+        assert sorted(show.show_page_url for show in shows) == [
+            "https://levity.example.com/comic/calendar-comic",
+            "https://levity.example.com/comic/other-comic",
+        ]
+        assert sorted(show.tickets[0].purchase_url for show in shows) == [
+            "https://ticketweb.com/calendar-comic-late",
+            "https://ticketweb.com/other-comic-early",
+        ]
 
 
 class TestLocationNameFilter:
