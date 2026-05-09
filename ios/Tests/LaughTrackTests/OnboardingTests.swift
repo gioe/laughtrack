@@ -39,6 +39,33 @@ struct OnboardingTests {
         ))
     }
 
+    @Test("authenticated users wait for profile load before shell decisions")
+    func authenticatedUsersWaitForProfileLoadBeforeShellDecisions() async {
+        let manager = await makeAuthenticatedAuthManager(loadUserRequest: {
+            try await Task.sleep(nanoseconds: 20_000_000)
+            return AuthenticatedUser(
+                displayName: "Maya",
+                email: "maya@example.com",
+                avatarURL: nil,
+                comedianOnboardingCompleted: false
+            )
+        })
+
+        let loadTask = Task {
+            await manager.refreshCurrentUser()
+        }
+
+        await Task.yield()
+        #expect(!manager.hasLoadedCurrentUser)
+
+        await loadTask.value
+        #expect(manager.hasLoadedCurrentUser)
+        #expect(ContentView.shouldPresentComedianOnboarding(
+            authState: manager.state,
+            currentUser: manager.currentUser
+        ))
+    }
+
     @Test("onboarding loads popular comedians before search")
     func loadsPopularComediansInitially() async throws {
         let recorder = OnboardingRequestRecorder()
@@ -124,7 +151,9 @@ struct OnboardingTests {
         #expect(await recorder.updateMeCalls == 2)
     }
 
-    private func makeAuthenticatedAuthManager() async -> AuthManager {
+    private func makeAuthenticatedAuthManager(
+        loadUserRequest: AuthManager.LoadUserRequest? = nil
+    ) async -> AuthManager {
         let secureStorage = InMemorySecureStorage()
         let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
         let tokenManager = AuthTokenManager(secureStorage: secureStorage)
@@ -144,6 +173,7 @@ struct OnboardingTests {
             appStateStorage: appStateStorage,
             oauthSessionRunner: StubOAuthSessionRunner()
         )
+        manager.loadUserRequest = loadUserRequest
         await manager.restoreSession()
         return manager
     }
@@ -164,17 +194,6 @@ struct OnboardingTests {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
-    }
-
-    private func makeUnauthenticatedAuthManager() -> AuthManager {
-        let secureStorage = InMemorySecureStorage()
-        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
-        return AuthManager(
-            tokenManager: AuthTokenManager(secureStorage: secureStorage),
-            authMiddleware: authMiddleware,
-            appStateStorage: AppStateStorage(userDefaults: UserDefaults(suiteName: "OnboardingTests.auth.\(UUID().uuidString)")!),
-            oauthSessionRunner: StubOAuthSessionRunner()
-        )
     }
 
     private func makeStorage(name: String) -> AppStateStorage {

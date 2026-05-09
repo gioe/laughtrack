@@ -21,6 +21,7 @@ public final class AuthManager: ObservableObject {
 
     @Published public private(set) var state: State = .restoring
     @Published public private(set) var currentUser: AuthenticatedUser?
+    @Published public private(set) var hasLoadedCurrentUser = false
 
     public var currentSession: AuthSessionMetadata? {
         guard case .authenticated(let session) = state else { return nil }
@@ -126,12 +127,17 @@ public final class AuthManager: ObservableObject {
     }
 
     public func refreshCurrentUser() async {
-        guard let loadUserRequest else { return }
+        guard let loadUserRequest else {
+            hasLoadedCurrentUser = true
+            return
+        }
+        hasLoadedCurrentUser = false
         do {
             currentUser = try await loadUserRequest()
         } catch {
             await loadUserErrorObserver(error)
         }
+        hasLoadedCurrentUser = true
     }
 
     public func markComedianOnboardingCompleted() {
@@ -220,6 +226,7 @@ public final class AuthManager: ObservableObject {
         await authMiddleware.clearTokens()
         appStateStorage.removeValue(forKey: StorageKey.sessionMetadata)
         currentUser = nil
+        hasLoadedCurrentUser = false
         state = .signedOut(message: message)
     }
 

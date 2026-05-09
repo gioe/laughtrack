@@ -253,7 +253,9 @@ struct ContentView: View {
             case .signedOut(let message):
                 appShell(signedOutMessage: message)
             case .authenticated:
-                if Self.shouldPresentComedianOnboarding(
+                if !authManager.hasLoadedCurrentUser {
+                    AuthLoadingView()
+                } else if Self.shouldPresentComedianOnboarding(
                     authState: authManager.state,
                     currentUser: authManager.currentUser
                 ) {
