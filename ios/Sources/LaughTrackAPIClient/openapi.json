@@ -221,6 +221,69 @@
           }
         }
       },
+      "patch": {
+        "operationId": "updateMe",
+        "summary": "Update authenticated user profile state",
+        "description": "Updates durable profile state for the authenticated user. iOS clients use this to mark comedian onboarding complete after the user finishes or skips onboarding.",
+        "tags": ["auth"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MeUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile state updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeUpdateResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Authenticated user has no UserProfile row",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "operationId": "deleteMe",
         "summary": "Delete the authenticated user account",
@@ -1429,9 +1492,35 @@
           "data": { "$ref": "#/components/schemas/MeData" }
         }
       },
+      "MeUpdateRequest": {
+        "type": "object",
+        "required": ["comedian_onboarding_completed"],
+        "properties": {
+          "comedian_onboarding_completed": {
+            "type": "boolean",
+            "description": "Whether comedian onboarding has been completed or skipped."
+          }
+        }
+      },
+      "MeUpdateResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["comedian_onboarding_completed"],
+            "properties": {
+              "comedian_onboarding_completed": {
+                "type": "boolean",
+                "description": "Whether comedian onboarding has been completed or skipped."
+              }
+            }
+          }
+        }
+      },
       "MeData": {
         "type": "object",
-        "required": ["email", "email_show_notifications", "push_show_notifications", "zip_code", "nearby_distance_miles"],
+        "required": ["email", "email_show_notifications", "push_show_notifications", "comedian_onboarding_completed", "zip_code", "nearby_distance_miles"],
         "properties": {
           "display_name": {
             "type": "string",
@@ -1454,6 +1543,10 @@
           "push_show_notifications": {
             "type": "boolean",
             "description": "Whether the signed-in user receives push notifications for new shows from saved comedians."
+          },
+          "comedian_onboarding_completed": {
+            "type": "boolean",
+            "description": "Whether comedian onboarding has been completed or skipped."
           },
           "zip_code": {
             "type": "string",

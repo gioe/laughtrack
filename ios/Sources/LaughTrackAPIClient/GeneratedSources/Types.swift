@@ -39,6 +39,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /me`.
     /// - Remark: Generated from `#/paths//me/get(getMe)`.
     func getMe(_ input: Operations.GetMe.Input) async throws -> Operations.GetMe.Output
+    /// Update authenticated user profile state
+    ///
+    /// Updates durable profile state for the authenticated user. iOS clients use this to mark comedian onboarding complete after the user finishes or skips onboarding.
+    ///
+    /// - Remark: HTTP `PATCH /me`.
+    /// - Remark: Generated from `#/paths//me/patch(updateMe)`.
+    func updateMe(_ input: Operations.UpdateMe.Input) async throws -> Operations.UpdateMe.Output
     /// Delete the authenticated user account
     ///
     /// Requires a valid Bearer access token. Deletes profile-owned rows before deleting the caller user. User-linked accounts, refresh tokens, and sent notifications are removed by database cascades. iOS clients should clear local keychain entries after a 200 response.
@@ -174,6 +181,21 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//me/get(getMe)`.
     public func getMe(headers: Operations.GetMe.Input.Headers = .init()) async throws -> Operations.GetMe.Output {
         try await getMe(Operations.GetMe.Input(headers: headers))
+    }
+    /// Update authenticated user profile state
+    ///
+    /// Updates durable profile state for the authenticated user. iOS clients use this to mark comedian onboarding complete after the user finishes or skips onboarding.
+    ///
+    /// - Remark: HTTP `PATCH /me`.
+    /// - Remark: Generated from `#/paths//me/patch(updateMe)`.
+    public func updateMe(
+        headers: Operations.UpdateMe.Input.Headers = .init(),
+        body: Operations.UpdateMe.Input.Body
+    ) async throws -> Operations.UpdateMe.Output {
+        try await updateMe(Operations.UpdateMe.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// Delete the authenticated user account
     ///
@@ -538,6 +560,55 @@ public enum Components {
                 case data
             }
         }
+        /// - Remark: Generated from `#/components/schemas/MeUpdateRequest`.
+        public struct MeUpdateRequest: Codable, Hashable, Sendable {
+            /// Whether comedian onboarding has been completed or skipped.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeUpdateRequest/comedian_onboarding_completed`.
+            public var comedianOnboardingCompleted: Swift.Bool
+            /// Creates a new `MeUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - comedianOnboardingCompleted: Whether comedian onboarding has been completed or skipped.
+            public init(comedianOnboardingCompleted: Swift.Bool) {
+                self.comedianOnboardingCompleted = comedianOnboardingCompleted
+            }
+            public enum CodingKeys: String, CodingKey {
+                case comedianOnboardingCompleted = "comedian_onboarding_completed"
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/MeUpdateResponse`.
+        public struct MeUpdateResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data`.
+            public struct DataPayload: Codable, Hashable, Sendable {
+                /// Whether comedian onboarding has been completed or skipped.
+                ///
+                /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data/comedian_onboarding_completed`.
+                public var comedianOnboardingCompleted: Swift.Bool
+                /// Creates a new `DataPayload`.
+                ///
+                /// - Parameters:
+                ///   - comedianOnboardingCompleted: Whether comedian onboarding has been completed or skipped.
+                public init(comedianOnboardingCompleted: Swift.Bool) {
+                    self.comedianOnboardingCompleted = comedianOnboardingCompleted
+                }
+                public enum CodingKeys: String, CodingKey {
+                    case comedianOnboardingCompleted = "comedian_onboarding_completed"
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data`.
+            public var data: Components.Schemas.MeUpdateResponse.DataPayload
+            /// Creates a new `MeUpdateResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: Components.Schemas.MeUpdateResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/MeData`.
         public struct MeData: Codable, Hashable, Sendable {
             /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
@@ -560,6 +631,10 @@ public enum Components {
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/push_show_notifications`.
             public var pushShowNotifications: Swift.Bool
+            /// Whether comedian onboarding has been completed or skipped.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/comedian_onboarding_completed`.
+            public var comedianOnboardingCompleted: Swift.Bool
             /// Saved profile ZIP code used for Near Me.
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/zip_code`.
@@ -576,6 +651,7 @@ public enum Components {
             ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
             ///   - emailShowNotifications: Whether the signed-in user receives email notifications for new shows from saved comedians.
             ///   - pushShowNotifications: Whether the signed-in user receives push notifications for new shows from saved comedians.
+            ///   - comedianOnboardingCompleted: Whether comedian onboarding has been completed or skipped.
             ///   - zipCode: Saved profile ZIP code used for Near Me.
             ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
             public init(
@@ -584,6 +660,7 @@ public enum Components {
                 avatarUrl: Swift.String? = nil,
                 emailShowNotifications: Swift.Bool,
                 pushShowNotifications: Swift.Bool,
+                comedianOnboardingCompleted: Swift.Bool,
                 zipCode: Swift.String? = nil,
                 nearbyDistanceMiles: Swift.Int? = nil
             ) {
@@ -592,6 +669,7 @@ public enum Components {
                 self.avatarUrl = avatarUrl
                 self.emailShowNotifications = emailShowNotifications
                 self.pushShowNotifications = pushShowNotifications
+                self.comedianOnboardingCompleted = comedianOnboardingCompleted
                 self.zipCode = zipCode
                 self.nearbyDistanceMiles = nearbyDistanceMiles
             }
@@ -601,6 +679,7 @@ public enum Components {
                 case avatarUrl = "avatar_url"
                 case emailShowNotifications = "email_show_notifications"
                 case pushShowNotifications = "push_show_notifications"
+                case comedianOnboardingCompleted = "comedian_onboarding_completed"
                 case zipCode = "zip_code"
                 case nearbyDistanceMiles = "nearby_distance_miles"
             }
@@ -3015,6 +3094,354 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.tooManyRequests`.
             /// - SeeAlso: `.tooManyRequests`.
             public var tooManyRequests: Operations.GetMe.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Update authenticated user profile state
+    ///
+    /// Updates durable profile state for the authenticated user. iOS clients use this to mark comedian onboarding complete after the user finishes or skips onboarding.
+    ///
+    /// - Remark: HTTP `PATCH /me`.
+    /// - Remark: Generated from `#/paths//me/patch(updateMe)`.
+    public enum UpdateMe {
+        public static let id: Swift.String = "updateMe"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/me/PATCH/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UpdateMe.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.UpdateMe.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.UpdateMe.Input.Headers
+            /// - Remark: Generated from `#/paths/me/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.MeUpdateRequest)
+            }
+            public var body: Operations.UpdateMe.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.UpdateMe.Input.Headers = .init(),
+                body: Operations.UpdateMe.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MeUpdateResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.MeUpdateResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.UpdateMe.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.UpdateMe.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Profile state updated
+            ///
+            /// - Remark: Generated from `#/paths//me/patch(updateMe)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.UpdateMe.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.UpdateMe.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.UpdateMe.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.UpdateMe.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid request body
+            ///
+            /// - Remark: Generated from `#/paths//me/patch(updateMe)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.UpdateMe.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.UpdateMe.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.UpdateMe.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.UpdateMe.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//me/patch(updateMe)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.UpdateMe.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.UpdateMe.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.UpdateMe.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.UpdateMe.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// Authenticated user has no UserProfile row
+            ///
+            /// - Remark: Generated from `#/paths//me/patch(updateMe)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.UpdateMe.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.UpdateMe.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.UpdateMe.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/me/PATCH/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/me/PATCH/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.UpdateMe.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.UpdateMe.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.UpdateMe.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//me/patch(updateMe)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.UpdateMe.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.UpdateMe.Output.TooManyRequests {
                 get throws {
                     switch self {
                     case let .tooManyRequests(response):
