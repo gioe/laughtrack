@@ -23,10 +23,10 @@ What this script does
 
 Candidate scraper_keys (cross-referenced against grep of `JsonLdEvent` usage in
 src/laughtrack/scrapers/):
-    - json_ld          (generic shared scraper)
+    - json_ld          (generic shared scraper; covers former brew_haha_river
+                        post-TASK-2068)
     - ticketleap       (TicketleapPageData[JsonLdEvent])
     - improv           (Improv chain extracts JsonLdEvent then maps to ImprovEvent)
-    - brew_haha_river
     - new_york_comedy_club
     - levity_live
     - west_river_comedy
@@ -88,7 +88,6 @@ JSON_LD_SCRAPER_KEYS = (
     "json_ld",
     "ticketleap",
     "improv",
-    "brew_haha_river",
     "new_york_comedy_club",
     "levity_live",
     "west_river_comedy",
