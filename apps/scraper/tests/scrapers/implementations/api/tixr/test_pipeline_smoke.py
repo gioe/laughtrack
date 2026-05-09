@@ -572,6 +572,32 @@ async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_is_bloc
 
 
 @pytest.mark.asyncio
+async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_fetch_returns_none(monkeypatch):
+    """Improv Asylum still falls back when DataDome/CAPTCHA makes the Tixr group fetch unrecoverable."""
+    scraper = TixrScraper(_improv_asylum_club())
+
+    async def fake_fetch_calendar_html(url):
+        return None
+
+    async def fake_fetch_json(url, **kwargs):
+        assert url == "https://calendar.improvasylum.com/api/events/improv-asylum"
+        return _improv_asylum_pixl_response()
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data(IMPROV_ASYLUM_TIXR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    event = result.event_list[0]
+    assert event.title == "Improv Asylum's Main Stage Show"
+    assert event.event_id == "169028"
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_when_tixr_client_returns_nothing(monkeypatch):
     """get_data() returns None when TixrClient returns None for all URLs."""
     scraper = TixrScraper(_club())

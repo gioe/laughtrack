@@ -139,6 +139,15 @@ class TixrScraper(BaseScraper):
             html_content = await self._fetch_calendar_html(url)
 
             if not html_content:
+                fallback_events = await self._fetch_improv_asylum_pixl_events(url)
+                if fallback_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Improv Asylum Pixl Calendar "
+                        "fallback after Tixr group-page fetch returned no HTML",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=fallback_events)
+
                 Logger.info(f"{self._log_prefix}: No HTML content returned from {url}", self.logger_context)
                 return None
 
