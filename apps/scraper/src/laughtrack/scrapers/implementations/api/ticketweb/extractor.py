@@ -18,6 +18,7 @@ from dateutil import parser as dateutil_parser
 
 from laughtrack.core.entities.event.ticketweb import TicketWebEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 
 class TicketWebExtractor:
@@ -137,18 +138,16 @@ class TicketWebExtractor:
                 continue
             seen_urls.add(url)
 
-            title = unescape(re.sub(r"<[^>]+>", "", name_match.group(1)).strip())
+            title = HtmlUtils.strip_tags(name_match.group(1))
 
             # Parse date — format is typically "Apr 17 -" or "May 9 -"
-            raw_date = unescape(re.sub(r"<[^>]+>", "", date_match.group(1)).strip())
+            raw_date = HtmlUtils.strip_tags(date_match.group(1))
             raw_date = raw_date.rstrip(" -")
 
             # Parse time — format is "Show: 9:00 PM" or "9:00 PM"
             raw_time = ""
             if time_match:
-                raw_time = unescape(
-                    re.sub(r"<[^>]+>", "", time_match.group(1)).strip()
-                )
+                raw_time = HtmlUtils.strip_tags(time_match.group(1))
                 raw_time = re.sub(r"^Show:\s*", "", raw_time).strip()
 
             date_str = f"{raw_date} {raw_time}".strip()

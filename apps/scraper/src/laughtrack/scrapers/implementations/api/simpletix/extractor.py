@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Tuple
 from dateutil import parser as dateutil_parser
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 
 class SimpleTixExtractor:
@@ -54,7 +55,7 @@ class SimpleTixExtractor:
         match = SimpleTixExtractor._TITLE_PATTERN.search(html)
         if not match:
             return None
-        title = re.sub(r"<[^>]+>", "", match.group(1)).strip()
+        title = HtmlUtils.strip_tags(match.group(1))
         # Strip common suffixes like " - Tickets"
         title = re.sub(r"\s*-\s*Tickets?\s*$", "", title, flags=re.IGNORECASE)
         return title or None

@@ -15,6 +15,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 from laughtrack.utilities.domain.show.factory import is_dj_set_show
 
 # Eventbrite category_id=103 is "Music" in the venue/organizer list API — covers DJ sets,
@@ -96,10 +97,7 @@ class EventbriteEvent(ShowConvertible):
         if hasattr(api_event.name, "text"):
             event_name = api_event.name.text
         elif hasattr(api_event.name, "html"):
-            # Strip HTML if needed
-            import re
-
-            event_name = re.sub(r"<[^>]+>", "", api_event.name.html)
+            event_name = HtmlUtils.strip_tags(api_event.name.html)
         else:
             event_name = str(api_event.name) if api_event.name else ""
 
@@ -114,10 +112,7 @@ class EventbriteEvent(ShowConvertible):
             if hasattr(api_event.description, "text"):
                 description = api_event.description.text
             elif hasattr(api_event.description, "html"):
-                # Strip HTML if needed
-                import re
-
-                description = re.sub(r"<[^>]+>", "", api_event.description.html)
+                description = HtmlUtils.strip_tags(api_event.description.html)
 
         # Extract location information from venue
         location_name = None
