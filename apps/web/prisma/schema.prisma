@@ -280,6 +280,7 @@ model Show {
   clubId              Int                @map("club_id")
   popularity          Float              @default(0.0)
   lastScrapedDate     DateTime?          @map("last_scraped_date") @db.Timestamptz(6)
+  lastScrapedBy       String?            @map("last_scraped_by")
   description         String?
   room                String?
   productionCompanyId Int?               @map("production_company_id")
@@ -301,6 +302,7 @@ model Show {
   @@unique([clubId, date, room])
   @@index([date])
   @@index([productionCompanyId])
+  @@index([lastScrapedBy])
   @@map("shows")
 }
 
