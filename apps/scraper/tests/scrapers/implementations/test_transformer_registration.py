@@ -28,7 +28,6 @@ from laughtrack.scrapers.implementations.venues.improv.scraper import ImprovScra
 from laughtrack.scrapers.implementations.venues.rodneys.scraper import RodneysComedyClubScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.scraper import StandupNYScraper
 from laughtrack.scrapers.implementations.venues.tks_comedy.scraper import TksComedyScraper
-from laughtrack.scrapers.implementations.venues.west_river_comedy.scraper import WestRiverComedyScraper
 from laughtrack.scrapers.implementations.venues.west_side.scraper import WestSideScraper
 
 # ---------------------------------------------------------------------------
@@ -117,7 +116,6 @@ PIPELINE_SCRAPERS = [
     (RodneysComedyClubScraper, {}),
     (StandupNYScraper, {}),
     (TksComedyScraper, {"scraper": "tks_comedy"}),
-    (WestRiverComedyScraper, {}),
     (WestSideScraper, {}),
 ]
 
