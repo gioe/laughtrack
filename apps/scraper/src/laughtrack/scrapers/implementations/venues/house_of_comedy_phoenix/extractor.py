@@ -11,33 +11,7 @@ from laughtrack.core.entities.event.house_of_comedy_phoenix import (
     HouseOfComedyPhoenixEvent,
     normalize_showclix_url,
 )
-
-_MONTHS = {
-    "jan": 1,
-    "january": 1,
-    "feb": 2,
-    "february": 2,
-    "mar": 3,
-    "march": 3,
-    "apr": 4,
-    "april": 4,
-    "may": 5,
-    "jun": 6,
-    "june": 6,
-    "jul": 7,
-    "july": 7,
-    "aug": 8,
-    "august": 8,
-    "sep": 9,
-    "sept": 9,
-    "september": 9,
-    "oct": 10,
-    "october": 10,
-    "nov": 11,
-    "november": 11,
-    "dec": 12,
-    "december": 12,
-}
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 _SHOWCLIX_RE = re.compile(r"https?://(?:embed|www)\.showclix\.com/event/[^\s\"'<>]+", re.I)
 _TIME_RE = re.compile(r"\b(\d{1,2}:\d{2}\s*[AP]\.?M\.?)\b", re.I)
@@ -204,7 +178,9 @@ class HouseOfComedyPhoenixExtractor:
     def _date(text: str, *, year: int, month: Optional[int] = None) -> str:
         match = _DATE_RE.search(text)
         if match:
-            month = _MONTHS[match.group(1).lower().rstrip(".")]
+            month = DateTimeUtils.month_name_to_number(match.group(1))
+            if month is None:
+                return ""
             day = int(match.group(2))
             return f"{year:04d}-{month:02d}-{day:02d}"
 

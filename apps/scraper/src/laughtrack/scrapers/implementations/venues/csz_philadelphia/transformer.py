@@ -11,17 +11,11 @@ from typing import Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
 from .data import CszPhillyShowInstance
-
-
-# Map 3-letter month abbreviations to month numbers (1-based)
-_MONTH_MAP = {
-    "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-    "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
-}
 
 
 def _ticket_url(event_id: int, session_key: str) -> str:
@@ -59,7 +53,10 @@ class CszPhillyEventTransformer(DataTransformer[CszPhillyShowInstance]):
                 return None
 
             # Build datetime string: "2026-04-05 7:00 PM"
-            month_num = _MONTH_MAP[raw_data.month]
+            month_num = DateTimeUtils.month_name_to_number(raw_data.month)
+            if month_num is None:
+                Logger.warn(f"CszPhilly: unknown month abbreviation '{raw_data.month}' for {raw_data.event_name}")
+                return None
             datetime_str = f"{year}-{month_num:02d}-{raw_data.day:02d} {raw_data.time}"
 
             start_date = ShowFactoryUtils.safe_parse_datetime_string(
@@ -95,7 +92,7 @@ class CszPhillyEventTransformer(DataTransformer[CszPhillyShowInstance]):
         Events returned by the VBO ``showevents`` endpoint are always upcoming,
         so month numbers earlier than the current month belong to the next year.
         """
-        month_num = _MONTH_MAP.get(month_abbr)
+        month_num = DateTimeUtils.month_name_to_number(month_abbr)
         if month_num is None:
             return None
         now = datetime.now()

@@ -23,6 +23,7 @@ from laughtrack.core.entities.event.event import (
     PostalAddress,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -124,34 +125,6 @@ _VENUE_STREET_BY_LABEL = {
     "upper west side": "236 W 78th Street",
 }
 
-_MONTHS = {
-    "jan": 1,
-    "january": 1,
-    "feb": 2,
-    "february": 2,
-    "mar": 3,
-    "march": 3,
-    "apr": 4,
-    "april": 4,
-    "may": 5,
-    "jun": 6,
-    "june": 6,
-    "jul": 7,
-    "july": 7,
-    "aug": 8,
-    "august": 8,
-    "sep": 9,
-    "sept": 9,
-    "september": 9,
-    "oct": 10,
-    "october": 10,
-    "nov": 11,
-    "november": 11,
-    "dec": 12,
-    "december": 12,
-}
-
-
 def _extract_rendered_calendar_events(html_content: str, timezone: str) -> list[JsonLdEvent]:
     """Extract current calendar cards rendered in the NYCC HTML.
 
@@ -186,7 +159,7 @@ def _extract_calendar_base_date(soup) -> tuple[Optional[int], Optional[int]]:
         match = re.search(r"for\s+([A-Za-z]+)\s+(\d{4})", text)
     if not match:
         return None, None
-    month = _MONTHS.get(match.group(1).lower())
+    month = DateTimeUtils.month_name_to_number(match.group(1))
     return int(match.group(2)), month
 
 
@@ -262,7 +235,7 @@ def _parse_card_datetime(
     match = re.match(r"([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?", month_day.strip())
     if not match:
         return None
-    month = _MONTHS.get(match.group(1).lower())
+    month = DateTimeUtils.month_name_to_number(match.group(1))
     if not month:
         return None
     day = int(match.group(2))
