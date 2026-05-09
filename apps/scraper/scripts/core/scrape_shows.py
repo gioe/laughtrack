@@ -41,6 +41,13 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.core.services.metrics import MetricsService
 
 
+def _club_uses_eventbrite(club) -> bool:
+    active_source = getattr(club, "active_scraping_source", None)
+    platform = getattr(active_source, "platform", None) or getattr(club, "scraper", None)
+    scraper_key = getattr(active_source, "scraper_key", None)
+    return platform == "eventbrite" or scraper_key == "eventbrite"
+
+
 def main():
     """Main entry point for the scraping script."""
     parser = argparse.ArgumentParser(
@@ -118,8 +125,29 @@ Examples:
         or args.scraper_type_interactive
         or not (listing_only or args.open_dashboard)
     )
+    selected_club = None
+    if args.club_id:
+        selected_club = club_service.club_handler.get_club_by_id(args.club_id)
+        if selected_club is None:
+            sys.exit(1)
+    elif args.club:
+        selected_club = club_service.find_club_by_name(args.club)
+        if selected_club is None:
+            sys.exit(1)
+
+    needs_eventbrite_token = False
     if will_scrape:
+        if selected_club is not None:
+            needs_eventbrite_token = _club_uses_eventbrite(selected_club)
+        elif args.scraper_type:
+            needs_eventbrite_token = args.scraper_type == "eventbrite"
+        else:
+            needs_eventbrite_token = True
+
+    if needs_eventbrite_token:
         validate_eventbrite_token()
+
+    if will_scrape:
         scraper_proxy_registry.log_proxy_status()
 
     try:
@@ -131,10 +159,7 @@ Examples:
         elif args.club_id:
             scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
         elif args.club:
-            club = club_service.find_club_by_name(args.club)
-            if club is None:
-                sys.exit(1)
-            scraping_service.scrape_single_club(club_id=club.id); performed_primary = True
+            scraping_service.scrape_single_club(club_id=selected_club.id); performed_primary = True
         elif args.scraper_type:
             scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
         elif args.scraper_type_interactive:
