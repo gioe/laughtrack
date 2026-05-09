@@ -19,6 +19,7 @@ def _show(name: str) -> Show:
         club_id=42,
         date=datetime(2026, 6, 1, 20, 0, 0),
         show_page_url="https://example.com/show",
+        description="A fun show",
         room="Main Room",
     )
 
@@ -51,3 +52,17 @@ def test_nbsp_decoded_then_collapsed_by_whitespace_normalizer() -> None:
     # alongside any surrounding spaces into a single ASCII space.
     show = _show("Foo&nbsp;&nbsp;Bar")
     assert show.name == "Foo Bar"
+
+
+def test_html_entities_decoded_in_description_and_room() -> None:
+    show = Show(
+        name="Show Name",
+        club_id=42,
+        date=datetime(2026, 6, 1, 20, 0, 0),
+        show_page_url="https://example.com/show",
+        description="Friends &amp; family&nbsp;night with &#39;surprises&#39;",
+        room="The &quot;Main&quot;&nbsp;Room",
+    )
+
+    assert show.description == "Friends & family night with 'surprises'"
+    assert show.room == 'The "Main" Room'

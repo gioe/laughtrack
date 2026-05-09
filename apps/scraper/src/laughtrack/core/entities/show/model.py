@@ -50,7 +50,12 @@ class Show(DatabaseEntity):
             self.name = html.unescape(self.name)
             self.name = StringUtils.normalize_whitespace(self.name).strip()
 
+        if isinstance(self.description, str):
+            self.description = html.unescape(self.description)
+            self.description = StringUtils.normalize_whitespace(self.description).strip()
+
         if isinstance(self.room, str):
+            self.room = html.unescape(self.room)
             self.room = StringUtils.normalize_whitespace(self.room).strip()
         elif self.room is None:
             self.room = ""
