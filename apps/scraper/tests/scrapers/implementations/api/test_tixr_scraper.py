@@ -15,7 +15,6 @@ behavior:
 """
 
 import importlib.util
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -27,9 +26,6 @@ pytestmark = pytest.mark.skipif(
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.tixr import TixrEvent
-from laughtrack.core.entities.show.model import Show
-from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.api.tixr.scraper import (
     TixrPublicCardScraper,
