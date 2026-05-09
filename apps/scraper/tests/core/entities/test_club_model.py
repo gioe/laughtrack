@@ -154,6 +154,82 @@ class TestClubFromDbRow:
         assert club.seatengine_id == "502"
         assert club.scraping_sources[0].seatengine_id == 502
 
+    def test_reads_chain_default_resolved_sources_for_multiple_clubs(self):
+        rows = [
+            self._base_row(
+                id=1,
+                name="Zanies Nashville",
+                chain_id=42,
+                scraping_sources=[
+                    {
+                        "id": 10,
+                        "club_id": 1,
+                        "platform": "custom",
+                        "scraper_key": "zanies",
+                        "source_url": "https://nashville.zanies.com",
+                        "priority": 0,
+                        "enabled": True,
+                        "metadata": {"default_calendar": "main"},
+                        "chain_scraping_default_id": 7,
+                        "chain_id": 42,
+                    }
+                ],
+            ),
+            self._base_row(
+                id=2,
+                name="Zanies Chicago",
+                chain_id=42,
+                scraping_sources=[
+                    {
+                        "id": 11,
+                        "club_id": 2,
+                        "platform": "custom",
+                        "scraper_key": "zanies",
+                        "source_url": "https://chicago.zanies.com",
+                        "priority": 0,
+                        "enabled": True,
+                        "metadata": {"default_calendar": "main"},
+                        "chain_scraping_default_id": 7,
+                        "chain_id": 42,
+                    }
+                ],
+            ),
+        ]
+
+        clubs = [Club.from_db_row(row) for row in rows]
+
+        assert [club.scraper for club in clubs] == ["zanies", "zanies"]
+        assert [club.scraping_url for club in clubs] == [
+            "https://nashville.zanies.com",
+            "https://chicago.zanies.com",
+        ]
+        assert {club.scraping_sources[0].chain_scraping_default_id for club in clubs} == {7}
+
+    def test_club_source_override_keeps_explicit_scraper_key(self):
+        row = self._base_row(
+            chain_id=42,
+            scraping_sources=[
+                {
+                    "id": 12,
+                    "club_id": 1,
+                    "platform": "custom",
+                    "scraper_key": "zanies_custom_override",
+                    "source_url": "https://override.example.com",
+                    "priority": 0,
+                    "enabled": True,
+                    "metadata": {"default_calendar": "main", "calendar": "override"},
+                    "chain_scraping_default_id": 7,
+                    "chain_id": 42,
+                }
+            ],
+        )
+
+        club = Club.from_db_row(row)
+
+        assert club.scraper == "zanies_custom_override"
+        assert club.scraping_url == "https://override.example.com"
+        assert club.source_metadata["calendar"] == "override"
+
     def test_platform_properties_read_their_typed_columns(self):
         cases = [
             ("eventbrite", {"eventbrite_id": "295549203"}, "eventbrite_id", "295549203"),

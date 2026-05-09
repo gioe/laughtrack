@@ -189,6 +189,35 @@ def _make_club_row(**overrides):
 # Tests
 # ---------------------------------------------------------------------------
 
+class TestChainScrapingDefaultQueries:
+    def _normalized(self, sql: str) -> str:
+        return " ".join(sql.split()).upper()
+
+    def test_base_club_select_resolves_blank_source_key_from_chain_default(self):
+        sql = self._normalized(ClubQueries.GET_ALL_CLUBS)
+
+        assert "CHAIN_SCRAPING_DEFAULTS CSD" in sql
+        assert "CSD.CHAIN_ID = C.CHAIN_ID" in sql
+        assert "CSD.PLATFORM = SS.PLATFORM" in sql
+        assert "CSD.PRIORITY = SS.PRIORITY" in sql
+        assert "NULLIF(SS.SCRAPER_KEY, '') IS NULL" in sql
+        assert "COALESCE(NULLIF(SS.SCRAPER_KEY, ''), CSD.SCRAPER_KEY, SS.SCRAPER_KEY)" in sql
+
+    def test_base_club_select_keeps_per_club_source_fields(self):
+        sql = self._normalized(ClubQueries.GET_ALL_CLUBS)
+
+        assert "'SOURCE_URL', SS.SOURCE_URL" in sql
+        assert "SS.CLUB_ID = C.ID" in sql
+        assert "SS.ENABLED = TRUE" in sql
+        assert "COALESCE(CSD.METADATA, '{}'::JSONB) || COALESCE(SS.METADATA, '{}'::JSONB)" in sql
+
+    def test_get_clubs_by_scraper_filters_on_effective_primary_source_key(self):
+        sql = self._normalized(ClubQueries.GET_CLUBS_BY_SCRAPER)
+
+        assert "WHERE PRIMARY_SOURCE.SCRAPER_KEY = %S" in sql
+        assert "COALESCE(NULLIF(SS.SCRAPER_KEY, ''), CSD.SCRAPER_KEY, SS.SCRAPER_KEY) AS SCRAPER_KEY" in sql
+
+
 class TestUpsertForEventbriteVenueHappyPath:
     """Criterion 668: valid venue inserts new club and returns Club with correct eventbrite_id."""
 
