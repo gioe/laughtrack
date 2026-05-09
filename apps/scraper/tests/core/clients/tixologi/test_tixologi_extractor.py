@@ -110,6 +110,13 @@ def test_extract_cms_events_handles_space_separated_weekday():
     assert events[0].date_str == "Apr 10"
 
 
+def test_extract_cms_events_preserves_date_without_weekday():
+    events = TixologiExtractor.extract_cms_events(_show_html(date="Apr 10"))
+
+    assert len(events) == 1
+    assert events[0].date_str == "Apr 10"
+
+
 def test_extract_shows_returns_tixologi_events():
     events = TixologiExtractor.extract_shows(
         _show_html(),

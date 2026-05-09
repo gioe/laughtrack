@@ -16,6 +16,7 @@ _LAUGH_FACTORY_TICKET_URL_RE = re.compile(
 _EVENT_TIXOLOGI_TICKET_URL_RE = re.compile(
     r"https://event\.tixologi\.com/event/([^/?#]+)/tickets"
 )
+_WEEKDAY_ABBREVIATIONS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
 
 
 @dataclass(frozen=True)
@@ -181,7 +182,11 @@ class TixologiExtractor:
     def _strip_weekday_prefix(raw_date: str) -> str:
         """Strip weekday prefixes such as `Wed\xa0Mar 25` or `Wed Mar 25`."""
         if "\xa0" in raw_date:
-            return raw_date.split("\xa0", 1)[1].strip()
+            weekday, date_part = raw_date.split("\xa0", 1)
+            if weekday.strip()[:3] in _WEEKDAY_ABBREVIATIONS:
+                return date_part.strip()
 
         parts = raw_date.strip().split(None, 1)
-        return parts[1] if len(parts) > 1 else raw_date.strip()
+        if len(parts) > 1 and parts[0][:3] in _WEEKDAY_ABBREVIATIONS:
+            return parts[1]
+        return raw_date.strip()
