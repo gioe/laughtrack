@@ -670,6 +670,47 @@ def _complete_no_checkout_fast_forward(
                     file=sys.stderr,
                 )
                 return 2
+    else:
+        fetch_result = run(["git", "fetch", "origin"], check=False)
+        if fetch_result.returncode == 0:
+            base_check = run(
+                [
+                    "git",
+                    "merge-base",
+                    "--is-ancestor",
+                    f"origin/{default_branch}",
+                    branch_name,
+                ],
+                check=False,
+            )
+            if base_check.returncode != 0:
+                print(
+                    f"Error: origin/{default_branch} has commits not reachable from "
+                    f"{branch_name}; refusing the no-checkout fast-forward push "
+                    "before the remote rejects it.\n"
+                    "To resolve:\n"
+                    f"  tusk merge {task_id} --session {session_id} --rebase",
+                    file=sys.stderr,
+                )
+                if did_stash:
+                    _try_pop_stash(task_id)
+                return 2
+        elif _is_remote_unreachable(fetch_result.stderr):
+            print(
+                f"Warning: could not reach origin before no-checkout freshness "
+                f"check — attempting push with local state.\n"
+                f"  {fetch_result.stderr.strip()}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"Error: git fetch origin failed before no-checkout fast-forward push:\n"
+                f"{fetch_result.stderr.strip()}",
+                file=sys.stderr,
+            )
+            if did_stash:
+                _try_pop_stash(task_id)
+            return 2
     result = run(["git", "push", "origin", f"{branch_name}:{default_branch}"], check=False)
     if result.returncode != 0:
         print(
@@ -695,6 +736,7 @@ def _complete_no_checkout_fast_forward(
         "worktree.",
         file=sys.stderr,
     )
+    _delete_remote_feature_branch_if_tracking(branch_name)
     if not session_was_closed:
         checkpoint_wal(db_path)
         print(f"Closing session {session_id}...", file=sys.stderr)
@@ -758,6 +800,38 @@ def _branch_exists(branch_name: str) -> bool:
         check=False,
     )
     return result.returncode == 0
+
+
+def _delete_remote_feature_branch_if_tracking(branch_name: str) -> None:
+    """Delete origin/<branch_name> when the local branch tracks that exact ref."""
+    remote = run(
+        ["git", "config", "--get", f"branch.{branch_name}.remote"],
+        check=False,
+    )
+    if remote.returncode != 0 or remote.stdout.strip() != "origin":
+        return
+
+    merge_ref = run(
+        ["git", "config", "--get", f"branch.{branch_name}.merge"],
+        check=False,
+    )
+    if merge_ref.returncode != 0:
+        return
+    if merge_ref.stdout.strip() != f"refs/heads/{branch_name}":
+        return
+
+    result = run(["git", "push", "origin", "--delete", branch_name], check=False)
+    if result.returncode == 0:
+        print(
+            f"Deleted remote feature branch origin/{branch_name}.",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"Warning: git push origin --delete {branch_name} failed:\n"
+            f"{result.stderr.strip()}",
+            file=sys.stderr,
+        )
 
 
 def _remove_recorded_task_worktree(
@@ -1185,6 +1259,40 @@ def main(argv: list[str]) -> int:
         print(f"Error: {err}", file=sys.stderr)
         return 1
 
+    print(f"Found branch: {branch_name}", file=sys.stderr)
+
+    default_branch = None
+    has_origin = None
+    if not use_pr:
+        default_branch = detect_default_branch()
+        has_origin = _has_remote()
+        locked_default_path = _worktree_path_for_branch(default_branch)
+        if locked_default_path:
+            print(
+                f"Merging {branch_name} into {default_branch} (ff-only)...",
+                file=sys.stderr,
+            )
+            if not has_origin:
+                print(
+                    f"Error: git checkout {default_branch} would fail because the branch "
+                    f"is checked out in another worktree at '{locked_default_path}', and "
+                    "no git remote 'origin' is configured for a no-checkout "
+                    "fast-forward push.",
+                    file=sys.stderr,
+                )
+                return 2
+            return _complete_no_checkout_fast_forward(
+                branch_name=branch_name,
+                default_branch=default_branch,
+                task_id=task_id,
+                session_id=session_id,
+                tusk_bin=tusk_bin,
+                db_path=_db_path,
+                session_was_closed=False,
+                did_stash=False,
+                use_rebase=use_rebase,
+            )
+
     # Step 1b (local mode only): Auto-stash if working tree is dirty.
     # Only tracked modified/staged files are stashed; untracked files ("??")
     # are not uncommitted changes and carry over automatically.
@@ -1218,13 +1326,11 @@ def main(argv: list[str]) -> int:
                 return 1
             did_stash = "No local changes to save" not in stash.stdout
 
-    print(f"Found branch: {branch_name}", file=sys.stderr)
-
-    default_branch = None
-    has_origin = None
     if not use_pr:
-        default_branch = detect_default_branch()
-        has_origin = _has_remote()
+        if default_branch is None:
+            default_branch = detect_default_branch()
+        if has_origin is None:
+            has_origin = _has_remote()
         locked_default_path = _worktree_path_for_branch(default_branch)
         if locked_default_path:
             print(
@@ -1699,6 +1805,8 @@ def main(argv: list[str]) -> int:
                 "Warning: no git remote 'origin' configured — skipping push.",
                 file=sys.stderr,
             )
+        if has_origin:
+            _delete_remote_feature_branch_if_tracking(branch_name)
 
         # Step 6: Delete feature branch
         if not _remove_recorded_task_worktree(
