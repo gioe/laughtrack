@@ -217,6 +217,13 @@ class TestChainScrapingDefaultQueries:
         assert "WHERE PRIMARY_SOURCE.SCRAPER_KEY = %S" in sql
         assert "COALESCE(NULLIF(SS.SCRAPER_KEY, ''), CSD.SCRAPER_KEY, SS.SCRAPER_KEY) AS SCRAPER_KEY" in sql
 
+    def test_distinct_scraper_types_counts_effective_chain_default_keys(self):
+        sql = self._normalized(ClubQueries.GET_DISTINCT_SCRAPER_TYPES)
+
+        assert "COALESCE(NULLIF(SS.SCRAPER_KEY, ''), CSD.SCRAPER_KEY, SS.SCRAPER_KEY) AS SCRAPER_KEY" in sql
+        assert "CHAIN_SCRAPING_DEFAULTS CSD" in sql
+        assert "NULLIF(SS.SCRAPER_KEY, '') IS NULL" in sql
+
 
 class TestUpsertForEventbriteVenueHappyPath:
     """Criterion 668: valid venue inserts new club and returns Club with correct eventbrite_id."""

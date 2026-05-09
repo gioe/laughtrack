@@ -135,8 +135,15 @@ class ClubQueries:
         FROM (
             SELECT DISTINCT ON (ss.club_id)
                 ss.club_id,
-                ss.scraper_key
+                COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key) AS scraper_key
             FROM scraping_sources ss
+            JOIN clubs c ON c.id = ss.club_id
+            LEFT JOIN chain_scraping_defaults csd
+              ON csd.chain_id = c.chain_id
+             AND csd.platform = ss.platform
+             AND csd.priority = ss.priority
+             AND NULLIF(ss.scraper_key, '') IS NULL
+             AND csd.enabled = TRUE
             WHERE ss.enabled = TRUE
             ORDER BY ss.club_id, ss.priority, ss.id
         ) ps
