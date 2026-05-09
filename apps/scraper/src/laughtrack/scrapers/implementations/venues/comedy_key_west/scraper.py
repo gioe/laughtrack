@@ -22,6 +22,7 @@ import dataclasses
 from typing import Optional
 
 from laughtrack.core.clients.punchup.extractor import PunchupExtractor
+from laughtrack.core.clients.tixologi.extractor import TixologiExtractor
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
@@ -76,7 +77,7 @@ class ComedyKeyWestScraper(BaseScraper):
                 return None
 
             shows = [
-                ComedyKeyWestShow(**{f.name: getattr(s, f.name) for f in dataclasses.fields(s)})
+                self._build_show(s)
                 for s in punchup_shows
             ]
             Logger.info(
@@ -91,3 +92,15 @@ class ComedyKeyWestScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    @staticmethod
+    def _build_show(punchup_show) -> ComedyKeyWestShow:
+        """Wrap a Punchup show while delegating Tixologi ticket fields to the shared client."""
+        values = {f.name: getattr(punchup_show, f.name) for f in dataclasses.fields(punchup_show)}
+        ticket_reference = TixologiExtractor.normalize_ticket_reference(
+            values.get("ticket_link"),
+            values.get("tixologi_event_id"),
+        )
+        values["ticket_link"] = ticket_reference.ticket_url
+        values["tixologi_event_id"] = ticket_reference.event_id
+        return ComedyKeyWestShow(**values)
