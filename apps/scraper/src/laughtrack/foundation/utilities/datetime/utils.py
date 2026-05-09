@@ -1,5 +1,6 @@
 """Pure date and time utilities with no domain dependencies."""
 
+import calendar
 import re
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
@@ -12,6 +13,13 @@ try:
     HAS_DATEUTIL = True
 except ImportError:
     HAS_DATEUTIL = False
+
+
+_MONTH_NAME_TO_NUMBER: dict[str, int] = {}
+for month_number in range(1, 13):
+    _MONTH_NAME_TO_NUMBER[calendar.month_abbr[month_number].lower()] = month_number
+    _MONTH_NAME_TO_NUMBER[calendar.month_name[month_number].lower()] = month_number
+_MONTH_NAME_TO_NUMBER["sept"] = 9
 
 
 class DateTimeUtils:
@@ -89,6 +97,19 @@ class DateTimeUtils:
                 return month_number
             except ValueError:
                 return None
+
+    @staticmethod
+    def month_name_to_number(name: str) -> Optional[int]:
+        """
+        Convert a month name or abbreviation to a month number.
+
+        Args:
+            name: Full or abbreviated month name, case-insensitive
+
+        Returns:
+            Optional[int]: Month number (1-12) or None if invalid
+        """
+        return _MONTH_NAME_TO_NUMBER.get(name.strip().lower().rstrip("."))
 
     @staticmethod
     def build_complete_time(time: str, meridiem: str) -> str:
