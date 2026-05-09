@@ -50,21 +50,16 @@ def _normalize(name: str) -> str:
 def _fetch_candidates(all_dates: bool) -> list[tuple[int, str]]:
     """Return (id, name) for shows whose name still contains an HTML entity.
 
-    Filters on the literal substrings `&amp;` / `&#` / `&lt;` / `&gt;` /
-    `&quot;` / `&nbsp;` so we don't need to scan every row.
+    Matches both numeric (`&#nnnn;`, `&#xHH;`) and named (`&amp;`, `&ldquo;`,
+    `&eacute;`, …) entity references. Anchored on the trailing `;` so plain
+    `&` characters in titles don't pollute the candidate set; html.unescape()
+    is then idempotent on any false positives that survive the regex.
     """
     date_clause = "" if all_dates else "date >= NOW() AND "
     sql = f"""
         SELECT id, name
         FROM shows
-        WHERE {date_clause}(
-            name ILIKE '%&amp;%'
-            OR name ILIKE '%&#%'
-            OR name ILIKE '%&lt;%'
-            OR name ILIKE '%&gt;%'
-            OR name ILIKE '%&quot;%'
-            OR name ILIKE '%&nbsp;%'
-        )
+        WHERE {date_clause}name ~ '&(#[0-9]+|#x[0-9A-Fa-f]+|[A-Za-z][A-Za-z0-9]*);'
         ORDER BY id
     """
     with get_connection() as conn:
