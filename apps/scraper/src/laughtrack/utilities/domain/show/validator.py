@@ -5,6 +5,7 @@ Utility for validating Show objects before database operations.
 Provides comprehensive validation of show data integrity.
 """
 
+from datetime import datetime
 from typing import Any, List, Optional, Tuple
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.utilities.number.utils import NumberUtils
@@ -17,6 +18,8 @@ from laughtrack.foundation.utilities.url.utils import URLUtils
 
 class ShowValidator:
     """Utility for validating Show objects before database operations."""
+
+    MAX_FUTURE_MONTHS = 18
 
     @staticmethod
     def validate_shows(shows: List[Show]) -> Tuple[List[Show], List[str]]:
@@ -103,6 +106,11 @@ class ShowValidator:
         if date_error:
             errors.append(date_error)
             ShowValidator._log_invalid_field("date", show.date, show, date_error)
+        else:
+            far_future_error = ShowValidator.validate_not_far_future(show.date, "Show date")
+            if far_future_error:
+                errors.append(far_future_error)
+                ShowValidator._log_invalid_field("date", show.date, show, far_future_error)
 
         url_error = ShowValidator.validate_required_string(show.show_page_url, "Show page URL")
         if url_error:
@@ -215,6 +223,15 @@ class ShowValidator:
         cleaned = StringUtils.normalize_whitespace(str(value)).strip()
         if not cleaned:
             return f"{field_name} is required and cannot be empty"
+        return None
+
+    @staticmethod
+    def validate_not_far_future(value: datetime, field_name: str) -> Optional[str]:
+        """Reject sentinel/misparsed show dates beyond the supported booking horizon."""
+        now = datetime.now(value.tzinfo) if value.tzinfo is not None else datetime.now()
+        max_allowed = DateTimeUtils.add_months(now, ShowValidator.MAX_FUTURE_MONTHS)
+        if value > max_allowed:
+            return f"{field_name} cannot be more than {ShowValidator.MAX_FUTURE_MONTHS} months in the future"
         return None
 
     @staticmethod

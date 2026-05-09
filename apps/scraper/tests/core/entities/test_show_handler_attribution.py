@@ -69,3 +69,16 @@ class TestScraperKeyStamping:
             h.insert_shows(shows)
 
         assert shows[0].last_scraped_by is None
+
+
+class TestShowWriteBoundaryValidation:
+    def test_process_single_batch_drops_far_future_show_before_database_write(self):
+        h = _handler()
+        show = _show("Sentinel Date")
+        h.execute_batch_operation = MagicMock()
+
+        result = h._process_single_batch([show])
+
+        assert result.validation_errors == 1
+        assert result.total == 0
+        h.execute_batch_operation.assert_not_called()

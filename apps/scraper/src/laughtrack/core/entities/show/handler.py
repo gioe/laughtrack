@@ -14,6 +14,7 @@ from sql.show_queries import ShowQueries
 
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 from laughtrack.utilities.domain.show.utils import ShowUtils
+from laughtrack.utilities.domain.show.validator import ShowValidator
 from laughtrack.foundation.infrastructure.database.operation import DatabaseOperationLogger
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -204,7 +205,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             Logger.info("No shows to process in batch")
             return DatabaseOperationResult()
 
-        # Validate and deduplicate
+        # Validate at the write boundary so bad scraper output cannot reach the database.
+        batch, validation_errors = ShowValidator.validate_shows(batch)
+        if not batch:
+            return DatabaseOperationResult(validation_errors=len(validation_errors))
+
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
 
         # Insert shows and get results
@@ -223,6 +228,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             inserts=inserts,
             updates=updates,
             total=len(show_results),
+            validation_errors=len(validation_errors),
             duplicate_details=duplicate_details,
             comedians_inserted=comedians_inserted,
             lineup_items_added=lineup_items_added,
