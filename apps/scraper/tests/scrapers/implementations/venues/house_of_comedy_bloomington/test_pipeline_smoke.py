@@ -5,6 +5,10 @@ House of Comedy Bloomington (moa.houseofcomedy.net) lists shows on its own
 homepage with long-form Tixr links (tixr.com/groups/houseofcomedymn/events/*).
 Uses the generic TixrScraper (scraper='tixr') — no custom scraper code needed.
 
+Not folded onto WebflowDayCardConfig (TASK-2057) because there is no per-venue
+scraper to collapse: this venue already runs through the generic Tixr URL
+extraction path, not a Webflow `a.day-card` extractor.
+
 Verifies that get_data() returns TixrPageData with at least one event when
 the venue homepage contains Tixr event URLs and TixrClient resolves them.
 """

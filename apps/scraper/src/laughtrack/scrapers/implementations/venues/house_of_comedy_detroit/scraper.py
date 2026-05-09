@@ -1,4 +1,9 @@
-"""Scraper for Detroit House of Comedy."""
+"""Scraper for Detroit House of Comedy.
+
+Inherits the WordPress AJAX / ShowClix path from HouseOfComedyPhoenixScraper and
+cannot fold onto WebflowDayCardConfig (TASK-2057) for the same reason: this
+venue is not Webflow + Tixr.
+"""
 
 from laughtrack.scrapers.implementations.venues.house_of_comedy_phoenix.scraper import (
     HouseOfComedyPhoenixScraper,

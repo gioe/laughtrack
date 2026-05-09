@@ -1,4 +1,10 @@
-"""Scraper for Rick Bronson's House of Comedy Phoenix."""
+"""Scraper for Rick Bronson's House of Comedy Phoenix.
+
+Cannot fold onto WebflowDayCardConfig (TASK-2057) — this venue lists shows via a
+WordPress AJAX `get_comedy_shows` endpoint with ShowClix ticket links, not the
+Webflow `a.day-card[href*="tixr.com/groups/..."]` structure shared by BC and
+Edmonton. Detroit subclasses this scraper and inherits the same path.
+"""
 
 from datetime import date
 from typing import List, Optional
