@@ -6,11 +6,9 @@ import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
-from laughtrack.scrapers.implementations.venues.comic_strip_edmonton.data import (
-    ComicStripEdmontonPageData,
-)
-from laughtrack.scrapers.implementations.venues.comic_strip_edmonton.extractor import (
-    ComicStripEdmontonExtractor,
+from laughtrack.scrapers.implementations.api.tixr.webflow_day_card import (
+    WebflowDayCardExtractor,
+    WebflowDayCardPageData,
 )
 from laughtrack.scrapers.implementations.venues.comic_strip_edmonton.scraper import (
     ComicStripEdmontonScraper,
@@ -66,7 +64,11 @@ def _homepage_html() -> str:
 
 
 def test_extractor_parses_edmonton_comic_strip_webflow_event_cards():
-    events = ComicStripEdmontonExtractor.extract_events(_homepage_html(), source_url=_SOURCE_URL)
+    events = WebflowDayCardExtractor.extract_events(
+        _homepage_html(),
+        source_url=_SOURCE_URL,
+        config=ComicStripEdmontonScraper.config,
+    )
 
     assert len(events) == 1
     assert events[0].title == "Sean Lecomber"
@@ -87,7 +89,7 @@ async def test_get_data_returns_page_data_with_edmonton_comic_strip_events(monke
 
     result = await scraper.get_data(_SOURCE_URL)
 
-    assert isinstance(result, ComicStripEdmontonPageData)
+    assert isinstance(result, WebflowDayCardPageData)
     assert len(result.event_list) == 1
 
 
@@ -107,8 +109,12 @@ async def test_get_data_returns_none_when_no_edmonton_comic_strip_event_cards(mo
 
 def test_transformation_pipeline_produces_edmonton_comic_strip_show():
     scraper = ComicStripEdmontonScraper(_club())
-    page_data = ComicStripEdmontonPageData(
-        event_list=ComicStripEdmontonExtractor.extract_events(_homepage_html(), source_url=_SOURCE_URL)
+    page_data = WebflowDayCardPageData(
+        event_list=WebflowDayCardExtractor.extract_events(
+            _homepage_html(),
+            source_url=_SOURCE_URL,
+            config=ComicStripEdmontonScraper.config,
+        )
     )
 
     shows = scraper.transformation_pipeline.transform(page_data)

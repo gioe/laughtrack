@@ -6,11 +6,9 @@ import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
-from laughtrack.scrapers.implementations.venues.house_of_comedy_bc.data import (
-    HouseOfComedyBcPageData,
-)
-from laughtrack.scrapers.implementations.venues.house_of_comedy_bc.extractor import (
-    HouseOfComedyBcExtractor,
+from laughtrack.scrapers.implementations.api.tixr.webflow_day_card import (
+    WebflowDayCardExtractor,
+    WebflowDayCardPageData,
 )
 from laughtrack.scrapers.implementations.venues.house_of_comedy_bc.scraper import (
     HouseOfComedyBcScraper,
@@ -66,7 +64,11 @@ def _homepage_html() -> str:
 
 
 def test_extractor_parses_bc_webflow_event_cards():
-    events = HouseOfComedyBcExtractor.extract_events(_homepage_html(), source_url=_SOURCE_URL)
+    events = WebflowDayCardExtractor.extract_events(
+        _homepage_html(),
+        source_url=_SOURCE_URL,
+        config=HouseOfComedyBcScraper.config,
+    )
 
     assert len(events) == 1
     assert events[0].title == "Rell Battle"
@@ -87,7 +89,7 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
     result = await scraper.get_data(_SOURCE_URL)
 
-    assert isinstance(result, HouseOfComedyBcPageData)
+    assert isinstance(result, WebflowDayCardPageData)
     assert len(result.event_list) == 1
 
 
@@ -107,8 +109,12 @@ async def test_get_data_returns_none_when_no_event_cards(monkeypatch):
 
 def test_transformation_pipeline_produces_show():
     scraper = HouseOfComedyBcScraper(_club())
-    page_data = HouseOfComedyBcPageData(
-        event_list=HouseOfComedyBcExtractor.extract_events(_homepage_html(), source_url=_SOURCE_URL)
+    page_data = WebflowDayCardPageData(
+        event_list=WebflowDayCardExtractor.extract_events(
+            _homepage_html(),
+            source_url=_SOURCE_URL,
+            config=HouseOfComedyBcScraper.config,
+        )
     )
 
     shows = scraper.transformation_pipeline.transform(page_data)

@@ -1,4 +1,4 @@
-"""Event model for House of Comedy British Columbia."""
+"""Event model for Webflow day-card venues with Tixr ticket links."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,8 +11,8 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
 @dataclass
-class HouseOfComedyBcEvent(ShowConvertible):
-    """One Webflow event card from the House of Comedy BC homepage."""
+class WebflowDayCardEvent(ShowConvertible):
+    """One Webflow ``a.day-card`` event whose ticket URL points at Tixr."""
 
     title: str
     date: str
@@ -27,7 +27,7 @@ class HouseOfComedyBcEvent(ShowConvertible):
             dt_str = f"{self.date} {time_obj.hour:02d}:{time_obj.minute:02d}:00"
             start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
                 dt_str,
-                club.timezone or "America/Vancouver",
+                club.timezone or "UTC",
             )
         except Exception:
             return None
@@ -36,7 +36,7 @@ class HouseOfComedyBcEvent(ShowConvertible):
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
-            name=self.title or "House of Comedy BC Show",
+            name=self.title,
             club=club,
             date=start_date,
             show_page_url=ticket_url,
