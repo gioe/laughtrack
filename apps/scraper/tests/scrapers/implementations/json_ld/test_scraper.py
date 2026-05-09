@@ -143,3 +143,42 @@ class TestLocationNameFilter:
 
         result = await scraper.get_data("https://comedycraftbeer.com/calendar")
         assert result is None
+
+    @pytest.mark.asyncio
+    async def test_filter_excludes_events_with_empty_location_name(self, monkeypatch):
+        """Events whose Place has an empty location.name (e.g. JSON-LD that omitted
+        Place.name and fell back to event.name being empty too) must not match a
+        non-empty filter — `"X" in ""` is False, but the `if e.location and` guard
+        is the safety net if a future change makes Place.name optional/None.
+        """
+        nameless_event = {
+            "@context": "https://schema.org",
+            "@type": "Event",
+            "name": "",
+            "startDate": "2099-07-04T20:00:00-04:00",
+            "url": "https://example.com/events/nameless",
+            "location": {
+                "@type": "Place",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "1 Riverside Dr",
+                    "addressLocality": "Wethersfield",
+                    "addressRegion": "CT",
+                    "postalCode": "06109",
+                    "addressCountry": "US",
+                },
+            },
+        }
+        html = f"<html><head>{_wrap_ldjson([nameless_event])}</head></html>"
+
+        scraper = JsonLdScraper(_make_club(metadata={
+            "location_name_filter": "River: A Waterfront Restaurant and Bar",
+        }))
+
+        async def fake_fetch_html(self, url):
+            return html
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        result = await scraper.get_data("https://comedycraftbeer.com/calendar")
+        assert result is None

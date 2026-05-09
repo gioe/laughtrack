@@ -55,10 +55,12 @@ class JsonLdScraper(BaseScraper):
 
         Honors the optional ``location_name_filter`` metadata key on
         scraping_sources: when set, only events whose ``location.name``
-        contains the configured substring are kept. This supports
-        multi-venue calendar pages (e.g. comedycraftbeer.com/calendar
-        listing every Comedy Craft Beer venue on one page) without a
-        bespoke per-venue scraper class.
+        contains the configured substring are kept (case-sensitive
+        match, preserving the prior BrewHaHaRiverExtractor semantics —
+        configure the metadata value with the exact venue casing).
+        This supports multi-venue calendar pages (e.g.
+        comedycraftbeer.com/calendar listing every Comedy Craft Beer
+        venue on one page) without a bespoke per-venue scraper class.
         """
         try:
             # Local imports to prevent circular imports during module discovery

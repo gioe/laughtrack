@@ -13,7 +13,9 @@ SET
         'location_name_filter', 'River: A Waterfront Restaurant and Bar',
         'audited_at', '2026-05-09'
     )
+-- enabled flag is intentionally NOT in the WHERE clause: the venue folder is
+-- deleted in the same change set, so any row still pointing at scraper_key
+-- 'brew_haha_river' (enabled or not) must be migrated to avoid an orphaned key.
 WHERE club_id = 1350
   AND platform = 'custom'::"ScrapingPlatform"
-  AND scraper_key = 'brew_haha_river'
-  AND enabled = true;
+  AND scraper_key = 'brew_haha_river';
