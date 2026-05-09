@@ -1,12 +1,12 @@
 """HTML extraction for Dr. Grins Comedy Club public pages."""
 
 import re
-from html import unescape
 from typing import List, Optional
 from urllib.parse import urljoin
 
 from laughtrack.core.entities.event.dr_grins import DrGrinsEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.html.utils import HtmlUtils
 
 _BASE_URL = "https://www.thebob.com"
 _DETAIL_PATH_RE = re.compile(
@@ -27,12 +27,6 @@ _SHOW_DATE_RE = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 _TIME_RE = re.compile(r"(\d{1,2}(?::\d{2})?\s*(?:am|pm))", re.IGNORECASE)
-
-
-def _strip_tags(text: str) -> str:
-    """Remove tags, decode entities, and normalize whitespace."""
-    stripped = re.sub(r"<[^>]+>", " ", text or "")
-    return " ".join(unescape(stripped).replace("\xa0", " ").split())
 
 
 class DrGrinsExtractor:
@@ -62,7 +56,7 @@ class DrGrinsExtractor:
         if title_match is None:
             Logger.debug("DrGrinsExtractor: skipping page with no feature title")
             return []
-        title = _strip_tags(title_match.group("title"))
+        title = HtmlUtils.strip_tags(title_match.group("title"), normalize_whitespace=True)
         if not title:
             return []
 
@@ -75,8 +69,8 @@ class DrGrinsExtractor:
 
         events: List[DrGrinsEvent] = []
         for match in _SHOW_DATE_RE.finditer(html):
-            date_str = _strip_tags(match.group("date"))
-            body = _strip_tags(match.group("body"))
+            date_str = HtmlUtils.strip_tags(match.group("date"), normalize_whitespace=True)
+            body = HtmlUtils.strip_tags(match.group("body"), normalize_whitespace=True)
             if not date_str or not body:
                 continue
             times = _TIME_RE.findall(body)
