@@ -130,16 +130,16 @@ How many HTTP round-trips are needed to collect all event data.
 
 | Data Source | Count | % |
 |---|---|---|
-| external_api | 17 | 35% |
-| html | 14 | 29% |
-| json_feed | 8 | 16% |
+| external_api | 14 | 29% |
+| html | 13 | 27% |
+| json_feed | 9 | 18% |
 | json_ld | 4 | 8% |
 | rsc | 4 | 8% |
 | next_data | 2 | 4% |
 | graphql | 2 | 4% |
 | google_sheets | 1 | 2% |
 
-(Percentages based on 49 venue scrapers; some venues appear in multiple categories when they have secondary data sources.)
+(Percentages based on 49 venue scrapers, one row each; rounded to nearest whole percent.)
 
 ---
 
