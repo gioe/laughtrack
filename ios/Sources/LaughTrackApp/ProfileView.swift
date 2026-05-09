@@ -5,6 +5,11 @@ import LaughTrackCore
 
 @MainActor
 struct ProfileView: View {
+    static let profileSettingsTitle = "Profile settings"
+    static let favoriteComedianAlertsTitle = "Favorite comedian alerts"
+    static let signOutButtonTitle = "Sign out"
+    static let deleteAccountButtonTitle = "Delete account"
+
     let apiClient: Client
     let signedOutMessage: String?
     let nearbyLocationController: NearbyLocationController
@@ -299,7 +304,7 @@ struct ProfileView: View {
                 }
 
                 LaughTrackButton(
-                    "Sign out",
+                    Self.signOutButtonTitle,
                     systemImage: "rectangle.portrait.and.arrow.right",
                     tone: .destructive
                 ) {
@@ -309,7 +314,7 @@ struct ProfileView: View {
                 }
 
                 LaughTrackButton(
-                    "Delete account",
+                    Self.deleteAccountButtonTitle,
                     systemImage: "trash",
                     tone: .destructive
                 ) {
@@ -366,7 +371,7 @@ private struct ProfileSettingsSection: View {
         VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
             LaughTrackSectionHeader(
                 eyebrow: "Profile",
-                title: "Profile settings",
+                title: ProfileView.profileSettingsTitle,
                 subtitle: "Location and alert preferences saved to your account."
             )
 
@@ -533,7 +538,7 @@ private struct ProfileNotificationsSection: View {
         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
             LaughTrackSectionHeader(
                 eyebrow: "Notifications",
-                title: "Favorite comedian alerts",
+                title: ProfileView.favoriteComedianAlertsTitle,
                 subtitle: "Choose how LaughTrack should notify you when saved comedians add shows."
             )
 

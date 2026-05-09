@@ -15,6 +15,14 @@ import LaughTrackCore
 @Suite("Profile view")
 @MainActor
 struct ProfileViewTests {
+    @Test("profile settings and account copy seams stay stable")
+    func profileCopySeamsStayStable() {
+        #expect(ProfileView.profileSettingsTitle == "Profile settings")
+        #expect(ProfileView.favoriteComedianAlertsTitle == "Favorite comedian alerts")
+        #expect(ProfileView.signOutButtonTitle == "Sign out")
+        #expect(ProfileView.deleteAccountButtonTitle == "Delete account")
+    }
+
     @Test("signed-out auth state surfaces guest-mode hero text and gates settings off")
     func signedOutAuthStateProducesGuestHero() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "profile-signed-out")
