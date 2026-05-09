@@ -39,9 +39,9 @@ How many HTTP round-trips are needed to collect all event data.
 
 ## Reference Table: All Venues
 
-50 venue scrapers + 15 API-level scrapers classified by (data source, process type).
+49 venue scrapers + 15 API-level scrapers classified by (data source, process type).
 
-### Venue Scrapers (50)
+### Venue Scrapers (49)
 
 | # | Venue | Scraper Key | Data Source | Process Type | Platform / Notes |
 |---|---|---|---|---|---|
@@ -139,7 +139,7 @@ How many HTTP round-trips are needed to collect all event data.
 | graphql | 2 | 4% |
 | google_sheets | 1 | 2% |
 
-(Percentages based on 50 venue scrapers; some venues appear in multiple categories when they have secondary data sources.)
+(Percentages based on 49 venue scrapers; some venues appear in multiple categories when they have secondary data sources.)
 
 ---
 
