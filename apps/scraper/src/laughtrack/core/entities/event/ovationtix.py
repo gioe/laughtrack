@@ -88,6 +88,13 @@ class OvationTixEvent:
                                 type=ticket_type,
                             )
                         )
+            if not tickets and self.event_url:
+                tickets.append(
+                    ShowFactoryUtils.create_fallback_ticket(
+                        self.event_url,
+                        sold_out=not self.tickets_available,
+                    )
+                )
         except Exception as e:
             Logger.error(f"Failed to extract ticket data for performance {self.performance_id}: {e}")
         return tickets
