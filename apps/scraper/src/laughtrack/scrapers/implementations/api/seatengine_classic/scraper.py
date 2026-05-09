@@ -115,15 +115,15 @@ class SeatEngineClassicScraper(BaseScraper):
         """Populate ``raw_data['price']`` for each show by parsing its detail page.
 
         Classic SeatEngine listing pages do not expose prices, so without this
-        step every ticket lands at NULL (post-TASK-2090) — or, in the legacy
-        codepath, $0.00. Each ``/shows/{id}`` page embeds a
+        step every ticket lands at NULL. Each ``/shows/{id}`` page embeds a
         ``window.seat_engine_app_config`` JSON object whose
         ``showtime.inventories[]`` mirrors the SeatEngine REST API shape.
 
         Detail fetches run concurrently up to _PRICE_FETCH_CONCURRENCY at a
-        time. Failures are swallowed: shows whose detail page cannot be
-        fetched or parsed retain a missing ``price`` field, which the
-        transformer persists as NULL.
+        time. Per-fetch failures are swallowed and do not go through
+        BaseScraper.error_handler.execute_with_retry (which wraps the listing
+        fetch upstream): a NULL price on one show is the correct downstream
+        behavior, and one failed detail page must never abort the whole venue.
         """
         targets = [s for s in shows if s.get("show_url")]
         if not targets:
@@ -151,7 +151,7 @@ class SeatEngineClassicScraper(BaseScraper):
 
         await asyncio.gather(*(_fetch_one(s) for s in targets))
 
-        priced = sum(1 for s in shows if s.get("price"))
+        priced = sum(1 for s in shows if s.get("price") is not None)
         Logger.info(
             f"{self._log_prefix}: enriched {priced}/{len(targets)} shows with prices",
             self.logger_context,
