@@ -63,7 +63,6 @@ graph TB
         • BroadwayComedyClubScraper
         • Grove34Scraper
         • BushwickComedyClubScraper
-        • TheStandNYCScraper
         • StandupNYScraper
         • ImprovScraper
         • ComicStripScraper
