@@ -29,6 +29,8 @@ class ScrapingSource:
     id: Optional[int] = None
     club_id: Optional[int] = None
     external_id: Optional[str] = None
+    chain_scraping_default_id: Optional[int] = None
+    chain_id: Optional[int] = None
 
     def __post_init__(self) -> None:
         if self.external_id is None:
@@ -82,6 +84,8 @@ class ScrapingSource:
             priority=int(raw.get("priority") or 0),
             enabled=bool(raw.get("enabled", True)),
             metadata=metadata,
+            chain_scraping_default_id=raw.get("chain_scraping_default_id"),
+            chain_id=raw.get("chain_id"),
         )
 
     def typed_id_for_platform(self, *platforms: str) -> Optional[str]:
@@ -134,6 +138,7 @@ class Club(DatabaseEntity):
     timeout: int = 30
     scraping_sources: list[ScrapingSource] = field(default_factory=list)
     active_scraping_source: Optional[ScrapingSource] = None
+    chain_id: Optional[int] = None
 
     @property
     def primary_scraping_source(self) -> Optional[ScrapingSource]:
@@ -298,6 +303,7 @@ class Club(DatabaseEntity):
             visible=row.get("visible", True),
             status=row.get("status", "active"),
             club_type=row.get("club_type", "club"),
+            chain_id=row.get("chain_id"),
             rate_limit=row.get("rate_limit", 1.0),
             max_retries=row.get("max_retries", 3),
             timeout=row.get("timeout", 30),

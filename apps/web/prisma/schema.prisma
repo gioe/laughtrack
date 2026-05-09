@@ -41,13 +41,32 @@ enum ScrapingPlatform {
 }
 
 model Chain {
-  id      Int     @id @default(autoincrement())
-  name    String  @unique
-  slug    String  @unique
-  website String?
-  clubs   Club[]
+  id                       Int                     @id @default(autoincrement())
+  name                     String                  @unique
+  slug                     String                  @unique
+  website                  String?
+  clubs                    Club[]
+  chainScrapingDefaults    ChainScrapingDefault[]
 
   @@map("chains")
+}
+
+model ChainScrapingDefault {
+  id         Int              @id @default(autoincrement())
+  chainId    Int              @map("chain_id")
+  platform   ScrapingPlatform
+  scraperKey String           @map("scraper_key")
+  priority   Int              @default(0)
+  enabled    Boolean          @default(true)
+  metadata   Json             @default("{}")
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  chain      Chain            @relation(fields: [chainId], references: [id], onDelete: Cascade)
+
+  @@unique([chainId, platform, priority])
+  @@index([chainId, enabled, priority])
+  @@index([platform, enabled])
+  @@map("chain_scraping_defaults")
 }
 
 model ProductionCompany {

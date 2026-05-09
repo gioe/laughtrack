@@ -9,7 +9,7 @@ class ClubQueries:
             'id', ss.id,
             'club_id', ss.club_id,
             'platform', ss.platform,
-            'scraper_key', ss.scraper_key,
+            'scraper_key', COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key),
             'seatengine_id', ss.seatengine_id,
             'eventbrite_id', ss.eventbrite_id,
             'ticketmaster_id', ss.ticketmaster_id,
@@ -20,7 +20,9 @@ class ClubQueries:
             'source_url', ss.source_url,
             'priority', ss.priority,
             'enabled', ss.enabled,
-            'metadata', COALESCE(ss.metadata, '{}'::jsonb)
+            'metadata', COALESCE(csd.metadata, '{}'::jsonb) || COALESCE(ss.metadata, '{}'::jsonb),
+            'chain_scraping_default_id', csd.id,
+            'chain_id', csd.chain_id
         )
     """
 
@@ -34,6 +36,12 @@ class ClubQueries:
                 '[]'::json
             ) AS scraping_sources
             FROM scraping_sources ss
+            LEFT JOIN chain_scraping_defaults csd
+              ON csd.chain_id = c.chain_id
+             AND csd.platform = ss.platform
+             AND csd.priority = ss.priority
+             AND NULLIF(ss.scraper_key, '') IS NULL
+             AND csd.enabled = TRUE
             WHERE ss.club_id = c.id
               AND ss.enabled = TRUE
         ) source_list ON TRUE
@@ -44,7 +52,7 @@ class ClubQueries:
             SELECT
                 ss.id,
                 ss.platform,
-                ss.scraper_key,
+                COALESCE(NULLIF(ss.scraper_key, ''), csd.scraper_key, ss.scraper_key) AS scraper_key,
                 ss.seatengine_id,
                 ss.eventbrite_id,
                 ss.ticketmaster_id,
@@ -55,8 +63,16 @@ class ClubQueries:
                 ss.source_url,
                 ss.priority,
                 ss.enabled,
-                COALESCE(ss.metadata, '{}'::jsonb) AS metadata
+                COALESCE(csd.metadata, '{}'::jsonb) || COALESCE(ss.metadata, '{}'::jsonb) AS metadata,
+                csd.id AS chain_scraping_default_id,
+                csd.chain_id
             FROM scraping_sources ss
+            LEFT JOIN chain_scraping_defaults csd
+              ON csd.chain_id = c.chain_id
+             AND csd.platform = ss.platform
+             AND csd.priority = ss.priority
+             AND NULLIF(ss.scraper_key, '') IS NULL
+             AND csd.enabled = TRUE
             WHERE ss.club_id = c.id
               AND ss.enabled = TRUE
             ORDER BY ss.priority, ss.id
