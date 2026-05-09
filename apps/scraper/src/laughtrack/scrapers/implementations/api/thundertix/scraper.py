@@ -2,12 +2,17 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Callable, Generic, List, Optional, Sequence, TypeVar
+from typing import Callable, Generic, List, Optional, Sequence, Tuple, TypeVar
 
+from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.thundertix import ThunderTixPerformance
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+
+from .data import ThunderTixPageData
+from .transformer import ThunderTixEventTransformer
 
 _CALENDAR_PATH = "/reports/calendar"
 _DEFAULT_WEEKS_AHEAD = 12
@@ -106,3 +111,52 @@ class ThunderTixCalendarScraper(BaseScraper, Generic[PerformanceT, PageDataT]):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: get_data failed for {url}: {e}", self.logger_context)
             return None
+
+
+_CALENDAR_PATH_SUFFIX = _CALENDAR_PATH.lstrip("/")
+
+
+def _parse_title_skip_prefixes(raw: Optional[str]) -> Tuple[str, ...]:
+    if not raw:
+        return ()
+    return tuple(p.strip() for p in raw.split(",") if p.strip())
+
+
+def _derive_base_url(scraping_url: str) -> str:
+    url = (scraping_url or "").strip().rstrip("/")
+    if url.endswith(f"/{_CALENDAR_PATH_SUFFIX}"):
+        url = url[: -len(_CALENDAR_PATH_SUFFIX) - 1]
+    return url
+
+
+class GenericThunderTixScraper(
+    ThunderTixCalendarScraper[ThunderTixPerformance, ThunderTixPageData]
+):
+    """ThunderTix scraper configured per-club from ``scraping_sources``.
+
+    Reads the venue base URL from ``scraping_sources.source_url`` (the
+    venue root, e.g. ``https://theannoyance.thundertix.com``; a trailing
+    ``/reports/calendar`` is tolerated and stripped). Optional
+    ``title_skip_prefixes`` metadata key — comma-separated — filters out
+    events whose title starts with any of the prefixes (e.g.
+    ``"CLASS:,TRAINING CENTER:"`` for The Annoyance Theatre's class
+    listings).
+    """
+
+    key = "thundertix"
+
+    def __init__(self, club: Club, **kwargs):
+        base_url = _derive_base_url(club.scraping_url)
+        title_skip_prefixes = _parse_title_skip_prefixes(
+            club.metadata_value("title_skip_prefixes")
+        )
+
+        self.thundertix_config = ThunderTixCalendarConfig(
+            base_url=base_url,
+            event_factory=ThunderTixPerformance.from_api_response,
+            page_data_factory=lambda events: ThunderTixPageData(event_list=events),
+            title_skip_prefixes=title_skip_prefixes,
+        )
+
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(ThunderTixEventTransformer(club))

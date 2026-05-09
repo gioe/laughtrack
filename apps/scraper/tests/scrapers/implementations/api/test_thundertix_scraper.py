@@ -3,10 +3,11 @@ from dataclasses import dataclass
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.annoyance import AnnoyancePerformance
-from laughtrack.core.entities.event.post_office_cafe import PostOfficeCafePerformance
+from laughtrack.core.entities.event.thundertix import ThunderTixPerformance
 from laughtrack.ports.scraping import EventListContainer
+from laughtrack.scrapers.implementations.api.thundertix.data import ThunderTixPageData
 from laughtrack.scrapers.implementations.api.thundertix.scraper import (
+    GenericThunderTixScraper,
     ThunderTixCalendarConfig,
     ThunderTixCalendarScraper,
 )
@@ -17,7 +18,10 @@ class _PageData(EventListContainer):
     event_list: list
 
 
-def _club() -> Club:
+def _club(
+    source_url: str = "https://example.thundertix.com",
+    metadata: dict | None = None,
+) -> Club:
     club = Club(
         id=999,
         name="ThunderTix Test Venue",
@@ -32,10 +36,11 @@ def _club() -> Club:
     club.active_scraping_source = ScrapingSource(
         id=1,
         club_id=club.id,
-        platform="custom",
-        scraper_key="",
-        source_url="https://example.thundertix.com/reports/calendar",
+        platform="thundertix",
+        scraper_key="thundertix",
+        source_url=source_url,
         external_id=None,
+        metadata=metadata or {},
     )
     club.scraping_sources = [club.active_scraping_source]
     return club
@@ -61,11 +66,17 @@ def _performance_dict(
     }
 
 
+# ---------------------------------------------------------------------------
+# Engine-level tests (ThunderTixCalendarScraper) — exercised via a small
+# anonymous subclass so the config can be hard-coded from the test fixture.
+# ---------------------------------------------------------------------------
+
+
 class _ConfigurableThunderTixScraper(ThunderTixCalendarScraper):
     key = "configurable_thundertix_test"
     thundertix_config = ThunderTixCalendarConfig(
         base_url="https://example.thundertix.com",
-        event_factory=AnnoyancePerformance.from_api_response,
+        event_factory=ThunderTixPerformance.from_api_response,
         page_data_factory=lambda events: _PageData(event_list=events),
         weeks_ahead=3,
         current_week_start_ts=lambda: 1743292800,
@@ -86,22 +97,14 @@ async def test_builds_weekly_calendar_targets_from_config():
 
 
 @pytest.mark.asyncio
-async def test_applies_venue_specific_filter_rules(monkeypatch):
-    class AnnoyanceThunderTixScraper(ThunderTixCalendarScraper):
-        key = "annoyance_test"
+async def test_engine_applies_publicly_available_and_title_skip_filters(monkeypatch):
+    class _SkipPrefixScraper(ThunderTixCalendarScraper):
+        key = "thundertix_skip_test"
         thundertix_config = ThunderTixCalendarConfig(
-            base_url="https://theannoyance.thundertix.com",
-            event_factory=AnnoyancePerformance.from_api_response,
+            base_url="https://example.thundertix.com",
+            event_factory=ThunderTixPerformance.from_api_response,
             page_data_factory=lambda events: _PageData(event_list=events),
             title_skip_prefixes=("CLASS:", "TRAINING CENTER:"),
-        )
-
-    class PostOfficeThunderTixScraper(ThunderTixCalendarScraper):
-        key = "post_office_test"
-        thundertix_config = ThunderTixCalendarConfig(
-            base_url="https://postofficecafecabaret.thundertix.com",
-            event_factory=PostOfficeCafePerformance.from_api_response,
-            page_data_factory=lambda events: _PageData(event_list=events),
         )
 
     api_fixture = [
@@ -116,16 +119,92 @@ async def test_applies_venue_specific_filter_rules(monkeypatch):
 
     monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
 
-    annoyance_result = await AnnoyanceThunderTixScraper(_club()).get_data(
-        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
-    )
-    post_office_result = await PostOfficeThunderTixScraper(_club()).get_data(
-        "https://postofficecafecabaret.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    result = await _SkipPrefixScraper(_club()).get_data(
+        "https://example.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
     )
 
-    assert [event.title for event in annoyance_result.event_list] == ["Public Show"]
-    assert [event.title for event in post_office_result.event_list] == [
-        "Public Show",
-        "CLASS: Intro to Improv",
-        "TRAINING CENTER: Advanced Scene Work",
+    assert [event.title for event in result.event_list] == ["Public Show"]
+
+
+# ---------------------------------------------------------------------------
+# GenericThunderTixScraper — config built per-instance from scraping_sources.
+# ---------------------------------------------------------------------------
+
+
+def test_generic_scraper_builds_config_from_club_source_url_only():
+    """Bare base URL in source_url is used as-is; no skip-prefixes by default."""
+    scraper = GenericThunderTixScraper(
+        _club(source_url="https://postofficecafecabaret.thundertix.com")
+    )
+
+    assert scraper.thundertix_config.base_url == "https://postofficecafecabaret.thundertix.com"
+    assert scraper.thundertix_config.title_skip_prefixes == ()
+
+
+def test_generic_scraper_strips_calendar_path_from_source_url():
+    """source_url ending in /reports/calendar is normalized to the venue root."""
+    scraper = GenericThunderTixScraper(
+        _club(source_url="https://theannoyance.thundertix.com/reports/calendar")
+    )
+
+    assert scraper.thundertix_config.base_url == "https://theannoyance.thundertix.com"
+
+
+def test_generic_scraper_parses_title_skip_prefixes_metadata():
+    """metadata.title_skip_prefixes (CSV) is parsed into a tuple of trimmed strings."""
+    scraper = GenericThunderTixScraper(
+        _club(
+            source_url="https://theannoyance.thundertix.com",
+            metadata={"title_skip_prefixes": "CLASS:, TRAINING CENTER:"},
+        )
+    )
+
+    assert scraper.thundertix_config.title_skip_prefixes == ("CLASS:", "TRAINING CENTER:")
+
+
+@pytest.mark.asyncio
+async def test_generic_scraper_collects_12_weekly_urls_from_club_base():
+    scraper = GenericThunderTixScraper(
+        _club(source_url="https://theannoyance.thundertix.com")
+    )
+
+    urls = await scraper.collect_scraping_targets()
+
+    assert len(urls) == 12
+    for url in urls:
+        assert url.startswith(
+            "https://theannoyance.thundertix.com/reports/calendar?week=0&start="
+        )
+
+
+@pytest.mark.asyncio
+async def test_generic_scraper_get_data_returns_thundertix_page_data(monkeypatch):
+    """get_data() returns a ThunderTixPageData with publicly_available + skip-prefix filtering applied."""
+    scraper = GenericThunderTixScraper(
+        _club(
+            source_url="https://theannoyance.thundertix.com",
+            metadata={"title_skip_prefixes": "CLASS:,TRAINING CENTER:"},
+        )
+    )
+
+    api_fixture = [
+        _performance_dict(title="Public Show", event_id=1, performance_id=101),
+        _performance_dict(title="CLASS: Intro to Improv", event_id=2, performance_id=102),
+        _performance_dict(title="Private Event", event_id=4, performance_id=104, publicly_available=False),
     ]
+
+    async def fake_fetch_json_list(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    )
+
+    assert isinstance(result, ThunderTixPageData)
+    assert [event.title for event in result.event_list] == ["Public Show"]
+    only_event = result.event_list[0]
+    assert only_event.ticket_url == (
+        "https://theannoyance.thundertix.com/orders/new?event_id=1&performance_id=101"
+    )

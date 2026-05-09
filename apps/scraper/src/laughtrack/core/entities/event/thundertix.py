@@ -1,0 +1,75 @@
+"""
+Data model for a single performance from any ThunderTix venue.
+
+Show data is fetched from the ThunderTix calendar API:
+
+  GET https://{venue-slug}.thundertix.com/reports/calendar?week=0&start={ts}&end={ts+7d}
+
+Each item in the JSON array represents a single performance with title, start
+datetime (with UTC offset), event/performance IDs, and ticket/show page URLs.
+
+This entity replaces the per-venue ``AnnoyancePerformance`` and
+``PostOfficeCafePerformance`` classes — the API response shape is identical
+across ThunderTix venues, so a single generic entity drives the
+``GenericThunderTixScraper``.
+"""
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
+from laughtrack.core.entities.club.model import Club
+from laughtrack.core.protocols.show_convertible import ShowConvertible
+
+
+@dataclass
+class ThunderTixPerformance(ShowConvertible):
+    """Single performance returned by the ThunderTix calendar API."""
+
+    event_id: int
+    performance_id: int
+    title: str
+    start_dt: str       # raw datetime string, e.g. "2026-03-24 20:00:00 -0500"
+    ticket_url: str     # full URL: base_url + order_products_url
+    show_page_url: str  # full URL: base_url + truncated_url
+    is_sold_out: bool = False
+
+    @classmethod
+    def from_api_response(cls, data: dict, base_url: str) -> "ThunderTixPerformance":
+        """Create a ThunderTixPerformance from a raw ThunderTix API dict."""
+        order_products_url = data.get("order_products_url") or ""
+        truncated_url = data.get("truncated_url") or ""
+        return cls(
+            event_id=int(data.get("event_id", 0)),
+            performance_id=int(data.get("performance_id", 0)),
+            title=data.get("title") or "",
+            start_dt=data.get("start") or "",
+            ticket_url=f"{base_url}{order_products_url}",
+            show_page_url=f"{base_url}{truncated_url}",
+            is_sold_out=bool(data.get("is_sold_out", False)),
+        )
+
+    def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
+        """Convert to a Show object."""
+        from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+
+        if not self.title or not self.start_dt:
+            return None
+
+        try:
+            start_date = datetime.strptime(self.start_dt, "%Y-%m-%d %H:%M:%S %z")
+        except ValueError:
+            return None
+
+        ticket_url = url or self.ticket_url
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.is_sold_out)]
+
+        return ShowFactoryUtils.create_enhanced_show_base(
+            name=self.title,
+            club=club,
+            date=start_date,
+            show_page_url=self.show_page_url,
+            lineup=[],
+            tickets=tickets,
+            enhanced=enhanced,
+        )

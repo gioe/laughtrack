@@ -28,6 +28,7 @@ enum ScrapingPlatform {
   squarespace
   squadup
   stagetime
+  thundertix
   ticketleap
   ticketmaster
   ticketsource
