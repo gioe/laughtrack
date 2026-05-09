@@ -11,19 +11,24 @@ The fragment is stripped before fetching but used to filter shows by
 their event-label text (e.g. "Downtown", "6th and Proctor").
 """
 
+import asyncio
 from typing import List, Optional
 from urllib.parse import urlparse, urlunparse, unquote
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.url.utils import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer
 
 from .extractor import SeatEngineClassicExtractor
 from .data import SeatEngineClassicPageData
+from .price_extractor import cheapest_price, extract_inventories
 from .transformer import SeatEngineClassicTransformer
+
+_PRICE_FETCH_CONCURRENCY = 5
 
 
 class SeatEngineClassicScraper(BaseScraper):
@@ -99,7 +104,55 @@ class SeatEngineClassicScraper(BaseScraper):
             )
             shows = filtered
 
+        await self._enrich_with_prices(shows)
+
         return SeatEngineClassicPageData(event_list=shows)
 
     def transform_data(self, raw_data: EventListContainer, source_url: str) -> List[Show]:
         return super().transform_data(raw_data, source_url)
+
+    async def _enrich_with_prices(self, shows: List[JSONDict]) -> None:
+        """Populate ``raw_data['price']`` for each show by parsing its detail page.
+
+        Classic SeatEngine listing pages do not expose prices, so without this
+        step every ticket lands at NULL (post-TASK-2090) — or, in the legacy
+        codepath, $0.00. Each ``/shows/{id}`` page embeds a
+        ``window.seat_engine_app_config`` JSON object whose
+        ``showtime.inventories[]`` mirrors the SeatEngine REST API shape.
+
+        Detail fetches run concurrently up to _PRICE_FETCH_CONCURRENCY at a
+        time. Failures are swallowed: shows whose detail page cannot be
+        fetched or parsed retain a missing ``price`` field, which the
+        transformer persists as NULL.
+        """
+        targets = [s for s in shows if s.get("show_url")]
+        if not targets:
+            return
+
+        semaphore = asyncio.Semaphore(_PRICE_FETCH_CONCURRENCY)
+
+        async def _fetch_one(show: JSONDict) -> None:
+            url = show["show_url"]
+            async with semaphore:
+                try:
+                    await self.rate_limiter.await_if_needed(url)
+                    html = await self.fetch_html(url)
+                except Exception as e:
+                    Logger.warn(
+                        f"{self._log_prefix}: price fetch failed for {url}: {e}",
+                        self.logger_context,
+                    )
+                    return
+                if not html:
+                    return
+                price = cheapest_price(extract_inventories(html))
+                if price is not None:
+                    show["price"] = price
+
+        await asyncio.gather(*(_fetch_one(s) for s in targets))
+
+        priced = sum(1 for s in shows if s.get("price"))
+        Logger.info(
+            f"{self._log_prefix}: enriched {priced}/{len(targets)} shows with prices",
+            self.logger_context,
+        )
