@@ -40,6 +40,12 @@ from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import TixrExtractor
 from .data import TixrPageData
+from .webflow_day_card import (
+    WebflowDayCardConfig,
+    WebflowDayCardExtractor,
+    WebflowDayCardPageData,
+    WebflowDayCardTransformer,
+)
 
 _MAX_DISCOVERY_PAGES = 12
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
@@ -617,3 +623,60 @@ class TixrPublicCardScraper(TixrScraper):
                 self.logger_context,
             )
             return None
+
+
+class TixrWebflowDayCardScraper(BaseScraper):
+    """Generic scraper for Webflow ``a.day-card`` calendars with Tixr ticket links.
+
+    Reads the venue homepage URL from ``scraping_sources.source_url`` and the
+    Tixr group URL fragment used to filter foreign cards from
+    ``scraping_sources.metadata.tixr_group_fragment``. Onboarding a new venue
+    that follows the same Webflow + Tixr pattern is a DB-only change.
+    """
+
+    key = "tixr_webflow_day_card"
+
+    def __init__(self, club: Club, **kwargs):
+        fragment = (club.metadata_value("tixr_group_fragment") or "").strip()
+        if not fragment:
+            raise ValueError(
+                f"TixrWebflowDayCardScraper requires "
+                f"scraping_sources.metadata.tixr_group_fragment for "
+                f"club_id={club.id} ('{club.name}')"
+            )
+        if not (club.scraping_url or "").strip():
+            raise ValueError(
+                f"TixrWebflowDayCardScraper requires "
+                f"scraping_sources.source_url for "
+                f"club_id={club.id} ('{club.name}')"
+            )
+
+        self.config = WebflowDayCardConfig(tixr_group_fragment=fragment)
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(WebflowDayCardTransformer(club))
+
+    async def collect_scraping_targets(self) -> List[ScrapingTarget]:
+        return [self.club.scraping_url]
+
+    async def get_data(self, target: ScrapingTarget) -> Optional[WebflowDayCardPageData]:
+        url = str(target or self.club.scraping_url)
+        html_content = await self.fetch_html(url)
+        if not html_content:
+            Logger.warn(
+                f"{self._log_prefix}: empty Webflow homepage response: {url}",
+                self.logger_context,
+            )
+            return None
+
+        events = WebflowDayCardExtractor.extract_events(
+            html_content, source_url=url, config=self.config
+        )
+        if not events:
+            Logger.warn(
+                f"{self._log_prefix}: no Webflow event cards matched "
+                f"fragment={self.config.tixr_group_fragment!r} at {url}",
+                self.logger_context,
+            )
+            return None
+
+        return WebflowDayCardPageData(event_list=events)
