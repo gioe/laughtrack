@@ -60,3 +60,23 @@ def test_to_tuple_serializes_last_scraped_date_as_utc_timestamp():
     parsed = datetime.fromisoformat(last_scraped_date)
 
     assert parsed.tzinfo == timezone.utc
+
+
+def test_to_tuple_emits_last_scraped_by_in_position_8():
+    """Position must match BATCH_INSERT_SHOWS column order (TASK-2051).
+
+    INSERT columns: name, show_page_url, description, date, club_id,
+    last_scraped_date, room, production_company_id, last_scraped_by.
+    Drift between this tuple and the SQL would mis-stamp every persisted
+    show across the fleet, so we lock the index in.
+    """
+    show = _show(datetime(2026, 4, 15, 20, 0, 0))
+    show.last_scraped_by = "live_nation"
+
+    assert show.to_tuple()[8] == "live_nation"
+
+
+def test_to_tuple_last_scraped_by_defaults_to_none():
+    show = _show(datetime(2026, 4, 15, 20, 0, 0))
+
+    assert show.to_tuple()[8] is None

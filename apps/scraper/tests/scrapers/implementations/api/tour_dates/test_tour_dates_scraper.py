@@ -285,7 +285,7 @@ def test_persist_shows_and_lineups_links_lineups(platform_club):
         lineup=[comedian],
     )
 
-    def fake_insert_shows(shows):
+    def fake_insert_shows(shows, **kwargs):
         # Simulate ShowHandler setting show IDs on the original objects
         for s in shows:
             s.id = 99
@@ -324,7 +324,7 @@ def test_persist_shows_and_lineups_does_not_insert_comedians(platform_club):
         lineup=[comedian],
     )
 
-    def fake_insert_shows(shows):
+    def fake_insert_shows(shows, **kwargs):
         for s in shows:
             s.id = 77
 

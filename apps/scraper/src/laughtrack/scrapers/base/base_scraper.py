@@ -444,6 +444,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     shows=shows,
                     execution_time=execution_time,
                     club_id=getattr(self.club, 'id', None),
+                    scraper_key=self.key,
                     http_status=diagnostics.http_status,
                     bot_block_detected=diagnostics.bot_block_detected,
                     bot_block_signature=diagnostics.bot_block_signature,

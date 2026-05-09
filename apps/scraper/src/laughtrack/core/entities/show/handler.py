@@ -48,7 +48,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     def insert_shows(self,
                      shows: List[Show],
                      batch_size: int = DEFAULT_BATCH_SIZE,
-                     club_name: Optional[str] = None) -> DatabaseOperationResult:
+                     club_name: Optional[str] = None,
+                     scraper_key: Optional[str] = None) -> DatabaseOperationResult:
         """Save shows to database with full processing including tickets and tags.
         Processes shows in batches for optimal performance.
 
@@ -56,10 +57,19 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             shows: List of shows to save
             batch_size: Size of each batch for processing
             club_name: Optional club name for error reporting in metrics
+            scraper_key: Optional producer attribution stamped onto each show whose
+                last_scraped_by is unset. Per-show values already set by the
+                caller win, so production-company proxies and other special
+                paths can override per row.
 
         Returns:
             DatabaseOperationResult with operation counts
         """
+        if scraper_key:
+            for show in shows:
+                if not show.last_scraped_by:
+                    show.last_scraped_by = scraper_key
+
         total_items = len(shows)
         total_result = DatabaseOperationResult()
         successful_batches = 0

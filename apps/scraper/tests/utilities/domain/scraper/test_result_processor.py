@@ -16,10 +16,11 @@ def _make_processor():
     return proc
 
 
-def _make_result(club_name, num_shows=2, error=None):
+def _make_result(club_name, num_shows=2, error=None, scraper_key=None):
     shows = [MagicMock() for _ in range(num_shows)]
     return ClubScrapingResult(
-        club_name=club_name, shows=shows, execution_time=1.0, error=error
+        club_name=club_name, shows=shows, execution_time=1.0, error=error,
+        scraper_key=scraper_key,
     )
 
 
@@ -32,8 +33,22 @@ class TestInsertClubResult:
         result = _make_result("Comedy Club", num_shows=3)
         outcome = proc.insert_club_result(result)
 
-        proc.show_service.insert_shows.assert_called_once_with(result.shows, club_name="Comedy Club")
+        proc.show_service.insert_shows.assert_called_once_with(
+            result.shows, club_name="Comedy Club", scraper_key=None,
+        )
         assert outcome.inserts == 3
+
+    def test_forwards_scraper_key_for_attribution(self):
+        """scraper_key from ClubScrapingResult flows to ShowService for shows.last_scraped_by stamping (TASK-2051)."""
+        proc = _make_processor()
+        proc.show_service.insert_shows.return_value = DatabaseOperationResult(inserts=2)
+
+        result = _make_result("Stress Factory", num_shows=2, scraper_key="live_nation")
+        proc.insert_club_result(result)
+
+        proc.show_service.insert_shows.assert_called_once_with(
+            result.shows, club_name="Stress Factory", scraper_key="live_nation",
+        )
 
     def test_error_entries_propagated_from_db_errors(self):
         proc = _make_processor()

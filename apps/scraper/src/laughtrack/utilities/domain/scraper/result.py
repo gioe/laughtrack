@@ -34,7 +34,11 @@ class ScrapingResultProcessor:
         if not club_result.shows:
             return DatabaseOperationResult()
         Logger.info(f"Persisting {len(club_result.shows)} shows for '{club_result.club_name}'...")
-        return self.show_service.insert_shows(club_result.shows, club_name=club_result.club_name)
+        return self.show_service.insert_shows(
+            club_result.shows,
+            club_name=club_result.club_name,
+            scraper_key=club_result.scraper_key,
+        )
 
     def process_results(
         self,

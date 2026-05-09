@@ -31,6 +31,7 @@ class Show(DatabaseEntity):
     popularity: float = 0.0
     room: Optional[str] = ""
     production_company_id: Optional[int] = None
+    last_scraped_by: Optional[str] = None  # scraper_key of the producer; stamped at persistence
     id: Optional[int] = None  # Database ID
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
 
@@ -123,6 +124,7 @@ class Show(DatabaseEntity):
             datetime.now(timezone.utc).isoformat(),
             self.room,
             self.production_company_id,
+            self.last_scraped_by,
         )
 
     def to_unique_key(self) -> tuple:

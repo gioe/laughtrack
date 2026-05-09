@@ -23,6 +23,11 @@ class ClubScrapingResult:
     error: Optional[str] = None
     club_id: Optional[int] = None
     error_log_count: int = 0
+    # scraper_key of the producing scraper (e.g. 'live_nation', 'etix',
+    # 'tour_dates'). Forwarded into ShowHandler.insert_shows so each persisted
+    # row records its producer in shows.last_scraped_by — the attribution that
+    # TASK-2032's orphan audit had to reverse-engineer from URL patterns.
+    scraper_key: Optional[str] = None
     # Fetch-layer diagnostics populated by the base scraper from ScrapeDiagnostics.
     # Let /triage-nightly categorize 0-show results without a manual rerun.
     http_status: Optional[int] = None

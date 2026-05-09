@@ -23,7 +23,7 @@ class ShowQueries:
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
             name, show_page_url, description, date, club_id, last_scraped_date, room,
-            production_company_id
+            production_company_id, last_scraped_by
         )
         VALUES %s
         ON CONFLICT (club_id, date, room)
@@ -35,7 +35,8 @@ class ShowQueries:
             club_id = EXCLUDED.club_id,
             last_scraped_date = EXCLUDED.last_scraped_date,
             room = EXCLUDED.room,
-            production_company_id = COALESCE(EXCLUDED.production_company_id, shows.production_company_id)
+            production_company_id = COALESCE(EXCLUDED.production_company_id, shows.production_company_id),
+            last_scraped_by = COALESCE(EXCLUDED.last_scraped_by, shows.last_scraped_by)
         RETURNING
             id, club_id, room, date,
             CASE

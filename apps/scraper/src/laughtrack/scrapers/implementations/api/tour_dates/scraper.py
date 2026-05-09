@@ -277,8 +277,10 @@ class TourDatesScraper(BaseScraper):
         desired behaviour rather than accidentally inserting an incomplete row.
         """
         try:
-            # insert_shows() upserts shows and populates their .id fields
-            self._show_handler.insert_shows(shows)
+            # insert_shows() upserts shows and populates their .id fields.
+            # scraper_key=self.key stamps shows.last_scraped_by='tour_dates' so
+            # bandsintown-augmented rows are attributable in TASK-2032-style audits.
+            self._show_handler.insert_shows(shows, scraper_key=self.key)
 
             # Gather shows that now have DB IDs
             shows_with_ids = [s for s in shows if s.id is not None]
