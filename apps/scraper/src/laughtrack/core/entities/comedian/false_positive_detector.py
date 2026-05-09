@@ -7,6 +7,7 @@ Importable by:
 
 Detection criteria (any one match → false positive):
   1. Exact match against PLACEHOLDER_NAMES (case-insensitive)
+  1b. Exact match against GENERIC_SINGLE_TOKEN_NAMES (case-insensitive)
   2. Substring match against PLACEHOLDER_SUBSTRINGS (open mic, open-mic)
   3. Substring match against STRUCTURAL_KEYWORDS (showcase, variety, improv, etc.)
   4. Decoration pattern: name contains '***'
@@ -72,6 +73,17 @@ PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "couples",
     "lovers",
     "culture",
+    "best of",
+})
+
+# Generic title/category fragments commonly produced when a scraper splits an
+# event title instead of extracting a real lineup entry.
+GENERIC_SINGLE_TOKEN_NAMES: frozenset[str] = frozenset({
+    "live",
+    "more",
+    "music",
+    "show",
+    "the",
 })
 
 # Substring matches (case-insensitive; a name *containing* these substrings is a false positive)
@@ -200,6 +212,9 @@ def detect_false_positive(name: str) -> Optional[str]:
 
     if lower in PLACEHOLDER_NAMES:
         return f"placeholder_name"
+
+    if lower in GENERIC_SINGLE_TOKEN_NAMES:
+        return f"generic_single_token:{lower!r}"
 
     for sub in PLACEHOLDER_SUBSTRINGS:
         if sub in lower:
