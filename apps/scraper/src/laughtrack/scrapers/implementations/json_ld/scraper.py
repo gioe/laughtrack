@@ -52,6 +52,13 @@ class JsonLdScraper(BaseScraper):
         Extract JSON-LD data from a webpage using standardized fetch methods.
 
         Returns raw JSON-LD dictionaries, not transformed objects.
+
+        Honors the optional ``location_name_filter`` metadata key on
+        scraping_sources: when set, only events whose ``location.name``
+        contains the configured substring are kept. This supports
+        multi-venue calendar pages (e.g. comedycraftbeer.com/calendar
+        listing every Comedy Craft Beer venue on one page) without a
+        bespoke per-venue scraper class.
         """
         try:
             # Local imports to prevent circular imports during module discovery
@@ -71,6 +78,21 @@ class JsonLdScraper(BaseScraper):
                         self.logger_context,
                     )
                 return None
+
+            location_filter = self.club.metadata_value("location_name_filter")
+            if location_filter:
+                before = len(event_list)
+                event_list = [
+                    e for e in event_list
+                    if e.location and location_filter in e.location.name
+                ]
+                Logger.info(
+                    f"{self._log_prefix}: location_name_filter '{location_filter}' "
+                    f"kept {len(event_list)}/{before} events",
+                    self.logger_context,
+                )
+                if not event_list:
+                    return None
 
             return JsonLdPageData(event_list)
 
