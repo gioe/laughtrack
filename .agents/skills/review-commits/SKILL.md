@@ -17,17 +17,6 @@ Optional: `/review-commits <task_id>` — if omitted, task ID is inferred from t
 
 ## Step 0: Start Cost Tracking
 
-When reviewing from a git worktree, run tusk commands through the project-local
-binary in the active checkout:
-
-```bash
-./.claude/bin/tusk <subcommand>
-```
-
-If you use bare `tusk`, first verify `command -v tusk` points inside this
-project. Otherwise it can resolve to another project's installed tusk scripts
-and produce false schema or DB errors, such as `no such column: is_deferred`.
-
 First, resolve the task ID so the skill run can be attributed to it. Use the argument if one was passed, otherwise parse it from the current branch:
 
 ```bash
@@ -108,11 +97,7 @@ Only when the diff is non-empty and a review has been started in Step 3, proceed
 **Detecting Codex install mode and the opt-in.** Read the `install-mode` marker stamped by `install.sh` (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`):
 
 ```bash
-if [ -x ./.claude/bin/tusk ]; then
-  TUSK_BIN_DIR="./.claude/bin"
-else
-  TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
-fi
+TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
 INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
 case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
 ```
@@ -367,11 +352,7 @@ Otherwise, loop while `can_retry` is true:
    To detect the Codex case, read the `install-mode` marker (Claude installs are marked `claude-…`; Codex installs are marked `codex-…`) and check whether the user's `/review-commits` invocation contains an explicit subagent opt-in phrase:
 
    ```bash
-   if [ -x ./.claude/bin/tusk ]; then
-     TUSK_BIN_DIR="./.claude/bin"
-   else
-     TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
-   fi
+   TUSK_BIN_DIR="$(dirname "$(command -v tusk)")"
    INSTALL_MODE="$(tr -d '[:space:]' < "$TUSK_BIN_DIR/install-mode" 2>/dev/null || echo claude-source)"
    case "$INSTALL_MODE" in codex-*) IS_CODEX=1 ;; *) IS_CODEX=0 ;; esac
    ```

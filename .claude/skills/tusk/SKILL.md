@@ -85,6 +85,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    ```
    This creates a recorded task workspace and feature branch, or returns the existing recorded workspace for the task. Parse the JSON response, then `cd` into `workspace_path` before exploring, editing, testing, committing, or merging. If `created` is `false`, continue from that existing workspace; do not create another branch or overlapping worktree. If you are already in the returned `workspace_path`, stay there.
 
+   After the task workspace exists, make every file edit against that active workspace path. Prefer absolute paths in edit tools such as `apply_patch` / Edit so the target is unambiguous. Failure mode: an edit can accidentally land in the original checkout while tests, commits, and `tusk merge` run in the task-owned worktree, leaving the real task branch unchanged.
+
    If you need to inspect recorded workspaces before deciding where to continue, run:
    ```bash
    tusk task-worktree list --format json

@@ -11,23 +11,6 @@ The primary interface for working with tasks from the project task database (via
 
 ## Setup: Discover Project Config
 
-When running from a git worktree, use the project-local tusk binary from the
-active checkout for every DB-mutating task command:
-
-```bash
-./.claude/bin/tusk <subcommand>
-```
-
-If you use bare `tusk`, first verify it resolves inside the active project:
-
-```bash
-command -v tusk
-```
-
-Bare `tusk` can resolve to another project's installed scripts while still
-pointing at this project's task database. The failure mode is misleading schema
-or DB errors from the wrong codebase, such as `no such column: is_deferred`.
-
 Before any operation that needs domain or agent values, run:
 
 ```bash
@@ -74,7 +57,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    ```
    The `--force` flag bypasses the **zero-criteria** guard only (emits a warning rather than hard-failing) — it does **not** bypass dep blocking or unresolved external blockers. If the task has unmet `blocks`-type dependencies, the call exits 2 with the blocker list; pass `--force-deps` to bypass that guard with a warning (use sparingly — `blocks` deps exist for a reason). The `--skill tusk` flag opens a `skill_runs` row so this session's spend can be attributed to the task. This returns a JSON blob with these keys:
    - `task` — full task row (summary, description, priority, domain, assignee, etc.)
-   - `progress` — array of prior progress checkpoints (most recent first). If non-empty, the first entry's `next_steps` tells you exactly where to pick up. Skip steps you've already completed (branch may already exist, some commits may already be made). Use `git log --oneline` on the existing branch to see what's already been done.
+   - `progress` — array of prior progress checkpoints (most recent first). If non-empty, the first entry's `next_steps` tells you exactly where to pick up. Skip steps you've already completed (a task workspace may already be recorded, some commits may already be made). Use `git log --oneline` in the task workspace to see what's already been done.
    - `criteria` — array of acceptance criteria objects (id, criterion, source, is_completed, criterion_type, verification_spec). These are the implementation checklist. Work through them in order during implementation. Mark each criterion done (`tusk criteria done <cid>`) as you complete it — do not defer this to the end. Non-manual criteria (type: code, test, file) run automated verification on `done`; use `--skip-verify` if needed. If the array is empty, proceed normally using the description as scope.
    - `session_id` — the session ID to use for the duration of the workflow (reuses an open session if one exists, otherwise creates a new one)
    - `skill_run` — `{run_id, skill_name, started_at, task_id}` for the skill-run row opened by `--skill`. Capture `skill_run.run_id` — it's referenced by every exit path below.
@@ -100,6 +83,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    tusk task-worktree create <id> <brief-description-slug>
    ```
    This creates a recorded task workspace and feature branch, or returns the existing recorded workspace for the task. Parse the JSON response, then `cd` into `workspace_path` before exploring, editing, testing, committing, or merging. If `created` is `false`, continue from that existing workspace; do not create another branch or overlapping worktree. If you are already in the returned `workspace_path`, stay there.
+
+   After the task workspace exists, make every file edit against that active workspace path. Prefer absolute paths in edit tools such as `apply_patch` / Edit so the target is unambiguous. Failure mode: an edit can accidentally land in the original checkout while tests, commits, and `tusk merge` run in the task-owned worktree, leaving the real task branch unchanged.
 
    If you need to inspect recorded workspaces before deciding where to continue, run:
    ```bash
@@ -308,7 +293,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     `--rebase` rebases the feature branch onto the default branch before merging. If the rebase produces conflicts, resolve them (`git rebase --continue`) and retry.
 
-    **Not-on-default fallback:** If `tusk merge` exits non-zero with `No branch found matching feature/TASK-<id>-*` and you are NOT on the default branch, switch to the default branch first (`git checkout <default_branch>`), then retry `tusk merge <id> --session <session_id>`.
+    **Not-on-default fallback:** If `tusk merge` exits non-zero with `No branch found matching feature/TASK-<id>-* or worktree-TASK-<id>-*` and you are NOT on the default branch, switch to the default branch first (`git checkout <default_branch>`), then retry `tusk merge <id> --session <session_id>`.
 
     **PR mode:** If the project uses PR-based merges (`merge.mode = pr` in config, or when passing `--pr`), use:
     ```bash

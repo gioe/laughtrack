@@ -11,18 +11,6 @@ Reviews the current conversation history to capture process learnings, instructi
 
 ## Step 0: Setup
 
-When running from a git worktree, use the active checkout's project-local tusk
-binary for all retro task operations:
-
-```bash
-./.claude/bin/tusk <subcommand>
-```
-
-If you use bare `tusk`, first verify `command -v tusk` points inside this
-project. Bare `tusk` can resolve to another project's installed scripts while
-the active database is still this project, causing misleading schema or DB
-errors such as `no such column: is_deferred`.
-
 Fetch config, backlog, then determine retro mode. Also capture the most recent Done task's ID so the retro's cost can be attributed to it:
 
 ```bash
