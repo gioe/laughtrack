@@ -321,6 +321,10 @@ model Show {
   @@unique([clubId, date, room])
   @@index([date])
   @@index([productionCompanyId])
+  // Intentional attribution audit index. Broad row-returning NULL/inequality
+  // audits still use seq scans, but count-style audits use index-only scans
+  // and equality audits use bitmap scans; the deployed index is small enough
+  // to keep for those workflows.
   @@index([lastScrapedBy])
   @@map("shows")
 }
