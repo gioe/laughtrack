@@ -22,14 +22,15 @@ import re
 
 from typing import Dict, List, Optional
 
+from laughtrack.core.clients.rsc.extractor import (
+    extract_push_payloads,
+    find_json_array,
+    resolve_references,
+)
+
+
 class ComedyClubHaugExtractor:
     """Extracts show data from Comedy Club Haug's Next.js RSC payload."""
-
-    # Regex to capture RSC push content
-    _RSC_PUSH_RE = re.compile(
-        r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)',
-        re.DOTALL,
-    )
 
     @staticmethod
     def extract_shows(html: str) -> List[Dict]:
@@ -60,37 +61,15 @@ class ComedyClubHaugExtractor:
     @staticmethod
     def _extract_from_rsc_chunks(html: str) -> List[Dict]:
         """Extract events from decoded RSC push chunks."""
-        events: List[Dict] = []
-
-        for push_match in ComedyClubHaugExtractor._RSC_PUSH_RE.finditer(html):
-            raw = push_match.group(1)
-
-            try:
-                decoded: str = json.loads('"' + raw + '"')
-            except Exception:
+        for decoded in extract_push_payloads(html):
+            if '"shows":' not in decoded:
                 continue
 
-            # Look for the shows array in this chunk
-            shows_idx = decoded.find('"shows":[{')
-            if shows_idx == -1:
-                continue
+            shows = find_json_array(resolve_references(decoded), "shows")
+            if shows:
+                return [event for event in shows if isinstance(event, dict)]
 
-            # Extract individual event objects from the shows array
-            # Each event starts with {"id":" and has "url":"https://comedyclubhaug.com/shows/
-            pattern = re.compile(
-                r'\{"id":"\d+","title":"[^"]+","url":"https://comedyclubhaug\.com/shows/[^"]+","slug":"[^"]+'
-            )
-            for match in pattern.finditer(decoded):
-                event = ComedyClubHaugExtractor._extract_single_event(
-                    decoded, match.start()
-                )
-                if event:
-                    events.append(event)
-
-            if events:
-                break  # Found the data chunk
-
-        return events
+        return []
 
     @staticmethod
     def _extract_single_event(text: str, start: int) -> Optional[Dict]:
@@ -113,8 +92,7 @@ class ComedyClubHaugExtractor:
             return None
 
         event_str = text[start:end]
-        # Replace RSC references (e.g. "$L5", "$Sreact.suspense") with null for valid JSON
-        event_str = re.sub(r'"\$[^"]+"', "null", event_str)
+        event_str = resolve_references(event_str)
 
         try:
             return json.loads(event_str)

@@ -31,18 +31,12 @@ from typing import Dict, List, Optional
 
 from bs4 import BeautifulSoup
 
+from laughtrack.core.clients.rsc.extractor import extract_push_payloads
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 class ComedyCornerExtractor:
     """Extracts show data from StageTime RSC-rendered HTML pages."""
-
-    # Regex to capture the content of self.__next_f.push([1, "..."]) calls.
-    # The content is a JSON-encoded string containing RSC wire format data.
-    _RSC_PUSH_RE = re.compile(
-        r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)',
-        re.DOTALL,
-    )
 
     @staticmethod
     def extract_event_slugs(html: str) -> List[str]:
@@ -100,14 +94,7 @@ class ComedyCornerExtractor:
         event_info: Optional[Dict] = None
         jsonld_info: Optional[Dict] = None
 
-        for push_content in ComedyCornerExtractor._RSC_PUSH_RE.finditer(html):
-            raw = push_content.group(1)
-
-            try:
-                decoded: str = json.loads('"' + raw + '"')
-            except Exception:
-                continue
-
+        for decoded in extract_push_payloads(html):
             # Each push may contain multiple RSC chunks separated by newlines
             for line in decoded.strip().split("\n"):
                 if not line.strip():

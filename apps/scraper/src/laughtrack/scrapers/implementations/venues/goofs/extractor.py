@@ -8,15 +8,11 @@ containing an `initialShows` array.
 No third-party ticketing platform is used; ticket purchase happens on-site.
 """
 
-import json
-import re
 from typing import List
 
+from laughtrack.core.clients.rsc.extractor import extract_push_payloads, find_json_array
 from laughtrack.core.entities.event.goofs import GoofsEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-
-
-_PUSH_PATTERN = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]')
 
 
 class GoofsEventExtractor:
@@ -37,13 +33,7 @@ class GoofsEventExtractor:
         Returns:
             List of GoofsEvent objects (may be empty on parse failure).
         """
-        for raw_str in _PUSH_PATTERN.findall(html):
-            try:
-                # Decode the JSON-encoded string to get the RSC payload text
-                decoded: str = json.loads('"' + raw_str + '"')
-            except (json.JSONDecodeError, ValueError):
-                continue
-
+        for decoded in extract_push_payloads(html):
             if '"initialShows"' not in decoded:
                 continue
 
@@ -72,38 +62,12 @@ class GoofsEventExtractor:
         """
         Find the `initialShows` JSON array within a decoded RSC payload string.
 
-        Uses bracket counting to reliably extract the array, independent of the
-        surrounding RSC tree structure.
+        Delegates to the shared RSC helper so the venue only owns field mapping.
 
         Returns:
             Parsed list of show dicts, or None on failure.
         """
-        key = '"initialShows":'
-        key_idx = text.find(key)
-        if key_idx < 0:
-            return None
-
-        arr_start = text.find("[", key_idx + len(key))
-        if arr_start < 0:
-            return None
-
-        depth = 0
-        arr_end = -1
-        for i, ch in enumerate(text[arr_start:]):
-            if ch == "[":
-                depth += 1
-            elif ch == "]":
-                depth -= 1
-                if depth == 0:
-                    arr_end = arr_start + i + 1
-                    break
-
-        if arr_end < 0:
+        shows = find_json_array(text, "initialShows")
+        if shows is None and '"initialShows":' in text:
             Logger.warn("GoofsEventExtractor: unmatched bracket in initialShows array")
-            return None
-
-        try:
-            return json.loads(text[arr_start:arr_end])
-        except (json.JSONDecodeError, ValueError) as e:
-            Logger.warn(f"GoofsEventExtractor: failed to parse initialShows array: {e}")
-            return None
+        return shows
