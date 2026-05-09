@@ -21,16 +21,12 @@ What this script does
    AggregateOffer-affected (or otherwise upstream-data-limited) and should be
    re-checked with a live PlaywrightBrowser probe.
 
-Candidate scraper_keys (cross-referenced against grep of `JsonLdEvent` usage in
-src/laughtrack/scrapers/):
-    - json_ld          (generic shared scraper; covers former brew_haha_river
-                        post-TASK-2068)
-    - ticketleap       (TicketleapPageData[JsonLdEvent])
-    - improv           (Improv chain extracts JsonLdEvent then maps to ImprovEvent)
-    - new_york_comedy_club
-    - levity_live
-    - west_river_comedy
-    - uptown_theater   (already known-affected; kept as verification baseline)
+Candidate scraper_keys are discovered at runtime by walking every BaseScraper
+subclass via ScraperResolver and checking whether its package directory
+references the `JsonLdEvent` symbol. Previously this was a hand-maintained
+tuple that silently went stale every time a venue was folded into or out of
+the shared JSON-LD parser (e.g. TASK-2068 dropped brew_haha_river; TASK-2079
+/2082/2083 are in flight).
 
 Usage
 -----
@@ -74,25 +70,49 @@ follow-up rather than expanding TASK-2028's scope keeps the AggregateOffer fix
 narrowly scoped to its actual root cause.
 """
 
-import os
+import inspect
 import sys
+from pathlib import Path
 
-from dotenv import load_dotenv
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+for _path in (_root / "src", _root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(_root / ".env")
 
 from laughtrack.adapters.db import get_connection  # noqa: E402
+from laughtrack.app.scraper_resolver import ScraperResolver  # noqa: E402
 
-JSON_LD_SCRAPER_KEYS = (
-    "json_ld",
-    "ticketleap",
-    "improv",
-    "new_york_comedy_club",
-    "levity_live",
-    "west_river_comedy",
-    "uptown_theater",
-)
+_JSON_LD_MARKER = "JsonLdEvent"
+
+
+def discover_json_ld_scraper_keys() -> list[str]:
+    """Return scraper keys whose implementation package references JsonLdEvent.
+
+    Walks every BaseScraper subclass discovered by ScraperResolver and scans
+    each scraper's source directory for the JsonLdEvent symbol — the canonical
+    marker that the scraper feeds JSON-LD into the shared parser. This avoids
+    the previous hand-maintained tuple, which silently went stale every time a
+    venue was folded into or out of the shared parser.
+    """
+    resolver = ScraperResolver()
+    keys: list[str] = []
+    for key, cls in resolver.items():
+        try:
+            package_dir = Path(inspect.getfile(cls)).parent
+        except (OSError, TypeError):
+            continue
+        for py_file in package_dir.rglob("*.py"):
+            try:
+                if _JSON_LD_MARKER in py_file.read_text(encoding="utf-8", errors="replace"):
+                    keys.append(key)
+                    break
+            except OSError:
+                continue
+    return sorted(keys)
 
 
 AUDIT_SQL = """
@@ -142,13 +162,23 @@ ORDER BY j.scraper_key, j.priority, j.club_name;
 
 
 def main() -> int:
+    json_ld_keys = discover_json_ld_scraper_keys()
+    if not json_ld_keys:
+        print(
+            "No JSON-LD scrapers discovered via ScraperResolver. "
+            "Verify the scrapers package is importable from this venv."
+        )
+        return 1
+
+    print(f"Discovered {len(json_ld_keys)} JSON-LD scraper_keys: {', '.join(json_ld_keys)}")
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(AUDIT_SQL, {"keys": list(JSON_LD_SCRAPER_KEYS)})
+            cur.execute(AUDIT_SQL, {"keys": json_ld_keys})
             rows = cur.fetchall()
 
     if not rows:
-        print("No clubs found with JSON-LD scraper_keys. Check scraper_keys list.")
+        print("No clubs found with JSON-LD scraper_keys.")
         return 0
 
     by_key: dict[str, list[tuple]] = {}
