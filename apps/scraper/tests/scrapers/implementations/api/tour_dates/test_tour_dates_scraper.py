@@ -195,6 +195,52 @@ def test_bandsintown_event_to_show_creates_show_for_us_event(platform_club):
     venue_dict = mock_upsert.call_args.args[0]
     assert venue_dict["address"] == "Los Angeles, CA"
 
+    # Every show must emit ≥1 ticket — UI gates visibility on tickets.length > 0.
+    # Fallback shape mirrors live_nation's no-price branch in
+    # TicketmasterClient._extract_ticket_data_from_api (price=None,
+    # purchase_url=event_url, sold_out=False, type='General Admission').
+    assert len(show.tickets) == 1
+    ticket = show.tickets[0]
+    assert ticket.price is None
+    assert ticket.purchase_url == "https://www.bandsintown.com/e/99"
+    assert ticket.sold_out is False
+    assert ticket.type == "General Admission"
+
+
+def test_bandsintown_event_to_show_ticket_url_falls_back_to_bandsintown_event_url(platform_club):
+    """When the event payload has no `url`, the fallback ticket should reuse the
+    synthesized https://www.bandsintown.com/e/<id> URL — same value as
+    show_page_url. Guards against accidentally emitting a ticket whose
+    purchase_url is empty/None.
+    """
+    from laughtrack.core.entities.comedian.model import Comedian
+
+    scraper = TourDatesScraper(platform_club)
+    comedian = Comedian(name="No URL Comic", uuid="nu-uuid")
+    venue_club = _make_venue_club(club_id=3, name="Empty URL Venue")
+
+    us_event_no_url = {
+        "id": "555",
+        # Note: no "url" key
+        "datetime": "2027-12-01T19:00:00",
+        "venue": {
+            "name": "Empty URL Venue",
+            "city": "Austin",
+            "region": "TX",
+            "country": "United States",
+        },
+    }
+
+    with patch.object(
+        scraper._club_handler, "upsert_for_tour_date_venue", return_value=venue_club
+    ):
+        show = scraper._bandsintown_event_to_show(us_event_no_url, comedian)
+
+    assert show is not None
+    assert show.show_page_url == "https://www.bandsintown.com/e/555"
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://www.bandsintown.com/e/555"
+
 
 # ------------------------------------------------------------------ #
 # _parse_datetime                                                      #

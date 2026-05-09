@@ -23,6 +23,7 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -227,6 +228,18 @@ class TourDatesScraper(BaseScraper):
 
             show_url = event.get("url") or f"https://www.bandsintown.com/e/{event.get('id', '')}"
 
+            # Every show must emit ≥1 ticket — the UI gates show visibility on
+            # tickets.length > 0. BandsInTown does not expose price/availability,
+            # so attach a single access-record ticket whose purchase_url points
+            # at the event page. Mirrors live_nation's no-price fallback in
+            # TicketmasterClient._extract_ticket_data_from_api.
+            fallback_ticket = Ticket(
+                price=None,
+                purchase_url=show_url,
+                sold_out=False,
+                type="General Admission",
+            )
+
             return Show(
                 name=f"{comedian.name} at {venue_name}",
                 club_id=club.id,
@@ -235,6 +248,7 @@ class TourDatesScraper(BaseScraper):
                 description=event.get("description") or event.get("title"),
                 timezone=club.timezone,
                 lineup=[comedian],
+                tickets=[fallback_ticket],
             )
 
         except Exception as e:
