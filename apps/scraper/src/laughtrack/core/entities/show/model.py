@@ -106,6 +106,7 @@ class Show(DatabaseEntity):
             room=row.get("room", ""),
             popularity=row.get("popularity", 0.0),
             production_company_id=row.get("production_company_id"),
+            last_scraped_by=row.get("last_scraped_by"),
         )
 
     @classmethod

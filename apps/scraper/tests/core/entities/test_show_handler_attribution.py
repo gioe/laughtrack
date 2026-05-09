@@ -44,7 +44,15 @@ class TestScraperKeyStamping:
         assert all(s.last_scraped_by == "live_nation" for s in shows)
 
     def test_preserves_per_row_overrides(self):
-        """Per-show attribution wins — production-company stamping must not be clobbered."""
+        """Pre-set per-row attribution is preserved over the bulk scraper_key fallback.
+
+        Forward-looking guard: today every Show enters insert_shows with
+        last_scraped_by=None and gets stamped from the bulk argument, but the
+        contract on the parameter is "fallback for unset rows" — any future
+        per-show attribution path (e.g., a cross-platform aggregator that
+        produces shows from multiple producers in one batch) must not have its
+        per-row values clobbered by the bulk fallback.
+        """
         h = _handler()
         shows = [_show("A", last_scraped_by="comedian_websites"), _show("B")]
         with patch.object(h, "_process_single_batch", return_value=DatabaseOperationResult()):
