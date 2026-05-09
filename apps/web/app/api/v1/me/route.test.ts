@@ -29,6 +29,7 @@ vi.mock("@/lib/db", () => ({
         },
         userProfile: {
             delete: vi.fn(),
+            update: vi.fn(),
         },
         user: {
             delete: vi.fn(),
@@ -37,7 +38,7 @@ vi.mock("@/lib/db", () => ({
     },
 }));
 
-import { DELETE, GET } from "./route";
+import { DELETE, GET, PATCH } from "./route";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { checkRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
@@ -49,12 +50,20 @@ const mockFindUser = vi.mocked(db.user.findUnique);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockDeleteFavorites = vi.mocked(db.favoriteComedian.deleteMany);
 const mockDeleteProfile = vi.mocked(db.userProfile.delete);
+const mockUpdateProfile = vi.mocked(db.userProfile.update);
 const mockDeleteUser = vi.mocked(db.user.delete);
 
 type TransactionCallback = (tx: typeof db) => unknown | Promise<unknown>;
 
-function makeRequest(method = "GET"): NextRequest {
-    return new NextRequest("http://localhost/api/v1/me", { method });
+function makeRequest(method = "GET", body?: unknown): NextRequest {
+    return new NextRequest("http://localhost/api/v1/me", {
+        method,
+        headers:
+            body === undefined
+                ? undefined
+                : { "Content-Type": "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body),
+    });
 }
 
 beforeEach(() => {
@@ -161,6 +170,7 @@ describe("GET /api/v1/me", () => {
                 pushShowNotifications: true,
                 zipCode: "94108",
                 nearbyDistanceMiles: 25,
+                comedianOnboardingCompleted: true,
             },
         } as never);
 
@@ -177,6 +187,7 @@ describe("GET /api/v1/me", () => {
                 push_show_notifications: true,
                 zip_code: "94108",
                 nearby_distance_miles: 25,
+                comedian_onboarding_completed: true,
             },
         });
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
@@ -192,6 +203,7 @@ describe("GET /api/v1/me", () => {
                         pushShowNotifications: true,
                         zipCode: true,
                         nearbyDistanceMiles: true,
+                        comedianOnboardingCompleted: true,
                     },
                 },
             },
@@ -212,6 +224,7 @@ describe("GET /api/v1/me", () => {
                 pushShowNotifications: false,
                 zipCode: null,
                 nearbyDistanceMiles: null,
+                comedianOnboardingCompleted: false,
             },
         } as never);
 
@@ -228,6 +241,7 @@ describe("GET /api/v1/me", () => {
                 push_show_notifications: false,
                 zip_code: null,
                 nearby_distance_miles: null,
+                comedian_onboarding_completed: false,
             },
         });
     });
@@ -246,6 +260,7 @@ describe("GET /api/v1/me", () => {
                 pushShowNotifications: false,
                 zipCode: null,
                 nearbyDistanceMiles: null,
+                comedianOnboardingCompleted: false,
             },
         } as never);
 
@@ -261,6 +276,80 @@ describe("GET /api/v1/me", () => {
             "me:user-abc",
             expect.any(Object),
         );
+    });
+});
+
+describe("PATCH /api/v1/me", () => {
+    it("returns 401 when resolveAuth returns null", async () => {
+        mockResolveAuth.mockResolvedValue(null);
+
+        const res = await PATCH(
+            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+        );
+
+        expect(res.status).toBe(401);
+        expect(mockUpdateProfile).not.toHaveBeenCalled();
+    });
+
+    it("returns 422 when authenticated user has no UserProfile row", async () => {
+        mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
+
+        const res = await PATCH(
+            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+        );
+
+        expect(res.status).toBe(422);
+        expect(await res.json()).toEqual({ error: "profile_missing" });
+        expect(mockUpdateProfile).not.toHaveBeenCalled();
+    });
+
+    it("marks comedian onboarding complete for the authenticated profile", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+        mockUpdateProfile.mockResolvedValue({
+            comedianOnboardingCompleted: true,
+        } as never);
+
+        const res = await PATCH(
+            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockUpdateProfile).toHaveBeenCalledWith({
+            where: { userid: "user-123" },
+            data: { comedianOnboardingCompleted: true },
+            select: { comedianOnboardingCompleted: true },
+        });
+        expect(await res.json()).toEqual({
+            data: { comedian_onboarding_completed: true },
+        });
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            1,
+            "me-patch-ip:127.0.0.1",
+            expect.any(Object),
+        );
+        expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
+            2,
+            "me-patch:user-123",
+            expect.any(Object),
+        );
+    });
+
+    it("rejects requests without comedian onboarding completion state", async () => {
+        mockResolveAuth.mockResolvedValue({
+            userId: "user-123",
+            profileId: "profile-123",
+        });
+
+        const res = await PATCH(makeRequest("PATCH", {}));
+
+        expect(res.status).toBe(400);
+        expect(await res.json()).toEqual({
+            error: "comedian_onboarding_completed is required",
+        });
+        expect(mockUpdateProfile).not.toHaveBeenCalled();
     });
 });
 

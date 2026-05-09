@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import {
@@ -8,6 +9,13 @@ import {
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+
+const ProfileUpdateSchema = z.object({
+    comedian_onboarding_completed: z.boolean({
+        required_error: "comedian_onboarding_completed is required",
+        invalid_type_error: "comedian_onboarding_completed must be a boolean",
+    }),
+});
 
 export async function GET(req: NextRequest) {
     // Pre-auth IP rate limit protects resolveAuth() / auth() from
@@ -48,6 +56,7 @@ export async function GET(req: NextRequest) {
                 select: {
                     emailShowNotifications: true,
                     pushShowNotifications: true,
+                    comedianOnboardingCompleted: true,
                     zipCode: true,
                     nearbyDistanceMiles: true,
                 },
@@ -71,6 +80,8 @@ export async function GET(req: NextRequest) {
                     user.profile?.emailShowNotifications ?? false,
                 push_show_notifications:
                     user.profile?.pushShowNotifications ?? false,
+                comedian_onboarding_completed:
+                    user.profile?.comedianOnboardingCompleted ?? false,
                 zip_code: user.profile?.zipCode ?? null,
                 nearby_distance_miles:
                     user.profile?.nearbyDistanceMiles ?? null,
@@ -78,6 +89,64 @@ export async function GET(req: NextRequest) {
         },
         { headers: rateLimitHeaders(rl) },
     );
+}
+
+export async function PATCH(req: NextRequest) {
+    const ipRl = await checkRateLimit(
+        `me-patch-ip:${getClientIp(req)}`,
+        RATE_LIMITS.authToken,
+    );
+    if (!ipRl.allowed) return rateLimitResponse(ipRl);
+
+    const authCtx = await resolveAuth(req);
+    if (authCtx === PROFILE_MISSING) {
+        return NextResponse.json({ error: "profile_missing" }, { status: 422 });
+    }
+    if (!authCtx) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
+    const rl = await checkRateLimit(
+        `me-patch:${authCtx.userId}`,
+        RATE_LIMITS.authenticated,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+
+    let body: unknown;
+    try {
+        body = await req.json();
+    } catch {
+        return NextResponse.json(
+            { error: "Invalid JSON body" },
+            { status: 400 },
+        );
+    }
+
+    const parsed = ProfileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+        return NextResponse.json(
+            { error: parsed.error.errors[0].message },
+            { status: 400 },
+        );
+    }
+
+    const updatedProfile = await db.userProfile.update({
+        where: { userid: authCtx.userId },
+        data: {
+            comedianOnboardingCompleted:
+                parsed.data.comedian_onboarding_completed,
+        },
+        select: {
+            comedianOnboardingCompleted: true,
+        },
+    });
+
+    return NextResponse.json({
+        data: {
+            comedian_onboarding_completed:
+                updatedProfile.comedianOnboardingCompleted,
+        },
+    });
 }
 
 export async function DELETE(req: NextRequest) {
