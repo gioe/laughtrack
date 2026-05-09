@@ -22,6 +22,30 @@ class EventbriteTicketAvailability:
     maximum_ticket_price: Optional[EventbritePrice] = None
     start_sales_date: Optional[EventbriteDateTime] = None
 
+    @classmethod
+    def from_json_dict(cls, data: dict) -> "EventbriteTicketAvailability":
+        """Create EventbriteTicketAvailability from JSON dict."""
+        minimum_price = None
+        if data.get("minimum_ticket_price"):
+            minimum_price = EventbritePrice.from_json_dict(data["minimum_ticket_price"])
+
+        maximum_price = None
+        if data.get("maximum_ticket_price"):
+            maximum_price = EventbritePrice.from_json_dict(data["maximum_ticket_price"])
+
+        start_sales_date = None
+        if data.get("start_sales_date"):
+            start_sales_date = EventbriteDateTime.from_json_dict(data["start_sales_date"])
+
+        return cls(
+            has_available_tickets=data.get("has_available_tickets", False),
+            is_sold_out=data.get("is_sold_out", False),
+            waitlist_available=data.get("waitlist_available", False),
+            minimum_ticket_price=minimum_price,
+            maximum_ticket_price=maximum_price,
+            start_sales_date=start_sales_date,
+        )
+
 
 @dataclass
 class EventbriteExternalTicketing:

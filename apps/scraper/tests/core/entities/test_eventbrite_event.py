@@ -86,9 +86,24 @@ def test_to_show_creates_default_ticket_when_no_offers():
     assert show is not None
     assert len(show.tickets) == 1
     t = show.tickets[0]
-    assert t.price == 0.0
+    assert t.price is None
     assert t.purchase_url == "https://event/basic"
     assert t.type == "General Admission"
+
+
+def test_to_show_creates_zero_price_ticket_for_explicitly_free_event():
+    ev = EventbriteEvent(
+        name="Free Show",
+        event_url="https://event/free",
+        start_date="2025-10-10T19:00:00Z",
+        ticket_offers=None,
+        is_free=True,
+    )
+
+    show = ev.to_show(make_club(), enhanced=False)
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].price == 0.0
 
 
 def test_to_show_skips_music_category_events():

@@ -63,6 +63,7 @@ class EventbriteEvent(ShowConvertible):
 
     # Ticket information - now using EventbriteTicket objects
     ticket_offers: Optional[List[EventbriteTicket]] = None
+    is_free: Optional[bool] = None
 
     # Eventbrite classification fields (from API response)
     category_id: Optional[str] = None
@@ -143,6 +144,8 @@ class EventbriteEvent(ShowConvertible):
                     venue_zip = address.postal_code
                 location_address = ", ".join(address_parts) if address_parts else None
 
+        ticket_offers = cls._ticket_offers_from_api_event(api_event)
+
         return cls(
             name=event_name,
             event_url=api_event.url,
@@ -155,7 +158,8 @@ class EventbriteEvent(ShowConvertible):
             venue_state=venue_state,
             venue_zip=venue_zip,
             performers=None,  # Will need to be extracted separately if available
-            ticket_offers=None,  # Will need to be converted from ticket_availability if available
+            ticket_offers=ticket_offers,
+            is_free=getattr(api_event, "is_free", None),
             category_id=getattr(api_event, "category_id", None),
             subcategory_id=getattr(api_event, "subcategory_id", None),
             data_source_type="api",
@@ -163,6 +167,35 @@ class EventbriteEvent(ShowConvertible):
             _raw_html_data={"api_event": api_event.__dict__},
             _api_venue=api_venue,
         )
+
+    @staticmethod
+    def _ticket_offers_from_api_event(api_event) -> Optional[List[EventbriteTicket]]:
+        ticket_availability = getattr(api_event, "ticket_availability", None)
+        if ticket_availability is None:
+            return None
+
+        minimum_price = getattr(ticket_availability, "minimum_ticket_price", None)
+        if minimum_price is None:
+            return None
+
+        price = getattr(minimum_price, "major_value", None)
+        if price in (None, "") and getattr(minimum_price, "value", None) is not None:
+            price = str(float(minimum_price.value) / 100.0)
+
+        if price in (None, ""):
+            return None
+
+        currency = getattr(minimum_price, "currency", None) or getattr(api_event, "currency", "") or "USD"
+        availability = "OutOfStock" if getattr(ticket_availability, "is_sold_out", False) else "InStock"
+        return [
+            EventbriteTicket(
+                price=str(price),
+                price_currency=currency,
+                url=getattr(api_event, "url", "") or "",
+                name="General Admission",
+                availability=availability,
+            )
+        ]
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
         """Transform EventbriteEvent object to Show objects with EventBrite-specific processing."""
@@ -207,7 +240,7 @@ class EventbriteEvent(ShowConvertible):
                     try:
                         price = float(str(eventbrite_ticket.price).replace("$", "").replace(",", ""))
                     except (ValueError, TypeError):
-                        price = 0.0
+                        price = None
 
                     ticket_url = eventbrite_ticket.url or self.event_url
                     ticket_type = eventbrite_ticket.name or "General Admission"
@@ -221,7 +254,8 @@ class EventbriteEvent(ShowConvertible):
             # If no ticket offers, create a basic ticket
             if not tickets:
                 # No per-ticket availability data when ticket_offers is absent; default to not sold out
-                tickets.append(Ticket(price=0.0, purchase_url=self.event_url, type="General Admission", sold_out=False))
+                price = 0.0 if self.is_free is True else None
+                tickets.append(Ticket(price=price, purchase_url=self.event_url, type="General Admission", sold_out=False))
 
             # Create show object
             show = Show(
