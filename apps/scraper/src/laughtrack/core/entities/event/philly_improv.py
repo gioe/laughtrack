@@ -1,9 +1,10 @@
 """Data model for a single performance from the Philly Improv Theater (PHIT) Crowdwork API."""
 
 import re
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
 
+from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
@@ -28,6 +29,7 @@ class PhillyImprovShow(ShowConvertible):
         cost_formatted: Display price string (e.g. "Free", "$15")
         sold_out: True when the Crowdwork badges.spots field indicates sold out
         description: Optional HTML description body
+        lineup_names: Performer names extracted from Crowdwork event page HTML
     """
 
     name: str
@@ -37,6 +39,7 @@ class PhillyImprovShow(ShowConvertible):
     cost_formatted: str = ""
     sold_out: bool = False
     description: str = ""
+    lineup_names: List[str] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert this performance to a Show domain object."""
@@ -51,6 +54,7 @@ class PhillyImprovShow(ShowConvertible):
         show_url = url or self.url
 
         price = _parse_price(self.cost_formatted)
+        lineup = [Comedian(name=name) for name in self.lineup_names if name]
         tickets = []
         if show_url:
             tickets.append(
@@ -66,7 +70,7 @@ class PhillyImprovShow(ShowConvertible):
             club=club,
             date=start_date,
             show_page_url=show_url,
-            lineup=[],
+            lineup=lineup,
             tickets=tickets,
             description=self.description or None,
             room="",
