@@ -1,3 +1,4 @@
+import html
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -42,8 +43,11 @@ class Show(DatabaseEntity):
         entities don't enter the system. Cross-record validations remain
         at the persistence layer.
         """
-        # Normalize simple string fields
+        # Normalize simple string fields. Decode HTML entities first
+        # (e.g. &amp; → &, &#8211; → –, &nbsp; → U+00A0) so the whitespace
+        # normalizer can collapse decoded NBSPs alongside other whitespace.
         if isinstance(self.name, str):
+            self.name = html.unescape(self.name)
             self.name = StringUtils.normalize_whitespace(self.name).strip()
 
         if isinstance(self.room, str):
