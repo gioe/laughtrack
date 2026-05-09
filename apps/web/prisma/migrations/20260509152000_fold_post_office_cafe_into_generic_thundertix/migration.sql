@@ -14,7 +14,9 @@ SET
     scraper_key = 'thundertix',
     source_url = 'https://postofficecafecabaret.thundertix.com',
     updated_at = CURRENT_TIMESTAMP
+-- Match enabled and disabled rows alike: a disabled row left behind would still
+-- point at the deleted scraper_key='post_office_cafe' code path, so it would
+-- silently become an unknown-scraper landmine if ever re-enabled.
 WHERE club_id = 223
   AND platform = 'custom'::"ScrapingPlatform"
-  AND scraper_key = 'post_office_cafe'
-  AND enabled = true;
+  AND scraper_key = 'post_office_cafe';

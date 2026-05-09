@@ -141,6 +141,13 @@ def test_generic_scraper_builds_config_from_club_source_url_only():
     assert scraper.thundertix_config.title_skip_prefixes == ()
 
 
+@pytest.mark.parametrize("bad_url", ["", "   ", "https://example.com", "/reports/calendar"])
+def test_generic_scraper_rejects_non_thundertix_source_url(bad_url):
+    """A misconfigured source_url surfaces a clear ValueError instead of producing 12 host-less URLs."""
+    with pytest.raises(ValueError, match="thundertix.com"):
+        GenericThunderTixScraper(_club(source_url=bad_url))
+
+
 def test_generic_scraper_strips_calendar_path_from_source_url():
     """source_url ending in /reports/calendar is normalized to the venue root."""
     scraper = GenericThunderTixScraper(
@@ -208,3 +215,41 @@ async def test_generic_scraper_get_data_returns_thundertix_page_data(monkeypatch
     assert only_event.ticket_url == (
         "https://theannoyance.thundertix.com/orders/new?event_id=1&performance_id=101"
     )
+
+
+@pytest.mark.asyncio
+async def test_generic_scraper_get_data_returns_none_on_empty_response(monkeypatch):
+    """get_data() returns None when the API returns an empty array."""
+    scraper = GenericThunderTixScraper(
+        _club(source_url="https://theannoyance.thundertix.com")
+    )
+
+    async def fake_fetch_json_list(self, url: str):
+        return []
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    )
+
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_generic_scraper_get_data_returns_none_when_fetch_raises(monkeypatch):
+    """get_data() swallows fetch exceptions and returns None so a single bad window doesn't abort the run."""
+    scraper = GenericThunderTixScraper(
+        _club(source_url="https://theannoyance.thundertix.com")
+    )
+
+    async def fake_fetch_json_list(self, url: str):
+        raise Exception("Connection refused")
+
+    monkeypatch.setattr(ThunderTixCalendarScraper, "fetch_json_list", fake_fetch_json_list)
+
+    result = await scraper.get_data(
+        "https://theannoyance.thundertix.com/reports/calendar?week=0&start=1743292800&end=1743897600"
+    )
+
+    assert result is None

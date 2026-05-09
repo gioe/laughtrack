@@ -147,6 +147,12 @@ class GenericThunderTixScraper(
 
     def __init__(self, club: Club, **kwargs):
         base_url = _derive_base_url(club.scraping_url)
+        if not base_url or "thundertix.com" not in base_url:
+            raise ValueError(
+                f"GenericThunderTixScraper requires a scraping_sources.source_url "
+                f"pointing at a thundertix.com host for club_id={club.id} ('{club.name}'); "
+                f"got {club.scraping_url!r}"
+            )
         title_skip_prefixes = _parse_title_skip_prefixes(
             club.metadata_value("title_skip_prefixes")
         )
