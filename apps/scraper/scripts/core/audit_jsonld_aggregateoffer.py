@@ -40,6 +40,38 @@ or
 
 Re-run after the next nightly scrape post-deploy of TASK-2028 to verify that
 tickets now populate for the listed venues.
+
+Live probe results (2026-05-08, post-TASK-2028-deploy)
+------------------------------------------------------
+SQL audit verified TASK-2028's fix in production:
+  uptown_theater (club_id=80): 0 / 15 future shows missing tickets
+  (down from 10 / 13 at the time TASK-2028 was filed)
+
+Two new clubs surfaced under scraper_key='json_ld', both at 18 / 18 future shows
+missing tickets (100%). PlaywrightBrowser probe of each venue's listing page
+(the scraper's source_url) and one event detail page:
+
+  club_id=435  Comedy on State           https://www.madisoncomedy.com/events/
+    Listing JSON-LD: 19 Event nodes, every one missing the 'offers' field
+    entirely. Per-Event keys: @context, @type, description, endDate,
+    eventAttendanceMode, eventStatus, image, location, name, organizer.
+    No price, lowPrice, highPrice, or offers list anywhere in the JSON-LD.
+    → UPSTREAM-DATA-LIMITED. Site (WordPress + The Events Calendar plugin)
+      simply does not emit ticket pricing in schema.org markup. TASK-2028's
+      AggregateOffer-fallback cannot help — there is no offer object to read.
+
+  club_id=410  Let's Comedy Venues       https://www.letscomedyftw.com/events
+    Listing JSON-LD: only a single Place node (no Event nodes at all).
+    Detail page JSON-LD: 1 Event node with keys @context, @type, description,
+    image, location, name, startDate, url. No offers field.
+    → UPSTREAM-DATA-LIMITED. Same conclusion: no JSON-LD offers anywhere.
+
+Triage recommendation: file a separate task per venue to either (a) build a
+custom HTML extractor that pulls price from the page body / ticket-button URL,
+or (b) accept that JSON-LD ingestion can't populate tickets for these venues
+and document the limitation in scraping_sources.metadata. Tracking these in a
+follow-up rather than expanding TASK-2028's scope keeps the AggregateOffer fix
+narrowly scoped to its actual root cause.
 """
 
 import os
