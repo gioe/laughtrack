@@ -6,8 +6,6 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 _repo_root = Path(__file__).resolve().parents[3]
 _src_path = _repo_root / "src"
 for p in (str(_src_path), str(_repo_root)):
@@ -20,9 +18,13 @@ from scripts.core import scrape_shows as mod  # noqa: E402
 class _DummyScrapingService:
     def __init__(self):
         self.scraped_ids: list[int] = []
+        self.scraped_types: list[str] = []
 
     def scrape_single_club(self, club_id=None):
         self.scraped_ids.append(club_id)
+
+    def scrape_by_scraper_type(self, scraper_type=None):
+        self.scraped_types.append(scraper_type)
 
 
 class _DummyClubService:
@@ -74,3 +76,15 @@ def test_club_id_eventbrite_source_validates_eventbrite_token(monkeypatch):
     mod.main()
 
     assert calls == ["validated"]
+
+
+def test_eventbrite_prefixed_scraper_type_validates_eventbrite_token(monkeypatch):
+    scraping_service = _patch_common_services(monkeypatch, _club_with_platform("tixr"))
+    calls = []
+    monkeypatch.setattr(mod, "validate_eventbrite_token", lambda: calls.append("validated"))
+
+    monkeypatch.setattr(sys, "argv", ["scrape_shows.py", "--scraper-type", "eventbrite_national"])
+    mod.main()
+
+    assert calls == ["validated"]
+    assert scraping_service.scraped_types == ["eventbrite_national"]

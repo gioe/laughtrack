@@ -45,7 +45,10 @@ def _club_uses_eventbrite(club) -> bool:
     active_source = getattr(club, "active_scraping_source", None)
     platform = getattr(active_source, "platform", None) or getattr(club, "scraper", None)
     scraper_key = getattr(active_source, "scraper_key", None)
-    return platform == "eventbrite" or scraper_key == "eventbrite"
+    return (
+        str(platform or "").startswith("eventbrite")
+        or str(scraper_key or "").startswith("eventbrite")
+    )
 
 
 def main():
@@ -140,7 +143,7 @@ Examples:
         if selected_club is not None:
             needs_eventbrite_token = _club_uses_eventbrite(selected_club)
         elif args.scraper_type:
-            needs_eventbrite_token = args.scraper_type == "eventbrite"
+            needs_eventbrite_token = args.scraper_type.startswith("eventbrite")
         else:
             needs_eventbrite_token = True
 
