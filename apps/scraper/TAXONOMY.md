@@ -39,7 +39,7 @@ How many HTTP round-trips are needed to collect all event data.
 
 ## Reference Table: All Venues
 
-49 venue scrapers + 15 API-level scrapers classified by (data source, process type).
+49 venue scrapers + 16 API-level scrapers classified by (data source, process type).
 
 ### Venue Scrapers (49)
 
@@ -95,7 +95,7 @@ How many HTTP round-trips are needed to collect all event data.
 | 48 | West Side | `west_side` | rsc | single | Punchup/Next.js RSC hydration state |
 | 49 | Zanies | `zanies` | html | multi_step | rhp-events WordPress listing -> series/event detail pages |
 
-### API-Level / National Scrapers (15)
+### API-Level / National Scrapers (16)
 
 | Scraper Key | Data Source | Process Type | Scope |
 |---|---|---|---|
@@ -109,6 +109,7 @@ How many HTTP round-trips are needed to collect all event data.
 | `squarespace` | json_feed | single | Per-venue (collectionId) |
 | `ticketmaster` | external_api | single | Per-venue (Discovery API ID) |
 | `ticketmaster_national` | external_api | single | National discovery |
+| `thundertix` | json_feed | single | Per-venue (scraping_url) |
 | `tixr` | external_api | multi_step | Generic Tixr link extraction + detail fetch |
 | `tour_dates` | external_api | single | Comedian tour dates (Songkick/Bandsintown) |
 | `ninkashi` | external_api | single | Per-venue (tickets subdomain) |
