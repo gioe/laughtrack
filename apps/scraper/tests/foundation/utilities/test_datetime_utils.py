@@ -1,5 +1,3 @@
-import pytest
-
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
@@ -11,4 +9,3 @@ def test_month_name_to_number_accepts_abbreviations_and_full_names_case_insensit
 
 def test_month_name_to_number_returns_none_for_unknown_input():
     assert DateTimeUtils.month_name_to_number("notamonth") is None
-
