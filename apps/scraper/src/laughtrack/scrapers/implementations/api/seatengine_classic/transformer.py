@@ -15,6 +15,24 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
+def _coerce_price(value) -> Optional[float]:
+    """Coerce a raw_data['price'] value to float, treating 0 / non-numeric as NULL.
+
+    Classic SeatEngine listing pages do not expose prices, so an unenriched
+    show carries no price field. A zero is also treated as NULL: it is the
+    silent default-to-zero state this fix is guarding against (TASK-2090).
+    """
+    if value is None:
+        return None
+    try:
+        coerced = float(value)
+    except (TypeError, ValueError):
+        return None
+    if coerced <= 0:
+        return None
+    return coerced
+
+
 def _parse_seatengine_classic_date(date_str: str, timezone: str) -> Optional[str]:
     """
     Parse classic SeatEngine date strings and return a UTC ISO string.
@@ -62,12 +80,18 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
             if sold_out and not show_url:
                 return None
 
+            # Price is sourced from raw_data when the scraper enriches each show
+            # with a detail-page fetch (see scraper._enrich_with_prices). When
+            # extraction failed or was skipped, the value is None — we persist
+            # NULL rather than 0 so paid shows are never misrepresented as free.
+            price = _coerce_price(raw_data.get("price"))
+
             tickets = []
             if show_url and not sold_out:
                 # sold_out is False in this branch by the condition above — not a hardcoded omission
                 tickets.append(
                     Ticket(
-                        price=0.0,
+                        price=price,
                         purchase_url=show_url,
                         sold_out=False,
                         type="General Admission",
@@ -76,7 +100,7 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
             elif sold_out:
                 tickets.append(
                     Ticket(
-                        price=0.0,
+                        price=price,
                         purchase_url=show_url or "",
                         sold_out=True,
                         type="General Admission",
