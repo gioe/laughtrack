@@ -161,7 +161,7 @@ Open the venue's show listing page in a browser and inspect using these methods 
 | `{venue}.seatengine.net` (no `v-` prefix) | SeatEngine v1 | external_api | `seatengine` scraper (generic) |
 | `cdn.seatengine.com/assets/application` in scripts | SeatEngine Classic | html | `seatengine_classic` scraper (generic) |
 | `tixr.com/groups/` or `tixr.com/e/` buy links | Tixr | external_api | `tixr` scraper (generic) or venue-specific |
-| `{slug}.thundertix.com` links | ThunderTix | json_feed | Venue-specific (ref: `annoyance`) |
+| `{slug}.thundertix.com` links | ThunderTix | json_feed | `thundertix` scraper (generic) |
 | `ticketsource.com/{slug}` links | TicketSource | html | Venue-specific (ref: `comedy_clubhouse`) |
 | `events.humanitix.com/host/{slug}` | Humanitix | json_ld | `json_ld` scraper (generic) |
 | `tickets.{venue}.com` + `api.ninkashi.com` | Ninkashi | external_api | `ninkashi` scraper (generic) |
@@ -247,7 +247,6 @@ Copy the reference implementation and modify:
 | Crowdwork | `io_theater` or `logan_square_improv` | Theatre slug |
 | VBO Tickets | `esthers_follies` | `SITE_ID` and `EID` constants |
 | SquadUP | `sunset_strip` or `dynasty_typewriter` | `user_ids` parameter |
-| ThunderTix | `annoyance` | Base URL and filter prefixes |
 | TicketSource | `comedy_clubhouse` | Venue slug |
 | OvationTix (calendar) | `uncle_vinnies` | Production discovery URL |
 | OvationTix (direct) | `four_day_weekend` | Buy-tickets page URL |
