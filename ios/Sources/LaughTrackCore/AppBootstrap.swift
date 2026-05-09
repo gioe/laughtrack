@@ -149,6 +149,7 @@ public struct AppBootstrap {
                 avatarURL: avatarURL,
                 emailShowNotifications: body.data.emailShowNotifications,
                 pushShowNotifications: body.data.pushShowNotifications,
+                comedianOnboardingCompleted: body.data.comedianOnboardingCompleted,
                 zipCode: body.data.zipCode,
                 nearbyDistanceMiles: body.data.nearbyDistanceMiles
             )

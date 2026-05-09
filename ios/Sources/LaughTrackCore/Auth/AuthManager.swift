@@ -134,6 +134,10 @@ public final class AuthManager: ObservableObject {
         }
     }
 
+    public func markComedianOnboardingCompleted() {
+        currentUser = currentUser?.withComedianOnboardingCompleted(true)
+    }
+
     public func signIn(with provider: AuthProvider) async {
         state = .signingIn(provider)
 

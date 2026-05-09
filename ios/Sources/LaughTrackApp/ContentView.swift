@@ -19,6 +19,14 @@ enum LaughTrackViewTestID {
     static let settingsNotificationsSection = "laughtrack.settings.notifications.section"
     static let settingsFavoriteComedianEmailAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-email-alerts"
     static let settingsFavoriteComedianPushAlertsToggle = "laughtrack.settings.notifications.favorite-comedian-push-alerts"
+    static let onboardingScreen = "laughtrack.onboarding.screen"
+    static let onboardingSearchField = "laughtrack.onboarding.search-field"
+    static let onboardingSearchButton = "laughtrack.onboarding.search-button"
+    static let onboardingFavoriteCount = "laughtrack.onboarding.favorite-count"
+    static let onboardingEmailToggle = "laughtrack.onboarding.email-toggle"
+    static let onboardingPushToggle = "laughtrack.onboarding.push-toggle"
+    static let onboardingContinueButton = "laughtrack.onboarding.continue-button"
+    static let onboardingSkipButton = "laughtrack.onboarding.skip-button"
     static let accountHeaderButton = "laughtrack.account.header-button"
     static let locationHeaderButton = "laughtrack.location.header-button"
     static let locationPermissionPitch = "laughtrack.location-permission.pitch"
@@ -60,6 +68,14 @@ enum LaughTrackViewTestID {
 
     static func comediansSearchResultButton(_ id: Int) -> String {
         "laughtrack.comedians-search.result-\(id)"
+    }
+
+    static func onboardingComedianRow(_ id: Int) -> String {
+        "laughtrack.onboarding.comedian-row-\(id)"
+    }
+
+    static func onboardingComedianFavoriteButton(_ id: Int) -> String {
+        "laughtrack.onboarding.comedian-favorite-\(id)"
     }
 
     static func homeTrendingComedianButton(_ id: Int) -> String {
@@ -237,7 +253,20 @@ struct ContentView: View {
             case .signedOut(let message):
                 appShell(signedOutMessage: message)
             case .authenticated:
-                appShell(signedOutMessage: nil)
+                if Self.shouldPresentComedianOnboarding(
+                    authState: authManager.state,
+                    currentUser: authManager.currentUser
+                ) {
+                    ComedianOnboardingView(
+                        apiClient: apiClient,
+                        favorites: favorites,
+                        notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
+                        notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self)
+                    )
+                    .environmentObject(favorites)
+                } else {
+                    appShell(signedOutMessage: nil)
+                }
             }
         }
         .tint(theme.colors.primary)
@@ -254,6 +283,17 @@ struct ContentView: View {
         .sheet(isPresented: $loginModalPresenter.isPresented) {
             LaughTrackLoginModalView()
         }
+    }
+
+    static func shouldPresentComedianOnboarding(
+        authState: AuthManager.State,
+        currentUser: AuthenticatedUser?
+    ) -> Bool {
+        guard case .authenticated = authState,
+              let currentUser
+        else { return false }
+
+        return !currentUser.comedianOnboardingCompleted
     }
 
     @ViewBuilder
