@@ -87,7 +87,7 @@ if [[ -f "$SCRIPT_DIR/install-mode" ]]; then
 else
   INSTALL_MODE="claude"
 fi
-case "$INSTALL_MODE" in claude|codex) ;; *) INSTALL_MODE="claude" ;; esac
+case "$INSTALL_MODE" in claude|codex|dual) ;; *) INSTALL_MODE="claude" ;; esac
 
 find_repo_root() {
   local dir="$PWD"
@@ -343,12 +343,13 @@ update_gitignore() {
     "tusk/tasks.db-shm"
     "tusk/backups/"
   )
-  if [[ "$INSTALL_MODE" == "codex" ]]; then
+  if [[ "$INSTALL_MODE" == "codex" || "$INSTALL_MODE" == "dual" ]]; then
     tusk_ignores+=(
       "tusk/bin/"
       "tusk/tusk-manifest.json"
     )
-  else
+  fi
+  if [[ "$INSTALL_MODE" == "claude" || "$INSTALL_MODE" == "dual" ]]; then
     tusk_ignores+=(
       ".claude/bin/"
       ".claude/settings.json"
@@ -400,6 +401,24 @@ update_claude_md() {
   local claude_md="$PROJECT_ROOT/CLAUDE.md"
   local agents_md="$PROJECT_ROOT/AGENTS.md"
   local target="" label=""
+  append_guidance() {
+    local target_file="$1"
+    local target_label="$2"
+    if grep -qF "$sentinel" "$target_file" 2>/dev/null; then
+      echo "  $target_label already contains tusk task tool guidance."
+      return
+    fi
+    printf '\n%s\n## Tusk Task Lookup\n\n**Do NOT use your agent'\''s built-in `TaskList`, `TaskGet`, or `TaskUpdate` tools to look up or manage tasks.** Those tools manage background agent subprocesses, not tusk tasks.\n\nUse the tusk CLI instead:\n- `tusk task-list` — list tasks\n- `tusk task-get <id>` — get a task by ID (accepts `506` or `TASK-506`)\n- `tusk task-update <id>` — update a task\n' \
+      "$sentinel" >> "$target_file"
+    echo "  Updated $target_label with tusk task tool guidance."
+  }
+  if [[ "$INSTALL_MODE" == "dual" ]]; then
+    local wrote=0
+    if [[ -f "$claude_md" ]]; then append_guidance "$claude_md" "CLAUDE.md"; wrote=1; fi
+    if [[ -f "$agents_md" ]]; then append_guidance "$agents_md" "AGENTS.md"; wrote=1; fi
+    if [[ "$wrote" -eq 0 ]]; then append_guidance "$claude_md" "CLAUDE.md"; fi
+    return
+  fi
   if [[ "$INSTALL_MODE" == "codex" ]]; then
     if [[ -f "$agents_md" ]]; then target="$agents_md"; label="AGENTS.md"
     elif [[ -f "$claude_md" ]]; then target="$claude_md"; label="CLAUDE.md"
@@ -411,13 +430,7 @@ update_claude_md() {
     else target="$claude_md"; label="CLAUDE.md"
     fi
   fi
-  if grep -qF "$sentinel" "$target" 2>/dev/null; then
-    echo "  $label already contains tusk task tool guidance."
-    return
-  fi
-  printf '\n%s\n## Tusk Task Lookup\n\n**Do NOT use your agent'\''s built-in `TaskList`, `TaskGet`, or `TaskUpdate` tools to look up or manage tasks.** Those tools manage background agent subprocesses, not tusk tasks.\n\nUse the tusk CLI instead:\n- `tusk task-list` — list tasks\n- `tusk task-get <id>` — get a task by ID (accepts `506` or `TASK-506`)\n- `tusk task-update <id>` — update a task\n' \
-    "$sentinel" >> "$target"
-  echo "  Updated $label with tusk task tool guidance."
+  append_guidance "$target" "$label"
 }
 
 cmd_init() {
@@ -527,6 +540,18 @@ CREATE TABLE task_dependencies (
 );
 CREATE INDEX idx_task_dependencies_task_id ON task_dependencies(task_id);
 CREATE INDEX idx_task_dependencies_depends_on_id ON task_dependencies(depends_on_id);
+
+-- task_workspaces (task-owned git worktrees)
+CREATE TABLE task_workspaces (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    branch TEXT NOT NULL UNIQUE,
+    workspace_path TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_task_workspaces_task_id ON task_workspaces(task_id);
 
 -- task_progress (checkpoint log for context recovery)
 CREATE TABLE task_progress (
@@ -985,7 +1010,7 @@ TEST_RUNS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 67;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 68;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -1076,7 +1101,7 @@ candidates = [
   'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-wait','review-check-perms','review-agent-cost',
   'deps','session-stats','session-recalc','session-close','skill-run','jot','jots','call-breakdown',
   'active-project','git-default-branch','branch-parse',
-  'task-get','task-get-multi','task-select','task-start','task-done','task-insert','task-update','task-reopen','task-unstart','task-list','task-summary',
+  'task-get','task-get-multi','task-select','task-start','task-done','task-insert','task-update','task-reopen','task-unstart','task-list','task-summary','task-worktree',
   'audit','autoclose','backlog-scan','groom','check-deliverables',
   'retro','retro-signals','retro-themes','retro-finding','retro-patches',
   'test-detect','test-precheck','add-lib','address-issue',
@@ -1573,6 +1598,7 @@ case "${1:-}" in
   task-unstart) shift; exec python3 "$SCRIPT_DIR/tusk-task-unstart.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-list) shift; exec python3 "$SCRIPT_DIR/tusk-task-list.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-summary) shift; exec python3 "$SCRIPT_DIR/tusk-task-summary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  task-worktree) shift; exec python3 "$SCRIPT_DIR/tusk-task-worktree.py" "$DB_PATH" "$(resolve_config)" "$REPO_ROOT" "$@" ;;
   audit) shift; exec python3 "$SCRIPT_DIR/tusk-audit.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   autoclose) shift; exec python3 "$SCRIPT_DIR/tusk-autoclose.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   backlog-scan) shift; exec python3 "$SCRIPT_DIR/tusk-backlog-scan.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
