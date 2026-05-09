@@ -346,6 +346,38 @@ The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup =
 
 ---
 
+### Tixr Webflow Day Card
+
+| | |
+|---|---|
+| **Scraper key** | `tixr_webflow_day_card` |
+| **DB fields** | `scraping_sources.source_url` · `scraping_sources.metadata.tixr_group_fragment` |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**Detection signals:** Venue-owned Webflow homepage where each show is rendered as `<a class="day-card">` whose `href` points at a Tixr group URL (e.g. `tixr.com/groups/<slug>/events/...`). Selectors and date/time formats are identical across these venues; the only per-venue input is the Tixr group fragment used to filter foreign cards on shared homepages.
+
+**Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (Comic Strip Edmonton, House of Comedy BC, ...).
+
+**DB setup:**
+```sql
+UPDATE scraping_sources
+SET
+    scraper_key = 'tixr_webflow_day_card',
+    source_url = 'https://<venue-webflow-homepage>/',
+    metadata = COALESCE(metadata, '{}'::jsonb) || jsonb_build_object(
+        'tixr_group_fragment', 'tixr.com/groups/<group-slug>/events/'
+    )
+WHERE club_id = <id>
+  AND platform = 'custom'::"ScrapingPlatform"
+  AND priority = 0;
+```
+
+**When NOT to use it:** If the venue's calendar page exposes JSON-LD `Event` blocks with the start time in adjacent visible HTML (e.g. `<div class="month day time">`), keep a custom scraper — `haha_comedy_club` is the canonical example. The day-card extractor relies on `a.day-card` markup; venues that don't follow that exact card structure won't match.
+
+**Smoke test pattern:** `tixr_webflow_day_card` tests instantiate `TixrWebflowDayCardScraper(club)` with a `Club` whose `active_scraping_source.metadata` contains `tixr_group_fragment`, mock `TixrWebflowDayCardScraper.fetch_html`, and assert that `WebflowDayCardPageData` is returned. Construction without `tixr_group_fragment` or without `source_url` raises `ValueError`.
+
+---
+
 ### Tockify
 
 | | |
