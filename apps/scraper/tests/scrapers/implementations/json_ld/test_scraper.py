@@ -110,6 +110,23 @@ def _collection_page_with_detail_urls() -> str:
     return f"<html><head>{_wrap_ldjson(collection_page)}</head></html>"
 
 
+def _tickettailor_listing(page: int) -> str:
+    next_link = (
+        '<a href="/events/westrivercomedyclub?page=2" rel="next">Next</a>'
+        if page == 1
+        else ""
+    )
+    event_id = "2196315" if page == 1 else "2160756"
+    return f"""
+    <html><body>
+      <a href="/events/westrivercomedyclub/{event_id}">Details</a>
+      <a href="/events/westrivercomedyclub/{event_id}">Duplicate</a>
+      <a href="/events/westrivercomedyclub/{event_id}/select-date?modal_widget=true">Select date</a>
+      {next_link}
+    </body></html>
+    """
+
+
 def _detail_html(name: str, ticket_url: str) -> str:
     event = {
         "@context": "https://schema.org",
@@ -249,6 +266,79 @@ class TestDetailFetch:
         assert sorted(show.show_page_url for show in shows) == [
             "https://www.uptownpvd.com/events/late-show",
             "https://www.uptownpvd.com/events/tracy-morgan",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_force_js_rendering_routes_detail_fetches_through_playwright(self, monkeypatch):
+        club = _make_club(metadata={
+            "force_js_rendering": True,
+            "detail_fetch": {
+                "url_field": "sameAs",
+            },
+        })
+        scraper = JsonLdScraper(club)
+        playwright_urls = []
+
+        async def fail_plain_fetch(self, url):
+            raise AssertionError(f"plain fetch_html should not be used for {url}")
+
+        async def fake_playwright_fetch(self, url):
+            playwright_urls.append(url)
+            if url == "https://comedycraftbeer.com/calendar":
+                return _calendar_with_detail_urls()
+            return _detail_html("JS Detail", url)
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fail_plain_fetch, raising=False)
+        monkeypatch.setattr(JsonLdScraper, "_fetch_html_with_js", fake_playwright_fetch, raising=False)
+
+        shows = await scraper.scrape_async()
+
+        assert playwright_urls == [
+            "https://comedycraftbeer.com/calendar",
+            "https://levity.example.com/comic/calendar-comic",
+            "https://levity.example.com/comic/other-comic",
+        ]
+        assert sorted(show.name for show in shows) == ["JS Detail", "JS Detail"]
+
+    @pytest.mark.asyncio
+    async def test_detail_fetch_harvests_anchor_urls_across_listing_pagination(self, monkeypatch):
+        club = _make_club(metadata={
+            "force_js_rendering": True,
+            "detail_fetch": {
+                "url_path_prefix": "/events/westrivercomedyclub/",
+                "exclude_url_path_suffixes": ["/select-date"],
+                "pagination": {
+                    "enabled": True,
+                    "max_pages": 10,
+                },
+            },
+        })
+        club.active_scraping_source.source_url = "https://www.tickettailor.com/events/westrivercomedyclub"
+        scraper = JsonLdScraper(club)
+        fetched_urls = []
+
+        async def fake_playwright_fetch(self, url):
+            fetched_urls.append(url)
+            if url == "https://www.tickettailor.com/events/westrivercomedyclub":
+                return _tickettailor_listing(page=1)
+            if url == "https://www.tickettailor.com/events/westrivercomedyclub?page=2":
+                return _tickettailor_listing(page=2)
+            event_name = "First TicketTailor Show" if url.endswith("/2196315") else "Second TicketTailor Show"
+            return _detail_html(event_name, url)
+
+        monkeypatch.setattr(JsonLdScraper, "_fetch_html_with_js", fake_playwright_fetch, raising=False)
+
+        shows = await scraper.scrape_async()
+
+        assert fetched_urls == [
+            "https://www.tickettailor.com/events/westrivercomedyclub",
+            "https://www.tickettailor.com/events/westrivercomedyclub?page=2",
+            "https://www.tickettailor.com/events/westrivercomedyclub/2160756",
+            "https://www.tickettailor.com/events/westrivercomedyclub/2196315",
+        ]
+        assert sorted(show.name for show in shows) == [
+            "First TicketTailor Show",
+            "Second TicketTailor Show",
         ]
 
 
