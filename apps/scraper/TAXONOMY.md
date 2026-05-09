@@ -45,56 +45,55 @@ How many HTTP round-trips are needed to collect all event data.
 
 | # | Venue | Scraper Key | Data Source | Process Type | Platform / Notes |
 |---|---|---|---|---|---|
-| 1 | Annoyance Theatre | `annoyance` | json_feed | single | ThunderTix calendar JSON API (12 weekly URLs) |
-| 2 | Broadway Comedy Club | `broadway_comedy_club` | external_api | multi_step | Tessera API + HTML enrichment |
-| 3 | Bushwick Comedy Club | `bushwick` | external_api | single | Wix Events paginated API |
-| 4 | Comedy @ The Carlson | `comedy_at_the_carlson` | external_api | multi_step | OvationTix calendar -> production API |
-| 5 | Comedy Cellar | `comedy_cellar` | external_api | multi_step | Custom Comedy Cellar API (multi-date) |
-| 6 | Comedy Clubhouse | `comedy_clubhouse` | html | single | TicketSource server-rendered HTML |
-| 7 | Comedy Corner Underground | `comedy_corner_underground` | rsc | multi_step | StageTime Next.js RSC (listing -> event pages) |
-| 8 | Comedy Key West | `comedy_key_west` | rsc | single | Punchup/Next.js RSC hydration + Tixologi tickets |
-| 9 | Comedy & Magic Club | `comedy_magic_club` | html | multi_step | rhp-events WordPress + eTix detail pages |
-| 10 | Comedy Mothership | `comedy_mothership` | next_data | single | Next.js SSR + SquadUP (paginated listing) |
-| 11 | Comedy Store | `comedy_store` | html | single | Custom PHP calendar (one URL per day) |
-| 12 | Creek and The Cave | `creek_and_cave` | json_feed | single | S3 bucket monthly JSON files |
-| 13 | CSz Philadelphia | `csz_philadelphia` | html | single | VBO Tickets server-rendered HTML |
-| 14 | Dynasty Typewriter | `dynasty_typewriter` | external_api | single | SquadUP JSON API (Cloudflare-protected) |
-| 15 | East Austin Comedy | `east_austin_comedy` | json_feed | single | Netlify serverless functions (7 weekday endpoints) |
-| 16 | Esther's Follies | `esthers_follies` | html | single | VBO Tickets session-based HTML |
-| 17 | Flappers | `flappers` | html | multi_step | PHP calendar listing -> detail pages |
-| 18 | Four Day Weekend | `four_day_weekend` | external_api | multi_step | OvationTix direct productions -> performances API |
-| 19 | Funny Bone | `funny_bone` | html | single | rhp-events WordPress (single page, no detail fetch) |
-| 20 | Goofs | `goofs` | rsc | single | Next.js RSC flight payload (single page) |
-| 21 | Gotham | `gotham` | json_feed | single | S3 bucket JSON endpoint |
-| 22 | Grove 34 | `grove_34` | json_ld | multi_step | Webflow listing -> JSON-LD detail pages |
-| 23 | HAHA Comedy Club | `haha_comedy_club` | json_ld | single | Webflow calendar with inline JSON-LD + Tixr links |
-| 24 | Ice House | `ice_house` | json_feed | single | Tockify calendar API + ShowClix tickets |
-| 25 | Improv | `improv` | json_ld | multi_step | Calendar listing -> JSON-LD event detail pages |
-| 26 | Improv Asylum | `improv_asylum` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
-| 27 | iO Theater | `io_theater` | json_feed | single | Crowdwork/Fourthwall API |
-| 28 | Laugh Boston | `laugh_boston` | json_feed | single | Pixl Calendar API (builds TixrEvents directly) |
-| 29 | Laugh Factory Covina | `laugh_factory_covina` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
-| 30 | Laugh Factory Reno | `laugh_factory_reno` | html | single | Tixologi CMS HTML scraping (.show-sec.jokes divs) |
-| 31 | Logan Square Improv | `logan_square_improv` | json_feed | single | Crowdwork/Fourthwall API |
-| 32 | McCurdy's Comedy Theatre | `mccurdys_comedy_theatre` | html | multi_step | ColdFusion listing -> detail pages |
-| 33 | Nick's Comedy Stop | `nicks_comedy_stop` | external_api | single | Wix Events paginated API |
-| 34 | Philly Improv Theater | `philly_improv_theater` | json_feed | single | Crowdwork/Fourthwall API |
-| 35 | Red Room | `red_room` | external_api | single | Wix Events paginated API |
-| 36 | Rodney's | `rodneys` | html | multi_step | Custom HTML listing -> Eventbrite/22Rams detail pages |
-| 37 | The Setup | `setup` | google_sheets | single | Published Google Sheets CSV export (multi-city via gid) |
-| 38 | Sports Drink | `sports_drink` | html | single | OpenDate server-rendered HTML |
-| 39 | St. Marks | `st_marks` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
-| 40 | StandUp NY | `standup_ny` | graphql | multi_step | ShowTix4U GraphQL + VenuePilot enrichment |
-| 41 | Stevie Ray's | `stevie_rays` | html | single | AudienceView HTML (Playwright JS execution required) |
-| 42 | Sunset Strip | `sunset_strip` | external_api | single | SquadUP JSON API (paginated) |
-| 43 | The Rockwell | `the_rockwell` | json_feed | single | Tribe Events WordPress REST API |
-| 44 | The Stand | `the_stand` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
-| 45 | Third Coast Comedy | `third_coast_comedy` | next_data | single | Vivenu `__NEXT_DATA__` JSON |
-| 46 | Uncle Vinnie's | `uncle_vinnies` | external_api | multi_step | OvationTix calendar -> production API |
-| 47 | UP Comedy Club | `up_comedy_club` | graphql | multi_step | Second City platform GraphQL (show list -> detail) |
-| 48 | Uptown Theater | `uptown_theater` | json_ld | multi_step | Next.js JSON-LD listing -> detail pages |
-| 49 | West Side | `west_side` | rsc | single | Punchup/Next.js RSC hydration state |
-| 50 | Zanies | `zanies` | html | multi_step | rhp-events WordPress listing -> series/event detail pages |
+| 1 | Broadway Comedy Club | `broadway_comedy_club` | external_api | multi_step | Tessera API + HTML enrichment |
+| 2 | Bushwick Comedy Club | `bushwick` | external_api | single | Wix Events paginated API |
+| 3 | Comedy @ The Carlson | `comedy_at_the_carlson` | external_api | multi_step | OvationTix calendar -> production API |
+| 4 | Comedy Cellar | `comedy_cellar` | external_api | multi_step | Custom Comedy Cellar API (multi-date) |
+| 5 | Comedy Clubhouse | `comedy_clubhouse` | html | single | TicketSource server-rendered HTML |
+| 6 | Comedy Corner Underground | `comedy_corner_underground` | rsc | multi_step | StageTime Next.js RSC (listing -> event pages) |
+| 7 | Comedy Key West | `comedy_key_west` | rsc | single | Punchup/Next.js RSC hydration + Tixologi tickets |
+| 8 | Comedy & Magic Club | `comedy_magic_club` | html | multi_step | rhp-events WordPress + eTix detail pages |
+| 9 | Comedy Mothership | `comedy_mothership` | next_data | single | Next.js SSR + SquadUP (paginated listing) |
+| 10 | Comedy Store | `comedy_store` | html | single | Custom PHP calendar (one URL per day) |
+| 11 | Creek and The Cave | `creek_and_cave` | json_feed | single | S3 bucket monthly JSON files |
+| 12 | CSz Philadelphia | `csz_philadelphia` | html | single | VBO Tickets server-rendered HTML |
+| 13 | Dynasty Typewriter | `dynasty_typewriter` | external_api | single | SquadUP JSON API (Cloudflare-protected) |
+| 14 | East Austin Comedy | `east_austin_comedy` | json_feed | single | Netlify serverless functions (7 weekday endpoints) |
+| 15 | Esther's Follies | `esthers_follies` | html | single | VBO Tickets session-based HTML |
+| 16 | Flappers | `flappers` | html | multi_step | PHP calendar listing -> detail pages |
+| 17 | Four Day Weekend | `four_day_weekend` | external_api | multi_step | OvationTix direct productions -> performances API |
+| 18 | Funny Bone | `funny_bone` | html | single | rhp-events WordPress (single page, no detail fetch) |
+| 19 | Goofs | `goofs` | rsc | single | Next.js RSC flight payload (single page) |
+| 20 | Gotham | `gotham` | json_feed | single | S3 bucket JSON endpoint |
+| 21 | Grove 34 | `grove_34` | json_ld | multi_step | Webflow listing -> JSON-LD detail pages |
+| 22 | HAHA Comedy Club | `haha_comedy_club` | json_ld | single | Webflow calendar with inline JSON-LD + Tixr links |
+| 23 | Ice House | `ice_house` | json_feed | single | Tockify calendar API + ShowClix tickets |
+| 24 | Improv | `improv` | json_ld | multi_step | Calendar listing -> JSON-LD event detail pages |
+| 25 | Improv Asylum | `improv_asylum` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
+| 26 | iO Theater | `io_theater` | json_feed | single | Crowdwork/Fourthwall API |
+| 27 | Laugh Boston | `laugh_boston` | json_feed | single | Pixl Calendar API (builds TixrEvents directly) |
+| 28 | Laugh Factory Covina | `laugh_factory_covina` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
+| 29 | Laugh Factory Reno | `laugh_factory_reno` | html | single | Tixologi CMS HTML scraping (.show-sec.jokes divs) |
+| 30 | Logan Square Improv | `logan_square_improv` | json_feed | single | Crowdwork/Fourthwall API |
+| 31 | McCurdy's Comedy Theatre | `mccurdys_comedy_theatre` | html | multi_step | ColdFusion listing -> detail pages |
+| 32 | Nick's Comedy Stop | `nicks_comedy_stop` | external_api | single | Wix Events paginated API |
+| 33 | Philly Improv Theater | `philly_improv_theater` | json_feed | single | Crowdwork/Fourthwall API |
+| 34 | Red Room | `red_room` | external_api | single | Wix Events paginated API |
+| 35 | Rodney's | `rodneys` | html | multi_step | Custom HTML listing -> Eventbrite/22Rams detail pages |
+| 36 | The Setup | `setup` | google_sheets | single | Published Google Sheets CSV export (multi-city via gid) |
+| 37 | Sports Drink | `sports_drink` | html | single | OpenDate server-rendered HTML |
+| 38 | St. Marks | `st_marks` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
+| 39 | StandUp NY | `standup_ny` | graphql | multi_step | ShowTix4U GraphQL + VenuePilot enrichment |
+| 40 | Stevie Ray's | `stevie_rays` | html | single | AudienceView HTML (Playwright JS execution required) |
+| 41 | Sunset Strip | `sunset_strip` | external_api | single | SquadUP JSON API (paginated) |
+| 42 | The Rockwell | `the_rockwell` | json_feed | single | Tribe Events WordPress REST API |
+| 43 | The Stand | `the_stand` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
+| 44 | Third Coast Comedy | `third_coast_comedy` | next_data | single | Vivenu `__NEXT_DATA__` JSON |
+| 45 | Uncle Vinnie's | `uncle_vinnies` | external_api | multi_step | OvationTix calendar -> production API |
+| 46 | UP Comedy Club | `up_comedy_club` | graphql | multi_step | Second City platform GraphQL (show list -> detail) |
+| 47 | Uptown Theater | `uptown_theater` | json_ld | multi_step | Next.js JSON-LD listing -> detail pages |
+| 48 | West Side | `west_side` | rsc | single | Punchup/Next.js RSC hydration state |
+| 49 | Zanies | `zanies` | html | multi_step | rhp-events WordPress listing -> series/event detail pages |
 
 ### API-Level / National Scrapers (15)
 
