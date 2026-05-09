@@ -112,7 +112,7 @@ def _collection_page_with_detail_urls() -> str:
 
 def _tickettailor_listing(page: int) -> str:
     next_link = (
-        '<a href="/events/westrivercomedyclub?page=2" rel="next">Next</a>'
+        '<a href="/events/westrivercomedyclub?page=2" aria-label="next">Next</a>'
         if page == 1
         else ""
     )

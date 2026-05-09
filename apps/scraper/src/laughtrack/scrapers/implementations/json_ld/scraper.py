@@ -361,10 +361,14 @@ class JsonLdScraper(BaseScraper):
         if "next" in rel_values:
             return True
 
+        aria_label = str(anchor.get("aria-label", "")).strip().lower()
+        if aria_label == "next" or aria_label.startswith("next "):
+            return True
+
         label = " ".join(
             part.strip().lower()
             for part in [
-                anchor.get("aria-label", ""),
+                aria_label,
                 anchor.get_text(" ", strip=True),
                 " ".join(anchor.get("class", [])),
             ]
