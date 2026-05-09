@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
@@ -182,20 +183,9 @@ class RodneyEventExtractor:
             return None
 
         date_part = m.group(1)
-        hour = int(m.group(2))
-        minute = int(m.group(3)) if m.group(3) else 0
-        ampm = m.group(4).upper()
-
-        if ampm == "PM" and hour != 12:
-            hour += 12
-        elif ampm == "AM" and hour == 12:
-            hour = 0
-
-        try:
-            dt = datetime.strptime(date_part, "%B %d, %Y")
-            return dt.replace(hour=hour, minute=minute)
-        except ValueError:
-            return None
+        minute = m.group(3) or "00"
+        time_part = f"{m.group(2)}:{minute}{m.group(4).upper()}"
+        return DateTimeUtils.parse_flexible_date(f"{date_part} {time_part}")
 
     @staticmethod
     def extract_event_from_json_ld(html_content: str, source_url: str) -> Optional[RodneyEvent]:

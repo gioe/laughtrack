@@ -1,7 +1,6 @@
 """Extraction for House of Comedy Phoenix WordPress AJAX show cards."""
 
 import re
-from datetime import datetime
 from typing import List, Optional
 from urllib.parse import urljoin, urlparse
 
@@ -197,8 +196,7 @@ class HouseOfComedyPhoenixExtractor:
         match = _TIME_RE.search(text)
         if not match:
             return ""
-        parsed = datetime.strptime(
-            match.group(1).upper().replace(".", "").replace(" ", ""),
-            "%I:%M%p",
-        )
+        parsed = DateTimeUtils.parse_flexible_date(match.group(1).upper().replace(".", ""))
+        if parsed is None:
+            return ""
         return parsed.strftime("%-I:%M %p")

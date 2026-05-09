@@ -8,6 +8,7 @@ from laughtrack.core.entities.event.coral_gables_comedy_club import (
     CoralGablesComedyClubEvent,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 _AMP_SPLIT_RE = re.compile(r"\s*&\s*")
 
@@ -91,11 +92,10 @@ class CoralGablesComedyClubEventExtractor:
             return None
 
         # Skip past events
-        try:
-            event_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-            if event_date < today:
-                return None
-        except ValueError:
+        parsed_start_date = DateTimeUtils.parse_flexible_date(start_date)
+        if parsed_start_date is None:
+            return None
+        if parsed_start_date.date() < today:
             return None
 
         # Skip hidden products

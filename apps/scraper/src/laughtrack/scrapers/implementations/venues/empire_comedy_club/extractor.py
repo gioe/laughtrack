@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from laughtrack.core.entities.event.empire import EmpireEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
 BASE_URL = "https://empirecomedyme.com"
@@ -114,24 +115,6 @@ class EmpireEventExtractor:
             time_text: Time string, e.g. "7:00 PM" or "9:00 PM"
             year: Four-digit year from the month section header
         """
-        try:
-            # Parse "Apr 16" with year
-            dt = datetime.strptime(f"{date_text} {year}", "%b %d %Y")
-
-            # Parse time — skip event if no time provided
-            if not time_text:
-                return None
-            time_match = re.match(r"(\d{1,2}):(\d{2})\s*(AM|PM)", time_text, re.IGNORECASE)
-            if time_match:
-                hour = int(time_match.group(1))
-                minute = int(time_match.group(2))
-                ampm = time_match.group(3).upper()
-                if ampm == "PM" and hour != 12:
-                    hour += 12
-                elif ampm == "AM" and hour == 12:
-                    hour = 0
-                dt = dt.replace(hour=hour, minute=minute)
-
-            return dt
-        except ValueError:
+        if not time_text:
             return None
+        return DateTimeUtils.parse_flexible_date(f"{date_text} {year} {time_text}")

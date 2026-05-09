@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup, Tag
 
 from laughtrack.core.entities.event.show_slinger import ShowSlingerEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 _BASE_URL = "https://app.showslinger.com"
 
@@ -176,20 +177,17 @@ class ShowSlingerExtractor:
     ) -> Optional[datetime]:
         """Build a datetime from month name, day, time string, and year.
 
-        Tries both abbreviated ('May') and full ('August') month formats.
         If the resulting date is in the past, bumps to next year.
         """
         date_string = f"{month_str} {day_str} {year} {time_str}"
-        for fmt in ("%B %d %Y %I:%M %p", "%b %d %Y %I:%M %p"):
-            try:
-                dt = datetime.strptime(date_string, fmt)
-                # If the date is more than 30 days in the past, assume next year
-                if (datetime.now() - dt).days > 30:
-                    dt = dt.replace(year=year + 1)
-                return dt
-            except ValueError:
-                continue
-        return None
+        dt = DateTimeUtils.parse_flexible_date(date_string)
+        if dt is None:
+            return None
+
+        # If the date is more than 30 days in the past, assume next year
+        if (datetime.now() - dt).days > 30:
+            dt = dt.replace(year=year + 1)
+        return dt
 
     @staticmethod
     def _extract_price(card: Tag) -> Optional[float]:

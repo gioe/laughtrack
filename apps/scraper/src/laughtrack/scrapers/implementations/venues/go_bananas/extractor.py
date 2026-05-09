@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup, Tag
 
 from laughtrack.core.entities.event.go_bananas import GoBananasEvent
+from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
 _SHOWTIME_DATE_RE = re.compile(r"\(([A-Za-z]+)\s+(\d{1,2})\)")
@@ -147,7 +148,7 @@ class GoBananasExtractor:
 
 
 def datetime_from_month_day(month_name: str, day: int, year: int) -> date:
-    from datetime import datetime
-
-    parsed = datetime.strptime(f"{month_name} {day} {year}", "%B %d %Y")
+    parsed = DateTimeUtils.parse_flexible_date(f"{month_name} {day} {year}")
+    if parsed is None:
+        raise ValueError(f"Invalid month/day/year: {month_name} {day} {year}")
     return parsed.date()
