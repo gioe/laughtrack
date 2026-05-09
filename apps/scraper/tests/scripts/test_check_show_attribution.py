@@ -57,7 +57,7 @@ def test_main_returns_two_when_orphan_attribution_values_exist(mod, monkeypatch,
 
     assert mod.main([]) == 2
     captured = capsys.readouterr()
-    assert "2 shows.last_scraped_by value(s) missing" in captured.out
+    assert "2 unrecognised shows.last_scraped_by value(s) found" in captured.out
     assert "live_naion" in captured.out
     assert "retired_scraper" in captured.out
     assert "show_count=42" in captured.out
@@ -68,7 +68,7 @@ def test_main_returns_zero_when_no_orphans(mod, monkeypatch, capsys):
 
     assert mod.main([]) == 0
     captured = capsys.readouterr()
-    assert "All shows.last_scraped_by values are present" in captured.out
+    assert "All shows.last_scraped_by values are recognised" in captured.out
 
 
 def test_main_returns_one_on_db_error(mod, monkeypatch, capsys):
@@ -81,6 +81,9 @@ def test_main_returns_one_on_db_error(mod, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert "ERROR: failed to query show attribution orphans" in captured.err
     assert "connection refused" in captured.err
+    # traceback.print_exc renders the exception class+message into the
+    # traceback header — proves the full traceback was emitted, not just str(exc).
+    assert "RuntimeError: connection refused" in captured.err
 
 
 def test_main_json_mode_emits_parseable_payload(mod, monkeypatch, capsys):
@@ -99,4 +102,17 @@ def test_main_json_mode_emits_parseable_payload(mod, monkeypatch, capsys):
     payload = json.loads(captured.out)
     assert payload["orphans"][0]["scraper_key"] == "typo_scraper"
     assert payload["orphans"][0]["show_count"] == 12
-    assert "shows.last_scraped_by value(s) missing" in captured.err
+    assert "unrecognised shows.last_scraped_by value(s) found" in captured.err
+
+
+def test_main_json_mode_emits_empty_orphans_when_clean(mod, monkeypatch, capsys):
+    monkeypatch.setattr(mod, "_fetch_orphan_rows", lambda: [])
+
+    rc = mod.main(["--json"])
+    captured = capsys.readouterr()
+
+    assert rc == 0
+    payload = json.loads(captured.out)
+    assert payload == {"orphans": []}
+    # Human-readable summary still emitted on stderr in --json mode.
+    assert "All shows.last_scraped_by values are recognised" in captured.err
