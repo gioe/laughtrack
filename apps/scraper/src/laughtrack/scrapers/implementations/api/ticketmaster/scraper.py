@@ -28,6 +28,25 @@ class TicketmasterScraper(BaseScraper):
     - High-performance (5 requests per second)
     - Reliable structured data from API
     - Automatic rate limiting and error handling
+
+    Known API limitations:
+    - Ticket prices (`priceRanges`) are NOT returned by the Discovery API for the
+      comedy venues we scrape. A 2026-05-09 audit (TASK-2098) sampled 200+ events
+      across both venue id formats — Kov*-prefixed (Punch Line, Laugh Factory,
+      Jimmy Kimmel's Comedy Club, The Second City, Cobb's, etc.) and Z*-prefixed
+      (Funny Bone chain) — and found 0 events with `priceRanges` populated on
+      either the list endpoint (`/events.json?venueId=...`) or the per-event
+      detail endpoint (`/events/{id}.json`). The `includeTicketing=yes` query
+      parameter does not surface price data either; the `ticketing` block only
+      carries an `allInclusivePricing.enabled` flag, never a price. As a result,
+      the underlying `TicketmasterClient._extract_ticket_data_from_api` writes
+      `price=None` for ~84% of future tickets stamped with `last_scraped_by =
+      'live_nation'`. Existing non-null prices in the DB are stale records from
+      a prior period when the API exposed `priceRanges` more broadly; the
+      idempotent show upsert preserves them when a fresh scrape returns no
+      price. Do not re-flag this as a scraper bug — the extraction code is
+      correct; the data simply is not in the API response. If a future audit
+      sees prices reappearing, the API may have changed and revisiting is fair.
     """
     key = 'live_nation'
 
