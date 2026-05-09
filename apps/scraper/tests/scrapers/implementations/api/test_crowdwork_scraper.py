@@ -5,19 +5,10 @@ from laughtrack.scrapers.implementations.api.crowdwork.scraper import (
     CrowdworkPageData,
     GenericCrowdworkScraper,
 )
-from laughtrack.scrapers.implementations.venues.io_theater.data import IOTheaterPageData
-from laughtrack.scrapers.implementations.venues.io_theater.scraper import IOTheaterScraper
-from laughtrack.scrapers.implementations.venues.logan_square_improv.scraper import (
-    LoganSquareImprovScraper,
-)
-from laughtrack.scrapers.implementations.venues.philly_improv_theater.scraper import (
-    PhillyImprovTheaterScraper,
-)
-from laughtrack.scrapers.implementations.venues.rails_comedy.scraper import RailsComedyScraper
-from laughtrack.scrapers.implementations.venues.the_backline.scraper import TheBacklineScraper
+from laughtrack.app.scraper_resolver import ScraperResolver
 
 
-def _club(scraper_key: str = "crowdwork") -> Club:
+def _club(metadata: dict | None = None, timezone: str = "America/Chicago") -> Club:
     club = Club(
         id=999,
         name="Crowdwork Venue",
@@ -27,14 +18,15 @@ def _club(scraper_key: str = "crowdwork") -> Club:
         zip_code="",
         phone_number="",
         visible=True,
-        timezone="America/Chicago",
+        timezone=timezone,
     )
     club.active_scraping_source = ScrapingSource(
         id=1,
         club_id=club.id,
         platform="crowdwork",
-        scraper_key=scraper_key,
+        scraper_key="crowdwork",
         source_url="https://crowdwork.com/api/v2/example/shows",
+        metadata=metadata or {},
     )
     club.scraping_sources = [club.active_scraping_source]
     return club
@@ -74,23 +66,15 @@ async def test_generic_crowdwork_handles_list_and_dict_payloads(monkeypatch):
 
 
 def test_crowdwork_venue_keys_resolve_to_generic_scraper():
-    expected = {
-        "philly_improv_theater": PhillyImprovTheaterScraper,
-        "rails_comedy": RailsComedyScraper,
-        "the_backline": TheBacklineScraper,
-        "io_theater": IOTheaterScraper,
-        "logan_square_improv": LoganSquareImprovScraper,
-    }
+    scraper = GenericCrowdworkScraper(_club())
 
-    for scraper_key, scraper_cls in expected.items():
-        scraper = scraper_cls(_club(scraper_key))
-        assert issubclass(scraper_cls, GenericCrowdworkScraper)
-        assert scraper.key == scraper_key
-        assert len(scraper.transformation_pipeline.transformers) == 1
+    assert scraper.key == "crowdwork"
+    assert ScraperResolver().get("crowdwork") is GenericCrowdworkScraper
+    assert len(scraper.transformation_pipeline.transformers) == 1
 
 
-async def test_crowdwork_subclasses_keep_venue_page_data(monkeypatch):
-    scraper = IOTheaterScraper(_club("io_theater"))
+async def test_generic_crowdwork_normalises_rails_timezone_from_metadata(monkeypatch):
+    scraper = GenericCrowdworkScraper(_club(metadata={"rails_to_iana": True}))
 
     async def fake_fetch_json(url):
         return {"status": 200, "type": "success", "data": [_show("Venue Show")]}
@@ -99,5 +83,21 @@ async def test_crowdwork_subclasses_keep_venue_page_data(monkeypatch):
 
     result = await scraper.get_data("https://example.com/io")
 
-    assert isinstance(result, IOTheaterPageData)
+    assert isinstance(result, CrowdworkPageData)
     assert result.event_list[0].timezone == "America/Chicago"
+
+
+async def test_generic_crowdwork_uses_metadata_default_timezone(monkeypatch):
+    scraper = GenericCrowdworkScraper(_club(metadata={"default_timezone": "America/New_York"}))
+
+    async def fake_fetch_json(url):
+        show = _show("Default TZ Show", timezone="")
+        show.pop("timezone")
+        return {"status": 200, "type": "success", "data": [show]}
+
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://example.com/phit")
+
+    assert result is not None
+    assert result.event_list[0].timezone == "America/New_York"

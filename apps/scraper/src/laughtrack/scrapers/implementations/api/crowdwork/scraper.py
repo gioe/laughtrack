@@ -10,7 +10,7 @@ from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_performances
+from laughtrack.scrapers.implementations.api.crowdwork.utils import RAILS_TO_IANA, extract_performances
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
 
@@ -28,6 +28,7 @@ class CrowdworkTransformer(DataTransformer[PhillyImprovShow]):
 class GenericCrowdworkScraper(BaseScraper):
     """Configurable scraper for Crowdwork/Fourthwall venue APIs."""
 
+    key = "crowdwork"
     page_data_cls: Type[EventListContainer[PhillyImprovShow]] = CrowdworkPageData
     transformer_cls: Type[DataTransformer[PhillyImprovShow]] = CrowdworkTransformer
     default_timezone = "America/Chicago"
@@ -38,7 +39,28 @@ class GenericCrowdworkScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self._configure_from_source_metadata()
         self.transformation_pipeline.register_transformer(self.transformer_cls(club))
+
+    def _configure_from_source_metadata(self) -> None:
+        metadata = self.club.source_metadata or {}
+        default_timezone = metadata.get("default_timezone")
+        if isinstance(default_timezone, str) and default_timezone:
+            self.default_timezone = default_timezone
+        elif self.club.timezone:
+            self.default_timezone = self.club.timezone
+
+        rails_to_iana = metadata.get("rails_to_iana")
+        if rails_to_iana is True:
+            self.rails_to_iana = RAILS_TO_IANA
+        elif isinstance(rails_to_iana, dict):
+            self.rails_to_iana = {
+                str(key): str(value)
+                for key, value in rails_to_iana.items()
+                if key is not None and value is not None
+            }
+        elif rails_to_iana is False:
+            self.rails_to_iana = None
 
     async def get_data(self, url: str) -> Optional[EventListContainer[PhillyImprovShow]]:
         """Fetch Crowdwork API JSON and return expanded performance events."""
