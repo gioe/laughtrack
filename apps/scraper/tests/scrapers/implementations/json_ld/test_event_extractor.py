@@ -136,6 +136,31 @@ def test_extract_event_field_values_reads_same_as_from_graph_events():
     }
 
 
+def test_extract_typed_field_values_reads_collection_page_list_item_urls():
+    collection_page = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": [
+                {"@type": "ListItem", "url": "https://venue.example.com/events/first"},
+                {"@type": "ListItem", "url": "/events/second"},
+            ],
+        },
+    }
+
+    urls = EventExtractor.extract_typed_field_values(
+        _wrap_ldjson(collection_page),
+        object_type="CollectionPage",
+        field_path="mainEntity.itemListElement[].url",
+    )
+
+    assert urls == {
+        "https://venue.example.com/events/first",
+        "/events/second",
+    }
+
+
 def test_extract_events_can_override_same_as_for_detail_page_events():
     event = {
         "@context": "https://schema.org",
@@ -231,6 +256,31 @@ def test_extract_events_aggregate_offer_uses_low_price():
     assert len(events[0].offers) == 1
     assert events[0].offers[0].price == "59"
     assert events[0].offers[0].price_currency == "USD"
+
+
+def test_extract_events_aggregate_offer_sold_out_flag_propagates_to_ticket():
+    from laughtrack.utilities.domain.show.enhancement import ShowEnhancement
+
+    obj = {
+        "@type": "ComedyEvent",
+        "name": "Sold Out Aggregate Offer",
+        "startDate": "2026-07-10T20:00:00-04:00",
+        "url": "https://www.uptownpvd.com/events/sold-out",
+        "location": {"@type": "Place", "name": "Uptown Theater"},
+        "offers": {
+            "@type": "AggregateOffer",
+            "url": "https://www.uptownpvd.com/events/sold-out",
+            "lowPrice": 64,
+            "highPrice": 109,
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/SoldOut",
+        },
+    }
+    events = EventExtractor.extract_events(_wrap_ldjson(obj))
+    tickets = ShowEnhancement.enhance_tickets_from_event(events[0])
+    assert len(tickets) == 1
+    assert tickets[0].sold_out is True
+    assert tickets[0].price == 64.0
 
 
 def test_extract_events_aggregate_offer_falls_back_to_high_price():

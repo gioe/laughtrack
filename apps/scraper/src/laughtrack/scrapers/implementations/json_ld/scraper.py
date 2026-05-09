@@ -15,6 +15,7 @@ Clean single-responsibility architecture:
 """
 
 from typing import Any, Optional, TYPE_CHECKING
+from urllib.parse import urljoin
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -57,7 +58,8 @@ class JsonLdScraper(BaseScraper):
             from .extractor import EventExtractor
 
             calendar_url = URLUtils.normalize_url(self.club.scraping_url)
-            url_field = str(detail_fetch.get("url_field") or "sameAs")
+            object_type = str(detail_fetch.get("listing_type") or detail_fetch.get("object_type") or "Event")
+            url_path = str(detail_fetch.get("url_path") or detail_fetch.get("url_field") or "sameAs")
 
             Logger.info(
                 f"{self._log_prefix}: Fetching JSON-LD index page for detail URLs: {calendar_url}",
@@ -71,15 +73,19 @@ class JsonLdScraper(BaseScraper):
                 )
                 return []
 
-            detail_urls = EventExtractor.extract_event_field_values(calendar_html, url_field)
+            detail_urls = EventExtractor.extract_typed_field_values(
+                calendar_html,
+                object_type=object_type,
+                field_path=url_path,
+            )
             if not detail_urls:
                 Logger.warn(
-                    f"{self._log_prefix}: No JSON-LD detail URLs found via field '{url_field}' on {calendar_url}",
+                    f"{self._log_prefix}: No JSON-LD detail URLs found via {object_type}.{url_path} on {calendar_url}",
                     self.logger_context,
                 )
                 return []
 
-            targets = sorted(detail_urls)
+            targets = sorted({urljoin(calendar_url, url) for url in detail_urls})
             Logger.info(
                 f"{self._log_prefix}: Found {len(targets)} JSON-LD detail pages to process",
                 self.logger_context,

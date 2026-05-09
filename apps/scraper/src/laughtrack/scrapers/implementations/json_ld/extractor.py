@@ -1,6 +1,6 @@
 """JSON-LD data extraction utilities."""
 
-from typing import Any, List, Set
+from typing import Any, Iterable, List, Set
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.json.utils import JSONUtils
@@ -51,6 +51,26 @@ class EventExtractor:
         ``field_path`` supports dotted lookup for nested dictionaries. If the
         resolved value is a list, string members are returned.
         """
+        return EventExtractor.extract_typed_field_values(
+            html_content,
+            object_type="Event",
+            field_path=field_path,
+        )
+
+    @staticmethod
+    def extract_typed_field_values(
+        html_content: str,
+        *,
+        object_type: str,
+        field_path: str,
+    ) -> Set[str]:
+        """Extract string values from JSON-LD objects of ``object_type``.
+
+        ``field_path`` supports dotted dictionary lookup and ``[]`` list
+        traversal segments, such as ``mainEntity.itemListElement[].url``.
+        The special ``object_type="Event"`` path preserves the existing
+        recursive Event/ComedyEvent matching semantics.
+        """
         script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
         if not script_contents:
             return set()
@@ -61,24 +81,71 @@ class EventExtractor:
 
         values: Set[str] = set()
         for item in json_objects:
-            for event in EventExtractor._extract_events_recursively(item):
-                for value in EventExtractor._field_values(event, field_path):
+            for obj in EventExtractor._extract_objects_by_type(item, object_type):
+                for value in EventExtractor._field_values(obj, field_path):
                     values.add(value)
         return values
 
     @staticmethod
     def _field_values(obj: dict[str, Any], field_path: str) -> List[str]:
-        value: Any = obj
-        for part in field_path.split("."):
-            if not isinstance(value, dict):
-                return []
-            value = value.get(part)
+        values: Iterable[Any] = [obj]
+        for raw_part in field_path.split("."):
+            traverse_list = raw_part.endswith("[]")
+            part = raw_part[:-2] if traverse_list else raw_part
+            next_values: list[Any] = []
 
-        if isinstance(value, str) and value:
-            return [value]
-        if isinstance(value, list):
-            return [item for item in value if isinstance(item, str) and item]
-        return []
+            for value in values:
+                if isinstance(value, list) and not traverse_list:
+                    candidates = value
+                else:
+                    candidates = [value]
+
+                for candidate in candidates:
+                    if not isinstance(candidate, dict):
+                        continue
+                    resolved = candidate.get(part)
+                    if traverse_list:
+                        if isinstance(resolved, list):
+                            next_values.extend(resolved)
+                    else:
+                        next_values.append(resolved)
+
+            values = next_values
+
+        strings: list[str] = []
+        for value in values:
+            if isinstance(value, str) and value:
+                strings.append(value)
+            elif isinstance(value, list):
+                strings.extend(item for item in value if isinstance(item, str) and item)
+        return strings
+
+    @staticmethod
+    def _extract_objects_by_type(obj: Any, object_type: str) -> list[dict[str, Any]]:
+        if object_type.lower() == "event":
+            return EventExtractor._extract_events_recursively(obj)
+        return EventExtractor._extract_objects_by_exact_type_recursively(obj, object_type)
+
+    @staticmethod
+    def _extract_objects_by_exact_type_recursively(obj: Any, object_type: str) -> list[dict[str, Any]]:
+        matches: list[dict[str, Any]] = []
+        if isinstance(obj, list):
+            for item in obj:
+                matches.extend(EventExtractor._extract_objects_by_exact_type_recursively(item, object_type))
+        elif isinstance(obj, dict):
+            if EventExtractor._json_ld_type_matches(obj.get("@type"), object_type):
+                matches.append(obj)
+            for value in obj.values():
+                if isinstance(value, (dict, list)):
+                    matches.extend(EventExtractor._extract_objects_by_exact_type_recursively(value, object_type))
+        return matches
+
+    @staticmethod
+    def _json_ld_type_matches(raw_type: Any, expected_type: str) -> bool:
+        expected = expected_type.lower()
+        if isinstance(raw_type, list):
+            return any(isinstance(item, str) and item.lower() == expected for item in raw_type)
+        return isinstance(raw_type, str) and raw_type.lower() == expected
 
     @staticmethod
     def _extract_events_recursively(obj, processed_keys=None):

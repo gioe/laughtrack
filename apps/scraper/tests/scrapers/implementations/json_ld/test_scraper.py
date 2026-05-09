@@ -94,6 +94,22 @@ def _calendar_with_detail_urls() -> str:
     return f"<html><head>{_wrap_ldjson(calendar_graph)}</head></html>"
 
 
+def _collection_page_with_detail_urls() -> str:
+    collection_page = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "Upcoming Events | Uptown Theater",
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": [
+                {"@type": "ListItem", "url": "/events/tracy-morgan"},
+                {"@type": "ListItem", "url": "https://www.uptownpvd.com/events/late-show"},
+            ],
+        },
+    }
+    return f"<html><head>{_wrap_ldjson(collection_page)}</head></html>"
+
+
 def _detail_html(name: str, ticket_url: str) -> str:
     event = {
         "@context": "https://schema.org",
@@ -191,6 +207,48 @@ class TestDetailFetch:
         assert sorted(show.tickets[0].purchase_url for show in shows) == [
             "https://ticketweb.com/calendar-comic-late",
             "https://ticketweb.com/other-comic-early",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_detail_fetch_harvests_collection_page_urls(self, monkeypatch):
+        detail_html = {
+            "https://comedycraftbeer.com/events/tracy-morgan": _detail_html(
+                "Tracy Morgan",
+                "https://www.uptownpvd.com/events/tracy-morgan",
+            ),
+            "https://www.uptownpvd.com/events/late-show": _detail_html(
+                "Late Show",
+                "https://www.uptownpvd.com/events/late-show",
+            ),
+        }
+        club = _make_club(metadata={
+            "detail_fetch": {
+                "listing_type": "CollectionPage",
+                "url_path": "mainEntity.itemListElement[].url",
+            },
+        })
+        scraper = JsonLdScraper(club)
+        fetched_urls = []
+
+        async def fake_fetch_html(self, url):
+            fetched_urls.append(url)
+            if url == "https://comedycraftbeer.com/calendar":
+                return _collection_page_with_detail_urls()
+            return detail_html[url]
+
+        monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html, raising=False)
+
+        shows = await scraper.scrape_async()
+
+        assert fetched_urls == [
+            "https://comedycraftbeer.com/calendar",
+            "https://comedycraftbeer.com/events/tracy-morgan",
+            "https://www.uptownpvd.com/events/late-show",
+        ]
+        assert sorted(show.name for show in shows) == ["Late Show", "Tracy Morgan"]
+        assert sorted(show.show_page_url for show in shows) == [
+            "https://www.uptownpvd.com/events/late-show",
+            "https://www.uptownpvd.com/events/tracy-morgan",
         ]
 
 
