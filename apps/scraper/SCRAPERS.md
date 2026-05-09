@@ -23,8 +23,8 @@ Is there a SeatEngine buy link?
                                  DB: seatengine_id = numeric venue ID (1–700 range)
 
 Is there a buy link to `{venue}.thundertix.com`?
-  └── YES → platform: ThunderTix → new venue-specific scraper required
-              (see ThunderTix section — use annoyance scraper as reference)
+  └── YES → platform: ThunderTix → generic scraper, configure via scraping_sources
+              (see ThunderTix section — set platform=thundertix, scraper_key=thundertix)
 
 Is there a tixr.com buy link?
   └── YES → platform: Tixr → new venue-specific scraper required
@@ -770,10 +770,11 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 
 | | |
 |---|---|
-| **Scraper key** | venue-specific (e.g. `annoyance`) |
-| **DB field** | `scraping_url` |
+| **Scraper key** | `thundertix` (generic — `GenericThunderTixScraper`) |
+| **Platform** | `thundertix` |
+| **DB field** | `scraping_sources.source_url` (+ optional `metadata.title_skip_prefixes`) |
 | **Value format** | `https://{venue-slug}.thundertix.com` |
-| **Generic?** | ❌ New venue-specific scraper required |
+| **Generic?** | ✅ Single scraper, configured per-venue via `scraping_sources` |
 
 **Detection signals:**
 - Buy links or calendar pages at `{venue-slug}.thundertix.com`
@@ -784,7 +785,7 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 GET https://{venue-slug}.thundertix.com/reports/calendar?week=0&start={ts}&end={ts+7d}
 ```
 Returns a JSON array of performance objects, one per show. A single request covers a 7-day window.
-The `annoyance` scraper generates 12 weekly URLs starting from the current Sunday.
+The generic scraper generates 12 weekly URLs starting from the current Sunday.
 
 **Key fields in each performance object:**
 - `title` — show name
@@ -794,23 +795,29 @@ The `annoyance` scraper generates 12 weekly URLs starting from the current Sunda
 - `publicly_available` — skip when `False`
 - `is_sold_out` — mark ticket as sold out when `True`
 
-**Filtering rules (verify per venue):**
-- Skip events where `publicly_available` is `False`
-- Skip events whose title starts with training/class prefixes (venue-specific — check live data)
+**Filtering rules:**
+- Skip events where `publicly_available` is `False` (always-on, engine-level)
+- Skip events whose title starts with any of `metadata.title_skip_prefixes`
+  (CSV; e.g. `"CLASS:,TRAINING CENTER:"` for The Annoyance Theatre's class listings).
+  Omit the metadata key when the venue has no skip rules.
 
-**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/venues/annoyance/`
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/api/thundertix/`
 
 **To onboard a new ThunderTix venue:**
-1. Confirm the venue slug from the buy page URL: `{slug}.thundertix.com` (e.g. `theannoyance`)
-2. Copy the `annoyance/` scraper directory as the reference implementation
-3. Update `_BASE_URL`, `_TITLE_SKIP_PREFIXES`, scraper `key`, and class names
-4. Add a DB migration setting `scraper` and `scraping_url`
-
-**DB setup:**
-```sql
-INSERT INTO clubs (name, scraper, scraping_url, ...)
-VALUES ('My Venue', 'my_venue', 'https://myslug.thundertix.com', ...);
-```
+1. Confirm the venue slug from the buy page URL: `{slug}.thundertix.com` (e.g. `theannoyance`).
+2. Insert a `scraping_sources` row pointing at the venue:
+   ```sql
+   INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, metadata)
+   VALUES (
+     <club_id>,
+     'thundertix'::"ScrapingPlatform",
+     'thundertix',
+     'https://{slug}.thundertix.com',
+     -- optional: skip-prefix filter, comma-separated
+     '{"title_skip_prefixes": "CLASS:,TRAINING CENTER:"}'::jsonb
+   );
+   ```
+3. No code change required — the existing `GenericThunderTixScraper` resolves the new row automatically.
 
 ---
 
