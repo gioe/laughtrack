@@ -233,6 +233,7 @@ Use the decision matrix below to determine whether you need new code:
 | Ninkashi | `ninkashi` | `scraping_url` |
 | Vivenu | `vivenu` | `scraping_url` |
 | Squarespace | `squarespace` | `scraping_url` (with collectionId) |
+| ThunderTix | `thundertix` | `scraping_url` |
 | Tixr (when calendar HTML has links) | `tixr` | `scraping_url` |
 
 #### Venue-specific scrapers (new code required)
