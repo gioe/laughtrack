@@ -130,9 +130,9 @@ How many HTTP round-trips are needed to collect all event data.
 
 | Data Source | Count | % |
 |---|---|---|
-| external_api | 17 | 34% |
-| html | 14 | 28% |
-| json_feed | 9 | 18% |
+| external_api | 17 | 35% |
+| html | 14 | 29% |
+| json_feed | 8 | 16% |
 | json_ld | 4 | 8% |
 | rsc | 4 | 8% |
 | next_data | 2 | 4% |
