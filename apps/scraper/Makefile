@@ -127,7 +127,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -241,6 +241,7 @@ help-analyze:
 	@echo "  seatengine-check    - Check single SeatEngine venue (ID=<venue_id>)"
 	@echo "  seatengine-audit    - Bulk audit all SeatEngine venues for health"
 	@echo "  check-scraping-priorities - Detect enabled scraping_sources sharing (club_id, priority)"
+	@echo "  check-scraping-source-invariants - Detect clubs with future shows but no enabled scraping_sources"
 	@echo "  check-show-attribution - Detect shows.last_scraped_by values missing from scrapers.key"
 
 help-workflow:
@@ -915,6 +916,12 @@ seatengine-audit:
 # Usage: make check-scraping-priorities [ARGS='--json']
 check-scraping-priorities:
 	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/check_duplicate_scraping_priorities.py $(ARGS)
+
+# Detect clubs with future shows but no enabled scraping_sources row — TASK-2095.
+# Exits 0 when clean, 2 when orphan future inventory remains.
+# Usage: make check-scraping-source-invariants [ARGS='--json']
+check-scraping-source-invariants: check-env
+	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/check_scraping_source_invariants.py $(ARGS)
 
 # Detect shows.last_scraped_by values not present in scrapers.key — TASK-2059.
 # Catches typos in BaseScraper.key and renamed/retired scrapers before orphan
