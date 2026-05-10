@@ -146,6 +146,8 @@ model Club {
   city                    String?                  @map("city")
   state                   String?                  @map("state")
   country                 String?                  @map("country")
+  latitude                Float?                   @map("latitude")
+  longitude               Float?                   @map("longitude")
   phoneNumber             String?                  @default("") @map("phone_number")
   description             String?                  @map("description")
   hours                   Json?                    @map("hours")
