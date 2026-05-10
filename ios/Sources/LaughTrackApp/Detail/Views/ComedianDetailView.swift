@@ -389,7 +389,7 @@ private struct UpcomingShowsFilterPanel: View {
                 showsTitle: false
             )
 
-            HStack(spacing: theme.spacing.sm) {
+            SearchToolbar {
                 Button {
                     isLocationEditorPresented = true
                 } label: {
@@ -400,7 +400,7 @@ private struct UpcomingShowsFilterPanel: View {
                     )
                 }
                 .buttonStyle(.plain)
-
+            } dateScope: {
                 Button {
                     isDateEditorPresented = true
                 } label: {
@@ -411,8 +411,6 @@ private struct UpcomingShowsFilterPanel: View {
                     )
                 }
                 .buttonStyle(.plain)
-
-                Spacer()
             }
         }
         .sheet(isPresented: $isLocationEditorPresented) {

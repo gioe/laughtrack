@@ -2,38 +2,6 @@ import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
 
-struct PrimitiveSearchControls: View {
-    @Binding var sort: PrimitiveSortOption
-    let filterCount: Int
-    let openFilters: () -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Menu {
-                Picker("Sort", selection: $sort) {
-                    ForEach(PrimitiveSortOption.allCases) { option in
-                        Text(option.title).tag(option)
-                    }
-                }
-            } label: {
-                LaughTrackBrowseChip(
-                    "Sort: \(sort.title)",
-                    systemImage: "arrow.up.arrow.down",
-                    tone: .neutral
-                )
-            }
-
-            Button(action: openFilters) {
-                LaughTrackBrowseChip("\(filterCount) filter\(filterCount == 1 ? "" : "s")", tone: .accent)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Filter results")
-
-            Spacer(minLength: 0)
-        }
-    }
-}
-
 struct SearchFilterModal: View {
     @Environment(\.appTheme) private var theme
 

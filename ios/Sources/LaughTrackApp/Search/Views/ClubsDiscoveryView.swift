@@ -44,11 +44,36 @@ struct ClubsDiscoveryView: View {
                     )
                 }
 
-                PrimitiveSearchControls(
-                    sort: $model.sort,
-                    filterCount: model.selectedFilterSlugs.count
-                ) {
-                    isFilterEditorPresented = true
+                SearchToolbar {
+                    Menu {
+                        Picker("Sort", selection: $model.sort) {
+                            ForEach(PrimitiveSortOption.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                    } label: {
+                        LaughTrackBrowseChip(
+                            "Sort: \(model.sort.title)",
+                            systemImage: "arrow.up.arrow.down",
+                            tone: .neutral
+                        )
+                    }
+                } filterChipSet: {
+                    if model.selectedFilterSlugs.count > 0 {
+                        Button {
+                            isFilterEditorPresented = true
+                        } label: {
+                            LaughTrackBrowseChip(filterCountTitle, tone: .accent)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Filter results")
+                    } else {
+                        Button("Filters", action: { isFilterEditorPresented = true })
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Filter results")
+                    }
                 }
 
                 switch model.phase {
@@ -136,6 +161,11 @@ struct ClubsDiscoveryView: View {
     private var currentTotal: Int {
         guard case .success(let result) = model.phase else { return 0 }
         return result.total
+    }
+
+    private var filterCountTitle: String {
+        let count = model.selectedFilterSlugs.count
+        return "\(count) filter\(count == 1 ? "" : "s")"
     }
 }
 

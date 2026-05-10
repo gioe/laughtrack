@@ -177,11 +177,7 @@ private struct ShowFiltersPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
-            LazyVGrid(
-                columns: SearchFilterToolbarLayout.columns(spacing: theme.spacing.sm),
-                alignment: .leading,
-                spacing: theme.spacing.sm
-            ) {
+            SearchToolbar {
                 Menu {
                     Picker("Sort", selection: $model.sort) {
                         ForEach(ShowSortOption.allCases) { option in
@@ -195,8 +191,7 @@ private struct ShowFiltersPanel: View {
                         tone: .neutral
                     )
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+            } filterChipSet: {
                 if model.allowsLocationFiltering {
                     Button {
                         isZipEditorPresented = true
@@ -210,18 +205,24 @@ private struct ShowFiltersPanel: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Edit ZIP")
                     .accessibilityHint(zipChipAccessibilityHint)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                Button {
-                    isFilterEditorPresented = true
-                } label: {
-                    LaughTrackBrowseChip(filterCountTitle, tone: .accent)
+                if activeFilterCount > 0 {
+                    Button {
+                        isFilterEditorPresented = true
+                    } label: {
+                        LaughTrackBrowseChip(filterCountTitle, tone: .accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Filter results")
+                } else {
+                    Button("Filters", action: { isFilterEditorPresented = true })
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Filter results")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Filter results")
-                .frame(maxWidth: .infinity, alignment: .leading)
-
+            } dateScope: {
                 Button {
                     isDateEditorPresented = true
                 } label: {
@@ -233,7 +234,6 @@ private struct ShowFiltersPanel: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(model.dateRangeChipTitle)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             if model.allowsLocationFiltering {
@@ -295,27 +295,6 @@ private struct ShowFiltersPanel: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-}
-
-enum SearchFilterToolbarLayout {
-    static let minimumChipWidth: CGFloat = 132
-    static let maximumColumnCount = 4
-
-    static func columns(spacing: CGFloat) -> [GridItem] {
-        [
-            GridItem(
-                .adaptive(minimum: minimumChipWidth),
-                spacing: spacing,
-                alignment: .leading
-            )
-        ]
-    }
-
-    static func columnCount(for width: CGFloat, spacing: CGFloat) -> Int {
-        guard width > 0 else { return 1 }
-        let count = Int((width + spacing) / (minimumChipWidth + spacing))
-        return min(max(count, 1), maximumColumnCount)
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 import Combine
 import LaughTrackAPIClient
@@ -236,11 +237,19 @@ struct SearchRootModelTests {
         #expect(model.selectedShortcut == "Tonight")
     }
 
-    @Test("show filter toolbar uses adaptive columns")
-    func showFilterToolbarUsesAdaptiveColumns() async throws {
-        #expect(SearchFilterToolbarLayout.columnCount(for: 568, spacing: 12) == 4)
-        #expect(SearchFilterToolbarLayout.columnCount(for: 390, spacing: 12) == 2)
-        #expect(SearchFilterToolbarLayout.columnCount(for: 260, spacing: 12) == 1)
+    @Test("search toolbar composes toolbar slots")
+    func searchToolbarComposesToolbarSlots() async throws {
+        let toolbar = SearchToolbar {
+            Text("Sort")
+        } filterChipSet: {
+            Text("Filters")
+        } dateScope: {
+            Text("Today")
+        } resultCountLine: {
+            Text("10 results")
+        }
+
+        #expect(type(of: toolbar) == SearchToolbar<Text, Text, Text, Text>.self)
     }
 
     @Test("home search bridge stores latest seed request")

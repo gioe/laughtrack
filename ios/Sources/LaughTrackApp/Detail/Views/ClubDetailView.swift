@@ -127,6 +127,7 @@ private struct ClubShowsSearchSection: View {
     }
 
     var body: some View {
+        // Club detail inherits the shared SearchToolbar through ShowsDiscoveryView.
         ShowsDiscoveryView(
             apiClient: apiClient,
             model: model
