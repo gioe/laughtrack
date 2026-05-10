@@ -46,8 +46,8 @@ VALUES
         TRUE,
         ARRAY[]::text[]
     )
-ON CONFLICT (slug) DO UPDATE
-SET name = EXCLUDED.name,
+ON CONFLICT (name) DO UPDATE
+SET slug = EXCLUDED.slug,
     website = EXCLUDED.website,
     scraping_url = EXCLUDED.scraping_url,
     visible = TRUE,
