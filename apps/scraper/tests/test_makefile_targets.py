@@ -18,3 +18,7 @@ def _target_prerequisites(target: str) -> list[str]:
 def test_targeted_scrape_targets_link_worktree_env_before_loading_config():
     assert "check-env" in _target_prerequisites("scrape-club")
     assert "check-env" in _target_prerequisites("scrape-club-id")
+
+
+def test_stale_scraper_key_check_links_worktree_env_before_querying_db():
+    assert "check-env" in _target_prerequisites("check-stale-scraper-keys")
