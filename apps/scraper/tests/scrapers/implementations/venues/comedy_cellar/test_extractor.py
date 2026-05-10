@@ -1,10 +1,13 @@
 import json
+from datetime import datetime
 from typing import Any, List
 
 import pytest
 from bs4 import BeautifulSoup
 
 from laughtrack.scrapers.implementations.venues.comedy_cellar.extractor import ComedyCellarExtractor
+from laughtrack.core.entities.club.model import Club
+from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.foundation.models.api.comedy_cellar.models import (
     ComedyCellarLineupAPIResponse,
     ComedyCellarShowsAPIResponse,
@@ -186,6 +189,55 @@ def test_extract_events_joins_by_timestamp_when_showid_is_timestamp(monkeypatch,
     assert e.api_time == "22:00:00"
     assert e.room_name == "MacDougal St."
     assert e.show_name == "TS Show"
+
+
+@pytest.mark.parametrize(
+    ("raw_name", "expected"),
+    [
+        ("1:30pm Brunch Show MacDougal Street", "Brunch Show MacDougal Street"),
+        ("8pm Village Underground Show", "Village Underground Show"),
+        ("11pm Fat Black Pussycat Show", "Fat Black Pussycat Show"),
+    ],
+)
+def test_strip_time_prefix_from_comedy_cellar_show_names(raw_name, expected, patch_html_scraper):
+    c = DummyContainer(raw_name)
+    patch_html_scraper["containers"][:] = [c]
+    patch_html_scraper["href"][c] = "https://www.comedycellar.com/reservations-newyork/?showid=123"
+    patch_html_scraper["names"][c] = ["Comic A"]
+
+    lineup = make_lineup_api_response(html="<html></html>", api_date="2025-01-01")
+    shows = make_shows_api_response(
+        api_date="2025-01-01",
+        shows=[ShowInfoData(id=123, time="20:00:00", description=raw_name, roomId=2, timestamp=1, cover=25)],
+    )
+
+    events = ComedyCellarExtractor.extract_events(None, lineup, shows)
+
+    assert len(events) == 1
+    assert events[0].show_name == expected
+
+
+def test_strip_time_prefix_only_cellar_leaves_generic_titles_untouched():
+    club = Club(
+        id=99,
+        name="Other Venue",
+        address="",
+        website="https://example.com",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=True,
+    )
+
+    show = ShowFactoryUtils.create_enhanced_show_base(
+        name="8pm Open Mic",
+        club=club,
+        date=datetime(2025, 1, 1, 20, 0, 0),
+        show_page_url="https://example.com/shows/open-mic",
+        enhanced=False,
+    )
+
+    assert show.name == "8pm Open Mic"
 
 
 def test_extract_lineup_names_includes_img_alt_text(monkeypatch, patch_html_scraper):
