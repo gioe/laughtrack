@@ -28,6 +28,9 @@ struct ComedianDetailViewTests {
                             filters: [],
                             zipCapTriggered: false
                         )
+                    ),
+                    coBillResponse: .success(
+                        .init(data: [fallbackRelatedComedian()])
                     )
                 ),
                 authManager: authManager
@@ -48,7 +51,8 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .status(.notFound),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
+                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false)),
+                    coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
             )
@@ -65,7 +69,8 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
+                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false)),
+                    coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
             )
@@ -83,7 +88,8 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    relatedShowsResponse: .status(.internalServerError)
+                    relatedShowsResponse: .status(.internalServerError),
+                    coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
             )
@@ -120,14 +126,40 @@ struct ComedianDetailViewTests {
 
     private func makeClient(
         comedianResponse: MockComedianDetailTransport.EntityResponse<Operations.GetComedian.Output.Ok.Body.JsonPayload>,
-        relatedShowsResponse: MockComedianDetailTransport.EntityResponse<Components.Schemas.ShowSearchResponse>
+        relatedShowsResponse: MockComedianDetailTransport.EntityResponse<Components.Schemas.ShowSearchResponse>,
+        coBillResponse: MockComedianDetailTransport.EntityResponse<Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload>
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
             transport: MockComedianDetailTransport(
                 comedianResponse: comedianResponse,
-                relatedShowsResponse: relatedShowsResponse
+                relatedShowsResponse: relatedShowsResponse,
+                coBillResponse: coBillResponse
             )
+        )
+    }
+
+    private func fallbackRelatedComedian() -> Components.Schemas.ComedianLineup {
+        .init(
+            name: "Atsuko Okatsuka",
+            imageUrl: "https://example.com/atsuko.png",
+            uuid: "demo-comedian-102",
+            id: 102,
+            userId: nil,
+            socialData: .init(
+                id: 2,
+                instagramAccount: "atsukocomedy",
+                instagramFollowers: 10,
+                tiktokAccount: nil,
+                tiktokFollowers: nil,
+                youtubeAccount: nil,
+                youtubeFollowers: nil,
+                website: nil,
+                popularity: nil,
+                linktree: nil
+            ),
+            isFavorite: false,
+            showCount: 5
         )
     }
 
@@ -195,6 +227,7 @@ private struct MockComedianDetailTransport: ClientTransport {
 
     let comedianResponse: EntityResponse<Operations.GetComedian.Output.Ok.Body.JsonPayload>
     let relatedShowsResponse: EntityResponse<Components.Schemas.ShowSearchResponse>
+    let coBillResponse: EntityResponse<Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload>
 
     func send(
         _ request: HTTPRequest,
@@ -207,6 +240,8 @@ private struct MockComedianDetailTransport: ClientTransport {
             return try encodedResponse(for: comedianResponse)
         case "searchShows":
             return try encodedResponse(for: relatedShowsResponse)
+        case "getComedianCoBill":
+            return try encodedResponse(for: coBillResponse)
         default:
             Issue.record("Unexpected operation: \(operationID)")
             return (HTTPResponse(status: .internalServerError), nil)

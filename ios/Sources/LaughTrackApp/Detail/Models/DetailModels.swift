@@ -198,22 +198,18 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     }
                 }
 
-                var seenRelatedComedians = Set<String>()
-                let relatedComedians = relatedShows
-                    .flatMap { $0.lineup ?? [] }
-                    .filter { lineupComedian in
-                        lineupComedian.id != comedian.id && lineupComedian.uuid != comedian.uuid
-                    }
-                    .filter { lineupComedian in
-                        seenRelatedComedians.insert(lineupComedian.uuid).inserted
-                    }
+                let (relatedComedians, coBillMessage) = await loadCoBilledComedians(
+                    for: comedian,
+                    apiClient: apiClient,
+                    favorites: favorites
+                )
 
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: relatedShows,
                         relatedComedians: relatedComedians,
-                        relatedContentMessage: nil
+                        relatedContentMessage: coBillMessage
                     )
                 )
             case .badRequest:
@@ -262,6 +258,38 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
                 )
             )
+        }
+    }
+
+    private func loadCoBilledComedians(
+        for comedian: Components.Schemas.ComedianDetail,
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async -> ([Components.Schemas.ComedianLineup], String?) {
+        do {
+            // Uses /comedians/{id}/co-bill so solo headliners get historical overlap.
+            let output = try await apiClient.getComedianCoBill(
+                .init(path: .init(id: comedian.id))
+            )
+
+            switch output {
+            case .ok(let ok):
+                let comedians = try ok.body.json.data
+                for comedian in comedians {
+                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                }
+                return (comedians, nil)
+            case .badRequest:
+                return ([], "LaughTrack could not load related comedians right now.")
+            case .tooManyRequests:
+                return ([], "LaughTrack is rate-limiting related comedians right now. Please try again in a moment.")
+            case .internalServerError:
+                return ([], "LaughTrack hit a server error while loading related comedians.")
+            case .undocumented(let status, _):
+                return ([], "LaughTrack returned an unexpected related comedians response (\(status)).")
+            }
+        } catch {
+            return ([], "LaughTrack could not reach the related comedians service. Check your connection and try again.")
         }
     }
 }
