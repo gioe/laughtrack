@@ -196,6 +196,7 @@ struct ShowRowTests {
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: 1,
+            clubID: 201,
             clubName: clubName,
             date: Date(timeIntervalSince1970: 1_710_000_000),
             tickets: tickets,

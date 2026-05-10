@@ -77,6 +77,7 @@ describe("GET /api/v1/shows/[id]", () => {
         const relatedShows: RelatedShowsResult = [
             {
                 id: 44,
+                clubID: 7,
                 name: "Late Show",
                 date: new Date("2026-07-05T22:00:00.000Z"),
                 imageUrl: "https://cdn.example.com/late-show.jpg",

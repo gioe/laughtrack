@@ -220,6 +220,7 @@ private func homeFeed(showID: Int) -> Components.Schemas.HomeFeed {
 private func homeShow(id: Int) -> Components.Schemas.Show {
     .init(
         id: id,
+        clubID: 301,
         clubName: "New York Comedy Club",
         date: Date().addingTimeInterval(60 * 60),
         tickets: [],
@@ -293,6 +294,7 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
             "showsTonight": [
               {
                 "id": \(show.id),
+                "clubID": \(show.clubID),
                 "date": "2026-04-29T00:00:00.000Z",
                 "name": "\(name)",
                 "clubName": "\(clubName)",

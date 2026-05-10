@@ -5,7 +5,7 @@ type FindManyArgs = {
     take?: number;
     skip?: number;
     select: {
-        club: { select: { timezone: boolean } };
+        club: { select: { id?: boolean; timezone: boolean } };
         lineupItems: {
             select: {
                 comedian: {
@@ -79,6 +79,7 @@ function makeShow(
         popularity: number;
         tickets: object[];
         club: {
+            id?: number;
             name: string;
             address: string;
             zipCode?: string | null;
@@ -96,6 +97,7 @@ function makeShow(
         popularity: 5,
         tickets: [],
         club: {
+            id: 77,
             name: "Test Club",
             address: "123 Main St",
             zipCode: "10001",
@@ -138,15 +140,20 @@ describe("findShowsWithCount", () => {
             expect(result.shows).toEqual([]);
         });
 
-        it("maps club address and name onto the ShowDTO", async () => {
+        it("maps club id, address, and name onto the ShowDTO", async () => {
             const fakeShow = makeShow({
-                club: { name: "Laugh Factory", address: "456 Sunset Blvd" },
+                club: {
+                    id: 321,
+                    name: "Laugh Factory",
+                    address: "456 Sunset Blvd",
+                },
             });
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([fakeShow]);
 
             const result = await findShowsWithCount(makeHelper() as never);
 
+            expect(result.shows[0].clubID).toBe(321);
             expect(result.shows[0].clubName).toBe("Laugh Factory");
             expect(result.shows[0].address).toBe("456 Sunset Blvd");
         });
@@ -352,6 +359,19 @@ describe("findShowsWithCount", () => {
             await findShowsWithCount(makeHelper() as never);
 
             expect(capturedSelect.club.select.timezone).toBe(true);
+        });
+
+        it("selects club.id from the database", async () => {
+            let capturedSelect!: FindManyArgs["select"];
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as FindManyArgs).select;
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(makeHelper() as never);
+
+            expect(capturedSelect.club.select.id).toBe(true);
         });
 
         it("maps a Los Angeles club.timezone onto the returned DTO", async () => {

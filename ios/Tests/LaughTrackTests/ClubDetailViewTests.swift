@@ -183,6 +183,7 @@ struct ClubDetailViewTests {
         [
             .init(
                 id: 301,
+                clubID: 201,
                 clubName: "Comedy Cellar",
                 date: Date().addingTimeInterval(60 * 60 * 24),
                 tickets: nil,

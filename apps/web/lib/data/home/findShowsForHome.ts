@@ -29,6 +29,7 @@ const HOME_SHOW_SELECT = {
     },
     club: {
         select: {
+            id: true,
             name: true,
             address: true,
             zipCode: true,
@@ -110,6 +111,7 @@ export async function findShowsForHome(
                 id: show.id,
                 name: show.name,
                 date: show.date,
+                clubID: show.club.id,
                 clubName: show.club.name,
                 address: show.club.address,
                 imageUrl:

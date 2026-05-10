@@ -94,6 +94,22 @@ struct ComedianDetailViewTests {
         try host.requireLabel("LaughTrack hit a server error while loading related shows.")
     }
 
+    @Test("comedian club runs split same-name clubs by club id")
+    func comedianClubRunsUseClubIDInsteadOfName() {
+        let shows = [
+            fallbackShow(id: 1, clubID: 10, clubName: "Comedy House"),
+            fallbackShow(id: 2, clubID: 10, clubName: "Comedy House"),
+            fallbackShow(id: 3, clubID: 20, clubName: "Comedy House"),
+            fallbackShow(id: 4, clubID: 20, clubName: "Comedy House"),
+            fallbackShow(id: 5, clubID: 10, clubName: "Comedy House")
+        ]
+
+        let runs = ComedianClubRun.runs(from: shows)
+
+        #expect(runs.map(\.clubID) == [10, 20, 10])
+        #expect(runs.map { $0.shows.map(\.id) } == [[1, 2], [3, 4], [5]])
+    }
+
     private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
         ComedianDetailView(comedianID: 101, apiClient: apiClient)
             .environment(\.appTheme, LaughTrackTheme())
@@ -115,10 +131,15 @@ struct ComedianDetailViewTests {
         )
     }
 
-    private func fallbackShow(id: Int) -> Components.Schemas.Show {
+    private func fallbackShow(
+        id: Int,
+        clubID: Int = 101,
+        clubName: String = "Comedy Cellar"
+    ) -> Components.Schemas.Show {
         .init(
             id: id,
-            clubName: "Comedy Cellar",
+            clubID: clubID,
+            clubName: clubName,
             date: Date().addingTimeInterval(60 * 60 * 24),
             tickets: nil,
             name: "Mark Normand and Friends",
@@ -224,6 +245,7 @@ private extension Components.Schemas.ShowDetail {
     func asShow() -> Components.Schemas.Show {
         .init(
             id: id,
+            clubID: club.id,
             clubName: club.name,
             date: date,
             tickets: tickets,

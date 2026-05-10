@@ -85,13 +85,15 @@ struct ComedianDetailView: View {
                                 if content.upcomingShows.isEmpty {
                                     EmptyCard(message: "No upcoming shows are available for this comedian right now.")
                                 } else {
-                                    ForEach(content.upcomingShows, id: \.id) { show in
-                                        Button {
-                                            coordinator.open(.show(show.id))
-                                        } label: {
-                                            ShowRow(show: show)
+                                    ForEach(ComedianClubRun.runs(from: content.upcomingShows)) { run in
+                                        ForEach(run.shows, id: \.id) { show in
+                                            Button {
+                                                coordinator.open(.show(show.id))
+                                            } label: {
+                                                ShowRow(show: show)
+                                            }
+                                            .buttonStyle(.plain)
                                         }
-                                        .buttonStyle(.plain)
                                     }
                                 }
                             }
@@ -236,6 +238,37 @@ private struct ComedianHighlight: Identifiable {
         self.systemImage = systemImage
         self.tone = tone
         self.url = url
+    }
+}
+
+struct ComedianClubRun: Identifiable, Hashable {
+    let clubID: Int
+    let clubName: String?
+    let shows: [Components.Schemas.Show]
+
+    var id: String {
+        guard let firstShowID = shows.first?.id else { return "\(clubID)-empty" }
+        return "\(clubID)-\(firstShowID)"
+    }
+
+    static func runs(from shows: [Components.Schemas.Show]) -> [ComedianClubRun] {
+        shows.reduce(into: []) { runs, show in
+            if let last = runs.last, last.clubID == show.clubID {
+                runs[runs.count - 1] = ComedianClubRun(
+                    clubID: last.clubID,
+                    clubName: last.clubName,
+                    shows: last.shows + [show]
+                )
+            } else {
+                runs.append(
+                    ComedianClubRun(
+                        clubID: show.clubID,
+                        clubName: show.clubName,
+                        shows: [show]
+                    )
+                )
+            }
+        }
     }
 }
 
