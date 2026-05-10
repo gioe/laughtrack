@@ -1640,9 +1640,10 @@
       },
       "Show": {
         "type": "object",
-        "required": ["id", "date", "imageUrl"],
+        "required": ["id", "clubID", "date", "imageUrl"],
         "properties": {
           "id": { "type": "integer" },
+          "clubID": { "type": "integer" },
           "clubName": { "type": "string" },
           "date": { "type": "string", "format": "date-time" },
           "tickets": {

@@ -1088,6 +1088,8 @@ public enum Components {
         public struct Show: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Show/id`.
             public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/Show/clubID`.
+            public var clubID: Swift.Int
             /// - Remark: Generated from `#/components/schemas/Show/clubName`.
             public var clubName: Swift.String?
             /// - Remark: Generated from `#/components/schemas/Show/date`.
@@ -1118,6 +1120,7 @@ public enum Components {
             ///
             /// - Parameters:
             ///   - id:
+            ///   - clubID:
             ///   - clubName:
             ///   - date:
             ///   - tickets:
@@ -1133,6 +1136,7 @@ public enum Components {
             ///   - timezone:
             public init(
                 id: Swift.Int,
+                clubID: Swift.Int,
                 clubName: Swift.String? = nil,
                 date: Foundation.Date,
                 tickets: [Components.Schemas.Ticket]? = nil,
@@ -1148,6 +1152,7 @@ public enum Components {
                 timezone: Swift.String? = nil
             ) {
                 self.id = id
+                self.clubID = clubID
                 self.clubName = clubName
                 self.date = date
                 self.tickets = tickets
@@ -1164,6 +1169,7 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
+                case clubID
                 case clubName
                 case date
                 case tickets

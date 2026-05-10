@@ -58,6 +58,7 @@ export async function findPastShowsForComedian(
                 },
                 club: {
                     select: {
+                        id: true,
                         name: true,
                         address: true,
                         zipCode: true,
@@ -114,6 +115,7 @@ export async function findPastShowsForComedian(
             description: show.description ?? undefined,
             room: show.room,
             address: show.club.address,
+            clubID: show.club.id,
             clubName: show.club.name,
             imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
             soldOut:

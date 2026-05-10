@@ -46,6 +46,7 @@ vi.mock("@/hooks", () => ({
 
 const baseShow: ShowDTO = {
     id: 42,
+    clubID: 24,
     date: "2026-04-28T20:00:00Z" as never as Date,
     name: "Late Show",
     clubName: "The Copper Room",

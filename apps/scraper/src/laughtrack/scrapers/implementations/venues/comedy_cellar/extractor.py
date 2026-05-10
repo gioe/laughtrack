@@ -6,6 +6,7 @@ The extractor takes raw API responses and converts them to domain models.
 """
 
 import json
+import re
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
@@ -29,6 +30,7 @@ class ComedyCellarExtractor:
 
     # Common selector patterns for HTML parsing
     COMEDIAN_LINK_PATTERN = "/comedians/"
+    _SHOW_TIME_PREFIX_RE = re.compile(r"^\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)\s+", re.IGNORECASE)
 
     @staticmethod
     def extract_available_dates(lineup_response_text: str) -> List[str]:
@@ -403,7 +405,9 @@ class ComedyCellarExtractor:
 
             return {
                 "api_time": api_time,
-                "show_name": ticket_data.description or "Comedy Show",
+                "show_name": ComedyCellarExtractor._strip_leading_show_time_prefix(
+                    ticket_data.description or "Comedy Show"
+                ),
                 "description": ticket_data.description,
                 "note": ticket_data.note,
                 "room_id": ticket_data.roomId,
@@ -413,6 +417,10 @@ class ComedyCellarExtractor:
         except Exception as e:
             Logger.error(f"Error extracting API data for {date_key}: {str(e)}")
             return None
+
+    @staticmethod
+    def _strip_leading_show_time_prefix(show_name: str) -> str:
+        return ComedyCellarExtractor._SHOW_TIME_PREFIX_RE.sub("", show_name).strip()
 
     @staticmethod
     def _get_room_name(room_id: Optional[int]) -> Optional[str]:

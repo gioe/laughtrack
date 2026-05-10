@@ -689,6 +689,18 @@ class TestNormalizeVenueNameForMatch:
         assert normalize("The Big Couch", "", "") == "big couch"
         assert normalize("Big Couch New Orleans", "", "") == "big couch new orleans"
 
+    def test_club_name_normalize_expands_common_abbreviations(self, normalize):
+        """Ft./St./Mt. spellings normalize to their expanded forms."""
+        assert normalize("Ft. Lauderdale Improv", "Fort Lauderdale", "FL") == "fort lauderdale improv"
+        assert normalize("Fort Lauderdale Improv", "Ft. Lauderdale", "FL") == "fort lauderdale improv"
+        assert normalize("St. Marks Comedy Club", "New York", "NY") == "saint marks comedy club"
+        assert normalize("Mt. Pleasant Comedy", "Mount Pleasant", "SC") == "mount pleasant comedy"
+
+    def test_club_name_normalize_expands_ampersand_and_trailing_punctuation(self, normalize):
+        """Ampersands fold to 'and' and trailing punctuation/whitespace is ignored."""
+        assert normalize("Comedy & Magic Club.  ", "Hermosa Beach", "CA") == "comedy and magic club"
+        assert normalize("Comedy and Magic Club", "Hermosa Beach", "CA") == "comedy and magic club"
+
 
 class TestUpsertForEventbriteVenueFuzzyMatch:
     """Criterion 6331 (TASK-1926): organizer-feed venues whose names differ only by
@@ -757,6 +769,66 @@ class TestUpsertForEventbriteVenueFuzzyMatch:
         assert result is not None
         assert result.id == 200
         # Two calls: location lookup (no match), then UPSERT.
+        assert mock_exec.call_count == 2
+
+    def test_club_dedupe_abbreviations_ft_then_fort_reuses_same_row(self):
+        """Scraping Ft. X then Fort X in the same city/state lands on one club row."""
+        first_venue = _FakeVenue(
+            id="venue-ft",
+            name="Ft. Lauderdale Improv",
+            address=_FakeAddress(city="Fort Lauderdale", region="FL"),
+        )
+        second_venue = _FakeVenue(
+            id="venue-fort",
+            name="Fort Lauderdale Improv",
+            address=_FakeAddress(city="Fort Lauderdale", region="FL"),
+        )
+        existing = _make_club_row(
+            id=53,
+            name="Ft. Lauderdale Improv",
+            city="Fort Lauderdale",
+            state="FL",
+            eventbrite_id="venue-ft",
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [existing], [existing]]) as mock_exec:
+            first_result = handler.upsert_for_eventbrite_venue(first_venue)
+            second_result = handler.upsert_for_eventbrite_venue(second_venue)
+
+        assert first_result is not None
+        assert second_result is not None
+        assert first_result.id == second_result.id == 53
+        assert mock_exec.call_count == 3
+
+    def test_exact_name_conflict_wins_over_existing_abbreviation_variant(self):
+        """An exact name row should use SQL conflict handling, not an older fuzzy variant."""
+        variant = _make_club_row(
+            id=53,
+            name="Ft. Lauderdale Improv",
+            city="Fort Lauderdale",
+            state="FL",
+            eventbrite_id="venue-ft",
+        )
+        exact = _make_club_row(
+            id=460,
+            name="Fort Lauderdale Improv",
+            city="Fort Lauderdale",
+            state="FL",
+            eventbrite_id="venue-fort",
+        )
+        venue = _FakeVenue(
+            id="venue-fort-new",
+            name="Fort Lauderdale Improv",
+            address=_FakeAddress(city="Fort Lauderdale", region="FL"),
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", side_effect=[[variant, exact], [exact]]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 460
         assert mock_exec.call_count == 2
 
     def test_missing_city_skips_fuzzy_match_entirely(self):

@@ -176,6 +176,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     **After each `tusk commit` in foreground mode**, run `git status --short` to confirm your files were staged and committed — a zero-exit commit that produced no diff (e.g. all files were already tracked with no changes) will silently succeed without staging anything.
 
+    **Web contract coverage:** API and frontend task domains should run both
+    focused web tests and `npm run type-check`. DTO/schema changes can pass
+    Vitest while still breaking TypeScript contracts in Server Components,
+    Client Components, or shared route types, so the domain gate must catch
+    those regressions before commit or merge.
+
     **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria), or whether the file was removed via `git rm` (which stages the deletion — `tusk commit` then can't find the path to re-add). In either case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
     ```bash
     tusk criteria done <cid> --skip-verify

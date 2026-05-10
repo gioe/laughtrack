@@ -31,6 +31,7 @@ function buildComedianSelect() {
                         name: true,
                         club: {
                             select: {
+                                id: true,
                                 name: true,
                                 city: true,
                                 state: true,
@@ -102,6 +103,7 @@ export async function findComedianByName(
                 id: item.show.id,
                 date: item.show.date,
                 name: item.show.name,
+                clubID: item.show.club.id,
                 clubName: item.show.club.name,
                 clubCity: item.show.club.city,
                 clubState: item.show.club.state,

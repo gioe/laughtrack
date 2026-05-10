@@ -214,32 +214,34 @@ struct ComedianDetailView: View {
 }
 
 struct ComedianClubRun: Identifiable {
-    let id: String
+    let clubID: Int
     let clubName: String
     let shows: [Components.Schemas.Show]
 
+    var id: String {
+        guard let firstShowID = shows.first?.id else { return "\(clubID)-empty" }
+        return "\(clubID)-\(firstShowID)"
+    }
+
     static func runs(from shows: [Components.Schemas.Show]) -> [ComedianClubRun] {
         let sorted = shows.sorted { $0.date < $1.date }
-        var result: [ComedianClubRun] = []
-        var current: [Components.Schemas.Show] = []
-        var currentName: String?
-
-        for show in sorted {
-            let name = show.clubName ?? "Unknown club"
-            if name == currentName {
-                current.append(show)
+        return sorted.reduce(into: []) { runs, show in
+            if let last = runs.last, last.clubID == show.clubID {
+                runs[runs.count - 1] = ComedianClubRun(
+                    clubID: last.clubID,
+                    clubName: last.clubName,
+                    shows: last.shows + [show]
+                )
             } else {
-                if let cn = currentName, !current.isEmpty {
-                    result.append(ComedianClubRun(id: "\(result.count)-\(cn)", clubName: cn, shows: current))
-                }
-                currentName = name
-                current = [show]
+                runs.append(
+                    ComedianClubRun(
+                        clubID: show.clubID,
+                        clubName: show.clubName ?? "Unknown club",
+                        shows: [show]
+                    )
+                )
             }
         }
-        if let cn = currentName, !current.isEmpty {
-            result.append(ComedianClubRun(id: "\(result.count)-\(cn)", clubName: cn, shows: current))
-        }
-        return result
     }
 
     var dateRangeSummary: String {

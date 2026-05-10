@@ -55,6 +55,7 @@ private enum DemoFixtures {
     static let shows: [Components.Schemas.Show] = [
         .init(
             id: 301,
+            clubID: 201,
             clubName: "Comedy Cellar",
             date: Date().addingTimeInterval(60 * 60 * 24),
             tickets: [.init(price: 30, purchaseUrl: "https://laughtrack.app/demo/tickets/301", soldOut: false, _type: "General admission")],
@@ -70,6 +71,7 @@ private enum DemoFixtures {
         ),
         .init(
             id: 302,
+            clubID: 202,
             clubName: "The Stand",
             date: Date().addingTimeInterval(60 * 60 * 28),
             tickets: [.init(price: 24, purchaseUrl: nil, soldOut: false, _type: "Preferred seating")],

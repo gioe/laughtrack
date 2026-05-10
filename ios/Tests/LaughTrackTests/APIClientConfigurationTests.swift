@@ -60,6 +60,7 @@ private struct FractionalDateTransport: ClientTransport {
           "data": [
             {
               "id": 854607,
+              "clubID": 123,
               "date": "2026-05-27T02:30:00.000Z",
               "name": "Too Hot Tuesdays",
               "clubName": "Flappers Comedy Club And Restaurant Burbank",

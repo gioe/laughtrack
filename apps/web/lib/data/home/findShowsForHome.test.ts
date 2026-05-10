@@ -117,6 +117,7 @@ function makeShowRow(
         tickets: ReturnType<typeof makeTicket>[];
         popularity: number;
         club: {
+            id?: number;
             name: string;
             address: string;
             zipCode?: string;
@@ -133,6 +134,7 @@ function makeShowRow(
         popularity: 0,
         tickets: [makeTicket()],
         club: {
+            id: 88,
             name: "Laugh Factory",
             address: "8001 Sunset Blvd",
             zipCode: "90046",
@@ -260,11 +262,15 @@ describe("findShowsForHome", () => {
     });
 
     describe("DTO field mapping", () => {
-        it("maps clubName, address, and id from the DB row", async () => {
+        it("maps clubID, clubName, address, and id from the DB row", async () => {
             const row = makeShowRow({
                 id: 42,
                 name: "Friday Night Comedy",
-                club: { name: "Comedy Cellar", address: "117 Macdougal St" },
+                club: {
+                    id: 117,
+                    name: "Comedy Cellar",
+                    address: "117 Macdougal St",
+                },
             });
             mockFindMany.mockResolvedValue([row] as never);
 
@@ -274,6 +280,7 @@ describe("findShowsForHome", () => {
             const dto = result[0];
             expect(dto.id).toBe(42);
             expect(dto.name).toBe("Friday Night Comedy");
+            expect(dto.clubID).toBe(117);
             expect(dto.clubName).toBe("Comedy Cellar");
             expect(dto.address).toBe("117 Macdougal St");
         });
@@ -445,6 +452,17 @@ describe("findShowsForHome", () => {
                 select: { club: { select: Record<string, unknown> } };
             };
             expect(call.select.club.select.timezone).toBe(true);
+        });
+
+        it("selects club.id from the database", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome({}, { date: "asc" });
+
+            const call = mockFindMany.mock.calls[0][0] as {
+                select: { club: { select: Record<string, unknown> } };
+            };
+            expect(call.select.club.select.id).toBe(true);
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
