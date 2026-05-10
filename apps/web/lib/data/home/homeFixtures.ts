@@ -29,6 +29,7 @@ function buildFixtureShow(
 ): ShowDTO {
     return {
         id,
+        clubID: id,
         clubName,
         date: FIXTURE_INSTANT,
         name,

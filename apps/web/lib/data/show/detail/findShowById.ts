@@ -92,6 +92,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
             description: row.description ?? undefined,
             room: row.room,
             address: row.club.address,
+            clubID: row.club.id,
             clubName,
             imageUrl: buildClubImageUrl(clubName, row.club.hasImage),
             soldOut:

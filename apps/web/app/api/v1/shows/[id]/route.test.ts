@@ -52,6 +52,7 @@ describe("GET /api/v1/shows/[id]", () => {
             clubId: 7,
             show: {
                 id: 42,
+                clubID: 7,
                 name: "Friday Night Laughs",
                 date: new Date("2026-07-04T20:00:00.000Z"),
                 description: "A stacked lineup.",

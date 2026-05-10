@@ -109,6 +109,7 @@ describe("findShowById", () => {
 
             expect(result.clubId).toBe(99);
             expect(result.show.id).toBe(42);
+            expect(result.show.clubID).toBe(99);
             expect(result.show.name).toBe("Friday Night Comedy");
             expect(result.show.clubName).toBe("Comedy Cellar");
             expect(result.show.address).toBe("117 Macdougal St");

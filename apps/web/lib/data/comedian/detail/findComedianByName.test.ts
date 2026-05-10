@@ -60,6 +60,7 @@ function makeComedianRow(
                 date: Date;
                 name: string | null;
                 club: {
+                    id: number;
                     name: string;
                     city: string | null;
                     state: string | null;
@@ -103,6 +104,7 @@ function makeComedianRow(
                     date: new Date("2026-05-01T20:00:00.000Z"),
                     name: "Friday Night",
                     club: {
+                        id: 201,
                         name: "Comedy Club",
                         city: "Austin",
                         state: "TX",
@@ -116,6 +118,7 @@ function makeComedianRow(
                     date: new Date("2026-05-02T20:00:00.000Z"),
                     name: null,
                     club: {
+                        id: 202,
                         name: "Laugh Room",
                         city: "Dallas",
                         state: "TX",
@@ -129,6 +132,7 @@ function makeComedianRow(
                     date: new Date("2026-05-03T20:00:00.000Z"),
                     name: "Late Show",
                     club: {
+                        id: 201,
                         name: "Comedy Club",
                         city: "Austin",
                         state: "TX",
@@ -158,6 +162,7 @@ describe("findComedianByName", () => {
                             date: new Date("2026-05-04T20:00:00.000Z"),
                             name: "Fourth Show",
                             club: {
+                                id: 204,
                                 name: "Fourth Club",
                                 city: "Houston",
                                 state: "TX",
@@ -171,6 +176,7 @@ describe("findComedianByName", () => {
                             date: new Date("2026-05-05T20:00:00.000Z"),
                             name: "Fifth Show",
                             club: {
+                                id: 205,
                                 name: "Fifth Club",
                                 city: "San Antonio",
                                 state: "TX",
@@ -206,6 +212,7 @@ describe("findComedianByName", () => {
                     id: 101,
                     date: new Date("2026-05-01T20:00:00.000Z"),
                     name: "Friday Night",
+                    clubID: 201,
                     clubName: "Comedy Club",
                     clubCity: "Austin",
                     clubState: "TX",
@@ -215,6 +222,7 @@ describe("findComedianByName", () => {
                     id: 102,
                     date: new Date("2026-05-02T20:00:00.000Z"),
                     name: null,
+                    clubID: 202,
                     clubName: "Laugh Room",
                     clubCity: "Dallas",
                     clubState: "TX",
@@ -224,6 +232,7 @@ describe("findComedianByName", () => {
                     id: 103,
                     date: new Date("2026-05-03T20:00:00.000Z"),
                     name: "Late Show",
+                    clubID: 201,
                     clubName: "Comedy Club",
                     clubCity: "Austin",
                     clubState: "TX",
