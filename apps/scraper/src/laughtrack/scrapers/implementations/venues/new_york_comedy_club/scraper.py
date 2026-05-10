@@ -11,7 +11,7 @@ record only receives its own venue's shows.
 import re
 from datetime import datetime
 from typing import Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, urlunparse
 from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.club.model import Club
@@ -38,9 +38,7 @@ class NewYorkComedyClubScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        self.transformation_pipeline.register_transformer(
-            NewYorkComedyClubTransformer(club)
-        )
+        self.transformation_pipeline.register_transformer(NewYorkComedyClubTransformer(club))
 
     async def get_data(self, url: str) -> Optional[NewYorkComedyClubPageData]:
         from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
@@ -49,8 +47,13 @@ class NewYorkComedyClubScraper(BaseScraper):
             normalized_url = URLUtils.normalize_url(url)
             html_content = await self.fetch_html(normalized_url)
 
+            json_ld_events = EventExtractor.extract_events(html_content)
             rendered_events = _extract_rendered_calendar_events(html_content, self.club.timezone)
-            event_list = rendered_events or EventExtractor.extract_events(html_content)
+            event_list = (
+                _enrich_rendered_events_from_json_ld(rendered_events, json_ld_events)
+                if rendered_events
+                else json_ld_events
+            )
             if not event_list:
                 if html_content:
                     Logger.warn(
@@ -64,9 +67,7 @@ class NewYorkComedyClubScraper(BaseScraper):
             filtered = []
             for event in event_list:
                 event_street = _normalize_street(
-                    event.location.address.street_address
-                    if event.location and event.location.address
-                    else ""
+                    event.location.address.street_address if event.location and event.location.address else ""
                 )
                 if club_street and event_street and club_street == event_street:
                     filtered.append(event)
@@ -124,6 +125,79 @@ _VENUE_STREET_BY_LABEL = {
     "east village": "85 East 4th Street",
     "upper west side": "236 W 78th Street",
 }
+
+
+def _enrich_rendered_events_from_json_ld(
+    rendered_events: list[JsonLdEvent],
+    json_ld_events: list[JsonLdEvent],
+) -> list[JsonLdEvent]:
+    json_ld_by_url = {key: event for event in json_ld_events for key in _event_url_keys(event) if key}
+    if not json_ld_by_url:
+        return rendered_events
+
+    for event in rendered_events:
+        json_ld_event = next(
+            (json_ld_by_url[key] for key in _event_url_keys(event) if key in json_ld_by_url),
+            None,
+        )
+        if json_ld_event is None:
+            continue
+
+        if not event.performers and json_ld_event.performers:
+            event.performers = json_ld_event.performers
+
+        if _event_has_missing_or_zero_price(event):
+            json_ld_offer = _first_priced_offer(json_ld_event)
+            if json_ld_offer:
+                if event.offers:
+                    event.offers[0].price = json_ld_offer.price
+                    event.offers[0].price_currency = json_ld_offer.price_currency or event.offers[0].price_currency
+                    event.offers[0].availability = json_ld_offer.availability or event.offers[0].availability
+                    event.offers[0].name = json_ld_offer.name or event.offers[0].name
+                else:
+                    event.offers = [json_ld_offer]
+
+    return rendered_events
+
+
+def _event_url_keys(event: JsonLdEvent) -> list[str]:
+    return [
+        _canonical_event_url(url)
+        for url in (event.url, event.same_as, *(offer.url for offer in event.offers or []))
+        if url
+    ]
+
+
+def _canonical_event_url(url: str) -> str:
+    parsed = urlparse(urljoin("https://newyorkcomedyclub.com", url))
+    host = parsed.netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    path = parsed.path.rstrip("/")
+    return urlunparse(("https", host, path, "", "", ""))
+
+
+def _event_has_missing_or_zero_price(event: JsonLdEvent) -> bool:
+    if not event.offers:
+        return True
+    return all(_is_missing_or_zero_price(offer.price) for offer in event.offers)
+
+
+def _first_priced_offer(event: JsonLdEvent) -> Optional[Offer]:
+    return next(
+        (offer for offer in event.offers or [] if not _is_missing_or_zero_price(offer.price)),
+        None,
+    )
+
+
+def _is_missing_or_zero_price(price: str) -> bool:
+    if price in ("", None):
+        return True
+    try:
+        return float(str(price).replace("$", "").strip()) == 0.0
+    except ValueError:
+        return False
+
 
 def _extract_rendered_calendar_events(html_content: str, timezone: str) -> list[JsonLdEvent]:
     """Extract current calendar cards rendered in the NYCC HTML.
