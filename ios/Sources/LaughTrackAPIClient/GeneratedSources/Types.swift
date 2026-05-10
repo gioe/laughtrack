@@ -78,6 +78,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /comedians/{id}`.
     /// - Remark: Generated from `#/paths//comedians/{id}/get(getComedian)`.
     func getComedian(_ input: Operations.GetComedian.Input) async throws -> Operations.GetComedian.Output
+    /// List comedians who have recently shared bills with a comedian
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/co-bill`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)`.
+    func getComedianCoBill(_ input: Operations.GetComedianCoBill.Input) async throws -> Operations.GetComedianCoBill.Output
     /// Search comedians with filters and pagination
     ///
     /// - Remark: HTTP `GET /comedians/search`.
@@ -267,6 +272,19 @@ extension APIProtocol {
         headers: Operations.GetComedian.Input.Headers = .init()
     ) async throws -> Operations.GetComedian.Output {
         try await getComedian(Operations.GetComedian.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// List comedians who have recently shared bills with a comedian
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/co-bill`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)`.
+    public func getComedianCoBill(
+        path: Operations.GetComedianCoBill.Input.Path,
+        headers: Operations.GetComedianCoBill.Input.Headers = .init()
+    ) async throws -> Operations.GetComedianCoBill.Output {
+        try await getComedianCoBill(Operations.GetComedianCoBill.Input(
             path: path,
             headers: headers
         ))
@@ -5299,6 +5317,323 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.GetComedian.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List comedians who have recently shared bills with a comedian
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/co-bill`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)`.
+    public enum GetComedianCoBill {
+        public static let id: Swift.String = "getComedianCoBill"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/path/id`.
+                public var id: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.GetComedianCoBill.Input.Path
+            /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianCoBill.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianCoBill.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetComedianCoBill.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetComedianCoBill.Input.Path,
+                headers: Operations.GetComedianCoBill.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/200/content/json`.
+                    public struct JsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/200/content/json/data`.
+                        public var data: [Components.Schemas.ComedianLineup]
+                        /// Creates a new `JsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        public init(data: [Components.Schemas.ComedianLineup]) {
+                            self.data = data
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/200/content/application\/json`.
+                    case json(Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianCoBill.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianCoBill.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Historically co-billed comedians
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetComedianCoBill.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetComedianCoBill.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianCoBill.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianCoBill.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Non-numeric ID
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetComedianCoBill.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetComedianCoBill.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetComedianCoBill.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianCoBill.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetComedianCoBill.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetComedianCoBill.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetComedianCoBill.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetComedianCoBill.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/co-bill/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianCoBill.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianCoBill.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/co-bill/get(getComedianCoBill)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetComedianCoBill.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetComedianCoBill.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

@@ -661,6 +661,70 @@
         }
       }
     },
+    "/comedians/{id}/co-bill": {
+      "get": {
+        "operationId": "getComedianCoBill",
+        "summary": "List comedians who have recently shared bills with a comedian",
+        "tags": ["comedians"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historically co-billed comedians",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ComedianLineup" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Non-numeric ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/comedians/search": {
       "get": {
         "operationId": "searchComedians",
