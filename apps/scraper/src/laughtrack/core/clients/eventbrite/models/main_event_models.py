@@ -157,7 +157,11 @@ class EventbriteEvent:
                 if data.get("bookmark_info")
                 else None
             ),
-            ticket_availability=None,  # EventbriteTicketAvailability.from_json_dict not implemented yet
+            ticket_availability=(
+                EventbriteTicketAvailability.from_json_dict(data.get("ticket_availability", {}))
+                if data.get("ticket_availability")
+                else None
+            ),
             listed=data.get("listed", False),
             shareable=data.get("shareable", False),
             invite_only=data.get("invite_only", False),

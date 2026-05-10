@@ -1,0 +1,57 @@
+{
+  "pagination": {
+    "object_count": 1,
+    "page_number": 1,
+    "page_size": 50,
+    "page_count": 1,
+    "has_more_items": false
+  },
+  "events": [
+    {
+      "id": "1234567890",
+      "name": {
+        "text": "Current Paid Comedy Night",
+        "html": "Current Paid Comedy Night"
+      },
+      "description": {
+        "text": "A paid Eventbrite comedy show.",
+        "html": "<p>A paid Eventbrite comedy show.</p>"
+      },
+      "url": "https://www.eventbrite.com/e/current-paid-comedy-night-tickets-1234567890",
+      "start": {
+        "timezone": "America/New_York",
+        "local": "2026-06-01T20:00:00",
+        "utc": "2026-06-02T00:00:00Z"
+      },
+      "status": "live",
+      "created": "2026-05-01T12:00:00Z",
+      "changed": "2026-05-02T12:00:00Z",
+      "published": "2026-05-02T12:00:00Z",
+      "currency": "USD",
+      "online_event": false,
+      "organization_id": "987654321",
+      "organizer_id": "987654321",
+      "resource_uri": "https://www.eventbriteapi.com/v3/events/1234567890/",
+      "source": "create_2.0",
+      "category_id": "105",
+      "subcategory_id": "5010",
+      "ticket_availability": {
+        "has_available_tickets": true,
+        "is_sold_out": false,
+        "waitlist_available": false,
+        "minimum_ticket_price": {
+          "currency": "USD",
+          "value": 3200,
+          "major_value": "32.00",
+          "display": "32.00 USD"
+        },
+        "maximum_ticket_price": {
+          "currency": "USD",
+          "value": 4500,
+          "major_value": "45.00",
+          "display": "45.00 USD"
+        }
+      }
+    }
+  ]
+}
