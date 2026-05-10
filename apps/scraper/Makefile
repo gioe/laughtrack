@@ -575,7 +575,7 @@ scrape-all:
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --all
 
 # Scrape specific venue by name - targeted scraping for individual venues
-scrape-club:
+scrape-club: check-env
 	@echo "🎯 Scraping specific venue by name:"
 	@echo "   Usage: make scrape-club CLUB='Venue Name'"
 	@echo "   Example: make scrape-club CLUB='Comedy Cellar'"
@@ -588,7 +588,7 @@ else
 endif
 
 # Scrape specific venue by database ID - direct database lookup
-scrape-club-id:
+scrape-club-id: check-env
 	@echo "🔢 Scraping venue by database ID:"
 	@echo "   Usage: make scrape-club-id ID=123"
 	@echo "   Example: make scrape-club-id ID=5"
