@@ -19,6 +19,7 @@ from laughtrack.core.entities.production_company.handler import ProductionCompan
 from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.domain.club.selector import ClubSelector
+from laughtrack.utilities.domain.club.coordinates import ClubGeocodingResult, geocode_missing_clubs
 from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
 from laughtrack.foundation.infrastructure.database.write_lock import serialized_db_call
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
@@ -224,6 +225,7 @@ class ScrapingService:
             os.environ.get("SCRAPING_SUCCESS_RATE_THRESHOLD", success_rate_threshold)
         )
         self.proxy_pool: Optional[ProxyPool] = ProxyPool.from_env()
+        self._last_geocoding_result: Optional[ClubGeocodingResult] = None
         self._log_configured_alert_channels()
 
     def _log_configured_alert_channels(self) -> None:
@@ -286,6 +288,7 @@ class ScrapingService:
         results.extend(pc_results)
         summary = summary.merge(pc_summary)
         db_result = db_result + pc_db_result
+        self._last_geocoding_result = self._geocode_missing_clubs_after_scrape()
 
         self._emit_summary(summary)
         self._check_and_alert(summary)
@@ -293,6 +296,19 @@ class ScrapingService:
         self.result_processor.process_results(results, db_result)
         self.club_handler.refresh_club_total_shows()
         return results
+
+    def _geocode_missing_clubs_after_scrape(self) -> ClubGeocodingResult:
+        """Best-effort coordinate enrichment; never let geocoding fail scraping."""
+        try:
+            result = geocode_missing_clubs()
+            Logger.info(
+                "Club geocoding post-run: "
+                f"attempted={result.attempted}, resolved={result.resolved}, unresolved={result.unresolved}"
+            )
+            return result
+        except Exception as e:
+            Logger.warn(f"Club geocoding post-run failed; scrape run will continue: {e}")
+            return ClubGeocodingResult()
 
     def scrape_single_club(self, club_id: Optional[int] = None) -> None:
         Logger.info(f"Starting scrape of club: (ID: {club_id})")
@@ -868,6 +884,14 @@ class ScrapingService:
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
             ]
+            geocoding_result = getattr(self, "_last_geocoding_result", None)
+            if geocoding_result is not None:
+                body_lines.extend(
+                    [
+                        f"Club coordinates resolved: {geocoding_result.resolved}",
+                        f"Club coordinates unresolved: {geocoding_result.unresolved}",
+                    ]
+                )
             if failing:
                 body_lines += ["", f"**{len(failing)} club(s) below threshold:**"]
                 for m in failing:
