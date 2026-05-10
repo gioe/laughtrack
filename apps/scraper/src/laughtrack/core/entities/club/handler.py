@@ -11,6 +11,18 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from .model import Club
 
 
+def _normalize_venue_text_for_match(value: str) -> str:
+    """Normalize one venue/location text fragment for exact match comparisons."""
+    s = (value or "").lower().replace("&", " and ")
+    for abbreviation, expanded in (
+        ("ft", "fort"),
+        ("st", "saint"),
+        ("mt", "mount"),
+    ):
+        s = re.sub(rf"\b{abbreviation}\.?(?=\W|$)", expanded, s)
+    return re.sub(r"[^a-z0-9]+", " ", s).strip()
+
+
 def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") -> str:
     """Reduce a venue name to a comparable core form for same-(city, state) merge detection.
 
@@ -23,14 +35,15 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
     The chain captures the dominant Eventbrite organizer-side pattern observed in
     the TASK-1916 audit: one physical venue spelled both as 'Brand' and 'Brand
     <City>' (TASK-1919: 'Big Couch' / 'Big Couch New Orleans'). It does not
-    attempt to fold every conceivable variation — middle-of-string city tokens,
-    abbreviations like 'NYC' for 'New York', or ampersand vs 'and' are out of
-    scope and get a separate clubs row, which is acceptable per the per-incident
+    attempt to fold every conceivable variation — middle-of-string city tokens
+    and uncommon abbreviations like 'NYC' for 'New York' are out of scope and
+    get a separate clubs row, which is acceptable per the per-incident
     manual-merge precedent (TASK-1925).
 
     Steps:
-      1. Lowercase + collapse all non-alphanumeric runs to single spaces. This
-         normalizes punctuation, em-dashes, and unicode whitespace.
+      1. Lowercase, expand common venue abbreviations ('Ft.'/'St.'/'Mt.'),
+         expand '&' to 'and', then collapse all non-alphanumeric runs to single
+         spaces. This normalizes punctuation, em-dashes, and unicode whitespace.
       2. Strip leading 'the ' (so 'The Comedy Cellar' folds to 'comedy cellar').
       3. Strip a trailing ' <city>', ' <state>', or ' <city> <state>' suffix —
          longest match first so 'big couch new orleans la' strips before
@@ -41,12 +54,12 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
          would consume the entire name (e.g. a venue literally named after its
          city), keep the pre-strip form.
     """
-    s = re.sub(r"[^a-z0-9]+", " ", name.lower()).strip()
+    s = _normalize_venue_text_for_match(name)
     if s.startswith("the "):
         s = s[4:]
 
-    norm_city = re.sub(r"[^a-z0-9]+", " ", (city or "").lower()).strip()
-    norm_state = re.sub(r"[^a-z0-9]+", " ", (state or "").lower()).strip()
+    norm_city = _normalize_venue_text_for_match(city or "")
+    norm_state = _normalize_venue_text_for_match(state or "")
 
     suffix_candidates = []
     if norm_city and norm_state:
@@ -192,7 +205,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
                 Village' both in NY, NY) stay distinct because their cores
                 differ after the suffix-only city strip.
             Edge cases beyond the dominant 'Brand' / 'Brand <City>' pattern
-            (mid-string city tokens, ampersand-vs-and, abbreviations) intentionally
+            (mid-string city tokens and uncommon abbreviations) intentionally
             still produce two rows; they fall back to the per-incident manual-merge
             precedent (TASK-1925's fold script).
 
@@ -235,12 +248,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             # lookup will see only the original venue.id; folding the
             # alternate ids requires an explicit alternate_eventbrite_id
             # column we do not have today.
-            Logger.info(
-                f"Eventbrite venue '{venue.name}' (venue.id={venue.id}) "
-                f"fuzzy-matched to existing club {fuzzy_match.id} "
-                f"'{fuzzy_match.name}' in ({city}, {state}); "
-                f"reusing existing row instead of inserting a duplicate."
-            )
+            self._log_fuzzy_match_reuse("Eventbrite", venue.name, venue.id, city, state, fuzzy_match)
             return fuzzy_match
 
         try:
@@ -296,6 +304,8 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             existing_name = row.get("name") or ""
             if not existing_name:
                 continue
+            if existing_name.strip().lower() == name.strip().lower():
+                continue
             norm_existing = _normalize_venue_name_for_match(
                 existing_name, row.get("city") or "", row.get("state") or ""
             )
@@ -303,6 +313,26 @@ class ClubHandler(BaseDatabaseHandler[Club]):
                 return Club.from_db_row(row)
 
         return None
+
+    def _log_fuzzy_match_reuse(
+        self,
+        source: str,
+        venue_name: str,
+        venue_id: str,
+        city: Optional[str],
+        state: Optional[str],
+        fuzzy_match: Club,
+    ) -> None:
+        # Returning early skips the upserted_source CTE, so the existing club's
+        # scraping_sources rows are not touched. This is deliberate: preventing
+        # a duplicate clubs row is safer than re-enabling or rewriting a source
+        # row that may carry task disposition metadata.
+        Logger.info(
+            f"{source} venue '{venue_name}' (venue.id={venue_id}) "
+            f"fuzzy-matched to existing club {fuzzy_match.id} "
+            f"'{fuzzy_match.name}' in ({city}, {state}); "
+            f"reusing existing row instead of inserting a duplicate."
+        )
 
     def upsert_for_seatengine_venue(self, venue: dict) -> Optional[Club]:
         """
@@ -331,6 +361,11 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
         city, state = parse_city_state_from_address(address)
+
+        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
+        if fuzzy_match is not None:
+            self._log_fuzzy_match_reuse("SeatEngine", name, venue_id, city, state, fuzzy_match)
+            return fuzzy_match
 
         try:
             results = self.execute_with_cursor(
@@ -382,6 +417,11 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             city = city or parsed_city
             state = state or parsed_state
 
+        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
+        if fuzzy_match is not None:
+            self._log_fuzzy_match_reuse("SeatEngine v3", name, venue_uuid, city, state, fuzzy_match)
+            return fuzzy_match
+
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE,
@@ -425,6 +465,11 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         zip_code = (venue.get("postalCode") or "").strip()
         timezone = (venue.get("timezone") or "").strip() or None
 
+        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
+        if fuzzy_match is not None:
+            self._log_fuzzy_match_reuse("Ticketmaster", name, venue_id, city, state, fuzzy_match)
+            return fuzzy_match
+
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
@@ -464,6 +509,11 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
         city, state = parse_city_state_from_address(address)
+
+        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
+        if fuzzy_match is not None:
+            self._log_fuzzy_match_reuse("Tour date", name, name, city, state, fuzzy_match)
+            return fuzzy_match
 
         try:
             results = self.execute_with_cursor(
