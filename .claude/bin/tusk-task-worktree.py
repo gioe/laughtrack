@@ -115,6 +115,42 @@ def _create_worktree(
     return result.returncode == 0, result.stderr.strip()
 
 
+def _resolve_primary_repo_root(repo_root: str) -> str | None:
+    result = _run_git(repo_root, ["rev-parse", "--path-format=absolute", "--git-common-dir"])
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+
+    git_common_dir = result.stdout.strip()
+    return os.path.realpath(os.path.join(git_common_dir, ".."))
+
+
+def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str | None:
+    primary_repo_root = _resolve_primary_repo_root(repo_root)
+    if not primary_repo_root:
+        return None
+
+    source = os.path.join(primary_repo_root, "apps", "scraper", ".venv")
+    if not os.path.isdir(source):
+        return None
+
+    scraper_dir = os.path.join(workspace_path, "apps", "scraper")
+    if not os.path.isdir(scraper_dir):
+        return None
+
+    target = os.path.join(scraper_dir, ".venv")
+    if os.path.lexists(target):
+        if os.path.islink(target) and not os.path.exists(target):
+            os.unlink(target)
+        else:
+            return None
+
+    try:
+        os.symlink(source, target)
+    except OSError as exc:
+        return f"Warning: could not link scraper venv into task workspace: {exc}"
+    return None
+
+
 def _parse_git_worktrees(repo_root: str) -> dict[str, str]:
     result = _run_git(repo_root, ["worktree", "list", "--porcelain"])
     if result.returncode != 0:
@@ -232,6 +268,12 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             (task_id, branch),
         ).fetchone()
         if existing:
+            setup_warning = _ensure_scraper_venv_available(
+                repo_root,
+                existing["workspace_path"],
+            )
+            if setup_warning:
+                print(setup_warning, file=sys.stderr)
             print(dumps(_workspace_payload(existing, created=False)))
             return 0
 
@@ -257,6 +299,10 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
         if not ok:
             print(f"Error: git worktree add failed:\n{err}", file=sys.stderr)
             return 2
+
+        setup_warning = _ensure_scraper_venv_available(repo_root, workspace_path)
+        if setup_warning:
+            print(setup_warning, file=sys.stderr)
 
         cur = conn.execute(
             """
