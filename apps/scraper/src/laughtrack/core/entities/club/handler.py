@@ -300,11 +300,12 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             )
             return None
 
+        if any((row.get("name") or "").strip().lower() == name.strip().lower() for row in results):
+            return None
+
         for row in results:
             existing_name = row.get("name") or ""
             if not existing_name:
-                continue
-            if existing_name.strip().lower() == name.strip().lower():
                 continue
             norm_existing = _normalize_venue_name_for_match(
                 existing_name, row.get("city") or "", row.get("state") or ""

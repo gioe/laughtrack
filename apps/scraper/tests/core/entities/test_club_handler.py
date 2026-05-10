@@ -801,6 +801,36 @@ class TestUpsertForEventbriteVenueFuzzyMatch:
         assert first_result.id == second_result.id == 53
         assert mock_exec.call_count == 3
 
+    def test_exact_name_conflict_wins_over_existing_abbreviation_variant(self):
+        """An exact name row should use SQL conflict handling, not an older fuzzy variant."""
+        variant = _make_club_row(
+            id=53,
+            name="Ft. Lauderdale Improv",
+            city="Fort Lauderdale",
+            state="FL",
+            eventbrite_id="venue-ft",
+        )
+        exact = _make_club_row(
+            id=460,
+            name="Fort Lauderdale Improv",
+            city="Fort Lauderdale",
+            state="FL",
+            eventbrite_id="venue-fort",
+        )
+        venue = _FakeVenue(
+            id="venue-fort-new",
+            name="Fort Lauderdale Improv",
+            address=_FakeAddress(city="Fort Lauderdale", region="FL"),
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", side_effect=[[variant, exact], [exact]]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 460
+        assert mock_exec.call_count == 2
+
     def test_missing_city_skips_fuzzy_match_entirely(self):
         """When venue.address has no city, the (city, state) gate fails and
         the fuzzy-match pre-check is skipped — only the UPSERT runs.
