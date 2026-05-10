@@ -9,7 +9,7 @@ type PastShowsFindManyArgs = {
     skip?: number;
     take?: number;
     select: {
-        club: { select: { timezone: boolean } };
+        club: { select: { id: boolean; timezone: boolean } };
     };
 };
 
@@ -55,6 +55,7 @@ function makeShow(
         room: string | null;
         tickets: object[];
         club: {
+            id: number;
             name: string;
             address: string;
             zipCode?: string | null;
@@ -73,6 +74,7 @@ function makeShow(
         room: null,
         tickets: [],
         club: {
+            id: 17,
             name: "Test Club",
             address: "123 Main St",
             zipCode: "10001",
@@ -117,11 +119,24 @@ describe("findPastShowsForComedian", () => {
             expect(result.shows).toHaveLength(1);
             expect(result.shows[0].id).toBe(42);
             expect(result.shows[0].name).toBe("Old Show");
+            expect(result.shows[0].clubID).toBe(17);
             expect(result.shows[0].distanceMiles).toBeNull();
         });
     });
 
-    describe("timezone mapping", () => {
+    describe("club mapping", () => {
+        it("selects club.id from the database", async () => {
+            let capturedSelect!: PastShowsFindManyArgs["select"];
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as PastShowsFindManyArgs).select;
+                return Promise.resolve([]);
+            });
+
+            await findPastShowsForComedian(makeHelper() as never);
+
+            expect(capturedSelect.club.select.id).toBe(true);
+        });
+
         it("selects club.timezone from the database", async () => {
             let capturedSelect!: PastShowsFindManyArgs["select"];
             mockFindMany.mockImplementation((args: unknown) => {
@@ -137,6 +152,7 @@ describe("findPastShowsForComedian", () => {
         it("maps a Los Angeles club.timezone onto the returned DTO", async () => {
             const show = makeShow({
                 club: {
+                    id: 21,
                     name: "Laugh Factory",
                     address: "8001 Sunset Blvd",
                     zipCode: "90046",
@@ -157,6 +173,7 @@ describe("findPastShowsForComedian", () => {
         it("maps a Chicago club.timezone onto the returned DTO", async () => {
             const show = makeShow({
                 club: {
+                    id: 22,
                     name: "Zanies",
                     address: "1548 N Wells St",
                     zipCode: "60610",
@@ -226,6 +243,7 @@ describe("findPastShowsForComedian", () => {
         it("returns null timezone when the club has no timezone configured", async () => {
             const show = makeShow({
                 club: {
+                    id: 23,
                     name: "Unknown Venue",
                     address: "000 Nowhere",
                     zipCode: null,
