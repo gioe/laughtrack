@@ -18,6 +18,7 @@ Pipeline:
 
 from datetime import datetime
 import html
+import os
 import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
@@ -49,6 +50,7 @@ from .webflow_day_card import (
 
 _MAX_DISCOVERY_PAGES = 12
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
+_GROUP_EVENTS_API_FLAG = "TIXR_GROUP_EVENTS_API_FALLBACK"
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
 _MAX_YEAR_ROLLOVER_DAYS = 180
@@ -145,6 +147,15 @@ class TixrScraper(BaseScraper):
             html_content = await self._fetch_calendar_html(url)
 
             if not html_content:
+                fallback_events = await self._fetch_group_api_events_if_enabled(url)
+                if fallback_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Tixr group-events API "
+                        "fallback after group-page fetch returned no HTML",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=fallback_events)
+
                 fallback_events = await self._fetch_improv_asylum_pixl_events(url)
                 if fallback_events:
                     Logger.info(
@@ -160,6 +171,15 @@ class TixrScraper(BaseScraper):
             all_tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
 
             if not all_tixr_urls:
+                fallback_events = await self._fetch_group_api_events_if_enabled(url)
+                if fallback_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Tixr group-events API "
+                        "fallback after group-page extraction returned no URLs",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=fallback_events)
+
                 fallback_events = await self._fetch_improv_asylum_pixl_events(url)
                 if fallback_events:
                     Logger.info(
@@ -234,6 +254,53 @@ class TixrScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
+
+    async def _fetch_group_api_events_if_enabled(self, url: str) -> List[TixrEvent]:
+        if not self._group_events_api_fallback_enabled():
+            return []
+
+        group_id = (
+            self.club.metadata_value("tixr_group_id")
+            or self.club.metadata_value("tixr_group_slug")
+            or self._group_slug_from_url(url)
+            or ""
+        ).strip()
+        if not group_id:
+            Logger.warn(
+                f"{self._log_prefix}: Tixr group-events API fallback is enabled but "
+                "no tixr_group_id metadata, tixr_group_slug metadata, or URL group slug is available",
+                self.logger_context,
+            )
+            return []
+
+        return await self.tixr_client.fetch_group_events(group_id)
+
+    def _group_events_api_fallback_enabled(self) -> bool:
+        metadata_value = (self.club.source_metadata or {}).get("tixr_group_events_api_fallback")
+        if isinstance(metadata_value, bool):
+            return metadata_value
+        if isinstance(metadata_value, str):
+            return metadata_value.strip().lower() in {"1", "true", "yes", "on"}
+
+        raw = os.environ.get(_GROUP_EVENTS_API_FLAG, "")
+        return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+    @staticmethod
+    def _group_slug_from_url(url: str) -> Optional[str]:
+        parsed = urlparse(URLUtils.normalize_url(url))
+        host = parsed.netloc.lower()
+        path = parsed.path.strip("/")
+
+        match = re.search(r"(?:^|/)groups/([^/?#]+)", parsed.path)
+        if match:
+            return match.group(1)
+
+        if host.endswith(".tixr.com") and host != "www.tixr.com":
+            return host.split(".", 1)[0]
+
+        if path:
+            return path.split("/", 1)[0]
+        return None
 
     async def _fetch_improv_asylum_pixl_events(self, url: str) -> List[TixrEvent]:
         """

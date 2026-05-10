@@ -1355,3 +1355,76 @@ class TestGetEventDetailEventId:
         ]:
             await client.get_event_detail_from_url(url)
             assert captured["event_id"] != "", f"event_id was empty for {url}"
+
+
+class TestFetchGroupEvents:
+    """Tests for the opt-in Tixr group-events API fallback."""
+
+    def _client(self, monkeypatch) -> TixrClient:
+        monkeypatch.setattr(BaseApiClient, "__init__", lambda self, club, proxy_pool=None: (
+            setattr(self, "club", club) or setattr(self, "headers", {})
+        ))
+        return TixrClient(_club())
+
+    def _api_event(self, event_id: str = "189028") -> dict:
+        return {
+            "id": event_id,
+            "name": "Comedy Night",
+            "formattedISOStartDate": "2026-05-12T20:00:00-07:00",
+            "url": f"https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-{event_id}",
+            "description": "A showcase",
+            "group": {"subdomain": "laughfactorycovina"},
+            "sales": [
+                {
+                    "tiers": [
+                        {"name": "General Admission", "price": "25.00", "active": True}
+                    ]
+                }
+            ],
+        }
+
+    def test_extract_group_event_records_supports_known_envelopes(self):
+        event = {"id": 1}
+        assert TixrClient._extract_group_event_records([event]) == [event]
+        assert TixrClient._extract_group_event_records({"events": [event]}) == [event]
+        assert TixrClient._extract_group_event_records({"data": {"items": [event]}}) == [event]
+        assert TixrClient._extract_group_event_records({"data": {"results": [event]}}) == [event]
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_builds_tixr_events(self, monkeypatch):
+        client = self._client(monkeypatch)
+        calls = []
+
+        async def fake_fetch_json(url, logger_context=None):
+            calls.append((url, logger_context))
+            return {"events": [self._api_event()]}
+
+        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+
+        events = await client.fetch_group_events("1613")
+
+        assert len(events) == 1
+        assert events[0].event_id == "189028"
+        assert events[0].title == "Comedy Night"
+        assert calls == [
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=1",
+                {"group_id": "1613"},
+            )
+        ]
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_deduplicates_and_skips_unparseable(self, monkeypatch):
+        client = self._client(monkeypatch)
+        valid = self._api_event("189028")
+        duplicate = self._api_event("189028")
+        invalid = {"id": "bad", "name": "Missing Date"}
+
+        async def fake_fetch_json(url, logger_context=None):
+            return {"events": [valid, duplicate, invalid]}
+
+        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+
+        events = await client.fetch_group_events("1613")
+
+        assert [event.event_id for event in events] == ["189028"]

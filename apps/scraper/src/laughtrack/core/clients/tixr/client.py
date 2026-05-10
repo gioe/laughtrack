@@ -201,6 +201,69 @@ class TixrClient(BaseApiClient):
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
 
+    async def fetch_group_events(self, group_id: str, page: int = 1) -> List[TixrEvent]:
+        """Fetch Tixr events from the browser-consumed group events API."""
+        normalized_group_id = str(group_id or "").strip()
+        if not normalized_group_id:
+            return []
+
+        api_url = f"{self.base_url}/api/groups/{normalized_group_id}/events?page={page}"
+        try:
+            data = await self.fetch_json(url=api_url, logger_context={"group_id": normalized_group_id})
+        except Exception as exc:
+            self.log_warning(
+                f"Tixr group-events API fetch failed for group_id={normalized_group_id}: {exc}"
+            )
+            return []
+
+        events = self._extract_group_event_records(data)
+        if not events:
+            self.log_warning(
+                f"Tixr group-events API returned no parseable events for group_id={normalized_group_id}"
+            )
+            return []
+
+        parsed: List[TixrEvent] = []
+        seen_ids: set[str] = set()
+        for event_data in events:
+            event_id = str(event_data.get("id") or "").strip()
+            if event_id and event_id in seen_ids:
+                continue
+
+            show = self._create_show_from_data(event_data)
+            if show is None:
+                continue
+
+            if event_id:
+                seen_ids.add(event_id)
+            parsed.append(
+                TixrEvent.from_tixr_show(
+                    show=show,
+                    source_url=show.show_page_url,
+                    event_id=event_id,
+                )
+            )
+
+        return parsed
+
+    @classmethod
+    def _extract_group_event_records(cls, data: Any) -> List[JSONDict]:
+        """Return event dicts from the known Tixr group-events API envelopes."""
+        if isinstance(data, list):
+            return [item for item in data if isinstance(item, dict)]
+        if not isinstance(data, dict):
+            return []
+
+        for key in ("events", "items", "results"):
+            value = data.get(key)
+            if isinstance(value, list):
+                return [item for item in value if isinstance(item, dict)]
+
+        nested = data.get("data")
+        if nested is data:
+            return []
+        return cls._extract_group_event_records(nested)
+
     async def _fetch_tixr_page(self, url: str, timeout: int = 30) -> Optional[str]:
         """
         Fetch a Tixr group/event page HTML without application-level custom headers.

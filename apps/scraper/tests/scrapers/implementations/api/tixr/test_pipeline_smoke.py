@@ -46,6 +46,39 @@ def _improv_asylum_club() -> Club:
     return _c
 
 
+def _tixr_group_api_club() -> Club:
+    _c = Club(id=171, name='Laugh Factory Covina', address='104 N Citrus Ave', website='https://www.laughfactory.com/covina', popularity=0, zip_code='91723', phone_number='', visible=True, timezone='America/Los_Angeles')
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform='tixr',
+        scraper_key='tixr',
+        source_url='https://www.tixr.com/groups/laughfactorycovina',
+        external_id=None,
+        metadata={"tixr_group_id": 1613},
+    )
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _rose_city_group_api_club() -> Club:
+    _c = Club(id=1023, name='Rose City Comedy', address='7428 Old Jacksonville Hwy', website='https://rosecitycomedy.club', popularity=0, zip_code='75703', phone_number='', visible=True, timezone='America/Chicago')
+    _c.active_scraping_source = ScrapingSource(
+        id=438,
+        club_id=_c.id,
+        platform='tixr',
+        scraper_key='tixr',
+        source_url='https://rosecitycomedy.club',
+        external_id=None,
+        metadata={
+            "tixr_group_slug": "rosecitycomedy",
+            "tixr_group_events_api_fallback": True,
+        },
+    )
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
 def _stand_club() -> Club:
     _c = Club(id=99, name='The Stand', address='', website='https://thestandnyc.com', popularity=0, zip_code='', phone_number='', visible=True, timezone='America/New_York')
     _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=STAND_SCRAPING_URL, external_id=None)
@@ -594,6 +627,70 @@ async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_fetch_r
     event = result.event_list[0]
     assert event.title == "Improv Asylum's Main Stage Show"
     assert event.event_id == "169028"
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_group_events_api_fallback_when_enabled_and_group_page_returns_none(monkeypatch):
+    """Opt-in group-events API fallback can rescue a blocked Tixr group page."""
+    monkeypatch.setenv("TIXR_GROUP_EVENTS_API_FALLBACK", "1")
+    scraper = TixrScraper(_tixr_group_api_club())
+    event = _make_tixr_event("189028", "Comedy Night")
+
+    async def fake_fetch_calendar_html(url):
+        return None
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data("https://www.tixr.com/groups/laughfactorycovina")
+
+    assert isinstance(result, TixrPageData)
+    assert [e.event_id for e in result.event_list] == ["189028"]
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with("1613")
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_does_not_use_group_events_api_fallback_when_flag_disabled(monkeypatch):
+    """The direct API fallback is inert unless explicitly enabled."""
+    monkeypatch.delenv("TIXR_GROUP_EVENTS_API_FALLBACK", raising=False)
+    scraper = TixrScraper(_tixr_group_api_club())
+
+    async def fake_fetch_calendar_html(url):
+        return None
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[_make_tixr_event("189028", "Comedy Night")])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data("https://www.tixr.com/groups/laughfactorycovina")
+
+    assert result is None
+    scraper.tixr_client.fetch_group_events.assert_not_called()
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_group_events_api_fallback_from_metadata_flag_and_slug(monkeypatch):
+    """Per-source metadata can opt a venue-owned Rose City page into the group API fallback."""
+    monkeypatch.delenv("TIXR_GROUP_EVENTS_API_FALLBACK", raising=False)
+    scraper = TixrScraper(_rose_city_group_api_club())
+    event = _make_tixr_event("190001", "Rose City Showcase")
+
+    async def fake_fetch_calendar_html(url):
+        return "<html><body>No machine-readable events here</body></html>"
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fake_fetch_calendar_html)
+    scraper.tixr_client.fetch_group_events = AsyncMock(return_value=[event])
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock()
+
+    result = await scraper.get_data("https://rosecitycomedy.club")
+
+    assert isinstance(result, TixrPageData)
+    assert [e.event_id for e in result.event_list] == ["190001"]
+    scraper.tixr_client.fetch_group_events.assert_awaited_once_with("rosecitycomedy")
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 
