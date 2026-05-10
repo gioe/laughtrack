@@ -59,15 +59,17 @@ def test_geocode_missing_clubs_resolves_coords_and_updates_only_null_rows():
     ]
     cursor = _Cursor(rows)
     resolver = MagicMock(side_effect=[(40.75, -73.99), None])
+    sleep = MagicMock()
 
     with patch(
         "laughtrack.utilities.domain.club.coordinates.get_connection",
         return_value=_Connection(cursor),
     ):
-        result = geocode_missing_clubs(limit=30, resolver=resolver, sleep=lambda _: None)
+        result = geocode_missing_clubs(limit=30, resolver=resolver, sleep=sleep)
 
     assert result == ClubGeocodingResult(attempted=2, resolved=1, unresolved=1)
     assert resolver.call_count == 2
+    sleep.assert_called_once_with(1.0)
     select_sql, select_params = cursor.statements[0]
     assert "WHERE latitude IS NULL OR longitude IS NULL" in select_sql
     assert select_params == (30,)

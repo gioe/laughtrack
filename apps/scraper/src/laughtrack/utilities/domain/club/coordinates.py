@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass
-from typing import Callable, Iterable, Optional
+from typing import Callable, Optional
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.database.connection import get_connection
@@ -128,7 +128,7 @@ def geocode_missing_clubs(
                 """,
                 (limit,),
             )
-            rows: Iterable = list(cur.fetchall())
+            rows = list(cur.fetchall())
 
             attempted = 0
             resolved = 0
@@ -144,19 +144,18 @@ def geocode_missing_clubs(
                     coords = None
                 if coords is None:
                     unresolved += 1
-                    continue
-
-                lat, lon = coords
-                cur.execute(
-                    """
-                    UPDATE clubs
-                    SET latitude = %s, longitude = %s
-                    WHERE id = %s
-                      AND (latitude IS NULL OR longitude IS NULL)
-                    """,
-                    (lat, lon, club.id),
-                )
-                resolved += cur.rowcount or 0
+                else:
+                    lat, lon = coords
+                    cur.execute(
+                        """
+                        UPDATE clubs
+                        SET latitude = %s, longitude = %s
+                        WHERE id = %s
+                          AND (latitude IS NULL OR longitude IS NULL)
+                        """,
+                        (lat, lon, club.id),
+                    )
+                    resolved += cur.rowcount or 0
                 if index < total_rows - 1:
                     sleep(1.0)
 
