@@ -8,7 +8,8 @@ links.
 
 Pipeline:
   1. collect_scraping_targets() — fetch the homepage; collect unique series
-     page URLs (/calendar/category/series/...) and single-show page URLs
+     page URLs (/calendar/category/series/... or /show/category/series/...)
+     and single-show page URLs
      (/show/...).
   2. get_data(url) — fetch one page and extract events; the URL type
      determines which extractor path is used.
@@ -92,11 +93,12 @@ class ZaniesScraper(BaseScraper):
         Fetch one page and extract events.
 
         Detects the page type from the URL:
-        - /calendar/category/series/... → series page (multiple performances)
-        - /show/...                     → single-show page (one event)
+        - /category/series/... → series page (multiple performances)
+        - /show/...            → single-show page (one event)
         """
         try:
-            html = await self.fetch_html(URLUtils.normalize_url(url))
+            normalized_url = URLUtils.normalize_url(url)
+            html = await self.fetch_html(normalized_url)
             if not html:
                 Logger.warn(
                     f"{self._log_prefix}: empty response for {url}",
@@ -104,10 +106,16 @@ class ZaniesScraper(BaseScraper):
                 )
                 return None
 
-            if "/calendar/category/series/" in url:
-                events = ZaniesExtractor.extract_series_events(html)
+            if "/category/series/" in normalized_url:
+                events = ZaniesExtractor.extract_series_events(
+                    html,
+                    event_url=normalized_url,
+                )
             else:
-                events = ZaniesExtractor.extract_single_show_events(html)
+                events = ZaniesExtractor.extract_single_show_events(
+                    html,
+                    event_url=normalized_url,
+                )
 
             if not events:
                 Logger.info(

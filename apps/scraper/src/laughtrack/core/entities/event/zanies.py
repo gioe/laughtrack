@@ -4,6 +4,7 @@ Data model for a single event from Zanies Comedy Club.
 Show data is extracted from:
 - Series pages: /calendar/category/series/{slug}/... — multiple performances
   per headliner run
+- Nashville series pages: /show/category/series/{slug}/... — same markup
 - Single-show pages: /show/{slug}/... — standalone special events
 
 Both page types provide dates in the format 'Thursday, March 26'
@@ -88,6 +89,7 @@ class ZaniesEvent(ShowConvertible):
     date_str: str    # e.g. "Thursday, March 26"  (no year)
     time_str: str    # e.g. "Doors: 9 pm Show: 9:30 pm"
     ticket_url: str  # e.g. "https://www.etix.com/ticket/p/52372512/..."
+    event_url: Optional[str] = None  # public Zanies detail/series page
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -119,14 +121,15 @@ class ZaniesEvent(ShowConvertible):
         if start_dt is None:
             return None
 
-        ticket_url = url or self.ticket_url
+        ticket_url = self.ticket_url
+        show_page_url = url or self.event_url or self.ticket_url
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
             club=club,
             date=start_dt,
-            show_page_url=ticket_url,
+            show_page_url=show_page_url,
             lineup=[],
             tickets=tickets,
             enhanced=enhanced,

@@ -23,6 +23,10 @@ SHOW_URL = (
     "https://chicago.zanies.com/show/adam-nate-levine/"
     "zanies-comedy-club-chicago/chicago-illinois/"
 )
+NASHVILLE_SERIES_URL = (
+    "https://nashville.zanies.com/show/category/series/"
+    "2026-marcus-d-wiley/zanies/nashville-tennessee/"
+)
 
 
 def _club() -> Club:
@@ -176,6 +180,25 @@ async def test_get_data_series_url_returns_page_data(monkeypatch):
     assert len(result.event_list) == 2
     assert result.event_list[0].title == "Roast Battle Chicago"
     assert result.event_list[0].date_str == "Thursday, April 03"
+    assert result.event_list[0].event_url == SERIES_URL.rstrip("/")
+
+
+@pytest.mark.asyncio
+async def test_get_data_nashville_show_category_series_url_returns_all_performances(monkeypatch):
+    """Nashville's /show/category/series/ URLs are series pages, not single shows."""
+    scraper = ZaniesScraper(_club())
+
+    async def fake_fetch(self, url: str, **kwargs) -> str:
+        return _series_html("2026 MARCUS D WILEY")
+
+    monkeypatch.setattr(ZaniesScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(NASHVILLE_SERIES_URL)
+
+    assert isinstance(result, ZaniesPageData)
+    assert len(result.event_list) == 2
+    assert result.event_list[0].title == "MARCUS D WILEY"
+    assert result.event_list[0].event_url == NASHVILLE_SERIES_URL.rstrip("/")
 
 
 @pytest.mark.asyncio
@@ -193,6 +216,7 @@ async def test_get_data_single_show_url_returns_page_data(monkeypatch):
     assert isinstance(result, ZaniesPageData)
     assert len(result.event_list) == 1
     assert result.event_list[0].title == "Adam Nate Levine"
+    assert result.event_list[0].event_url == SHOW_URL.rstrip("/")
 
 
 @pytest.mark.asyncio
@@ -244,13 +268,17 @@ def test_extract_series_empty_html_returns_empty():
 
 
 def test_extract_single_show_parses_title_date_time_ticket():
-    events = ZaniesExtractor.extract_single_show_events(_single_show_html())
+    events = ZaniesExtractor.extract_single_show_events(
+        _single_show_html(),
+        event_url=SHOW_URL,
+    )
     assert len(events) == 1
     e = events[0]
     assert e.title == "Adam Nate Levine"
     assert e.date_str == "Monday, April 06"
     assert "Doors: 6 pm Show: 7 pm" in e.time_str
     assert "etix.com/ticket/p/32563880" in e.ticket_url
+    assert e.event_url == SHOW_URL
 
 
 def test_extract_single_show_empty_html_returns_empty():
@@ -267,12 +295,14 @@ def _make_event(
     date_str: str = "Thursday, April 03",
     time_str: str = "Doors: 9 pm Show: 9:30 pm",
     ticket_url: str = "https://www.etix.com/ticket/p/52372512/roast-battle-chicago-zanies-chicago?partner_id=100",
+    event_url: str | None = None,
 ) -> ZaniesEvent:
     return ZaniesEvent(
         title=title,
         date_str=date_str,
         time_str=time_str,
         ticket_url=ticket_url,
+        event_url=event_url,
     )
 
 
@@ -301,6 +331,17 @@ def test_to_show_creates_etix_ticket():
     show = _make_event(ticket_url=ticket_url).to_show(_club())
     assert show is not None
     assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == ticket_url
+
+
+def test_to_show_uses_public_event_page_for_show_url():
+    ticket_url = "https://www.etix.com/ticket/p/52372512/roast-battle-chicago-zanies-chicago?partner_id=100"
+    show = _make_event(
+        ticket_url=ticket_url,
+        event_url=SERIES_URL,
+    ).to_show(_club())
+    assert show is not None
+    assert show.show_page_url == SERIES_URL.rstrip("/")
     assert show.tickets[0].purchase_url == ticket_url
 
 
