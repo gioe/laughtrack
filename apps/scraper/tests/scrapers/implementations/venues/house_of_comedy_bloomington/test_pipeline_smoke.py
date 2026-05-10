@@ -1,20 +1,6 @@
-"""
-Smoke tests for House of Comedy Bloomington scraper pipeline.
-
-House of Comedy Bloomington (moa.houseofcomedy.net) lists shows on its own
-homepage with long-form Tixr links (tixr.com/groups/houseofcomedymn/events/*).
-Uses the generic TixrScraper (scraper='tixr') — no custom scraper code needed.
-
-Not folded onto WebflowDayCardConfig (TASK-2057) because there is no per-venue
-scraper to collapse: this venue already runs through the generic Tixr URL
-extraction path, not a Webflow `a.day-card` extractor.
-
-Verifies that get_data() returns TixrPageData with at least one event when
-the venue homepage contains Tixr event URLs and TixrClient resolves them.
-"""
+"""Smoke tests for House of Comedy Bloomington's direct Tixr fallback scraper."""
 
 import importlib.util
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 
 import pytest
@@ -25,183 +11,102 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.core.entities.event.tixr import TixrEvent
-from laughtrack.core.entities.show.model import Show
-from laughtrack.core.entities.ticket.model import Ticket
-from laughtrack.scrapers.implementations.api.tixr.scraper import TixrPublicCardScraper, TixrScraper
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
+from laughtrack.scrapers.implementations.venues.house_of_comedy_bloomington.scraper import (
+    HouseOfComedyBloomingtonScraper,
+)
 
+CALENDAR_URL = "https://moa.houseofcomedy.net/"
+EVENT_URL = "https://www.tixr.com/groups/houseofcomedymn/events/taylor-baggott-183801"
 
-VENUE_URL = "https://moa.houseofcomedy.net/"
-EVENT_URL = "https://www.tixr.com/groups/houseofcomedymn/events/comedy-night-178358"
+_ONE_EVENT_HTML = f"""
+<div class="event_card">
+  <h3>Taylor Baggott</h3>
+  <div>Show Starts: May 7, 2026 7:30 PM</div>
+  <div>Door Time: May 7, 2026 6:30 PM</div>
+  <a href="{EVENT_URL}" class="button-main white w-inline-block">get tickets</a>
+</div>
+"""
+
+_COMPACT_EVENT_HTML = """
+<div class="cal-info-2 w-dyn-item">
+  <a href="https://www.tixr.com/groups/houseofcomedymn/events/the-disableds-comedy-show-183793"
+     class="day-card w-inline-block">
+    The Disableds Comedy Show Sunday East Village May 10, 2026 7:00 pm BUY TICKETS
+  </a>
+</div>
+"""
 
 
 def _club() -> Club:
-    _c = Club(id=300, name='House of Comedy Bloomington', address='60 E Broadway Ave', website='https://moa.houseofcomedy.net', popularity=0, zip_code='55425', phone_number='', visible=True, timezone='America/Chicago')
-    _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url=VENUE_URL, external_id=None)
-    _c.scraping_sources = [_c.active_scraping_source]
-    return _c
-
-
-def _tixr_event() -> TixrEvent:
-    show = Show(
-        name="Comedy Night",
-        club_id=300,
-        date=datetime(2026, 4, 10, 19, 30, tzinfo=timezone.utc),
-        show_page_url=EVENT_URL,
-        lineup=[],
-        tickets=[Ticket(price=25.0, purchase_url=EVENT_URL, sold_out=False, type="General Admission")],
-        supplied_tags=["event"],
-        description=None,
+    club = Club(
+        id=655,
+        name="House of Comedy Bloomington",
+        address="",
+        website="https://moa.houseofcomedy.net",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=True,
         timezone="America/Chicago",
-        room="",
     )
-    return TixrEvent.from_tixr_show(show=show, source_url=EVENT_URL, event_id="178358")
-
-
-def _venue_page_html() -> str:
-    """Minimal venue homepage HTML containing one houseofcomedymn Tixr event link."""
-    return f"""<html><body>
-<a href="{EVENT_URL}">Comedy Night - April 10</a>
-</body></html>"""
-
-
-def _venue_card_html() -> str:
-    """Minimal venue-owned Webflow card with enough public data for fallback parsing."""
-    return f"""<html><body>
-<div class="event-item w-dyn-item" role="listitem">
-  <a class="ticket-links grid w-inline-block" href="{EVENT_URL}">
-    <div class="text-block-35">Comedy Night</div>
-    <div class="event-card grid">
-      <div class="date-info grid">
-        <div class="month grid date">Wed</div>
-        <div class="month grid">Jun</div>
-        <div class="month grid custom-filter">Jun</div>
-        <div class="month day grid">10</div>
-        <div class="month day time">7:30 pm</div>
-      </div>
-    </div>
-  </a>
-</div>
-</body></html>"""
-
-
-# ---------------------------------------------------------------------------
-# Smoke tests
-# ---------------------------------------------------------------------------
+    club.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=club.id,
+        platform="tixr",
+        scraper_key="house_of_comedy_bloomington",
+        source_url=CALENDAR_URL,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_page_data_with_events(monkeypatch):
-    """
-    get_data() returns TixrPageData with at least one TixrEvent when the venue
-    homepage HTML contains houseofcomedymn Tixr event URLs and TixrClient resolves them.
-    """
-    scraper = TixrScraper(_club())
+async def test_get_data_builds_tixr_events_from_calendar_html(monkeypatch):
+    """The scraper builds events directly from venue-page title/date/ticket blocks."""
+    scraper = HouseOfComedyBloomingtonScraper(_club())
 
-    async def fake_fetch_html(self, url, **kwargs):
-        return _venue_page_html()
+    monkeypatch.setattr(scraper, "fetch_html", AsyncMock(return_value=_ONE_EVENT_HTML))
 
-    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=_tixr_event()),
-    )
-
-    result = await scraper.get_data(VENUE_URL)
-
-    assert isinstance(result, TixrPageData), (
-        "get_data() did not return TixrPageData — check scraper pipeline"
-    )
-    assert result.get_event_count() > 0, (
-        "get_data() returned 0 events from valid venue page HTML — "
-        "check extract_tixr_urls() or batch_scraper processing"
-    )
-
-
-@pytest.mark.asyncio
-async def test_detail_scraper_attempts_tixr_event_detail_fetch_for_public_cards(monkeypatch):
-    """The detail scraper extracts URLs from cards and enriches through Tixr pages."""
-    scraper = TixrScraper(_club())
-
-    async def fake_fetch_html(self, url, **kwargs):
-        return _venue_card_html()
-
-    detail_fetch = AsyncMock(return_value=_tixr_event())
-    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
-    monkeypatch.setattr(scraper.tixr_client, "get_event_detail_from_url", detail_fetch)
-
-    result = await scraper.get_data(VENUE_URL)
-
-    assert isinstance(result, TixrPageData)
-    assert result.get_event_count() == 1
-    detail_fetch.assert_awaited_once_with(EVENT_URL)
-
-
-@pytest.mark.asyncio
-async def test_public_card_scraper_builds_events_without_tixr_detail_fetch(monkeypatch):
-    """
-    tixr_public_card builds events from the venue-owned card HTML when title,
-    date/time, and Tixr URL are present, avoiding blocked Tixr event-detail pages.
-    """
-    scraper = TixrPublicCardScraper(_club())
-
-    async def fake_fetch_html(self, url, **kwargs):
-        return _venue_card_html()
-
-    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(side_effect=AssertionError("Tixr detail pages should not be fetched")),
-    )
-
-    result = await scraper.get_data(VENUE_URL)
+    result = await scraper.get_data(CALENDAR_URL)
 
     assert isinstance(result, TixrPageData)
     assert result.get_event_count() == 1
     event = result.event_list[0]
-    assert event.title == "Comedy Night"
-    assert event.event_id == "178358"
+    assert event.title == "Taylor Baggott"
+    assert event.event_id == "183801"
     assert event.source_url == EVENT_URL
-    assert event.show.show_page_url == EVENT_URL
-    assert event.show.tickets[0].purchase_url == EVENT_URL
+    assert event.show.date.year == 2026
+    assert event.show.date.month == 5
+    assert event.show.date.day == 7
     assert event.show.date.hour == 19
     assert event.show.date.minute == 30
-    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+    assert event.show.tickets[0].purchase_url == EVENT_URL
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_no_event_urls(monkeypatch):
-    """get_data() returns None when the venue page contains no Tixr event URLs."""
-    scraper = TixrScraper(_club())
+async def test_get_data_returns_none_when_calendar_has_no_parseable_events(monkeypatch):
+    """The scraper returns None rather than falling back to blocked Tixr event pages."""
+    scraper = HouseOfComedyBloomingtonScraper(_club())
 
-    async def fake_fetch_html(self, url, **kwargs):
-        return "<html><body>No shows scheduled</body></html>"
+    monkeypatch.setattr(scraper, "fetch_html", AsyncMock(return_value="<html>No events</html>"))
 
-    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
-
-    result = await scraper.get_data(VENUE_URL)
-    assert result is None
+    assert await scraper.get_data(CALENDAR_URL) is None
 
 
-def test_transformation_pipeline_produces_shows():
-    """
-    transformation_pipeline.transform() returns at least one Show for a valid TixrEvent.
+@pytest.mark.asyncio
+async def test_get_data_builds_events_from_compact_calendar_cards(monkeypatch):
+    """The scraper handles compact calendar cards that omit the Show Starts label."""
+    scraper = HouseOfComedyBloomingtonScraper(_club())
 
-    Catches regressions where can_transform() returns False for TixrEvent,
-    causing transform() to silently return an empty list.
-    """
-    scraper = TixrScraper(_club())
-    event = _tixr_event()
-    page_data = TixrPageData(event_list=[event])
+    monkeypatch.setattr(scraper, "fetch_html", AsyncMock(return_value=_COMPACT_EVENT_HTML))
 
-    shows = scraper.transformation_pipeline.transform(page_data)
+    result = await scraper.get_data(CALENDAR_URL)
 
-    assert len(shows) > 0, (
-        "transformation_pipeline.transform() returned 0 Shows — "
-        "check can_transform() and that the transformer is registered "
-        "with the correct generic type"
-    )
-    assert all(isinstance(s, Show) for s in shows)
+    assert isinstance(result, TixrPageData)
+    event = result.event_list[0]
+    assert event.title == "The Disableds Comedy Show"
+    assert event.event_id == "183793"
+    assert event.show.date.month == 5
+    assert event.show.date.day == 10
+    assert event.show.date.hour == 19

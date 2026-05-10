@@ -102,7 +102,7 @@ class EtixScraper(BaseScraper):
             return []
 
         page1_url = _ETIX_VENUE_URL.format(venue_id=self._venue_id, page=1)
-        html = await self.fetch_html(page1_url)
+        html = await self._fetch_etix_html(page1_url)
         if not html:
             return [page1_url]
 
@@ -120,7 +120,7 @@ class EtixScraper(BaseScraper):
     async def get_data(self, url: str) -> Optional[EtixPageData]:
         """Fetch a single page and extract event cards."""
         try:
-            html = await self.fetch_html(url)
+            html = await self._fetch_etix_html(url)
             if not html:
                 Logger.warn(
                     f"{self._log_prefix}: empty response for {url}",
@@ -731,3 +731,7 @@ class EtixScraper(BaseScraper):
         except ValueError:
             return None
         return f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00"
+
+    async def _fetch_etix_html(self, url: str) -> Optional[str]:
+        """Fetch Etix pages using the shared Etix proxy allowlist key."""
+        return await self.fetch_html(url, scraper_key="etix")
