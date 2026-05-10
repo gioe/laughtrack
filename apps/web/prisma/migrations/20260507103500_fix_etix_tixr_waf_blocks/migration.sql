@@ -2,8 +2,8 @@
 -- and switch House of Comedy Bloomington to a direct venue-page scraper so it no
 -- longer depends on DataDome-blocked Tixr event pages.
 
-INSERT INTO scrapers (key, use_residential_proxy, notes)
-VALUES ('etix', true, 'Etix venue listing pages return DataDome 403 blocks from direct egress')
+INSERT INTO scrapers (key, use_residential_proxy, notes, updated_at)
+VALUES ('etix', true, 'Etix venue listing pages return DataDome 403 blocks from direct egress', CURRENT_TIMESTAMP)
 ON CONFLICT (key) DO UPDATE
 SET use_residential_proxy = EXCLUDED.use_residential_proxy,
     notes = EXCLUDED.notes,
