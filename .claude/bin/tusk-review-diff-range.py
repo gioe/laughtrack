@@ -73,6 +73,52 @@ def _git(args: list, repo_root: str) -> subprocess.CompletedProcess:
     )
 
 
+def _git_stdout(args: list, repo_root: str | None = None) -> str | None:
+    kwargs = {
+        "capture_output": True,
+        "text": True,
+        "encoding": "utf-8",
+    }
+    if repo_root is not None:
+        kwargs["cwd"] = repo_root
+    r = subprocess.run(["git", *args], **kwargs)
+    if r.returncode != 0:
+        return None
+    return (r.stdout or "").strip()
+
+
+def _git_common_dir(repo_root: str) -> str | None:
+    path = _git_stdout(["rev-parse", "--git-common-dir"], repo_root)
+    if not path:
+        return None
+    if not os.path.isabs(path):
+        path = os.path.join(repo_root, path)
+    return os.path.realpath(path)
+
+
+def resolve_repo_root(db_path: str, cwd: str | None = None) -> str:
+    """Resolve the git checkout whose HEAD should be reviewed.
+
+    The DB always lives under the original project checkout, but task worktrees
+    have their own HEAD. Prefer the caller's cwd when it is a worktree of the
+    same git repository; otherwise fall back to the DB-derived checkout.
+    """
+    db_repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
+    db_common = _git_common_dir(db_repo_root)
+    if not db_common:
+        return db_repo_root
+
+    invocation_cwd = cwd or os.getcwd()
+    candidate = _git_stdout(["rev-parse", "--show-toplevel"], invocation_cwd)
+    if not candidate:
+        return db_repo_root
+    candidate = os.path.abspath(candidate)
+    candidate_common = _git_common_dir(candidate)
+    if candidate_common and candidate_common == db_common:
+        return candidate
+    return db_repo_root
+
+
 def default_branch(repo_root: str) -> str:
     """Resolve the default branch by calling ``tusk git-default-branch``.
 
@@ -95,18 +141,11 @@ def _ref_exists(ref: str, repo_root: str) -> bool:
     return _git(["rev-parse", "--verify", "--quiet", ref], repo_root).returncode == 0
 
 
-def _is_ancestor(ancestor: str, descendant: str, repo_root: str) -> bool:
-    return _git(["merge-base", "--is-ancestor", ancestor, descendant], repo_root).returncode == 0
-
-
 def primary_range(base: str, repo_root: str) -> str:
     """Choose the best default-branch comparison ref for review diffs."""
     remote = f"origin/{base}"
-    local_exists = _ref_exists(base, repo_root)
     remote_exists = _ref_exists(remote, repo_root)
-    if remote_exists and (
-        not local_exists or _is_ancestor(base, remote, repo_root)
-    ):
+    if remote_exists:
         return f"{remote}...HEAD"
     return f"{base}...HEAD"
 
@@ -144,6 +183,27 @@ def _filter_commits_by_task_overlap(
     return [sha for sha in commits if commit_changed_files([sha], repo_root) & task_paths]
 
 
+def _task_started_at(db_path: str | None, task_id: int) -> str | None:
+    if not db_path or not os.path.isfile(db_path):
+        return None
+    try:
+        conn = get_connection(db_path)
+    except Exception:
+        return None
+    try:
+        row = conn.execute(
+            "SELECT started_at FROM tasks WHERE id = ?",
+            (task_id,),
+        ).fetchone()
+    except Exception:
+        return None
+    finally:
+        conn.close()
+    if not row:
+        return None
+    return row["started_at"] if "started_at" in row.keys() else row[0]
+
+
 def compute_range(task_id: int, repo_root: str, db_path: str | None = None) -> dict:
     """Return the diff-range payload for this task, or raise on empty diff."""
     base = default_branch(repo_root)
@@ -168,16 +228,17 @@ def compute_range(task_id: int, repo_root: str, db_path: str | None = None) -> d
         }
 
     # Primary range is empty — recover from [TASK-N] commits in recent history.
-    log_result = _git(
-        [
-            "log",
-            "--format=%H",
-            task_grep_arg(task_id),
-            "-n",
-            str(TASK_COMMIT_LIMIT),
-        ],
-        repo_root,
-    )
+    log_args = [
+        "log",
+        "--format=%H",
+        task_grep_arg(task_id),
+        "-n",
+        str(TASK_COMMIT_LIMIT),
+    ]
+    started_at = _task_started_at(db_path, task_id)
+    if started_at:
+        log_args.append(f"--since={started_at} UTC")
+    log_result = _git(log_args, repo_root)
     commits = [c for c in (log_result.stdout or "").splitlines() if c.strip()]
     if not commits:
         raise SystemExit(
@@ -239,8 +300,7 @@ def main(argv: list) -> int:
         print(f"Invalid task ID: {args.task_id}", file=sys.stderr)
         return 1
 
-    # repo_root is two levels up from the DB: tusk/tasks.db → tusk/ → repo_root
-    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
+    repo_root = resolve_repo_root(db_path)
 
     try:
         result = compute_range(task_id, repo_root, db_path)

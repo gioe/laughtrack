@@ -64,6 +64,25 @@ def run(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, encoding="utf-8", check=check)
 
 
+def _run_tusk_subcommand(tusk_bin: str, args: list[str]) -> subprocess.CompletedProcess:
+    """Run a project-local tusk subcommand with a targeted transient-missing diagnostic."""
+    cmd = [tusk_bin, *args]
+    for attempt in (1, 2):
+        try:
+            return run(cmd, check=False)
+        except FileNotFoundError as exc:
+            if attempt == 1:
+                time.sleep(0.2)
+                continue
+            message = (
+                "project-local tusk binary disappeared during closeout; "
+                "retry after any install or upgrade finishes.\n"
+                f"Missing executable: {tusk_bin}\n"
+                f"Original error: {exc}"
+            )
+            return subprocess.CompletedProcess(cmd, 127, stdout="", stderr=message)
+
+
 _INDEX_LOCK_RE = re.compile(r"Unable to create '[^']*\.git/index\.lock'")
 
 
@@ -102,20 +121,25 @@ def _is_default_branch_locked_by_worktree(stderr: str, default_branch: str) -> b
 
 
 def _worktree_path_for_branch(branch: str) -> str | None:
-    """Return the worktree path currently checking out ``branch``, if any."""
+    """Return another worktree path currently checking out ``branch``, if any."""
+    current = run(["git", "rev-parse", "--show-toplevel"], check=False)
+    current_path = os.path.realpath(current.stdout.strip()) if current.returncode == 0 else None
+
     result = run(["git", "worktree", "list", "--porcelain"], check=False)
     if result.returncode != 0:
         return None
 
-    current_path = None
+    listed_path = None
     expected_ref = f"refs/heads/{branch}"
     for raw in result.stdout.splitlines():
         line = raw.strip()
         if line.startswith("worktree "):
-            current_path = line[len("worktree "):]
+            listed_path = line[len("worktree "):]
             continue
-        if line == f"branch {expected_ref}" and current_path:
-            return current_path
+        if line == f"branch {expected_ref}" and listed_path:
+            if current_path and os.path.realpath(listed_path) == current_path:
+                continue
+            return listed_path
     return None
 
 
@@ -401,13 +425,12 @@ def _try_pop_stash(task_id: int) -> None:
         print(pop.stderr.strip(), file=sys.stderr)
 
 
-def _drop_branch_auto_stash(task_id: int) -> None:
-    """Drop the leftover ``tusk-branch: auto-stash for TASK-<id>`` stash, if any.
+def _warn_branch_auto_stash(task_id: int) -> None:
+    """Warn about a leftover ``tusk-branch: auto-stash for TASK-<id>`` stash.
 
     Created by ``tusk branch <id>`` when the working tree was dirty at task-start
-    time — by definition unrelated to this task's work, so dropping on a
-    successful merge prevents the stash list from accumulating orphans (issue #644).
-    Silent when no matching entry exists.
+    time. The stash often contains pre-existing user WIP, so merge/abandon must
+    never drop it silently. Silent when no matching entry exists.
     """
     stash_index: int | None = None
     for index, entry_task_id in iter_branch_auto_stashes(runner=run):
@@ -418,7 +441,13 @@ def _drop_branch_auto_stash(task_id: int) -> None:
     if stash_index is None:
         return
 
-    run(["git", "stash", "drop", f"stash@{{{stash_index}}}"], check=False)
+    stash_ref = f"stash@{{{stash_index}}}"
+    print(
+        f"Warning: preserved tusk branch auto-stash for TASK-{task_id} at {stash_ref}.\n"
+        f"  Restore it with: git stash pop {stash_ref}\n"
+        f"  Remove it with: git stash drop {stash_ref}",
+        file=sys.stderr,
+    )
 
 
 def detect_default_branch() -> str:
@@ -521,9 +550,8 @@ def _close_completed_task(
     # chosen to ship the merge, so implicit --force on close is consistent with
     # that decision (issue #582; mirrors the auto-complete path's TASK-200 fix).
     print(f"Closing task {task_id}...", file=sys.stderr)
-    result = run(
-        [tusk_bin, "task-done", str(task_id), "--reason", "completed", "--force"],
-        check=False,
+    result = _run_tusk_subcommand(
+        tusk_bin, ["task-done", str(task_id), "--reason", "completed", "--force"]
     )
     if result.returncode != 0:
         if result.returncode == 2 and f"task {task_id} not found" in result.stderr.lower():
@@ -660,6 +688,47 @@ def _complete_no_checkout_fast_forward(
                     file=sys.stderr,
                 )
                 return 2
+    else:
+        fetch_result = run(["git", "fetch", "origin"], check=False)
+        if fetch_result.returncode == 0:
+            base_check = run(
+                [
+                    "git",
+                    "merge-base",
+                    "--is-ancestor",
+                    f"origin/{default_branch}",
+                    branch_name,
+                ],
+                check=False,
+            )
+            if base_check.returncode != 0:
+                print(
+                    f"Error: origin/{default_branch} has commits not reachable from "
+                    f"{branch_name}; refusing the no-checkout fast-forward push "
+                    "before the remote rejects it.\n"
+                    "To resolve:\n"
+                    f"  tusk merge {task_id} --session {session_id} --rebase",
+                    file=sys.stderr,
+                )
+                if did_stash:
+                    _try_pop_stash(task_id)
+                return 2
+        elif _is_remote_unreachable(fetch_result.stderr):
+            print(
+                f"Warning: could not reach origin before no-checkout freshness "
+                f"check — attempting push with local state.\n"
+                f"  {fetch_result.stderr.strip()}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"Error: git fetch origin failed before no-checkout fast-forward push:\n"
+                f"{fetch_result.stderr.strip()}",
+                file=sys.stderr,
+            )
+            if did_stash:
+                _try_pop_stash(task_id)
+            return 2
     result = run(["git", "push", "origin", f"{branch_name}:{default_branch}"], check=False)
     if result.returncode != 0:
         print(
@@ -685,10 +754,11 @@ def _complete_no_checkout_fast_forward(
         "worktree.",
         file=sys.stderr,
     )
+    _delete_remote_feature_branch_if_tracking(branch_name)
     if not session_was_closed:
         checkpoint_wal(db_path)
         print(f"Closing session {session_id}...", file=sys.stderr)
-        result = run([tusk_bin, "session-close", str(session_id)], check=False)
+        result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
         session_was_closed = result.returncode == 0
         if result.returncode != 0:
             if "already closed" in result.stderr:
@@ -712,7 +782,7 @@ def _complete_no_checkout_fast_forward(
                 return 2
     if did_stash:
         _try_pop_stash(task_id)
-    _drop_branch_auto_stash(task_id)
+    _warn_branch_auto_stash(task_id)
     return _close_completed_task(tusk_bin, task_id, db_path, session_was_closed)
 
 
@@ -748,6 +818,38 @@ def _branch_exists(branch_name: str) -> bool:
         check=False,
     )
     return result.returncode == 0
+
+
+def _delete_remote_feature_branch_if_tracking(branch_name: str) -> None:
+    """Delete origin/<branch_name> when the local branch tracks that exact ref."""
+    remote = run(
+        ["git", "config", "--get", f"branch.{branch_name}.remote"],
+        check=False,
+    )
+    if remote.returncode != 0 or remote.stdout.strip() != "origin":
+        return
+
+    merge_ref = run(
+        ["git", "config", "--get", f"branch.{branch_name}.merge"],
+        check=False,
+    )
+    if merge_ref.returncode != 0:
+        return
+    if merge_ref.stdout.strip() != f"refs/heads/{branch_name}":
+        return
+
+    result = run(["git", "push", "origin", "--delete", branch_name], check=False)
+    if result.returncode == 0:
+        print(
+            f"Deleted remote feature branch origin/{branch_name}.",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"Warning: git push origin --delete {branch_name} failed:\n"
+            f"{result.stderr.strip()}",
+            file=sys.stderr,
+        )
 
 
 def _remove_recorded_task_worktree(
@@ -921,7 +1023,7 @@ def _autodetect_session(
                     "the exact path) to prevent this in future.",
                     file=sys.stderr,
                 )
-                result = run([tusk_bin, "task-start", str(task_id), "--force"], check=False)
+                result = _run_tusk_subcommand(tusk_bin, ["task-start", str(task_id), "--force"])
                 if result.returncode != 0:
                     print(
                         f"Error: Could not create synthetic session:\n{result.stderr.strip()}\n\n"
@@ -1123,7 +1225,7 @@ def main(argv: list[str]) -> int:
         )
         checkpoint_wal(_db_path)
         print(f"Closing session {session_id}...", file=sys.stderr)
-        result = run([tusk_bin, "session-close", str(session_id)], check=False)
+        result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
         session_was_closed = result.returncode == 0
         if result.returncode != 0:
             if "already closed" in result.stderr or "No session found" in result.stderr:
@@ -1151,9 +1253,8 @@ def main(argv: list[str]) -> int:
         # without --force, would print a misleading "Error:" before the call
         # site retried with --force. Pass --force up front so task-done emits
         # "Warning:" instead — diagnostic preserved, no contradiction.
-        result = run(
-            [tusk_bin, "task-done", str(task_id), "--reason", "completed", "--force"],
-            check=False,
+        result = _run_tusk_subcommand(
+            tusk_bin, ["task-done", str(task_id), "--reason", "completed", "--force"]
         )
         if result.returncode != 0:
             print(f"Error: task-done failed:\n{result.stderr.strip()}", file=sys.stderr)
@@ -1174,6 +1275,40 @@ def main(argv: list[str]) -> int:
     if err:
         print(f"Error: {err}", file=sys.stderr)
         return 1
+
+    print(f"Found branch: {branch_name}", file=sys.stderr)
+
+    default_branch = None
+    has_origin = None
+    if not use_pr:
+        default_branch = detect_default_branch()
+        has_origin = _has_remote()
+        locked_default_path = _worktree_path_for_branch(default_branch)
+        if locked_default_path:
+            print(
+                f"Merging {branch_name} into {default_branch} (ff-only)...",
+                file=sys.stderr,
+            )
+            if not has_origin:
+                print(
+                    f"Error: git checkout {default_branch} would fail because the branch "
+                    f"is checked out in another worktree at '{locked_default_path}', and "
+                    "no git remote 'origin' is configured for a no-checkout "
+                    "fast-forward push.",
+                    file=sys.stderr,
+                )
+                return 2
+            return _complete_no_checkout_fast_forward(
+                branch_name=branch_name,
+                default_branch=default_branch,
+                task_id=task_id,
+                session_id=session_id,
+                tusk_bin=tusk_bin,
+                db_path=_db_path,
+                session_was_closed=False,
+                did_stash=False,
+                use_rebase=use_rebase,
+            )
 
     # Step 1b (local mode only): Auto-stash if working tree is dirty.
     # Only tracked modified/staged files are stashed; untracked files ("??")
@@ -1208,13 +1343,11 @@ def main(argv: list[str]) -> int:
                 return 1
             did_stash = "No local changes to save" not in stash.stdout
 
-    print(f"Found branch: {branch_name}", file=sys.stderr)
-
-    default_branch = None
-    has_origin = None
     if not use_pr:
-        default_branch = detect_default_branch()
-        has_origin = _has_remote()
+        if default_branch is None:
+            default_branch = detect_default_branch()
+        if has_origin is None:
+            has_origin = _has_remote()
         locked_default_path = _worktree_path_for_branch(default_branch)
         if locked_default_path:
             print(
@@ -1253,7 +1386,7 @@ def main(argv: list[str]) -> int:
     checkpoint_wal(_db_path)
 
     print(f"Closing session {session_id}...", file=sys.stderr)
-    result = run([tusk_bin, "session-close", str(session_id)], check=False)
+    result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
     session_was_closed = result.returncode == 0
     if result.returncode != 0:
         if "already closed" in result.stderr:
@@ -1689,6 +1822,8 @@ def main(argv: list[str]) -> int:
                 "Warning: no git remote 'origin' configured — skipping push.",
                 file=sys.stderr,
             )
+        if has_origin:
+            _delete_remote_feature_branch_if_tracking(branch_name)
 
         # Step 6: Delete feature branch
         if not _remove_recorded_task_worktree(
@@ -1711,11 +1846,11 @@ def main(argv: list[str]) -> int:
         if did_stash:
             _try_pop_stash(task_id)
 
-    # Drop any leftover `tusk-branch: auto-stash for TASK-<id>` entry created
+    # Warn about any leftover `tusk-branch: auto-stash for TASK-<id>` entry created
     # during a prior `tusk branch <id>` invocation when the working tree was
-    # dirty. By definition unrelated to this task's work, so safe to drop on
-    # successful merge — see issue #644.
-    _drop_branch_auto_stash(task_id)
+    # dirty. It can contain pre-existing user WIP, so preserve it and surface
+    # explicit manual restore/drop commands.
+    _warn_branch_auto_stash(task_id)
 
     return _close_completed_task(tusk_bin, task_id, _db_path, session_was_closed)
 
