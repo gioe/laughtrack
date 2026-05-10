@@ -809,9 +809,9 @@ private struct HomeTrendingComediansRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Upcoming after tonight",
-                title: "Comics drawing crowds later",
-                subtitle: "Photo-backed performers with upcoming shows."
+                eyebrow: "Trending comedians",
+                title: "Comedians drawing crowds these days",
+                subtitle: nil
             )
             // Anchoring the rail's test identifier on the shelf header — not the
             // inner VStack — keeps it from propagating to the combined-children
@@ -1054,9 +1054,9 @@ private struct HomePopularClubsRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Clubs",
-                title: "Clubs drawing crowds",
-                subtitle: "Venues with active comedians in the feed."
+                eyebrow: "Popular local clubs",
+                title: "Go where the crowds are",
+                subtitle: nil
             )
             // Anchoring the rail's test identifier on the shelf header — not the
             // inner VStack — keeps it from propagating to the combined-children
@@ -1127,24 +1127,12 @@ private struct HomePopularClubCard: View {
         HStack(alignment: .center, spacing: theme.spacing.sm) {
             artwork
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(club.name)
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                Text(club.zipCode.map { "ZIP \($0)" } ?? club.address)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-
-                Text(activeComediansText)
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text(club.name)
+                .font(laughTrack.typography.body.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1152,7 +1140,7 @@ private struct HomePopularClubCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(club.name), \(activeComediansText)")
+        .accessibilityLabel(club.name)
     }
 
     @ViewBuilder
@@ -1194,9 +1182,6 @@ private struct HomePopularClubCard: View {
             .frame(width: 84, height: 64)
     }
 
-    private var activeComediansText: String {
-        "\(club.activeComedianCount) active comedian\(club.activeComedianCount == 1 ? "" : "s")"
-    }
 }
 
 @MainActor

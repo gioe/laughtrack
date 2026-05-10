@@ -13,12 +13,21 @@ struct DetailHeroAction {
     let url: URL?
 }
 
+struct DetailHeroFavoriteState {
+    let isFavorite: Bool
+    let isPending: Bool
+    let action: () async -> Void
+}
+
 enum DetailHeroLayout {
     static let imageAspectRatio: CGFloat = 1.55
     static let maximumMediaHeight: CGFloat = 280
     static let actionDiameter: CGFloat = 40
     static let actionLabelVerticalGap: CGFloat = 2
     static let contentSpacingWithActions: CGFloat = 8
+    static let favoriteOverlayDiameter: CGFloat = 44
+    static let favoriteOverlayTopPadding: CGFloat = 60
+    static let favoriteOverlayTrailingPadding: CGFloat = 16
 
     static func mediaHeight(forWidth width: CGFloat) -> CGFloat {
         min(width / imageAspectRatio, maximumMediaHeight)
@@ -34,6 +43,7 @@ struct DetailHero: View {
     let badges: [DetailHeroBadge]
     var actions: [DetailHeroAction] = []
     var openURL: ((URL) -> Void)?
+    var favoriteState: DetailHeroFavoriteState? = nil
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -118,5 +128,49 @@ struct DetailHero: View {
         }
         .frame(height: DetailHeroLayout.maximumMediaHeight)
         .clipped()
+        .overlay(alignment: .topTrailing) {
+            if let favoriteState {
+                FavoriteHeroOverlayButton(state: favoriteState)
+                    .padding(.top, DetailHeroLayout.favoriteOverlayTopPadding)
+                    .padding(.trailing, DetailHeroLayout.favoriteOverlayTrailingPadding)
+            }
+        }
+    }
+}
+
+private struct FavoriteHeroOverlayButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let state: DetailHeroFavoriteState
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button {
+            Task { await state.action() }
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(laughTrack.colors.surface.opacity(0.94))
+                    .overlay(
+                        Circle()
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
+
+                if state.isPending {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(laughTrack.colors.accent)
+                } else {
+                    Image(systemName: state.isFavorite ? "heart.fill" : "heart")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(state.isFavorite ? laughTrack.colors.accentStrong : laughTrack.colors.textPrimary)
+                }
+            }
+            .frame(width: DetailHeroLayout.favoriteOverlayDiameter, height: DetailHeroLayout.favoriteOverlayDiameter)
+        }
+        .buttonStyle(.plain)
+        .disabled(state.isPending)
+        .accessibilityLabel(state.isFavorite ? "Remove favorite" : "Add favorite")
     }
 }

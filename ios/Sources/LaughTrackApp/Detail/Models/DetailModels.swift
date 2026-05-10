@@ -114,7 +114,7 @@ struct ClubDetailContent: Hashable {
 
 @MainActor
 final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
-    private static let pageSize = 8
+    private static let pageSize = 100
     let comedianID: Int
 
     init(comedianID: Int) {

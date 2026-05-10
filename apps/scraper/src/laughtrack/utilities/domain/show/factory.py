@@ -72,6 +72,10 @@ _LINEUP_NAME_BLOCKLIST = frozenset({
     "plus more",
     "and more",
     "more",
+    # Show / event titles mistakenly emitted as performer names
+    "next gen comics",
+    "mother's day",
+    "mothers day",
     # Music genre labels (false-positive comedians from scraper output)
     "rap",
     "r&b",

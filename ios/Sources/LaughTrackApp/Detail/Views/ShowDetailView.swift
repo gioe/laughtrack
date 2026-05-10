@@ -25,11 +25,12 @@ struct ShowDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
+        Group {
             switch model.phase {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -37,49 +38,53 @@ struct ShowDetailView: View {
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let response):
                 let show = response.data
-                VStack(alignment: .leading, spacing: 0) {
-                    DetailHero(
-                        title: ShowTitlePresentation.title(for: show),
-                        subtitle: ShowFormatting.detailDate(show.date, timezoneID: show.timezone),
-                        imageURL: show.imageUrl,
-                        badges: ShowDetailPresentation.heroBadges(for: show)
-                    )
-                    .ignoresSafeArea(.container, edges: .top)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        DetailHero(
+                            title: ShowTitlePresentation.title(for: show),
+                            subtitle: nil,
+                            imageURL: show.imageUrl,
+                            badges: ShowDetailPresentation.heroBadges(for: show)
+                        )
+                        .ignoresSafeArea(.container, edges: .top)
 
-                    VStack(alignment: .leading, spacing: 20) {
-                        ShowSummarySection(show: show, openClub: {
-                            coordinator.open(.club(show.club.id))
-                        }, openTicketURL: { url in
-                            openURL(url)
-                        }, addToCalendar: {
-                            Task {
-                                feedbackMessage = await calendarWriter.add(show)
+                        VStack(alignment: .leading, spacing: 20) {
+                            ShowSummarySection(show: show, openClub: {
+                                coordinator.open(.club(show.club.id))
+                            }, openTicketURL: { url in
+                                openURL(url)
+                            }, addToCalendar: {
+                                Task {
+                                    feedbackMessage = await calendarWriter.add(show)
+                                }
+                            })
+
+                            if
+                                ShowDetailPresentation.shouldShowEditorNote(for: show),
+                                let description = show.description,
+                                !description.isEmpty
+                            {
+                                DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
                             }
-                        })
 
-                        if
-                            ShowDetailPresentation.shouldShowEditorNote(for: show),
-                            let description = show.description,
-                            !description.isEmpty
-                        {
-                            DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
-                        }
+                            ShowLineupSection(
+                                lineup: show.lineup ?? [],
+                                apiClient: apiClient,
+                                feedbackMessage: $feedbackMessage
+                            ) { comedian in
+                                coordinator.open(.comedian(comedian.id))
+                            }
 
-                        ShowLineupSection(
-                            lineup: show.lineup ?? [],
-                            apiClient: apiClient,
-                            feedbackMessage: $feedbackMessage
-                        ) { comedian in
-                            coordinator.open(.comedian(comedian.id))
+                            RelatedShowsSection(relatedShows: response.relatedShows) { related in
+                                coordinator.open(.show(related.id))
+                            }
                         }
-
-                        RelatedShowsSection(relatedShows: response.relatedShows) { related in
-                            coordinator.open(.show(related.id))
-                        }
+                        .padding(.horizontal, theme.spacing.lg * 2)
+                        .padding(.vertical, theme.spacing.lg)
                     }
-                    .padding()
                 }
             }
         }
@@ -181,24 +186,14 @@ private struct ShowSummarySection: View {
     let openTicketURL: (URL) -> Void
     let addToCalendar: () -> Void
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
-    ]
-
     var body: some View {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
         let ticketURL = ShowDetailPresentation.primaryTicketURL(for: show)
 
         LaughTrackCard {
-            VStack(alignment: .leading, spacing: 14) {
-                LaughTrackSectionHeader(
-                    eyebrow: "Show details",
-                    title: "Plan your night"
-                )
-
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
-                    ForEach(facts, id: \.label) { fact in
+            VStack(spacing: 0) {
+                ForEach(Array(facts.enumerated()), id: \.element.label) { index, fact in
+                    Group {
                         if fact.label == "When" {
                             Button(action: addToCalendar) {
                                 ShowSummaryFactTile(
@@ -232,6 +227,11 @@ private struct ShowSummarySection: View {
                             ShowSummaryFactTile(fact: fact)
                         }
                     }
+
+                    if index < facts.count - 1 {
+                        Divider()
+                            .padding(.leading, 50)
+                    }
                 }
             }
         }
@@ -253,38 +253,46 @@ private struct ShowSummaryFactTile: View {
         let laughTrack = theme.laughTrackTokens
         let isActionable = action != nil
 
-        VStack(alignment: .leading, spacing: 4) {
-            Text(fact.label)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .textCase(.uppercase)
-            Text(fact.value)
-                .font(laughTrack.typography.body.weight(.semibold))
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                Image(systemName: leadingSymbol)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+            .frame(width: 36, height: 36)
 
-            if let action {
-                HStack(spacing: 6) {
-                    Image(systemName: action.systemImage)
-                        .font(.system(size: 13, weight: .semibold))
-                    Text(action.label)
-                        .font(laughTrack.typography.metadata.weight(.semibold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 12, weight: .bold))
-                }
-                .foregroundStyle(laughTrack.colors.accentStrong)
-                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(fact.label)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
+                Text(fact.value)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if isActionable {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.textSecondary)
             }
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-        .background(isActionable ? laughTrack.colors.surfaceElevated : laughTrack.colors.surfaceMuted)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isActionable ? laughTrack.colors.accentStrong.opacity(0.45) : laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .shadow(color: isActionable ? .black.opacity(0.08) : .clear, radius: 10, x: 0, y: 5)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private var leadingSymbol: String {
+        switch fact.label {
+        case "When": return "calendar"
+        case "Tickets": return "ticket.fill"
+        case "Venue": return "building.2.fill"
+        default: return "info.circle"
+        }
     }
 }
 
@@ -383,11 +391,7 @@ private struct ShowLineupSection: View {
     var body: some View {
         LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(
-                    eyebrow: "Lineup",
-                    title: "Tonight’s bill",
-                    subtitle: "Tap a comic to see their upcoming shows."
-                )
+                LaughTrackSectionHeader(title: "Lineup")
 
                 if lineup.isEmpty {
                     EmptyCard(message: "Lineup details are not available yet.")
@@ -414,9 +418,8 @@ private struct RelatedShowsSection: View {
         LaughTrackCard(tone: .muted) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(
-                    eyebrow: "Keep browsing",
-                    title: "Related shows",
-                    subtitle: "More shows you might like."
+                    title: "Can’t Make It?",
+                    subtitle: "Here are some more shows you might like"
                 )
 
                 if relatedShows.isEmpty {

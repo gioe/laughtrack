@@ -13,6 +13,14 @@ export interface FindShowByIdResult {
 
 export async function findShowById(id: number): Promise<FindShowByIdResult> {
     try {
+        const upcomingShowsCount = {
+            select: {
+                lineupItems: {
+                    where: { show: { date: { gt: new Date() } } },
+                },
+            },
+        } as const;
+
         const row = await db.show.findUnique({
             where: { id },
             select: {
@@ -55,12 +63,14 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                                 uuid: true,
                                 name: true,
                                 hasImage: true,
+                                _count: upcomingShowsCount,
                                 parentComedian: {
                                     select: {
                                         id: true,
                                         uuid: true,
                                         name: true,
                                         hasImage: true,
+                                        _count: upcomingShowsCount,
                                         taggedComedians: {
                                             select: { tag: true },
                                         },

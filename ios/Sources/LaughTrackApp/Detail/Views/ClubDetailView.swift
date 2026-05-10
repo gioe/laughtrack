@@ -23,11 +23,12 @@ struct ClubDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
+        Group {
             switch model.phase {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -35,9 +36,11 @@ struct ClubDetailView: View {
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
-                VStack(alignment: .leading, spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
                         title: club.name,
                         subtitle: ClubDetailHeroPresentation.subtitle(
@@ -60,7 +63,9 @@ struct ClubDetailView: View {
                             nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                         )
                     }
-                    .padding()
+                    .padding(.horizontal, theme.spacing.lg * 2)
+                    .padding(.vertical, theme.spacing.lg)
+                    }
                 }
             }
         }
