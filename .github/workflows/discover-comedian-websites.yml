@@ -68,6 +68,16 @@ jobs:
         run: |
           python -m scripts.core.discover_scraping_urls --limit 100 --include-homepage
 
+      - name: Scrape comedian website tour pages
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          python -m scripts.core.scrape_comedian_websites --all --limit 200 -v
+
       - name: Discover widget IDs
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
