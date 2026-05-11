@@ -78,6 +78,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /comedians/{id}`.
     /// - Remark: Generated from `#/paths//comedians/{id}/get(getComedian)`.
     func getComedian(_ input: Operations.GetComedian.Input) async throws -> Operations.GetComedian.Output
+    /// List upcoming show runs for a comedian
+    ///
+    /// Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/upcoming-runs`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)`.
+    func getComedianUpcomingRuns(_ input: Operations.GetComedianUpcomingRuns.Input) async throws -> Operations.GetComedianUpcomingRuns.Output
     /// List comedians who have recently shared bills with a comedian
     ///
     /// - Remark: HTTP `GET /comedians/{id}/co-bill`.
@@ -273,6 +280,23 @@ extension APIProtocol {
     ) async throws -> Operations.GetComedian.Output {
         try await getComedian(Operations.GetComedian.Input(
             path: path,
+            headers: headers
+        ))
+    }
+    /// List upcoming show runs for a comedian
+    ///
+    /// Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/upcoming-runs`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)`.
+    public func getComedianUpcomingRuns(
+        path: Operations.GetComedianUpcomingRuns.Input.Path,
+        query: Operations.GetComedianUpcomingRuns.Input.Query = .init(),
+        headers: Operations.GetComedianUpcomingRuns.Input.Headers = .init()
+    ) async throws -> Operations.GetComedianUpcomingRuns.Output {
+        try await getComedianUpcomingRuns(Operations.GetComedianUpcomingRuns.Input(
+            path: path,
+            query: query,
             headers: headers
         ))
     }
@@ -1265,6 +1289,40 @@ public enum Components {
                 case total
                 case filters
                 case zipCapTriggered
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/UpcomingRun`.
+        public struct UpcomingRun: Codable, Hashable, Sendable {
+            public var clubID: Swift.Int
+            public var clubName: Swift.String
+            public var clubImageUrl: Swift.String
+            public var shows: [Components.Schemas.Show]
+            public init(
+                clubID: Swift.Int,
+                clubName: Swift.String,
+                clubImageUrl: Swift.String,
+                shows: [Components.Schemas.Show]
+            ) {
+                self.clubID = clubID
+                self.clubName = clubName
+                self.clubImageUrl = clubImageUrl
+                self.shows = shows
+            }
+            public enum CodingKeys: String, CodingKey {
+                case clubID
+                case clubName
+                case clubImageUrl
+                case shows
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/UpcomingRunResponse`.
+        public struct UpcomingRunResponse: Codable, Hashable, Sendable {
+            public var data: [Components.Schemas.UpcomingRun]
+            public init(data: [Components.Schemas.UpcomingRun]) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
             }
         }
         /// - Remark: Generated from `#/components/schemas/ShowDetailClub`.
@@ -5358,6 +5416,109 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// List upcoming show runs for a comedian
+    ///
+    /// Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/upcoming-runs`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)`.
+    public enum GetComedianUpcomingRuns {
+        public static let id: Swift.String = "getComedianUpcomingRuns"
+        public struct Input: Sendable, Hashable {
+            public struct Path: Sendable, Hashable {
+                public var id: Swift.Int
+                public init(id: Swift.Int) { self.id = id }
+            }
+            public var path: Operations.GetComedianUpcomingRuns.Input.Path
+            public struct Query: Sendable, Hashable {
+                public var club: Swift.String?
+                public var location: Swift.String?
+                public var date: Swift.String?
+                public init(club: Swift.String? = nil, location: Swift.String? = nil, date: Swift.String? = nil) {
+                    self.club = club
+                    self.location = location
+                    self.date = date
+                }
+            }
+            public var query: Operations.GetComedianUpcomingRuns.Input.Query
+            public struct Headers: Sendable, Hashable {
+                public var xTimezone: Swift.String?
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianUpcomingRuns.AcceptableContentType>]
+                public init(xTimezone: Swift.String? = nil, accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianUpcomingRuns.AcceptableContentType>] = .defaultValues()) {
+                    self.xTimezone = xTimezone
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetComedianUpcomingRuns.Input.Headers
+            public init(path: Operations.GetComedianUpcomingRuns.Input.Path, query: Operations.GetComedianUpcomingRuns.Input.Query = .init(), headers: Operations.GetComedianUpcomingRuns.Input.Headers = .init()) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.UpcomingRunResponse)
+                    public var json: Components.Schemas.UpcomingRunResponse { get throws { switch self { case let .json(body): return body } } }
+                }
+                public var body: Operations.GetComedianUpcomingRuns.Output.Ok.Body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.Ok.Body) { self.body = body }
+            }
+            case ok(Operations.GetComedianUpcomingRuns.Output.Ok)
+            public var ok: Operations.GetComedianUpcomingRuns.Output.Ok { get throws { switch self { case let .ok(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "ok", response: self) } } }
+            public struct BadRequest: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+                }
+                public var body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body) { self.body = body }
+            }
+            case badRequest(Operations.GetComedianUpcomingRuns.Output.BadRequest)
+            public var badRequest: Operations.GetComedianUpcomingRuns.Output.BadRequest { get throws { switch self { case let .badRequest(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "badRequest", response: self) } } }
+            public struct TooManyRequests: Sendable, Hashable {
+                public struct Headers: Sendable, Hashable {
+                    public var retryAfter: Swift.Int?
+                    public init(retryAfter: Swift.Int? = nil) { self.retryAfter = retryAfter }
+                }
+                public var headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+                }
+                public var body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body
+                public init(headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers = .init(), body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            case tooManyRequests(Operations.GetComedianUpcomingRuns.Output.TooManyRequests)
+            public var tooManyRequests: Operations.GetComedianUpcomingRuns.Output.TooManyRequests { get throws { switch self { case let .tooManyRequests(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "tooManyRequests", response: self) } } }
+            public struct InternalServerError: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+                }
+                public var body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body) { self.body = body }
+            }
+            case internalServerError(Operations.GetComedianUpcomingRuns.Output.InternalServerError)
+            public var internalServerError: Operations.GetComedianUpcomingRuns.Output.InternalServerError { get throws { switch self { case let .internalServerError(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "internalServerError", response: self) } } }
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() { case "application/json": self = .json; default: self = .other(rawValue) }
+            }
+            public var rawValue: Swift.String {
+                switch self { case let .other(string): return string; case .json: return "application/json" }
+            }
+            public static var allCases: [Self] { [.json] }
         }
     }
     /// List comedians who have recently shared bills with a comedian

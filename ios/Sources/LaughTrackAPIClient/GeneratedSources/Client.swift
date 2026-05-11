@@ -1619,6 +1619,134 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// List upcoming show runs for a comedian
+    ///
+    /// Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.
+    ///
+    /// - Remark: HTTP `GET /comedians/{id}/upcoming-runs`.
+    /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)`.
+    public func getComedianUpcomingRuns(_ input: Operations.GetComedianUpcomingRuns.Input) async throws -> Operations.GetComedianUpcomingRuns.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.GetComedianUpcomingRuns.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/comedians/{}/upcoming-runs",
+                    parameters: [
+                        input.path.id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "club",
+                    value: input.query.club
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "location",
+                    value: input.query.location
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "date",
+                    value: input.query.date
+                )
+                try converter.setHeaderFieldAsURI(
+                    in: &request.headerFields,
+                    name: "X-Timezone",
+                    value: input.headers.xTimezone
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetComedianUpcomingRuns.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.UpcomingRunResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                case 400:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .badRequest(.init(body: body))
+                case 429:
+                    let headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .tooManyRequests(.init(headers: headers, body: body))
+                case 500:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .internalServerError(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// List comedians who have recently shared bills with a comedian
     ///
     /// - Remark: HTTP `GET /comedians/{id}/co-bill`.

@@ -661,6 +661,87 @@
         }
       }
     },
+    "/comedians/{id}/upcoming-runs": {
+      "get": {
+        "operationId": "getComedianUpcomingRuns",
+        "summary": "List upcoming show runs for a comedian",
+        "description": "Returns upcoming shows grouped into consecutive same-club runs, ordered by first show date ascending.",
+        "tags": ["comedians"],
+        "security": [{ "bearerAuth": [] }, {}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "club",
+            "in": "query",
+            "description": "Optional club-name filter",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "Optional venue location filter",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "Optional show date in YYYY-MM-DD format",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upcoming runs for the comedian",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UpcomingRunResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id, date, or X-Timezone",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/comedians/{id}/co-bill": {
       "get": {
         "operationId": "getComedianCoBill",
@@ -1758,6 +1839,29 @@
             "items": { "$ref": "#/components/schemas/Filter" }
           },
           "zipCapTriggered": { "type": "boolean" }
+        }
+      },
+      "UpcomingRun": {
+        "type": "object",
+        "required": ["clubID", "clubName", "clubImageUrl", "shows"],
+        "properties": {
+          "clubID": { "type": "integer" },
+          "clubName": { "type": "string" },
+          "clubImageUrl": { "type": "string" },
+          "shows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          }
+        }
+      },
+      "UpcomingRunResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/UpcomingRun" }
+          }
         }
       },
       "ShowDetailClub": {
