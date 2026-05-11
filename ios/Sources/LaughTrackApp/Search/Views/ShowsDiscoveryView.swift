@@ -343,25 +343,17 @@ private struct DateRangeFilterModal: View {
                 }
 
                 ScrollView {
-                    VStack(spacing: theme.spacing.md) {
-                        DatePicker(
-                            "From",
-                            selection: $model.fromDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-
-                        DatePicker(
-                            "To",
-                            selection: Binding(
+                    MonthCalendarView(
+                        selection: .range(
+                            start: $model.fromDate,
+                            end: Binding(
                                 get: { max(model.toDate, model.fromDate) },
                                 set: { model.toDate = max($0, model.fromDate) }
-                            ),
-                            in: model.fromDate...,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-                    }
+                            )
+                        ),
+                        minimumDate: Calendar.current.startOfDay(for: Date())
+                    )
+                    .padding(.horizontal, theme.spacing.xs)
                 }
                 .font(laughTrack.typography.body)
                 .frame(maxHeight: 430)
