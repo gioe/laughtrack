@@ -38,7 +38,7 @@ struct ComedianDetailView: View {
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
-                    retry: { await model.reload(apiClient: apiClient, favorites: favorites) },
+                    retry: { await model.reload(apiClient: apiClient, favorites: favorites, runFilters: activeRunFilters) },
                     signIn: { coordinator.push(.profile) }
                 )
                 .padding()
