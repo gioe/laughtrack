@@ -78,7 +78,8 @@ struct ComedianDetailView: View {
                                     searchText: $searchText,
                                     locationFilterText: $locationFilterText,
                                     useDateFilter: $useDateFilter,
-                                    dateFilter: $dateFilter
+                                    dateFilter: $dateFilter,
+                                    showsByDate: Self.showsByDate(content.upcomingRuns)
                                 )
 
                                 if content.upcomingRuns.isEmpty {
@@ -161,6 +162,18 @@ struct ComedianDetailView: View {
         case "Linktree": return "link"
         default: return "link"
         }
+    }
+
+    static func showsByDate(_ runs: [Components.Schemas.UpcomingRun]) -> [Date: Int] {
+        let calendar = Calendar.current
+        var counts: [Date: Int] = [:]
+        for run in runs {
+            for show in run.shows {
+                let day = calendar.startOfDay(for: show.date)
+                counts[day, default: 0] += 1
+            }
+        }
+        return counts
     }
 
     private var activeRunFilters: ComedianRunFilters {
@@ -333,6 +346,7 @@ private struct UpcomingShowsFilterPanel: View {
     @Binding var locationFilterText: String
     @Binding var useDateFilter: Bool
     @Binding var dateFilter: Date
+    let showsByDate: [Date: Int]
 
     @State private var isLocationEditorPresented = false
     @State private var isDateEditorPresented = false
@@ -374,10 +388,12 @@ private struct UpcomingShowsFilterPanel: View {
             UpcomingShowsLocationEditor(text: $locationFilterText, isPresented: $isLocationEditorPresented)
         }
         .sheet(isPresented: $isDateEditorPresented) {
-            UpcomingShowsDateEditor(
-                useDateFilter: $useDateFilter,
+            JumpToDateSheet(
                 date: $dateFilter,
-                isPresented: $isDateEditorPresented
+                isPresented: $isDateEditorPresented,
+                showsByDate: showsByDate,
+                onApply: { _ in useDateFilter = true },
+                onClear: { useDateFilter = false }
             )
         }
     }
@@ -421,48 +437,6 @@ private struct UpcomingShowsLocationEditor: View {
             }
         }
         .onAppear { draft = text }
-    }
-}
-
-private struct UpcomingShowsDateEditor: View {
-    @Binding var useDateFilter: Bool
-    @Binding var date: Date
-    @Binding var isPresented: Bool
-    @State private var draftEnabled: Bool = false
-    @State private var draftDate: Date = Date()
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Toggle("Filter by date", isOn: $draftEnabled)
-                    if draftEnabled {
-                        DatePicker("Date", selection: $draftDate, displayedComponents: .date)
-                            .datePickerStyle(.graphical)
-                    }
-                }
-            }
-            .navigationTitle("Date")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Clear") {
-                        useDateFilter = false
-                        isPresented = false
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        useDateFilter = draftEnabled
-                        date = draftDate
-                        isPresented = false
-                    }
-                }
-            }
-        }
-        .onAppear {
-            draftEnabled = useDateFilter
-            draftDate = date
-        }
     }
 }
 
