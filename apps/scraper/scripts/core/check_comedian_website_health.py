@@ -16,6 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Optional
 
+from psycopg2.extras import RealDictCursor
+
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
@@ -166,7 +168,10 @@ async def _fetch_url(session: Any, url: str, timeout: int) -> URLHealthResult:
     try:
         response = await session.get(url, timeout=timeout, impersonate="chrome", allow_redirects=True)
     except TypeError:
-        response = await session.get(url, timeout=timeout, allow_redirects=True)
+        try:
+            response = await session.get(url, timeout=timeout, allow_redirects=True)
+        except BaseException as exc:
+            return classify_fetch_exception(exc)
     except BaseException as exc:
         return classify_fetch_exception(exc)
     return classify_health_response(response, url)
@@ -195,7 +200,7 @@ async def run_health_check(
         close_session = True
 
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
             query = _GET_COMEDIAN_URL_TARGETS
             params: tuple[Any, ...] | None = None
             if limit:

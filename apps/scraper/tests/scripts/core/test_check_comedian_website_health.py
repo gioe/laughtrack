@@ -59,7 +59,7 @@ class _FakeConnection:
         self.cursor_obj = _FakeCursor(rows)
         self.commits = 0
 
-    def cursor(self):
+    def cursor(self, *_args, **_kwargs):
         return self.cursor_obj
 
     def commit(self) -> None:
