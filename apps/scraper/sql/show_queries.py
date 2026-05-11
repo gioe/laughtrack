@@ -44,6 +44,15 @@ class ShowQueries:
                 ELSE 'inserted'
             END AS operation_type
     '''
+
+    GET_SHOWS_BY_CLUB_DATE_NAME = '''
+        SELECT id, club_id, date, room, COALESCE(name, '') AS name
+        FROM shows
+        WHERE club_id = ANY(%s)
+          AND date = ANY(%s)
+          AND COALESCE(name, '') = ANY(%s)
+        ORDER BY id
+    '''
     
     BATCH_GET_LINEUP_POPULARITY = '''
         WITH lineup_details AS (

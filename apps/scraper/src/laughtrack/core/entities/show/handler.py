@@ -1,5 +1,6 @@
 """Show database handler for show-specific operations."""
 
+from datetime import timezone
 from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
@@ -160,6 +161,76 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         template = BatchTemplateGenerator.generate_dynamic_template(items)
         return items, template
 
+    def _normalize_cross_batch_key_date(self, date):
+        if date is not None and date.tzinfo is not None:
+            return date.astimezone(timezone.utc).replace(tzinfo=None)
+        return date
+
+    def _cross_batch_duplicate_key(self, club_id, date, name) -> tuple:
+        return (club_id, self._normalize_cross_batch_key_date(date), name or "")
+
+    def _canonical_cross_batch_room(self, existing_rows: list[DictRow], incoming_room: Optional[str]) -> Optional[str]:
+        rooms = [(row.get("room") or "") for row in existing_rows]
+        rooms.append(incoming_room or "")
+        non_empty_rooms = {
+            room.strip().casefold()
+            for room in rooms
+            if isinstance(room, str) and room.strip()
+        }
+        if len(non_empty_rooms) > 1:
+            return None
+
+        if existing_rows:
+            return existing_rows[0].get("room") or ""
+        return incoming_room or ""
+
+    def _collapse_cross_batch_duplicates(self, batch: List[Show]) -> int:
+        """Align incoming shows with compatible existing rows before the upsert.
+
+        The database unique key is (club_id, date, room), but cross-scraper
+        duplicates can describe the same show with the same name/time and
+        missing-vs-present room values. When existing and incoming room values
+        are compatible, rewrite the incoming room to the existing canonical room
+        so the normal upsert updates the existing row instead of inserting a
+        second physical show.
+        """
+        if not batch:
+            return 0
+
+        club_ids = sorted({show.club_id for show in batch})
+        dates = sorted({self._normalize_cross_batch_key_date(show.date) for show in batch if show.date is not None})
+        names = sorted({show.name or "" for show in batch})
+        if not club_ids or not dates or not names:
+            return 0
+
+        existing_rows = self.execute_with_cursor(
+            ShowQueries.GET_SHOWS_BY_CLUB_DATE_NAME,
+            (club_ids, dates, names),
+            return_results=True,
+        ) or []
+        if not existing_rows:
+            return 0
+
+        existing_by_key: dict[tuple, list[DictRow]] = {}
+        for row in existing_rows:
+            key = self._cross_batch_duplicate_key(row.get("club_id"), row.get("date"), row.get("name"))
+            existing_by_key.setdefault(key, []).append(row)
+
+        collapsed = 0
+        for show in batch:
+            key = self._cross_batch_duplicate_key(show.club_id, show.date, show.name)
+            existing_rows = existing_by_key.get(key, [])
+            canonical_room = self._canonical_cross_batch_room(existing_rows, show.room)
+            if canonical_room is not None and show.room != canonical_room:
+                show.room = canonical_room
+                collapsed += 1
+
+        if collapsed:
+            Logger.info(
+                f"Collapsed {collapsed} cross-batch duplicate shows onto existing rows by club/date/name"
+            )
+        return collapsed
+
     def _update_shows_and_related(
         self, batch: List[Show], results: List[DictRow]
     ) -> Tuple[List[Show], int, int]:
@@ -211,6 +282,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return DatabaseOperationResult(validation_errors=len(validation_errors))
 
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
+        self._collapse_cross_batch_duplicates(batch)
 
         # Insert shows and get results
         Logger.info(f"Processing batch of {len(batch)} shows")
