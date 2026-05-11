@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import types
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -111,6 +112,36 @@ def test_run_summary_counts_eligible_never_scraped_success_empty_and_errors():
     assert summary.empty == 1
     assert summary.errors == 1
     assert summary.venues_discovered == 2
+
+
+def test_platform_extractors_return_event_count_for_success_classification(monkeypatch):
+    scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
+    scraper._club = types.SimpleNamespace(name="Comedian Websites")
+    scraper.logger_context = {}
+
+    async def fake_extract_event_count(**_kwargs):
+        return 3
+
+    monkeypatch.setattr(
+        scraper_mod.SquarespaceExtractorForComedian,
+        "extract_event_count",
+        fake_extract_event_count,
+    )
+    monkeypatch.setattr(scraper, "_update_scrape_metadata", lambda *_args: None)
+    monkeypatch.setattr(scraper, "_update_scraping_url_confidence", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(scraper, "_update_confidence", lambda *_args, **_kwargs: None)
+
+    event_count = asyncio.run(
+        scraper._try_squarespace(
+            {"uuid": "comic"},
+            scraper_mod.Comedian(name="Tour Comic", uuid="comic"),
+            "https://comic.example/tour",
+            "https://comic.example",
+            "<html></html>",
+        )
+    )
+
+    assert event_count == 3
 
 
 def test_script_prints_operator_facing_run_summary(capsys):

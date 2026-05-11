@@ -212,7 +212,7 @@ class ComedianWebsiteScraper(BaseScraper):
                         return ComedianWebsiteScrapeOutcome(
                             comedian.name,
                             "success" if result else "empty",
-                            result,
+                            0,
                         )
                     # Fall through to JSON-LD if Squarespace extraction returned None
                     # (site doesn't have an events collection)
@@ -223,7 +223,7 @@ class ComedianWebsiteScraper(BaseScraper):
                         return ComedianWebsiteScrapeOutcome(
                             comedian.name,
                             "success" if result else "empty",
-                            result,
+                            0,
                         )
                     # Fall through to JSON-LD if Wix extraction returned None
                     # (site doesn't have an events widget)
@@ -320,7 +320,7 @@ class ComedianWebsiteScraper(BaseScraper):
                 f"{self._log_prefix}: {comedian.name} — {event_count} events via Squarespace API from {scraping_url}",
                 self.logger_context,
             )
-        return 0  # Squarespace personal sites lack venue data for upsert
+        return event_count  # Squarespace personal sites lack venue data for upsert
 
     async def _try_wix(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
@@ -347,7 +347,7 @@ class ComedianWebsiteScraper(BaseScraper):
                 f"{self._log_prefix}: {comedian.name} — {event_count} events via Wix Events API from {scraping_url}",
                 self.logger_context,
             )
-        return 0  # Wix personal sites lack venue data for upsert
+        return event_count  # Wix personal sites lack venue data for upsert
 
     async def _try_komi(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str,
