@@ -47,23 +47,39 @@ class DiscoveryResult:
     reason: str = ""
 
 
-# SQL: get comedians without websites, ordered by popularity DESC
-# Excludes comedians already marked as 'none_found' to avoid re-querying
+# SQL: get canonical comedians without websites, ordered by popularity DESC.
+# Excludes aliases, empty names, zero-show stubs, and records already marked as
+# 'none_found' to avoid spending search quota on non-meaningful candidates.
+_DISCOVERY_CANDIDATE_FILTER = """
+    (website IS NULL OR website = '')
+      AND parent_comedian_id IS NULL
+      AND total_shows > 0
+      AND NULLIF(BTRIM(name), '') IS NOT NULL
+      AND (website_discovery_source IS NULL OR website_discovery_source != 'none_found')
+"""
+
 _GET_COMEDIANS_WITHOUT_WEBSITE = """
     SELECT uuid, name, popularity
     FROM comedians
-    WHERE (website IS NULL OR website = '')
-      AND (website_discovery_source IS NULL OR website_discovery_source != 'none_found')
+    WHERE
+""" + _DISCOVERY_CANDIDATE_FILTER + """
     ORDER BY popularity DESC NULLS LAST
 """
 
 _GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED = """
     SELECT uuid, name, popularity
     FROM comedians
-    WHERE (website IS NULL OR website = '')
-      AND (website_discovery_source IS NULL OR website_discovery_source != 'none_found')
+    WHERE
+""" + _DISCOVERY_CANDIDATE_FILTER + """
     ORDER BY popularity DESC NULLS LAST
     LIMIT %s
+"""
+
+_COUNT_COMEDIANS_WITHOUT_WEBSITE = """
+    SELECT COUNT(*)
+    FROM comedians
+    WHERE
+""" + _DISCOVERY_CANDIDATE_FILTER + """
 """
 
 _UPDATE_COMEDIAN_WEBSITE = """
@@ -207,17 +223,27 @@ def discover_websites(
 
     try:
         with conn.cursor() as cur:
+            cur.execute(_COUNT_COMEDIANS_WITHOUT_WEBSITE)
+            candidate_count = cur.fetchone()[0]
+
             if comedian_name:
                 cur.execute(_GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED, (1000,))
                 rows = [
                     row for row in cur.fetchall()
                     if comedian_name.lower() in row[1].lower()
                 ]
+                effective_limit = len(rows)
             else:
                 effective_limit = limit if limit else client.queries_remaining
                 cur.execute(_GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED, (effective_limit,))
                 rows = cur.fetchall()
 
+            Logger.info(
+                "Website discovery quota: "
+                f"effective_query_cap={effective_limit}, "
+                f"queries_remaining={client.queries_remaining}, "
+                f"remaining_candidate_count={candidate_count}"
+            )
             Logger.info(f"Found {len(rows)} comedians without websites to process")
 
             for uuid, name, popularity in rows:
