@@ -399,10 +399,14 @@ private struct UpcomingShowsFilterPanel: View {
     }
 
     static func dateChipLabel(date: Date) -> String {
+        chipDateFormatter.string(from: date)
+    }
+
+    private static let chipDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
-        return formatter.string(from: date)
-    }
+        return formatter
+    }()
 }
 
 private struct UpcomingShowsLocationEditor: View {

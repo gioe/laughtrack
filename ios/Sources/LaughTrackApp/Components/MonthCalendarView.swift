@@ -22,7 +22,7 @@ struct MonthCalendarView: View {
 
     @Environment(\.appTheme) private var theme
     @State private var displayedMonth: Date
-    @State private var rangeAwaitingEnd: Bool = false
+    @State private var rangeAwaitingEnd: Bool
 
     init(
         selection: Selection,
@@ -34,13 +34,21 @@ struct MonthCalendarView: View {
         self.minimumDate = minimumDate
 
         let anchor: Date
+        let awaitingEnd: Bool
         switch selection {
         case .single(let binding):
             anchor = binding.wrappedValue
-        case .range(let start, _):
+            awaitingEnd = false
+        case .range(let start, let end):
             anchor = start.wrappedValue
+            let calendar = Calendar.current
+            awaitingEnd = !calendar.isDate(
+                calendar.startOfDay(for: start.wrappedValue),
+                inSameDayAs: calendar.startOfDay(for: end.wrappedValue)
+            )
         }
         _displayedMonth = State(initialValue: MonthCalendarView.monthStart(for: anchor))
+        _rangeAwaitingEnd = State(initialValue: awaitingEnd)
     }
 
     var body: some View {
@@ -178,9 +186,7 @@ struct MonthCalendarView: View {
     }
 
     private func accessibilityLabel(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        var label = formatter.string(from: date)
+        var label = Self.accessibilityDateFormatter.string(from: date)
         if isPast(date) { label += ", unavailable" }
         if (showsByDate[calendar.startOfDay(for: date)] ?? 0) > 0 {
             label += ", has shows"
@@ -192,10 +198,26 @@ struct MonthCalendarView: View {
     private var today: Date { calendar.startOfDay(for: Date()) }
 
     private var monthTitle: String {
+        Self.monthTitleFormatter.string(from: displayedMonth)
+    }
+
+    private static let monthTitleFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: displayedMonth)
-    }
+        return formatter
+    }()
+
+    private static let accessibilityDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter
+    }()
+
+    static let dayNumberFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter
+    }()
 
     private var weekdaySymbols: [String] {
         var symbols = calendar.veryShortWeekdaySymbols
@@ -210,13 +232,17 @@ struct MonthCalendarView: View {
         let firstOfMonth = calendar.dateInterval(of: .month, for: displayedMonth)?.start
             ?? calendar.startOfDay(for: displayedMonth)
         let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-        let daysInMonth = calendar.range(of: .day, in: .month, for: firstOfMonth)?.count ?? 30
+        let daysInMonth = calendar.range(of: .day, in: .month, for: firstOfMonth)?.count ?? 31
 
         let leadingNils = (firstWeekday - calendar.firstWeekday + 7) % 7
 
         var cells: [Date?] = Array(repeating: nil, count: leadingNils)
         for offset in 0..<daysInMonth {
-            cells.append(calendar.date(byAdding: .day, value: offset, to: firstOfMonth))
+            guard let day = calendar.date(byAdding: .day, value: offset, to: firstOfMonth),
+                  calendar.isDate(day, equalTo: firstOfMonth, toGranularity: .month) else {
+                break
+            }
+            cells.append(day)
         }
         while cells.count % 7 != 0 || cells.count < 35 {
             cells.append(nil)
@@ -283,9 +309,7 @@ private struct DayCell: View {
     }
 
     private var dayLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
+        MonthCalendarView.dayNumberFormatter.string(from: date)
     }
 
     @ViewBuilder
