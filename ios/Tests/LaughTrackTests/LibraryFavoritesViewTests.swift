@@ -43,6 +43,7 @@ struct LibraryFavoritesViewTests {
         let host = HostedView(
             LibraryView(apiClient: apiClient)
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "library-favorites"))
                 .navigationCoordinator(NavigationCoordinator<AppRoute>())
                 .environmentObject(favorites)
                 .environmentObject(authManager)
@@ -87,6 +88,7 @@ struct LibraryFavoritesViewTests {
         let host = HostedView(
             LibraryView(apiClient: apiClient, selectedPrimitive: .clubs)
                 .environment(\.appTheme, LaughTrackTheme())
+                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "favorites-filter"))
                 .navigationCoordinator(NavigationCoordinator<AppRoute>())
                 .environmentObject(favorites)
                 .environmentObject(authManager)
@@ -108,6 +110,7 @@ struct LibraryFavoritesViewTests {
                 apiClient: makeClient(response: .recorder(recorder))
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "library-signed-out"))
             .navigationCoordinator(NavigationCoordinator<AppRoute>())
             .environmentObject(favorites)
             .environmentObject(authManager)

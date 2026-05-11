@@ -37,8 +37,8 @@ struct ComedianDetailViewTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.comedianDetailScreen)
         try host.requireLabel("Mark Normand")
-        try host.requireLabel("Catch them live")
-        try host.requireLabel("People sharing the bill")
+        try host.requireLabel("Upcoming shows")
+        try host.requireLabel("Often on the same bill")
     }
 
     @Test("comedian detail surfaces API failures explicitly")
@@ -75,7 +75,7 @@ struct ComedianDetailViewTests {
         await host.settle()
 
         try host.requireLabel("No upcoming shows are available for this comedian right now.")
-        try host.requireLabel("No related comedians are available yet.")
+        #expect(host.findText("Often on the same bill") == nil)
     }
 
     @Test("comedian detail keeps profile content visible when related shows fail")
@@ -135,6 +135,7 @@ struct ComedianDetailViewTests {
             .navigationCoordinator(NavigationCoordinator<AppRoute>())
             .environmentObject(ComedianFavoriteStore())
             .environmentObject(authManager)
+            .environmentObject(LoginModalPresenter())
     }
 
     private func makeClient(

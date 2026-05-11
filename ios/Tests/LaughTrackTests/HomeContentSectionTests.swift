@@ -52,16 +52,17 @@ struct HomeContentSectionTests {
         #expect(source.contains("CachedAsyncImage(url:"))
     }
 
-    private func homeViewSourceURL() throws -> URL {
-        var directory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        while directory.path != "/" {
-            let candidate = directory
-                .appendingPathComponent("Sources/LaughTrackApp/Home/Views/HomeView.swift")
-            if FileManager.default.fileExists(atPath: candidate.path) {
-                return candidate
-            }
-            directory.deleteLastPathComponent()
+    private func homeViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/Home/Views/HomeView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
         }
-        throw CocoaError(.fileNoSuchFile)
+        return sourceURL
     }
 }
