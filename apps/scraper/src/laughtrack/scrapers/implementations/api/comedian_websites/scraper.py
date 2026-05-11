@@ -13,6 +13,7 @@ Triggered by a single clubs row with scraper='comedian_websites'.
 
 import asyncio
 import os
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -47,6 +48,28 @@ _US_STATES = {
 }
 
 
+@dataclass(frozen=True)
+class ComedianWebsiteScrapeOutcome:
+    """Per-comedian outcome used for operator-facing run summaries."""
+
+    comedian_name: str
+    status: str
+    venue_count: int = 0
+
+
+@dataclass(frozen=True)
+class ComedianWebsiteScrapeRunSummary:
+    """Aggregate counts for a comedian website scraping run."""
+
+    total_eligible: int
+    never_scraped: int
+    stale: int
+    scraped_successfully: int
+    empty: int
+    errors: int
+    venues_discovered: int
+
+
 class ComedianWebsiteScraper(BaseScraper):
     """
     Scrapes comedian personal websites for JSON-LD Event markup and
@@ -68,6 +91,15 @@ class ComedianWebsiteScraper(BaseScraper):
         self._comedian_handler = ComedianHandler()
         self._comedian_name_filter = comedian_name
         self._limit = limit
+        self.last_run_summary = ComedianWebsiteScrapeRunSummary(
+            total_eligible=0,
+            never_scraped=0,
+            stale=0,
+            scraped_successfully=0,
+            empty=0,
+            errors=0,
+            venues_discovered=0,
+        )
 
     # ------------------------------------------------------------------ #
     # BaseScraper pipeline                                                 #
@@ -105,14 +137,19 @@ class ComedianWebsiteScraper(BaseScraper):
             )
 
             semaphore = asyncio.Semaphore(self._max_concurrent)
-            venue_counts = await asyncio.gather(
+            outcomes = await asyncio.gather(
                 *[self._scrape_comedian_website(row, semaphore) for row in comedian_rows]
             )
 
-            total_venues = sum(venue_counts)
+            self.last_run_summary = self._build_run_summary(comedian_rows, list(outcomes))
 
             Logger.info(
-                f"{self._log_prefix}: discovered {total_venues} total venues from comedian websites",
+                f"{self._log_prefix}: run summary — total_eligible={self.last_run_summary.total_eligible}, "
+                f"never_scraped={self.last_run_summary.never_scraped}, "
+                f"stale={self.last_run_summary.stale}, "
+                f"scraped_successfully={self.last_run_summary.scraped_successfully}, "
+                f"empty={self.last_run_summary.empty}, errors={self.last_run_summary.errors}, "
+                f"venues_discovered={self.last_run_summary.venues_discovered}",
                 self.logger_context,
             )
 
@@ -131,7 +168,7 @@ class ComedianWebsiteScraper(BaseScraper):
     # Platform strategies that skip JSON-LD entirely on subsequent runs
     _PLATFORM_STRATEGIES = {"squarespace", "wix", "komi"}
 
-    async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> int:
+    async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> ComedianWebsiteScrapeOutcome:
         """Fetch a comedian's website_scraping_url, detect platform, and extract venues."""
         comedian = Comedian(name=row["name"], uuid=row["uuid"])
         scraping_url = (row.get("website_scraping_url") or "").strip()
@@ -141,19 +178,24 @@ class ComedianWebsiteScraper(BaseScraper):
         async with semaphore:
             try:
                 if not scraping_url:
-                    return 0
+                    return ComedianWebsiteScrapeOutcome(comedian.name, "empty")
 
                 prior_strategy = (row.get("website_scrape_strategy") or "").strip()
 
                 # --- komi.io fast path: no HTML fetch needed ---
                 # komi.io delegates to Bandsintown — query the API directly.
                 if prior_strategy == "komi" or detect_website_platform(scraping_url) == "komi":
-                    return await self._try_komi(row, comedian, scraping_url, website)
+                    venue_count = await self._try_komi(row, comedian, scraping_url, website)
+                    return ComedianWebsiteScrapeOutcome(
+                        comedian.name,
+                        "success" if venue_count else "empty",
+                        venue_count,
+                    )
 
                 html = await self.fetch_html(scraping_url, timeout=self._REQUEST_TIMEOUT)
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
-                    return 0
+                    return ComedianWebsiteScrapeOutcome(comedian.name, "empty")
 
                 self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
 
@@ -167,14 +209,22 @@ class ComedianWebsiteScraper(BaseScraper):
                 if platform == "squarespace":
                     result = await self._try_squarespace(row, comedian, scraping_url, website, html)
                     if result is not None:
-                        return result
+                        return ComedianWebsiteScrapeOutcome(
+                            comedian.name,
+                            "success" if result else "empty",
+                            result,
+                        )
                     # Fall through to JSON-LD if Squarespace extraction returned None
                     # (site doesn't have an events collection)
 
                 if platform == "wix":
                     result = await self._try_wix(row, comedian, scraping_url, website, html)
                     if result is not None:
-                        return result
+                        return ComedianWebsiteScrapeOutcome(
+                            comedian.name,
+                            "success" if result else "empty",
+                            result,
+                        )
                     # Fall through to JSON-LD if Wix extraction returned None
                     # (site doesn't have an events widget)
 
@@ -197,7 +247,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     strategy = "json_ld_empty"
                     self._update_scrape_metadata(row["uuid"], strategy)
                     self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=False)
-                    return 0
+                    return ComedianWebsiteScrapeOutcome(comedian.name, "empty")
 
                 strategy = "json_ld"
                 venue_count = self._extract_venues_from_events(events)
@@ -213,7 +263,7 @@ class ComedianWebsiteScraper(BaseScraper):
                         self.logger_context,
                     )
 
-                return venue_count
+                return ComedianWebsiteScrapeOutcome(comedian.name, "success", venue_count)
 
             except Exception as e:
                 Logger.error(
@@ -221,7 +271,25 @@ class ComedianWebsiteScraper(BaseScraper):
                     self.logger_context,
                 )
                 self._update_scrape_metadata(row["uuid"], "error")
-                return 0
+                return ComedianWebsiteScrapeOutcome(comedian.name, "error")
+
+    @staticmethod
+    def _build_run_summary(
+        comedian_rows: List[dict],
+        outcomes: List[ComedianWebsiteScrapeOutcome],
+    ) -> ComedianWebsiteScrapeRunSummary:
+        """Build aggregate counts for dry-run and completed-run reporting."""
+        never_scraped = sum(1 for row in comedian_rows if not row.get("website_last_scraped"))
+        stale = len(comedian_rows) - never_scraped
+        return ComedianWebsiteScrapeRunSummary(
+            total_eligible=len(comedian_rows),
+            never_scraped=never_scraped,
+            stale=stale,
+            scraped_successfully=sum(1 for outcome in outcomes if outcome.status == "success"),
+            empty=sum(1 for outcome in outcomes if outcome.status == "empty"),
+            errors=sum(1 for outcome in outcomes if outcome.status == "error"),
+            venues_discovered=sum(outcome.venue_count for outcome in outcomes),
+        )
 
     # ------------------------------------------------------------------ #
     # Platform-specific extraction helpers                                 #

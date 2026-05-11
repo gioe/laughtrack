@@ -28,6 +28,18 @@ from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
+def print_run_summary(summary) -> None:
+    """Print stable operator-facing counts for dry and live runs."""
+    print("Run summary:")
+    print(f"  total eligible: {summary.total_eligible}")
+    print(f"  never scraped: {summary.never_scraped}")
+    print(f"  stale: {summary.stale}")
+    print(f"  scraped successfully: {summary.scraped_successfully}")
+    print(f"  empty: {summary.empty}")
+    print(f"  errors: {summary.errors}")
+    print(f"  venues discovered: {summary.venues_discovered}")
+
+
 def main():
     """Main entry point for comedian website scraping."""
     parser = argparse.ArgumentParser(
@@ -65,7 +77,10 @@ def main():
         club = clubs[0]
 
         # Import scraper after path setup
-        from laughtrack.scrapers.implementations.api.comedian_websites.scraper import ComedianWebsiteScraper
+        from laughtrack.scrapers.implementations.api.comedian_websites.scraper import (
+            ComedianWebsiteScrapeRunSummary,
+            ComedianWebsiteScraper,
+        )
 
         scraper = ComedianWebsiteScraper(club, comedian_name=args.comedian_name, limit=args.limit)
 
@@ -77,9 +92,21 @@ def main():
 
         if not comedians:
             Logger.info("No comedians found matching criteria.")
+            print_run_summary(
+                ComedianWebsiteScrapeRunSummary(
+                    total_eligible=0,
+                    never_scraped=0,
+                    stale=0,
+                    scraped_successfully=0,
+                    empty=0,
+                    errors=0,
+                    venues_discovered=0,
+                )
+            )
             return
 
         if args.dry_run:
+            summary = scraper._build_run_summary(comedians, [])
             print(f"\n{'='*60}")
             print(f"DRY RUN: {len(comedians)} comedian(s) would be scraped")
             print(f"{'='*60}")
@@ -88,11 +115,13 @@ def main():
                 strategy = c.get("website_scrape_strategy") or "unknown"
                 print(f"  {c['name']:40s}  {c['website']:50s}  last={last}  strategy={strategy}")
             print(f"{'='*60}\n")
+            print_run_summary(summary)
             return
 
         # Run the scrape
         Logger.info(f"Scraping websites for {len(comedians)} comedians...")
         shows = scraper.scrape()
+        print_run_summary(scraper.last_run_summary)
         Logger.info(f"Done — {len(shows)} shows discovered from comedian websites.")
 
     except KeyboardInterrupt:
