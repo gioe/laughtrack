@@ -51,7 +51,7 @@ class DiscoveryResult:
 # Excludes aliases, empty names, zero-show stubs, and records already marked as
 # 'none_found' to avoid spending search quota on non-meaningful candidates.
 _DISCOVERY_CANDIDATE_FILTER = """
-    (website IS NULL OR website = '')
+    ((website IS NULL OR website = '') OR website_health_status = 'stale')
       AND parent_comedian_id IS NULL
       AND total_shows > 0
       AND NULLIF(BTRIM(name), '') IS NOT NULL

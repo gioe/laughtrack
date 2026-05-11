@@ -42,7 +42,11 @@ _GET_COMEDIANS_NEEDING_SCRAPING_URL = """
     FROM comedians
     WHERE website IS NOT NULL
       AND website <> ''
-      AND (website_scraping_url IS NULL OR website_scraping_url = '')
+      AND (
+        website_scraping_url IS NULL
+        OR website_scraping_url = ''
+        OR website_scraping_url_health_status = 'stale'
+      )
       AND (website_confidence IS NULL OR website_confidence != 'low')
     ORDER BY popularity DESC NULLS LAST
 """
