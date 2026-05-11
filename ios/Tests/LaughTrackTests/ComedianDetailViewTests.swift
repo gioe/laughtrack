@@ -19,14 +19,11 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    relatedShowsResponse: .success(
+                    upcomingRunsResponse: .success(
                         .init(
                             data: [
-                                DemoContent.showDetailResponse(id: 301)?.data.asShow() ?? fallbackShow(id: 301)
-                            ],
-                            total: 1,
-                            filters: [],
-                            zipCapTriggered: false
+                                fallbackRun(showIDs: [301])
+                            ]
                         )
                     ),
                     coBillResponse: .success(
@@ -51,7 +48,7 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .status(.notFound),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false)),
+                    upcomingRunsResponse: .success(.init(data: [])),
                     coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
@@ -69,7 +66,7 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false)),
+                    upcomingRunsResponse: .success(.init(data: [])),
                     coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
@@ -88,7 +85,7 @@ struct ComedianDetailViewTests {
             makeView(
                 apiClient: makeClient(
                     comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    relatedShowsResponse: .status(.internalServerError),
+                    upcomingRunsResponse: .status(.internalServerError),
                     coBillResponse: .success(.init(data: []))
                 ),
                 authManager: authManager
@@ -98,22 +95,6 @@ struct ComedianDetailViewTests {
 
         try host.requireLabel("Mark Normand")
         try host.requireLabel("LaughTrack hit a server error while loading related shows.")
-    }
-
-    @Test("comedian club runs split same-name clubs by club id")
-    func comedianClubRunsUseClubIDInsteadOfName() {
-        let shows = [
-            fallbackShow(id: 1, clubID: 10, clubName: "Comedy House"),
-            fallbackShow(id: 2, clubID: 10, clubName: "Comedy House"),
-            fallbackShow(id: 3, clubID: 20, clubName: "Comedy House"),
-            fallbackShow(id: 4, clubID: 20, clubName: "Comedy House"),
-            fallbackShow(id: 5, clubID: 10, clubName: "Comedy House")
-        ]
-
-        let runs = ComedianClubRun.runs(from: shows)
-
-        #expect(runs.map(\.clubID) == [10, 20, 10])
-        #expect(runs.map { $0.shows.map(\.id) } == [[1, 2], [3, 4], [5]])
     }
 
     private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
@@ -126,14 +107,14 @@ struct ComedianDetailViewTests {
 
     private func makeClient(
         comedianResponse: MockComedianDetailTransport.EntityResponse<Operations.GetComedian.Output.Ok.Body.JsonPayload>,
-        relatedShowsResponse: MockComedianDetailTransport.EntityResponse<Components.Schemas.ShowSearchResponse>,
+        upcomingRunsResponse: MockComedianDetailTransport.EntityResponse<Components.Schemas.UpcomingRunResponse>,
         coBillResponse: MockComedianDetailTransport.EntityResponse<Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload>
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
             transport: MockComedianDetailTransport(
                 comedianResponse: comedianResponse,
-                relatedShowsResponse: relatedShowsResponse,
+                upcomingRunsResponse: upcomingRunsResponse,
                 coBillResponse: coBillResponse
             )
         )
@@ -217,6 +198,15 @@ struct ComedianDetailViewTests {
             distanceMiles: 2.0
         )
     }
+
+    private func fallbackRun(showIDs: [Int], clubID: Int = 101, clubName: String = "Comedy Cellar") -> Components.Schemas.UpcomingRun {
+        .init(
+            clubID: clubID,
+            clubName: clubName,
+            clubImageUrl: "https://example.com/show.png",
+            shows: showIDs.map { fallbackShow(id: $0, clubID: clubID, clubName: clubName) }
+        )
+    }
 }
 
 private struct MockComedianDetailTransport: ClientTransport {
@@ -226,7 +216,7 @@ private struct MockComedianDetailTransport: ClientTransport {
     }
 
     let comedianResponse: EntityResponse<Operations.GetComedian.Output.Ok.Body.JsonPayload>
-    let relatedShowsResponse: EntityResponse<Components.Schemas.ShowSearchResponse>
+    let upcomingRunsResponse: EntityResponse<Components.Schemas.UpcomingRunResponse>
     let coBillResponse: EntityResponse<Operations.GetComedianCoBill.Output.Ok.Body.JsonPayload>
 
     func send(
@@ -238,8 +228,8 @@ private struct MockComedianDetailTransport: ClientTransport {
         switch operationID {
         case "getComedian":
             return try encodedResponse(for: comedianResponse)
-        case "searchShows":
-            return try encodedResponse(for: relatedShowsResponse)
+        case "getComedianUpcomingRuns":
+            return try encodedResponse(for: upcomingRunsResponse)
         case "getComedianCoBill":
             return try encodedResponse(for: coBillResponse)
         default:
@@ -276,24 +266,4 @@ private struct MockComedianDetailTransport: ClientTransport {
     }
 }
 
-private extension Components.Schemas.ShowDetail {
-    func asShow() -> Components.Schemas.Show {
-        .init(
-            id: id,
-            clubID: club.id,
-            clubName: club.name,
-            date: date,
-            tickets: tickets,
-            name: name,
-            socialData: socialData,
-            lineup: lineup,
-            description: description,
-            address: address,
-            room: room,
-            imageUrl: imageUrl,
-            soldOut: soldOut,
-            distanceMiles: distanceMiles
-        )
-    }
-}
 #endif

@@ -100,9 +100,17 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
 
 struct ComedianDetailContent: Hashable {
     let comedian: Components.Schemas.ComedianDetail
-    let upcomingShows: [Components.Schemas.Show]
+    let upcomingRuns: [Components.Schemas.UpcomingRun]
     let relatedComedians: [Components.Schemas.ComedianLineup]
     let relatedContentMessage: String?
+}
+
+struct ComedianRunFilters: Hashable {
+    let club: String?
+    let location: String?
+    let date: String?
+
+    static let empty = ComedianRunFilters(club: nil, location: nil, date: nil)
 }
 
 struct ClubDetailContent: Hashable {
@@ -114,28 +122,36 @@ struct ClubDetailContent: Hashable {
 
 @MainActor
 final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
-    private static let pageSize = 100
     let comedianID: Int
 
     init(comedianID: Int) {
         self.comedianID = comedianID
     }
 
-    func loadIfNeeded(apiClient: Client, favorites: ComedianFavoriteStore) async {
+    func loadIfNeeded(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        runFilters: ComedianRunFilters = .empty
+    ) async {
         await super.loadIfNeeded {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, runFilters: runFilters)
         }
     }
 
-    func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+    func reload(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        runFilters: ComedianRunFilters = .empty
+    ) async {
         await super.reload {
-            await self.fetch(apiClient: apiClient, favorites: favorites)
+            await self.fetch(apiClient: apiClient, favorites: favorites, runFilters: runFilters)
         }
     }
 
     private func fetch(
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        runFilters: ComedianRunFilters
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
@@ -148,7 +164,8 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return await loadRelatedContent(
                     for: comedian,
                     apiClient: apiClient,
-                    favorites: favorites
+                    favorites: favorites,
+                    runFilters: runFilters
                 )
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this comedian right now."))
@@ -167,32 +184,23 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     private func loadRelatedContent(
         for comedian: Components.Schemas.ComedianDetail,
         apiClient: Client,
-        favorites: ComedianFavoriteStore
+        favorites: ComedianFavoriteStore,
+        runFilters: ComedianRunFilters
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
-            let output = try await apiClient.searchShows(
+            let output = try await apiClient.getComedianUpcomingRuns(
                 .init(
-                    query: .init(
-                        from: ShowFormatting.apiDate(Date()),
-                        page: 0,
-                        size: Self.pageSize,
-                        comedian: comedian.name,
-                        sort: ShowSortOption.earliest.rawValue
-                    )
+                    path: .init(id: comedian.id),
+                    query: .init(club: runFilters.club, location: runFilters.location, date: runFilters.date),
+                    headers: .init(xTimezone: TimeZone.current.identifier)
                 )
             )
 
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                let relatedShows = response.data.filter { show in
-                    guard let lineup = show.lineup else { return true }
-                    return lineup.contains { lineupComedian in
-                        lineupComedian.id == comedian.id || lineupComedian.uuid == comedian.uuid
-                    }
-                }
 
-                for show in relatedShows {
+                for show in response.data.flatMap(\.shows) {
                     for lineupComedian in show.lineup ?? [] {
                         favorites.seed(uuid: lineupComedian.uuid, value: lineupComedian.isFavorite)
                     }
@@ -207,7 +215,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .success(
                     .init(
                         comedian: comedian,
-                        upcomingShows: relatedShows,
+                        upcomingRuns: response.data,
                         relatedComedians: relatedComedians,
                         relatedContentMessage: coBillMessage
                     )
@@ -216,7 +224,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .success(
                     .init(
                         comedian: comedian,
-                        upcomingShows: [],
+                        upcomingRuns: [],
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now."
                     )
@@ -225,7 +233,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .success(
                     .init(
                         comedian: comedian,
-                        upcomingShows: [],
+                        upcomingRuns: [],
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack is rate-limiting related shows right now. Please try again in a moment."
                     )
@@ -234,7 +242,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .success(
                     .init(
                         comedian: comedian,
-                        upcomingShows: [],
+                        upcomingRuns: [],
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack hit a server error while loading related shows."
                     )
@@ -243,7 +251,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return .success(
                     .init(
                         comedian: comedian,
-                        upcomingShows: [],
+                        upcomingRuns: [],
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
                     )
@@ -253,7 +261,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
             return .success(
                 .init(
                     comedian: comedian,
-                    upcomingShows: [],
+                    upcomingRuns: [],
                     relatedComedians: [],
                     relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
                 )

@@ -74,35 +74,29 @@ struct ComedianDetailView: View {
                                     InlineStatusMessage(message: relatedContentMessage)
                                 }
 
-                                if content.upcomingShows.isEmpty {
-                                    EmptyCard(message: "No upcoming shows are available for this comedian right now.")
-                                } else {
-                                    UpcomingShowsFilterPanel(
-                                        searchText: $searchText,
-                                        locationFilterText: $locationFilterText,
-                                        useDateFilter: $useDateFilter,
-                                        dateFilter: $dateFilter
-                                    )
+                                UpcomingShowsFilterPanel(
+                                    searchText: $searchText,
+                                    locationFilterText: $locationFilterText,
+                                    useDateFilter: $useDateFilter,
+                                    dateFilter: $dateFilter
+                                )
 
-                                    let filtered = filteredUpcomingShows(content.upcomingShows)
-                                    if filtered.isEmpty {
-                                        EmptyCard(message: "No shows match these filters. Try clearing one.")
-                                    } else {
-                                        let runs = ComedianClubRun.runs(from: filtered)
-                                        VStack(spacing: theme.spacing.sm) {
-                                            ForEach(runs) { run in
-                                                ComedianClubRunDisclosure(
-                                                    run: run,
-                                                    isExpanded: Binding(
-                                                        get: { expandedRunKeys.contains(run.id) },
-                                                        set: { newValue in
-                                                            if newValue { expandedRunKeys.insert(run.id) }
-                                                            else { expandedRunKeys.remove(run.id) }
-                                                        }
-                                                    ),
-                                                    openShow: { showID in coordinator.open(.show(showID)) }
-                                                )
-                                            }
+                                if content.upcomingRuns.isEmpty {
+                                    EmptyCard(message: activeRunFilters == .empty ? "No upcoming shows are available for this comedian right now." : "No shows match these filters. Try clearing one.")
+                                } else {
+                                    VStack(spacing: theme.spacing.sm) {
+                                        ForEach(content.upcomingRuns, id: \.id) { run in
+                                            ComedianClubRunDisclosure(
+                                                run: run,
+                                                isExpanded: Binding(
+                                                    get: { expandedRunKeys.contains(run.id) },
+                                                    set: { newValue in
+                                                        if newValue { expandedRunKeys.insert(run.id) }
+                                                        else { expandedRunKeys.remove(run.id) }
+                                                    }
+                                                ),
+                                                openShow: { showID in coordinator.open(.show(showID)) }
+                                            )
                                         }
                                     }
                                 }
@@ -136,8 +130,8 @@ struct ComedianDetailView: View {
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
         .modifier(EntityDetailNavigationChrome(entity: .comedian))
-        .task {
-            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
+        .task(id: activeRunFilters) {
+            await model.reload(apiClient: apiClient, favorites: favorites, runFilters: activeRunFilters)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -169,29 +163,17 @@ struct ComedianDetailView: View {
         }
     }
 
-    private func filteredUpcomingShows(_ shows: [Components.Schemas.Show]) -> [Components.Schemas.Show] {
-        let search = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let location = locationFilterText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let calendar = Calendar.current
+    private var activeRunFilters: ComedianRunFilters {
+        ComedianRunFilters(
+            club: normalizedFilter(searchText),
+            location: normalizedFilter(locationFilterText),
+            date: useDateFilter ? ShowFormatting.apiDate(dateFilter) : nil
+        )
+    }
 
-        return shows.filter { show in
-            if !search.isEmpty {
-                let club = (show.clubName ?? "").lowercased()
-                let title = (show.name ?? "").lowercased()
-                guard club.contains(search) || title.contains(search) else { return false }
-            }
-            if !location.isEmpty {
-                let address = (show.address ?? "").lowercased()
-                guard address.contains(location) else { return false }
-            }
-            if useDateFilter {
-                let timezone = show.timezone.flatMap { TimeZone(identifier: $0) }
-                var cal = calendar
-                if let timezone { cal.timeZone = timezone }
-                guard cal.isDate(show.date, inSameDayAs: dateFilter) else { return false }
-            }
-            return true
-        }
+    private func normalizedFilter(_ value: String) -> String? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func toggleFavorite(name: String, uuid: String, currentValue: Bool) async {
@@ -213,35 +195,10 @@ struct ComedianDetailView: View {
     }
 }
 
-struct ComedianClubRun: Identifiable {
-    let clubID: Int
-    let clubName: String
-    let shows: [Components.Schemas.Show]
-
+extension Components.Schemas.UpcomingRun {
     var id: String {
         guard let firstShowID = shows.first?.id else { return "\(clubID)-empty" }
         return "\(clubID)-\(firstShowID)"
-    }
-
-    static func runs(from shows: [Components.Schemas.Show]) -> [ComedianClubRun] {
-        let sorted = shows.sorted { $0.date < $1.date }
-        return sorted.reduce(into: []) { runs, show in
-            if let last = runs.last, last.clubID == show.clubID {
-                runs[runs.count - 1] = ComedianClubRun(
-                    clubID: last.clubID,
-                    clubName: last.clubName,
-                    shows: last.shows + [show]
-                )
-            } else {
-                runs.append(
-                    ComedianClubRun(
-                        clubID: show.clubID,
-                        clubName: show.clubName ?? "Unknown club",
-                        shows: [show]
-                    )
-                )
-            }
-        }
     }
 
     var dateRangeSummary: String {
@@ -267,7 +224,7 @@ struct ComedianClubRun: Identifiable {
 private struct ComedianClubRunDisclosure: View {
     @Environment(\.appTheme) private var theme
 
-    let run: ComedianClubRun
+    let run: Components.Schemas.UpcomingRun
     @Binding var isExpanded: Bool
     let openShow: (Int) -> Void
 
@@ -331,7 +288,7 @@ private struct ComedianClubRunDisclosure: View {
     @ViewBuilder
     private var clubArtwork: some View {
         let laughTrack = theme.laughTrackTokens
-        let url = run.shows.first.flatMap { URL.normalizedExternalURL($0.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        let url = URL.normalizedExternalURL(run.clubImageUrl.trimmingCharacters(in: .whitespacesAndNewlines))
 
         Group {
             if let url {
