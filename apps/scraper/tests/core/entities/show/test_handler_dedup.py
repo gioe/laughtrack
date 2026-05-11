@@ -60,6 +60,27 @@ def test_insert_shows_dedups_cross_batch():
     assert result.updates == 1
 
 
+def test_insert_shows_dedups_cross_batch_when_existing_room_is_null():
+    h = _handler()
+    h.execute_with_cursor = MagicMock(
+        return_value=[
+            {
+                "id": 10,
+                "club_id": 1,
+                "date": datetime(2026, 6, 1, 20, 0, 0),
+                "room": None,
+                "name": "Same Show",
+            }
+        ]
+    )
+
+    h._process_single_batch([_show(room="")])
+
+    inserted_items = h.execute_batch_operation.call_args.args[1]
+    assert len(inserted_items) == 1
+    assert inserted_items[0][6] is None
+
+
 def test_insert_shows_preserves_distinct_rooms():
     h = _handler()
     h.execute_with_cursor = MagicMock(

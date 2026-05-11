@@ -31,6 +31,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     OPERATION_TYPE_INSERTED = "inserted"
     OPERATION_TYPE_UPDATED = "updated"
     OPERATION_TYPE_UNKNOWN = "unknown"
+    _NO_CANONICAL_ROOM = object()
 
     def __init__(self):
         super().__init__()
@@ -169,8 +170,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     def _cross_batch_duplicate_key(self, club_id, date, name) -> tuple:
         return (club_id, self._normalize_cross_batch_key_date(date), name or "")
 
-    def _canonical_cross_batch_room(self, existing_rows: list[DictRow], incoming_room: Optional[str]) -> Optional[str]:
-        rooms = [(row.get("room") or "") for row in existing_rows]
+    def _canonical_cross_batch_room(self, existing_rows: list[DictRow], incoming_room: Optional[str]) -> object:
+        rooms = [row.get("room") for row in existing_rows]
         rooms.append(incoming_room or "")
         non_empty_rooms = {
             room.strip().casefold()
@@ -178,10 +179,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if isinstance(room, str) and room.strip()
         }
         if len(non_empty_rooms) > 1:
-            return None
+            return self._NO_CANONICAL_ROOM
 
         if existing_rows:
-            return existing_rows[0].get("room") or ""
+            return existing_rows[0].get("room")
         return incoming_room or ""
 
     def _collapse_cross_batch_duplicates(self, batch: List[Show]) -> int:
@@ -221,7 +222,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             key = self._cross_batch_duplicate_key(show.club_id, show.date, show.name)
             existing_rows = existing_by_key.get(key, [])
             canonical_room = self._canonical_cross_batch_room(existing_rows, show.room)
-            if canonical_room is not None and show.room != canonical_room:
+            if canonical_room is not self._NO_CANONICAL_ROOM and show.room != canonical_room:
                 show.room = canonical_room
                 collapsed += 1
 
