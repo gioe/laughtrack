@@ -1778,7 +1778,9 @@
           "website": { "type": "string" },
           "address": { "type": "string" },
           "zipCode": { "type": ["string", "null"] },
-          "phoneNumber": { "type": ["string", "null"] }
+          "phoneNumber": { "type": ["string", "null"] },
+          "latitude": { "type": ["number", "null"] },
+          "longitude": { "type": ["number", "null"] }
         }
       },
       "ClubSearchItem": {

@@ -101,6 +101,7 @@ final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResp
 struct ComedianDetailContent: Hashable {
     let comedian: Components.Schemas.ComedianDetail
     let upcomingShows: [Components.Schemas.Show]
+    let upcomingShowsTotal: Int
     let relatedComedians: [Components.Schemas.ComedianLineup]
     let relatedContentMessage: String?
 }
@@ -116,6 +117,14 @@ struct ClubDetailContent: Hashable {
 final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     private static let pageSize = 100
     let comedianID: Int
+    @Published var fromDate: Date = Date()
+    @Published var nearbyZipCode: String?
+    @Published var nearbyDistanceMiles: Int?
+    @Published private(set) var isRefetchingShows = false
+    // Cached unfiltered total upcoming-show count. Set on the first call to
+    // loadRelatedContent and reused for subsequent date-paged refetches —
+    // the true comedian-wide total doesn't depend on the user's current week.
+    private var cachedTotalUpcomingShows: Int?
 
     init(comedianID: Int) {
         self.comedianID = comedianID
@@ -130,6 +139,28 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
         await super.reload {
             await self.fetch(apiClient: apiClient, favorites: favorites)
+        }
+    }
+
+    func refreshUpcomingShows(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        guard case .success(let content) = phase else { return }
+        isRefetchingShows = true
+        defer { isRefetchingShows = false }
+
+        let result = await loadRelatedContent(for: content.comedian, apiClient: apiClient, favorites: favorites)
+        guard !Task.isCancelled else { return }
+        if case .success(let updated) = result {
+            // Preserve the initial "total upcoming from today" baseline across
+            // date-paged refetches — the response.total for a future fromDate is
+            // smaller and isn't the value we want to display.
+            let merged = ComedianDetailContent(
+                comedian: updated.comedian,
+                upcomingShows: updated.upcomingShows,
+                upcomingShowsTotal: content.upcomingShowsTotal,
+                relatedComedians: updated.relatedComedians,
+                relatedContentMessage: updated.relatedContentMessage
+            )
+            phase = .success(merged)
         }
     }
 
@@ -164,19 +195,54 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
         }
     }
 
-    private func loadRelatedContent(
+    private func fetchTotalUpcomingShows(
         for comedian: Components.Schemas.ComedianDetail,
-        apiClient: Client,
-        favorites: ComedianFavoriteStore
-    ) async -> Result<ComedianDetailContent, LoadFailure> {
+        apiClient: Client
+    ) async -> Int? {
+        if let cached = cachedTotalUpcomingShows { return cached }
         do {
             let output = try await apiClient.searchShows(
                 .init(
                     query: .init(
                         from: ShowFormatting.apiDate(Date()),
                         page: 0,
+                        size: 1,
+                        comedian: comedian.name,
+                        sort: ShowSortOption.earliest.rawValue
+                    )
+                )
+            )
+            if case .ok(let ok) = output, let parsed = try? ok.body.json {
+                cachedTotalUpcomingShows = parsed.total
+                return parsed.total
+            }
+        } catch {
+            // Silent fallback — total is a UI nicety; not worth surfacing an error.
+        }
+        return nil
+    }
+
+    private func loadRelatedContent(
+        for comedian: Components.Schemas.ComedianDetail,
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async -> Result<ComedianDetailContent, LoadFailure> {
+        // Fire off the unfiltered-total request in parallel with the main fetch.
+        async let totalUpcomingShowsTask = fetchTotalUpcomingShows(for: comedian, apiClient: apiClient)
+        do {
+            // Pass zip with max radius (500) so the API populates distanceMiles
+            // for each show without filtering out the comedian's far-away tour stops.
+            // The "near me" comparison is then done client-side against the user's
+            // own radius preference.
+            let output = try await apiClient.searchShows(
+                .init(
+                    query: .init(
+                        zip: nearbyZipCode,
+                        from: ShowFormatting.apiDate(fromDate),
+                        page: 0,
                         size: Self.pageSize,
                         comedian: comedian.name,
+                        distance: nearbyZipCode == nil ? nil : 500,
                         sort: ShowSortOption.earliest.rawValue
                     )
                 )
@@ -198,66 +264,96 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     }
                 }
 
-                var seenRelatedComedians = Set<String>()
-                let relatedComedians = relatedShows
-                    .flatMap { $0.lineup ?? [] }
-                    .filter { lineupComedian in
-                        lineupComedian.id != comedian.id && lineupComedian.uuid != comedian.uuid
+                // Rank related comedians by frequency: how often each one shares a bill
+                // with the current comedian across the fetched related shows. Ties are
+                // broken by first-seen order so output is deterministic.
+                var counts: [String: Int] = [:]
+                var firstSeen: [Components.Schemas.ComedianLineup] = []
+                var seenUuids = Set<String>()
+                for show in relatedShows {
+                    for lineupComedian in show.lineup ?? [] {
+                        guard
+                            lineupComedian.id != comedian.id,
+                            lineupComedian.uuid != comedian.uuid
+                        else { continue }
+                        counts[lineupComedian.uuid, default: 0] += 1
+                        if seenUuids.insert(lineupComedian.uuid).inserted {
+                            firstSeen.append(lineupComedian)
+                        }
                     }
-                    .filter { lineupComedian in
-                        seenRelatedComedians.insert(lineupComedian.uuid).inserted
+                }
+                let relatedComedians = firstSeen
+                    .enumerated()
+                    .sorted { lhs, rhs in
+                        let lc = counts[lhs.element.uuid] ?? 0
+                        let rc = counts[rhs.element.uuid] ?? 0
+                        if lc != rc { return lc > rc }
+                        return lhs.offset < rhs.offset
                     }
+                    .map(\.element)
 
+                let totalUpcoming = await totalUpcomingShowsTask ?? response.total
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: relatedShows,
+                        upcomingShowsTotal: totalUpcoming,
                         relatedComedians: relatedComedians,
                         relatedContentMessage: nil
                     )
                 )
             case .badRequest:
+                let totalUpcoming = await totalUpcomingShowsTask ?? 0
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: [],
+                        upcomingShowsTotal: totalUpcoming,
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now."
                     )
                 )
             case .tooManyRequests:
+                let totalUpcoming = await totalUpcomingShowsTask ?? 0
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: [],
+                        upcomingShowsTotal: totalUpcoming,
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack is rate-limiting related shows right now. Please try again in a moment."
                     )
                 )
             case .internalServerError:
+                let totalUpcoming = await totalUpcomingShowsTask ?? 0
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: [],
+                        upcomingShowsTotal: totalUpcoming,
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack hit a server error while loading related shows."
                     )
                 )
             case .undocumented(let status, _):
+                let totalUpcoming = await totalUpcomingShowsTask ?? 0
                 return .success(
                     .init(
                         comedian: comedian,
                         upcomingShows: [],
+                        upcomingShowsTotal: totalUpcoming,
                         relatedComedians: [],
                         relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
                     )
                 )
             }
         } catch {
+            let totalUpcoming = await totalUpcomingShowsTask ?? 0
             return .success(
                 .init(
                     comedian: comedian,
                     upcomingShows: [],
+                    upcomingShowsTotal: totalUpcoming,
                     relatedComedians: [],
                     relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
                 )
@@ -268,8 +364,10 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
 
 @MainActor
 final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
-    private static let pageSize = 8
+    private static let pageSize = 60
     let clubID: Int
+    @Published var fromDate: Date = Date()
+    @Published private(set) var isRefetchingShows = false
 
     init(clubID: Int) {
         self.clubID = clubID
@@ -284,6 +382,18 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     func reload(apiClient: Client) async {
         await super.reload {
             await self.fetch(apiClient: apiClient)
+        }
+    }
+
+    func refreshUpcomingShows(apiClient: Client) async {
+        guard case .success(let content) = phase else { return }
+        isRefetchingShows = true
+        defer { isRefetchingShows = false }
+
+        let result = await loadRelatedContent(for: content.club, apiClient: apiClient)
+        guard !Task.isCancelled else { return }
+        if case .success(let updated) = result {
+            phase = .success(updated)
         }
     }
 
@@ -317,7 +427,7 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
             let output = try await apiClient.searchShows(
                 .init(
                     query: .init(
-                        from: ShowFormatting.apiDate(Date()),
+                        from: ShowFormatting.apiDate(fromDate),
                         page: 0,
                         size: Self.pageSize,
                         club: club.name,

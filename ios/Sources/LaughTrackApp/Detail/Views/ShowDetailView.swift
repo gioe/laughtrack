@@ -36,9 +36,7 @@ struct ShowDetailView: View {
         Group {
             switch model.phase {
             case .idle, .loading:
-                LoadingCard()
-                    .padding()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ShowDetailSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -90,7 +88,7 @@ struct ShowDetailView: View {
                                 coordinator.open(.show(related.id))
                             }
                         }
-                        .padding(.horizontal, theme.spacing.lg * 2)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, theme.spacing.lg)
                     }
                 }
@@ -130,9 +128,9 @@ enum ShowDetailPresentation {
                 label: "When",
                 value: ShowFormatting.listDate(show.date, timezoneID: show.timezone)
             ),
-            ShowDetailFact(label: "Tickets", value: ticketSummary(for: show)),
             ShowDetailFact(label: "Venue", value: show.club.name),
-            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles))
+            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
+            ShowDetailFact(label: "Tickets", value: ticketSummary(for: show))
         ]
         .compactMap { $0 }
     }
@@ -198,7 +196,7 @@ private struct ShowSummarySection: View {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
         let ticketURL = ShowDetailPresentation.primaryTicketURL(for: show)
 
-        LaughTrackCard {
+        LaughTrackCard(density: .tight) {
             VStack(spacing: 0) {
                 ForEach(Array(facts.enumerated()), id: \.element.label) { index, fact in
                     Group {
@@ -397,7 +395,7 @@ private struct ShowLineupSection: View {
     let openDetail: (Components.Schemas.ComedianLineup) -> Void
 
     var body: some View {
-        LaughTrackCard {
+        LaughTrackCard(density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(title: "Lineup")
 
@@ -423,7 +421,7 @@ private struct RelatedShowsSection: View {
     let openDetail: (Components.Schemas.Show) -> Void
 
     var body: some View {
-        LaughTrackCard(tone: .muted) {
+        LaughTrackCard(tone: .muted, density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(
                     title: "Can’t Make It?",

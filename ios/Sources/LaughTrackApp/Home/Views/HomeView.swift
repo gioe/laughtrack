@@ -208,7 +208,7 @@ private struct HomeShowsTonightRail: View {
 
             switch model.phase {
             case .idle, .loading:
-                LoadingCard(title: "Loading tonight's shows")
+                ShowsListSkeleton(includesHero: true, rowCount: 3)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -821,7 +821,7 @@ private struct HomeTrendingComediansRail: View {
 
             switch model.phase {
             case .idle, .loading:
-                LoadingCard(title: "Loading comedians")
+                ComediansListSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -1066,7 +1066,7 @@ private struct HomePopularClubsRail: View {
 
             switch model.phase {
             case .idle, .loading:
-                LoadingCard(title: "Loading clubs")
+                ClubsListSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,

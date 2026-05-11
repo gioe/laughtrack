@@ -20,6 +20,7 @@ struct ShowsDiscoveryView: View {
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false
+    @State private var openDropdownID: String? = nil
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -57,12 +58,13 @@ struct ShowsDiscoveryView: View {
                     total: currentTotal,
                     isZipEditorPresented: $isZipEditorPresented,
                     isFilterEditorPresented: $isFilterEditorPresented,
-                    isDateEditorPresented: $isDateEditorPresented
+                    isDateEditorPresented: $isDateEditorPresented,
+                    openDropdownID: $openDropdownID
                 )
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard(title: "Loading shows")
+                    ShowsListSkeleton()
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
@@ -103,6 +105,30 @@ struct ShowsDiscoveryView: View {
                 }
             }
         }
+        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: "distance",
+                    options: ShowDistanceOption.allCases,
+                    selected: Binding(get: { model.distance }, set: { model.distance = $0 }),
+                    triggerLabel: { $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+                PillDropdownOverlay(
+                    id: "sort",
+                    options: ShowSortOption.allCases,
+                    selected: Binding(get: { model.sort }, set: { model.sort = $0 }),
+                    triggerLabel: { "Sort: \($0.title)" },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+            }
+        }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
@@ -119,8 +145,23 @@ struct ShowsDiscoveryView: View {
                 isPresented: $isFilterEditorPresented
             )
         }
-        .fadeFullScreenCover(isPresented: $isDateEditorPresented) {
-            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+        .sheet(isPresented: $isDateEditorPresented) {
+            JumpToDateSheet(
+                date: Binding(
+                    get: { model.fromDate },
+                    set: { newDate in
+                        model.fromDate = newDate
+                        if let extended = Calendar.current.date(byAdding: .day, value: 365, to: newDate) {
+                            model.toDate = extended
+                        }
+                        model.useDateRange = true
+                    }
+                ),
+                isPresented: $isDateEditorPresented,
+                title: "Filter by date",
+                prompt: "Show shows from",
+                onClear: { model.useDateRange = false }
+            )
         }
         #else
         .sheet(isPresented: $isZipEditorPresented) {
@@ -135,7 +176,22 @@ struct ShowsDiscoveryView: View {
             )
         }
         .sheet(isPresented: $isDateEditorPresented) {
-            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+            JumpToDateSheet(
+                date: Binding(
+                    get: { model.fromDate },
+                    set: { newDate in
+                        model.fromDate = newDate
+                        if let extended = Calendar.current.date(byAdding: .day, value: 365, to: newDate) {
+                            model.toDate = extended
+                        }
+                        model.useDateRange = true
+                    }
+                ),
+                isPresented: $isDateEditorPresented,
+                title: "Filter by date",
+                prompt: "Show shows from",
+                onClear: { model.useDateRange = false }
+            )
         }
         #endif
         .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
@@ -174,29 +230,33 @@ private struct ShowFiltersPanel: View {
     @Binding var isZipEditorPresented: Bool
     @Binding var isFilterEditorPresented: Bool
     @Binding var isDateEditorPresented: Bool
+    @Binding var openDropdownID: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
+            HStack(spacing: theme.spacing.sm) {
+                if model.allowsLocationFiltering {
+                    PillDropdownTrigger(
+                        id: "distance",
+                        selected: model.distance,
+                        triggerLabel: { $0.title },
+                        openDropdownID: $openDropdownID
+                    )
+                }
+                PillDropdownTrigger(
+                    id: "sort",
+                    selected: model.sort,
+                    triggerLabel: { "Sort: \($0.title)" },
+                    openDropdownID: $openDropdownID
+                )
+                Spacer(minLength: 0)
+            }
+
             LazyVGrid(
                 columns: SearchFilterToolbarLayout.columns(spacing: theme.spacing.sm),
                 alignment: .leading,
                 spacing: theme.spacing.sm
             ) {
-                Menu {
-                    Picker("Sort", selection: $model.sort) {
-                        ForEach(ShowSortOption.allCases) { option in
-                            Text(option.title).tag(option)
-                        }
-                    }
-                } label: {
-                    LaughTrackBrowseChip(
-                        "Sort: \(model.sort.title)",
-                        systemImage: "arrow.up.arrow.down",
-                        tone: .neutral
-                    )
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
                 if model.allowsLocationFiltering {
                     Button {
                         isZipEditorPresented = true
@@ -236,10 +296,6 @@ private struct ShowFiltersPanel: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            if model.allowsLocationFiltering {
-                distanceSelector
-            }
-
             if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
                 InlineStatusMessage(message: nearbyStatusMessage)
             }
@@ -277,25 +333,6 @@ private struct ShowFiltersPanel: View {
     private var filterCountTitle: String {
         "\(activeFilterCount) filter\(activeFilterCount == 1 ? "" : "s")"
     }
-
-    private var distanceSelector: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.sm) {
-                ForEach(ShowDistanceOption.allCases) { option in
-                    Button {
-                        model.distance = option
-                    } label: {
-                        LaughTrackBrowseChip(
-                            option.title,
-                            tone: model.distance == option ? .selected : .neutral
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
 }
 
 enum SearchFilterToolbarLayout {
@@ -319,107 +356,6 @@ enum SearchFilterToolbarLayout {
     }
 }
 
-private struct DateRangeFilterModal: View {
-    @Environment(\.appTheme) private var theme
-
-    @ObservedObject var model: ShowsDiscoveryModel
-    @Binding var isPresented: Bool
-
-    var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        ZStack {
-            Color.black.opacity(0.28)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    isPresented = false
-                }
-
-            VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                HStack(alignment: .top, spacing: theme.spacing.md) {
-                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Date range")
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-
-                        Text("Choose the show dates to include.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Button {
-                        isPresented = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(laughTrack.colors.surfaceElevated)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Close")
-                }
-
-                ScrollView {
-                    VStack(spacing: theme.spacing.md) {
-                        DatePicker(
-                            "From",
-                            selection: $model.fromDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-
-                        DatePicker(
-                            "To",
-                            selection: Binding(
-                                get: { max(model.toDate, model.fromDate) },
-                                set: { model.toDate = max($0, model.fromDate) }
-                            ),
-                            in: model.fromDate...,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.graphical)
-                    }
-                }
-                .font(laughTrack.typography.body)
-                .frame(maxHeight: 430)
-
-                VStack(spacing: theme.spacing.sm) {
-                    LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
-                        model.useDateRange = true
-                        isPresented = false
-                    }
-
-                    LaughTrackButton("Today", systemImage: "calendar", tone: .secondary, density: .compact) {
-                        let today = Calendar.current.startOfDay(for: Date())
-                        model.fromDate = today
-                        model.toDate = today
-                        model.useDateRange = true
-                        isPresented = false
-                    }
-
-                    LaughTrackButton("Any date", systemImage: "calendar.badge.minus", tone: .tertiary, density: .compact) {
-                        model.useDateRange = false
-                        isPresented = false
-                    }
-                }
-            }
-            .padding(theme.spacing.xl)
-            .background(laughTrack.colors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
-            .shadowStyle(laughTrack.shadows.floating)
-            .padding(.horizontal, theme.spacing.xl)
-        }
-        .background(.clear)
-    }
-}
 
 private struct ZipFilterModal: View {
     @Environment(\.appTheme) private var theme

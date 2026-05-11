@@ -178,7 +178,7 @@ class EntitySearchModel<Query: Equatable, Item: Sendable>: ObservableObject {
 
 @MainActor
 class EntityDetailModel<Value>: ObservableObject {
-    @Published private(set) var phase: LoadPhase<Value> = .idle
+    @Published var phase: LoadPhase<Value> = .idle
 
     func loadIfNeeded(
         using request: @escaping () async -> Result<Value, LoadFailure>
