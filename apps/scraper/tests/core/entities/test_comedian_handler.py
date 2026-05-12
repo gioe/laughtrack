@@ -187,6 +187,18 @@ class TestBatchUpdateComedianShowCountsSql:
         assert "bool_and" in sql, "Expected BOOL_AND to determine show-level sold-out status"
 
 
+class TestUpdateComedianTourIdsSql:
+    def test_query_only_fills_missing_platform_ids(self):
+        """Tour ID discovery must not overwrite previously verified platform IDs."""
+        sql = ComedianQueries.UPDATE_COMEDIAN_TOUR_IDS.lower()
+
+        assert "case" in sql
+        assert "nullif(btrim(coalesce(c.bandsintown_id, '')), '') is null" in sql
+        assert "nullif(btrim(coalesce(c.songkick_id, '')), '') is null" in sql
+        assert "coalesce(v.bandsintown_id, c.bandsintown_id)" not in sql
+        assert "coalesce(v.songkick_id, c.songkick_id)" not in sql
+
+
 # ---------------------------------------------------------------------------
 # _refresh_comedian_show_counts
 # ---------------------------------------------------------------------------

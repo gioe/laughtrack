@@ -2,9 +2,8 @@
 """Discover candidate comedian tour source URLs with Brave Search.
 
 This experimental script searches tour-intent queries for canonical comedians
-with historical shows and reports likely tour source URLs. It is intentionally
-read-only: dry-run mode is explicit in the output, and non-dry-run mode still
-only reports candidates until a later task defines persistence semantics.
+with historical shows, reports likely tour source URLs, and can persist high
+confidence tour IDs plus review evidence for lower-confidence candidates.
 """
 
 from __future__ import annotations
@@ -218,6 +217,45 @@ class TourSourceCandidate:
     snippet: str = ""
 
 
+@dataclass(frozen=True)
+class TourSourcePersistenceSummary:
+    tour_id_updates: int = 0
+    scraping_url_updates: int = 0
+    review_evidence_updates: int = 0
+
+
+_UPDATE_TOUR_SOURCE_DISCOVERY = """
+    UPDATE comedians AS c
+    SET bandsintown_id = CASE
+            WHEN %s IS NOT NULL
+             AND NULLIF(BTRIM(COALESCE(c.bandsintown_id, '')), '') IS NULL
+            THEN %s
+            ELSE c.bandsintown_id
+        END,
+        songkick_id = CASE
+            WHEN %s IS NOT NULL
+             AND NULLIF(BTRIM(COALESCE(c.songkick_id, '')), '') IS NULL
+            THEN %s
+            ELSE c.songkick_id
+        END,
+        website_scraping_url = CASE
+            WHEN %s IS NOT NULL
+             AND NULLIF(BTRIM(COALESCE(c.website_scraping_url, '')), '') IS NULL
+            THEN %s
+            ELSE c.website_scraping_url
+        END,
+        website_scraping_url_confidence = CASE
+            WHEN %s IS NOT NULL
+             AND NULLIF(BTRIM(COALESCE(c.website_scraping_url, '')), '') IS NULL
+            THEN 'high'
+            ELSE c.website_scraping_url_confidence
+        END,
+        tour_source_review_evidence =
+            COALESCE(c.tour_source_review_evidence, '[]'::jsonb) || %s::jsonb
+    WHERE c.uuid = %s
+"""
+
+
 def build_tour_search_queries(comedian_name: str) -> list[str]:
     """Return the Brave queries used for one comedian."""
     return [
@@ -398,6 +436,105 @@ def _candidate_from_result(
     )
 
 
+def _platform_tour_id(candidate: TourSourceCandidate) -> tuple[Optional[str], Optional[str]]:
+    """Extract persisted Bandsintown/Songkick IDs from high-confidence profile URLs."""
+    if candidate.confidence != "high":
+        return None, None
+
+    parsed = urlparse(candidate.url)
+    parts = [part for part in parsed.path.split("/") if part]
+    if candidate.source_type == "bandsintown" and len(parts) >= 2 and parts[0] == "a":
+        return parts[1], None
+    if candidate.source_type == "songkick" and len(parts) >= 2 and parts[0] == "artists":
+        return None, parts[1]
+    return None, None
+
+
+def _official_scraping_url(candidate: TourSourceCandidate) -> Optional[str]:
+    if candidate.source_type == "official_tour" and candidate.confidence == "high":
+        return candidate.url
+    return None
+
+
+def _review_evidence(candidate: TourSourceCandidate) -> dict[str, object]:
+    return {
+        "source_url": candidate.url,
+        "source_type": candidate.source_type,
+        "confidence": candidate.confidence,
+        "matched_query": candidate.query,
+        "rank": candidate.rank,
+        "title": candidate.title,
+        "snippet": candidate.snippet,
+        "context": {
+            "matched_domain": candidate.evidence.matched_domain,
+            "name_match": candidate.evidence.name_match,
+            "query_intent": candidate.evidence.query_intent,
+            "url_path": candidate.evidence.url_path,
+            "snippet": candidate.evidence.snippet,
+        },
+    }
+
+
+def persist_tour_source_candidates(
+    candidates: list[TourSourceCandidate],
+    *,
+    dry_run: bool,
+) -> TourSourcePersistenceSummary:
+    """Persist high-confidence tour IDs and durable review evidence."""
+    if not candidates:
+        return TourSourcePersistenceSummary()
+
+    rows: list[tuple[Optional[str], Optional[str], Optional[str], str, str]] = []
+    tour_id_updates = 0
+    scraping_url_updates = 0
+    review_evidence_updates = 0
+
+    for candidate in candidates:
+        bandsintown_id, songkick_id = _platform_tour_id(candidate)
+        scraping_url = _official_scraping_url(candidate)
+        evidence_json = json.dumps([_review_evidence(candidate)], sort_keys=True)
+        rows.append((bandsintown_id, songkick_id, scraping_url, evidence_json, candidate.comedian_uuid))
+        if bandsintown_id or songkick_id:
+            tour_id_updates += 1
+        if scraping_url:
+            scraping_url_updates += 1
+        review_evidence_updates += 1
+
+    summary = TourSourcePersistenceSummary(
+        tour_id_updates=tour_id_updates,
+        scraping_url_updates=scraping_url_updates,
+        review_evidence_updates=review_evidence_updates,
+    )
+    print_tour_source_persistence_summary(summary, dry_run=dry_run)
+
+    if dry_run:
+        return summary
+
+    conn = create_connection(autocommit=False)
+    try:
+        with conn.cursor() as cur:
+            for bandsintown_id, songkick_id, scraping_url, evidence_json, comedian_uuid in rows:
+                cur.execute(
+                    _UPDATE_TOUR_SOURCE_DISCOVERY,
+                    (
+                        bandsintown_id,
+                        bandsintown_id,
+                        songkick_id,
+                        songkick_id,
+                        scraping_url,
+                        scraping_url,
+                        scraping_url,
+                        evidence_json,
+                        comedian_uuid,
+                    ),
+                )
+        conn.commit()
+    finally:
+        conn.close()
+
+    return summary
+
+
 def _dedupe_candidates(candidates: list[TourSourceCandidate]) -> list[TourSourceCandidate]:
     seen: set[tuple[str, str]] = set()
     unique: list[TourSourceCandidate] = []
@@ -447,6 +584,7 @@ def discover_tour_sources(
 
     discovered = _dedupe_candidates(discovered)
     print_tour_source_report(discovered, dry_run=dry_run)
+    persist_tour_source_candidates(discovered, dry_run=dry_run)
     return discovered
 
 
@@ -540,6 +678,15 @@ def print_tour_source_report(candidates: list[TourSourceCandidate], *, dry_run: 
             f"intent:{candidate.evidence.query_intent} "
             f"path:{candidate.evidence.url_path}"
         )
+
+
+def print_tour_source_persistence_summary(summary: TourSourcePersistenceSummary, *, dry_run: bool) -> None:
+    mode = "would update" if dry_run else "updated"
+    print()
+    print(f"Persistence summary ({mode})")
+    print(f"  Tour IDs: {summary.tour_id_updates}")
+    print(f"  Official scraping URLs: {summary.scraping_url_updates}")
+    print(f"  Review evidence rows: {summary.review_evidence_updates}")
 
 
 def main() -> int:

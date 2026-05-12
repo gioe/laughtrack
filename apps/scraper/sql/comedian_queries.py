@@ -191,8 +191,18 @@ class ComedianQueries:
 
     UPDATE_COMEDIAN_TOUR_IDS = '''
         UPDATE comedians AS c
-        SET bandsintown_id = COALESCE(v.bandsintown_id, c.bandsintown_id),
-            songkick_id = COALESCE(v.songkick_id, c.songkick_id)
+        SET bandsintown_id = CASE
+                WHEN v.bandsintown_id IS NOT NULL
+                 AND NULLIF(BTRIM(COALESCE(c.bandsintown_id, '')), '') IS NULL
+                THEN v.bandsintown_id
+                ELSE c.bandsintown_id
+            END,
+            songkick_id = CASE
+                WHEN v.songkick_id IS NOT NULL
+                 AND NULLIF(BTRIM(COALESCE(c.songkick_id, '')), '') IS NULL
+                THEN v.songkick_id
+                ELSE c.songkick_id
+            END
         FROM (VALUES %s) AS v(uuid, bandsintown_id, songkick_id)
         WHERE c.uuid = v.uuid::text
     '''

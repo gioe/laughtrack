@@ -199,9 +199,10 @@ model Comedian {
   websiteHealthStatus          String?            @map("website_health_status")
   websiteHealthFailureCount    Int                @default(0) @map("website_health_failure_count")
   websiteHealthCheckedAt       DateTime?          @map("website_health_checked_at") @db.Timestamptz
-  websiteScrapingUrlHealthStatus       String?            @map("website_scraping_url_health_status")
-  websiteScrapingUrlHealthFailureCount Int                @default(0) @map("website_scraping_url_health_failure_count")
-  websiteScrapingUrlHealthCheckedAt    DateTime?          @map("website_scraping_url_health_checked_at") @db.Timestamptz
+  websiteScrapingUrlHealthStatus       String?   @map("website_scraping_url_health_status")
+  websiteScrapingUrlHealthFailureCount Int       @default(0) @map("website_scraping_url_health_failure_count")
+  websiteScrapingUrlHealthCheckedAt    DateTime? @map("website_scraping_url_health_checked_at") @db.Timestamptz
+  tourSourceReviewEvidence             Json?     @map("tour_source_review_evidence")
   bio                          String?
   parentComedianId             Int?               @map("parent_comedian_id")
   parentComedian               Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])

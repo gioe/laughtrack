@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -246,6 +247,114 @@ def test_low_confidence_noise_is_retained_as_review_evidence_not_promoted():
     assert candidate.is_scraping_url_candidate is False
     assert candidate.evidence.name_match == "none"
     assert candidate.evidence.query_intent == "tickets"
+
+
+def test_persist_tour_source_candidates_updates_high_confidence_tour_ids(monkeypatch):
+    conn = _FakeConnection([])
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
+    candidates = [
+        mod._candidate_from_result(
+            comedian=comedian,
+            result=SearchResult(
+                title="Jane Example Tour Dates",
+                link="https://www.bandsintown.com/a/123-jane-example",
+                snippet="Jane Example tickets and upcoming shows",
+                display_link="https://www.bandsintown.com/a/123-jane-example",
+            ),
+            query="Jane Example Bandsintown",
+            rank=1,
+        ),
+        mod._candidate_from_result(
+            comedian=comedian,
+            result=SearchResult(
+                title="Jane Example Tickets",
+                link="https://www.songkick.com/artists/456-jane-example",
+                snippet="Concerts and tour dates",
+                display_link="https://www.songkick.com/artists/456-jane-example",
+            ),
+            query="Jane Example Songkick",
+            rank=1,
+        ),
+    ]
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    summary = mod.persist_tour_source_candidates([c for c in candidates if c], dry_run=False)
+
+    assert summary.tour_id_updates == 2
+    assert summary.review_evidence_updates == 2
+    assert conn.commits == 1
+    assert len(conn.cursor_obj.executed) == 2
+    _query, params = conn.cursor_obj.executed[0]
+    assert params[0] == "123-jane-example"
+    assert params[2] is None
+    assert params[-1] == "comic-1"
+    _query, params = conn.cursor_obj.executed[1]
+    assert params[0] is None
+    assert params[2] == "456-jane-example"
+    assert params[-1] == "comic-1"
+
+
+def test_persist_tour_source_candidates_stores_review_evidence_without_promoting_noise(monkeypatch):
+    conn = _FakeConnection([])
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
+    candidate = mod._candidate_from_result(
+        comedian=comedian,
+        result=SearchResult(
+            title="Best comedy shows this weekend",
+            link="https://noise.example/events",
+            snippet="General comedy listings with no matching performer",
+            display_link="https://noise.example/events",
+        ),
+        query="Jane Example tickets upcoming shows",
+        rank=4,
+    )
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    summary = mod.persist_tour_source_candidates([candidate], dry_run=False)
+
+    assert summary.tour_id_updates == 0
+    assert summary.review_evidence_updates == 1
+    assert conn.commits == 1
+    query, params = conn.cursor_obj.executed[0]
+    assert "website =" not in query
+    assert "website_scraping_url = CASE" in query
+    assert params[0] is None
+    assert params[2] is None
+    assert params[4] is None
+    evidence = json.loads(params[7])[0]
+    assert evidence["source_url"] == "https://noise.example/events"
+    assert evidence["source_type"] == "unknown"
+    assert evidence["confidence"] == "low"
+    assert evidence["matched_query"] == "Jane Example tickets upcoming shows"
+    assert evidence["context"]["name_match"] == "none"
+    assert evidence["context"]["query_intent"] == "tickets"
+
+
+def test_persist_tour_source_candidates_dry_run_does_not_write(monkeypatch):
+    conn = _FakeConnection([])
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
+    candidate = mod._candidate_from_result(
+        comedian=comedian,
+        result=SearchResult(
+            title="Jane Example Tour Dates",
+            link="https://www.bandsintown.com/a/123-jane-example",
+            snippet="Jane Example tickets and upcoming shows",
+            display_link="https://www.bandsintown.com/a/123-jane-example",
+        ),
+        query="Jane Example Bandsintown",
+        rank=1,
+    )
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    summary = mod.persist_tour_source_candidates([candidate], dry_run=True)
+
+    assert summary.tour_id_updates == 1
+    assert summary.review_evidence_updates == 1
+    assert conn.commits == 0
+    assert conn.cursor_obj.executed == []
 
 
 def test_coverage_query_separates_core_comedian_tour_source_counts(monkeypatch):
