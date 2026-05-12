@@ -20,6 +20,19 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
  */
 export const FREE_FILTER_SLUG = "free";
 
+/**
+ * Exact-match check for FREE_FILTER_SLUG inside a `filters` CSV. Required
+ * because the CSV is parsed at multiple sites (where-clause builders, UI
+ * synthetic-FilterDTO injection) and a naive substring check would
+ * false-positive against any tag slug containing "free" (e.g. "freestyle").
+ */
+export function isFreeFilterSelected(
+    filters: string | null | undefined,
+): boolean {
+    if (!filters) return false;
+    return filters.split(",").some((slug) => slug === FREE_FILTER_SLUG);
+}
+
 type SortEntry = {
     field: string;
     direction: "asc" | "desc";
@@ -296,14 +309,7 @@ export class QueryHelper {
      * shows that have at least one ticket with price = 0 OR price IS NULL.
      */
     getFreeShowsClause() {
-        const filters = this.params.filters;
-        if (!filters) {
-            return {};
-        }
-        const isFreeSelected = filters
-            .split(",")
-            .some((slug) => slug === FREE_FILTER_SLUG);
-        if (!isFreeSelected) {
+        if (!isFreeFilterSelected(this.params.filters)) {
             return {};
         }
         return {

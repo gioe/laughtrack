@@ -4,12 +4,12 @@ import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import {
     FREE_FILTER_SLUG,
+    isFreeFilterSelected,
     QueryHelper,
 } from "@/objects/class/query/QueryHelper";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { FilterDTO } from "@/objects/interface";
-import { paramsContainsFilter } from "@/util/filter/util";
 
 interface ShowSearchResponse {
     total: number;
@@ -40,10 +40,7 @@ export async function getSearchedShows(
             id: FREE_FILTER_ID,
             slug: FREE_FILTER_SLUG,
             name: FREE_FILTER_NAME,
-            selected: paramsContainsFilter(
-                requestData.params.filters ?? null,
-                FREE_FILTER_SLUG,
-            ),
+            selected: isFreeFilterSelected(requestData.params.filters),
         };
 
         const filters = [freeFilter, ...tagFilters].sort((a, b) =>
