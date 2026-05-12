@@ -64,25 +64,23 @@ enum PrimitiveSortOption: String, CaseIterable, Identifiable {
     }
 }
 
-struct ShowsDiscoveryQuery: Hashable {
+struct ShowsListQuery: Hashable {
     let comedian: String
     let club: String
     let filters: [String]
     let zip: String
-    let useDateRange: Bool
-    let from: Date
-    let to: Date
+    let dateRange: DateRangeFilter
     let distance: ShowDistanceOption
     let sort: ShowSortOption
 
     var fromString: String? {
-        guard useDateRange else { return nil }
-        return ShowFormatting.apiDate(from)
+        guard dateRange.isActive else { return nil }
+        return ShowFormatting.apiDate(dateRange.from)
     }
 
     var toString: String? {
-        guard useDateRange else { return nil }
-        return ShowFormatting.apiDate(to)
+        guard dateRange.isActive else { return nil }
+        return ShowFormatting.apiDate(max(dateRange.to, dateRange.from))
     }
 
     var sanitizedZip: String? {
@@ -101,7 +99,7 @@ struct ShowsDiscoveryQuery: Hashable {
         !club.isEmpty ||
         !filters.isEmpty ||
         sanitizedZip != nil ||
-        useDateRange ||
+        dateRange.isActive ||
         sort != .earliest
     }
 

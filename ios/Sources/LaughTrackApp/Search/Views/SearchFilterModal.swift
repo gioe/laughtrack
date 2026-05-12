@@ -14,81 +14,69 @@ struct SearchFilterModal: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ZStack {
-            Color.black.opacity(0.28)
-                .ignoresSafeArea()
-                .onTapGesture(perform: cancel)
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text("Filter Results")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
 
-            VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                HStack(alignment: .top, spacing: theme.spacing.md) {
-                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Filter Results")
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-
-                        Text("Select options to refine search.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Button(action: cancel) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(laughTrack.colors.surfaceElevated)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Close")
+                    Text("Select options to refine search.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
                 }
 
-                if filters.isEmpty {
-                    LaughTrackContextRow(
-                        leading: "No filters available",
-                        trailing: ""
-                    )
-                } else {
-                    VStack(alignment: .leading, spacing: theme.spacing.md) {
-                        Text("Filter By")
-                            .font(laughTrack.typography.eyebrow)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .textCase(.uppercase)
+                Spacer(minLength: 0)
 
-                        FlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
-                            ForEach(filters, id: \.slug) { filter in
-                                Button {
-                                    toggle(filter.slug)
-                                } label: {
-                                    LaughTrackBrowseChip(
-                                        filter.name,
-                                        tone: draftSlugs.contains(filter.slug) ? .selected : .neutral
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                Button(action: cancel) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(laughTrack.colors.surfaceElevated)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+            }
+
+            if filters.isEmpty {
+                LaughTrackContextRow(
+                    leading: "No filters available",
+                    trailing: ""
+                )
+            } else {
+                VStack(alignment: .leading, spacing: theme.spacing.md) {
+                    Text("Filter By")
+                        .font(laughTrack.typography.eyebrow)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .textCase(.uppercase)
+
+                    FlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                        ForEach(filters, id: \.slug) { filter in
+                            Button {
+                                toggle(filter.slug)
+                            } label: {
+                                LaughTrackBrowseChip(
+                                    filter.name,
+                                    tone: draftSlugs.contains(filter.slug) ? .selected : .neutral
+                                )
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
-
-                LaughTrackButton("Show \(total.formatted()) Results", systemImage: "checkmark", density: .compact) {
-                    selectedSlugs = draftSlugs
-                    isPresented = false
-                }
             }
-            .padding(theme.spacing.xl)
-            .background(laughTrack.colors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
-            .shadowStyle(laughTrack.shadows.floating)
-            .padding(.horizontal, theme.spacing.xl)
+
+            LaughTrackButton("Show \(total.formatted()) Results", systemImage: "checkmark", density: .compact) {
+                selectedSlugs = draftSlugs
+                isPresented = false
+            }
+
+            Spacer(minLength: 0)
         }
-        .background(.clear)
+        .padding(theme.spacing.xl)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             draftSlugs = selectedSlugs
         }

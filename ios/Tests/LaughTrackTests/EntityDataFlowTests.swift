@@ -160,7 +160,7 @@ struct EntityDataFlowTests {
 
     @Test("shows discovery model renders raw API show dates from a 200 search response")
     func showsDiscoveryModelDecodesRawSearchDates() async {
-        let model = ShowsDiscoveryModel(
+        let model = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: StubNearbyLocationResolver(),
@@ -202,7 +202,7 @@ struct EntityDataFlowTests {
                 """
             )
         }
-        let model = ShowsDiscoveryModel(
+        let model = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: StubNearbyLocationResolver(),
@@ -243,7 +243,7 @@ struct EntityDataFlowTests {
                 """
             )
         }
-        let model = ShowsDiscoveryModel(
+        let model = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: StubNearbyLocationResolver(),
@@ -270,7 +270,7 @@ struct EntityDataFlowTests {
 
     @Test("shows discovery model defaults date filtering to today")
     func showsDiscoveryModelDefaultsDateFilteringToToday() {
-        let model = ShowsDiscoveryModel(
+        let model = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: StubNearbyLocationResolver(),
@@ -278,8 +278,8 @@ struct EntityDataFlowTests {
             )
         )
 
-        #expect(model.useDateRange)
-        #expect(model.dateRangeChipTitle == "Today")
+        #expect(model.dateRange.isActive)
+        #expect(model.dateRange.pillLabel() == "Today")
         #expect(model.requestKey.fromString != nil)
         #expect(model.requestKey.fromString == model.requestKey.toString)
     }

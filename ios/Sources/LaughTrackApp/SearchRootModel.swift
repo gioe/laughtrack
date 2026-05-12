@@ -74,7 +74,7 @@ final class SearchRootModel: ObservableObject {
     }
 
     @discardableResult
-    func selectShortcut(_ shortcut: String, showsModel: ShowsDiscoveryModel) async -> Bool {
+    func selectShortcut(_ shortcut: String, showsModel: ShowsListModel) async -> Bool {
         selectedShortcut = shortcut
         activePivot = .shows
 
@@ -95,25 +95,29 @@ final class SearchRootModel: ObservableObject {
     }
 
     func applyShortcutFilters(
-        to showsModel: ShowsDiscoveryModel,
+        to showsModel: ShowsListModel,
         now: Date = Date(),
         calendar: Calendar = .current
     ) {
         switch selectedShortcut {
         case "Tonight":
             let start = calendar.startOfDay(for: now)
-            showsModel.useDateRange = true
-            showsModel.fromDate = start
-            showsModel.toDate = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+            showsModel.dateRange = DateRangeFilter(
+                from: start,
+                to: calendar.date(byAdding: .day, value: 1, to: start) ?? start,
+                isActive: true
+            )
             showsModel.sort = .earliest
         case "This Week":
             let start = calendar.startOfDay(for: now)
-            showsModel.useDateRange = true
-            showsModel.fromDate = start
-            showsModel.toDate = calendar.date(byAdding: .day, value: 7, to: start) ?? start
+            showsModel.dateRange = DateRangeFilter(
+                from: start,
+                to: calendar.date(byAdding: .day, value: 7, to: start) ?? start,
+                isActive: true
+            )
             showsModel.sort = .earliest
         case "Near Me":
-            showsModel.useDateRange = false
+            showsModel.dateRange.isActive = false
             showsModel.sort = .earliest
         default:
             break
@@ -125,7 +129,7 @@ final class SearchRootModel: ObservableObject {
     }
 
     func applyQuery(
-        showsModel: ShowsDiscoveryModel,
+        showsModel: ShowsListModel,
         comediansModel: ComediansDiscoveryModel,
         clubsModel: ClubsDiscoveryModel
     ) {

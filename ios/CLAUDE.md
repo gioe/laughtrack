@@ -383,6 +383,20 @@ cp .build/plugins/outputs/openapi-regen/OpenAPIRegen/destination/OpenAPIGenerato
 Then `cd <repo>/ios && swift build --target LaughTrackAPIClient` to verify the
 regenerated files compile.
 
+**Generator-version drift.** `swift-openapi-generator` 1.9+ emits multi-line
+argument lists where older versions wrote single-line ones; the currently
+committed `Client.swift` / `Types.swift` have *mixed* formatting because prior
+regens used different versions. A naive copy-back therefore produces ~600 lines
+of unrelated reformatting per single-operation regen. If you only added one
+operation to `openapi.json` and the regen diff is dominated by formatting noise,
+use **surgical extraction** instead: revert the wholesale copy-back
+(`git checkout GeneratedSources/`) and manually insert *only* the new
+operation's blocks into the existing files — the protocol entry, the
+convenience extension, the `Components.Schemas.<Name>` struct, the full
+`Operations.<Name>` enum, and the `Client.<name>` method. Lock-step shipping
+(spec + client edit in one commit) is still required; the surgical path just
+keeps the diff readable for review. Pattern used successfully on TASK-2132.
+
 ## Architecture
 
 This project uses [ios-libs](https://github.com/gioe/ios-libs) for shared infrastructure.

@@ -82,8 +82,6 @@ struct ComedianDetailViewTests {
         #expect(content.upcomingRuns.isEmpty)
         #expect(content.relatedComedians.isEmpty)
         #expect(content.relatedContentMessage == nil)
-        #expect(ComedianDetailPresentation.emptyUpcomingShowsMessage(filters: .empty) == "No upcoming shows are available for this comedian right now.")
-        #expect(ComedianDetailPresentation.emptyUpcomingShowsMessage(filters: .init(club: "Comedy Cellar", location: nil, date: nil)) == "No shows match these filters. Try clearing one.")
     }
 
     @Test("comedian detail keeps profile content visible when related shows fail")

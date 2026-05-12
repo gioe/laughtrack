@@ -105,14 +105,6 @@ struct ComedianDetailContent: Hashable {
     let relatedContentMessage: String?
 }
 
-struct ComedianRunFilters: Hashable {
-    let club: String?
-    let location: String?
-    let date: String?
-
-    static let empty = ComedianRunFilters(club: nil, location: nil, date: nil)
-}
-
 struct ClubDetailContent: Hashable {
     let club: Components.Schemas.ClubDetail
     let upcomingShows: [Components.Schemas.Show]
@@ -130,28 +122,25 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
 
     func loadIfNeeded(
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
-        runFilters: ComedianRunFilters = .empty
+        favorites: ComedianFavoriteStore
     ) async {
         await super.loadIfNeeded {
-            await self.fetch(apiClient: apiClient, favorites: favorites, runFilters: runFilters)
+            await self.fetch(apiClient: apiClient, favorites: favorites)
         }
     }
 
     func reload(
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
-        runFilters: ComedianRunFilters = .empty
+        favorites: ComedianFavoriteStore
     ) async {
         await super.reload {
-            await self.fetch(apiClient: apiClient, favorites: favorites, runFilters: runFilters)
+            await self.fetch(apiClient: apiClient, favorites: favorites)
         }
     }
 
     private func fetch(
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
-        runFilters: ComedianRunFilters
+        favorites: ComedianFavoriteStore
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
@@ -164,8 +153,7 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                 return await loadRelatedContent(
                     for: comedian,
                     apiClient: apiClient,
-                    favorites: favorites,
-                    runFilters: runFilters
+                    favorites: favorites
                 )
             case .badRequest:
                 return .failure(.badParams("LaughTrack could not load this comedian right now."))
@@ -184,14 +172,13 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     private func loadRelatedContent(
         for comedian: Components.Schemas.ComedianDetail,
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
-        runFilters: ComedianRunFilters
+        favorites: ComedianFavoriteStore
     ) async -> Result<ComedianDetailContent, LoadFailure> {
         do {
             let output = try await apiClient.getComedianUpcomingRuns(
                 .init(
                     path: .init(id: comedian.id),
-                    query: .init(club: runFilters.club, location: runFilters.location, date: runFilters.date),
+                    query: .init(club: nil, location: nil, date: nil),
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )
             )

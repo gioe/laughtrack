@@ -130,16 +130,6 @@ struct ComediansDiscoveryView: View {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, favorites: favorites, cache: pageCache)
         }
-        #if os(iOS)
-        .fadeFullScreenCover(isPresented: $isFilterEditorPresented) {
-            SearchFilterModal(
-                filters: currentFilters,
-                total: currentTotal,
-                selectedSlugs: $model.selectedFilterSlugs,
-                isPresented: $isFilterEditorPresented
-            )
-        }
-        #else
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: currentFilters,
@@ -147,8 +137,8 @@ struct ComediansDiscoveryView: View {
                 selectedSlugs: $model.selectedFilterSlugs,
                 isPresented: $isFilterEditorPresented
             )
+            .presentationDetents([.medium, .large])
         }
-        #endif
         .alert("Favorites", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
                 feedbackMessage = nil

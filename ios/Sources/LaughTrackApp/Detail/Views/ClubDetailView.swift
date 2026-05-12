@@ -55,10 +55,10 @@ struct ClubDetailView: View {
                     .ignoresSafeArea(.container, edges: .top)
 
                     VStack(alignment: .leading, spacing: 20) {
-                        ClubShowsSearchSection(
-                            clubName: club.name,
+                        PinnedShowsList(
                             apiClient: apiClient,
-                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
+                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                            pinnedClubName: club.name
                         )
                     }
                     .padding(.horizontal, 8)
@@ -109,30 +109,3 @@ enum ClubDetailHeroPresentation {
     }
 }
 
-private struct ClubShowsSearchSection: View {
-    let clubName: String
-    let apiClient: Client
-
-    @StateObject private var model: ShowsDiscoveryModel
-
-    init(
-        clubName: String,
-        apiClient: Client,
-        nearbyLocationController: NearbyLocationController
-    ) {
-        self.clubName = clubName
-        self.apiClient = apiClient
-        _model = StateObject(wrappedValue: ShowsDiscoveryModel(
-            nearbyLocationController: nearbyLocationController,
-            pinnedClubName: clubName
-        ))
-    }
-
-    var body: some View {
-        // Club detail inherits the shared SearchToolbar through ShowsDiscoveryView.
-        ShowsDiscoveryView(
-            apiClient: apiClient,
-            model: model
-        )
-    }
-}
