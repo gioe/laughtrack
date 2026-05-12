@@ -60,6 +60,7 @@ function makeHelper(
         getZipCodeClause: vi.fn(() => ({})),
         getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
         getShowTagsClause: vi.fn(() => ({})),
+        getFreeShowsClause: vi.fn(() => ({})),
         getGenericClauses: vi.fn((count: number) => ({
             orderBy: [{ name: "asc" }],
             take: Math.min(10, count),

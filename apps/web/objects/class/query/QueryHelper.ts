@@ -6,6 +6,20 @@ import { toZonedTime, fromZonedTime, format } from "date-fns-tz";
 import { resolveLocationInput } from "@/util/location/resolveLocation";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
+/**
+ * Synthetic slug reserved inside the `filters` URL CSV that flags the Free
+ * filter on shows search. Lives in the existing `filters` param (e.g.
+ * `?filters=open-mic,free`) rather than a dedicated `free=true` boolean so the
+ * existing chip/modal UX renders it without per-filter wiring. No `Tag` row
+ * uses this slug — `getFreeShowsClause` translates it to a ticket-price
+ * predicate and `getShowTagsClause` strips it before querying tags.
+ *
+ * Qualification: a show matches when ANY of its tickets has price = 0 OR
+ * price IS NULL. A mixed-price show (one paid + one free tier) still
+ * qualifies, since the user wants to discover that a free option exists.
+ */
+export const FREE_FILTER_SLUG = "free";
+
 type SortEntry = {
     field: string;
     direction: "asc" | "desc";
@@ -247,6 +261,17 @@ export class QueryHelper {
             return {};
         }
 
+        // FREE_FILTER_SLUG is not a real Tag — it's a synthetic flag handled
+        // by getFreeShowsClause. Drop it before querying taggedShows so a CSV
+        // of just "free" doesn't AND in an empty-result tag predicate.
+        const tagSlugs = tags
+            .split(",")
+            .filter((slug) => slug && slug !== FREE_FILTER_SLUG);
+
+        if (tagSlugs.length === 0) {
+            return {};
+        }
+
         return {
             AND: [
                 {
@@ -254,7 +279,7 @@ export class QueryHelper {
                         some: {
                             tag: {
                                 slug: {
-                                    in: tags.split(","),
+                                    in: tagSlugs,
                                 },
                                 type: "show",
                             },
@@ -262,6 +287,31 @@ export class QueryHelper {
                     },
                 },
             ],
+        };
+    }
+
+    /**
+     * Prisma `Show.where` fragment for the Free filter. Returns `{}` when
+     * FREE_FILTER_SLUG is absent from `params.filters`, otherwise narrows to
+     * shows that have at least one ticket with price = 0 OR price IS NULL.
+     */
+    getFreeShowsClause() {
+        const filters = this.params.filters;
+        if (!filters) {
+            return {};
+        }
+        const isFreeSelected = filters
+            .split(",")
+            .some((slug) => slug === FREE_FILTER_SLUG);
+        if (!isFreeSelected) {
+            return {};
+        }
+        return {
+            tickets: {
+                some: {
+                    OR: [{ price: 0 }, { price: null }],
+                },
+            },
         };
     }
 
