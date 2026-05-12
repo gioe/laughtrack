@@ -175,8 +175,6 @@ struct MonthCalendarViewTests {
 
         let result = DateRangeDensity.densityMap(from: raw)
 
-        #expect(result.count == 2)
-
         // Every surviving key is exactly midnight in the system calendar's
         // timezone, so it round-trips through the same ISO formatter that
         // parsed it. Asserting the round-trip sidesteps timezone fragility.

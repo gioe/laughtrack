@@ -472,6 +472,10 @@ enum DateRangeDensity {
         }
     }
 
+    // Invariant: `calendar.timeZone` must match `isoDateFormatter.timeZone`
+    // (currently `TimeZone.autoupdatingCurrent`). The formatter parses midnight
+    // in its own timezone, and `startOfDay` re-rounds in the calendar's — a
+    // mismatch would bucket some entries onto a neighbouring day.
     static func densityMap(
         from raw: [String: Int],
         calendar: Calendar = .current
