@@ -245,6 +245,31 @@ struct MonthCalendarViewTests {
         #expect(transport.capturedRequests.count == 1)
     }
 
+    @Test("DateRangeDensity.compute returns nil when transport returns a non-ok status")
+    func computeReturnsNilOnNonOkResponse() async {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            var response = HTTPResponse(status: .init(code: 500))
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody(#"{"error":"boom"}"#))
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        let result = await DateRangeDensity.compute(
+            preference: NearbyPreference(zipCode: "60614", source: .manual),
+            fromDate: Date(),
+            now: Date(),
+            apiClient: apiClient
+        )
+
+        // nil — not [:] — is the "leave showsByDate alone" contract for any
+        // transport failure with a non-nil preference. [:] would clear state.
+        #expect(result == nil)
+    }
+
     @Test("comedian detail show counts are bucketed by current calendar start of day")
     func comedianShowsByDateBucketsByStartOfDay() {
         let calendar = Calendar.current
