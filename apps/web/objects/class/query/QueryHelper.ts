@@ -6,10 +6,26 @@ import { toZonedTime, fromZonedTime, format } from "date-fns-tz";
 import { resolveLocationInput } from "@/util/location/resolveLocation";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
-type SortEntry = { field: string; direction: "asc" | "desc" };
+type SortEntry = {
+    field: string;
+    direction: "asc" | "desc";
+    // When set, emits Prisma's verbose orderBy shape so NULL placement is
+    // explicit. Required for nullable columns like Show.minPrice where the
+    // Postgres defaults (ASC NULLS LAST, DESC NULLS FIRST) disagree with the
+    // intended UX (NULLs always at the bottom regardless of direction).
+    nulls?: "first" | "last";
+};
 type SortMap = Record<string, SortEntry>;
 
-/** Sort fields valid for the Show model (has: name, date, popularity). */
+/**
+ * Sort fields valid for the Show model.
+ *
+ * minPrice is the denormalized cheapest *paid* ticket on the show, maintained
+ * by the tickets_trickle_show_min_price trigger. nulls:"last" both directions
+ * keeps shows with no priced tickets (RSVP-only / not yet scraped) at the
+ * bottom so the price sort never leads with a row that has no price to
+ * compare. Free-show discoverability is handled by TASK-2141's Free filter.
+ */
 export const SHOW_SORT_MAP: SortMap = {
     [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
     [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
@@ -19,6 +35,16 @@ export const SHOW_SORT_MAP: SortMap = {
     [SortParamValue.PopularityDesc]: {
         field: "popularity",
         direction: "desc",
+    },
+    [SortParamValue.PriceAsc]: {
+        field: "minPrice",
+        direction: "asc",
+        nulls: "last",
+    },
+    [SortParamValue.PriceDesc]: {
+        field: "minPrice",
+        direction: "desc",
+        nulls: "last",
     },
 };
 
@@ -450,7 +476,11 @@ export class QueryHelper {
         const sortParam = this.params.sort || defaultSortField;
         const sortEntry =
             effectiveSortMap[sortParam] ?? effectiveSortMap[defaultSortField];
-        const { field: mappedField, direction: validDirection } = sortEntry;
+        const {
+            field: mappedField,
+            direction: validDirection,
+            nulls,
+        } = sortEntry;
 
         // When tiebreakers are provided explicitly (e.g. shows use date+id to
         // avoid nullable name), use them unconditionally. Otherwise fall back to
@@ -460,8 +490,12 @@ export class QueryHelper {
             tiebreakers ??
             (mappedField !== "name" ? [{ name: "asc" as const }] : []);
 
+        const primaryOrder = nulls
+            ? { [mappedField]: { sort: validDirection, nulls } }
+            : { [mappedField]: validDirection };
+
         return {
-            orderBy: [{ [mappedField]: validDirection }, ...tiebreakerEntries],
+            orderBy: [primaryOrder, ...tiebreakerEntries],
             take,
             skip,
         };
