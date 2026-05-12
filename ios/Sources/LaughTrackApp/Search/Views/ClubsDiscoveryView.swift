@@ -78,7 +78,7 @@ struct ClubsDiscoveryView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard(title: "Loading clubs")
+                    ClubsListSkeleton()
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,

@@ -80,7 +80,7 @@ struct ComediansDiscoveryView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard(title: "Loading comedians")
+                    ComediansListSkeleton()
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,

@@ -20,6 +20,7 @@ struct ShowsDiscoveryView: View {
     @State private var isZipEditorPresented = false
     @State private var isFilterEditorPresented = false
     @State private var isDateEditorPresented = false
+    @State private var openDropdownID: String?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -57,12 +58,13 @@ struct ShowsDiscoveryView: View {
                     total: currentTotal,
                     isZipEditorPresented: $isZipEditorPresented,
                     isFilterEditorPresented: $isFilterEditorPresented,
-                    isDateEditorPresented: $isDateEditorPresented
+                    isDateEditorPresented: $isDateEditorPresented,
+                    openDropdownID: $openDropdownID
                 )
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard(title: "Loading shows")
+                    ShowsListSkeleton()
                 case .failure(let failure):
                     FailureCard(
                         failure: failure,
@@ -80,7 +82,10 @@ struct ShowsDiscoveryView: View {
                                 Button {
                                     coordinator.open(.show(show.id))
                                 } label: {
-                                    ShowRow(show: show)
+                                    ShowRow(
+                                        show: show,
+                                        nearbyRadiusMiles: model.activeNearbyPreference.map { Double($0.distanceMiles) }
+                                    )
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
@@ -139,6 +144,31 @@ struct ShowsDiscoveryView: View {
         }
         #endif
         .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
+        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: "shows-distance",
+                    options: ShowDistanceOption.allCases,
+                    selected: $model.distance,
+                    triggerLabel: { "Distance \($0.title)" },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+
+                PillDropdownOverlay(
+                    id: "shows-sort",
+                    options: ShowSortOption.allCases,
+                    selected: $model.sort,
+                    triggerLabel: { "Sort \($0.title)" },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+            }
+        }
     }
 
     private var currentFilters: [Components.Schemas.Filter] {
@@ -174,24 +204,29 @@ private struct ShowFiltersPanel: View {
     @Binding var isZipEditorPresented: Bool
     @Binding var isFilterEditorPresented: Bool
     @Binding var isDateEditorPresented: Bool
+    @Binding var openDropdownID: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             SearchToolbar {
-                Menu {
-                    Picker("Sort", selection: $model.sort) {
-                        ForEach(ShowSortOption.allCases) { option in
-                            Text(option.title).tag(option)
-                        }
-                    }
-                } label: {
-                    LaughTrackBrowseChip(
-                        "Sort: \(model.sort.title)",
-                        systemImage: "arrow.up.arrow.down",
-                        tone: .neutral
+                EmptyView()
+            } filterChipSet: {
+                if model.allowsLocationFiltering {
+                    PillDropdownTrigger(
+                        id: "shows-distance",
+                        selected: model.distance,
+                        triggerLabel: { "Distance \($0.title)" },
+                        openDropdownID: $openDropdownID
                     )
                 }
-            } filterChipSet: {
+
+                PillDropdownTrigger(
+                    id: "shows-sort",
+                    selected: model.sort,
+                    triggerLabel: { "Sort \($0.title)" },
+                    openDropdownID: $openDropdownID
+                )
+
                 if model.allowsLocationFiltering {
                     Button {
                         isZipEditorPresented = true
@@ -236,10 +271,6 @@ private struct ShowFiltersPanel: View {
                 .accessibilityLabel(model.dateRangeChipTitle)
             }
 
-            if model.allowsLocationFiltering {
-                distanceSelector
-            }
-
             if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
                 InlineStatusMessage(message: nearbyStatusMessage)
             }
@@ -278,24 +309,6 @@ private struct ShowFiltersPanel: View {
         "\(activeFilterCount) filter\(activeFilterCount == 1 ? "" : "s")"
     }
 
-    private var distanceSelector: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.sm) {
-                ForEach(ShowDistanceOption.allCases) { option in
-                    Button {
-                        model.distance = option
-                    } label: {
-                        LaughTrackBrowseChip(
-                            option.title,
-                            tone: model.distance == option ? .selected : .neutral
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
 }
 
 private struct DateRangeFilterModal: View {
