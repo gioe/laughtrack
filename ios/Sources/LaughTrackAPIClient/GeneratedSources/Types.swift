@@ -114,6 +114,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/search`.
     /// - Remark: Generated from `#/paths//shows/search/get(searchShows)`.
     func searchShows(_ input: Operations.SearchShows.Input) async throws -> Operations.SearchShows.Output
+    /// Per-day show counts for a date range
+    ///
+    /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// - Remark: HTTP `GET /shows/density`.
+    /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
+    func getShowsDensity(_ input: Operations.GetShowsDensity.Input) async throws -> Operations.GetShowsDensity.Output
     /// Get a single show by ID
     ///
     /// - Remark: HTTP `GET /shows/{id}`.
@@ -365,6 +372,21 @@ extension APIProtocol {
         headers: Operations.SearchShows.Input.Headers = .init()
     ) async throws -> Operations.SearchShows.Output {
         try await searchShows(Operations.SearchShows.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Per-day show counts for a date range
+    ///
+    /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// - Remark: HTTP `GET /shows/density`.
+    /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
+    public func getShowsDensity(
+        query: Operations.GetShowsDensity.Input.Query = .init(),
+        headers: Operations.GetShowsDensity.Input.Headers = .init()
+    ) async throws -> Operations.GetShowsDensity.Output {
+        try await getShowsDensity(Operations.GetShowsDensity.Input(
             query: query,
             headers: headers
         ))
@@ -1254,6 +1276,26 @@ public enum Components {
                 case total
                 case data
                 case filters
+            }
+        }
+        /// Map of ISO date strings (YYYY-MM-DD) to per-day show counts. Days with no shows are omitted.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ShowDensityResponse`.
+        public struct ShowDensityResponse: Codable, Hashable, Sendable {
+            /// A container of undocumented properties.
+            public var additionalProperties: [String: Swift.Int]
+            /// Creates a new `ShowDensityResponse`.
+            ///
+            /// - Parameters:
+            ///   - additionalProperties: A container of undocumented properties.
+            public init(additionalProperties: [String: Swift.Int] = .init()) {
+                self.additionalProperties = additionalProperties
+            }
+            public init(from decoder: any Decoder) throws {
+                additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
+            }
+            public func encode(to encoder: any Encoder) throws {
+                try encoder.encodeAdditionalProperties(additionalProperties)
             }
         }
         /// - Remark: Generated from `#/components/schemas/ShowSearchResponse`.
@@ -7233,6 +7275,344 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.SearchShows.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Per-day show counts for a date range
+    ///
+    /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// - Remark: HTTP `GET /shows/density`.
+    /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
+    public enum GetShowsDensity {
+        public static let id: Swift.String = "getShowsDensity"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/shows/density/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// 5-digit US ZIP code; required for distance filtering.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/zip`.
+                public var zip: Swift.String?
+                /// Start date (YYYY-MM-DD). Defaults to today.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/from`.
+                public var from: Swift.String?
+                /// End date (YYYY-MM-DD). Defaults to from+89 days.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/to`.
+                public var to: Swift.String?
+                /// Radius in miles (1-500, defaults to 25 when zip provided).
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/distance`.
+                public var distance: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - zip: 5-digit US ZIP code; required for distance filtering.
+                ///   - from: Start date (YYYY-MM-DD). Defaults to today.
+                ///   - to: End date (YYYY-MM-DD). Defaults to from+89 days.
+                ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided).
+                public init(
+                    zip: Swift.String? = nil,
+                    from: Swift.String? = nil,
+                    to: Swift.String? = nil,
+                    distance: Swift.Int? = nil
+                ) {
+                    self.zip = zip
+                    self.from = from
+                    self.to = to
+                    self.distance = distance
+                }
+            }
+            public var query: Operations.GetShowsDensity.Input.Query
+            /// - Remark: Generated from `#/paths/shows/density/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                /// IANA timezone identifier (defaults to UTC).
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/header/X-Timezone`.
+                public var xTimezone: Swift.String?
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShowsDensity.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - xTimezone: IANA timezone identifier (defaults to UTC).
+                ///   - accept:
+                public init(
+                    xTimezone: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShowsDensity.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.xTimezone = xTimezone
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetShowsDensity.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.GetShowsDensity.Input.Query = .init(),
+                headers: Operations.GetShowsDensity.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/density/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/density/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ShowDensityResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ShowDensityResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShowsDensity.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShowsDensity.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Per-day show counts keyed by YYYY-MM-DD.
+            ///
+            /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetShowsDensity.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetShowsDensity.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/density/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/density/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShowsDensity.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShowsDensity.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid parameters
+            ///
+            /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetShowsDensity.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetShowsDensity.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/density/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/shows/density/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetShowsDensity.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/shows/density/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/density/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShowsDensity.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetShowsDensity.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetShowsDensity.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetShowsDensity.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetShowsDensity.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/density/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/density/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShowsDensity.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShowsDensity.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetShowsDensity.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetShowsDensity.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

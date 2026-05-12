@@ -2632,6 +2632,128 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Per-day show counts for a date range
+    ///
+    /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// - Remark: HTTP `GET /shows/density`.
+    /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
+    public func getShowsDensity(_ input: Operations.GetShowsDensity.Input) async throws -> Operations.GetShowsDensity.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.GetShowsDensity.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/shows/density",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "zip",
+                    value: input.query.zip
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "from",
+                    value: input.query.from
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "to",
+                    value: input.query.to
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "distance",
+                    value: input.query.distance
+                )
+                try converter.setHeaderFieldAsURI(
+                    in: &request.headerFields,
+                    name: "X-Timezone",
+                    value: input.headers.xTimezone
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetShowsDensity.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ShowDensityResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                case 400:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetShowsDensity.Output.BadRequest.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .badRequest(.init(body: body))
+                case 429:
+                    let headers: Operations.GetShowsDensity.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetShowsDensity.Output.TooManyRequests.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .tooManyRequests(.init(headers: headers, body: body))
+                case 500:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.GetShowsDensity.Output.InternalServerError.Body
+                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .internalServerError(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Get a single show by ID
     ///
     /// - Remark: HTTP `GET /shows/{id}`.

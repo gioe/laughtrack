@@ -125,7 +125,7 @@ struct ShowsDiscoveryView: View {
             )
         }
         .fadeFullScreenCover(isPresented: $isDateEditorPresented) {
-            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+            DateRangeFilterModal(model: model, apiClient: apiClient, isPresented: $isDateEditorPresented)
         }
         #else
         .sheet(isPresented: $isZipEditorPresented) {
@@ -140,7 +140,7 @@ struct ShowsDiscoveryView: View {
             )
         }
         .sheet(isPresented: $isDateEditorPresented) {
-            DateRangeFilterModal(model: model, isPresented: $isDateEditorPresented)
+            DateRangeFilterModal(model: model, apiClient: apiClient, isPresented: $isDateEditorPresented)
         }
         #endif
         .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
@@ -315,7 +315,10 @@ private struct DateRangeFilterModal: View {
     @Environment(\.appTheme) private var theme
 
     @ObservedObject var model: ShowsDiscoveryModel
+    let apiClient: Client
     @Binding var isPresented: Bool
+
+    @State private var showsByDate: [Date: Int] = [:]
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -364,6 +367,7 @@ private struct DateRangeFilterModal: View {
                                 set: { model.toDate = max($0, model.fromDate) }
                             )
                         ),
+                        showsByDate: showsByDate,
                         minimumDate: Calendar.current.startOfDay(for: Date())
                     )
                     .padding(.horizontal, theme.spacing.xs)
@@ -402,7 +406,69 @@ private struct DateRangeFilterModal: View {
             .padding(.horizontal, theme.spacing.xl)
         }
         .background(.clear)
+        .task(id: DateRangeDensityKey(
+            zip: model.activeNearbyPreference?.zipCode,
+            distance: model.activeNearbyPreference?.distanceMiles
+        )) {
+            await loadDensity()
+        }
     }
+
+    private func loadDensity() async {
+        guard let preference = model.activeNearbyPreference else {
+            showsByDate = [:]
+            return
+        }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        guard let to = calendar.date(byAdding: .day, value: 89, to: today) else { return }
+
+        let fromString = Self.isoDateFormatter.string(from: today)
+        let toString = Self.isoDateFormatter.string(from: to)
+
+        do {
+            let output = try await apiClient.getShowsDensity(
+                .init(
+                    query: .init(
+                        zip: preference.zipCode,
+                        from: fromString,
+                        to: toString,
+                        distance: preference.distanceMiles
+                    ),
+                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                )
+            )
+            guard case .ok(let ok) = output, let json = try? ok.body.json else { return }
+            showsByDate = Self.densityMap(from: json.additionalProperties)
+        } catch {
+            // Density dots are best-effort decoration; silently drop on failure.
+        }
+    }
+
+    private static func densityMap(from raw: [String: Int]) -> [Date: Int] {
+        let calendar = Calendar.current
+        var result: [Date: Int] = [:]
+        for (key, count) in raw where count > 0 {
+            guard let date = isoDateFormatter.date(from: key) else { continue }
+            result[calendar.startOfDay(for: date)] = count
+        }
+        return result
+    }
+
+    private static let isoDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.autoupdatingCurrent
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
+private struct DateRangeDensityKey: Hashable {
+    let zip: String?
+    let distance: Int?
 }
 
 private struct ZipFilterModal: View {

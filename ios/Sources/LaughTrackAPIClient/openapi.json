@@ -1201,6 +1201,87 @@
         }
       }
     },
+    "/shows/density": {
+      "get": {
+        "operationId": "getShowsDensity",
+        "summary": "Per-day show counts for a date range",
+        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.",
+        "tags": ["shows"],
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "description": "5-digit US ZIP code; required for distance filtering.",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Start date (YYYY-MM-DD). Defaults to today.",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "End date (YYYY-MM-DD). Defaults to from+89 days.",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "Radius in miles (1-500, defaults to 25 when zip provided).",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC).",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }, {}],
+        "responses": {
+          "200": {
+            "description": "Per-day show counts keyed by YYYY-MM-DD.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ShowDensityResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/shows/{id}": {
       "get": {
         "operationId": "getShow",
@@ -1824,6 +1905,11 @@
             "items": { "$ref": "#/components/schemas/Filter" }
           }
         }
+      },
+      "ShowDensityResponse": {
+        "type": "object",
+        "description": "Map of ISO date strings (YYYY-MM-DD) to per-day show counts. Days with no shows are omitted.",
+        "additionalProperties": { "type": "integer", "minimum": 0 }
       },
       "ShowSearchResponse": {
         "type": "object",
