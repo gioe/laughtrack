@@ -357,7 +357,7 @@ def _create_onboarding_tasks(results: list[AuditResult]) -> int:
             "--domain", "scraper",
             "--task-type", "feature",
             "--complexity", "S",
-            "--criteria", f"Update club id={r.club_id} scraper to '{r.platform}' with correct platform config",
+            "--criteria", f"Upgrade club id={r.club_id} from tour_dates to '{r.platform}' with correct platform config",
             "--criteria", f"Verify scraper produces show records for {r.name}",
         ]
 

@@ -142,4 +142,4 @@ def test_create_onboarding_task_mentions_club_id_and_platform_upgrade(monkeypatc
     criteria = " ".join(cmd)
     assert "Club already in DB (id=77)" in description
     assert "Upgrade from tour_dates discovery to dedicated eventbrite scraper" in description
-    assert "Update club id=77 scraper to 'eventbrite'" in criteria
+    assert "Upgrade club id=77 from tour_dates to 'eventbrite'" in criteria
