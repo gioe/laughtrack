@@ -1,7 +1,10 @@
 #if canImport(UIKit)
 import Foundation
+import HTTPTypes
+import OpenAPIRuntime
 import Testing
 import LaughTrackAPIClient
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("Month calendar view")
@@ -207,6 +210,39 @@ struct MonthCalendarViewTests {
         // Early-return short-circuits before any transport call — capturing
         // zero requests proves the network path is never entered.
         #expect(transport.capturedRequests.isEmpty)
+    }
+
+    @Test("DateRangeDensity.compute returns parsed density map on ok response with a valid json body")
+    func computeReturnsParsedDensityMapOnOkResponse() async {
+        let payload: [String: Int] = [
+            "2026-06-01": 3,
+            "2026-06-15": 5,
+            "2026-06-30": 0,
+        ]
+        let body = #"{"2026-06-01":3,"2026-06-15":5,"2026-06-30":0}"#
+
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            var response = HTTPResponse(status: .ok)
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody(body))
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        let result = await DateRangeDensity.compute(
+            preference: NearbyPreference(zipCode: "60614", source: .manual),
+            fromDate: Date(),
+            now: Date(),
+            apiClient: apiClient
+        )
+
+        // Compare against densityMap of the same payload so timezone-dependent
+        // startOfDay bucketing is computed identically on both sides.
+        #expect(result == DateRangeDensity.densityMap(from: payload))
+        #expect(transport.capturedRequests.count == 1)
     }
 
     @Test("comedian detail show counts are bucketed by current calendar start of day")
