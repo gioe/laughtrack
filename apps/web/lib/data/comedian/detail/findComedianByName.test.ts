@@ -13,6 +13,7 @@ import { findComedianByName } from "./findComedianByName";
 import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { defaultComedianWebsiteHealthFields } from "@/test/comedianFixtures";
 
 const mockFindFirst = vi.mocked(db.comedian.findFirst);
 
@@ -53,6 +54,12 @@ function makeComedianRow(
         websiteScrapingUrl: string | null;
         websiteConfidence: string | null;
         websiteScrapingUrlConfidence: string | null;
+        websiteHealthStatus: string | null;
+        websiteHealthFailureCount: number;
+        websiteHealthCheckedAt: Date | null;
+        websiteScrapingUrlHealthStatus: string | null;
+        websiteScrapingUrlHealthFailureCount: number;
+        websiteScrapingUrlHealthCheckedAt: Date | null;
         lineupItems: {
             id: number;
             show: {
@@ -96,6 +103,7 @@ function makeComedianRow(
         websiteScrapingUrl: null,
         websiteConfidence: null,
         websiteScrapingUrlConfidence: null,
+        ...defaultComedianWebsiteHealthFields,
         lineupItems: [
             {
                 id: 10,

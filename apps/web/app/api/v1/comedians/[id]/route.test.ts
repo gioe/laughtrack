@@ -34,6 +34,7 @@ import {
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
 import { expectOpenApiResponse } from "@/test/openapiResponseValidator";
+import { defaultComedianWebsiteHealthFields } from "@/test/comedianFixtures";
 
 const mockFindUnique = vi.mocked(db.comedian.findUnique);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
@@ -71,6 +72,7 @@ describe("GET /api/v1/comedians/[id]", () => {
             websiteScrapingUrl: null,
             websiteConfidence: null,
             websiteScrapingUrlConfidence: null,
+            ...defaultComedianWebsiteHealthFields,
             popularity: 0.6,
             hasImage: false,
             bio: null,
