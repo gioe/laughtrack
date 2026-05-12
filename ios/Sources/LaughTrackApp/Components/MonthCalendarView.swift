@@ -717,8 +717,8 @@ private struct DayCell: View {
             VStack(spacing: theme.spacing.xxs) {
                 Text(dayLabel)
                     .font(laughTrack.typography.action)
-                    .fontWeight(state == .none ? .regular : .semibold)
-                    .foregroundStyle(textColor)
+                    .fontWeight(isEmphasized ? .semibold : .regular)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
                 Circle()
                     .fill(dotColor)
                     .frame(width: 4, height: 4)
@@ -732,6 +732,10 @@ private struct DayCell: View {
         MonthCalendarView.dayNumberFormatter.string(from: date)
     }
 
+    private var isEmphasized: Bool {
+        state != .none || isToday
+    }
+
     @ViewBuilder
     private var background: some View {
         let laughTrack = theme.laughTrackTokens
@@ -739,40 +743,39 @@ private struct DayCell: View {
         case .none:
             if isToday {
                 Circle()
-                    .stroke(laughTrack.colors.accent, lineWidth: 1.5)
-                    .frame(width: 34, height: 34)
+                    .fill(laughTrack.colors.surfaceElevated)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Circle().stroke(laughTrack.colors.accent, lineWidth: 1.5)
+                    )
             } else {
                 EmptyView()
             }
         case .singleSelected, .rangeStart, .rangeEnd:
             Circle()
-                .fill(laughTrack.colors.accentStrong)
-                .frame(width: 34, height: 34)
+                .fill(laughTrack.gradients.accentWash)
+                .frame(width: 36, height: 36)
+                .overlay(
+                    Circle().stroke(laughTrack.colors.accent, lineWidth: 1)
+                )
+                .shadowStyle(laughTrack.shadows.card)
         case .rangeMiddle:
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(laughTrack.colors.accentMuted.opacity(0.6))
-                .frame(height: 34)
-        }
-    }
-
-    private var textColor: Color {
-        let laughTrack = theme.laughTrackTokens
-        switch state {
-        case .singleSelected, .rangeStart, .rangeEnd:
-            return laughTrack.colors.textInverse
-        case .rangeMiddle, .none:
-            return laughTrack.colors.textPrimary
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(laughTrack.colors.surfaceElevated)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(laughTrack.colors.accentMuted.opacity(0.5))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+                .frame(height: 36)
         }
     }
 
     private var dotColor: Color {
         guard hasShow else { return .clear }
-        let laughTrack = theme.laughTrackTokens
-        switch state {
-        case .singleSelected, .rangeStart, .rangeEnd:
-            return laughTrack.colors.textInverse
-        case .rangeMiddle, .none:
-            return laughTrack.colors.accentStrong
-        }
+        return theme.laughTrackTokens.colors.accentStrong
     }
 }
