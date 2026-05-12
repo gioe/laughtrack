@@ -31,6 +31,9 @@ class _FakeCursor:
     def fetchall(self) -> list[dict[str, Any]]:
         return self.rows
 
+    def fetchone(self) -> dict[str, Any] | None:
+        return self.rows[0] if self.rows else None
+
 
 class _FakeConnection:
     def __init__(self, rows: list[dict[str, Any]]):
@@ -134,6 +137,100 @@ def test_dry_run_reports_candidate_urls_without_database_writes(monkeypatch, cap
     assert "rank=1" in captured.out
     assert "source_type=official" in captured.out
     assert "confidence=high" in captured.out
+
+
+def test_coverage_query_separates_core_comedian_tour_source_counts(monkeypatch):
+    conn = _FakeConnection([
+        {
+            "canonical_count": 10,
+            "non_deny_listed_count": 9,
+            "historical_show_count": 7,
+            "website_count": 6,
+            "scraping_url_count": 5,
+            "event_bearing_strategy_count": 4,
+            "bandsintown_id_count": 3,
+            "songkick_id_count": 2,
+            "tour_id_count": 4,
+        },
+    ])
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    metrics = mod.load_tour_source_coverage_metrics()
+    query, _params = conn.cursor_obj.executed[0]
+
+    assert "parent_comedian_id IS NULL" in query
+    assert "comedian_deny_list" in query
+    assert "total_shows > 0" in query
+    assert "website_scraping_url" in query
+    assert "website_scrape_strategy" in query
+    assert "bandsintown_id" in query
+    assert "songkick_id" in query
+    assert metrics.to_dict() == {
+        "canonical_count": 10,
+        "non_deny_listed_count": 9,
+        "historical_show_count": 7,
+        "website_count": 6,
+        "scraping_url_count": 5,
+        "event_bearing_strategy_count": 4,
+        "bandsintown_id_count": 3,
+        "songkick_id_count": 2,
+        "tour_id_count": 4,
+        "candidate_source_count": 0,
+        "candidate_source_comedian_count": 0,
+        "candidate_bandsintown_source_count": 0,
+        "candidate_songkick_source_count": 0,
+        "candidate_official_source_count": 0,
+        "candidate_ticketing_source_count": 0,
+    }
+
+
+def test_coverage_report_includes_candidate_sources_and_before_after_deltas(capsys):
+    before = mod.TourSourceCoverageMetrics(
+        canonical_count=10,
+        non_deny_listed_count=9,
+        historical_show_count=7,
+        website_count=5,
+        scraping_url_count=4,
+        event_bearing_strategy_count=2,
+        bandsintown_id_count=1,
+        songkick_id_count=0,
+        tour_id_count=1,
+    )
+    after = mod.TourSourceCoverageMetrics(
+        canonical_count=10,
+        non_deny_listed_count=9,
+        historical_show_count=7,
+        website_count=6,
+        scraping_url_count=5,
+        event_bearing_strategy_count=4,
+        bandsintown_id_count=3,
+        songkick_id_count=1,
+        tour_id_count=4,
+        candidate_source_count=8,
+        candidate_source_comedian_count=5,
+        candidate_bandsintown_source_count=3,
+        candidate_songkick_source_count=2,
+        candidate_official_source_count=2,
+        candidate_ticketing_source_count=1,
+    )
+
+    mod.print_tour_source_coverage_report(after, previous=before)
+
+    captured = capsys.readouterr()
+    assert "Canonical comedians: 10" in captured.out
+    assert "Non-deny-listed comedians: 9" in captured.out
+    assert "Comedians with historical shows: 7" in captured.out
+    assert "Comedians with websites: 6 (+1)" in captured.out
+    assert "Comedians with scraping URLs: 5 (+1)" in captured.out
+    assert "Comedians with event-bearing strategies: 4 (+2)" in captured.out
+    assert "Comedians with Bandsintown IDs: 3 (+2)" in captured.out
+    assert "Comedians with Songkick IDs: 1 (+1)" in captured.out
+    assert "Comedians with any tour ID: 4 (+3)" in captured.out
+    assert "Candidate source URLs found in this run: 8 (+8)" in captured.out
+    assert "Candidate-source comedians in this run: 5 (+5)" in captured.out
+    assert "Candidate Bandsintown URLs: 3 (+3)" in captured.out
+    assert "Candidate Songkick URLs: 2 (+2)" in captured.out
 
 
 def test_name_filter_and_limit_are_passed_to_candidate_query(monkeypatch):

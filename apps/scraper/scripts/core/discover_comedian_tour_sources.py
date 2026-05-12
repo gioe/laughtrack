@@ -10,6 +10,7 @@ only reports candidates until a later task defines persistence semantics.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from dataclasses import dataclass
@@ -48,12 +49,107 @@ _ORDER_AND_LIMIT = """
     LIMIT %s
 """
 
+_GET_TOUR_SOURCE_COVERAGE = """
+    WITH canonical AS (
+        SELECT
+            c.uuid,
+            c.name,
+            c.total_shows,
+            c.website,
+            c.website_scraping_url,
+            c.website_scrape_strategy,
+            c.bandsintown_id,
+            c.songkick_id,
+            EXISTS (
+                SELECT 1
+                FROM comedian_deny_list d
+                WHERE LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))
+            ) AS is_denied
+        FROM comedians c
+        WHERE c.parent_comedian_id IS NULL
+          AND NULLIF(BTRIM(c.name), '') IS NOT NULL
+    )
+    SELECT
+        COUNT(*) AS canonical_count,
+        COUNT(*) FILTER (WHERE NOT is_denied) AS non_deny_listed_count,
+        COUNT(*) FILTER (WHERE NOT is_denied AND total_shows > 0) AS historical_show_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND NULLIF(BTRIM(COALESCE(website, '')), '') IS NOT NULL
+        ) AS website_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND NULLIF(BTRIM(COALESCE(website_scraping_url, '')), '') IS NOT NULL
+        ) AS scraping_url_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND NULLIF(BTRIM(COALESCE(website_scrape_strategy, '')), '') IS NOT NULL
+              AND website_scrape_strategy NOT IN ('none', 'json_ld_empty')
+        ) AS event_bearing_strategy_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND NULLIF(BTRIM(COALESCE(bandsintown_id, '')), '') IS NOT NULL
+        ) AS bandsintown_id_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND NULLIF(BTRIM(COALESCE(songkick_id, '')), '') IS NOT NULL
+        ) AS songkick_id_count,
+        COUNT(*) FILTER (
+            WHERE NOT is_denied
+              AND (
+                  NULLIF(BTRIM(COALESCE(bandsintown_id, '')), '') IS NOT NULL
+                  OR NULLIF(BTRIM(COALESCE(songkick_id, '')), '') IS NOT NULL
+              )
+        ) AS tour_id_count
+    FROM canonical
+"""
+
 
 @dataclass(frozen=True)
 class TourDiscoveryCandidate:
     uuid: str
     name: str
     total_shows: int
+
+
+@dataclass(frozen=True)
+class TourSourceCoverageMetrics:
+    canonical_count: int
+    non_deny_listed_count: int
+    historical_show_count: int
+    website_count: int
+    scraping_url_count: int
+    event_bearing_strategy_count: int
+    bandsintown_id_count: int
+    songkick_id_count: int
+    tour_id_count: int
+    candidate_source_count: int = 0
+    candidate_source_comedian_count: int = 0
+    candidate_bandsintown_source_count: int = 0
+    candidate_songkick_source_count: int = 0
+    candidate_official_source_count: int = 0
+    candidate_ticketing_source_count: int = 0
+
+    @classmethod
+    def from_mapping(cls, mapping: dict[str, object]) -> "TourSourceCoverageMetrics":
+        return cls(**{field: int(mapping.get(field) or 0) for field in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict[str, int]:
+        return {field: int(getattr(self, field)) for field in self.__dataclass_fields__}
+
+    def with_candidates(self, candidates: list["TourSourceCandidate"]) -> "TourSourceCoverageMetrics":
+        counts = self.to_dict()
+        counts.update(
+            {
+                "candidate_source_count": len(candidates),
+                "candidate_source_comedian_count": len({candidate.comedian_uuid for candidate in candidates}),
+                "candidate_bandsintown_source_count": sum(1 for c in candidates if c.source_type == "bandsintown"),
+                "candidate_songkick_source_count": sum(1 for c in candidates if c.source_type == "songkick"),
+                "candidate_official_source_count": sum(1 for c in candidates if c.source_type == "official"),
+                "candidate_ticketing_source_count": sum(1 for c in candidates if c.source_type == "ticketing"),
+            }
+        )
+        return TourSourceCoverageMetrics.from_mapping(counts)
 
 
 @dataclass(frozen=True)
@@ -112,6 +208,19 @@ def load_candidate_comedians(
         )
         for row in rows
     ]
+
+
+def load_tour_source_coverage_metrics() -> TourSourceCoverageMetrics:
+    """Return current comedian tour-source discovery coverage counts."""
+    conn = create_connection(autocommit=True)
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(_GET_TOUR_SOURCE_COVERAGE)
+            row = cur.fetchone()
+    finally:
+        conn.close()
+
+    return TourSourceCoverageMetrics.from_mapping(dict(row or {}))
 
 
 def _source_type(url: str) -> str:
@@ -222,6 +331,70 @@ def discover_tour_sources(
     return discovered
 
 
+def compare_coverage_metrics(
+    before: TourSourceCoverageMetrics,
+    after: TourSourceCoverageMetrics,
+) -> dict[str, int]:
+    """Return field-by-field deltas between two coverage snapshots."""
+    return {
+        field: after.to_dict()[field] - before.to_dict()[field]
+        for field in after.__dataclass_fields__
+    }
+
+
+def load_coverage_snapshot(path: Path) -> TourSourceCoverageMetrics:
+    return TourSourceCoverageMetrics.from_mapping(json.loads(path.read_text()))
+
+
+def write_coverage_snapshot(path: Path, metrics: TourSourceCoverageMetrics) -> None:
+    path.write_text(json.dumps(metrics.to_dict(), indent=2, sort_keys=True) + "\n")
+
+
+def print_tour_source_coverage_report(
+    metrics: TourSourceCoverageMetrics,
+    *,
+    previous: Optional[TourSourceCoverageMetrics] = None,
+) -> None:
+    print("\nTour-source discovery coverage")
+    print("=" * 72)
+
+    rows = [
+        ("canonical_count", "Canonical comedians", metrics.canonical_count),
+        ("non_deny_listed_count", "Non-deny-listed comedians", metrics.non_deny_listed_count),
+        ("historical_show_count", "Comedians with historical shows", metrics.historical_show_count),
+        ("website_count", "Comedians with websites", metrics.website_count),
+        ("scraping_url_count", "Comedians with scraping URLs", metrics.scraping_url_count),
+        (
+            "event_bearing_strategy_count",
+            "Comedians with event-bearing strategies",
+            metrics.event_bearing_strategy_count,
+        ),
+        ("bandsintown_id_count", "Comedians with Bandsintown IDs", metrics.bandsintown_id_count),
+        ("songkick_id_count", "Comedians with Songkick IDs", metrics.songkick_id_count),
+        ("tour_id_count", "Comedians with any tour ID", metrics.tour_id_count),
+        ("candidate_source_count", "Candidate source URLs found in this run", metrics.candidate_source_count),
+        (
+            "candidate_source_comedian_count",
+            "Candidate-source comedians in this run",
+            metrics.candidate_source_comedian_count,
+        ),
+        (
+            "candidate_bandsintown_source_count",
+            "Candidate Bandsintown URLs",
+            metrics.candidate_bandsintown_source_count,
+        ),
+        ("candidate_songkick_source_count", "Candidate Songkick URLs", metrics.candidate_songkick_source_count),
+        ("candidate_official_source_count", "Candidate official URLs", metrics.candidate_official_source_count),
+        ("candidate_ticketing_source_count", "Candidate ticketing URLs", metrics.candidate_ticketing_source_count),
+    ]
+    deltas = compare_coverage_metrics(previous, metrics) if previous else {}
+
+    for field, label, value in rows:
+        delta = deltas.get(field)
+        suffix = f" ({delta:+d})" if previous and delta else ""
+        print(f"{label}: {value}{suffix}")
+
+
 def print_tour_source_report(candidates: list[TourSourceCandidate], *, dry_run: bool) -> None:
     mode = "DRY RUN" if dry_run else "REPORT ONLY"
     print(f"\n{mode} - {len(candidates)} candidate tour source URL(s)")
@@ -249,6 +422,10 @@ def main() -> int:
     parser.add_argument("--limit", type=int, help="Maximum number of comedians to process")
     parser.add_argument("--comedian-name", type=str, help="Process comedians matching this name")
     parser.add_argument("--dry-run", action="store_true", help="Print candidate URLs without writing to the database")
+    parser.add_argument("--coverage-only", action="store_true", help="Print current coverage metrics without Brave discovery")
+    parser.add_argument("--coverage-report", action="store_true", help="Print coverage metrics alongside candidate URLs")
+    parser.add_argument("--coverage-json", type=Path, help="Write coverage metrics to a JSON snapshot")
+    parser.add_argument("--compare-coverage-json", type=Path, help="Compare coverage metrics against a prior JSON snapshot")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show INFO-level logs")
     parser.add_argument("--debug", action="store_true", help="Show DEBUG-level logs")
     args = parser.parse_args()
@@ -261,11 +438,32 @@ def main() -> int:
             os.environ["LAUGHTRACK_LOG_CONSOLE_LEVEL"] = "INFO"
 
     try:
-        discover_tour_sources(
-            limit=args.limit,
-            comedian_name=args.comedian_name,
-            dry_run=args.dry_run,
+        should_report_coverage = (
+            args.coverage_only
+            or args.coverage_report
+            or args.compare_coverage_json
+            or args.coverage_json
         )
+        previous = load_coverage_snapshot(args.compare_coverage_json) if args.compare_coverage_json else None
+        if args.coverage_only:
+            metrics = load_tour_source_coverage_metrics()
+        else:
+            candidates = discover_tour_sources(
+                limit=args.limit,
+                comedian_name=args.comedian_name,
+                dry_run=args.dry_run,
+            )
+            metrics = (
+                load_tour_source_coverage_metrics().with_candidates(candidates)
+                if should_report_coverage
+                else None
+            )
+
+        if should_report_coverage and metrics is not None:
+            print_tour_source_coverage_report(metrics, previous=previous)
+
+        if args.coverage_json and metrics is not None:
+            write_coverage_snapshot(args.coverage_json, metrics)
     except KeyboardInterrupt:
         Logger.info("Operation cancelled")
         return 0
