@@ -420,11 +420,21 @@ _EXEMPT_PLATFORM_SECTIONS: dict[str, str] = {
 
 
 def _parse_platform_sections() -> list[str]:
-    """Return the ordered list of `### <Section>` headings under '## Platform Sections'."""
+    """Return the ordered list of `### <Section>` headings under '## Platform Sections'.
+
+    Tracks fenced code blocks so a literal '### ' inside a markdown example does
+    not register as a phantom section heading.
+    """
     text = _SCRAPERS_MD_PATH.read_text()
     sections: list[str] = []
     in_platform_sections = False
+    in_fence = False
     for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
         if line.startswith("## "):
             in_platform_sections = line.strip() == "## Platform Sections"
             continue
