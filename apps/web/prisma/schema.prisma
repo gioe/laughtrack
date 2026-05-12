@@ -314,9 +314,10 @@ model Show {
   room                String?
   productionCompanyId Int?               @map("production_company_id")
   // Denormalized cheapest *paid* ticket price (excludes price = 0 / NULL).
-  // Maintained by the trickle_show_min_price trigger on tickets so the shows
-  // search can ORDER BY price without a per-row subquery; NULL means no
-  // priced tickets are attached (free RSVP shows, or no tickets yet).
+  // Maintained by the tickets_trickle_show_min_price_{ins,del,upd} triggers
+  // on tickets so the shows search can ORDER BY price without a per-row
+  // subquery; NULL means no priced tickets are attached (free RSVP shows,
+  // or no tickets yet).
   minPrice            Decimal?           @map("min_price") @db.Decimal(7, 2)
   lineupItems         LineupItem[]
   club                Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)

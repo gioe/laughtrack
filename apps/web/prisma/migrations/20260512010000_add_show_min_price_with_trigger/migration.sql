@@ -44,10 +44,28 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS tickets_trickle_show_min_price ON tickets;
+DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_ins ON tickets;
+DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_del ON tickets;
+DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_upd ON tickets;
 
-CREATE TRIGGER tickets_trickle_show_min_price
-AFTER INSERT OR UPDATE OR DELETE ON tickets
+-- Split per-event so the UPDATE trigger can gate on actual value change. The
+-- nightly scraper bulk-updates sold_out / purchase_url on tens of thousands
+-- of unchanged-price rows; without the WHEN clause those would each fire a
+-- shows-row UPDATE for no behavioral change.
+CREATE TRIGGER tickets_trickle_show_min_price_ins
+AFTER INSERT ON tickets
 FOR EACH ROW
+EXECUTE FUNCTION tickets_trickle_show_min_price();
+
+CREATE TRIGGER tickets_trickle_show_min_price_del
+AFTER DELETE ON tickets
+FOR EACH ROW
+EXECUTE FUNCTION tickets_trickle_show_min_price();
+
+CREATE TRIGGER tickets_trickle_show_min_price_upd
+AFTER UPDATE ON tickets
+FOR EACH ROW
+WHEN (OLD.price IS DISTINCT FROM NEW.price OR OLD.show_id IS DISTINCT FROM NEW.show_id)
 EXECUTE FUNCTION tickets_trickle_show_min_price();
 
 -- One-shot backfill. MIN() already ignores NULLs; the price > 0 guard is what
