@@ -1720,6 +1720,13 @@ Guards two invariants in one pass:
    - **`recent_discovery`** — within the threshold. Reported as INFO; does
      not trip exit 2. This is the normal state of newly-discovered venues.
 
+   **Scope:** the check only looks at active visible clubs
+   (`clubs.status = 'active'` AND `COALESCE(visible, TRUE) = TRUE`). A
+   moderator hiding a club mid-onboarding will silence the watchdog for
+   that row — intentional, since hidden clubs are not shipped to users
+   and don't accumulate user-visible rot. If a hidden club still needs
+   onboarding attention, re-enable visibility or address it directly.
+
 Other related checks:
 
 - `check-scraping-priorities` — duplicate enabled `(club_id, priority)` rows

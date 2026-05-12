@@ -86,8 +86,7 @@ _TOUR_DATE_ONLY_CLUBS_QUERY = """
         SELECT
             ss.club_id,
             BOOL_OR(ss.platform <> 'tour_dates') AS has_non_tour_date,
-            MIN(ss.created_at) FILTER (WHERE ss.platform = 'tour_dates') AS tour_date_created_at,
-            COUNT(*) AS enabled_source_count
+            MIN(ss.created_at) FILTER (WHERE ss.platform = 'tour_dates') AS tour_date_created_at
         FROM scraping_sources ss
         WHERE ss.enabled = TRUE
         GROUP BY ss.club_id
@@ -101,8 +100,7 @@ _TOUR_DATE_ONLY_CLUBS_QUERY = """
         c.visible,
         c.status,
         epc.tour_date_created_at,
-        EXTRACT(DAY FROM NOW() - epc.tour_date_created_at)::int AS tour_date_age_days,
-        epc.enabled_source_count
+        (NOW()::date - epc.tour_date_created_at::date) AS tour_date_age_days
     FROM clubs c
     JOIN enabled_per_club epc ON epc.club_id = c.id
     WHERE epc.has_non_tour_date = FALSE

@@ -74,7 +74,6 @@ def _tour_date_row(**overrides):
         "status": "active",
         "tour_date_created_at": None,
         "tour_date_age_days": 120,
-        "enabled_source_count": 1,
     }
     row.update(overrides)
     return row
