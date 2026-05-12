@@ -125,6 +125,7 @@
 		B6400391B2D887C2DD9E88EB /* AuthLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */; };
 		B769EDC068BE0787A90C22F3 /* LaughTrackTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */; };
 		B8C85860DFEDE38D9667F5EA /* LaughTrackNavigationChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B97BD6A9A65CD575EA8F07 /* LaughTrackNavigationChrome.swift */; };
+		BBD55C6563601DE4850554F5 /* MonthCalendarViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */; };
 		BF22056DCD1C27CBFAFAAF11 /* DetailFetchSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4233943B1264FC9441BD6C /* DetailFetchSupportTests.swift */; };
 		C0A98C133325DD5B63ED1D92 /* SearchToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C012B6072EA6DC880DA0A7 /* SearchToolbar.swift */; };
 		C27DB4BAD000672EF70ED3E6 /* LaughTrackBridge.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -371,6 +372,7 @@
 		A8F8A66AB1B210569977A53D /* ComedianLineupRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianLineupRow.swift; sourceTree = "<group>"; };
 		AD130C65850C7623AC95788F /* LaughTrackBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBridge.swift; sourceTree = "<group>"; };
 		AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewTests.swift; sourceTree = "<group>"; };
+		B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthCalendarViewTests.swift; sourceTree = "<group>"; };
 		B2A24C1071F5E8BF76882EC9 /* SessionBannerCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionBannerCard.swift; sourceTree = "<group>"; };
 		B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailViewTests.swift; sourceTree = "<group>"; };
 		B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionPathMiddleware.swift; sourceTree = "<group>"; };
@@ -531,6 +533,7 @@
 				9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */,
 				64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */,
 				EEB123B3A5E6AEA324B240A1 /* MiddlewareIntegrationTestSupport.swift */,
+				B2537988FDEE64029B75C0C6 /* MonthCalendarViewTests.swift */,
 				C2BF672FCBD4D1FC71AC695A /* NearbyLocationControllerTests.swift */,
 				1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */,
 				008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */,
@@ -1196,6 +1199,7 @@
 				50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */,
 				C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */,
 				FDB334A4E9D26AA5BB986002 /* MiddlewareIntegrationTestSupport.swift in Sources */,
+				BBD55C6563601DE4850554F5 /* MonthCalendarViewTests.swift in Sources */,
 				87A52A26C28E621FFF07B848 /* NearbyLocationControllerTests.swift in Sources */,
 				EC250092710CB355D3BF3A08 /* NearbyPreferenceStoreTests.swift in Sources */,
 				9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */,

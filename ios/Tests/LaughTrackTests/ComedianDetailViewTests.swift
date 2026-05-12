@@ -278,10 +278,10 @@ private extension Components.Schemas.ComedianDetail {
             imageUrl: imageUrl,
             uuid: uuid,
             id: id,
-            userId: userId,
+            userId: nil,
             socialData: socialData,
             isFavorite: false,
-            showCount: totalShows
+            showCount: nil
         )
     }
 }

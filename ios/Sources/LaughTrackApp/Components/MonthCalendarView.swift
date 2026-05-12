@@ -168,20 +168,16 @@ struct MonthCalendarView: View {
         case .single(let binding):
             binding.wrappedValue = day
         case .range(let start, let end):
-            if rangeAwaitingEnd {
-                let s = calendar.startOfDay(for: start.wrappedValue)
-                if day < s {
-                    start.wrappedValue = day
-                    end.wrappedValue = s
-                } else {
-                    end.wrappedValue = day
-                }
-                rangeAwaitingEnd = false
-            } else {
-                start.wrappedValue = day
-                end.wrappedValue = day
-                rangeAwaitingEnd = true
-            }
+            let result = MonthCalendarView.rangeSelection(
+                afterTap: day,
+                start: start.wrappedValue,
+                end: end.wrappedValue,
+                awaitingEnd: rangeAwaitingEnd,
+                calendar: calendar
+            )
+            start.wrappedValue = result.start
+            end.wrappedValue = result.end
+            rangeAwaitingEnd = result.awaitingEnd
         }
     }
 
@@ -220,6 +216,40 @@ struct MonthCalendarView: View {
     }()
 
     private var weekdaySymbols: [String] {
+        MonthCalendarView.weekdaySymbols(for: calendar)
+    }
+
+    private var rows: [[Date?]] {
+        MonthCalendarView.rows(for: displayedMonth, calendar: calendar)
+    }
+
+    private func isPast(_ date: Date) -> Bool {
+        MonthCalendarView.isDate(date, beforeMinimum: minimumDate, calendar: calendar)
+    }
+
+    private func isMonthBeforeMinimum(_ candidate: Date) -> Bool {
+        MonthCalendarView.isMonth(candidate, beforeMinimum: minimumDate, calendar: calendar)
+    }
+
+    static func rangeSelection(
+        afterTap date: Date,
+        start: Date,
+        end: Date,
+        awaitingEnd: Bool,
+        calendar: Calendar = .current
+    ) -> (start: Date, end: Date, awaitingEnd: Bool) {
+        let day = calendar.startOfDay(for: date)
+        let currentStart = calendar.startOfDay(for: start)
+        if awaitingEnd {
+            if day < currentStart {
+                return (day, currentStart, false)
+            }
+            return (currentStart, day, false)
+        }
+        return (day, day, true)
+    }
+
+    static func weekdaySymbols(for calendar: Calendar = .current) -> [String] {
         var symbols = calendar.veryShortWeekdaySymbols
         let offset = calendar.firstWeekday - 1
         if offset > 0 {
@@ -228,7 +258,7 @@ struct MonthCalendarView: View {
         return symbols
     }
 
-    private var rows: [[Date?]] {
+    static func rows(for displayedMonth: Date, calendar: Calendar = .current) -> [[Date?]] {
         let firstOfMonth = calendar.dateInterval(of: .month, for: displayedMonth)?.start
             ?? calendar.startOfDay(for: displayedMonth)
         let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
@@ -257,20 +287,27 @@ struct MonthCalendarView: View {
         return grouped
     }
 
-    private func isPast(_ date: Date) -> Bool {
-        guard let minimum = minimumDate else { return false }
-        return calendar.startOfDay(for: date) < calendar.startOfDay(for: minimum)
-    }
-
-    private func isMonthBeforeMinimum(_ candidate: Date) -> Bool {
-        guard let minimum = minimumDate else { return false }
-        let candidateMonth = MonthCalendarView.monthStart(for: candidate)
-        let minimumMonth = MonthCalendarView.monthStart(for: minimum)
+    static func isMonth(
+        _ candidate: Date,
+        beforeMinimum minimum: Date?,
+        calendar: Calendar = .current
+    ) -> Bool {
+        guard let minimum else { return false }
+        let candidateMonth = MonthCalendarView.monthStart(for: candidate, calendar: calendar)
+        let minimumMonth = MonthCalendarView.monthStart(for: minimum, calendar: calendar)
         return candidateMonth < minimumMonth
     }
 
-    private static func monthStart(for date: Date) -> Date {
-        let calendar = Calendar.current
+    static func isDate(
+        _ date: Date,
+        beforeMinimum minimum: Date?,
+        calendar: Calendar = .current
+    ) -> Bool {
+        guard let minimum else { return false }
+        return calendar.startOfDay(for: date) < calendar.startOfDay(for: minimum)
+    }
+
+    static func monthStart(for date: Date, calendar: Calendar = .current) -> Date {
         return calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
     }
 }
