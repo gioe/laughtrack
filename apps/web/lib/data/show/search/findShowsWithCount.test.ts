@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
+import {
+    FREE_FILTER_SLUG,
+    QueryHelper,
+    SHOW_SORT_MAP,
+} from "@/objects/class/query/QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 type FindManyArgs = {
@@ -533,6 +537,197 @@ describe("findShowsWithCount", () => {
             await findShowsWithCount(buildHelper(SortParamValue.DateAsc));
 
             expect(captured.orderBy[0]).toEqual({ date: "asc" });
+        });
+    });
+
+    describe("Free filter wiring (TASK-2141)", () => {
+        // The Free filter is exposed via the FREE_FILTER_SLUG inside the
+        // existing `filters` CSV. QueryHelper.getFreeShowsClause translates
+        // that slug to a tickets predicate (any ticket priced 0 or NULL).
+        // findShowsWithCount spreads the clause into its where, narrowing
+        // results to shows with at least one free-or-null-priced ticket.
+
+        it("QueryHelper.getFreeShowsClause returns {} when filters is absent", () => {
+            const helper = new QueryHelper({
+                params: {},
+                timezone: "America/New_York",
+            });
+
+            expect(helper.getFreeShowsClause()).toEqual({});
+        });
+
+        it("QueryHelper.getFreeShowsClause returns {} when filters has tags but not 'free'", () => {
+            const helper = new QueryHelper({
+                params: { filters: "open-mic,headliner" },
+                timezone: "America/New_York",
+            });
+
+            expect(helper.getFreeShowsClause()).toEqual({});
+        });
+
+        it("QueryHelper.getFreeShowsClause returns tickets predicate when 'free' is the only slug", () => {
+            const helper = new QueryHelper({
+                params: { filters: FREE_FILTER_SLUG },
+                timezone: "America/New_York",
+            });
+
+            expect(helper.getFreeShowsClause()).toEqual({
+                tickets: {
+                    some: {
+                        OR: [{ price: 0 }, { price: null }],
+                    },
+                },
+            });
+        });
+
+        it("QueryHelper.getFreeShowsClause returns tickets predicate when 'free' is mixed with other slugs", () => {
+            const helper = new QueryHelper({
+                params: { filters: `open-mic,${FREE_FILTER_SLUG},weekly` },
+                timezone: "America/New_York",
+            });
+
+            expect(helper.getFreeShowsClause()).toEqual({
+                tickets: {
+                    some: {
+                        OR: [{ price: 0 }, { price: null }],
+                    },
+                },
+            });
+        });
+
+        it("QueryHelper.getShowTagsClause strips 'free' so a free-only CSV emits no tag predicate", () => {
+            const helper = new QueryHelper({
+                params: { filters: FREE_FILTER_SLUG },
+                timezone: "America/New_York",
+            });
+
+            // No real Tag has slug='free', so a tag-query for it would AND in
+            // an empty-result predicate and zero out the search. The helper
+            // must drop the slug instead.
+            expect(helper.getShowTagsClause()).toEqual({});
+        });
+
+        it("QueryHelper.getShowTagsClause keeps real tag slugs when 'free' is mixed in", () => {
+            const helper = new QueryHelper({
+                params: { filters: `open-mic,${FREE_FILTER_SLUG}` },
+                timezone: "America/New_York",
+            });
+
+            expect(helper.getShowTagsClause()).toEqual({
+                AND: [
+                    {
+                        taggedShows: {
+                            some: {
+                                tag: {
+                                    slug: { in: ["open-mic"] },
+                                    type: "show",
+                                },
+                            },
+                        },
+                    },
+                ],
+            });
+        });
+
+        it("findShowsWithCount narrows db.show.count to free-or-null-priced shows when Free is selected", async () => {
+            let capturedCountWhere!: Record<string, unknown>;
+            mockCount.mockImplementation(
+                (args: { where: Record<string, unknown> }) => {
+                    capturedCountWhere = args.where;
+                    return Promise.resolve(0);
+                },
+            );
+
+            const helper = new QueryHelper({
+                params: { filters: FREE_FILTER_SLUG },
+                timezone: "America/New_York",
+            });
+            await findShowsWithCount(helper);
+
+            expect(capturedCountWhere.tickets).toEqual({
+                some: {
+                    OR: [{ price: 0 }, { price: null }],
+                },
+            });
+            // And no spurious tag predicate from the synthetic slug.
+            expect(capturedCountWhere.AND).toBeUndefined();
+        });
+
+        it("findShowsWithCount narrows db.show.findMany to free-or-null-priced shows when Free is selected", async () => {
+            let capturedFindManyWhere!: Record<string, unknown>;
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation(
+                (args: { where: Record<string, unknown> }) => {
+                    capturedFindManyWhere = args.where;
+                    return Promise.resolve([]);
+                },
+            );
+
+            const helper = new QueryHelper({
+                params: { filters: FREE_FILTER_SLUG },
+                timezone: "America/New_York",
+            });
+            await findShowsWithCount(helper);
+
+            expect(capturedFindManyWhere.tickets).toEqual({
+                some: {
+                    OR: [{ price: 0 }, { price: null }],
+                },
+            });
+        });
+
+        it("findShowsWithCount omits the tickets predicate when Free is not selected", async () => {
+            let capturedCountWhere!: Record<string, unknown>;
+            mockCount.mockImplementation(
+                (args: { where: Record<string, unknown> }) => {
+                    capturedCountWhere = args.where;
+                    return Promise.resolve(0);
+                },
+            );
+
+            const helper = new QueryHelper({
+                params: { filters: "open-mic" },
+                timezone: "America/New_York",
+            });
+            await findShowsWithCount(helper);
+
+            expect(capturedCountWhere.tickets).toBeUndefined();
+        });
+
+        it("findShowsWithCount AND-composes Free filter with a real tag slug", async () => {
+            let capturedCountWhere!: Record<string, unknown>;
+            mockCount.mockImplementation(
+                (args: { where: Record<string, unknown> }) => {
+                    capturedCountWhere = args.where;
+                    return Promise.resolve(0);
+                },
+            );
+
+            const helper = new QueryHelper({
+                params: { filters: `open-mic,${FREE_FILTER_SLUG}` },
+                timezone: "America/New_York",
+            });
+            await findShowsWithCount(helper);
+
+            // Free narrows the show row directly via the tickets predicate.
+            expect(capturedCountWhere.tickets).toEqual({
+                some: {
+                    OR: [{ price: 0 }, { price: null }],
+                },
+            });
+            // Real tags still flow through the taggedShows AND clause.
+            expect(capturedCountWhere.AND).toEqual([
+                {
+                    taggedShows: {
+                        some: {
+                            tag: {
+                                slug: { in: ["open-mic"] },
+                                type: "show",
+                            },
+                        },
+                    },
+                },
+            ]);
         });
     });
 
