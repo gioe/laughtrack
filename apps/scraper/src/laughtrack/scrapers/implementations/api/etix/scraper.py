@@ -693,15 +693,7 @@ class EtixScraper(BaseScraper):
         except ValueError:
             return None
 
-        today = date.today()
-        year = title_year or today.year
-        if title_year is None:
-            try:
-                candidate = date(year, month, day)
-            except ValueError:
-                return None
-            if candidate < today:
-                year += 1
+        year = title_year or date.today().year
 
         hour, minute = 20, 0
         tm = _FB_SHOW_TIME_RE.search(time_text or "")
