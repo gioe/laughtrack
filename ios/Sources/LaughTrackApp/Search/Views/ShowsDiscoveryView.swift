@@ -426,8 +426,8 @@ private struct DateRangeFilterModal: View {
         let anchor = max(calendar.startOfDay(for: model.fromDate), today)
         guard let to = calendar.date(byAdding: .day, value: 89, to: anchor) else { return }
 
-        let fromString = Self.isoDateFormatter.string(from: anchor)
-        let toString = Self.isoDateFormatter.string(from: to)
+        let fromString = DateRangeDensity.isoDateFormatter.string(from: anchor)
+        let toString = DateRangeDensity.isoDateFormatter.string(from: to)
 
         do {
             let output = try await apiClient.getShowsDensity(
@@ -442,14 +442,18 @@ private struct DateRangeFilterModal: View {
                 )
             )
             guard case .ok(let ok) = output, let json = try? ok.body.json else { return }
-            showsByDate = Self.densityMap(from: json.additionalProperties)
+            showsByDate = DateRangeDensity.densityMap(from: json.additionalProperties)
         } catch {
             // Density dots are best-effort decoration; silently drop on failure.
         }
     }
+}
 
-    private static func densityMap(from raw: [String: Int]) -> [Date: Int] {
-        let calendar = Calendar.current
+enum DateRangeDensity {
+    static func densityMap(
+        from raw: [String: Int],
+        calendar: Calendar = .current
+    ) -> [Date: Int] {
         var result: [Date: Int] = [:]
         for (key, count) in raw where count > 0 {
             guard let date = isoDateFormatter.date(from: key) else { continue }
@@ -458,7 +462,7 @@ private struct DateRangeFilterModal: View {
         return result
     }
 
-    private static let isoDateFormatter: DateFormatter = {
+    static let isoDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")

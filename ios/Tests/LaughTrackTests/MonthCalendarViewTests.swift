@@ -164,6 +164,30 @@ struct MonthCalendarViewTests {
         #expect(unboundedJump == date(2020, 1, 1, calendar: calendar))
     }
 
+    @Test("DateRangeDensity.densityMap drops zero counts and keys results by startOfDay ISO dates")
+    func densityMapDropsZeroCountsAndKeysByStartOfDay() {
+        let raw: [String: Int] = [
+            "2026-05-18": 3,
+            "2026-05-19": 0,        // zero count — must be dropped
+            "2026-05-20": 1,
+            "not-a-date": 7,         // unparseable — must be dropped
+        ]
+
+        let result = DateRangeDensity.densityMap(from: raw)
+
+        #expect(result.count == 2)
+
+        // Every surviving key is exactly midnight in the system calendar's
+        // timezone, so it round-trips through the same ISO formatter that
+        // parsed it. Asserting the round-trip sidesteps timezone fragility.
+        let surviving: [String: Int] = result.reduce(into: [:]) { acc, entry in
+            let key = DateRangeDensity.isoDateFormatter.string(from: entry.key)
+            acc[key] = entry.value
+            #expect(entry.key == Calendar.current.startOfDay(for: entry.key))
+        }
+        #expect(surviving == ["2026-05-18": 3, "2026-05-20": 1])
+    }
+
     @Test("comedian detail show counts are bucketed by current calendar start of day")
     func comedianShowsByDateBucketsByStartOfDay() {
         let calendar = Calendar.current
