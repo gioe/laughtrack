@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-from datetime import timezone
+from datetime import datetime, timezone
 
+from laughtrack.scrapers.implementations.api.comedian_websites.extractors import registry as registry_mod
 from laughtrack.scrapers.implementations.api.comedian_websites.extractors.registry import (
     BenBankasExtractor,
     get_extractor_for_url,
 )
 
 
-def test_ben_bankas_extractor_parses_visible_tour_table_rows():
+class _FrozenDateTime(datetime):
+    @classmethod
+    def now(cls, tz=None):
+        return datetime(2026, 5, 12, tzinfo=timezone.utc)
+
+
+def test_ben_bankas_extractor_parses_visible_tour_table_rows(monkeypatch):
+    monkeypatch.setattr(registry_mod, "datetime", _FrozenDateTime)
+
     html = """
     <table class="eventTable">
       <tr class="eventRow">
