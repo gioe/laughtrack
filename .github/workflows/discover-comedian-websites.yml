@@ -68,6 +68,18 @@ jobs:
         run: |
           python -m scripts.core.discover_scraping_urls --limit 100 --include-homepage
 
+      - name: Discover comedian tour sources
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          BRAVE_SEARCH_DAILY_LIMIT: 33
+        run: |
+          python -m scripts.core.discover_comedian_tour_sources --limit 33 -v
+
       - name: Scrape comedian website tour pages
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
