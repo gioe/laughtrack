@@ -34,7 +34,7 @@ struct ShowDetailViewTests {
         #expect(response.data.name == "Mark Normand and Friends")
         #expect(response.data.lineup?.map(\.name) == ["Mark Normand", "Atsuko Okatsuka", "Sam Morril"])
         #expect(response.relatedShows.map(\.id) == [302])
-        #expect(ShowDetailPresentation.summaryFacts(for: response.data).map(\.label) == ["When", "Tickets", "Venue", "Distance"])
+        #expect(ShowDetailPresentation.summaryFacts(for: response.data).map(\.label) == ["When", "Venue", "Distance", "Tickets"])
         #expect(favorites.value(for: "demo-comedian-101") == false)
         #expect(favorites.value(for: "demo-comedian-102") == true)
     }
@@ -156,7 +156,7 @@ struct ShowDetailViewTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Distance"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Distance", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
@@ -173,7 +173,7 @@ struct ShowDetailViewTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
     }
 
