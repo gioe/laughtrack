@@ -428,7 +428,14 @@ class KomiExtractorForComedian:
 
         count = 0
         for event in data:
-            if _bandsintown_event_to_venue(event, club_handler, log_prefix):
+            if _bandsintown_event_to_venue(
+                event,
+                club_handler,
+                log_prefix,
+                comedian=comedian,
+                sample_url=scraping_url,
+                platform_hints=["komi", "bandsintown"],
+            ):
                 count += 1
 
         return count
@@ -438,6 +445,9 @@ def _bandsintown_event_to_venue(
     event: dict,
     club_handler: ClubHandler,
     log_prefix: str,
+    comedian: Optional[Comedian] = None,
+    sample_url: Optional[str] = None,
+    platform_hints: Optional[list[str]] = None,
 ) -> bool:
     """Extract and upsert a venue from a Bandsintown event. Returns True on success."""
     try:
@@ -478,7 +488,18 @@ def _bandsintown_event_to_venue(
             "address": address,
             "zip_code": zip_code,
             "timezone": timezone_from_address(address),
+            "discovery_metadata": {
+                "source": "comedian_websites",
+                "event_urls": [event.get("url") or f"https://www.bandsintown.com/e/{event.get('id', '')}"],
+                "platform_hints": platform_hints or ["bandsintown"],
+            },
         }
+        if comedian is not None:
+            venue_dict["discovery_metadata"]["comedian_refs"] = [
+                {"uuid": comedian.uuid, "name": comedian.name}
+            ]
+        if sample_url:
+            venue_dict["discovery_metadata"]["sample_urls"] = [sample_url]
 
         club = club_handler.upsert_for_tour_date_venue(venue_dict)
         return club is not None

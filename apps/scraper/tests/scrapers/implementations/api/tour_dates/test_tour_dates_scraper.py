@@ -194,6 +194,12 @@ def test_bandsintown_event_to_show_creates_show_for_us_event(platform_club):
     # Verify address is correctly assembled from city + region ("Los Angeles", "CA" → "Los Angeles, CA")
     venue_dict = mock_upsert.call_args.args[0]
     assert venue_dict["address"] == "Los Angeles, CA"
+    assert venue_dict["discovery_metadata"] == {
+        "source": "tour_dates",
+        "comedian_refs": [{"uuid": "hg-uuid", "name": "Hannah Gadsby"}],
+        "event_urls": ["https://www.bandsintown.com/e/99"],
+        "platform_hints": ["bandsintown"],
+    }
 
     # Every show must emit ≥1 ticket — UI gates visibility on tickets.length > 0.
     # Fallback shape mirrors live_nation's no-price branch in

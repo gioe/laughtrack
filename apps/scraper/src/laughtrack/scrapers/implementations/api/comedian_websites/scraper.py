@@ -250,7 +250,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     return ComedianWebsiteScrapeOutcome(comedian.name, "empty")
 
                 strategy = "json_ld"
-                venue_count = self._extract_venues_from_events(events)
+                venue_count = self._extract_venues_from_events(events, comedian, scraping_url)
                 self._update_scrape_metadata(row["uuid"], strategy)
                 self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=True)
 
@@ -374,11 +374,16 @@ class ComedianWebsiteScraper(BaseScraper):
             )
         return venue_count
 
-    def _extract_venues_from_events(self, events: list) -> int:
+    def _extract_venues_from_events(
+        self,
+        events: list,
+        comedian: Optional[Comedian] = None,
+        scraping_url: Optional[str] = None,
+    ) -> int:
         """Extract and upsert venues from a list of JSON-LD events. Returns venue count."""
         count = 0
         for event in events:
-            if self._upsert_venue_from_json_ld_event(event):
+            if self._upsert_venue_from_json_ld_event(event, comedian, scraping_url):
                 count += 1
         return count
 
@@ -386,7 +391,12 @@ class ComedianWebsiteScraper(BaseScraper):
     # Event → venue extraction                                             #
     # ------------------------------------------------------------------ #
 
-    def _upsert_venue_from_json_ld_event(self, event) -> bool:
+    def _upsert_venue_from_json_ld_event(
+        self,
+        event,
+        comedian: Optional[Comedian] = None,
+        scraping_url: Optional[str] = None,
+    ) -> bool:
         """Extract venue from a JsonLdEvent and upsert it, filtering to US-only future events."""
         try:
             # Parse date
@@ -440,7 +450,17 @@ class ComedianWebsiteScraper(BaseScraper):
                 "address": address,
                 "zip_code": zip_code,
                 "timezone": tz,
+                "discovery_metadata": {
+                    "source": "comedian_websites",
+                    "sample_urls": [scraping_url] if scraping_url else [],
+                    "event_urls": [event.url] if getattr(event, "url", None) else [],
+                    "platform_hints": ["json_ld"],
+                },
             }
+            if comedian is not None:
+                venue_dict["discovery_metadata"]["comedian_refs"] = [
+                    {"uuid": comedian.uuid, "name": comedian.name}
+                ]
 
             club = self._club_handler.upsert_for_tour_date_venue(venue_dict)
             return club is not None

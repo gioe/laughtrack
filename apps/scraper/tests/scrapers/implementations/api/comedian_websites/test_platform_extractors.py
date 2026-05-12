@@ -213,6 +213,12 @@ class TestBandsintownEventToVenue:
         result = _bandsintown_event_to_venue(event, club_handler, "test")
         assert result is True
         club_handler.upsert_for_tour_date_venue.assert_called_once()
+        venue_dict = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue_dict["discovery_metadata"] == {
+            "source": "comedian_websites",
+            "event_urls": ["https://www.bandsintown.com/e/123"],
+            "platform_hints": ["bandsintown"],
+        }
 
     def test_skips_non_us_event(self):
         event = self._make_event(venue_country="Canada")
@@ -316,3 +322,11 @@ class TestKomiExtractVenues:
         )
         assert result == 1
         club_handler.upsert_for_tour_date_venue.assert_called_once()
+        venue_dict = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue_dict["discovery_metadata"] == {
+            "source": "comedian_websites",
+            "comedian_refs": [{"uuid": "u1", "name": "Chris Kattan"}],
+            "sample_urls": ["https://chriskattan.komi.io/"],
+            "event_urls": ["https://www.bandsintown.com/e/123"],
+            "platform_hints": ["komi", "bandsintown"],
+        }

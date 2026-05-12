@@ -220,6 +220,12 @@ class TourDatesScraper(BaseScraper):
                 "address": address,
                 "zip_code": zip_code,
                 "timezone": timezone_from_address(address),
+                "discovery_metadata": {
+                    "source": "tour_dates",
+                    "comedian_refs": [{"uuid": comedian.uuid, "name": comedian.name}],
+                    "event_urls": [event.get("url") or f"https://www.bandsintown.com/e/{event.get('id', '')}"],
+                    "platform_hints": ["bandsintown"],
+                },
             }
 
             club = self._club_handler.upsert_for_tour_date_venue(venue_dict)

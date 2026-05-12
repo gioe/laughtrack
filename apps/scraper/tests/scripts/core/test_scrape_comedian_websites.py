@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import types
 import asyncio
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
@@ -142,6 +143,44 @@ def test_platform_extractors_return_event_count_for_success_classification(monke
     )
 
     assert event_count == 3
+
+
+def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
+    scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
+    scraper._club_handler = types.SimpleNamespace(upsert_for_tour_date_venue=lambda venue: types.SimpleNamespace(id=77))
+    scraper._club = types.SimpleNamespace(name="Comedian Websites")
+    scraper.logger_context = {}
+
+    event = types.SimpleNamespace(
+        start_date=scraper_mod.datetime.now(tz=scraper_mod.timezone.utc) + timedelta(days=30),
+        url="https://comic.example/shows/venue-night",
+        location=types.SimpleNamespace(
+            name="Venue Night",
+            address=types.SimpleNamespace(
+                address_locality="Austin",
+                address_region="TX",
+                postal_code="78701",
+                address_country="US",
+            ),
+        ),
+    )
+    captured = []
+    scraper._club_handler.upsert_for_tour_date_venue = lambda venue: captured.append(venue) or types.SimpleNamespace(id=77)
+
+    count = scraper._extract_venues_from_events(
+        [event],
+        scraper_mod.Comedian(name="Tour Comic", uuid="comic"),
+        "https://comic.example/tour",
+    )
+
+    assert count == 1
+    assert captured[0]["discovery_metadata"] == {
+        "source": "comedian_websites",
+        "comedian_refs": [{"uuid": "comic", "name": "Tour Comic"}],
+        "sample_urls": ["https://comic.example/tour"],
+        "event_urls": ["https://comic.example/shows/venue-night"],
+        "platform_hints": ["json_ld"],
+    }
 
 
 def test_script_prints_operator_facing_run_summary(capsys):
