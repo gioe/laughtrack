@@ -31,6 +31,48 @@ from laughtrack.core.clients.google.custom_search import SearchResult
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
+TICKETING_DOMAINS = (
+    "ticketmaster.com",
+    "eventbrite.com",
+    "axs.com",
+    "seatgeek.com",
+    "livenation.com",
+    "ticketweb.com",
+    "tixr.com",
+    "dice.fm",
+    "etix.com",
+    "showclix.com",
+    "ticketleap.com",
+    "ticketsauce.com",
+    "ticketspice.com",
+)
+AGENCY_DOMAINS = (
+    "caa.com",
+    "wmeagency.com",
+    "unitedtalent.com",
+    "icmpartners.com",
+    "gersh.com",
+    "apa-agency.com",
+    "levitytalent.com",
+    "33andwest.com",
+)
+SOCIAL_LINK_BIO_DOMAINS = (
+    "instagram.com",
+    "tiktok.com",
+    "facebook.com",
+    "x.com",
+    "twitter.com",
+    "youtube.com",
+    "linktr.ee",
+    "beacons.ai",
+    "bio.site",
+    "hoo.be",
+    "solo.to",
+    "komi.io",
+)
+TOUR_PATH_TERMS = ("tour", "date", "show", "event", "ticket", "calendar", "schedule")
+
+
 _GET_TOUR_DISCOVERY_CANDIDATES = """
     SELECT c.uuid, c.name, c.total_shows
     FROM comedians c
@@ -145,11 +187,20 @@ class TourSourceCoverageMetrics:
                 "candidate_source_comedian_count": len({candidate.comedian_uuid for candidate in candidates}),
                 "candidate_bandsintown_source_count": sum(1 for c in candidates if c.source_type == "bandsintown"),
                 "candidate_songkick_source_count": sum(1 for c in candidates if c.source_type == "songkick"),
-                "candidate_official_source_count": sum(1 for c in candidates if c.source_type == "official"),
+                "candidate_official_source_count": sum(1 for c in candidates if c.source_type == "official_tour"),
                 "candidate_ticketing_source_count": sum(1 for c in candidates if c.source_type == "ticketing"),
             }
         )
         return TourSourceCoverageMetrics.from_mapping(counts)
+
+
+@dataclass(frozen=True)
+class TourSourceEvidence:
+    matched_domain: str
+    name_match: str
+    query_intent: str
+    url_path: str
+    snippet: str = ""
 
 
 @dataclass(frozen=True)
@@ -161,6 +212,8 @@ class TourSourceCandidate:
     rank: int
     source_type: str
     confidence: str
+    evidence: TourSourceEvidence
+    is_scraping_url_candidate: bool
     title: str = ""
     snippet: str = ""
 
@@ -223,15 +276,64 @@ def load_tour_source_coverage_metrics() -> TourSourceCoverageMetrics:
     return TourSourceCoverageMetrics.from_mapping(dict(row or {}))
 
 
-def _source_type(url: str) -> str:
+def _hostname(url: str) -> str:
+    return (urlparse(url).hostname or "").lower().removeprefix("www.")
+
+
+def _domain_matches(hostname: str, domains: tuple[str, ...]) -> bool:
+    return any(hostname == domain or hostname.endswith(f".{domain}") for domain in domains)
+
+
+def _query_intent(query: str) -> str:
+    normalized = query.lower()
+    if "bandsintown" in normalized:
+        return "bandsintown"
+    if "songkick" in normalized:
+        return "songkick"
+    if "ticket" in normalized:
+        return "tickets"
+    if any(term in normalized for term in ("tour", "upcoming", "show", "date")):
+        return "tour"
+    return "unknown"
+
+
+def _name_match(result: SearchResult, comedian_name: str) -> str:
+    parsed = urlparse(result.link)
+    haystack = " ".join([result.title, result.snippet, parsed.path]).lower()
+    tokens = _name_tokens(comedian_name)
+    if not tokens:
+        return "none"
+    token_hits = sum(1 for token in tokens if token in haystack)
+    if token_hits == len(tokens):
+        return "all"
+    if token_hits:
+        return "partial"
+    return "none"
+
+
+def _has_tour_signal(result: SearchResult) -> bool:
+    parsed = urlparse(result.link)
+    path = parsed.path.lower()
+    text = " ".join([result.title, result.snippet]).lower()
+    return any(term in path or term in text for term in TOUR_PATH_TERMS)
+
+
+def _source_type(result: SearchResult) -> str:
+    url = result.link
     hostname = (urlparse(url).hostname or "").lower().removeprefix("www.")
     if hostname.endswith("bandsintown.com"):
         return "bandsintown"
     if hostname.endswith("songkick.com"):
         return "songkick"
-    if hostname.endswith(("ticketmaster.com", "eventbrite.com", "axs.com", "seatgeek.com", "livenation.com")):
+    if _domain_matches(hostname, TICKETING_DOMAINS):
         return "ticketing"
-    return "official"
+    if _domain_matches(hostname, AGENCY_DOMAINS):
+        return "agency"
+    if _domain_matches(hostname, SOCIAL_LINK_BIO_DOMAINS):
+        return "social_link_bio"
+    if _has_tour_signal(result):
+        return "official_tour"
+    return "unknown"
 
 
 def _name_tokens(name: str) -> list[str]:
@@ -239,15 +341,22 @@ def _name_tokens(name: str) -> list[str]:
 
 
 def _confidence(result: SearchResult, comedian_name: str, source_type: str) -> str:
-    haystack = " ".join([result.title, result.snippet, result.link]).lower()
+    parsed = urlparse(result.link)
+    haystack = " ".join([result.title, result.snippet, parsed.path]).lower()
     token_hits = sum(1 for token in _name_tokens(comedian_name) if token in haystack)
     if source_type in {"bandsintown", "songkick"} and token_hits:
         return "high"
-    if source_type == "official" and token_hits >= 2:
+    if source_type == "official_tour" and token_hits >= 2:
         return "high"
     if token_hits:
         return "medium"
     return "low"
+
+
+def _is_scraping_url_candidate(source_type: str, confidence: str) -> bool:
+    if confidence == "low":
+        return False
+    return source_type in {"bandsintown", "songkick", "official_tour"}
 
 
 def _candidate_from_result(
@@ -261,10 +370,18 @@ def _candidate_from_result(
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         return None
 
-    source_type = _source_type(result.link)
+    source_type = _source_type(result)
+    name_match = _name_match(result, comedian.name)
+    if source_type == "official_tour" and name_match == "none":
+        source_type = "unknown"
     confidence = _confidence(result, comedian.name, source_type)
-    if confidence == "low":
-        return None
+    evidence = TourSourceEvidence(
+        matched_domain=_hostname(result.link),
+        name_match=name_match,
+        query_intent=_query_intent(query),
+        url_path=parsed.path or "/",
+        snippet=result.snippet,
+    )
 
     return TourSourceCandidate(
         comedian_uuid=comedian.uuid,
@@ -274,6 +391,8 @@ def _candidate_from_result(
         rank=rank,
         source_type=source_type,
         confidence=confidence,
+        evidence=evidence,
+        is_scraping_url_candidate=_is_scraping_url_candidate(source_type, confidence),
         title=result.title,
         snippet=result.snippet,
     )
@@ -411,7 +530,15 @@ def print_tour_source_report(candidates: list[TourSourceCandidate], *, dry_run: 
             f"query={candidate.query} "
             f"rank={candidate.rank} "
             f"source_type={candidate.source_type} "
-            f"confidence={candidate.confidence}"
+            f"confidence={candidate.confidence} "
+            f"scraping_url_candidate={str(candidate.is_scraping_url_candidate).lower()}"
+        )
+        print(
+            "  "
+            f"evidence=domain:{candidate.evidence.matched_domain} "
+            f"name:{candidate.evidence.name_match} "
+            f"intent:{candidate.evidence.query_intent} "
+            f"path:{candidate.evidence.url_path}"
         )
 
 

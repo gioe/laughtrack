@@ -128,15 +128,124 @@ def test_dry_run_reports_candidate_urls_without_database_writes(monkeypatch, cap
     assert results[0].url == "https://jane.example/tour"
     assert results[0].query == "Jane Example tour dates"
     assert results[0].rank == 1
-    assert results[0].source_type == "official"
+    assert results[0].source_type == "official_tour"
     assert results[0].confidence == "high"
+    assert results[0].is_scraping_url_candidate is True
+    assert results[0].evidence.name_match == "all"
+    assert results[0].evidence.query_intent == "tour"
+    assert results[0].evidence.url_path == "/tour"
     assert "DRY RUN" in captured.out
     assert "Jane Example" in captured.out
     assert "https://jane.example/tour" in captured.out
     assert "query=Jane Example tour dates" in captured.out
     assert "rank=1" in captured.out
-    assert "source_type=official" in captured.out
+    assert "source_type=official_tour" in captured.out
     assert "confidence=high" in captured.out
+
+
+def test_classifies_major_tour_source_types_with_evidence():
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
+    cases = [
+        (
+            "https://www.bandsintown.com/a/123-jane-example",
+            "Jane Example Bandsintown",
+            "Jane Example tour dates",
+            "bandsintown",
+            "high",
+            True,
+        ),
+        (
+            "https://www.songkick.com/artists/456-jane-example",
+            "Jane Example Songkick",
+            "Jane Example concerts",
+            "songkick",
+            "high",
+            True,
+        ),
+        (
+            "https://jane.example/tour",
+            "Jane Example official tour",
+            "Jane Example tour dates and tickets",
+            "official_tour",
+            "high",
+            True,
+        ),
+        (
+            "https://www.ticketmaster.com/jane-example-tickets/artist/123",
+            "Jane Example tickets",
+            "Upcoming Jane Example shows",
+            "ticketing",
+            "medium",
+            False,
+        ),
+        (
+            "https://www.caa.com/caaspeakers/jane-example",
+            "Jane Example - CAA",
+            "Booking and representation",
+            "agency",
+            "medium",
+            False,
+        ),
+        (
+            "https://linktr.ee/janeexample",
+            "Jane Example links",
+            "Instagram, store, mailing list",
+            "social_link_bio",
+            "medium",
+            False,
+        ),
+        (
+            "https://random.example/posts/comedy-roundup",
+            "Comedy roundup",
+            "A roundup that mentions Jane Example once",
+            "unknown",
+            "medium",
+            False,
+        ),
+    ]
+
+    for url, title, snippet, source_type, confidence, promoted in cases:
+        result = SearchResult(title=title, link=url, snippet=snippet, display_link=url)
+        candidate = mod._candidate_from_result(
+            comedian=comedian,
+            result=result,
+            query="Jane Example tour dates",
+            rank=1,
+        )
+
+        assert candidate is not None
+        assert candidate.source_type == source_type
+        assert candidate.confidence == confidence
+        assert candidate.is_scraping_url_candidate is promoted
+        assert candidate.evidence.matched_domain
+        assert candidate.evidence.name_match in {"all", "partial"}
+        assert candidate.evidence.query_intent == "tour"
+        assert candidate.evidence.url_path
+        assert candidate.evidence.snippet == snippet
+
+
+def test_low_confidence_noise_is_retained_as_review_evidence_not_promoted():
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
+    result = SearchResult(
+        title="Best comedy shows this weekend",
+        link="https://noise.example/events",
+        snippet="General comedy listings with no matching performer",
+        display_link="https://noise.example/events",
+    )
+
+    candidate = mod._candidate_from_result(
+        comedian=comedian,
+        result=result,
+        query="Jane Example tickets upcoming shows",
+        rank=4,
+    )
+
+    assert candidate is not None
+    assert candidate.source_type == "unknown"
+    assert candidate.confidence == "low"
+    assert candidate.is_scraping_url_candidate is False
+    assert candidate.evidence.name_match == "none"
+    assert candidate.evidence.query_intent == "tickets"
 
 
 def test_coverage_query_separates_core_comedian_tour_source_counts(monkeypatch):
