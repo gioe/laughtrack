@@ -122,6 +122,48 @@ struct MonthCalendarViewTests {
         #expect(!MonthCalendarView.isMonth(date(2026, 1, 1, calendar: calendar), beforeMinimum: nil, calendar: calendar))
     }
 
+    @Test("monthStartForJump rejects months strictly before the minimum month")
+    func monthStartForJumpRejectsMonthsBeforeMinimum() {
+        let calendar = makeCalendar(firstWeekday: 1)
+        let minimum = date(2026, 5, 18, calendar: calendar)
+
+        // April 2026 is the month before the minimum's month — must reject.
+        let aprilJump = MonthCalendarView.monthStartForJump(
+            year: 2026,
+            monthIndex: 3,
+            minimumDate: minimum,
+            calendar: calendar
+        )
+        #expect(aprilJump == nil)
+
+        // May 2026 contains the minimum date — must accept and return May 1.
+        let mayJump = MonthCalendarView.monthStartForJump(
+            year: 2026,
+            monthIndex: 4,
+            minimumDate: minimum,
+            calendar: calendar
+        )
+        #expect(mayJump == date(2026, 5, 1, calendar: calendar))
+
+        // June 2026 is after the minimum's month — must accept.
+        let juneJump = MonthCalendarView.monthStartForJump(
+            year: 2026,
+            monthIndex: 5,
+            minimumDate: minimum,
+            calendar: calendar
+        )
+        #expect(juneJump == date(2026, 6, 1, calendar: calendar))
+
+        // Nil minimum disables gating — any year/month resolves.
+        let unboundedJump = MonthCalendarView.monthStartForJump(
+            year: 2020,
+            monthIndex: 0,
+            minimumDate: nil,
+            calendar: calendar
+        )
+        #expect(unboundedJump == date(2020, 1, 1, calendar: calendar))
+    }
+
     @Test("comedian detail show counts are bucketed by current calendar start of day")
     func comedianShowsByDateBucketsByStartOfDay() {
         let calendar = Calendar.current

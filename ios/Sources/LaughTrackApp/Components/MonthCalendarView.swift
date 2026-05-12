@@ -370,6 +370,25 @@ struct MonthCalendarView: View {
     static func monthStart(for date: Date, calendar: Calendar = .current) -> Date {
         return calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
     }
+
+    static func monthStartForJump(
+        year: Int,
+        monthIndex: Int,
+        minimumDate: Date?,
+        calendar: Calendar = .current
+    ) -> Date? {
+        var components = DateComponents()
+        components.year = year
+        components.month = monthIndex + 1
+        components.day = 1
+        guard let date = calendar.date(from: components) else { return nil }
+        if let minimumDate {
+            let minMonth = calendar.dateInterval(of: .month, for: minimumDate)?.start
+                ?? calendar.startOfDay(for: minimumDate)
+            if date < minMonth { return nil }
+        }
+        return date
+    }
 }
 
 private struct MonthYearJumpSheet: View {
@@ -479,17 +498,12 @@ private struct MonthYearJumpSheet: View {
     }
 
     private func resolvedMonthStart() -> Date? {
-        var components = DateComponents()
-        components.year = selectedYear
-        components.month = selectedMonthIndex + 1
-        components.day = 1
-        guard let date = calendar.date(from: components) else { return nil }
-        if let minimumDate {
-            let minMonth = calendar.dateInterval(of: .month, for: minimumDate)?.start
-                ?? calendar.startOfDay(for: minimumDate)
-            if date < minMonth { return nil }
-        }
-        return date
+        MonthCalendarView.monthStartForJump(
+            year: selectedYear,
+            monthIndex: selectedMonthIndex,
+            minimumDate: minimumDate,
+            calendar: calendar
+        )
     }
 
     private func commit() {
