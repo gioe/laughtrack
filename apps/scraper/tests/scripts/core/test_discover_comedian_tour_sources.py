@@ -225,6 +225,30 @@ def test_classifies_major_tour_source_types_with_evidence():
         assert candidate.evidence.snippet == snippet
 
 
+def test_ben_bankas_registered_homepage_is_promoted_as_scraping_url_candidate():
+    comedian = mod.TourDiscoveryCandidate(uuid="comic-ben", name="Ben Bankas", total_shows=10)
+    result = SearchResult(
+        title="Ben Bankas: International Stand-Up Comedian",
+        link="https://benbankas.com/",
+        snippet="Tour dates and tickets for Ben Bankas",
+        display_link="https://benbankas.com/",
+    )
+
+    candidate = mod._candidate_from_result(
+        comedian=comedian,
+        result=result,
+        query="Ben Bankas tour dates",
+        rank=1,
+    )
+
+    assert candidate is not None
+    assert candidate.url == "https://benbankas.com/"
+    assert candidate.source_type == "registered_comedian_website"
+    assert candidate.confidence == "high"
+    assert candidate.is_scraping_url_candidate is True
+    assert mod._official_scraping_url(candidate) == "https://benbankas.com/"
+
+
 def test_low_confidence_noise_is_retained_as_review_evidence_not_promoted():
     comedian = mod.TourDiscoveryCandidate(uuid="comic-1", name="Jane Example", total_shows=12)
     result = SearchResult(
