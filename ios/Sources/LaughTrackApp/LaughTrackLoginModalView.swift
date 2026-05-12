@@ -16,22 +16,29 @@ struct LaughTrackLoginModalView: View {
             laughTrack.colors.canvas
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
-                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                    Text("Laughtrack")
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .textCase(.uppercase)
+            VStack(spacing: laughTrack.spacing.sectionGap) {
+                VStack(spacing: laughTrack.spacing.itemGap) {
+                    ZStack {
+                        Circle()
+                            .fill(laughTrack.colors.accentStrong.opacity(0.14))
+                            .frame(width: 72, height: 72)
 
-                    VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
-                        Text("Welcome back")
-                            .font(.system(size: 42, weight: .heavy, design: .rounded))
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 32, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                    }
+
+                    VStack(spacing: laughTrack.spacing.tight) {
+                        Text("Save your favorites")
+                            .font(.system(size: 32, weight: .heavy, design: .rounded))
                             .foregroundStyle(laughTrack.colors.textPrimary)
+                            .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Sign in to save comedians, sync favorites, and recover your session across devices.")
+                        Text("Sign in to favorite comedians, get alerts when they tour near you, and sync your saves across devices.")
                             .font(laughTrack.typography.body)
                             .foregroundStyle(laughTrack.colors.textSecondary)
+                            .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
