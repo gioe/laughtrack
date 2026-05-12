@@ -2,10 +2,10 @@
 """
 Audit clubs discovered via tour-date scraping and identify onboarding candidates.
 
-Queries clubs with scraper='tour_dates' (created by TourDatesScraper but never
-upgraded to a dedicated scraper), fetches each club's website to detect a
-scrapeable calendar platform, and reports findings. Optionally creates tusk
-onboarding tasks for clubs with detected platforms.
+Queries clubs with enabled tour_dates scraping_sources rows (created by
+TourDatesScraper but never upgraded to a dedicated scraper), fetches each club's
+website to detect a scrapeable calendar platform, and reports findings.
+Optionally creates tusk onboarding tasks for clubs with detected platforms.
 
 Usage:
     python -m scripts.core.audit_tour_date_clubs
@@ -133,15 +133,17 @@ class AuditResult:
 # ---------------------------------------------------------------------------
 
 _GET_TOUR_DATE_CLUBS = """
-    SELECT id, name, city, state, website
-    FROM clubs
-    WHERE scraper = 'tour_dates'
-    ORDER BY name
+    SELECT DISTINCT c.id, c.name, c.city, c.state, c.website
+    FROM clubs c
+    JOIN scraping_sources ss ON ss.club_id = c.id
+    WHERE ss.platform = 'tour_dates'
+      AND ss.enabled = TRUE
+    ORDER BY c.name
 """
 
 
 def _load_tour_date_clubs() -> list[dict]:
-    """Load all clubs with scraper='tour_dates'."""
+    """Load all clubs with an enabled tour_dates scraping source."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(_GET_TOUR_DATE_CLUBS)
@@ -245,7 +247,7 @@ async def _audit_club(club: dict) -> AuditResult:
 async def _run_audit(concurrency: int = 5) -> list[AuditResult]:
     """Audit all tour_dates clubs for scrapeable platforms."""
     clubs = _load_tour_date_clubs()
-    Logger.info(f"Loaded {len(clubs)} clubs with scraper='tour_dates'")
+    Logger.info(f"Loaded {len(clubs)} clubs with enabled tour_dates scraping_sources")
 
     if not clubs:
         return []
@@ -270,7 +272,7 @@ async def _run_audit(concurrency: int = 5) -> list[AuditResult]:
 def _print_report(results: list[AuditResult]) -> None:
     """Print audit report to stdout."""
     if not results:
-        print("\nNo clubs with scraper='tour_dates' found.")
+        print("\nNo clubs with enabled tour_dates scraping_sources found.")
         return
 
     detected = [r for r in results if r.platform]
@@ -284,7 +286,7 @@ def _print_report(results: list[AuditResult]) -> None:
         platform_counts[r.platform] += 1
 
     print(f"\n{'='*80}")
-    print(f"TOUR-DATE CLUB AUDIT — {len(results)} clubs with scraper='tour_dates'")
+    print(f"TOUR-DATE CLUB AUDIT — {len(results)} clubs with enabled tour_dates scraping_sources")
     print(f"{'='*80}")
     print(f"  Platform detected: {len(detected):4d}")
     print(f"  No website:        {len(no_website):4d}")
@@ -343,7 +345,7 @@ def _create_onboarding_tasks(results: list[AuditResult]) -> int:
             summary += f" ({location})"
 
         description = (
-            f"Club already in DB (id={r.club_id}) with scraper='tour_dates'. "
+            f"Club already in DB (id={r.club_id}) with an enabled tour_dates scraping_sources row. "
             f"Website: {r.website} — detected platform: {r.platform}. "
             f"Upgrade from tour_dates discovery to dedicated {r.platform} scraper."
         )
