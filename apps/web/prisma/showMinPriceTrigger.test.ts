@@ -1,24 +1,58 @@
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-// Integration test for the tickets -> shows.min_price trigger added in this
-// migration. Runs the real SQL against an in-process Postgres (PGlite) so the
-// plpgsql function, the per-event INSERT/UPDATE/DELETE triggers, and the WHEN
-// gate are exercised end-to-end. JS-side tests (findShowsWithCount, the
-// SHOW_SORT_MAP wiring) cover the ORDER BY plumbing; this file is what catches
-// a future migration that narrows the WHEN clause or broadens the price filter.
+// Integration test for the tickets -> shows.min_price trigger added in the
+// `_add_show_min_price_with_trigger` migration. Runs the real SQL against an
+// in-process Postgres (PGlite) so the plpgsql function, the per-event
+// INSERT/UPDATE/DELETE triggers, the WHEN gate, AND the one-shot backfill
+// statement at the bottom of the migration are exercised end-to-end. JS-side
+// tests (findShowsWithCount, the SHOW_SORT_MAP wiring) cover the ORDER BY
+// plumbing; this file is what catches a future migration that narrows the
+// WHEN clause or broadens the price filter.
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const MIGRATION_SQL = readFileSync(
-    resolve(
-        HERE,
-        "migrations/20260512010000_add_show_min_price_with_trigger/migration.sql",
-    ),
-    "utf-8",
-);
+
+// Resolve the migration directory by suffix-glob rather than full timestamp so
+// a future rename (e.g. Prisma regenerating timestamps after a squash) surfaces
+// as a meaningful "migration not found" assertion rather than a confusing
+// ENOENT mid-test.
+function loadMigrationSql(): string {
+    const migrationsDir = resolve(HERE, "migrations");
+    const suffix = "_add_show_min_price_with_trigger";
+    const matches = readdirSync(migrationsDir).filter((entry) =>
+        entry.endsWith(suffix),
+    );
+    if (matches.length !== 1) {
+        throw new Error(
+            `Expected exactly one migration directory ending in '${suffix}', found ${matches.length}: ${matches.join(", ")}`,
+        );
+    }
+    return readFileSync(
+        resolve(migrationsDir, matches[0], "migration.sql"),
+        "utf-8",
+    );
+}
+
+const MIGRATION_SQL = loadMigrationSql();
+
+// Minimal schema covering the columns the trigger touches. Real prisma schema
+// has many more columns; the trigger only reads tickets.show_id /
+// tickets.price and writes shows.min_price.
+const BASE_SCHEMA_SQL = `
+    CREATE TABLE shows (
+        id SERIAL PRIMARY KEY
+    );
+    CREATE TABLE tickets (
+        id SERIAL PRIMARY KEY,
+        show_id INTEGER NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
+        price NUMERIC(7, 2),
+        purchase_url TEXT,
+        sold_out BOOLEAN NOT NULL DEFAULT false
+    );
+`;
 
 // PGlite returns NUMERIC columns as strings to preserve precision (same as
 // node-postgres). Normalize to number for comparison; null stays null.
@@ -63,21 +97,7 @@ describe("tickets_trickle_show_min_price trigger", () => {
 
     beforeAll(async () => {
         db = new PGlite();
-        // Minimal schema covering the columns the trigger touches. Real
-        // prisma schema has many more columns; the trigger only reads
-        // tickets.show_id / tickets.price and writes shows.min_price.
-        await db.exec(`
-            CREATE TABLE shows (
-                id SERIAL PRIMARY KEY
-            );
-            CREATE TABLE tickets (
-                id SERIAL PRIMARY KEY,
-                show_id INTEGER NOT NULL REFERENCES shows(id) ON DELETE CASCADE,
-                price NUMERIC(7, 2),
-                purchase_url TEXT,
-                sold_out BOOLEAN NOT NULL DEFAULT false
-            );
-        `);
+        await db.exec(BASE_SCHEMA_SQL);
         await db.exec(MIGRATION_SQL);
     });
 
@@ -283,5 +303,55 @@ describe("tickets_trickle_show_min_price trigger", () => {
             expect(stored).toBe(asNumber(computed.rows[0].min_price));
             expect(stored).toBe(22);
         });
+    });
+});
+
+describe("one-shot backfill on migration apply", () => {
+    // The trigger keeps min_price in sync for new writes, but existing rows on
+    // the day of deploy depend on the UPDATE ... FROM (SELECT MIN(price) ...
+    // GROUP BY show_id) block at the bottom of migration.sql. Run the migration
+    // against a pre-seeded ticket set so a future change that breaks the
+    // backfill (e.g. dropping the 'price > 0' guard, swapping in MIN(price)
+    // without NULL/free handling) fails this test instead of silently leaving
+    // deployed rows with wrong values.
+
+    let db: PGlite;
+
+    beforeAll(async () => {
+        db = new PGlite();
+        await db.exec(BASE_SCHEMA_SQL);
+        // Seed three shows with a representative mix before the trigger /
+        // backfill exists. Use plain SQL — no helpers — because the helpers
+        // assume the migration has already run.
+        await db.exec(`
+            INSERT INTO shows DEFAULT VALUES;
+            INSERT INTO shows DEFAULT VALUES;
+            INSERT INTO shows DEFAULT VALUES;
+            INSERT INTO tickets (show_id, price) VALUES
+                (1, 30),
+                (1, 18),
+                (1, 0),
+                (1, NULL),
+                (2, 50),
+                (3, 0),
+                (3, NULL);
+        `);
+        // Sanity: shows.min_price column doesn't exist yet, so all rows are
+        // implicitly unset. Apply the migration — this adds the column,
+        // creates the trigger, AND runs the one-shot backfill UPDATE.
+        await db.exec(MIGRATION_SQL);
+    });
+
+    afterAll(async () => {
+        await db.close();
+    });
+
+    it("backfills min_price for shows with paid tickets", async () => {
+        expect(await readMinPrice(db, 1)).toBe(18);
+        expect(await readMinPrice(db, 2)).toBe(50);
+    });
+
+    it("leaves min_price NULL for shows with only free/NULL tickets", async () => {
+        expect(await readMinPrice(db, 3)).toBeNull();
     });
 });
