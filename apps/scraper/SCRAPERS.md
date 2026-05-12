@@ -1684,6 +1684,50 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 
 ---
 
+## Maintenance Invariants
+
+Repeatable database invariants live under `scripts/core/check_*.py` and are
+exposed via `make check-*` targets. They are safe to run anytime and exit 2 on
+violation so they can be wired into CI or a scheduled job. Notable checks:
+
+### `check-scraping-source-invariants`
+
+```bash
+cd apps/scraper
+make check-scraping-source-invariants                    # human report
+make check-scraping-source-invariants ARGS='--json'      # machine-readable
+make check-scraping-source-invariants ARGS='--stale-days 14'
+```
+
+Guards two invariants in one pass:
+
+1. **Orphan future inventory** — clubs with future shows but no enabled
+   `scraping_sources` row. Usually means a stale writer, legacy pre-source
+   data, or a hidden duplicate row is still emitting listings.
+2. **Stale `tour_dates`-only clubs** — active visible clubs whose only enabled
+   source is `tour_dates`. The discovery loop is:
+   `discover_clubs_from_tour_dates` → `audit_tour_date_clubs --create-tasks` →
+   dedicated scraper. A club still on `tour_dates` only after `--stale-days`
+   (default 30) means the loop rotted: the audit never ran, the onboarding
+   task was never picked up, or the upgrade never landed.
+
+   The output splits these rows into two groups:
+   - **`onboarding_review_needed`** — `tour_dates` row older than the
+     threshold. Trips exit 2. Action: rerun
+     `python -m scripts.core.audit_tour_date_clubs --create-tasks` and work
+     the resulting tusk tasks, or hide/close the club if it is no longer
+     active.
+   - **`recent_discovery`** — within the threshold. Reported as INFO; does
+     not trip exit 2. This is the normal state of newly-discovered venues.
+
+Other related checks:
+
+- `check-scraping-priorities` — duplicate enabled `(club_id, priority)` rows
+- `check-stale-scraper-keys` — enabled scraper keys with no recent writes
+- `check-show-attribution` — `shows.last_scraped_by` values missing from `scrapers.key`
+
+---
+
 ## Quick Reference: DB Fields by Scraper Key
 
 | Scraper Key | Required DB Fields |
