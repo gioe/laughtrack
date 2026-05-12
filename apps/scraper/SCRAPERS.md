@@ -800,6 +800,39 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 
 ---
 
+### SimpleTix
+
+| | |
+|---|---|
+| **Scraper key** | `simpletix` |
+| **Platform** | `simpletix` |
+| **DB field** | `scraping_url` |
+| **Value format** | Full SimpleTix event page URL, e.g. `https://www.simpletix.com/e/{event-slug}-tickets-{id}` |
+| **Generic?** | Yes - single event-page scraper, configured by `scraping_url` |
+
+**Detection signals:**
+- Venue website links to `simpletix.com/e/...` ticket/event pages
+- The SimpleTix event page embeds `var timeArray = [...]` JavaScript containing show time entries
+- Page HTML may include JSON-LD offer data for ticket pricing
+
+**Key implementation details:**
+- Uses the generic `SimpleTixScraper` at `apps/scraper/src/laughtrack/scrapers/implementations/api/simpletix/`
+- `collect_scraping_targets()` returns the club's `scraping_url` as the single target
+- `SimpleTixExtractor` parses `var timeArray = [...]` entries with `Id` and `Time` fields, extracts the page `<h1>` as the event title, and reads the lowest JSON-LD offer price when present
+- Each future `timeArray` entry becomes a show with the SimpleTix page as both show URL and ticket URL
+
+**DB setup:**
+```sql
+UPDATE clubs
+SET scraper = 'simpletix',
+    scraping_url = 'https://www.simpletix.com/e/{event-slug}-tickets-{id}'
+WHERE name = '<Club Name>';
+```
+
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/api/simpletix/`
+
+---
+
 ### ThunderTix
 
 | | |

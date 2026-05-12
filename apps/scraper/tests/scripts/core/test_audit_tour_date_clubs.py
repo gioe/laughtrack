@@ -360,6 +360,7 @@ _PLATFORM_SECTION_MARKER_KEY: dict[str, str] = {
     "StageTime": "stagetime",
     "OvationTix": "ovationtix",
     "OpenDate": "opendate",
+    "SimpleTix": "simpletix",
 }
 
 # Headings under "## Platform Sections" that introduce a group of variants
@@ -500,6 +501,24 @@ def test_documented_marker_keys_exist_in_audit_script():
         + "\n".join(f"  - section '{s}' -> key '{k}'" for s, k in missing)
         + "\n\nEither add the marker to audit_tour_date_clubs.py or update "
         "_PLATFORM_SECTION_MARKER_KEY in this test."
+    )
+
+
+def test_every_audit_marker_platform_is_documented():
+    marker_platforms = {platform for _, platform in mod._HTML_PLATFORM_MARKERS}
+    marker_platforms |= set(mod._WEBSITE_DOMAIN_PLATFORMS.values())
+
+    documented_platforms = set(_PLATFORM_SECTION_MARKER_KEY.values())
+    undocumented = sorted(marker_platforms - documented_platforms)
+
+    assert not undocumented, (
+        "audit_tour_date_clubs.py marker table platform(s) are not represented "
+        "by any apps/scraper/SCRAPERS.md platform section mapping:\n"
+        + "\n".join(f"  - {platform}" for platform in undocumented)
+        + "\n\nResolve by either (1) adding a SCRAPERS.md platform section "
+        "and recording its (section -> key) pair in "
+        "_PLATFORM_SECTION_MARKER_KEY, OR (2) removing the stale marker from "
+        "audit_tour_date_clubs.py."
     )
 
 
