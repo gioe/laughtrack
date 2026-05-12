@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
+import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
+import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 type FindManyArgs = {
     take?: number;
@@ -444,6 +445,93 @@ describe("findShowsWithCount", () => {
             const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.shows[0].timezone).toBeNull();
+        });
+    });
+
+    describe("price sort wiring (TASK-2140)", () => {
+        // SHOW_SORT_MAP exposes PriceAsc/PriceDesc as minPrice-keyed sorts with
+        // nulls:"last" both directions. Rationale for the null placement:
+        // Show.minPrice is the cheapest *paid* ticket (the migration trigger
+        // excludes price=0/NULL), so a NULL minPrice means "no priced tickets
+        // attached." For "$$: Low to High" the user wants the cheapest paid
+        // show on top, not a free RSVP show — Postgres's default ASC NULLS
+        // LAST already does this. For "$$: High to Low" the Postgres default
+        // is NULLS FIRST, which would lead the page with priceless rows; we
+        // override to NULLS LAST so the highest paid show leads and the
+        // no-price tail sits at the bottom regardless of direction. Free
+        // shows surface via the Free filter (TASK-2141) instead.
+        it("maps PriceAsc to minPrice asc with nulls:'last'", () => {
+            expect(SHOW_SORT_MAP[SortParamValue.PriceAsc]).toEqual({
+                field: "minPrice",
+                direction: "asc",
+                nulls: "last",
+            });
+        });
+
+        it("maps PriceDesc to minPrice desc with nulls:'last'", () => {
+            expect(SHOW_SORT_MAP[SortParamValue.PriceDesc]).toEqual({
+                field: "minPrice",
+                direction: "desc",
+                nulls: "last",
+            });
+        });
+
+        function buildHelper(sort: SortParamValue) {
+            return new QueryHelper({
+                params: { sort },
+                timezone: "America/New_York",
+            });
+        }
+
+        it("findShowsWithCount issues a minPrice asc NULLS LAST orderBy when sort=price_asc", async () => {
+            let captured!: { orderBy: Record<string, unknown>[] };
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: unknown) => {
+                captured = args as { orderBy: Record<string, unknown>[] };
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(buildHelper(SortParamValue.PriceAsc));
+
+            expect(captured.orderBy[0]).toEqual({
+                minPrice: { sort: "asc", nulls: "last" },
+            });
+            // Shows preserve their explicit date+id tiebreakers regardless of
+            // primary sort, so multi-row ties resolve deterministically.
+            expect(captured.orderBy.slice(1)).toEqual([
+                { date: "asc" },
+                { id: "asc" },
+            ]);
+        });
+
+        it("findShowsWithCount issues a minPrice desc NULLS LAST orderBy when sort=price_desc", async () => {
+            let captured!: { orderBy: Record<string, unknown>[] };
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: unknown) => {
+                captured = args as { orderBy: Record<string, unknown>[] };
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(buildHelper(SortParamValue.PriceDesc));
+
+            expect(captured.orderBy[0]).toEqual({
+                minPrice: { sort: "desc", nulls: "last" },
+            });
+        });
+
+        it("non-null-aware sort entries still use the compact orderBy shape", async () => {
+            // Regression guard: extending SortEntry with optional nulls must
+            // not change the orderBy shape for entries that omit it.
+            let captured!: { orderBy: Record<string, unknown>[] };
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: unknown) => {
+                captured = args as { orderBy: Record<string, unknown>[] };
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(buildHelper(SortParamValue.DateAsc));
+
+            expect(captured.orderBy[0]).toEqual({ date: "asc" });
         });
     });
 
