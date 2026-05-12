@@ -230,6 +230,30 @@ struct MonthCalendarViewTests {
         #expect(unboundedJump == date(2020, 1, 1, calendar: calendar))
     }
 
+    @Test("jump month availability disables only months before the minimum month")
+    func jumpMonthAvailabilityDisablesOnlyMonthsBeforeMinimumMonth() {
+        let calendar = makeCalendar(firstWeekday: 1)
+        let minimum = date(2026, 5, 18, calendar: calendar)
+
+        let sameYear = MonthCalendarView.jumpMonthAvailability(
+            year: 2026,
+            minimumDate: minimum,
+            calendar: calendar
+        )
+        #expect(sameYear == [
+            false, false, false, false,
+            true, true, true, true,
+            true, true, true, true,
+        ])
+
+        let laterYear = MonthCalendarView.jumpMonthAvailability(
+            year: 2027,
+            minimumDate: minimum,
+            calendar: calendar
+        )
+        #expect(laterYear.allSatisfy { $0 })
+    }
+
     @Test("DateRangeDensity.densityMap drops zero counts and keys results by startOfDay ISO dates")
     func densityMapDropsZeroCountsAndKeysByStartOfDay() {
         let raw: [String: Int] = [

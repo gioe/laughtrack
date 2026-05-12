@@ -405,6 +405,21 @@ struct MonthCalendarView: View {
         }
         return date
     }
+
+    static func jumpMonthAvailability(
+        year: Int,
+        minimumDate: Date?,
+        calendar: Calendar = .current
+    ) -> [Bool] {
+        (0..<12).map { monthIndex in
+            MonthCalendarView.monthStartForJump(
+                year: year,
+                monthIndex: monthIndex,
+                minimumDate: minimumDate,
+                calendar: calendar
+            ) != nil
+        }
+    }
 }
 
 private struct MonthYearJumpSheet: View {
@@ -420,6 +435,8 @@ private struct MonthYearJumpSheet: View {
     private let calendar: Calendar
     private let years: [Int]
     private let monthSymbols: [String]
+    private let monthAbbreviations: [String]
+    private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
 
     init(
         anchor: Date,
@@ -445,6 +462,7 @@ private struct MonthYearJumpSheet: View {
         let formatter = DateFormatter()
         formatter.calendar = calendar
         self.monthSymbols = formatter.standaloneMonthSymbols
+        self.monthAbbreviations = formatter.shortStandaloneMonthSymbols
 
         let monthIndex = calendar.component(.month, from: anchor) - 1
         _selectedMonthIndex = State(initialValue: monthIndex)
@@ -452,65 +470,197 @@ private struct MonthYearJumpSheet: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                #if os(iOS)
-                HStack(spacing: 0) {
-                    Picker("Month", selection: $selectedMonthIndex) {
-                        ForEach(Array(monthSymbols.enumerated()), id: \.offset) { index, symbol in
-                            Text(symbol).tag(index)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
+        let laughTrack = theme.laughTrackTokens
 
-                    Picker("Year", selection: $selectedYear) {
-                        ForEach(years, id: \.self) { year in
-                            Text(String(year)).tag(year)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-                }
-                .padding(.horizontal)
-                #else
-                Form {
-                    Picker("Month", selection: $selectedMonthIndex) {
-                        ForEach(Array(monthSymbols.enumerated()), id: \.offset) { index, symbol in
-                            Text(symbol).tag(index)
-                        }
-                    }
-                    Picker("Year", selection: $selectedYear) {
-                        ForEach(years, id: \.self) { year in
-                            Text(String(year)).tag(year)
-                        }
-                    }
-                }
-                #endif
-                Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            header
+            monthGrid
+            yearSelector
+
+            LaughTrackButton("Go to \(selectedMonthTitle)", systemImage: "arrow.right", density: .compact) {
+                commit()
             }
-            .padding(.top, theme.spacing.md)
-            .navigationTitle("Jump to month")
-            .modifier(InlineNavigationTitle())
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { isPresented = false }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Go") {
-                        commit()
-                    }
-                    .fontWeight(.semibold)
-                    .disabled(!canCommit)
-                }
+            .disabled(!canCommit)
+            .opacity(canCommit ? 1 : 0.45)
+        }
+        .padding(theme.spacing.xl)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(laughTrack.colors.surface.ignoresSafeArea())
+        .onChange(of: selectedYear) { newYear in
+            clampSelectedMonth(for: newYear)
+        }
+    }
+
+    private var header: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return HStack(alignment: .top, spacing: theme.spacing.md) {
+            VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                Text("Jump to month")
+                    .font(laughTrack.typography.cardTitle)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+
+                Text("\(selectedMonthTitle) \(String(selectedYear))")
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                isPresented = false
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(laughTrack.colors.surfaceElevated)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close")
+        }
+    }
+
+    private var monthGrid: some View {
+        LazyVGrid(columns: monthColumns, spacing: 10) {
+            ForEach(Array(monthAbbreviations.enumerated()), id: \.offset) { index, symbol in
+                monthTile(title: symbol, index: index)
             }
         }
     }
 
+    private func monthTile(title: String, index: Int) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let isSelected = index == selectedMonthIndex
+        let isAvailable = monthAvailability[index]
+
+        return Button {
+            selectedMonthIndex = index
+        } label: {
+            Text(title)
+                .font(laughTrack.typography.action)
+                .foregroundStyle(isSelected ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isSelected ? laughTrack.colors.accentStrong : laughTrack.colors.surfaceElevated)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(isSelected ? laughTrack.colors.accent : laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!isAvailable)
+        .opacity(isAvailable ? 1 : 0.35)
+        .accessibilityLabel("\(monthSymbols[index]) \(selectedYear)")
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
+    private var yearSelector: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(spacing: theme.spacing.sm) {
+                Text("Year")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
+
+                Spacer(minLength: 0)
+
+                yearStepButton(systemImage: "minus", year: previousYear)
+
+                Text(String(selectedYear))
+                    .font(laughTrack.typography.action)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .frame(minWidth: 58)
+
+                yearStepButton(systemImage: "plus", year: nextYear)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    ForEach(years, id: \.self) { year in
+                        yearChip(year)
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    private func yearStepButton(systemImage: String, year: Int?) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let isEnabled = year != nil
+
+        return Button {
+            if let year {
+                selectedYear = year
+            }
+        } label: {
+            Image(systemName: systemImage)
+                .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .frame(width: 34, height: 34)
+                .background(Circle().fill(laughTrack.colors.surfaceElevated))
+                .overlay(Circle().stroke(laughTrack.colors.borderSubtle, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.35)
+    }
+
+    private func yearChip(_ year: Int) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let isSelected = year == selectedYear
+
+        return Button {
+            selectedYear = year
+        } label: {
+            Text(String(year))
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(isSelected ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
+                .padding(.horizontal, theme.spacing.md)
+                .frame(height: 34)
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(isSelected ? laughTrack.colors.accentStrong : laughTrack.colors.surfaceElevated)
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(isSelected ? laughTrack.colors.accent : laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+
     private var canCommit: Bool {
         resolvedMonthStart() != nil
+    }
+
+    private var monthAvailability: [Bool] {
+        MonthCalendarView.jumpMonthAvailability(
+            year: selectedYear,
+            minimumDate: minimumDate,
+            calendar: calendar
+        )
+    }
+
+    private var selectedMonthTitle: String {
+        monthSymbols[selectedMonthIndex]
+    }
+
+    private var previousYear: Int? {
+        years.last { $0 < selectedYear }
+    }
+
+    private var nextYear: Int? {
+        years.first { $0 > selectedYear }
     }
 
     private func resolvedMonthStart() -> Date? {
@@ -520,6 +670,20 @@ private struct MonthYearJumpSheet: View {
             minimumDate: minimumDate,
             calendar: calendar
         )
+    }
+
+    private func clampSelectedMonth(for year: Int) {
+        let availability = MonthCalendarView.jumpMonthAvailability(
+            year: year,
+            minimumDate: minimumDate,
+            calendar: calendar
+        )
+        if availability.indices.contains(selectedMonthIndex), availability[selectedMonthIndex] {
+            return
+        }
+        if let firstAvailable = availability.firstIndex(of: true) {
+            selectedMonthIndex = firstAvailable
+        }
     }
 
     private func commit() {
