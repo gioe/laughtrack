@@ -103,6 +103,7 @@ function makeComedianRow(
         websiteScrapingUrl: null,
         websiteConfidence: null,
         websiteScrapingUrlConfidence: null,
+        tourSourceReviewEvidence: null,
         ...defaultComedianWebsiteHealthFields,
         lineupItems: [
             {

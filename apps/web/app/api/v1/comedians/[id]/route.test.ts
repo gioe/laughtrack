@@ -77,6 +77,7 @@ describe("GET /api/v1/comedians/[id]", () => {
             hasImage: false,
             bio: null,
             parentComedianId: null,
+            tourSourceReviewEvidence: null,
         });
 
         const res = await GET(makeRequest(), {
