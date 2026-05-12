@@ -183,6 +183,67 @@ def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
     }
 
 
+def test_registered_extractor_runs_before_json_ld_empty(monkeypatch):
+    scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
+    scraper._club = types.SimpleNamespace(name="Comedian Websites")
+    scraper._club_handler = types.SimpleNamespace(
+        upsert_for_tour_date_venue=lambda venue: types.SimpleNamespace(id=77)
+    )
+    scraper._comedian_handler = types.SimpleNamespace()
+    scraper.logger_context = {}
+
+    row = {
+        "uuid": "comic",
+        "name": "Ben Bankas",
+        "website": "https://benbankas.com/",
+        "website_scraping_url": "https://benbankas.com/",
+        "website_scrape_strategy": None,
+    }
+    html = """
+    <table class="eventTable">
+      <tr class="eventRow">
+        <td class="gigDate">Fri, May 15th</td>
+        <td class="td_show"><a href="https://tickets.example/show">Helium Indianapolis @ 7:00 PM</a></td>
+        <td class="location_space"><img alt="US flag"> Indianapolis, IN</td>
+        <td>Tickets</td>
+      </tr>
+    </table>
+    """
+    metadata_updates = []
+    scraping_confidence_updates = []
+    website_confidence_updates = []
+
+    async def fake_fetch_html(*_args, **_kwargs):
+        return html
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "_detect_and_persist_widgets", lambda *_args: None)
+    monkeypatch.setattr(scraper, "_update_scrape_metadata", lambda *args: metadata_updates.append(args))
+    monkeypatch.setattr(
+        scraper,
+        "_update_scraping_url_confidence",
+        lambda *args, **kwargs: scraping_confidence_updates.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        scraper,
+        "_update_confidence",
+        lambda *args, **kwargs: website_confidence_updates.append((args, kwargs)),
+    )
+    monkeypatch.setattr(
+        scraper_mod.EventExtractor,
+        "extract_events",
+        lambda _html: (_ for _ in ()).throw(AssertionError("JSON-LD must not run after registered extraction succeeds")),
+    )
+
+    outcome = asyncio.run(scraper._scrape_comedian_website(row, asyncio.Semaphore(1)))
+
+    assert outcome.status == "success"
+    assert outcome.venue_count == 1
+    assert metadata_updates == [("comic", "ben_bankas")]
+    assert scraping_confidence_updates[0][1] == {"has_events": True}
+    assert website_confidence_updates[0][1] == {"has_events": True}
+
+
 def test_script_prints_operator_facing_run_summary(capsys):
     summary = scraper_mod.ComedianWebsiteScrapeRunSummary(
         total_eligible=3,

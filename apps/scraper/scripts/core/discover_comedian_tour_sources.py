@@ -28,6 +28,7 @@ from laughtrack.adapters.db import create_connection
 from laughtrack.core.clients.brave.search import BraveSearchClient
 from laughtrack.core.clients.google.custom_search import SearchResult
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.scrapers.implementations.api.comedian_websites.extractors.registry import has_registered_extractor
 
 
 TICKETING_DOMAINS = (
@@ -359,6 +360,8 @@ def _has_tour_signal(result: SearchResult) -> bool:
 def _source_type(result: SearchResult) -> str:
     url = result.link
     hostname = (urlparse(url).hostname or "").lower().removeprefix("www.")
+    if has_registered_extractor(url):
+        return "registered_comedian_website"
     if hostname.endswith("bandsintown.com"):
         return "bandsintown"
     if hostname.endswith("songkick.com"):
@@ -382,6 +385,8 @@ def _confidence(result: SearchResult, comedian_name: str, source_type: str) -> s
     parsed = urlparse(result.link)
     haystack = " ".join([result.title, result.snippet, parsed.path]).lower()
     token_hits = sum(1 for token in _name_tokens(comedian_name) if token in haystack)
+    if source_type == "registered_comedian_website" and token_hits:
+        return "high"
     if source_type in {"bandsintown", "songkick"} and token_hits:
         return "high"
     if source_type == "official_tour" and token_hits >= 2:
@@ -394,7 +399,7 @@ def _confidence(result: SearchResult, comedian_name: str, source_type: str) -> s
 def _is_scraping_url_candidate(source_type: str, confidence: str) -> bool:
     if confidence == "low":
         return False
-    return source_type in {"bandsintown", "songkick", "official_tour"}
+    return source_type in {"bandsintown", "songkick", "official_tour", "registered_comedian_website"}
 
 
 def _candidate_from_result(
@@ -451,7 +456,7 @@ def _platform_tour_id(candidate: TourSourceCandidate) -> tuple[Optional[str], Op
 
 
 def _official_scraping_url(candidate: TourSourceCandidate) -> Optional[str]:
-    if candidate.source_type == "official_tour" and candidate.confidence == "high":
+    if candidate.source_type in {"official_tour", "registered_comedian_website"} and candidate.confidence == "high":
         return candidate.url
     return None
 

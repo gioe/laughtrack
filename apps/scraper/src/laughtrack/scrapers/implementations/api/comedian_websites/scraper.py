@@ -23,6 +23,10 @@ from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.api.comedian_websites.extractors.registry import (
+    ComedianWebsiteTourEvent,
+    get_extractor_for_url,
+)
 from laughtrack.scrapers.implementations.api.comedian_websites.platform_extractors import (
     KomiExtractorForComedian,
     SquarespaceExtractorForComedian,
@@ -228,6 +232,14 @@ class ComedianWebsiteScraper(BaseScraper):
                     # Fall through to JSON-LD if Wix extraction returned None
                     # (site doesn't have an events widget)
 
+                registered_venue_count = self._try_registered_extractor(row, comedian, scraping_url, website, html)
+                if registered_venue_count is not None:
+                    return ComedianWebsiteScrapeOutcome(
+                        comedian.name,
+                        "success" if registered_venue_count else "empty",
+                        registered_venue_count,
+                    )
+
                 # --- JSON-LD extraction (existing behavior) ---
                 events = EventExtractor.extract_events(html)
 
@@ -374,6 +386,46 @@ class ComedianWebsiteScraper(BaseScraper):
             )
         return venue_count
 
+    def _try_registered_extractor(
+        self,
+        row: dict,
+        comedian: Comedian,
+        scraping_url: str,
+        website: str,
+        html: str,
+    ) -> Optional[int]:
+        """Attempt a site-specific registered extractor before JSON-LD fallback."""
+        extractor = get_extractor_for_url(scraping_url)
+        if extractor is None:
+            return None
+
+        events = extractor.extract_events(html, scraping_url)
+        venue_count = self._extract_venues_from_registered_events(events, comedian, scraping_url)
+        has_events = bool(events)
+        self._update_scrape_metadata(row["uuid"], extractor.strategy)
+        self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
+        if website:
+            self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
+        if venue_count:
+            Logger.info(
+                f"{self._log_prefix}: {comedian.name} — {venue_count} venues via {extractor.strategy} from {scraping_url}",
+                self.logger_context,
+            )
+        return venue_count
+
+    def _extract_venues_from_registered_events(
+        self,
+        events: list[ComedianWebsiteTourEvent],
+        comedian: Comedian,
+        scraping_url: str,
+    ) -> int:
+        """Extract and upsert venues from registered comedian website events."""
+        count = 0
+        for event in events:
+            if self._upsert_venue_from_registered_event(event, comedian, scraping_url):
+                count += 1
+        return count
+
     def _extract_venues_from_events(
         self,
         events: list,
@@ -468,6 +520,44 @@ class ComedianWebsiteScraper(BaseScraper):
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error extracting venue from JSON-LD event: {e}",
+                self.logger_context,
+            )
+            return False
+
+    def _upsert_venue_from_registered_event(
+        self,
+        event: ComedianWebsiteTourEvent,
+        comedian: Comedian,
+        scraping_url: str,
+    ) -> bool:
+        """Upsert a venue from a normalized registered-extractor event."""
+        try:
+            if event.start_date < datetime.now(tz=timezone.utc):
+                return False
+            if event.country != "US" or event.region not in _US_STATES:
+                return False
+
+            address = f"{event.city}, {event.region}"
+            venue_dict = {
+                "name": event.venue_name,
+                "address": address,
+                "zip_code": "",
+                "timezone": timezone_from_address(address),
+                "discovery_metadata": {
+                    "source": "comedian_websites",
+                    "comedian_refs": [{"uuid": comedian.uuid, "name": comedian.name}],
+                    "sample_urls": [scraping_url],
+                    "event_urls": [event.ticket_url],
+                    "platform_hints": [event.platform_hint],
+                },
+            }
+
+            club = self._club_handler.upsert_for_tour_date_venue(venue_dict)
+            return club is not None
+
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error extracting venue from registered comedian website event: {e}",
                 self.logger_context,
             )
             return False
