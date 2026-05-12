@@ -452,11 +452,27 @@ class ClubQueries:
                 'tour_dates',
                 0,
                 TRUE,
-                '{}'::jsonb
+                %s::jsonb
             FROM upserted_club
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
+                metadata    = COALESCE(scraping_sources.metadata, '{}'::jsonb)
+                    || EXCLUDED.metadata
+                    || jsonb_build_object(
+                        'first_seen_at',
+                        COALESCE(
+                            scraping_sources.metadata ->> 'first_seen_at',
+                            EXCLUDED.metadata ->> 'first_seen_at'
+                        ),
+                        'last_seen_at',
+                        EXCLUDED.metadata ->> 'last_seen_at',
+                        'reference_count',
+                        (
+                            COALESCE((scraping_sources.metadata ->> 'reference_count')::integer, 0)
+                            + COALESCE((EXCLUDED.metadata ->> 'reference_count')::integer, 1)
+                        )
+                    ),
                 -- Preserve the existing enabled flag when the row carries any
                 -- task_<id>_disposition stamp; otherwise re-enable. tour_dates
                 -- and comedian_websites iterate the full comedian universe

@@ -1,7 +1,9 @@
 """Club database handler for club-specific operations."""
 
+import json
 import re
-from typing import Dict, List, Optional, Set
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Set
 
 from sql.club_queries import ClubQueries
 
@@ -79,6 +81,77 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
             break  # one strip per call; nested suffix structure is handled by ordering
 
     return s
+
+
+def _string_list(values: Any) -> list[str]:
+    if isinstance(values, str):
+        raw_values = [values]
+    elif isinstance(values, list):
+        raw_values = values
+    else:
+        return []
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in raw_values:
+        if not isinstance(value, str):
+            continue
+        stripped = value.strip()
+        if stripped and stripped not in seen:
+            result.append(stripped)
+            seen.add(stripped)
+    return result
+
+
+def _comedian_refs(values: Any) -> list[dict[str, str]]:
+    if not isinstance(values, list):
+        return []
+
+    refs: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for value in values:
+        if not isinstance(value, dict):
+            continue
+        uuid = str(value.get("uuid") or "").strip()
+        name = str(value.get("name") or "").strip()
+        if not uuid and not name:
+            continue
+        key = (uuid, name)
+        if key in seen:
+            continue
+        ref: dict[str, str] = {}
+        if uuid:
+            ref["uuid"] = uuid
+        if name:
+            ref["name"] = name
+        refs.append(ref)
+        seen.add(key)
+    return refs
+
+
+def _build_tour_date_discovery_metadata(venue: dict) -> str:
+    raw = venue.get("discovery_metadata") or {}
+    if not isinstance(raw, dict):
+        raw = {}
+
+    now = datetime.now(tz=timezone.utc).isoformat()
+    metadata: dict[str, Any] = {
+        "source": (raw.get("source") or "tour_dates"),
+        "first_seen_at": now,
+        "last_seen_at": now,
+        "reference_count": 1,
+    }
+
+    for key in ("sample_urls", "event_urls", "platform_hints"):
+        values = _string_list(raw.get(key))
+        if values:
+            metadata[key] = values
+
+    refs = _comedian_refs(raw.get("comedian_refs"))
+    if refs:
+        metadata["comedian_refs"] = refs
+
+    return json.dumps(metadata, sort_keys=True)
 
 
 class ClubHandler(BaseDatabaseHandler[Club]):
@@ -507,6 +580,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         address = (venue.get("address") or "").strip()
         zip_code = (venue.get("zip_code") or "").strip()
         timezone = (venue.get("timezone") or None)
+        discovery_metadata = _build_tour_date_discovery_metadata(venue)
 
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
         city, state = parse_city_state_from_address(address)
@@ -519,7 +593,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE,
-                (name, address, zip_code, city, state, timezone),
+                (name, address, zip_code, city, state, timezone, discovery_metadata),
                 return_results=True,
             )
             if not results:

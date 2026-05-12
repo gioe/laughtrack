@@ -8,6 +8,7 @@ Verifies three contracts:
 3. Invalid input — None venue, missing id, or missing name returns None without raising.
 """
 
+import json
 import sys
 from unittest.mock import MagicMock, patch
 
@@ -556,6 +557,58 @@ class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
             assert ", TRUE," in insert_segment, label
             # And the conflict guard must not appear in the insert segment.
             assert "JSONB_OBJECT_KEYS" not in insert_segment, label
+
+
+class TestTourDateUpsertDiscoveryMetadata:
+    def _normalized(self, sql: str) -> str:
+        return " ".join(sql.split()).upper()
+
+    def _conflict_clause(self, sql: str) -> str:
+        normalized = self._normalized(sql)
+        start = normalized.index("ON CONFLICT (CLUB_ID")
+        end = normalized.index("RETURNING CLUB_ID", start)
+        return normalized[start:end]
+
+    def test_upsert_passes_discovery_metadata_as_json_param(self):
+        row = _make_club_row(name="The Comedy Store")
+        venue = {
+            "name": "The Comedy Store",
+            "address": "Los Angeles, CA",
+            "zip_code": "90046",
+            "timezone": "America/Los_Angeles",
+            "discovery_metadata": {
+                "source": "tour_dates",
+                "comedian_refs": [{"uuid": "hg-uuid", "name": "Hannah Gadsby"}],
+                "event_urls": ["https://www.bandsintown.com/e/99"],
+                "platform_hints": ["bandsintown"],
+            },
+        }
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            result = handler.upsert_for_tour_date_venue(venue)
+
+        assert result is not None
+        params = mock_exec.call_args.args[1]
+        metadata = json.loads(params[6])
+        assert metadata["source"] == "tour_dates"
+        assert metadata["comedian_refs"] == [{"uuid": "hg-uuid", "name": "Hannah Gadsby"}]
+        assert metadata["event_urls"] == ["https://www.bandsintown.com/e/99"]
+        assert metadata["platform_hints"] == ["bandsintown"]
+        assert metadata["reference_count"] == 1
+        assert isinstance(metadata["first_seen_at"], str)
+        assert isinstance(metadata["last_seen_at"], str)
+
+    def test_conflict_branch_merges_metadata_and_preserves_existing_first_seen(self):
+        conflict = self._conflict_clause(ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE)
+
+        assert "METADATA =" in conflict
+        assert "SCRAPING_SOURCES.METADATA" in conflict
+        assert "EXCLUDED.METADATA" in conflict
+        assert "FIRST_SEEN_AT" in conflict
+        assert "LAST_SEEN_AT" in conflict
+        assert "REFERENCE_COUNT" in conflict
+        assert "SCRAPING_SOURCES.METADATA ->> 'FIRST_SEEN_AT'" in conflict
 
 
 class TestUpsertForEventbriteVenueInvalidInput:
