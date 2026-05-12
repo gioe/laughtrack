@@ -270,6 +270,28 @@ struct MonthCalendarViewTests {
         #expect(result == nil)
     }
 
+    @Test("DateRangeDensity.compute returns nil when transport throws with a non-nil preference")
+    func computeReturnsNilWhenTransportThrows() async {
+        let transport = StubClientTransport.alwaysFails()
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        let result = await DateRangeDensity.compute(
+            preference: NearbyPreference(zipCode: "60614", source: .manual),
+            fromDate: Date(),
+            now: Date(),
+            apiClient: apiClient
+        )
+
+        // A throwing transport hits the catch block — distinct from the nil-
+        // preference early return which returns [:]. Holding to nil here keeps
+        // the previous showsByDate state intact across transient failures.
+        #expect(result == nil)
+        #expect(transport.capturedRequests.count == 1)
+    }
+
     @Test("comedian detail show counts are bucketed by current calendar start of day")
     func comedianShowsByDateBucketsByStartOfDay() {
         let calendar = Calendar.current
