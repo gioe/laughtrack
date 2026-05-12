@@ -97,6 +97,38 @@ struct ComedianDetailViewTests {
         try host.requireLabel("LaughTrack hit a server error while loading related shows.")
     }
 
+    @Test("related comedians are ranked by shared bill frequency and capped")
+    func relatedComediansAreRankedByFrequency() {
+        let headliner = DemoContent.primaryComedian
+        let firstSeenLowCount = makeLineup(name: "First Seen", uuid: "first-seen", id: 201)
+        let firstSeenHighCount = makeLineup(name: "First High", uuid: "first-high", id: 202)
+        let secondSeenHighCount = makeLineup(name: "Second High", uuid: "second-high", id: 203)
+        let thirdSeenHighCount = makeLineup(name: "Third High", uuid: "third-high", id: 204)
+        let fourthSeenHighCount = makeLineup(name: "Fourth High", uuid: "fourth-high", id: 205)
+        let cappedOut = makeLineup(name: "Capped Out", uuid: "capped-out", id: 206)
+
+        let shows = [
+            showWithLineup(id: 401, lineup: [headliner.asLineup, firstSeenLowCount, firstSeenHighCount, secondSeenHighCount]),
+            showWithLineup(id: 402, lineup: [headliner.asLineup, firstSeenHighCount, thirdSeenHighCount]),
+            showWithLineup(id: 403, lineup: [headliner.asLineup, secondSeenHighCount, thirdSeenHighCount, fourthSeenHighCount]),
+            showWithLineup(id: 404, lineup: [headliner.asLineup, fourthSeenHighCount, cappedOut]),
+        ]
+
+        let ranked = ComedianRelatedPresentation.rankedRelatedComedians(
+            candidates: [cappedOut, firstSeenLowCount, fourthSeenHighCount, thirdSeenHighCount, secondSeenHighCount, firstSeenHighCount],
+            shows: shows,
+            currentComedianUUID: headliner.uuid
+        )
+
+        #expect(ranked.map(\.uuid) == [
+            "first-high",
+            "second-high",
+            "third-high",
+            "fourth-high",
+            "first-seen",
+        ])
+    }
+
     private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
         ComedianDetailView(comedianID: 101, apiClient: apiClient)
             .environment(\.appTheme, LaughTrackTheme())
@@ -199,12 +231,57 @@ struct ComedianDetailViewTests {
         )
     }
 
+    private func makeLineup(name: String, uuid: String, id: Int) -> Components.Schemas.ComedianLineup {
+        .init(
+            name: name,
+            imageUrl: "https://example.com/\(uuid).png",
+            uuid: uuid,
+            id: id,
+            userId: nil,
+            socialData: .init(
+                id: id,
+                instagramAccount: nil,
+                instagramFollowers: nil,
+                tiktokAccount: nil,
+                tiktokFollowers: nil,
+                youtubeAccount: nil,
+                youtubeFollowers: nil,
+                website: nil,
+                popularity: nil,
+                linktree: nil
+            ),
+            isFavorite: false,
+            showCount: 1
+        )
+    }
+
+    private func showWithLineup(id: Int, lineup: [Components.Schemas.ComedianLineup]) -> Components.Schemas.Show {
+        var show = fallbackShow(id: id)
+        show.lineup = lineup
+        return show
+    }
+
     private func fallbackRun(showIDs: [Int], clubID: Int = 101, clubName: String = "Comedy Cellar") -> Components.Schemas.UpcomingRun {
         .init(
             clubID: clubID,
             clubName: clubName,
             clubImageUrl: "https://example.com/show.png",
             shows: showIDs.map { fallbackShow(id: $0, clubID: clubID, clubName: clubName) }
+        )
+    }
+}
+
+private extension Components.Schemas.ComedianDetail {
+    var asLineup: Components.Schemas.ComedianLineup {
+        .init(
+            name: name,
+            imageUrl: imageUrl,
+            uuid: uuid,
+            id: id,
+            userId: userId,
+            socialData: socialData,
+            isFavorite: false,
+            showCount: totalShows
         )
     }
 }

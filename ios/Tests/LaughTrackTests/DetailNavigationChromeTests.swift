@@ -3,10 +3,11 @@ import Testing
 
 @Suite("Detail navigation chrome")
 struct DetailNavigationChromeTests {
-    @Test("club and comedian detail titles are hidden behind hero titles")
-    func entityDetailNavigationTitlesAreHidden() {
-        #expect(DetailNavigationChrome.title(for: .club) == "")
-        #expect(DetailNavigationChrome.title(for: .comedian) == "")
+    @Test("detail chrome supplies compact titles for wrapping inline navigation")
+    func entityDetailNavigationTitlesAreCompact() {
+        #expect(DetailNavigationChrome.title(for: .club) == "Club")
+        #expect(DetailNavigationChrome.title(for: .comedian) == "Comedian")
+        #expect(DetailNavigationChrome.title(for: .show) == "Show")
     }
 
     @Test("entity detail hero extends behind the top safe area")

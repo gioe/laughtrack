@@ -4,16 +4,30 @@ import LaughTrackBridge
 
 struct ShowRow: View {
     let show: Components.Schemas.Show
+    var nearbyRadiusMiles: Double?
 
     var body: some View {
         LaughTrackEntityRow(
             title: Self.listTitle(for: show),
             subtitle: show.clubName ?? "Unknown club",
-            metadata: Self.metadata(for: show),
+            metadata: metadata,
             systemImage: "ticket.fill",
             imageURL: Self.artworkImageURL(for: show),
             showsDisclosureIndicator: true
         )
+    }
+
+    private var metadata: [String] {
+        var values = Self.metadata(for: show)
+        if isWithinNearbyRadius {
+            values.append("Near you")
+        }
+        return values
+    }
+
+    private var isWithinNearbyRadius: Bool {
+        guard let distance = show.distanceMiles, let nearbyRadiusMiles else { return false }
+        return distance <= nearbyRadiusMiles
     }
 
     static func title(for show: Components.Schemas.Show) -> String {

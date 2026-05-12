@@ -13,6 +13,7 @@ struct ComedianDetailView: View {
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
+    @Environment(\.serviceContainer) private var serviceContainer
 
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
@@ -32,9 +33,7 @@ struct ComedianDetailView: View {
         Group {
             switch model.phase {
             case .idle, .loading:
-                LoadingCard()
-                    .padding()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                CalendarDetailSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -66,7 +65,7 @@ struct ComedianDetailView: View {
                     .ignoresSafeArea(.container, edges: .top)
 
                     VStack(alignment: .leading, spacing: 20) {
-                        LaughTrackCard {
+                        LaughTrackCard(density: .tight) {
                             VStack(alignment: .leading, spacing: 12) {
                                 LaughTrackSectionHeader(title: "Upcoming shows")
 
@@ -96,6 +95,7 @@ struct ComedianDetailView: View {
                                                         else { expandedRunKeys.remove(run.id) }
                                                     }
                                                 ),
+                                                nearbyRadiusMiles: nearbyRadiusMiles,
                                                 openShow: { showID in coordinator.open(.show(showID)) }
                                             )
                                         }
@@ -105,11 +105,15 @@ struct ComedianDetailView: View {
                         }
 
                         if !content.relatedComedians.isEmpty {
-                            LaughTrackCard(tone: .muted) {
+                            LaughTrackCard(tone: .muted, density: .tight) {
                                 VStack(alignment: .leading, spacing: 12) {
                                     LaughTrackSectionHeader(title: "Often on the same bill")
 
-                                    ForEach(content.relatedComedians, id: \.uuid) { relatedComedian in
+                                    ForEach(ComedianRelatedPresentation.rankedRelatedComedians(
+                                        candidates: content.relatedComedians,
+                                        runs: content.upcomingRuns,
+                                        currentComedianUUID: comedian.uuid
+                                    ), id: \.uuid) { relatedComedian in
                                         ComedianLineupRow(
                                             comedian: relatedComedian,
                                             apiClient: apiClient,
@@ -121,7 +125,7 @@ struct ComedianDetailView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, theme.spacing.lg * 2)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, theme.spacing.lg)
                     }
                 }
@@ -184,6 +188,10 @@ struct ComedianDetailView: View {
         )
     }
 
+    private var nearbyRadiusMiles: Double? {
+        serviceContainer.resolve(NearbyLocationController.self).preference.map { Double($0.distanceMiles) }
+    }
+
     private func normalizedFilter(_ value: String) -> String? {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? nil : trimmed
@@ -205,6 +213,55 @@ struct ComedianDetailView: View {
         case .failure(let message):
             feedbackMessage = message
         }
+    }
+}
+
+enum ComedianRelatedPresentation {
+    static func rankedRelatedComedians(
+        candidates: [Components.Schemas.ComedianLineup],
+        runs: [Components.Schemas.UpcomingRun],
+        currentComedianUUID: String
+    ) -> [Components.Schemas.ComedianLineup] {
+        rankedRelatedComedians(
+            candidates: candidates,
+            shows: runs.flatMap(\.shows),
+            currentComedianUUID: currentComedianUUID
+        )
+    }
+
+    static func rankedRelatedComedians(
+        candidates: [Components.Schemas.ComedianLineup],
+        shows: [Components.Schemas.Show],
+        currentComedianUUID: String
+    ) -> [Components.Schemas.ComedianLineup] {
+        var counts: [String: Int] = [:]
+        var firstSeen: [String: Int] = [:]
+
+        for (showIndex, show) in shows.enumerated() {
+            let lineup = show.lineup ?? []
+            guard lineup.contains(where: { $0.uuid == currentComedianUUID }) else { continue }
+
+            for (lineupIndex, comedian) in lineup.enumerated() where comedian.uuid != currentComedianUUID {
+                counts[comedian.uuid, default: 0] += 1
+                firstSeen[comedian.uuid] = min(firstSeen[comedian.uuid] ?? Int.max, showIndex * 1000 + lineupIndex)
+            }
+        }
+
+        return candidates
+            .enumerated()
+            .sorted { lhs, rhs in
+                let lhsCount = counts[lhs.element.uuid] ?? 0
+                let rhsCount = counts[rhs.element.uuid] ?? 0
+                if lhsCount != rhsCount { return lhsCount > rhsCount }
+
+                let lhsFirstSeen = firstSeen[lhs.element.uuid] ?? Int.max
+                let rhsFirstSeen = firstSeen[rhs.element.uuid] ?? Int.max
+                if lhsFirstSeen != rhsFirstSeen { return lhsFirstSeen < rhsFirstSeen }
+
+                return lhs.offset < rhs.offset
+            }
+            .prefix(5)
+            .map(\.element)
     }
 }
 
@@ -239,6 +296,7 @@ private struct ComedianClubRunDisclosure: View {
 
     let run: Components.Schemas.UpcomingRun
     @Binding var isExpanded: Bool
+    let nearbyRadiusMiles: Double?
     let openShow: (Int) -> Void
 
     var body: some View {
@@ -281,7 +339,7 @@ private struct ComedianClubRunDisclosure: View {
                         Button {
                             openShow(show.id)
                         } label: {
-                            ComedianClubRunShowRow(show: show)
+                            ComedianClubRunShowRow(show: show, nearbyRadiusMiles: nearbyRadiusMiles)
                         }
                         .buttonStyle(.plain)
                     }
@@ -448,11 +506,14 @@ private struct ComedianClubRunShowRow: View {
     @Environment(\.appTheme) private var theme
 
     let show: Components.Schemas.Show
+    let nearbyRadiusMiles: Double?
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
         HStack(spacing: theme.spacing.md) {
+            showArtwork
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(ShowRow.listTitle(for: show))
                     .font(laughTrack.typography.cardTitle)
@@ -465,6 +526,13 @@ private struct ComedianClubRunShowRow: View {
                     .lineLimit(2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            if isNearby {
+                Image(systemName: "location.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .accessibilityLabel("Within saved radius")
+            }
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 13, weight: .semibold))
@@ -486,5 +554,48 @@ private struct ComedianClubRunShowRow: View {
             ShowRow.priceLabel(for: show),
             show.soldOut == true ? "Sold out" : nil
         ].compactMap { $0 }
+    }
+
+    private var isNearby: Bool {
+        guard let distance = show.distanceMiles, let nearbyRadiusMiles else { return false }
+        return distance <= nearbyRadiusMiles
+    }
+
+    @ViewBuilder
+    private var showArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+        let imageURL = show.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? (ShowRow.artworkImageURL(for: show) ?? "")
+            : show.imageUrl
+        let url = URL.normalizedExternalURL(imageURL.trimmingCharacters(in: .whitespacesAndNewlines))
+
+        Group {
+            if let url {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(laughTrack.colors.surfaceMuted)
+                } error: { _ in
+                    fallbackArtwork
+                }
+            } else {
+                fallbackArtwork
+            }
+        }
+        .frame(width: 48, height: 48)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var fallbackArtwork: some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(theme.laughTrackTokens.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "ticket.fill")
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
     }
 }

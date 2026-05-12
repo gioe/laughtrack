@@ -26,9 +26,7 @@ struct ClubDetailView: View {
         Group {
             switch model.phase {
             case .idle, .loading:
-                LoadingCard()
-                    .padding()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                CalendarDetailSkeleton()
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -63,7 +61,7 @@ struct ClubDetailView: View {
                             nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                         )
                     }
-                    .padding(.horizontal, theme.spacing.lg * 2)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, theme.spacing.lg)
                     }
                 }

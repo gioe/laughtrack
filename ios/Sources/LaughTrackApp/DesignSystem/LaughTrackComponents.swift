@@ -171,6 +171,7 @@ enum LaughTrackCardTone {
 enum LaughTrackCardDensity: Equatable {
     case standard
     case compact
+    case tight
 }
 
 enum LaughTrackBadgeTone {
@@ -215,6 +216,8 @@ struct LaughTrackCard<Content: View>: View {
             return theme.laughTrackTokens.spacing.cardPadding
         case .compact:
             return theme.laughTrackTokens.browseDensity.compactCardPadding
+        case .tight:
+            return 8
         }
     }
 
