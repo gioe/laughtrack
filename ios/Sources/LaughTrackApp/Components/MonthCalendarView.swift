@@ -54,7 +54,7 @@ struct MonthCalendarView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
             header
             weekdayRow
             grid
@@ -89,12 +89,12 @@ struct MonthCalendarView: View {
             Button {
                 isYearJumpPresented = true
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: theme.spacing.xs) {
                     Text(monthTitle)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(laughTrack.typography.action)
                         .foregroundStyle(laughTrack.colors.textPrimary)
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(laughTrack.typography.eyebrow)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                 }
             }
@@ -114,7 +114,7 @@ struct MonthCalendarView: View {
             advanceMonth(by: direction)
         } label: {
             Image(systemName: systemImage)
-                .font(.system(size: 13, weight: .bold))
+                .font(laughTrack.typography.metadata)
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .frame(width: 34, height: 34)
                 .background(Circle().fill(laughTrack.colors.surfaceElevated))
@@ -176,7 +176,7 @@ struct MonthCalendarView: View {
         return HStack(spacing: 0) {
             ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, symbol in
                 Text(symbol)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(laughTrack.typography.eyebrow)
                     .foregroundStyle(laughTrack.colors.textSecondary)
                     .textCase(.uppercase)
                     .frame(maxWidth: .infinity)
@@ -185,7 +185,7 @@ struct MonthCalendarView: View {
     }
 
     private var grid: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: theme.spacing.xs) {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 HStack(spacing: 0) {
                     ForEach(Array(row.enumerated()), id: \.offset) { _, cellDate in
@@ -547,11 +547,13 @@ private struct DayCell: View {
     let hasShow: Bool
 
     var body: some View {
-        ZStack {
+        let laughTrack = theme.laughTrackTokens
+        return ZStack {
             background
-            VStack(spacing: 2) {
+            VStack(spacing: theme.spacing.xxs) {
                 Text(dayLabel)
-                    .font(.system(size: 16, weight: state == .none ? .regular : .semibold))
+                    .font(laughTrack.typography.action)
+                    .fontWeight(state == .none ? .regular : .semibold)
                     .foregroundStyle(textColor)
                 Circle()
                     .fill(dotColor)
