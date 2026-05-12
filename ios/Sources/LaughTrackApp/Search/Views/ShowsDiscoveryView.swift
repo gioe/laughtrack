@@ -416,18 +416,39 @@ private struct DateRangeFilterModal: View {
     }
 
     private func loadDensity() async {
-        guard let preference = model.activeNearbyPreference else {
-            showsByDate = [:]
-            return
+        if let next = await DateRangeDensity.compute(
+            preference: model.activeNearbyPreference,
+            fromDate: model.fromDate,
+            now: Date(),
+            apiClient: apiClient
+        ) {
+            showsByDate = next
+        }
+    }
+}
+
+enum DateRangeDensity {
+    /// Returns the density map to assign onto `showsByDate`, or `nil` when the
+    /// caller should leave its existing state alone. An empty dictionary is
+    /// the explicit "clear" signal — the early-return path when there is no
+    /// active nearby preference.
+    static func compute(
+        preference: NearbyPreference?,
+        fromDate: Date,
+        now: Date,
+        apiClient: Client,
+        calendar: Calendar = .current
+    ) async -> [Date: Int]? {
+        guard let preference else { return [:] }
+
+        let today = calendar.startOfDay(for: now)
+        let anchor = max(calendar.startOfDay(for: fromDate), today)
+        guard let to = calendar.date(byAdding: .day, value: 89, to: anchor) else {
+            return nil
         }
 
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let anchor = max(calendar.startOfDay(for: model.fromDate), today)
-        guard let to = calendar.date(byAdding: .day, value: 89, to: anchor) else { return }
-
-        let fromString = DateRangeDensity.isoDateFormatter.string(from: anchor)
-        let toString = DateRangeDensity.isoDateFormatter.string(from: to)
+        let fromString = isoDateFormatter.string(from: anchor)
+        let toString = isoDateFormatter.string(from: to)
 
         do {
             let output = try await apiClient.getShowsDensity(
@@ -441,15 +462,16 @@ private struct DateRangeFilterModal: View {
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
                 )
             )
-            guard case .ok(let ok) = output, let json = try? ok.body.json else { return }
-            showsByDate = DateRangeDensity.densityMap(from: json.additionalProperties)
+            guard case .ok(let ok) = output, let json = try? ok.body.json else {
+                return nil
+            }
+            return densityMap(from: json.additionalProperties, calendar: calendar)
         } catch {
             // Density dots are best-effort decoration; silently drop on failure.
+            return nil
         }
     }
-}
 
-enum DateRangeDensity {
     static func densityMap(
         from raw: [String: Int],
         calendar: Calendar = .current

@@ -188,6 +188,29 @@ struct MonthCalendarViewTests {
         #expect(surviving == ["2026-05-18": 3, "2026-05-20": 1])
     }
 
+    @Test("DateRangeDensity.compute returns empty map without hitting the network when preference is nil")
+    func computeReturnsEmptyAndSkipsTransportWhenPreferenceIsNil() async {
+        let transport = StubClientTransport.alwaysFails()
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        let result = await DateRangeDensity.compute(
+            preference: nil,
+            fromDate: Date(),
+            now: Date(),
+            apiClient: apiClient
+        )
+
+        // Empty (not nil) is the explicit "clear showsByDate" signal that
+        // loadDensity assigns onto its @State.
+        #expect(result == [:])
+        // Early-return short-circuits before any transport call — capturing
+        // zero requests proves the network path is never entered.
+        #expect(transport.capturedRequests.isEmpty)
+    }
+
     @Test("comedian detail show counts are bucketed by current calendar start of day")
     func comedianShowsByDateBucketsByStartOfDay() {
         let calendar = Calendar.current
