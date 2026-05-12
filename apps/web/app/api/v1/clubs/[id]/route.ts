@@ -31,6 +31,8 @@ export async function GET(
                 zipCode: true,
                 phoneNumber: true,
                 hasImage: true,
+                latitude: true,
+                longitude: true,
             },
         });
 
@@ -51,6 +53,8 @@ export async function GET(
                     address: club.address,
                     zipCode: club.zipCode,
                     phoneNumber: club.phoneNumber,
+                    latitude: club.latitude,
+                    longitude: club.longitude,
                 },
             },
             { headers: rateLimitHeaders(rl) },

@@ -22,6 +22,7 @@ struct DetailHeroFavoriteState {
 enum DetailHeroLayout {
     static let imageAspectRatio: CGFloat = 1.55
     static let maximumMediaHeight: CGFloat = 280
+    static let compactMediaHeight: CGFloat = 200
     static let actionDiameter: CGFloat = 40
     static let actionLabelVerticalGap: CGFloat = 2
     static let contentSpacingWithActions: CGFloat = 8
@@ -36,8 +37,9 @@ enum DetailHeroLayout {
 
 struct DetailHero: View {
     @Environment(\.appTheme) private var theme
+    @State private var imageLoadFailed = false
 
-    let title: String
+    let title: String?
     let subtitle: String?
     let imageURL: String
     let badges: [DetailHeroBadge]
@@ -45,88 +47,134 @@ struct DetailHero: View {
     var openURL: ((URL) -> Void)?
     var favoriteState: DetailHeroFavoriteState? = nil
 
+    private var hasOverlayContent: Bool {
+        let titleVisible = !(title?.isEmpty ?? true)
+        let subtitleVisible = !(subtitle?.isEmpty ?? true)
+        let actionsVisible = openURL != nil && actions.contains { $0.url != nil }
+        let badgesVisible = !badges.isEmpty
+        return titleVisible || subtitleVisible || actionsVisible || badgesVisible
+    }
+
+    private var resolvedImageURL: URL? {
+        URL.normalizedExternalURL(imageURL)
+    }
+
+    private var hasUsableImage: Bool {
+        resolvedImageURL != nil && !imageLoadFailed
+    }
+
+    private var resolvedHeight: CGFloat {
+        hasOverlayContent ? DetailHeroLayout.maximumMediaHeight : DetailHeroLayout.compactMediaHeight
+    }
+
+    @ViewBuilder
     var body: some View {
+        if hasOverlayContent || hasUsableImage {
+            heroContent
+        } else {
+            EmptyView()
+        }
+    }
+
+    private var heroContent: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ZStack(alignment: .bottomLeading) {
-            RemoteImageView(urlString: imageURL, aspectRatio: DetailHeroLayout.imageAspectRatio, alignment: .top)
-                .frame(maxWidth: .infinity, maxHeight: DetailHeroLayout.maximumMediaHeight)
-                .clipped()
+        return ZStack(alignment: .bottomLeading) {
+            CachedAsyncImage(url: resolvedImageURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight, alignment: .top)
+            } placeholder: {
+                Rectangle()
+                    .fill(laughTrack.colors.surfaceElevated)
+                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+            } error: { _ in
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+                    .onAppear { imageLoadFailed = true }
+            }
+            .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+            .clipped()
 
-            LinearGradient(
-                colors: [
-                    laughTrack.colors.heroStart.opacity(0),
-                    laughTrack.colors.heroStart.opacity(0.88)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            if hasOverlayContent {
+                LinearGradient(
+                    colors: [
+                        laughTrack.colors.heroStart.opacity(0),
+                        laughTrack.colors.heroStart.opacity(0.88)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
 
-            VStack(alignment: .leading, spacing: actions.isEmpty ? 12 : DetailHeroLayout.contentSpacingWithActions) {
-                if let subtitle {
-                    Text(subtitle)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
-                        .textCase(.uppercase)
-                }
-                Text(title)
-                    .font(laughTrack.typography.hero)
-                    .foregroundStyle(laughTrack.colors.textInverse)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.82)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: actions.isEmpty ? 12 : DetailHeroLayout.contentSpacingWithActions) {
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
+                            .textCase(.uppercase)
+                    }
+                    if let title, !title.isEmpty {
+                        Text(title)
+                            .font(laughTrack.typography.hero)
+                            .foregroundStyle(laughTrack.colors.textInverse)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.82)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
-                if let openURL {
-                    let visibleActions = actions.filter { $0.url != nil }
-                    if !visibleActions.isEmpty {
-                        HStack(spacing: theme.spacing.md) {
-                            ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
-                                if let url = action.url {
-                                    Button {
-                                        openURL(url)
-                                    } label: {
-                                        VStack(spacing: DetailHeroLayout.actionLabelVerticalGap) {
-                                            Image(systemName: action.systemImage)
-                                                .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                                                .foregroundStyle(laughTrack.colors.textPrimary)
-                                                .frame(width: DetailHeroLayout.actionDiameter, height: DetailHeroLayout.actionDiameter)
-                                                .background(laughTrack.colors.surface.opacity(0.94))
-                                                .clipShape(Circle())
-                                                .overlay(
-                                                    Circle()
-                                                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-                                                )
+                    if let openURL {
+                        let visibleActions = actions.filter { $0.url != nil }
+                        if !visibleActions.isEmpty {
+                            HStack(spacing: theme.spacing.md) {
+                                ForEach(Array(visibleActions.enumerated()), id: \.offset) { _, action in
+                                    if let url = action.url {
+                                        Button {
+                                            openURL(url)
+                                        } label: {
+                                            VStack(spacing: DetailHeroLayout.actionLabelVerticalGap) {
+                                                Image(systemName: action.systemImage)
+                                                    .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                                                    .foregroundStyle(laughTrack.colors.textPrimary)
+                                                    .frame(width: DetailHeroLayout.actionDiameter, height: DetailHeroLayout.actionDiameter)
+                                                    .background(laughTrack.colors.surface.opacity(0.94))
+                                                    .clipShape(Circle())
+                                                    .overlay(
+                                                        Circle()
+                                                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                                                    )
 
-                                            Text(action.title)
-                                                .font(laughTrack.typography.metadata)
-                                                .foregroundStyle(laughTrack.colors.textInverse)
+                                                Text(action.title)
+                                                    .font(laughTrack.typography.metadata)
+                                                    .foregroundStyle(laughTrack.colors.textInverse)
+                                            }
                                         }
+                                        .buttonStyle(.plain)
+                                        .accessibilityLabel(action.title)
                                     }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel(action.title)
+                                }
+                            }
+                        }
+                    }
+
+                    if !badges.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: theme.spacing.sm) {
+                                ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
+                                    LaughTrackBadge(
+                                        badge.title,
+                                        systemImage: badge.systemImage,
+                                        tone: badge.tone
+                                    )
                                 }
                             }
                         }
                     }
                 }
-
-                if !badges.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: theme.spacing.sm) {
-                            ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
-                                LaughTrackBadge(
-                                    badge.title,
-                                    systemImage: badge.systemImage,
-                                    tone: badge.tone
-                                )
-                            }
-                        }
-                    }
-                }
+                .padding(laughTrack.spacing.heroPadding)
             }
-            .padding(laughTrack.spacing.heroPadding)
         }
-        .frame(height: DetailHeroLayout.maximumMediaHeight)
+        .frame(height: resolvedHeight)
         .clipped()
         .overlay(alignment: .topTrailing) {
             if let favoriteState {

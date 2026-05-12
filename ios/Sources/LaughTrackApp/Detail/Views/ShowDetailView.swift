@@ -17,11 +17,19 @@ struct ShowDetailView: View {
     @StateObject private var model: ShowDetailModel
     @StateObject private var calendarWriter = ShowCalendarWriter()
     @State private var feedbackMessage: String?
+    @State private var safariURL: URL?
 
     init(showID: Int, apiClient: Client) {
         self.showID = showID
         self.apiClient = apiClient
         _model = StateObject(wrappedValue: ShowDetailModel(showID: showID))
+    }
+
+    private var navigationTitle: String {
+        if case .success(let response) = model.phase {
+            return ShowTitlePresentation.title(for: response.data)
+        }
+        return ""
     }
 
     var body: some View {
@@ -42,7 +50,7 @@ struct ShowDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         DetailHero(
-                            title: ShowTitlePresentation.title(for: show),
+                            title: nil,
                             subtitle: nil,
                             imageURL: show.imageUrl,
                             badges: ShowDetailPresentation.heroBadges(for: show)
@@ -53,7 +61,7 @@ struct ShowDetailView: View {
                             ShowSummarySection(show: show, openClub: {
                                 coordinator.open(.club(show.club.id))
                             }, openTicketURL: { url in
-                                openURL(url)
+                                ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
                             }, addToCalendar: {
                                 Task {
                                     feedbackMessage = await calendarWriter.add(show)
@@ -84,12 +92,12 @@ struct ShowDetailView: View {
                         .padding(.vertical, theme.spacing.lg)
                     }
                 }
+                .safariSheet(url: $safariURL)
             }
         }
-        .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .modifier(EntityDetailNavigationChrome(entity: .show))
+        .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
@@ -120,9 +128,9 @@ enum ShowDetailPresentation {
                 label: "When",
                 value: ShowFormatting.listDate(show.date, timezoneID: show.timezone)
             ),
-            ShowDetailFact(label: "Tickets", value: ticketSummary(for: show)),
             ShowDetailFact(label: "Venue", value: show.club.name),
-            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles))
+            optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
+            ShowDetailFact(label: "Tickets", value: ticketSummary(for: show))
         ]
         .compactMap { $0 }
     }

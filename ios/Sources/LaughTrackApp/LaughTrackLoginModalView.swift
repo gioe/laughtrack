@@ -22,7 +22,6 @@ struct LaughTrackLoginModalView: View {
                         Circle()
                             .fill(laughTrack.colors.accentStrong.opacity(0.14))
                             .frame(width: 72, height: 72)
-
                         Image(systemName: "heart.fill")
                             .font(.system(size: 32, weight: .bold))
                             .foregroundStyle(laughTrack.colors.accentStrong)

@@ -1636,6 +1636,10 @@ public enum Components {
             public var zipCode: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubDetail/phoneNumber`.
             public var phoneNumber: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ClubDetail/latitude`.
+            public var latitude: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/ClubDetail/longitude`.
+            public var longitude: Swift.Double?
             /// Creates a new `ClubDetail`.
             ///
             /// - Parameters:
@@ -1646,6 +1650,8 @@ public enum Components {
             ///   - address:
             ///   - zipCode:
             ///   - phoneNumber:
+            ///   - latitude:
+            ///   - longitude:
             public init(
                 id: Swift.Int,
                 name: Swift.String,
@@ -1653,7 +1659,9 @@ public enum Components {
                 website: Swift.String,
                 address: Swift.String,
                 zipCode: Swift.String? = nil,
-                phoneNumber: Swift.String? = nil
+                phoneNumber: Swift.String? = nil,
+                latitude: Swift.Double? = nil,
+                longitude: Swift.Double? = nil
             ) {
                 self.id = id
                 self.name = name
@@ -1662,6 +1670,8 @@ public enum Components {
                 self.address = address
                 self.zipCode = zipCode
                 self.phoneNumber = phoneNumber
+                self.latitude = latitude
+                self.longitude = longitude
             }
             public enum CodingKeys: String, CodingKey {
                 case id
@@ -1671,6 +1681,8 @@ public enum Components {
                 case address
                 case zipCode
                 case phoneNumber
+                case latitude
+                case longitude
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClubSearchItem`.
