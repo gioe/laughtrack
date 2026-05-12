@@ -62,7 +62,7 @@ struct DetailHeroLayoutTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue", "Distance"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Distance", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "$30.00")
         #expect(facts.first { $0.label == "Venue" }?.value == "Comedy Cellar")
         #expect(facts.first { $0.label == "Distance" }?.value == "2.1 miles away")
@@ -79,7 +79,7 @@ struct DetailHeroLayoutTests {
 
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
-        #expect(facts.map(\.label) == ["When", "Tickets", "Venue"])
+        #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
         #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
     }
 
