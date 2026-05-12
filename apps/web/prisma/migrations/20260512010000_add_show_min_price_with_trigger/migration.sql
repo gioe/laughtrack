@@ -43,10 +43,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- TRUNCATE does not fire row-level triggers, so keep the denormalized value
+-- consistent for whole-table ticket rewrites by recomputing every show.
+CREATE OR REPLACE FUNCTION tickets_refresh_all_show_min_prices()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE shows
+    SET min_price = sub.min_price
+    FROM (
+        SELECT s.id AS show_id, MIN(t.price) AS min_price
+        FROM shows s
+        LEFT JOIN tickets t
+          ON t.show_id = s.id
+         AND t.price IS NOT NULL
+         AND t.price > 0
+        GROUP BY s.id
+    ) sub
+    WHERE shows.id = sub.show_id;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
 DROP TRIGGER IF EXISTS tickets_trickle_show_min_price ON tickets;
 DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_ins ON tickets;
 DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_del ON tickets;
 DROP TRIGGER IF EXISTS tickets_trickle_show_min_price_upd ON tickets;
+DROP TRIGGER IF EXISTS tickets_refresh_all_show_min_prices_trunc ON tickets;
 
 -- Split per-event so the UPDATE trigger can gate on actual value change. The
 -- nightly scraper bulk-updates sold_out / purchase_url on tens of thousands
@@ -68,14 +91,23 @@ FOR EACH ROW
 WHEN (OLD.price IS DISTINCT FROM NEW.price OR OLD.show_id IS DISTINCT FROM NEW.show_id)
 EXECUTE FUNCTION tickets_trickle_show_min_price();
 
--- One-shot backfill. MIN() already ignores NULLs; the price > 0 guard is what
--- excludes free tickets from the denormalized value.
+CREATE TRIGGER tickets_refresh_all_show_min_prices_trunc
+AFTER TRUNCATE ON tickets
+FOR EACH STATEMENT
+EXECUTE FUNCTION tickets_refresh_all_show_min_prices();
+
+-- One-shot backfill. MIN() already ignores NULLs; the join price > 0 guard is
+-- what excludes free tickets from the denormalized value. The LEFT JOIN also
+-- clears stale values for shows that no longer have priced tickets.
 UPDATE shows
 SET min_price = sub.min_price
 FROM (
-    SELECT show_id, MIN(price) AS min_price
-    FROM tickets
-    WHERE price IS NOT NULL AND price > 0
-    GROUP BY show_id
+    SELECT s.id AS show_id, MIN(t.price) AS min_price
+    FROM shows s
+    LEFT JOIN tickets t
+      ON t.show_id = s.id
+     AND t.price IS NOT NULL
+     AND t.price > 0
+    GROUP BY s.id
 ) sub
 WHERE shows.id = sub.show_id;
