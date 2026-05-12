@@ -23,6 +23,7 @@ struct MonthCalendarView: View {
     @Environment(\.appTheme) private var theme
     @State private var displayedMonth: Date
     @State private var rangeAwaitingEnd: Bool
+    @State private var isYearJumpPresented: Bool = false
 
     init(
         selection: Selection,
@@ -56,6 +57,20 @@ struct MonthCalendarView: View {
             header
             weekdayRow
             grid
+                .contentShape(Rectangle())
+                .gesture(monthSwipeGesture)
+        }
+        .sheet(isPresented: $isYearJumpPresented) {
+            MonthYearJumpSheet(
+                anchor: displayedMonth,
+                minimumDate: minimumDate,
+                isPresented: $isYearJumpPresented
+            ) { newMonthStart in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    displayedMonth = newMonthStart
+                }
+            }
+            .presentationDetents([.medium])
         }
     }
 
@@ -64,10 +79,21 @@ struct MonthCalendarView: View {
         return HStack {
             chevron(systemImage: "chevron.left", direction: -1)
             Spacer(minLength: 0)
-            Text(monthTitle)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .accessibilityLabel("Showing \(monthTitle)")
+            Button {
+                isYearJumpPresented = true
+            } label: {
+                HStack(spacing: 4) {
+                    Text(monthTitle)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Jump to month and year, currently showing \(monthTitle)")
+            .accessibilityHint("Opens a picker to choose a different month")
             Spacer(minLength: 0)
             chevron(systemImage: "chevron.right", direction: 1)
         }
@@ -76,11 +102,9 @@ struct MonthCalendarView: View {
     @ViewBuilder
     private func chevron(systemImage: String, direction: Int) -> some View {
         let laughTrack = theme.laughTrackTokens
-        let proposed = calendar.date(byAdding: .month, value: direction, to: displayedMonth)
-            ?? displayedMonth
-        let isDisabled = direction < 0 && isMonthBeforeMinimum(proposed)
+        let isDisabled = direction < 0 && !canAdvanceMonth(by: direction)
         Button {
-            displayedMonth = MonthCalendarView.monthStart(for: proposed)
+            advanceMonth(by: direction)
         } label: {
             Image(systemName: systemImage)
                 .font(.system(size: 13, weight: .bold))
@@ -93,6 +117,36 @@ struct MonthCalendarView: View {
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.4 : 1)
         .accessibilityLabel(direction < 0 ? "Previous month" : "Next month")
+    }
+
+    private var monthSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onEnded { value in
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                guard abs(horizontal) > abs(vertical) * 1.5 else { return }
+                guard abs(horizontal) > 40 else { return }
+                let direction = horizontal < 0 ? 1 : -1
+                advanceMonth(by: direction)
+            }
+    }
+
+    private func canAdvanceMonth(by direction: Int) -> Bool {
+        guard let proposed = calendar.date(byAdding: .month, value: direction, to: displayedMonth) else {
+            return false
+        }
+        if direction < 0 && isMonthBeforeMinimum(proposed) { return false }
+        return true
+    }
+
+    private func advanceMonth(by direction: Int) {
+        guard let proposed = calendar.date(byAdding: .month, value: direction, to: displayedMonth) else {
+            return
+        }
+        if direction < 0 && isMonthBeforeMinimum(proposed) { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            displayedMonth = MonthCalendarView.monthStart(for: proposed)
+        }
     }
 
     private var weekdayRow: some View {
@@ -309,6 +363,132 @@ struct MonthCalendarView: View {
 
     static func monthStart(for date: Date, calendar: Calendar = .current) -> Date {
         return calendar.dateInterval(of: .month, for: date)?.start ?? calendar.startOfDay(for: date)
+    }
+}
+
+private struct MonthYearJumpSheet: View {
+    let anchor: Date
+    let minimumDate: Date?
+    @Binding var isPresented: Bool
+    let onSelect: (Date) -> Void
+
+    @Environment(\.appTheme) private var theme
+    @State private var selectedMonthIndex: Int
+    @State private var selectedYear: Int
+
+    private let calendar: Calendar
+    private let years: [Int]
+    private let monthSymbols: [String]
+
+    init(
+        anchor: Date,
+        minimumDate: Date?,
+        isPresented: Binding<Bool>,
+        onSelect: @escaping (Date) -> Void
+    ) {
+        let calendar = Calendar.current
+        self.calendar = calendar
+        self.minimumDate = minimumDate
+        _isPresented = isPresented
+        self.onSelect = onSelect
+        self.anchor = anchor
+
+        let anchorYear = calendar.component(.year, from: anchor)
+        let minYear = minimumDate.map { calendar.component(.year, from: $0) }
+            ?? (anchorYear - 5)
+        let maxYear = max(anchorYear, calendar.component(.year, from: Date())) + 5
+        let yearRange = Array(minYear...maxYear)
+        self.years = yearRange
+
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        self.monthSymbols = formatter.standaloneMonthSymbols
+
+        let monthIndex = calendar.component(.month, from: anchor) - 1
+        _selectedMonthIndex = State(initialValue: monthIndex)
+        _selectedYear = State(initialValue: anchorYear)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                #if os(iOS)
+                HStack(spacing: 0) {
+                    Picker("Month", selection: $selectedMonthIndex) {
+                        ForEach(Array(monthSymbols.enumerated()), id: \.offset) { index, symbol in
+                            Text(symbol).tag(index)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+
+                    Picker("Year", selection: $selectedYear) {
+                        ForEach(years, id: \.self) { year in
+                            Text(String(year)).tag(year)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                }
+                .padding(.horizontal)
+                #else
+                Form {
+                    Picker("Month", selection: $selectedMonthIndex) {
+                        ForEach(Array(monthSymbols.enumerated()), id: \.offset) { index, symbol in
+                            Text(symbol).tag(index)
+                        }
+                    }
+                    Picker("Year", selection: $selectedYear) {
+                        ForEach(years, id: \.self) { year in
+                            Text(String(year)).tag(year)
+                        }
+                    }
+                }
+                #endif
+                Spacer(minLength: 0)
+            }
+            .padding(.top, theme.spacing.md)
+            .navigationTitle("Jump to month")
+            .modifier(InlineNavigationTitle())
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { isPresented = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Go") {
+                        commit()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(!canCommit)
+                }
+            }
+        }
+    }
+
+    private var canCommit: Bool {
+        resolvedMonthStart() != nil
+    }
+
+    private func resolvedMonthStart() -> Date? {
+        var components = DateComponents()
+        components.year = selectedYear
+        components.month = selectedMonthIndex + 1
+        components.day = 1
+        guard let date = calendar.date(from: components) else { return nil }
+        if let minimumDate {
+            let minMonth = calendar.dateInterval(of: .month, for: minimumDate)?.start
+                ?? calendar.startOfDay(for: minimumDate)
+            if date < minMonth { return nil }
+        }
+        return date
+    }
+
+    private func commit() {
+        guard let monthStart = resolvedMonthStart() else { return }
+        onSelect(monthStart)
+        isPresented = false
     }
 }
 
