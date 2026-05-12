@@ -21,6 +21,7 @@ struct MonthCalendarView: View {
     let minimumDate: Date?
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.layoutDirection) private var layoutDirection
     @State private var displayedMonth: Date
     @State private var rangeAwaitingEnd: Bool
     @State private var isYearJumpPresented: Bool = false
@@ -128,13 +129,28 @@ struct MonthCalendarView: View {
     private var monthSwipeGesture: some Gesture {
         DragGesture(minimumDistance: 24)
             .onEnded { value in
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-                guard abs(horizontal) > abs(vertical) * 1.5 else { return }
-                guard abs(horizontal) > 40 else { return }
-                let direction = horizontal < 0 ? 1 : -1
+                guard let direction = MonthCalendarView.swipeDirection(
+                    translationWidth: value.translation.width,
+                    translationHeight: value.translation.height,
+                    layoutDirection: layoutDirection
+                ) else { return }
                 advanceMonth(by: direction)
             }
+    }
+
+    /// Maps a drag translation to a month-advance direction (+1 forward,
+    /// -1 back), or `nil` when the gesture is too vertical or too short.
+    /// In RTL layouts the chevron buttons swap visual sides, so a rightward
+    /// drag must advance forward to match — the LTR sign is negated.
+    static func swipeDirection(
+        translationWidth horizontal: CGFloat,
+        translationHeight vertical: CGFloat,
+        layoutDirection: LayoutDirection
+    ) -> Int? {
+        guard abs(horizontal) > abs(vertical) * 1.5 else { return nil }
+        guard abs(horizontal) > 40 else { return nil }
+        let ltrDirection = horizontal < 0 ? 1 : -1
+        return layoutDirection == .rightToLeft ? -ltrDirection : ltrDirection
     }
 
     private func canAdvanceMonth(by direction: Int) -> Bool {

@@ -1,7 +1,9 @@
 #if canImport(UIKit)
+import CoreGraphics
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
+import SwiftUI
 import Testing
 import LaughTrackAPIClient
 import LaughTrackCore
@@ -46,6 +48,67 @@ struct MonthCalendarViewTests {
         #expect(result.start == start)
         #expect(result.end == date(2026, 5, 12, calendar: calendar))
         #expect(!result.awaitingEnd)
+    }
+
+    @Test("LTR swipe: leftward drag advances forward, rightward drag goes back")
+    func swipeDirectionLTR() {
+        // Leftward drag (negative width) → +1 (next month) under LTR — the
+        // right-chevron direction.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: -80,
+            translationHeight: 5,
+            layoutDirection: .leftToRight
+        ) == 1)
+
+        // Rightward drag (positive width) → -1 (previous month) under LTR.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: 80,
+            translationHeight: 5,
+            layoutDirection: .leftToRight
+        ) == -1)
+    }
+
+    @Test("RTL swipe: rightward drag advances forward, leftward drag goes back")
+    func swipeDirectionRTLMirrorsChevrons() {
+        // Under RTL the chevrons swap visual sides, so the swipe direction
+        // must mirror to match — a rightward drag now advances forward.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: 80,
+            translationHeight: 5,
+            layoutDirection: .rightToLeft
+        ) == 1)
+
+        // Leftward drag under RTL goes back.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: -80,
+            translationHeight: 5,
+            layoutDirection: .rightToLeft
+        ) == -1)
+    }
+
+    @Test("swipe gesture rejects vertical-dominant or below-threshold drags")
+    func swipeDirectionRejectsNonHorizontalDrags() {
+        // Vertical drag dominates (height > width * 1.5) — should reject.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: 30,
+            translationHeight: 100,
+            layoutDirection: .leftToRight
+        ) == nil)
+
+        // Below the 40pt minimum horizontal threshold — should reject even
+        // when horizontal-dominant.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: 30,
+            translationHeight: 5,
+            layoutDirection: .leftToRight
+        ) == nil)
+
+        // Same below-threshold rule applies under RTL.
+        #expect(MonthCalendarView.swipeDirection(
+            translationWidth: -30,
+            translationHeight: 5,
+            layoutDirection: .rightToLeft
+        ) == nil)
     }
 
     @Test("range selection earlier second tap swaps endpoints")
