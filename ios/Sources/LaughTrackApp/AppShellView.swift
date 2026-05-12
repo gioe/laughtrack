@@ -190,23 +190,14 @@ struct AppShellView: View {
             )
             .environment(\.appTheme, theme)
         }
-        #if os(iOS)
-        .fadeFullScreenCover(isPresented: $isHomeLocationEditorPresented) {
-            HomeLocationFilterModal(
-                nearbyLocationController: nearbyLocationController,
-                isPresented: $isHomeLocationEditorPresented
-            )
-            .environment(\.appTheme, theme)
-        }
-        #else
         .sheet(isPresented: $isHomeLocationEditorPresented) {
             HomeLocationFilterModal(
                 nearbyLocationController: nearbyLocationController,
                 isPresented: $isHomeLocationEditorPresented
             )
             .environment(\.appTheme, theme)
+            .presentationDetents([.medium, .large])
         }
-        #endif
     }
 
     private var selectedTabBinding: Binding<AppTab> {

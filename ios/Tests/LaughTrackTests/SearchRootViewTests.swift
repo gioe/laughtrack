@@ -13,7 +13,7 @@ struct SearchRootViewTests {
     @Test("search root model keeps unified search state out of primitive model defaults")
     func searchRootModelUsesUnifiedSearchState() async throws {
         let model = SearchRootModel()
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -29,7 +29,7 @@ struct SearchRootViewTests {
         #expect(model.selectedShortcut == "Near Me")
         #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
-        #expect(!showsModel.useDateRange)
+        #expect(!showsModel.dateRange.isActive)
 
         model.query = "Comedy Cellar"
         model.activePivot = .clubs
@@ -52,7 +52,7 @@ struct SearchRootViewTests {
             transport: transport
         )
         let model = SearchRootModel()
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -281,7 +281,7 @@ struct SearchRootModelTests {
     @Test("shortcut selection applies show date filters")
     func shortcutSelectionAppliesShowDateFilters() async throws {
         let model = SearchRootModel()
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -296,14 +296,14 @@ struct SearchRootModelTests {
         model.applyShortcutFilters(to: showsModel, now: now, calendar: calendar)
 
         #expect(model.activePivot == .shows)
-        #expect(showsModel.useDateRange)
-        #expect(showsModel.fromDate == calendar.startOfDay(for: now))
-        #expect(showsModel.toDate == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
+        #expect(showsModel.dateRange.isActive)
+        #expect(showsModel.dateRange.from == calendar.startOfDay(for: now))
+        #expect(showsModel.dateRange.to == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
     }
 
     @Test("shows discovery model can start with date filtering disabled for search root")
     func showsDiscoveryModelCanStartWithDateFilteringDisabledForSearchRoot() async throws {
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -312,14 +312,14 @@ struct SearchRootModelTests {
             initialUseDateRange: false
         )
 
-        #expect(!showsModel.useDateRange)
+        #expect(!showsModel.dateRange.isActive)
         #expect(showsModel.requestKey.fromString == nil)
         #expect(showsModel.requestKey.toString == nil)
     }
 
     @Test("shows discovery applies nearby preference from a search seed")
     func showsDiscoveryAppliesNearbyPreferenceFromSearchSeed() async throws {
-        let showsModel = makeShowsDiscoveryModel(
+        let showsModel = makeShowsListModel(
             name: "seed-nearby",
             resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
         )
@@ -342,7 +342,7 @@ struct SearchRootModelTests {
     @Test("near me shortcut resolves current location when no nearby preference exists")
     func nearMeShortcutResolvesCurrentLocation() async throws {
         let model = SearchRootModel()
-        let showsModel = makeShowsDiscoveryModel(
+        let showsModel = makeShowsListModel(
             name: "near-me-resolves",
             resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
         )
@@ -367,7 +367,7 @@ struct SearchRootModelTests {
             resolver: MockSearchNearbyLocationResolver(result: .success("10012")),
             zipLocationResolver: StubZipLocationResolver()
         )
-        let showsModel = ShowsDiscoveryModel(nearbyLocationController: controller)
+        let showsModel = ShowsListModel(nearbyLocationController: controller)
 
         showsModel.zipCodeDraft = "30309"
         showsModel.distance = .regional
@@ -387,7 +387,7 @@ struct SearchRootModelTests {
     @Test("near me shortcut clears an already resolved nearby preference")
     func nearMeShortcutClearsResolvedLocation() async throws {
         let model = SearchRootModel()
-        let showsModel = makeShowsDiscoveryModel(
+        let showsModel = makeShowsListModel(
             name: "near-me-clears",
             resolver: MockSearchNearbyLocationResolver(result: .success("10012"))
         )
@@ -405,7 +405,7 @@ struct SearchRootModelTests {
     @Test("root query is applied only to the active pivot model")
     func rootQueryAppliesToActivePivotModel() async throws {
         let model = SearchRootModel()
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -451,7 +451,7 @@ struct SearchRootModelTests {
     @Test("shows root query maps to comedian search for now")
     func showsRootQueryMapsToComedianSearch() async throws {
         let model = SearchRootModel()
-        let showsModel = ShowsDiscoveryModel(
+        let showsModel = ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(),
                 resolver: LaughTrackCore.CurrentLocationZipResolver(),
@@ -467,14 +467,14 @@ struct SearchRootModelTests {
         #expect(showsModel.clubSearchText == "")
     }
 
-    private func makeShowsDiscoveryModel(
+    private func makeShowsListModel(
         name: String,
         resolver: any NearbyLocationResolving
-    ) -> ShowsDiscoveryModel {
+    ) -> ShowsListModel {
         let suiteName = "SearchRootModelTests.\(name).\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
-        return ShowsDiscoveryModel(
+        return ShowsListModel(
             nearbyLocationController: NearbyLocationController(
                 store: NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults)),
                 resolver: resolver,

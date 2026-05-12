@@ -109,110 +109,96 @@ struct HomeLocationFilterModal: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        ZStack {
-            Color.black.opacity(0.28)
-                .ignoresSafeArea()
-                .onTapGesture {
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text("Location")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+
+                    Text("Set the location used for nearby home results.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Button {
                     isPresented = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(laughTrack.colors.surfaceElevated)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+            }
+
+            LaughTrackSearchField(placeholder: "10012", text: $zipCodeDraft) {
+                Button {
+                    applyZip()
+                } label: {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accent)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Apply ZIP")
+            }
+            .modifier(SearchFieldInputBehavior())
+            #if os(iOS)
+            .keyboardType(UIKeyboardType.numberPad)
+            #endif
+            .onSubmit(applyZip)
+
+            VStack(spacing: theme.spacing.sm) {
+                LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
+                    applyZip()
                 }
 
-            VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                HStack(alignment: .top, spacing: theme.spacing.md) {
-                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Location")
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-
-                        Text("Set the location used for nearby home results.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    Button {
-                        isPresented = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: theme.iconSizes.sm, weight: .bold))
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                            .frame(width: 36, height: 36)
-                            .background(laughTrack.colors.surfaceElevated)
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Close")
-                }
-
-                LaughTrackSearchField(placeholder: "10012", text: $zipCodeDraft) {
-                    Button {
-                        applyZip()
-                    } label: {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                            .foregroundStyle(laughTrack.colors.accent)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Apply ZIP")
-                }
-                .modifier(SearchFieldInputBehavior())
-                #if os(iOS)
-                .keyboardType(UIKeyboardType.numberPad)
-                #endif
-                .onSubmit(applyZip)
-
-                VStack(spacing: theme.spacing.sm) {
-                    LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
-                        applyZip()
-                    }
-
-                    LaughTrackButton(
-                        nearbyLocationController.isResolvingCurrentLocation ? "Finding ZIP..." : "Current location",
-                        systemImage: "location.fill",
-                        tone: .secondary,
-                        density: .compact
-                    ) {
-                        Task {
-                            let didResolve = await nearbyLocationController.useCurrentLocation(
-                                distanceMiles: nearbyLocationController.preference?.distanceMiles
-                                    ?? NearbyPreference.defaultDistanceMiles
-                            )
-                            if didResolve {
-                                isPresented = false
-                            }
-                        }
-                    }
-                    .disabled(nearbyLocationController.isResolvingCurrentLocation)
-
-                    if nearbyLocationController.preference != nil {
-                        LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact) {
-                            nearbyLocationController.clear()
+                LaughTrackButton(
+                    nearbyLocationController.isResolvingCurrentLocation ? "Finding ZIP..." : "Current location",
+                    systemImage: "location.fill",
+                    tone: .secondary,
+                    density: .compact
+                ) {
+                    Task {
+                        let didResolve = await nearbyLocationController.useCurrentLocation(
+                            distanceMiles: nearbyLocationController.preference?.distanceMiles
+                                ?? NearbyPreference.defaultDistanceMiles
+                        )
+                        if didResolve {
                             isPresented = false
                         }
                     }
                 }
+                .disabled(nearbyLocationController.isResolvingCurrentLocation)
 
-                if let statusMessage = nearbyLocationController.statusMessage {
-                    InlineStatusMessage(message: statusMessage)
-
-                    if statusMessage == NearbyLocationError.denied.recoveryMessage {
-                        LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
-                            openAppSettings()
-                        }
+                if nearbyLocationController.preference != nil {
+                    LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact) {
+                        nearbyLocationController.clear()
+                        isPresented = false
                     }
                 }
             }
-            .padding(theme.spacing.xl)
-            .background(laughTrack.colors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
-            .shadowStyle(laughTrack.shadows.floating)
-            .padding(.horizontal, theme.spacing.xl)
+
+            if let statusMessage = nearbyLocationController.statusMessage {
+                InlineStatusMessage(message: statusMessage)
+
+                if statusMessage == NearbyLocationError.denied.recoveryMessage {
+                    LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                        openAppSettings()
+                    }
+                }
+            }
+
+            Spacer(minLength: 0)
         }
-        .background(.clear)
+        .padding(theme.spacing.xl)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             zipCodeDraft = nearbyLocationController.preference?.zipCode ?? ""
         }

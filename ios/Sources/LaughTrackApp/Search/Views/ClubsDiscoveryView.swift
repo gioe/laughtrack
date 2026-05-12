@@ -131,16 +131,6 @@ struct ClubsDiscoveryView: View {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
         }
-        #if os(iOS)
-        .fadeFullScreenCover(isPresented: $isFilterEditorPresented) {
-            SearchFilterModal(
-                filters: currentFilters,
-                total: currentTotal,
-                selectedSlugs: $model.selectedFilterSlugs,
-                isPresented: $isFilterEditorPresented
-            )
-        }
-        #else
         .sheet(isPresented: $isFilterEditorPresented) {
             SearchFilterModal(
                 filters: currentFilters,
@@ -148,8 +138,8 @@ struct ClubsDiscoveryView: View {
                 selectedSlugs: $model.selectedFilterSlugs,
                 isPresented: $isFilterEditorPresented
             )
+            .presentationDetents([.medium, .large])
         }
-        #endif
         .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
     }
 

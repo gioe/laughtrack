@@ -5,7 +5,7 @@ import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
-final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
+final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
     enum NearbyShortcutSelectionResult: Equatable {
         case resolved
         case cleared
@@ -17,10 +17,11 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""
     @Published var clubSearchText = ""
-    @Published var useDateRange = true
+    @Published var dateRange: DateRangeFilter = {
+        let today = Calendar.current.startOfDay(for: Date())
+        return DateRangeFilter(from: today, to: today, isActive: true)
+    }()
     @Published var selectedFilterSlugs: Set<String> = []
-    @Published var fromDate = Calendar.current.startOfDay(for: Date())
-    @Published var toDate = Calendar.current.startOfDay(for: Date())
     @Published var distance: ShowDistanceOption = .city {
         didSet {
             guard let activeNearbyPreference, activeNearbyPreference.distanceMiles != distance.rawValue else { return }
@@ -43,48 +44,31 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
         pinnedClubName != nil
     }
 
+    var isComedianPinned: Bool {
+        pinnedComedianName != nil
+    }
+
     var allowsLocationFiltering: Bool {
         !isClubPinned
     }
 
-    var dateRangeChipTitle: String {
-        guard useDateRange else { return "Any date" }
-
-        let calendar = Calendar.current
-        let normalizedFrom = calendar.startOfDay(for: fromDate)
-        let normalizedTo = calendar.startOfDay(for: max(toDate, fromDate))
-        let today = calendar.startOfDay(for: Date())
-
-        if normalizedFrom == today, normalizedTo == today {
-            return "Today"
-        }
-
-        if normalizedFrom == normalizedTo {
-            return Self.shortDateFormatter.string(from: normalizedFrom)
-        }
-
-        return "\(Self.shortDateFormatter.string(from: normalizedFrom)) - \(Self.shortDateFormatter.string(from: normalizedTo))"
-    }
-
     private let nearbyLocationController: NearbyLocationController
     private let pinnedClubName: String?
+    private let pinnedComedianName: String?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
 
-    private static let shortDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("MMM d")
-        return formatter
-    }()
     init(
         nearbyLocationController: NearbyLocationController,
         pinnedClubName: String? = nil,
+        pinnedComedianName: String? = nil,
         initialUseDateRange: Bool = true
     ) {
         self.nearbyLocationController = nearbyLocationController
         self.pinnedClubName = pinnedClubName
+        self.pinnedComedianName = pinnedComedianName
         super.init()
-        useDateRange = initialUseDateRange
+        dateRange.isActive = initialUseDateRange
         applyNearbyPreference(nearbyLocationController.preference)
         nearbyStatusCancellable = nearbyLocationController.$statusMessage
             .sink { [weak self] message in
@@ -96,16 +80,13 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
             }
     }
 
-    var requestKey: ShowsDiscoveryQuery {
-        let trimmedTo = max(toDate, fromDate)
-        return .init(
-            comedian: comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
+    var requestKey: ShowsListQuery {
+        .init(
+            comedian: pinnedComedianName ?? comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             club: pinnedClubName ?? clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             filters: selectedFilterSlugs.sorted(),
             zip: allowsLocationFiltering ? (activeNearbyPreference?.zipCode ?? "") : "",
-            useDateRange: useDateRange,
-            from: fromDate,
-            to: trimmedTo,
+            dateRange: dateRange,
             distance: distance,
             sort: sort
         )
@@ -137,6 +118,8 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     func applySearchRootQuery(_ query: String) {
         // The unified root currently treats show search as a comedian-name query.
         // Venue-name discovery remains explicit in the Clubs pivot.
+        // When a comedian is pinned, ignore root queries — the pinned name wins.
+        guard pinnedComedianName == nil else { return }
         comedianSearchText = query
         clubSearchText = pinnedClubName ?? ""
     }
@@ -201,7 +184,7 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
 
     private func fetchPage(
         page: Int,
-        query: ShowsDiscoveryQuery,
+        query: ShowsListQuery,
         apiClient: Client,
         cache: DataCache<LaughTrackCacheKey>?,
         cacheTTL: TimeInterval

@@ -13,7 +13,7 @@ struct SearchRootView: View {
 
     @Environment(\.appTheme) private var theme
     @StateObject private var model = SearchRootModel()
-    @StateObject private var showsModel: ShowsDiscoveryModel
+    @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel = ClubsDiscoveryModel()
 
@@ -33,7 +33,7 @@ struct SearchRootView: View {
         self.isActive = isActive
         _selectedPrimitive = selectedPrimitive
         _showsModel = StateObject(
-            wrappedValue: ShowsDiscoveryModel(
+            wrappedValue: ShowsListModel(
                 nearbyLocationController: nearbyLocationController,
                 initialUseDateRange: false
             )
@@ -91,7 +91,7 @@ struct SearchRootView: View {
     private var activeSearchScreen: some View {
         switch model.activePivot {
         case .shows:
-            ShowsDiscoveryView(
+            ShowsListView(
                 apiClient: apiClient,
                 model: showsModel,
                 unifiedSearchText: $model.query,
