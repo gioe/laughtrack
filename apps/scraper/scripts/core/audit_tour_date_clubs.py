@@ -379,7 +379,7 @@ def _print_report(results: list[AuditResult]) -> None:
             if evidence:
                 print(f"          evidence: {evidence}")
 
-    _section("READY FOR ONBOARDING — auto-creating tasks for these", ready)
+    _section("READY FOR ONBOARDING — specific platform marker matched", ready)
     _section("REVIEW NEEDED — generic match, operator picks SCRAPERS.md path", review)
     _section("NO WEBSITE — needs a website on the club row before audit", no_website, show_url=False)
     _section("FETCH ERROR — could not load the website", errors)
@@ -454,13 +454,14 @@ def _create_onboarding_tasks(results: list[AuditResult]) -> int:
             Logger.info(f"  Skipped (dupe — {dupe_reason}): {summary}")
             continue
 
-        evidence_line = f"Detection evidence: {r.evidence}" if r.evidence else ""
-        description = (
-            f"Club already in DB (id={r.club_id}) with an enabled tour_dates scraping_sources row. "
-            f"Website: {r.website} — detected platform: {r.platform}. "
-            f"Upgrade from tour_dates discovery to dedicated {r.platform} scraper. "
-            f"{evidence_line}"
-        ).strip()
+        description_parts = [
+            f"Club already in DB (id={r.club_id}) with an enabled tour_dates scraping_sources row.",
+            f"Website: {r.website} — detected platform: {r.platform}.",
+            f"Upgrade from tour_dates discovery to dedicated {r.platform} scraper.",
+        ]
+        if r.evidence:
+            description_parts.append(f"Detection evidence: {r.evidence}")
+        description = " ".join(description_parts)
 
         cmd = [
             tusk_bin, "task-insert",
