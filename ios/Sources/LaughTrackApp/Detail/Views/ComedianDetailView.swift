@@ -82,7 +82,7 @@ struct ComedianDetailView: View {
                                 )
 
                                 if content.upcomingRuns.isEmpty {
-                                    EmptyCard(message: activeRunFilters == .empty ? "No upcoming shows are available for this comedian right now." : "No shows match these filters. Try clearing one.")
+                                    EmptyCard(message: ComedianDetailPresentation.emptyUpcomingShowsMessage(filters: activeRunFilters))
                                 } else {
                                     VStack(spacing: theme.spacing.sm) {
                                         ForEach(content.upcomingRuns, id: \.id) { run in
@@ -213,6 +213,14 @@ struct ComedianDetailView: View {
         case .failure(let message):
             feedbackMessage = message
         }
+    }
+}
+
+enum ComedianDetailPresentation {
+    static func emptyUpcomingShowsMessage(filters: ComedianRunFilters) -> String {
+        filters == .empty
+            ? "No upcoming shows are available for this comedian right now."
+            : "No shows match these filters. Try clearing one."
     }
 }
 

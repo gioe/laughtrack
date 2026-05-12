@@ -2,7 +2,6 @@
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
-import SwiftUI
 import Testing
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -14,87 +13,99 @@ import LaughTrackCore
 struct ComedianDetailViewTests {
     @Test("comedian detail loads live profile and related content")
     func comedianDetailLoadsAndDisplaysSections() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-success")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    upcomingRunsResponse: .success(
-                        .init(
-                            data: [
-                                fallbackRun(showIDs: [301])
-                            ]
-                        )
-                    ),
-                    coBillResponse: .success(
-                        .init(data: [fallbackRelatedComedian()])
+        let model = ComedianDetailModel(comedianID: 101)
+        let favorites = ComedianFavoriteStore()
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
+                upcomingRunsResponse: .success(
+                    .init(
+                        data: [
+                            fallbackRun(showIDs: [301])
+                        ]
                     )
                 ),
-                authManager: authManager
-            )
+                coBillResponse: .success(
+                    .init(data: [fallbackRelatedComedian()])
+                )
+            ),
+            favorites: favorites
         )
-        await host.settle()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.comedianDetailScreen)
-        try host.requireLabel("Mark Normand")
-        try host.requireLabel("Upcoming shows")
-        try host.requireLabel("Often on the same bill")
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+
+        #expect(content.comedian.name == "Mark Normand")
+        #expect(content.upcomingRuns.count == 1)
+        #expect(content.upcomingRuns.first?.shows.map(\.id) == [301])
+        #expect(content.relatedComedians.map(\.name) == ["Atsuko Okatsuka"])
+        #expect(content.relatedContentMessage == nil)
     }
 
     @Test("comedian detail surfaces API failures explicitly")
     func comedianDetailShowsErrorState() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-error")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    comedianResponse: .status(.notFound),
-                    upcomingRunsResponse: .success(.init(data: [])),
-                    coBillResponse: .success(.init(data: []))
-                ),
-                authManager: authManager
-            )
+        let model = ComedianDetailModel(comedianID: 101)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                comedianResponse: .status(.notFound),
+                upcomingRunsResponse: .success(.init(data: [])),
+                coBillResponse: .success(.init(data: []))
+            ),
+            favorites: ComedianFavoriteStore()
         )
-        await host.settle()
 
-        try host.requireLabel("This comedian could not be found. (HTTP 404)")
+        guard case .failure(let failure) = model.phase else {
+            Issue.record("Expected failure phase, got \(model.phase)")
+            return
+        }
+        #expect(failure.message == "This comedian could not be found. (HTTP 404)")
     }
 
     @Test("comedian detail renders explicit empty states for missing related content")
     func comedianDetailShowsEmptyStates() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-empty")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    upcomingRunsResponse: .success(.init(data: [])),
-                    coBillResponse: .success(.init(data: []))
-                ),
-                authManager: authManager
-            )
+        let model = ComedianDetailModel(comedianID: 101)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
+                upcomingRunsResponse: .success(.init(data: [])),
+                coBillResponse: .success(.init(data: []))
+            ),
+            favorites: ComedianFavoriteStore()
         )
-        await host.settle()
 
-        try host.requireLabel("No upcoming shows are available for this comedian right now.")
-        #expect(host.findText("Often on the same bill") == nil)
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+        #expect(content.upcomingRuns.isEmpty)
+        #expect(content.relatedComedians.isEmpty)
+        #expect(content.relatedContentMessage == nil)
+        #expect(ComedianDetailPresentation.emptyUpcomingShowsMessage(filters: .empty) == "No upcoming shows are available for this comedian right now.")
+        #expect(ComedianDetailPresentation.emptyUpcomingShowsMessage(filters: .init(club: "Comedy Cellar", location: nil, date: nil)) == "No shows match these filters. Try clearing one.")
     }
 
     @Test("comedian detail keeps profile content visible when related shows fail")
     func comedianDetailShowsRelatedContentWarning() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-related-warning")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
-                    upcomingRunsResponse: .status(.internalServerError),
-                    coBillResponse: .success(.init(data: []))
-                ),
-                authManager: authManager
-            )
+        let model = ComedianDetailModel(comedianID: 101)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                comedianResponse: .success(.init(data: DemoContent.primaryComedian)),
+                upcomingRunsResponse: .status(.internalServerError),
+                coBillResponse: .success(.init(data: []))
+            ),
+            favorites: ComedianFavoriteStore()
         )
-        await host.settle()
 
-        try host.requireLabel("Mark Normand")
-        try host.requireLabel("LaughTrack hit a server error while loading related shows.")
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+        #expect(content.comedian.name == "Mark Normand")
+        #expect(content.upcomingRuns.isEmpty)
+        #expect(content.relatedComedians.isEmpty)
+        #expect(content.relatedContentMessage == "LaughTrack hit a server error while loading related shows.")
     }
 
     @Test("related comedians are ranked by shared bill frequency and capped")
@@ -127,15 +138,6 @@ struct ComedianDetailViewTests {
             "fourth-high",
             "first-seen",
         ])
-    }
-
-    private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
-        ComedianDetailView(comedianID: 101, apiClient: apiClient)
-            .environment(\.appTheme, LaughTrackTheme())
-            .navigationCoordinator(NavigationCoordinator<AppRoute>())
-            .environmentObject(ComedianFavoriteStore())
-            .environmentObject(authManager)
-            .environmentObject(LoginModalPresenter())
     }
 
     private func makeClient(

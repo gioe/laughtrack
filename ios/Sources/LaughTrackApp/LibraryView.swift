@@ -141,7 +141,7 @@ private struct FavoritePrimitiveSections: View {
     }
 
     private func includes(_ primitive: SearchRootModel.Pivot) -> Bool {
-        selectedPrimitive == nil || selectedPrimitive == primitive
+        LibraryFavoritesPresentation.includes(primitive, selectedPrimitive: selectedPrimitive)
     }
 }
 
@@ -251,7 +251,7 @@ private struct FavoriteClubsSection: View {
                 message: failure.message
             )
         case .success(let shows):
-            let clubs = derivedClubs(from: shows)
+            let clubs = LibraryFavoritesPresentation.derivedClubs(from: shows)
             if clubs.isEmpty {
                 LaughTrackStateView(
                     tone: .empty,
@@ -278,7 +278,17 @@ private struct FavoriteClubsSection: View {
         }
     }
 
-    private func derivedClubs(from shows: [Components.Schemas.Show]) -> [FavoriteClubSummary] {
+}
+
+enum LibraryFavoritesPresentation {
+    static func includes(
+        _ primitive: SearchRootModel.Pivot,
+        selectedPrimitive: SearchRootModel.Pivot?
+    ) -> Bool {
+        selectedPrimitive == nil || selectedPrimitive == primitive
+    }
+
+    static func derivedClubs(from shows: [Components.Schemas.Show]) -> [FavoriteClubSummary] {
         let counts = shows.reduce(into: [String: Int]()) { result, show in
             guard let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !clubName.isEmpty else {
                 return
@@ -297,7 +307,7 @@ private struct FavoriteClubsSection: View {
     }
 }
 
-private struct FavoriteClubSummary: Hashable {
+struct FavoriteClubSummary: Hashable {
     let name: String
     let showCount: Int
 }

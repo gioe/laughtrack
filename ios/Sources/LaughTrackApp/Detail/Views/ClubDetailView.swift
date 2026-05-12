@@ -84,6 +84,16 @@ struct ClubDetailView: View {
     }
 
     private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
+        ClubDetailHeroPresentation.actions(for: club)
+    }
+}
+
+enum ClubDetailHeroPresentation {
+    static func subtitle(upcomingShowCount: Int, zipCode: String?) -> String? {
+        nil
+    }
+
+    static func actions(for club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         [
             DetailHeroAction(
                 title: "Website",
@@ -96,12 +106,6 @@ struct ClubDetailView: View {
                 url: URL.mapsURL(for: club.address)
             )
         ]
-    }
-}
-
-enum ClubDetailHeroPresentation {
-    static func subtitle(upcomingShowCount: Int, zipCode: String?) -> String? {
-        nil
     }
 }
 

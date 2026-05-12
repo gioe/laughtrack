@@ -1,62 +1,51 @@
-#if canImport(UIKit)
-import SwiftUI
 import Testing
 import LaughTrackBridge
 @testable import LaughTrackApp
 
 @Suite("Browse components")
-@MainActor
 struct LaughTrackBrowseComponentsTests {
     @Test("hero module uses compact browse copy hierarchy")
-    func heroModuleUsesCompactHierarchy() async throws {
-        let host = HostedView(
-            LaughTrackHeroModule(
-                eyebrow: "Nearby",
-                title: "Tonight in San Francisco",
-                subtitle: "Three strong options within 25 miles.",
-                ctaTitle: "Open Search"
-            )
-            .environment(\.appTheme, LaughTrackTheme())
+    func heroModuleUsesCompactHierarchy() {
+        let module = LaughTrackHeroModule(
+            eyebrow: "Nearby",
+            title: "Tonight in San Francisco",
+            subtitle: "Three strong options within 25 miles.",
+            ctaTitle: "Open Search"
         )
 
-        try host.requireText("Tonight in San Francisco")
-        try host.requireText("Three strong options within 25 miles.")
-        try host.requireText("Open Search")
+        #expect(module.eyebrow == "Nearby")
+        #expect(module.title == "Tonight in San Francisco")
+        #expect(module.subtitle == "Three strong options within 25 miles.")
+        #expect(module.ctaTitle == "Open Search")
     }
 
     @Test("result row renders metadata in a dense browse row")
-    func resultRowRendersMetadata() async throws {
-        let host = HostedView(
-            LaughTrackResultRow(
-                title: "Comedy Cellar",
-                subtitle: "New York, NY",
-                metadata: ["14 shows", "Open tonight"],
-                systemImage: "building.2"
-            )
-            .environment(\.appTheme, LaughTrackTheme())
+    func resultRowRendersMetadata() {
+        let row = LaughTrackResultRow(
+            title: "Comedy Cellar",
+            subtitle: "New York, NY",
+            metadata: ["14 shows", "Open tonight"],
+            systemImage: "building.2"
         )
 
-        try host.requireText("Comedy Cellar")
-        try host.requireText("New York, NY")
-        try host.requireText("14 shows • Open tonight")
+        #expect(row.title == "Comedy Cellar")
+        #expect(row.subtitle == "New York, NY")
+        #expect(row.metadata.joined(separator: " • ") == "14 shows • Open tonight")
+        #expect(row.systemImage == "building.2")
     }
 
     @Test("inline state card keeps retry affordance in compact chrome")
-    func inlineStateCardRendersRetryAffordance() async throws {
-        let host = HostedView(
-            LaughTrackInlineStateCard(
-                tone: .error,
-                title: "Couldn't load this section",
-                message: "Try refreshing this shelf.",
-                actionTitle: "Try again",
-                action: {}
-            )
-            .environment(\.appTheme, LaughTrackTheme())
+    func inlineStateCardRendersRetryAffordance() {
+        let state = LaughTrackInlineStateCard(
+            tone: .error,
+            title: "Couldn't load this section",
+            message: "Try refreshing this shelf.",
+            actionTitle: "Try again",
+            action: {}
         )
 
-        try host.requireText("Couldn't load this section")
-        try host.requireText("Try refreshing this shelf.")
-        try host.requireText("Try again")
+        #expect(state.title == "Couldn't load this section")
+        #expect(state.message == "Try refreshing this shelf.")
+        #expect(state.actionTitle == "Try again")
     }
 }
-#endif

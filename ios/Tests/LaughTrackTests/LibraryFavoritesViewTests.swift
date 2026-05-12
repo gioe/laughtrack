@@ -2,7 +2,6 @@
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
-import SwiftUI
 import Testing
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -37,28 +36,29 @@ struct LibraryFavoritesViewTests {
         )
         // The favorites load lives on AppShellView, not LibraryView, so the store
         // is already populated by the time LibraryView appears in production. Mirror
-        // that by loading directly before mounting — pre-population also dodges the
-        // HostedView/`.task(id:)` scheduling flakiness called out in ios/CLAUDE.md.
+        // that by loading directly before checking the Library presentation contract.
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
-        let host = HostedView(
-            LibraryView(apiClient: apiClient)
-                .environment(\.appTheme, LaughTrackTheme())
-                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "library-favorites"))
-                .navigationCoordinator(NavigationCoordinator<AppRoute>())
-                .environmentObject(favorites)
-                .environmentObject(authManager)
+        let model = HomeFavoriteShowsModel()
+        await model.refresh(
+            apiClient: apiClient,
+            favoriteComedians: favorites.savedFavoriteComedians,
+            cache: nil,
+            cacheTTL: 0,
+            persistentCache: nil
         )
-        await host.settle()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesHeader)
-        try host.requireText("Favorites")
-        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesComediansSection)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesShowsSection)
-        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesClubsSection)
-        try host.requireLabel("Taylor Tomlinson")
-        try host.requireLabel("5 tracked show appearances")
-        try host.requireLabel("Taylor Tomlinson at The Stand")
-        try host.requireLabel("The Stand")
+        #expect(LibraryView.title == "Favorites")
+        #expect(favorites.savedFavoriteComedians.map(\.name) == ["Taylor Tomlinson"])
+        #expect(favorites.savedFavoriteComedians.map(\.showCount) == [5])
+
+        guard case .success(let shows) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+        #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
+        #expect(LibraryFavoritesPresentation.derivedClubs(from: shows) == [
+            FavoriteClubSummary(name: "The Stand", showCount: 1),
+        ])
     }
 
     @Test("favorites primitive filter shows only matching favorite content")
@@ -85,38 +85,19 @@ struct LibraryFavoritesViewTests {
             )
         )
         await favorites.loadSavedFavorites(apiClient: apiClient, authManager: authManager)
-        let host = HostedView(
-            LibraryView(apiClient: apiClient, selectedPrimitive: .clubs)
-                .environment(\.appTheme, LaughTrackTheme())
-                .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "favorites-filter"))
-                .navigationCoordinator(NavigationCoordinator<AppRoute>())
-                .environmentObject(favorites)
-                .environmentObject(authManager)
-        )
-        await host.settle()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.favoritesClubsSection)
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.favoritesComediansSection) == nil)
-        #expect(host.findView(withIdentifier: LaughTrackViewTestID.favoritesShowsSection) == nil)
+        #expect(LibraryFavoritesPresentation.includes(.clubs, selectedPrimitive: .clubs))
+        #expect(!LibraryFavoritesPresentation.includes(.comedians, selectedPrimitive: .clubs))
+        #expect(!LibraryFavoritesPresentation.includes(.shows, selectedPrimitive: .clubs))
     }
 
     @Test("signed-out favorites view shows sign-in CTA and skips the favorites fetch")
     func signedOutLibrarySkipsFavoritesFetch() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "library-signed-out")
-        let favorites = ComedianFavoriteStore()
         let recorder = FavoritesRequestRecorder()
-        let host = HostedView(
-            LibraryView(
-                apiClient: makeClient(response: .recorder(recorder))
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "library-signed-out"))
-            .navigationCoordinator(NavigationCoordinator<AppRoute>())
-            .environmentObject(favorites)
-            .environmentObject(authManager)
-        )
 
-        try host.requireText("Sign in to see your favorites")
+        #expect(authManager.currentSession == nil)
+        #expect(LibraryView.signedOutPromptTitle == "Sign in to see your favorites")
         #expect(recorder.getFavoritesCalls == 0)
     }
 

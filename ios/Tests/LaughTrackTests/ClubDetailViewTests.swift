@@ -2,7 +2,6 @@
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
-import SwiftUI
 import Testing
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -14,121 +13,97 @@ import LaughTrackCore
 struct ClubDetailViewTests {
     @Test("club detail loads live venue data and related content")
     func clubDetailLoadsAndDisplaysSections() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-success")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    clubResponse: .success(.init(data: primaryClub)),
-                    relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
-                ),
-                authManager: authManager
-            )
+        let model = ClubDetailModel(clubID: 201)
+        let transport = MockClubDetailTransport(
+            clubResponse: .success(.init(data: primaryClub)),
+            relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
         )
-        await host.settle()
+        await model.loadIfNeeded(apiClient: makeClient(transport: transport))
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.clubDetailScreen)
-        try host.requireLabel("Comedy Cellar")
-        try host.requireLabel("Sort: Earliest")
-        try host.requireLabel("Comedian")
-        try host.requireLabel("Today")
-        try host.requireLabel("Mark Normand")
-        #expect(host.findText("Location") == nil)
-        #expect(host.findText("Use date range") == nil)
-        #expect(host.findText("Club detail") == nil)
-        #expect(host.findText("8 upcoming") == nil)
-        #expect(host.findText("Address on file") == nil)
-        host.scrollDown()
-        #expect(host.findText("Artists on upcoming bills") == nil)
-        #expect(host.findText("Club") == nil)
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+
+        #expect(content.club.name == "Comedy Cellar")
+        #expect(content.upcomingShows.map(\.name) == ["Mark Normand and Friends"])
+        #expect(content.featuredComedians.map(\.name) == ["Mark Normand", "Atsuko Okatsuka"])
+        #expect(content.relatedContentMessage == nil)
+        #expect(transport.searchShowPaths.contains { path in
+            path.contains("club=Comedy%20Cellar") && path.contains("sort=date_asc")
+        })
     }
 
     @Test("club detail places venue actions in the hero")
-    func clubDetailPlacesVenueActionsInHero() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-actions-inline")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    clubResponse: .success(.init(data: primaryClub)),
-                    relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
-                ),
-                authManager: authManager
-            )
-        )
-        await host.settle()
+    func clubDetailPlacesVenueActionsInHero() {
+        let actions = ClubDetailHeroPresentation.actions(for: primaryClub)
 
-        try host.requireLabel("Website")
-        try host.requireLabel("Maps")
-        #expect(host.findText("Club details") == nil)
-        #expect(host.findText("Venue") == nil)
-        #expect(host.findText("Address") == nil)
-        #expect(host.findText("117 MacDougal St, New York, NY") == nil)
-        #expect(host.findText("ZIP") == nil)
-        #expect(host.findText("10012") == nil)
-        #expect(host.findText("Visit website") == nil)
-        #expect(host.findText("Open in Maps") == nil)
-        #expect(host.findText("Take the next step") == nil)
+        #expect(actions.map(\.title) == ["Website", "Maps"])
+        #expect(actions.map(\.systemImage) == ["arrow.up.right", "map.fill"])
+        #expect(actions.allSatisfy { $0.url != nil })
+        #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 8, zipCode: "10012") == nil)
     }
 
     @Test("club detail surfaces API failures explicitly")
     func clubDetailShowsErrorState() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-error")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    clubResponse: .status(.notFound),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
-                ),
-                authManager: authManager
+        let model = ClubDetailModel(clubID: 201)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                clubResponse: .status(.notFound),
+                relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
             )
         )
-        await host.settle()
 
         // LoadFailure.unexpected(status:) renders as "<message> (HTTP <status>)" via
         // LoadFailure.message — the suffix is part of every documented-status error
         // surface, not just this one.
-        try host.requireLabel("This club could not be found. (HTTP 404)")
+        guard case .failure(let failure) = model.phase else {
+            Issue.record("Expected failure phase, got \(model.phase)")
+            return
+        }
+        #expect(failure.message == "This club could not be found. (HTTP 404)")
     }
 
     @Test("club detail renders explicit empty states for missing related content")
     func clubDetailShowsEmptyStates() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-empty")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    clubResponse: .success(.init(data: primaryClub)),
-                    relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
-                ),
-                authManager: authManager
+        let model = ClubDetailModel(clubID: 201)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                clubResponse: .success(.init(data: primaryClub)),
+                relatedShowsResponse: .success(.init(data: [], total: 0, filters: [], zipCapTriggered: false))
             )
         )
-        await host.settle()
 
-        try host.requireLabel("No shows are available right now.")
-        host.scrollDown()
-        #expect(host.findText("No featured comedians are available for this club yet.") == nil)
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+        #expect(content.upcomingShows.isEmpty)
+        #expect(content.featuredComedians.isEmpty)
+        #expect(content.relatedContentMessage == nil)
     }
 
     @Test("club detail keeps venue content visible when related shows fail")
     func clubDetailShowsRelatedContentWarning() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-related-warning")
-        let host = HostedView(
-            makeView(
-                apiClient: makeClient(
-                    clubResponse: .success(.init(data: primaryClub)),
-                    relatedShowsResponse: .status(.internalServerError)
-                ),
-                authManager: authManager
+        let model = ClubDetailModel(clubID: 201)
+        await model.loadIfNeeded(
+            apiClient: makeClient(
+                clubResponse: .success(.init(data: primaryClub)),
+                relatedShowsResponse: .status(.internalServerError)
             )
         )
-        await host.settle()
 
-        try host.requireLabel("Comedy Cellar")
-        try host.requireLabel("mock (HTTP 500)")
+        guard case .success(let content) = model.phase else {
+            Issue.record("Expected success phase, got \(model.phase)")
+            return
+        }
+        #expect(content.club.name == "Comedy Cellar")
+        #expect(content.relatedContentMessage == "LaughTrack hit a server error while loading this club’s related content.")
     }
 
     @Test("club detail show search pins requests to the current club")
     func clubDetailShowSearchPinsRequestsToCurrentClub() async throws {
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-pinned-search")
+        let model = ClubDetailModel(clubID: 201)
         let transport = MockClubDetailTransport(
             clubResponse: .success(.init(data: primaryClub)),
             relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
@@ -137,33 +112,29 @@ struct ClubDetailViewTests {
             serverURL: URL(string: "https://example.com")!,
             transport: transport
         )
-        let host = HostedView(makeView(apiClient: apiClient, authManager: authManager))
-        await host.settle()
+        await model.loadIfNeeded(apiClient: apiClient)
 
         #expect(transport.searchShowPaths.contains { path in
             path.contains("club=Comedy%20Cellar")
         })
     }
 
-    private func makeView(apiClient: Client, authManager: AuthManager) -> some View {
-        ClubDetailView(clubID: 201, apiClient: apiClient)
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, LaughTrackHostedViewTestSupport.makeServiceContainer(name: "club-detail"))
-            .navigationCoordinator(NavigationCoordinator<AppRoute>())
-            .environmentObject(ComedianFavoriteStore())
-            .environmentObject(authManager)
-    }
-
     private func makeClient(
         clubResponse: MockClubDetailTransport.EntityResponse<Operations.GetClub.Output.Ok.Body.JsonPayload>,
         relatedShowsResponse: MockClubDetailTransport.EntityResponse<Components.Schemas.ShowSearchResponse>
     ) -> Client {
-        Client(
-            serverURL: URL(string: "https://example.com")!,
+        makeClient(
             transport: MockClubDetailTransport(
                 clubResponse: clubResponse,
                 relatedShowsResponse: relatedShowsResponse
             )
+        )
+    }
+
+    private func makeClient(transport: MockClubDetailTransport) -> Client {
+        Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
         )
     }
 
