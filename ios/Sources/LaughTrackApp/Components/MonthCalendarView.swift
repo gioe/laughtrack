@@ -60,6 +60,12 @@ struct MonthCalendarView: View {
                 .contentShape(Rectangle())
                 .gesture(monthSwipeGesture)
         }
+        .accessibilityAction(named: Text("Previous month")) {
+            advanceMonth(by: -1)
+        }
+        .accessibilityAction(named: Text("Next month")) {
+            advanceMonth(by: 1)
+        }
         .sheet(isPresented: $isYearJumpPresented) {
             MonthYearJumpSheet(
                 anchor: displayedMonth,
@@ -394,11 +400,12 @@ private struct MonthYearJumpSheet: View {
         self.anchor = anchor
 
         let anchorYear = calendar.component(.year, from: anchor)
-        let minYear = minimumDate.map { calendar.component(.year, from: $0) }
+        let baseMinYear = minimumDate.map { calendar.component(.year, from: $0) }
             ?? (anchorYear - 5)
-        let maxYear = max(anchorYear, calendar.component(.year, from: Date())) + 5
-        let yearRange = Array(minYear...maxYear)
-        self.years = yearRange
+        let baseMaxYear = max(anchorYear, calendar.component(.year, from: Date())) + 5
+        let minYear = min(baseMinYear, baseMaxYear)
+        let maxYear = max(baseMinYear, baseMaxYear)
+        self.years = Array(minYear...maxYear)
 
         let formatter = DateFormatter()
         formatter.calendar = calendar

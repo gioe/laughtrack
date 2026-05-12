@@ -408,7 +408,8 @@ private struct DateRangeFilterModal: View {
         .background(.clear)
         .task(id: DateRangeDensityKey(
             zip: model.activeNearbyPreference?.zipCode,
-            distance: model.activeNearbyPreference?.distanceMiles
+            distance: model.activeNearbyPreference?.distanceMiles,
+            anchorDay: Calendar.current.startOfDay(for: max(model.fromDate, Date()))
         )) {
             await loadDensity()
         }
@@ -422,9 +423,10 @@ private struct DateRangeFilterModal: View {
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        guard let to = calendar.date(byAdding: .day, value: 89, to: today) else { return }
+        let anchor = max(calendar.startOfDay(for: model.fromDate), today)
+        guard let to = calendar.date(byAdding: .day, value: 89, to: anchor) else { return }
 
-        let fromString = Self.isoDateFormatter.string(from: today)
+        let fromString = Self.isoDateFormatter.string(from: anchor)
         let toString = Self.isoDateFormatter.string(from: to)
 
         do {
@@ -469,6 +471,7 @@ private struct DateRangeFilterModal: View {
 private struct DateRangeDensityKey: Hashable {
     let zip: String?
     let distance: Int?
+    let anchorDay: Date
 }
 
 private struct ZipFilterModal: View {
