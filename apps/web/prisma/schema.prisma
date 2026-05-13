@@ -19,6 +19,7 @@ enum ScrapingPlatform {
   ninkashi
   opendate
   ovationtix
+  patron_ticket
   seatengine
   seatengine_v3
   shopify
