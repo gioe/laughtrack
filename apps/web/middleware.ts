@@ -9,9 +9,12 @@ const IS_DEV = process.env.NODE_ENV === "development";
 
 // React Refresh evaluates compiled strings as JS during dev hydration, which
 // requires 'unsafe-eval'. Prod must never include it.
+// https://va.vercel-scripts.com hosts the Vercel Analytics script (script.js
+// in prod, script.debug.js in dev). connect-src already allows https: so the
+// beacon POST doesn't need a separate entry.
 const SCRIPT_SRC = IS_DEV
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    : "script-src 'self' 'unsafe-inline'";
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
+    : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com";
 
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
