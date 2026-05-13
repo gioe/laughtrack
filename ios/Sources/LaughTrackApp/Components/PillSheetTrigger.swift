@@ -21,7 +21,7 @@ struct PillSheetTrigger: View {
             LaughTrackBrowseChip(
                 title,
                 systemImage: systemImage,
-                tone: isActive ? .selected : .neutral
+                tone: isActive ? .accent : .neutral
             )
         }
         .buttonStyle(.plain)

@@ -100,28 +100,44 @@ struct DateRangeFilterSheet: View {
                 .padding(.horizontal, theme.spacing.xs)
             }
             .font(laughTrack.typography.body)
-            .frame(maxHeight: 430)
 
-            VStack(spacing: theme.spacing.sm) {
-                LaughTrackButton("Apply", systemImage: "checkmark", density: .compact) {
-                    apply()
+            HStack(spacing: theme.spacing.sm) {
+                LaughTrackButton(
+                    "Any date",
+                    systemImage: "calendar.badge.minus",
+                    tone: .tertiary,
+                    density: .compact,
+                    fullWidth: false
+                ) {
+                    filter.isActive = false
+                    onApply?(filter)
+                    isPresented = false
                 }
 
-                LaughTrackButton("Today", systemImage: "calendar", tone: .secondary, density: .compact) {
+                LaughTrackButton(
+                    "Today",
+                    systemImage: "calendar",
+                    tone: .secondary,
+                    density: .compact,
+                    fullWidth: false
+                ) {
                     let today = Calendar.current.startOfDay(for: Date())
                     draftFrom = today
                     draftTo = today
                     apply()
                 }
 
-                LaughTrackButton("Any date", systemImage: "calendar.badge.minus", tone: .tertiary, density: .compact) {
-                    filter.isActive = false
-                    onApply?(filter)
-                    isPresented = false
+                Spacer(minLength: 0)
+
+                LaughTrackButton(
+                    "Apply",
+                    systemImage: "checkmark",
+                    density: .compact,
+                    fullWidth: false
+                ) {
+                    apply()
                 }
             }
-
-            Spacer(minLength: 0)
         }
         .padding(theme.spacing.xl)
         .frame(maxWidth: .infinity, alignment: .leading)

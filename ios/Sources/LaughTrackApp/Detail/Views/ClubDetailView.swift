@@ -70,7 +70,7 @@ struct ClubDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .modifier(EntityDetailNavigationChrome(entity: .club))
+        .modifier(EntityDetailNavigationChrome(entity: .club, title: ""))
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
         }

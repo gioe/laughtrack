@@ -237,21 +237,6 @@ struct SearchRootModelTests {
         #expect(model.selectedShortcut == "Tonight")
     }
 
-    @Test("search toolbar composes toolbar slots")
-    func searchToolbarComposesToolbarSlots() async throws {
-        let toolbar = SearchToolbar {
-            Text("Sort")
-        } filterChipSet: {
-            Text("Filters")
-        } dateScope: {
-            Text("Today")
-        } resultCountLine: {
-            Text("10 results")
-        }
-
-        #expect(type(of: toolbar) == SearchToolbar<Text, Text, Text, Text>.self)
-    }
-
     @Test("home search bridge stores latest seed request")
     func homeSearchBridgeStoresLatestSeedRequest() async throws {
         let bridge = SearchNavigationBridge()

@@ -810,7 +810,7 @@ private struct HomeTrendingComediansRail: View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
                 eyebrow: "Trending comedians",
-                title: "Comedians drawing crowds these days",
+                title: "Comedians drawing crowds",
                 subtitle: nil
             )
             // Anchoring the rail's test identifier on the shelf header — not the

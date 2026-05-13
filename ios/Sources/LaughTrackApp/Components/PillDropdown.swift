@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum PillDropdownLayout {
-    static let pillWidth: CGFloat = 132
     static let pillHeight: CGFloat = 38
 }
 
@@ -18,6 +17,7 @@ struct PillDropdownTrigger<Option: Hashable & Identifiable>: View {
     let id: String
     let selected: Option
     let triggerLabel: (Option) -> String
+    var accessibilityLabel: ((Option) -> String)? = nil
     @Binding var openDropdownID: String?
 
     private var isExpanded: Bool { openDropdownID == id }
@@ -38,7 +38,8 @@ struct PillDropdownTrigger<Option: Hashable & Identifiable>: View {
                     .rotationEffect(.degrees(isExpanded ? 180 : 0))
             }
             .foregroundStyle(theme.laughTrackTokens.colors.textInverse)
-            .frame(width: PillDropdownLayout.pillWidth, height: PillDropdownLayout.pillHeight)
+            .padding(.horizontal, theme.laughTrackTokens.browseDensity.chipHorizontalPadding)
+            .frame(height: PillDropdownLayout.pillHeight)
             .background(
                 Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.textPrimary)
             )
@@ -48,7 +49,7 @@ struct PillDropdownTrigger<Option: Hashable & Identifiable>: View {
         .transformAnchorPreference(key: PillDropdownAnchorKey.self, value: .bounds) { value, anchor in
             value[id] = anchor
         }
-        .accessibilityLabel(triggerLabel(selected))
+        .accessibilityLabel(accessibilityLabel?(selected) ?? triggerLabel(selected))
         .accessibilityHint(isExpanded ? "Tap to close options" : "Tap to choose another option")
     }
 }
@@ -91,7 +92,8 @@ struct PillDropdownOverlay<Option: Hashable & Identifiable>: View {
                                 .rotationEffect(.degrees(180))
                         }
                         .foregroundStyle(theme.laughTrackTokens.colors.textInverse)
-                        .frame(width: PillDropdownLayout.pillWidth, height: PillDropdownLayout.pillHeight)
+                        .padding(.horizontal, theme.laughTrackTokens.browseDensity.chipHorizontalPadding)
+                        .frame(height: PillDropdownLayout.pillHeight)
                         .background(
                             Capsule(style: .continuous).fill(theme.laughTrackTokens.colors.textPrimary)
                         )
@@ -110,7 +112,8 @@ struct PillDropdownOverlay<Option: Hashable & Identifiable>: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.75)
                                 .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                                .frame(width: PillDropdownLayout.pillWidth, height: PillDropdownLayout.pillHeight)
+                                .padding(.horizontal, theme.laughTrackTokens.browseDensity.chipHorizontalPadding)
+                                .frame(height: PillDropdownLayout.pillHeight)
                                 .background(
                                     Capsule(style: .continuous)
                                         .fill(theme.laughTrackTokens.colors.surfaceElevated)

@@ -17,6 +17,7 @@ struct ComediansDiscoveryView: View {
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
     @State private var isFilterEditorPresented = false
+    @State private var openDropdownID: String?
 
     private var pageCache: DataCache<LaughTrackCacheKey> {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
@@ -46,35 +47,30 @@ struct ComediansDiscoveryView: View {
                     )
                 }
 
-                SearchToolbar {
-                    Menu {
-                        Picker("Sort", selection: $model.sort) {
-                            ForEach(PrimitiveSortOption.allCases) { option in
-                                Text(option.title).tag(option)
-                            }
-                        }
-                    } label: {
-                        LaughTrackBrowseChip(
-                            "Sort: \(model.sort.title)",
-                            systemImage: "arrow.up.arrow.down",
-                            tone: .neutral
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    HStack(spacing: theme.spacing.sm) {
+                        PillDropdownTrigger(
+                            id: "comedians-sort",
+                            selected: model.sort,
+                            triggerLabel: { $0.title },
+                            accessibilityLabel: { "Sort \($0.title)" },
+                            openDropdownID: $openDropdownID
                         )
+
+                        Spacer(minLength: 0)
                     }
-                } filterChipSet: {
-                    if model.selectedFilterSlugs.count > 0 {
-                        Button {
+
+                    HStack(spacing: theme.spacing.sm) {
+                        PillSheetTrigger(
+                            title: model.selectedFilterSlugs.count > 0 ? filterCountTitle : "Filters",
+                            systemImage: "line.3.horizontal.decrease",
+                            isActive: model.selectedFilterSlugs.count > 0,
+                            accessibilityLabel: "Filter results"
+                        ) {
                             isFilterEditorPresented = true
-                        } label: {
-                            LaughTrackBrowseChip(filterCountTitle, tone: .accent)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Filter results")
-                    } else {
-                        Button("Filters", action: { isFilterEditorPresented = true })
-                            .font(theme.laughTrackTokens.typography.metadata)
-                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Filter results")
+
+                        Spacer(minLength: 0)
                     }
                 }
 
@@ -147,6 +143,20 @@ struct ComediansDiscoveryView: View {
             Text(feedbackMessage ?? "")
         })
         .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchScreen)
+        .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                PillDropdownOverlay(
+                    id: "comedians-sort",
+                    options: PrimitiveSortOption.allCases,
+                    selected: $model.sort,
+                    triggerLabel: { $0.title },
+                    optionLabel: { $0.title },
+                    openDropdownID: $openDropdownID,
+                    anchors: anchors,
+                    proxy: proxy
+                )
+            }
+        }
     }
 
     private var currentFilters: [Components.Schemas.Filter] {

@@ -100,7 +100,7 @@ struct ComedianDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
-        .modifier(EntityDetailNavigationChrome(entity: .comedian))
+        .modifier(EntityDetailNavigationChrome(entity: .comedian, title: ""))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }

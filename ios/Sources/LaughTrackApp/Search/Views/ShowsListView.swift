@@ -136,7 +136,7 @@ struct ShowsListView: View {
                     id: "shows-distance",
                     options: ShowDistanceOption.allCases,
                     selected: $model.distance,
-                    triggerLabel: { "Distance \($0.title)" },
+                    triggerLabel: { $0.title },
                     optionLabel: { $0.title },
                     openDropdownID: $openDropdownID,
                     anchors: anchors,
@@ -147,7 +147,7 @@ struct ShowsListView: View {
                     id: "shows-sort",
                     options: ShowSortOption.allCases,
                     selected: $model.sort,
-                    triggerLabel: { "Sort \($0.title)" },
+                    triggerLabel: { $0.title },
                     optionLabel: { $0.title },
                     openDropdownID: $openDropdownID,
                     anchors: anchors,
@@ -193,15 +193,14 @@ private struct ShowFiltersPanel: View {
     @Binding var openDropdownID: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            SearchToolbar {
-                EmptyView()
-            } filterChipSet: {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(spacing: theme.spacing.sm) {
                 if model.allowsLocationFiltering {
                     PillDropdownTrigger(
                         id: "shows-distance",
                         selected: model.distance,
-                        triggerLabel: { "Distance \($0.title)" },
+                        triggerLabel: { $0.title },
+                        accessibilityLabel: { "Distance \($0.title)" },
                         openDropdownID: $openDropdownID
                     )
                 }
@@ -209,10 +208,15 @@ private struct ShowFiltersPanel: View {
                 PillDropdownTrigger(
                     id: "shows-sort",
                     selected: model.sort,
-                    triggerLabel: { "Sort \($0.title)" },
+                    triggerLabel: { $0.title },
+                    accessibilityLabel: { "Sort \($0.title)" },
                     openDropdownID: $openDropdownID
                 )
 
+                Spacer(minLength: 0)
+            }
+
+            HStack(spacing: theme.spacing.sm) {
                 if model.allowsLocationFiltering {
                     PillSheetTrigger(
                         title: zipChipTitle,
@@ -225,22 +229,6 @@ private struct ShowFiltersPanel: View {
                     }
                 }
 
-                if activeFilterCount > 0 {
-                    Button {
-                        isFilterEditorPresented = true
-                    } label: {
-                        LaughTrackBrowseChip(filterCountTitle, tone: .accent)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Filter results")
-                } else {
-                    Button("Filters", action: { isFilterEditorPresented = true })
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Filter results")
-                }
-            } dateScope: {
                 PillSheetTrigger(
                     title: model.dateRange.pillLabel(),
                     systemImage: "calendar",
@@ -248,12 +236,26 @@ private struct ShowFiltersPanel: View {
                 ) {
                     isDateEditorPresented = true
                 }
+
+                Spacer(minLength: 0)
+            }
+
+            HStack(spacing: theme.spacing.sm) {
+                PillSheetTrigger(
+                    title: activeFilterCount > 0 ? filterCountTitle : "Filters",
+                    systemImage: "line.3.horizontal.decrease",
+                    isActive: activeFilterCount > 0,
+                    accessibilityLabel: "Filter results"
+                ) {
+                    isFilterEditorPresented = true
+                }
+
+                Spacer(minLength: 0)
             }
 
             if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {
                 InlineStatusMessage(message: nearbyStatusMessage)
             }
-
         }
     }
 
