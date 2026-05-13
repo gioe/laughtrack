@@ -92,7 +92,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                     key={preset.label}
                     type="button"
                     onClick={() => handleChipSelect(preset.range)}
-                    className="px-3 py-1.5 text-xs font-dmSans font-medium rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 hover:border-gray-400 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="px-3 py-1.5 text-xs font-dmSans font-medium rounded-full border border-white/15 text-foreground bg-white/5 hover:bg-white/10 hover:border-white/30 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-copper"
                 >
                     {preset.label}
                 </button>
@@ -116,7 +116,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     }, [isMobile, sheetOpen]);
 
     const triggerClassName =
-        "flex items-center focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 rounded";
+        "flex items-center focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper rounded";
 
     const triggerContent = (
         <>
@@ -176,11 +176,11 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                                         aria-modal="true"
                                         aria-label="Select dates"
                                         tabIndex={-1}
-                                        className="fixed inset-x-0 bottom-0 rounded-t-2xl bg-white shadow-2xl pt-2 pb-6 px-4 animate-in slide-in-from-bottom duration-300 outline-none"
+                                        className="fixed inset-x-0 bottom-0 rounded-t-2xl bg-card text-foreground border-t border-white/15 shadow-2xl pt-2 pb-6 px-4 animate-in slide-in-from-bottom duration-300 outline-none"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className="text-base font-medium text-gray-900 font-dmSans">
+                                            <span className="text-base font-medium text-foreground font-dmSans">
                                                 Select dates
                                             </span>
                                             <button
@@ -189,11 +189,11 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                                                     setSheetOpen(false)
                                                 }
                                                 aria-label="Close date picker"
-                                                className="p-2 rounded-full hover:bg-gray-100 transition"
+                                                className="p-2 rounded-full hover:bg-white/10 transition"
                                             >
                                                 <X
                                                     size={20}
-                                                    className="text-gray-600"
+                                                    className="text-white/70"
                                                 />
                                             </button>
                                         </div>
@@ -218,7 +218,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                             </button>
                         </PopoverTrigger>
                         <PopoverContent
-                            className="p-0 rounded-lg border shadow-lg"
+                            className="p-0 rounded-lg border border-white/15 bg-card text-foreground shadow-lg"
                             align="center"
                             sideOffset={16}
                             avoidCollisions={true}

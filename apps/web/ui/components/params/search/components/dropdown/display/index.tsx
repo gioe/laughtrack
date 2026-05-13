@@ -28,7 +28,7 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
         <div className="flex items-center">
             <Select onValueChange={props.onChange} value={props.value}>
                 <SelectTrigger
-                    className={`text-lead ${styleConfig.inputTextColor} font-dmSans h-9 border-gray-300 shadow-none hover:border-gray-400 focus:border-gray-400`}
+                    className={`text-lead ${styleConfig.inputTextColor} font-dmSans h-9 border-white/15 shadow-none hover:border-white/30 focus:border-copper focus-visible:ring-copper`}
                     {...(props.contentId
                         ? { "aria-controls": props.contentId }
                         : {})}
@@ -39,12 +39,12 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
                     />
                 </SelectTrigger>
                 <SelectContent
-                    className="rounded-lg bg-white border border-gray-300"
+                    className="rounded-lg bg-card text-foreground border border-white/15"
                     {...(props.contentId ? { id: props.contentId } : {})}
                 >
                     {props.items.map((item) => (
                         <SelectItem
-                            className="rounded-lg text-gray-900 hover:text-gray-700 focus:text-gray-700"
+                            className="rounded-lg text-foreground hover:text-white focus:text-white focus:bg-white/10"
                             key={item.id.toString()}
                             value={item.slug}
                         >
