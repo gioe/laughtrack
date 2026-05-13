@@ -24,7 +24,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
 
     return (
         <EntityCard chrome="coconut-hover" className="pb-4 px-4 h-full">
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-coconut-cream p-3">
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-white p-3">
                 <Link
                     href={`/club/${parsedClub.name}`}
                     className="block w-full h-full"
@@ -33,7 +33,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                         src={error ? PLACEHOLDER : club.imageUrl}
                         alt={`${parsedClub.name}`}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         onError={() => setError(true)}
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         priority={false}
