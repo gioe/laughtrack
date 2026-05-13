@@ -19,6 +19,7 @@ struct MonthCalendarView: View {
     let selection: Selection
     let showsByDate: [Date: Int]
     let minimumDate: Date?
+    let onDisplayedMonthChange: ((Date) -> Void)?
 
     @Environment(\.appTheme) private var theme
     @Environment(\.layoutDirection) private var layoutDirection
@@ -29,11 +30,13 @@ struct MonthCalendarView: View {
     init(
         selection: Selection,
         showsByDate: [Date: Int] = [:],
-        minimumDate: Date? = nil
+        minimumDate: Date? = nil,
+        onDisplayedMonthChange: ((Date) -> Void)? = nil
     ) {
         self.selection = selection
         self.showsByDate = showsByDate
         self.minimumDate = minimumDate
+        self.onDisplayedMonthChange = onDisplayedMonthChange
 
         let anchor: Date
         let awaitingEnd: Bool
@@ -60,6 +63,12 @@ struct MonthCalendarView: View {
             grid
                 .contentShape(Rectangle())
                 .gesture(monthSwipeGesture)
+        }
+        .onAppear {
+            onDisplayedMonthChange?(displayedMonth)
+        }
+        .onChange(of: displayedMonth) { newValue in
+            onDisplayedMonthChange?(newValue)
         }
         .accessibilityAction(named: Text("Previous month")) {
             advanceMonth(by: -1)

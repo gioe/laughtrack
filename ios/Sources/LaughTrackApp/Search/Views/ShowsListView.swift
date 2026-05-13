@@ -295,7 +295,7 @@ private struct ShowsDateRangeSheet: View {
     let apiClient: Client
     @Binding var isPresented: Bool
 
-    @State private var showsByDate: [Date: Int] = [:]
+    @State private var cacheState = DateRangeDensityCacheState()
 
     var body: some View {
         DateRangeFilterSheet(
@@ -303,61 +303,122 @@ private struct ShowsDateRangeSheet: View {
             isPresented: $isPresented,
             title: "Date range",
             subtitle: "Choose the show dates to include.",
-            showsByDate: showsByDate,
-            minimumDate: Calendar.current.startOfDay(for: Date())
+            showsByDate: mergedShowsByDate,
+            minimumDate: Calendar.current.startOfDay(for: Date()),
+            onDisplayedMonthChange: { newMonth in
+                Task { await loadDensity(for: newMonth) }
+            }
         )
-        .task(id: DateRangeDensityKey(
-            zip: model.activeNearbyPreference?.zipCode,
-            distance: model.activeNearbyPreference?.distanceMiles,
-            anchorDay: Calendar.current.startOfDay(for: max(model.dateRange.from, Date()))
-        )) {
-            await loadDensity()
+    }
+
+    // Merged across every cached month so swiping back to a previously-fetched
+    // month paints its dots without re-issuing the request.
+    private var mergedShowsByDate: [Date: Int] {
+        cacheState.entries.values.reduce(into: [:]) { acc, map in
+            for (date, count) in map {
+                acc[date] = count
+            }
         }
     }
 
-    private func loadDensity() async {
-        if let next = await DateRangeDensity.compute(
-            preference: model.activeNearbyPreference,
-            fromDate: model.dateRange.from,
-            now: Date(),
-            apiClient: apiClient
+    private func loadDensity(for monthStart: Date) async {
+        let calendar = Calendar.current
+        guard let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: monthStart),
+              let lastDayOfMonth = calendar.date(byAdding: .day, value: -1, to: nextMonthStart)
+        else { return }
+
+        let effectivePref = effectiveNearbyPreference
+        let pinnedComedian = model.isComedianPinned ? model.pinnedComedianName : nil
+        let pinnedClub = model.isClubPinned ? model.pinnedClubName : nil
+
+        let result = await DateRangeDensityCache.ensureLoaded(
+            monthStart: monthStart,
+            signature: currentSignature,
+            state: cacheState
         ) {
-            showsByDate = next
+            await DateRangeDensity.compute(
+                preference: effectivePref,
+                comedian: pinnedComedian,
+                club: pinnedClub,
+                fromDate: monthStart,
+                toDate: lastDayOfMonth,
+                now: Date(),
+                apiClient: apiClient
+            )
         }
+        cacheState = result.state
+    }
+
+    // Mirrors `ShowsListModel.requestKey`'s zip-handling: on club-pinned views
+    // (`allowsLocationFiltering` false) the user's stored nearby preference is
+    // intentionally ignored so the density call doesn't smuggle zip/distance
+    // into a request that the shows-list itself wouldn't send.
+    private var effectiveNearbyPreference: NearbyPreference? {
+        model.allowsLocationFiltering ? model.activeNearbyPreference : nil
+    }
+
+    private var currentSignature: String {
+        let pref = effectiveNearbyPreference
+        let comedian = model.isComedianPinned ? (model.pinnedComedianName ?? "") : ""
+        let club = model.isClubPinned ? (model.pinnedClubName ?? "") : ""
+        return "z:\(pref?.zipCode ?? "")|d:\(pref?.distanceMiles ?? 0)|c:\(comedian)|v:\(club)"
     }
 }
 
 enum DateRangeDensity {
     /// Returns the density map to assign onto `showsByDate`, or `nil` when the
     /// caller should leave its existing state alone. An empty dictionary is
-    /// the explicit "clear" signal — the early-return path when there is no
-    /// active nearby preference.
+    /// the explicit "clear" signal — the early-return path when nothing
+    /// scopes the request: no nearby preference, no pinned comedian, no
+    /// pinned club. With an entity pinned the request still goes out even
+    /// without a zip, so detail-page calendars can paint dots for the full
+    /// entity's calendar regardless of the user's location filter.
+    ///
+    /// `toDate` defaults to `fromDate + 89 days` to preserve the original
+    /// 3-month window for nearby-only callers; per-month callers pass an
+    /// explicit end-of-month date so the cache key matches the fetch window.
     static func compute(
         preference: NearbyPreference?,
+        comedian: String? = nil,
+        club: String? = nil,
         fromDate: Date,
+        toDate: Date? = nil,
         now: Date,
         apiClient: Client,
         calendar: Calendar = .current
     ) async -> [Date: Int]? {
-        guard let preference else { return [:] }
+        let trimmedComedian = comedian?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+        let trimmedClub = club?.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+
+        guard preference != nil || trimmedComedian != nil || trimmedClub != nil else {
+            return [:]
+        }
 
         let today = calendar.startOfDay(for: now)
         let anchor = max(calendar.startOfDay(for: fromDate), today)
-        guard let to = calendar.date(byAdding: .day, value: 89, to: anchor) else {
-            return nil
+        let resolvedTo: Date
+        if let toDate {
+            resolvedTo = max(calendar.startOfDay(for: toDate), anchor)
+        } else {
+            guard let computed = calendar.date(byAdding: .day, value: 89, to: anchor) else {
+                return nil
+            }
+            resolvedTo = computed
         }
 
         let fromString = isoDateFormatter.string(from: anchor)
-        let toString = isoDateFormatter.string(from: to)
+        let toString = isoDateFormatter.string(from: resolvedTo)
 
         do {
             let output = try await apiClient.getShowsDensity(
                 .init(
                     query: .init(
-                        zip: preference.zipCode,
+                        zip: preference?.zipCode,
                         from: fromString,
                         to: toString,
-                        distance: preference.distanceMiles
+                        distance: preference?.distanceMiles,
+                        comedian: trimmedComedian,
+                        club: trimmedClub
                     ),
                     headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
                 )
@@ -398,9 +459,48 @@ enum DateRangeDensity {
     }()
 }
 
-private struct DateRangeDensityKey: Hashable {
-    let zip: String?
-    let distance: Int?
-    let anchorDay: Date
+/// Per-month density cache state owned by `ShowsDateRangeSheet`. Stored as a
+/// value because callers want SwiftUI `@State` semantics (reads from the
+/// merged map drive re-renders; writes via `DateRangeDensityCache.ensureLoaded`
+/// produce a new state and the assignment flips the view).
+///
+/// The `signature` field scopes the cache to a specific (zip, distance,
+/// comedian, club) tuple. When the signature changes — typically because the
+/// user changed their nearby zip on a comedian detail page where location
+/// filtering is enabled — the cache invalidates so stale dots cannot leak
+/// into the new scope.
+struct DateRangeDensityCacheState: Equatable {
+    var entries: [Date: [Date: Int]] = [:]
+    var signature: String?
+}
+
+/// Per-month cache reuse policy. Pulled out of `ShowsDateRangeSheet` so the
+/// "swipe back to a fetched month is a hit, not a fetch" behavior has a
+/// testable surface that does not require instantiating a SwiftUI view.
+enum DateRangeDensityCache {
+    /// Looks up `monthStart` in `state`. On a hit, returns `(state, didFetch: false)`
+    /// without invoking `fetch`. On a miss, awaits `fetch`, stores its non-nil
+    /// result, and returns `(updatedState, didFetch: true)`. A nil fetch result
+    /// (transport failure) is not cached so the next visit retries.
+    @discardableResult
+    static func ensureLoaded(
+        monthStart: Date,
+        signature: String,
+        state: DateRangeDensityCacheState,
+        fetch: () async -> [Date: Int]?
+    ) async -> (state: DateRangeDensityCacheState, didFetch: Bool) {
+        var s = state
+        if s.signature != signature {
+            s.entries = [:]
+            s.signature = signature
+        }
+        if s.entries[monthStart] != nil {
+            return (s, false)
+        }
+        if let entry = await fetch() {
+            s.entries[monthStart] = entry
+        }
+        return (s, true)
+    }
 }
 

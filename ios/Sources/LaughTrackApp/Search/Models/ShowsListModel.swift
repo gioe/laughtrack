@@ -53,8 +53,8 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
     }
 
     private let nearbyLocationController: NearbyLocationController
-    private let pinnedClubName: String?
-    private let pinnedComedianName: String?
+    let pinnedClubName: String?
+    let pinnedComedianName: String?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
 

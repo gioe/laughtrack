@@ -21,6 +21,7 @@ struct DateRangeFilterSheet: View {
     var showsByDate: [Date: Int]
     var minimumDate: Date?
     var onApply: ((DateRangeFilter) -> Void)?
+    var onDisplayedMonthChange: ((Date) -> Void)?
 
     @Environment(\.appTheme) private var theme
     @State private var draftFrom: Date
@@ -33,7 +34,8 @@ struct DateRangeFilterSheet: View {
         subtitle: String = "Choose the show dates to include.",
         showsByDate: [Date: Int] = [:],
         minimumDate: Date? = nil,
-        onApply: ((DateRangeFilter) -> Void)? = nil
+        onApply: ((DateRangeFilter) -> Void)? = nil,
+        onDisplayedMonthChange: ((Date) -> Void)? = nil
     ) {
         _filter = filter
         _isPresented = isPresented
@@ -42,6 +44,7 @@ struct DateRangeFilterSheet: View {
         self.showsByDate = showsByDate
         self.minimumDate = minimumDate
         self.onApply = onApply
+        self.onDisplayedMonthChange = onDisplayedMonthChange
 
         let calendar = Calendar.current
         let f = calendar.startOfDay(for: filter.wrappedValue.from)
@@ -91,7 +94,8 @@ struct DateRangeFilterSheet: View {
                         )
                     ),
                     showsByDate: showsByDate,
-                    minimumDate: minimumDate
+                    minimumDate: minimumDate,
+                    onDisplayedMonthChange: onDisplayedMonthChange
                 )
                 .padding(.horizontal, theme.spacing.xs)
             }
