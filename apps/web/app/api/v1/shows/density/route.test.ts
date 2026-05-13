@@ -187,6 +187,27 @@ describe("GET /api/v1/shows/density", () => {
         );
     });
 
+    it("treats empty-string entity params as absent so partial submissions still narrow correctly", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                comedian: "",
+                club: "Comedy Cellar",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    comedian: undefined,
+                    club: "Comedy Cellar",
+                }),
+            }),
+        );
+    });
+
     it("returns 400 when both comedian and club are supplied (mutually exclusive)", async () => {
         const res = await GET(
             makeRequest({

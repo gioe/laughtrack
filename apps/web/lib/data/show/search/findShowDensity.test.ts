@@ -162,4 +162,47 @@ describe("findShowDensity", () => {
             }),
         );
     });
+
+    it("composes zip + comedian clauses together in a single where", async () => {
+        const helper = {
+            ...makeHelper(),
+            getLineupItemClause: vi.fn(() => ({
+                lineupItems: {
+                    some: {
+                        comedian: {
+                            OR: [
+                                {
+                                    name: { contains: "Akaash" },
+                                    parentComedianId: null,
+                                },
+                                {
+                                    parentComedian: {
+                                        name: { contains: "Akaash" },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            })),
+        };
+
+        await findShowDensity(helper as never);
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    club: {
+                        visible: true,
+                        zipCode: { in: ["10001", "10002"] },
+                    },
+                    lineupItems: {
+                        some: expect.objectContaining({
+                            comedian: expect.any(Object),
+                        }),
+                    },
+                }),
+            }),
+        );
+    });
 });
