@@ -10,13 +10,16 @@ export async function findShowDensity(
 ): Promise<ShowDensity> {
     try {
         const zipCodeClause = helper.getZipCodeClause();
+        const clubNameClause = helper.getClubNameClause();
         const dateClause = helper.getDateClause();
         const whereClause: Prisma.ShowWhereInput = {
             ...dateClause,
             club: {
                 visible: true,
                 ...(zipCodeClause.zipCode && zipCodeClause),
+                ...(clubNameClause.name && clubNameClause),
             },
+            ...helper.getLineupItemClause(),
         };
 
         const rows = await db.show.findMany({

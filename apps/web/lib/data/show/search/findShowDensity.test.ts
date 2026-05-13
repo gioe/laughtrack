@@ -22,6 +22,8 @@ function makeHelper() {
         getZipCodeClause: vi.fn(() => ({
             zipCode: { in: ["10001", "10002"] },
         })),
+        getClubNameClause: vi.fn(() => ({})),
+        getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
     };
 }
 
@@ -61,6 +63,7 @@ describe("findShowDensity", () => {
                     visible: true,
                     zipCode: { in: ["10001", "10002"] },
                 },
+                lineupItems: {},
             },
             select: { date: true },
         });
@@ -78,6 +81,83 @@ describe("findShowDensity", () => {
             expect.objectContaining({
                 where: expect.objectContaining({
                     club: { visible: true },
+                }),
+            }),
+        );
+    });
+
+    it("applies the helper lineup clause when a comedian filter is set", async () => {
+        const helper = {
+            ...makeHelper(),
+            getZipCodeClause: vi.fn(() => ({})),
+            getLineupItemClause: vi.fn(() => ({
+                lineupItems: {
+                    some: {
+                        comedian: {
+                            OR: [
+                                {
+                                    name: { contains: "Akaash" },
+                                    parentComedianId: null,
+                                },
+                                {
+                                    parentComedian: {
+                                        name: { contains: "Akaash" },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            })),
+        };
+
+        await findShowDensity(helper as never);
+
+        expect(helper.getLineupItemClause).toHaveBeenCalledTimes(1);
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    lineupItems: {
+                        some: {
+                            comedian: {
+                                OR: [
+                                    {
+                                        name: { contains: "Akaash" },
+                                        parentComedianId: null,
+                                    },
+                                    {
+                                        parentComedian: {
+                                            name: { contains: "Akaash" },
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                }),
+            }),
+        );
+    });
+
+    it("applies the helper club-name clause when a club filter is set", async () => {
+        const helper = {
+            ...makeHelper(),
+            getZipCodeClause: vi.fn(() => ({})),
+            getClubNameClause: vi.fn(() => ({
+                name: { contains: "Comedy Cellar" },
+            })),
+        };
+
+        await findShowDensity(helper as never);
+
+        expect(helper.getClubNameClause).toHaveBeenCalledTimes(1);
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    club: {
+                        visible: true,
+                        name: { contains: "Comedy Cellar" },
+                    },
                 }),
             }),
         );

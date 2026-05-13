@@ -43,6 +43,15 @@ export async function GET(req: NextRequest) {
     const fromRaw = sp.get("from");
     const toRaw = sp.get("to");
     const distance = sp.get("distance");
+    const comedian = sp.get("comedian") ?? undefined;
+    const club = sp.get("club") ?? undefined;
+
+    if (comedian !== undefined && club !== undefined) {
+        return NextResponse.json(
+            { error: "comedian and club are mutually exclusive" },
+            { status: 400, headers: rateLimitHeaders(rl) },
+        );
+    }
 
     const today = new Date();
     const fromDate = fromRaw
@@ -106,6 +115,8 @@ export async function GET(req: NextRequest) {
         toDate: formatIsoDate(cappedToDate),
         zip,
         distance: zip ? (distance ?? DEFAULT_DISTANCE) : undefined,
+        comedian,
+        club,
     };
 
     try {

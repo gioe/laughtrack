@@ -122,6 +122,87 @@ describe("GET /api/v1/shows/density", () => {
         );
     });
 
+    it("forwards the comedian param so density is scoped to that comedian's lineup", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                zip: "90028",
+                comedian: "Akaash Singh",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    comedian: "Akaash Singh",
+                    club: undefined,
+                    zip: "90028",
+                }),
+            }),
+        );
+    });
+
+    it("forwards the club param so density is scoped to that venue", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                club: "Comedy Cellar",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    club: "Comedy Cellar",
+                    comedian: undefined,
+                    zip: undefined,
+                }),
+            }),
+        );
+    });
+
+    it("keeps ZIP-only behavior unchanged when neither comedian nor club is supplied (regression)", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                zip: "10012",
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(mockFindShowDensity).toHaveBeenCalledWith(
+            expect.objectContaining({
+                params: expect.objectContaining({
+                    zip: "10012",
+                    distance: "25",
+                    comedian: undefined,
+                    club: undefined,
+                }),
+            }),
+        );
+    });
+
+    it("returns 400 when both comedian and club are supplied (mutually exclusive)", async () => {
+        const res = await GET(
+            makeRequest({
+                from: "2026-06-01",
+                to: "2026-06-07",
+                comedian: "Akaash Singh",
+                club: "Comedy Cellar",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.error).toMatch(/mutually exclusive/i);
+        expect(mockFindShowDensity).not.toHaveBeenCalled();
+    });
+
     it("returns 400 when distance is invalid", async () => {
         const res = await GET(
             makeRequest({
