@@ -11,9 +11,9 @@ const PrivacyPage = async () => {
             id="main-content"
             className="min-h-screen w-full bg-coconut-cream"
         >
-            <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-neutral-800">
-                <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
-                <p className="mb-10 text-xs text-neutral-500">
+            <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-white/85">
+                <h1 className="text-3xl font-bold mb-2 text-white">Privacy Policy</h1>
+                <p className="mb-10 text-xs text-white/55">
                     Last Updated: February 28, 2025
                 </p>
 

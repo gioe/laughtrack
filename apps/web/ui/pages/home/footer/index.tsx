@@ -40,7 +40,7 @@ const FooterComponent = () => {
     };
 
     return (
-        <footer className="bg-gradient-to-b from-coconut-cream to-coconut-cream/70">
+        <footer className="bg-gradient-to-b from-coconut-cream to-black">
             {/* Copper accent strip */}
             <div className="h-1 bg-gradient-to-r from-transparent via-copper to-transparent opacity-60" />
 
@@ -48,19 +48,19 @@ const FooterComponent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-12 mb-12 sm:mb-16">
                     <div className="lg:col-span-8">
                         <h2
-                            className="text-3xl sm:text-4xl font-bold text-cedar mb-4 sm:mb-6 font-gilroy-bold
+                            className="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 font-gilroy-bold
                             transform transition-all duration-300 hover:scale-[1.02]"
                         >
                             Laughtrack
                         </h2>
-                        <p className="text-lg sm:text-xl text-gray-600 max-w-2xl font-dmSans leading-relaxed">
+                        <p className="text-lg sm:text-xl text-white/70 max-w-2xl font-dmSans leading-relaxed">
                             Laughtrack is the easiest way to explore and enjoy
                             comedy. Really the only way.
                         </p>
                     </div>
 
                     <div className="lg:col-span-4 flex flex-col justify-center md:items-end">
-                        <p className="text-sm text-gray-500 font-dmSans mb-3 md:text-right">
+                        <p className="text-sm text-white/60 font-dmSans mb-3 md:text-right">
                             Follow us
                         </p>
                         <div className="flex gap-3 md:justify-end">
@@ -80,9 +80,9 @@ const FooterComponent = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between items-center pt-8 sm:pt-10 border-t border-gray-200">
+                <div className="flex flex-col md:flex-row justify-between items-center pt-8 sm:pt-10 border-t border-white/10">
                     <div
-                        className="text-gray-600 mb-6 md:mb-0 text-base sm:text-lg font-dmSans"
+                        className="text-white/65 mb-6 md:mb-0 text-base sm:text-lg font-dmSans"
                         suppressHydrationWarning
                     >
                         Copyright © {new Date().getFullYear()} Laughtrack
@@ -92,7 +92,7 @@ const FooterComponent = () => {
                     <nav className="flex flex-wrap justify-center gap-6 sm:gap-8">
                         <a
                             href="/about"
-                            className="text-gray-600 hover:text-copper transition-all duration-200
+                            className="text-white/75 hover:text-copper transition-all duration-200
                             text-base sm:text-lg font-dmSans font-semibold hover:-translate-y-[1px]"
                         >
                             About
@@ -100,21 +100,21 @@ const FooterComponent = () => {
                         <a
                             href="mailto:contact@laugh-track.com"
                             onClick={handleClick}
-                            className="text-gray-600 hover:text-copper transition-all duration-200
+                            className="text-white/75 hover:text-copper transition-all duration-200
                             text-base sm:text-lg font-dmSans font-semibold hover:-translate-y-[1px]"
                         >
                             Contact
                         </a>
                         <a
                             href="/privacy"
-                            className="text-gray-600 hover:text-copper transition-all duration-200
+                            className="text-white/75 hover:text-copper transition-all duration-200
                             text-base sm:text-lg font-dmSans font-semibold hover:-translate-y-[1px]"
                         >
                             Privacy
                         </a>
                         <a
                             href="/terms"
-                            className="text-gray-600 hover:text-copper transition-all duration-200
+                            className="text-white/75 hover:text-copper transition-all duration-200
                             text-base sm:text-lg font-dmSans font-semibold hover:-translate-y-[1px]"
                         >
                             Terms

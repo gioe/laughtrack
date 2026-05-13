@@ -147,7 +147,7 @@ export default async function HomePage() {
                     />
                 </section>
             )}
-            <section className="w-full bg-white">
+            <section className="w-full bg-coconut-cream">
                 <TrendingComedianGrid comedians={comedians} />
             </section>
             {zipCode && nearYouComedians.length > 0 && (
@@ -159,7 +159,7 @@ export default async function HomePage() {
                 </section>
             )}
             {showsTonight.length > 0 && (
-                <section className="w-full bg-white">
+                <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
                         title="Shows Tonight"
                         subtitle="Live comedy happening right now, near you"
@@ -179,7 +179,7 @@ export default async function HomePage() {
                 </section>
             )}
             {trendingShowsThisWeek.length > 0 && (
-                <section className="w-full bg-white">
+                <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
                         title="Trending This Week"
                         subtitle="The most popular shows happening in the next 7 days"
@@ -188,7 +188,7 @@ export default async function HomePage() {
                     />
                 </section>
             )}
-            <section className="w-full bg-white">
+            <section className="w-full bg-coconut-cream">
                 <TrendingClubsCarousel clubs={clubs} />
             </section>
             <FooterComponent />
