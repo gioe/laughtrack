@@ -71,7 +71,7 @@ const ComedianDetailTabs = ({
                                 className={`whitespace-nowrap border-b-2 px-4 py-3 font-dmSans text-sm font-medium transition-colors ${
                                     selected
                                         ? "border-copper text-copper"
-                                        : "border-transparent text-gray-600 hover:border-gray-300 hover:text-cedar"
+                                        : "border-transparent text-gray-600 hover:border-gray-300 hover:text-foreground"
                                 }`}
                             >
                                 {tab.label}

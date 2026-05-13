@@ -41,7 +41,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                 </Link>
             </div>
             <div className="mt-4 space-y-2">
-                <h2 className="text-h3 font-extrabold font-gilroy-bold text-center text-cedar hover:text-cedar-dark transition-colors">
+                <h2 className="text-h3 font-extrabold font-gilroy-bold text-center text-foreground hover:text-foreground transition-colors">
                     {parsedClub.name}
                 </h2>
 

@@ -86,7 +86,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                 </div>
             </motion.div>
 
-            <div className="mt-4 sm:mt-6 text-base sm:text-lg text-cedar font-dmSans">
+            <div className="mt-4 sm:mt-6 text-base sm:text-lg text-foreground font-dmSans">
                 <p>{dateLabel}</p>
                 {show.room && (
                     <p className="text-sm text-gray-600 mt-1">{show.room}</p>

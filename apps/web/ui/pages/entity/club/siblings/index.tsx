@@ -59,7 +59,7 @@ const SiblingCard = ({ club }: { club: SiblingClubDTO }) => {
                 />
             </div>
             <div className="p-3 space-y-1">
-                <h3 className="font-bold text-cedar text-sm">{club.name}</h3>
+                <h3 className="font-bold text-foreground text-sm">{club.name}</h3>
                 {locationLabel && (
                     <p className="flex items-center gap-1 text-xs text-gray-500">
                         <MapPin size={11} aria-hidden="true" />

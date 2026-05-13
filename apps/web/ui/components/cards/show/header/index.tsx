@@ -43,7 +43,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 {show.name ? (
                     <h2
                         className={cn(
-                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-cedar-dark mb-1",
+                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-foreground mb-1",
                             isPast ? "font-semibold" : "font-bold",
                         )}
                     >
@@ -52,7 +52,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 ) : (
                     <p
                         className={cn(
-                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-cedar-dark mb-1",
+                            "text-xl sm:text-2xl md:text-h3 font-gilroy-bold text-foreground mb-1",
                             isPast && "font-normal",
                         )}
                     >

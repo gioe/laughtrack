@@ -59,7 +59,7 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                     <h2 className="text-xl font-bold mb-2">
                         {isFestival ? "About the Festival" : "About"}
                     </h2>
-                    <p className="text-cedar whitespace-pre-line">
+                    <p className="text-foreground whitespace-pre-line">
                         {parsedClub.description}
                     </p>
                 </section>
@@ -70,7 +70,7 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                         <Clock className="w-5 h-5" aria-hidden="true" />
                         Hours
                     </h2>
-                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-cedar">
+                    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-foreground">
                         {hoursEntries.map(([day, hours]) => (
                             <div key={day} className="contents">
                                 <dt className="capitalize font-medium">
@@ -91,7 +91,7 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                         {parsedClub.phoneNumber !== "" && (
                             <a
                                 href={`tel:${parsedClub.phoneNumber}`}
-                                className="flex items-center gap-2 text-cedar hover:text-paarl"
+                                className="flex items-center gap-2 text-foreground hover:text-paarl"
                             >
                                 <Phone className="w-5 h-5" />
                                 <span>{parsedClub.phoneNumber}</span>
@@ -102,7 +102,7 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                                 href={parsedClub.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-cedar hover:text-paarl"
+                                className="flex items-center gap-2 text-foreground hover:text-paarl"
                             >
                                 <Globe className="w-5 h-5" />
                                 <span>
@@ -117,7 +117,7 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                                 href={mapUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-cedar hover:text-paarl"
+                                className="flex items-center gap-2 text-foreground hover:text-paarl"
                             >
                                 <MapPin className="w-5 h-5" />
                                 <span>View on Google Maps</span>

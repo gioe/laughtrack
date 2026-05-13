@@ -30,7 +30,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                     {showFallback ? (
                         <div
                             data-testid="club-image-fallback"
-                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-coconut-cream via-white to-copper/20 p-6 text-center text-cedar"
+                            className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-coconut-cream via-white to-copper/20 p-6 text-center text-foreground"
                         >
                             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/85 text-copper shadow-sm">
                                 <Building2

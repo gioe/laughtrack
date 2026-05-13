@@ -23,7 +23,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                         <h2 className="text-display font-gilroy-bold font-bold mb-2">
                             {clubCount.toLocaleString()}
                         </h2>
-                        <p className="text-gray-600 font-dmSans text-lead">
+                        <p className="text-muted-foreground font-dmSans text-lead">
                             Clubs
                         </p>
                     </div>
@@ -34,7 +34,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                         <h2 className="text-display font-gilroy-bold font-bold mb-2">
                             {comedianCount.toLocaleString()}
                         </h2>
-                        <p className="text-gray-600 font-dmSans text-lead">
+                        <p className="text-muted-foreground font-dmSans text-lead">
                             Comedians
                         </p>
                     </div>
@@ -45,14 +45,14 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                         <h2 className="text-display font-gilroy-bold font-bold mb-2">
                             {showCount.toLocaleString()}
                         </h2>
-                        <p className="text-gray-600 font-dmSans text-lead">
+                        <p className="text-muted-foreground font-dmSans text-lead">
                             Shows
                         </p>
                     </div>
                 </div>
 
                 {/* Description Text */}
-                <p className="text-center text-gray-700 max-w-3xl mx-auto font-dmSans">
+                <p className="text-center text-muted-foreground max-w-3xl mx-auto font-dmSans">
                     Follow comedians you like. We'll let you know when they're
                     in your area. You wouldn't want to miss that one time that
                     one person on that one podcast was{" "}

@@ -23,7 +23,7 @@ const SupportSection = () => {
                 </div>
 
                 {/* Text Content */}
-                <div className="space-y-6 text-gray-700 text-left text-lead font-dmSans">
+                <div className="space-y-6 text-muted-foreground text-left text-lead font-dmSans">
                     <p>
                         We built Laughtrack because we saw a problem that needed
                         solving. It's not the biggest problem in the world, but

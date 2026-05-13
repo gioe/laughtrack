@@ -45,7 +45,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
                 }`}
             >
                 <h3
-                    className={`font-extrabold font-gilroy-bold text-cedar hover:text-cedar-dark transition-colors ${
+                    className={`font-extrabold font-gilroy-bold text-foreground hover:text-foreground transition-colors ${
                         isCompact
                             ? "text-base leading-tight text-left"
                             : "text-h3 text-center"

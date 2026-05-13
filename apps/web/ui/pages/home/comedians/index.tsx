@@ -10,7 +10,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
     return (
         <div className="max-w-7xl w-full mx-auto py-14 px-4 sm:px-6">
             <div className="mb-8 animate-fadeIn">
-                <h2 className="text-3xl sm:text-4xl font-bold font-gilroy-bold mb-3 text-cedar">
+                <h2 className="text-3xl sm:text-4xl font-bold font-gilroy-bold mb-3 text-foreground">
                     Comics on the rise this week
                 </h2>
                 <p className="text-gray-600 font-dmSans text-base sm:text-lg max-w-2xl">

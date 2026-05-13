@@ -22,7 +22,7 @@ export const FilterChip = ({
             ${
                 isSelected
                     ? "bg-copper text-white border-2 border-copper hover:bg-copper/90 hover:-translate-y-[1px]"
-                    : "bg-coconut-cream text-gray-700 border-2 border-gray-200 hover:border-copper/60 hover:-translate-y-[1px] hover:bg-coconut-cream/80"
+                    : "bg-white/5 text-white/80 border-2 border-white/15 hover:border-copper/60 hover:-translate-y-[1px] hover:bg-white/10"
             }`}
         >
             {option.name}

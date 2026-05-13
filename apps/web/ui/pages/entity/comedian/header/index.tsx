@@ -455,7 +455,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             aria-label={`${parsedComedian.name} on ${platform}`}
-                                            className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-cedar px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
+                                            className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-foreground px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
                                         >
                                             <Icon
                                                 className="w-4 h-4"

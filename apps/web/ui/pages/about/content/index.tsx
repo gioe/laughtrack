@@ -12,7 +12,7 @@ const AboutUsSection = () => {
                     <h1 className="text-h1 font-bold mb-4 font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent transform transition-transform duration-300 hover:scale-105">
                         About Us
                     </h1>
-                    <p className="text-gray-700 font-dmSans text-body animate-slideUp">
+                    <p className="text-muted-foreground font-dmSans text-body animate-slideUp">
                         Laughtrack is a space to find things that make you
                         laugh, and hopefully nothing else.
                     </p>
@@ -29,7 +29,7 @@ const AboutUsSection = () => {
                 </div>
 
                 {/* Text Content with staggered animations */}
-                <div className="space-y-8 text-gray-700 text-left text-lead font-dmSans max-w-3xl mx-auto">
+                <div className="space-y-8 text-muted-foreground text-left text-lead font-dmSans max-w-3xl mx-auto">
                     <p className="animate-fadeIn [animation-delay:100ms]">
                         Laughtrack is a space to find things that make you
                         laugh, and hopefully nothing else.

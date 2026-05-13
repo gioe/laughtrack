@@ -44,7 +44,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
     if (lineup.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-[136px] px-4 py-6 rounded-xl border border-dashed border-cedar/20 bg-white/20">
-                <p className="text-cedar/60 font-dmSans text-sm italic text-center">
+                <p className="text-foreground/60 font-dmSans text-sm italic text-center">
                     No announced lineup
                 </p>
             </div>
@@ -91,7 +91,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                         {comedian.name.split(" ").map((nameString) => (
                             <p
                                 key={nameString}
-                                className="text-body text-cedar font-semibold text-center font-dmSans"
+                                className="text-body text-foreground font-semibold text-center font-dmSans"
                             >
                                 {nameString}
                             </p>

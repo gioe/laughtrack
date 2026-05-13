@@ -24,7 +24,7 @@ const EmptyState = ({ title, message, icons, action }: EmptyStateProps) => {
                         ))}
                     </div>
                     <div className="space-y-4">
-                        <h2 className="font-bold font-dmSans text-3xl sm:text-4xl text-cedar">
+                        <h2 className="font-bold font-dmSans text-3xl sm:text-4xl text-foreground">
                             {title}
                         </h2>
                         <p className="text-gray-600 text-lg font-dmSans">

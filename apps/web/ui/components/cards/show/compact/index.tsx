@@ -72,7 +72,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                 <div className="min-w-0">
                     <p
                         data-testid="compact-show-title"
-                        className="font-gilroy-bold font-bold text-cedar-dark text-body leading-tight line-clamp-2"
+                        className="font-gilroy-bold font-bold text-foreground text-body leading-tight line-clamp-2"
                     >
                         {parsedShow.name || "Untitled show"}
                     </p>
