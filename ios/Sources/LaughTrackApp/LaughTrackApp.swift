@@ -39,6 +39,7 @@ struct LaughTrackApp: App {
                 .environmentObject(authManager)
                 .environmentObject(loginModalPresenter)
                 .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+                .preferredColorScheme(.dark)
         }
     }
 

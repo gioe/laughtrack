@@ -236,21 +236,24 @@ public struct LaughTrackTheme: AppThemeProtocol {
 
     public init() {
         let semanticColors = LaughTrackSemanticColorTokens(
-            canvas: Color(light: Color(hex: "#FAF6E0") ?? .white, dark: Color(hex: "#1F1713") ?? .black),
-            surface: Color(light: Color(hex: "#FFFDF7") ?? .white, dark: Color(hex: "#2B211C") ?? .black),
-            surfaceMuted: Color(light: Color(hex: "#F5E6D3") ?? .white, dark: Color(hex: "#3B2A22") ?? .black),
-            surfaceElevated: Color(light: Color(hex: "#FFFFFF") ?? .white, dark: Color(hex: "#342720") ?? .black),
-            borderSubtle: Color(light: Color(hex: "#E8D7C5") ?? .gray, dark: Color(hex: "#4C392F") ?? .gray),
-            borderStrong: Color(light: Color(hex: "#D5B79A") ?? .gray, dark: Color(hex: "#6E523F") ?? .gray),
-            textPrimary: Color(light: Color(hex: "#361E14") ?? .black, dark: Color(hex: "#FAF1E8") ?? .white),
-            textSecondary: Color(light: Color(hex: "#6C5648") ?? .gray, dark: Color(hex: "#D7C5B7") ?? .gray),
-            textInverse: Color(light: .white, dark: Color(hex: "#FFF8F2") ?? .white),
-            accent: Color(light: Color(hex: "#B87333") ?? .orange, dark: Color(hex: "#CD8B52") ?? .orange),
-            accentStrong: Color(light: Color(hex: "#A96030") ?? .orange, dark: Color(hex: "#B87333") ?? .orange),
-            accentMuted: Color(light: Color(hex: "#F2D6B8") ?? .orange, dark: Color(hex: "#6C4527") ?? .orange),
-            heroStart: Color(light: Color(hex: "#361E14") ?? .black, dark: Color(hex: "#231713") ?? .black),
-            heroEnd: Color(light: Color(hex: "#B87333") ?? .orange, dark: Color(hex: "#8D5628") ?? .orange),
-            highlight: Color(light: Color(hex: "#F7E7CE") ?? .yellow, dark: Color(hex: "#5F472F") ?? .yellow),
+            // Unified dark Spotify-style palette. Light/dark args still required
+            // by the Color(light:dark:) API but both resolve to dark values so
+            // the app reads as dark regardless of system appearance.
+            canvas: Color(light: Color(hex: "#121212") ?? .black, dark: Color(hex: "#121212") ?? .black),
+            surface: Color(light: Color(hex: "#181818") ?? .black, dark: Color(hex: "#181818") ?? .black),
+            surfaceMuted: Color(light: Color(hex: "#1F1F1F") ?? .black, dark: Color(hex: "#1F1F1F") ?? .black),
+            surfaceElevated: Color(light: Color(hex: "#282828") ?? .black, dark: Color(hex: "#282828") ?? .black),
+            borderSubtle: Color(light: Color(hex: "#2A2A2A") ?? .gray, dark: Color(hex: "#2A2A2A") ?? .gray),
+            borderStrong: Color(light: Color(hex: "#3A3A3A") ?? .gray, dark: Color(hex: "#3A3A3A") ?? .gray),
+            textPrimary: Color(light: Color(hex: "#FAF1E8") ?? .white, dark: Color(hex: "#FAF1E8") ?? .white),
+            textSecondary: Color(light: Color(hex: "#B3B3B3") ?? .gray, dark: Color(hex: "#B3B3B3") ?? .gray),
+            textInverse: Color(light: Color(hex: "#121212") ?? .black, dark: Color(hex: "#121212") ?? .black),
+            accent: Color(light: Color(hex: "#B87333") ?? .orange, dark: Color(hex: "#B87333") ?? .orange),
+            accentStrong: Color(light: Color(hex: "#CD6837") ?? .orange, dark: Color(hex: "#CD6837") ?? .orange),
+            accentMuted: Color(light: Color(hex: "#6C4527") ?? .orange, dark: Color(hex: "#6C4527") ?? .orange),
+            heroStart: Color(light: Color(hex: "#121212") ?? .black, dark: Color(hex: "#121212") ?? .black),
+            heroEnd: Color(light: Color(hex: "#B87333") ?? .orange, dark: Color(hex: "#B87333") ?? .orange),
+            highlight: Color(light: Color(hex: "#5F472F") ?? .yellow, dark: Color(hex: "#5F472F") ?? .yellow),
             success: ColorPalette.successText,
             warning: ColorPalette.warningText,
             danger: ColorPalette.errorText
