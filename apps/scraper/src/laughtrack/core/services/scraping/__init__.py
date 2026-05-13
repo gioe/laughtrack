@@ -319,7 +319,7 @@ class ScrapingService:
             Logger.warn(f"Club geocoding post-run failed; scrape run will continue: {e}")
             return ClubGeocodingResult()
 
-    def scrape_single_club(self, club_id: Optional[int] = None) -> None:
+    def scrape_single_club(self, club_id: Optional[int] = None) -> List[ClubScrapingResult]:
         Logger.info(f"Starting scrape of club: (ID: {club_id})")
         clubs = self.club_handler.get_clubs_by_ids([club_id]) if club_id else self.selector.get_club_selection()
         if not clubs:
@@ -341,8 +341,9 @@ class ScrapingService:
             Logger.info(f"Scraped {total_shows} shows for {club_label}{diag_suffix}")
         else:
             Logger.info(f"Scraped {total_shows} shows for {club_label}")
+        return results
 
-    def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> None:
+    def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> List[ClubScrapingResult]:
         Logger.info(f"Starting scrape of all clubs using scraper type: {scraper_type}")
         scraper_type = scraper_type or self.selector.get_scraper_type_selection()
         if not scraper_type:
@@ -353,6 +354,7 @@ class ScrapingService:
         self.club_handler.refresh_club_total_shows()
         total_shows = sum(r.num_shows for r in results)
         Logger.info(f"Scraped {total_shows} shows for {scraper_type}")
+        return results
 
     # --- Production company helpers ---
 

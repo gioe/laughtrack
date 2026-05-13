@@ -157,16 +157,17 @@ Examples:
         # Perform the primary action (scrape/list). "--open-dashboard" is an optional post-action flag
         # and should not short‑circuit other actions when combined.
         performed_primary = False
+        scrape_results = None  # populated by the scraping code paths so we can check for config_error below
         if args.all:
-            scraping_service.scrape_all_clubs(); performed_primary = True
+            scrape_results = scraping_service.scrape_all_clubs(); performed_primary = True
         elif args.club_id:
-            scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
+            scrape_results = scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
         elif args.club:
-            scraping_service.scrape_single_club(club_id=selected_club.id); performed_primary = True
+            scrape_results = scraping_service.scrape_single_club(club_id=selected_club.id); performed_primary = True
         elif args.scraper_type:
-            scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
+            scrape_results = scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
         elif args.scraper_type_interactive:
-            scraping_service.scrape_by_scraper_type(); performed_primary = True
+            scrape_results = scraping_service.scrape_by_scraper_type(); performed_primary = True
         elif args.list_scrapers:
             scraper_service.list_available_scraper_types(); performed_primary = True
         elif args.list_clubs:
@@ -178,7 +179,7 @@ Examples:
             metrics_service.open_dashboard(open_in_browser=True); performed_primary = True
         if not performed_primary:
             Logger.info("Starting interactive club selection...")
-            scraping_service.scrape_single_club()
+            scrape_results = scraping_service.scrape_single_club()
 
         # If user requested dashboard opening (and it wasn't the sole primary action) do it after scraping.
         if args.open_dashboard and not (args.list_scrapers or args.list_clubs):
@@ -192,6 +193,20 @@ Examples:
     except Exception as e:
         Logger.error(f"An error occurred while scraping: {e}")
         sys.exit(1)
+
+    # Propagate scraper-key configuration errors as a non-zero exit so CI /
+    # make scrape-club fails loudly instead of treating an unregistered key
+    # as a legitimate zero-shows scrape (TASK-2172). Unaffected clubs in the
+    # same run have already been persisted by this point.
+    if scrape_results:
+        config_errored = [r for r in scrape_results if getattr(r, "config_error", False)]
+        if config_errored:
+            for r in config_errored:
+                Logger.error(f"Config error for '{r.club_name}': {r.error}")
+            Logger.error(
+                f"{len(config_errored)} club(s) failed with unregistered scraper_key — exiting non-zero"
+            )
+            sys.exit(1)
 
 
 # For backward compatibility - standalone script functionality
