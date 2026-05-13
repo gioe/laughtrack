@@ -20,8 +20,7 @@ SET
     state = 'CA',
     zip_code = '92583',
     country = 'US',
-    timezone = 'America/Los_Angeles',
-    updated_at = NOW()
+    timezone = 'America/Los_Angeles'
 WHERE id = 2413
   AND name = 'SCR Event Center at Soboba Casino Resort - Complex';
 
