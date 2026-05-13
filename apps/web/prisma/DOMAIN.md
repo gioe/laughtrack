@@ -10,6 +10,9 @@ A comedy club chain/brand (e.g., Improv, Helium, Funny Bone). Groups multiple Cl
 ### Club
 Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK.
 
+### ClubAlias
+Verified alternate venue names that resolve to one canonical Club before scraper discovery inserts a new club row. Aliases are global across ingestion sources and are scoped by normalized alias name, city, and state so the same venue nickname in a different market does not collide.
+
 ### Comedian
 Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
 
