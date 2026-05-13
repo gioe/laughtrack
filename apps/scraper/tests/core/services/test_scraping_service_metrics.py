@@ -620,6 +620,44 @@ class TestScrapeClubsWithMetrics:
         assert len(summary.per_club) == 1
         assert summary.per_club[0].error == 1
 
+    @pytest.mark.asyncio
+    async def test_mixed_batch_persists_healthy_clubs_when_other_has_config_error(self):
+        """A mixed batch (one unresolvable key, one healthy scraper) must still persist
+        the healthy club's shows. Pins the docstring claim in scrape_shows.py that
+        'unaffected clubs in the same run have already been persisted by this point'
+        when the entry script exits non-zero on config_error (TASK-2172)."""
+        svc = self._make_service()
+
+        # Healthy club resolves to a real scraper class that returns shows.
+        healthy_result = ClubScrapingResult(
+            club_name="Healthy Club", shows=[MagicMock()], execution_time=1.0
+        )
+        mock_scraper = MagicMock()
+        mock_scraper.scrape_with_result.return_value = healthy_result
+
+        def resolver(key):
+            return (lambda club, **kw: mock_scraper) if key == "good" else None
+
+        svc._scraping_resolver.get.side_effect = resolver
+
+        healthy_club = self._make_club(name="Healthy Club", scraper_key="good")
+        bad_club = self._make_club(name="Bad Key Club", scraper_key="unknown")
+        bad_club.id = 2
+
+        results, summary, _ = await svc._scrape_clubs_concurrently([healthy_club, bad_club])
+
+        by_name = {r.club_name: r for r in results}
+        assert by_name["Healthy Club"].config_error is False
+        assert by_name["Healthy Club"].num_shows == 1
+        assert by_name["Bad Key Club"].config_error is True
+        assert "'unknown'" in by_name["Bad Key Club"].error
+
+        # The healthy club's result is the only one persisted — the unresolvable-key
+        # club returns from the source loop before the DB write block runs.
+        persisted = [c.args[0] for c in svc._result_processor.insert_club_result.call_args_list]
+        assert len(persisted) == 1
+        assert persisted[0] is healthy_result
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os

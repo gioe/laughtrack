@@ -198,7 +198,7 @@ Examples:
     # make scrape-club fails loudly instead of treating an unregistered key
     # as a legitimate zero-shows scrape (TASK-2172). Unaffected clubs in the
     # same run have already been persisted by this point.
-    if scrape_results:
+    if scrape_results is not None:
         config_errored = [r for r in scrape_results if getattr(r, "config_error", False)]
         if config_errored:
             for r in config_errored:
