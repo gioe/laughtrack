@@ -72,7 +72,7 @@ struct ProfileView: View {
                     ProfileSettingsSection(
                         authenticatedUser: AuthenticatedUser(
                             displayName: "Guest preview",
-                            email: "guest@laughtrack.app",
+                            email: "design-preview@example.invalid",
                             avatarURL: nil
                         ),
                         nearbyModel: settingsModel,

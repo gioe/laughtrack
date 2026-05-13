@@ -312,20 +312,20 @@ private struct GuestFavoritesPreview: View {
     @Environment(\.appTheme) private var theme
 
     private static let sampleShows = [
-        ("Comedy Cellar New York", "Tonight · Andrew Schulz, Mark Normand"),
-        ("The Tiny Cupboard", "Tomorrow · Sam Morril"),
-        ("Stress Factory", "Saturday · Colin Quinn"),
+        ("Sample Club One", "Tonight · Headliner, opener"),
+        ("Sample Club Two", "Tomorrow · Headliner"),
+        ("Sample Club Three", "Saturday · Headliner"),
     ]
     private static let sampleComedians = [
-        "Andrew Schulz",
-        "Jim Norton",
-        "Mark Normand",
-        "Sam Morril",
+        "Comedian One",
+        "Comedian Two",
+        "Comedian Three",
+        "Comedian Four",
     ]
     private static let sampleClubs = [
-        ("Comedy Cellar New York", "3 favorite-comedian shows"),
-        ("Eastville Comedy Club Brooklyn", "2 favorite-comedian shows"),
-        ("The Tiny Cupboard", "1 favorite-comedian show"),
+        ("Sample Club One", "3 favorite-comedian shows"),
+        ("Sample Club Two", "2 favorite-comedian shows"),
+        ("Sample Club Three", "1 favorite-comedian show"),
     ]
 
     var body: some View {
