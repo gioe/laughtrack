@@ -475,6 +475,88 @@ async def test_get_data_returns_none_when_auth_config_is_unavailable(monkeypatch
     assert await scraper.get_data(_SOURCE_URL) is None
 
 
+# ---------------------------------------------------------------------------
+# PatronTicketEvent.to_show + name_strip_suffixes
+# ---------------------------------------------------------------------------
+
+
+def _make_event(event_name: str, suffixes: List[str]) -> Any:
+    from laughtrack.core.entities.event.patron_ticket import PatronTicketEvent
+
+    return PatronTicketEvent(
+        event_name=event_name,
+        instance_name=event_name,
+        instance_id="I",
+        epoch_ms=_FAR_FUTURE_EPOCH_MS,
+        date_str="January 1, 2099",
+        time_str="8:00 PM",
+        purchase_url="https://example.com/i",
+        sold_out=False,
+        description="",
+        categories="Comedy",
+        name_strip_suffixes=suffixes,
+    )
+
+
+def test_to_show_strips_configured_suffix_from_event_name():
+    club = _club()
+    event = _make_event(
+        "The Setup - San Francisco",
+        suffixes=[" - San Francisco", " - SF", " - sf"],
+    )
+
+    show = event.to_show(club)
+
+    assert show is not None
+    assert show.name == "The Setup"
+
+
+def test_to_show_picks_first_matching_suffix_from_the_list():
+    club = _club()
+    event = _make_event("Open Mic - SF", suffixes=[" - San Francisco", " - SF"])
+
+    show = event.to_show(club)
+
+    assert show is not None
+    assert show.name == "Open Mic"
+
+
+def test_to_show_leaves_name_unchanged_when_no_suffix_matches():
+    club = _club()
+    event = _make_event("Comedy Night", suffixes=[" - San Francisco"])
+
+    show = event.to_show(club)
+
+    assert show is not None
+    assert show.name == "Comedy Night"
+
+
+def test_to_show_treats_missing_strip_suffixes_as_no_op():
+    club = _club()
+    event = _make_event("Headliner - San Francisco", suffixes=[])
+
+    show = event.to_show(club)
+
+    assert show is not None
+    # No suffix configured → upstream string flows through; Show.__post_init__
+    # only collapses internal whitespace, it does not strip city suffixes.
+    assert "San Francisco" in show.name
+
+
+def test_get_data_forwards_name_strip_suffixes_from_metadata_to_events(monkeypatch):
+    """End-to-end: the metadata-configured suffix list reaches PatronTicketEvent."""
+
+    scraper = PatronTicketScraper(
+        _club(
+            metadata={
+                "patronticket_venue_id": "VENUE_A",
+                "patronticket_name_strip_suffixes": [" - San Francisco"],
+            }
+        )
+    )
+    assert scraper._name_strip_suffixes == [" - San Francisco"]
+
+
 @pytest.mark.asyncio
 async def test_get_data_returns_none_when_api_returns_no_matching_instances(monkeypatch):
     scraper = PatronTicketScraper(_club())

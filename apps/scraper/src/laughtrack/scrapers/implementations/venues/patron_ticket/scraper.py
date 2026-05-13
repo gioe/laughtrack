@@ -42,14 +42,23 @@ _DEFAULT_CATEGORIES: tuple = ("Comedy",)
 
 
 def _coerce_string_list(value: object) -> List[str]:
-    """Coerce a JSON metadata value into a list of non-empty trimmed strings.
+    """Coerce a JSON metadata value into a list of non-empty strings.
 
-    Accepts list, tuple, JSON-array string, or CSV string. Anything else returns [].
+    - Python list / tuple: preserve each entry verbatim (entries may contain
+      leading/trailing whitespace, which is meaningful for some keys —
+      ``patronticket_name_strip_suffixes`` entries like " - San Francisco"
+      depend on that leading space to match the upstream event name).
+    - JSON-array string: same as above (decode then preserve verbatim).
+    - CSV string: split on ',' and strip per chunk, since the surrounding
+      whitespace there is formatting around the delimiter, not data.
+    - Anything else: best-effort single-element list, empty if blank.
+
+    Only strictly-empty entries are filtered out in every branch.
     """
     if value is None:
         return []
     if isinstance(value, (list, tuple)):
-        return [str(item).strip() for item in value if str(item).strip()]
+        return [str(item) for item in value if str(item) != ""]
     if isinstance(value, str):
         stripped = value.strip()
         if not stripped:
@@ -60,9 +69,9 @@ def _coerce_string_list(value: object) -> List[str]:
             except ValueError:
                 parsed = None
             if isinstance(parsed, list):
-                return [str(item).strip() for item in parsed if str(item).strip()]
+                return [str(item) for item in parsed if str(item) != ""]
         return [chunk.strip() for chunk in stripped.split(",") if chunk.strip()]
-    return [str(value).strip()] if str(value).strip() else []
+    return [str(value)] if str(value) != "" else []
 
 
 class PatronTicketScraper(BaseScraper):
