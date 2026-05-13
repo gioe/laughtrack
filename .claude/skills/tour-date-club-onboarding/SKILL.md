@@ -19,6 +19,7 @@ Goal: take the next active club whose only enabled scraping source is `tour_date
 - For platform decisions, read `apps/scraper/SCRAPERS.md` first; it is the local source of truth.
 - For API response counts or structures, use direct Python HTTP/client calls, not summarized web fetches.
 - Do not mutate DB rows until you have verified the platform and can state the exact source fields to write.
+- A `tour_dates` club may be a duplicate of an existing canonical club. Always check for duplicates before onboarding a new source, and when resolving a duplicate, add verified aliases to `club_aliases` so future discovery maps the duplicate name/location to the canonical club.
 
 ## Step 1: Pop the Next Club
 
@@ -96,6 +97,33 @@ ORDER BY csd.enabled DESC, csd.priority ASC, csd.id ASC;
 
 If there is already an enabled non-`tour_dates` source or an enabled chain default that applies, stop and report that the club is already onboarded or chain-backed.
 
+Also check whether the selected club duplicates an existing canonical club before doing deeper platform work. Search by normalized venue name variants, city/state, website domain, and any ticket/calendar URLs found in `tour_dates.metadata.event_urls`:
+
+```sql
+SELECT c.id, c.name, c.city, c.state, c.website, c.chain_id, c.visible, c.status,
+       ss.id AS source_id, ss.platform, ss.scraper_key, ss.source_url, ss.enabled,
+       ss.eventbrite_id, ss.ticketmaster_id, ss.seatengine_id, ss.seatengine_v3_id,
+       ss.metadata
+FROM clubs c
+LEFT JOIN scraping_sources ss ON ss.club_id = c.id
+WHERE c.id <> <club_id>
+  AND c.status = 'active'
+  AND COALESCE(c.visible, TRUE) = TRUE
+  AND (
+      (c.city = <city> AND c.state = <state> AND lower(c.name) LIKE <name_pattern>)
+      OR lower(c.website) LIKE <website_or_domain_pattern>
+      OR lower(ss.source_url) LIKE <website_or_domain_pattern>
+  )
+ORDER BY c.id, ss.enabled DESC, ss.priority ASC, ss.id ASC;
+```
+
+If the selected club is a duplicate:
+
+- Verify the canonical club has a working source or chain default; do not merely match on a similar name.
+- Check dependent rows (`shows`, `tagged_clubs`, `email_subscriptions`, `processed_emails`, `production_company_venues`) before deciding whether to hide, merge, or delete the duplicate.
+- Add or update `club_aliases` rows for the duplicate display name(s) and city/state, pointing to the canonical `club_id`, with `verified = TRUE`. Use the table's unique key `(normalized_alias_name, normalized_city, normalized_state)` and include a concise `source` note naming the migration/task.
+- Disable or annotate the duplicate `tour_dates` source only after the canonical source has been verified.
+
 ## Step 3: Find the Venue Site
 
 Use the club name and city/state:
@@ -156,6 +184,7 @@ Ticketmaster:
 
 Use the least custom option that will scrape the venue correctly:
 
+- **Duplicate of an existing club:** write a guarded migration that preserves or migrates dependent data as needed, hides/closes or deletes the duplicate row according to local precedent, disables/annotates the duplicate `tour_dates` source, and inserts verified `club_aliases` rows pointing duplicate names to the canonical club.
 - **Chain-backed:** attach the club to an existing chain or add a chain default only if the venue truly belongs to that chain and the default fits.
 - **Existing generic source:** write a migration or SQL patch that adds/enables a real `scraping_sources` row for the club.
 - **Existing scraper needs copied config:** follow the pattern in `SCRAPERS.md` and nearby migrations.
@@ -187,6 +216,7 @@ Official site: <url>
 Calendar/tickets URL: <url>
 Detected platform: <platform or unknown>
 Existing chain/source: <what exists, or none>
+Duplicate/alias handling: <canonical club id/source and club_aliases changes, or none>
 Recommended action: <exact DB/source/scraper change or task needed>
 Verification: <commands run and result>
 Open questions: <only if blocked>
