@@ -10,13 +10,14 @@ const PasswordInput = (props: InputProps) => {
             <div className="relative">
                 <Input
                     type={showPassword ? "text" : "password"}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white`}
+                    inputTextColor="text-foreground"
+                    className={`w-full px-3 py-2 border border-white/15 rounded-lg focus:ring-2 focus:ring-copper focus:border-copper text-sm bg-white/5 placeholder:text-white/40`}
                     {...props}
                 />
                 <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80"
                     aria-label={
                         showPassword ? "Hide password" : "Show password"
                     }

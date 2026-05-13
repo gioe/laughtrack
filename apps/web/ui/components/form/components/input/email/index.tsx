@@ -6,9 +6,11 @@ const EmailInput = (props: InputProps) => {
         <div className="space-y-2">
             <Input
                 type="email"
-                className={`w-full px-3 py-2 border border-gray-300 
-                    rounded-lg focus:ring-2 focus:ring-blue-500 
-                    focus:border-blue-500 text-sm bg-white`}
+                inputTextColor="text-foreground"
+                className={`w-full px-3 py-2 border border-white/15
+                    rounded-lg focus:ring-2 focus:ring-copper
+                    focus:border-copper text-sm bg-white/5
+                    placeholder:text-white/40`}
                 {...props}
             />
         </div>

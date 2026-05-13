@@ -8,7 +8,8 @@ const ZipCodeInput = (props: InputProps) => {
                 type="text"
                 maxLength={5}
                 pattern="[0-9]{5}"
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white`}
+                inputTextColor="text-foreground"
+                className={`w-full px-3 py-2 border border-white/15 rounded-lg focus:ring-2 focus:ring-copper focus:border-copper text-sm bg-white/5 placeholder:text-white/40`}
                 {...props}
             />
         </div>
