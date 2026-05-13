@@ -5,13 +5,21 @@ import { QueryProperty, SortParamValue } from "./objects/enum";
 import { UserInterface } from "./objects/class/user/user.interface";
 import { getCorsHeaders } from "./lib/cors";
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
+// React Refresh evaluates compiled strings as JS during dev hydration, which
+// requires 'unsafe-eval'. Prod must never include it.
+const SCRIPT_SRC = IS_DEV
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Content-Security-Policy": [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline'",
+        SCRIPT_SRC,
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https://laughtrack.b-cdn.net https://lh3.googleusercontent.com",
         "font-src 'self' data:",
