@@ -226,6 +226,89 @@ class TestChainScrapingDefaultQueries:
         assert "NULLIF(SS.SCRAPER_KEY, '') IS NULL" in sql
 
 
+class TestClubAliasResolution:
+    def test_eventbrite_alias_hit_returns_canonical_club_before_fuzzy_match(self):
+        canonical = _make_club_row(
+            id=86,
+            name="Mesquite St. Comedy Club",
+            city="Corpus Christi",
+            state="TX",
+            eventbrite_id="canonical",
+            aliases=[
+                {
+                    "alias_name": "Mesquite Street",
+                    "normalized_alias_name": "mesquite street",
+                    "normalized_city": "corpus christi",
+                    "normalized_state": "tx",
+                }
+            ],
+        )
+        venue = _FakeVenue(
+            id="mesquite-street-source",
+            name="Mesquite Street",
+            address=_FakeAddress(city="Corpus Christi", region="TX"),
+        )
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", return_value=[canonical]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 86
+        assert result.name == "Mesquite St. Comedy Club"
+        assert mock_exec.call_count == 1
+        assert "club_aliases" in mock_exec.call_args.args[0]
+
+    def test_alias_same_name_different_city_does_not_match(self):
+        new_row = _make_club_row(
+            id=211,
+            name="Mesquite Street",
+            city="Austin",
+            state="TX",
+            eventbrite_id="austin-source",
+        )
+        venue = _FakeVenue(
+            id="austin-source",
+            name="Mesquite Street",
+            address=_FakeAddress(city="Austin", region="TX"),
+        )
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [new_row]]) as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is not None
+        assert result.id == 211
+        assert mock_exec.call_count == 2
+        assert "club_aliases" in mock_exec.call_args_list[0].args[0]
+        assert "WHERE LOWER(TRIM(c.city))" in mock_exec.call_args_list[0].args[0]
+        assert "INSERT INTO clubs" in mock_exec.call_args_list[1].args[0]
+
+    def test_tour_date_no_alias_falls_back_to_upsert(self):
+        new_row = _make_club_row(
+            id=300,
+            name="Fresh Venue",
+            city="Corpus Christi",
+            state="TX",
+        )
+        venue = {
+            "name": "Fresh Venue",
+            "address": "123 Shoreline Blvd, Corpus Christi, TX",
+            "zip_code": "78401",
+            "timezone": "America/Chicago",
+        }
+        handler = ClubHandler()
+
+        with patch.object(handler, "execute_with_cursor", side_effect=[[], [new_row]]) as mock_exec:
+            result = handler.upsert_for_tour_date_venue(venue)
+
+        assert result is not None
+        assert result.id == 300
+        assert mock_exec.call_count == 2
+        assert "club_aliases" in mock_exec.call_args_list[0].args[0]
+        assert "INSERT INTO clubs" in mock_exec.call_args_list[1].args[0]
+
+
 class TestUpsertForEventbriteVenueHappyPath:
     """Criterion 668: valid venue inserts new club and returns Club with correct eventbrite_id."""
 
