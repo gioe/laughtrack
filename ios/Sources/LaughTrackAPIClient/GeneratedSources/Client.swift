@@ -2680,6 +2680,20 @@ public struct Client: APIProtocol {
                     name: "distance",
                     value: input.query.distance
                 )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "comedian",
+                    value: input.query.comedian
+                )
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "club",
+                    value: input.query.club
+                )
                 try converter.setHeaderFieldAsURI(
                     in: &request.headerFields,
                     name: "X-Timezone",

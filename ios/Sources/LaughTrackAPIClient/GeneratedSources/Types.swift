@@ -7357,6 +7357,14 @@ public enum Operations {
                 ///
                 /// - Remark: Generated from `#/paths/shows/density/GET/query/distance`.
                 public var distance: Swift.Int?
+                /// Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/comedian`.
+                public var comedian: Swift.String?
+                /// Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.
+                ///
+                /// - Remark: Generated from `#/paths/shows/density/GET/query/club`.
+                public var club: Swift.String?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
@@ -7364,16 +7372,22 @@ public enum Operations {
                 ///   - from: Start date (YYYY-MM-DD). Defaults to today.
                 ///   - to: End date (YYYY-MM-DD). Defaults to from+89 days.
                 ///   - distance: Radius in miles (1-500, defaults to 25 when zip provided).
+                ///   - comedian: Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.
+                ///   - club: Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.
                 public init(
                     zip: Swift.String? = nil,
                     from: Swift.String? = nil,
                     to: Swift.String? = nil,
-                    distance: Swift.Int? = nil
+                    distance: Swift.Int? = nil,
+                    comedian: Swift.String? = nil,
+                    club: Swift.String? = nil
                 ) {
                     self.zip = zip
                     self.from = from
                     self.to = to
                     self.distance = distance
+                    self.comedian = comedian
+                    self.club = club
                 }
             }
             public var query: Operations.GetShowsDensity.Input.Query
