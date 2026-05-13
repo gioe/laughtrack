@@ -36,11 +36,7 @@ struct LibraryView: View {
                         persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
                     )
                 } else {
-                    LaughTrackInlineStateCard(
-                        tone: .empty,
-                        title: Self.signedOutPromptTitle,
-                        message: "Open Profile to sign in. Your saved comedians and the shows and clubs tied to them follow your account."
-                    )
+                    GuestFavoritesPreview()
                 }
             }
             .padding(.horizontal, theme.spacing.lg)
@@ -310,6 +306,134 @@ enum LibraryFavoritesPresentation {
 struct FavoriteClubSummary: Hashable {
     let name: String
     let showCount: Int
+}
+
+private struct GuestFavoritesPreview: View {
+    @Environment(\.appTheme) private var theme
+
+    private static let sampleShows = [
+        ("Comedy Cellar New York", "Tonight · Andrew Schulz, Mark Normand"),
+        ("The Tiny Cupboard", "Tomorrow · Sam Morril"),
+        ("Stress Factory", "Saturday · Colin Quinn"),
+    ]
+    private static let sampleComedians = [
+        "Andrew Schulz",
+        "Jim Norton",
+        "Mark Normand",
+        "Sam Morril",
+    ]
+    private static let sampleClubs = [
+        ("Comedy Cellar New York", "3 favorite-comedian shows"),
+        ("Eastville Comedy Club Brooklyn", "2 favorite-comedian shows"),
+        ("The Tiny Cupboard", "1 favorite-comedian show"),
+    ]
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+            TeaserSection(
+                eyebrow: "Shows",
+                title: "Shows from favorites",
+                subtitle: "Upcoming dates featuring comedians you've saved."
+            ) {
+                ForEach(Self.sampleShows, id: \.0) { name, detail in
+                    TeaserRow(title: name, subtitle: detail)
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Comedians",
+                title: "Saved comedians",
+                subtitle: "Tap a comedian to follow their dates."
+            ) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: theme.spacing.sm) {
+                        ForEach(Self.sampleComedians, id: \.self) { name in
+                            VStack(spacing: theme.spacing.xs) {
+                                Circle()
+                                    .fill(tokens.colors.textSecondary.opacity(0.15))
+                                    .frame(width: 64, height: 64)
+                                Text(name)
+                                    .font(tokens.typography.metadata)
+                                    .foregroundStyle(tokens.colors.textSecondary.opacity(0.55))
+                                    .lineLimit(1)
+                                    .redacted(reason: .placeholder)
+                            }
+                            .frame(width: 80)
+                        }
+                    }
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Clubs",
+                title: "Clubs from favorites",
+                subtitle: "Venues where your saved comedians have upcoming shows."
+            ) {
+                ForEach(Self.sampleClubs, id: \.0) { name, detail in
+                    TeaserRow(title: name, subtitle: detail)
+                }
+            }
+
+            LaughTrackInlineStateCard(
+                tone: .empty,
+                title: LibraryView.signedOutPromptTitle,
+                message: "Open Profile to sign in. Your saved comedians and the shows and clubs tied to them follow your account."
+            )
+        }
+    }
+}
+
+private struct TeaserSection<Content: View>: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    @ViewBuilder let content: Content
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
+            LaughTrackSectionHeader(eyebrow: eyebrow, title: title, subtitle: subtitle)
+            LaughTrackCard {
+                VStack(alignment: .leading, spacing: tokens.spacing.tight) {
+                    content
+                }
+            }
+        }
+    }
+}
+
+private struct TeaserRow: View {
+    let title: String
+    let subtitle: String
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.sm) {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(tokens.colors.textSecondary.opacity(0.15))
+                .frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(tokens.typography.cardTitle)
+                    .foregroundStyle(tokens.colors.textPrimary.opacity(0.6))
+                    .redacted(reason: .placeholder)
+                Text(subtitle)
+                    .font(tokens.typography.metadata)
+                    .foregroundStyle(tokens.colors.textSecondary.opacity(0.6))
+                    .redacted(reason: .placeholder)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, theme.spacing.xs)
+    }
 }
 
 private struct FavoriteSectionCard<Content: View>: View {
