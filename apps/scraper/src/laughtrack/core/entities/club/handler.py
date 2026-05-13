@@ -356,8 +356,11 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         if not city or not state:
             return None
 
+        norm_alias = _normalize_venue_text_for_match(name)
+        norm_city = _normalize_venue_text_for_match(city)
+        norm_state = _normalize_venue_text_for_match(state)
         norm_target = _normalize_venue_name_for_match(name, city, state)
-        if not norm_target:
+        if not norm_alias or not norm_city or not norm_state or not norm_target:
             return None
 
         try:
@@ -373,6 +376,27 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             )
             return None
 
+        for row in results:
+            aliases = row.get("aliases") or []
+            if isinstance(aliases, str):
+                try:
+                    aliases = json.loads(aliases)
+                except json.JSONDecodeError:
+                    aliases = []
+            if not isinstance(aliases, list):
+                continue
+            for alias in aliases:
+                if not isinstance(alias, dict):
+                    continue
+                if (
+                    alias.get("normalized_alias_name") == norm_alias
+                    and alias.get("normalized_city") == norm_city
+                    and alias.get("normalized_state") == norm_state
+                ):
+                    alias_match = Club.from_db_row(row)
+                    self._log_alias_match_reuse("Club alias", name, name, city, state, alias_match)
+                    return alias_match
+
         if any((row.get("name") or "").strip().lower() == name.strip().lower() for row in results):
             return None
 
@@ -387,6 +411,22 @@ class ClubHandler(BaseDatabaseHandler[Club]):
                 return Club.from_db_row(row)
 
         return None
+
+    def _log_alias_match_reuse(
+        self,
+        source: str,
+        venue_name: str,
+        venue_id: str,
+        city: Optional[str],
+        state: Optional[str],
+        alias_match: Club,
+    ) -> None:
+        Logger.info(
+            f"{source} venue '{venue_name}' (venue.id={venue_id}) "
+            f"alias-matched to canonical club {alias_match.id} "
+            f"'{alias_match.name}' in ({city}, {state}); "
+            f"reusing existing row instead of inserting a duplicate."
+        )
 
     def _log_fuzzy_match_reuse(
         self,

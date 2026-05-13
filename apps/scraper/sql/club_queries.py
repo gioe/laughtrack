@@ -173,8 +173,23 @@ class ClubQueries:
     GET_CLUBS_BY_LOCATION = """
         SELECT
             c.*,
-            '[]'::json AS scraping_sources
+            '[]'::json AS scraping_sources,
+            COALESCE(alias_list.aliases, '[]'::json) AS aliases
         FROM clubs c
+        LEFT JOIN LATERAL (
+            SELECT json_agg(
+                json_build_object(
+                    'alias_name', ca.alias_name,
+                    'normalized_alias_name', ca.normalized_alias_name,
+                    'normalized_city', ca.normalized_city,
+                    'normalized_state', ca.normalized_state
+                )
+                ORDER BY ca.id
+            ) AS aliases
+            FROM club_aliases ca
+            WHERE ca.club_id = c.id
+              AND ca.verified = TRUE
+        ) alias_list ON TRUE
         WHERE LOWER(TRIM(c.city)) = LOWER(TRIM(%s))
           AND LOWER(TRIM(c.state)) = LOWER(TRIM(%s))
           AND c.visible = TRUE
