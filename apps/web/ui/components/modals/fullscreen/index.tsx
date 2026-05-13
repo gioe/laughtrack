@@ -69,16 +69,16 @@ const FullScreenModal = ({
                 role="dialog"
                 aria-modal="true"
                 tabIndex={-1}
-                className={`relative w-full h-full bg-white overflow-y-auto transform transition-transform duration-300 ease-in-out outline-none
+                className={`relative w-full h-full bg-card text-foreground overflow-y-auto transform transition-transform duration-300 ease-in-out outline-none
                     ${isAnimating ? "translate-y-0" : "translate-y-full"}`}
                 onClick={handleModalClick}
             >
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white hover:bg-gray-100
+                    className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15
                         transition-all duration-200 hover:scale-110 hover:shadow-md active:scale-95"
                 >
-                    <X size={24} className="text-gray-600" />
+                    <X size={24} className="text-white/70" />
                 </button>
                 <div
                     className={`transform transition-all duration-300 delay-150
