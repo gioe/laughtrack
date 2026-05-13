@@ -1,4 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import urlparse
 
 from curl_cffi.requests import Response
 
@@ -260,7 +261,20 @@ class SeatEngineClient(BaseApiClient):
         # Check if "Room 861" is in the show name (common pattern for this venue)
         elif "Room 861" in event_data.get("name", ""):
             room = "Room 861"
-        return room
+        return room or self._room_from_source_url()
+
+    def _room_from_source_url(self) -> Optional[str]:
+        """Infer room names for venue pages where one SeatEngine venue is split by URL."""
+        source_url = self.club.scraping_url
+        if "wiseguyscomedy.com/utah/salt-lake-city/" not in source_url:
+            return None
+
+        room_slug = urlparse(source_url).path.rstrip("/").split("/")[-1]
+        return {
+            "the-showroom": "The Showroom",
+            "the-cabaret": "The Cabaret",
+            "the-rickles-room": "The Rickles Room",
+        }.get(room_slug)
 
     async def fetch_venue_details(self, venue_id: str) -> Optional[JSONDict]:
         """Fetch venue details from SeatEngine API.

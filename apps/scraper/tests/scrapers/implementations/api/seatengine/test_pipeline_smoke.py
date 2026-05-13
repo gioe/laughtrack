@@ -37,6 +37,13 @@ def _club(seatengine_id: str = VENUE_ID) -> Club:
     return _c
 
 
+def _wiseguys_room_club(room_slug: str = "the-showroom") -> Club:
+    _c = Club(id=390, name="Wiseguys Comedy Club - Salt Lake City", address='190 South 400 West', website=f'https://www.wiseguyscomedy.com/utah/salt-lake-city/{room_slug}', popularity=0, zip_code='84101', phone_number='', visible=True, timezone='America/Denver')
+    _c.active_scraping_source = ScrapingSource(id=644, club_id=_c.id, platform='seatengine', scraper_key='seatengine', source_url=f'https://www.wiseguyscomedy.com/utah/salt-lake-city/{room_slug}', external_id='361')
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
 def _show_dict(show_id: int = 101, comedian_name: str = "Alice Smith") -> dict:
     """Minimal SeatEngine API show payload."""
     return {
@@ -192,3 +199,34 @@ async def test_transform_extracts_lineup_and_tickets(monkeypatch):
     assert len(show_obj.tickets) == 1
     assert show_obj.tickets[0].price == 25.0
     assert not show_obj.tickets[0].sold_out
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("room_slug", "expected_room"),
+    [
+        ("the-showroom", "The Showroom"),
+        ("the-cabaret", "The Cabaret"),
+        ("the-rickles-room", "The Rickles Room"),
+    ],
+)
+async def test_transform_sets_wiseguys_room_from_room_specific_source_url(
+    monkeypatch,
+    room_slug,
+    expected_room,
+):
+    """Wiseguys SLC room-specific SeatEngine sources preserve the room on shows."""
+    scraper = SeatEngineScraper(_wiseguys_room_club(room_slug))
+    show = _show_dict(show_id=361001)
+
+    async def fake_fetch_events(venue_id):
+        scraper.seatengine_client.venue_website = scraper.club.website
+        return [show]
+
+    scraper.seatengine_client.fetch_events = fake_fetch_events
+
+    page_data = await scraper.get_data("361")
+    shows = scraper.transform_data(page_data, source_url="361")
+
+    assert len(shows) == 1
+    assert shows[0].room == expected_room
