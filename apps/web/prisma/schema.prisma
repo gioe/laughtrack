@@ -166,10 +166,31 @@ model Club {
   processedEmails         ProcessedEmail[]
   productionCompanyVenues ProductionCompanyVenue[]
   scrapingSources         ScrapingSource[]
+  aliases                 ClubAlias[]
 
   @@index([visible])
   @@index([chainId])
   @@map("clubs")
+}
+
+model ClubAlias {
+  id                  Int      @id @default(autoincrement())
+  clubId              Int      @map("club_id")
+  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  aliasName           String   @map("alias_name")
+  normalizedAliasName String   @map("normalized_alias_name")
+  city                String
+  state               String
+  normalizedCity      String   @map("normalized_city")
+  normalizedState     String   @map("normalized_state")
+  source              String?
+  verified            Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@unique([normalizedAliasName, normalizedCity, normalizedState])
+  @@index([clubId])
+  @@map("club_aliases")
 }
 
 model Comedian {
