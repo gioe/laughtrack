@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Source comedian images from Wikidata and TMDb for all missing-image comedians.
+"""Source comedian images from Wikidata and TMDb for missing-image comedians.
 
-Queries the database for comedians with has_image=false, attempts to source an
-image for each (Wikidata first, TMDb fallback), uploads to Bunny CDN, and sets
-has_image=true for successful uploads.
+Default mode queries the database for comedians with has_image=false, attempts
+to source an image for each (Wikidata first, TMDb fallback), uploads to Bunny
+CDN, and sets has_image=true for successful uploads.
 
 Re-running is safe — only comedians with has_image=false are processed.
 
 Usage:
+    # DB-driven (top-N by total_shows where has_image=false)
     python -m scripts.core.source_comedian_images
     python -m scripts.core.source_comedian_images --dry-run
     python -m scripts.core.source_comedian_images --limit 50
+
+    # Targeted: explicit names bypass the DB candidate query
+    python -m scripts.core.source_comedian_images --name "Patton Oswalt"
+    python -m scripts.core.source_comedian_images --name "Patton Oswalt" --name "Luenell"
+    python -m scripts.core.source_comedian_images --names-file curated.txt
 """
 
 import argparse
@@ -65,7 +71,19 @@ def main():
         "--limit",
         type=int,
         default=None,
-        help="Max number of comedians to process (default: all)",
+        help="Max number of comedians to process (default: all). Ignored when --name/--names-file is used.",
+    )
+    parser.add_argument(
+        "--name",
+        action="append",
+        default=[],
+        help="Explicit comedian name to source (repeatable). Bypasses the DB candidate query.",
+    )
+    parser.add_argument(
+        "--names-file",
+        type=Path,
+        default=None,
+        help="Path to a file with one comedian name per line (blank lines and # comments ignored).",
     )
     args = parser.parse_args()
 
@@ -78,9 +96,16 @@ def main():
             print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
             sys.exit(1)
 
-    with get_connection() as conn:
-        names = get_missing_image_comedians(conn, limit=args.limit)
-    print(f"Found {len(names)} comedians with has_image=false")
+    explicit_names = _collect_explicit_names(args.name, args.names_file)
+    if explicit_names:
+        if args.limit is not None:
+            print("Note: --limit ignored when explicit --name/--names-file is provided", file=sys.stderr)
+        names = explicit_names
+        print(f"Targeting {len(names)} explicit comedian(s) — bypassing DB candidate query")
+    else:
+        with get_connection() as conn:
+            names = get_missing_image_comedians(conn, limit=args.limit)
+        print(f"Found {len(names)} comedians with has_image=false")
 
     if not names:
         print("Nothing to do.")
@@ -124,6 +149,36 @@ def main():
     print(f"Processed: {len(names)}")
     print(f"Sourced:   {len(sourced)} ({100 * len(sourced) / len(names):.1f}%)")
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(names):.1f}%)")
+
+
+def _collect_explicit_names(name_args, names_file):
+    """Merge --name and --names-file inputs into a deduped, ordered list.
+
+    Preserves first-seen order. File lines are stripped; blanks and lines
+    starting with '#' are skipped.
+    """
+    seen = set()
+    ordered = []
+
+    def _add(n):
+        n = n.strip()
+        if not n or n in seen:
+            return
+        seen.add(n)
+        ordered.append(n)
+
+    for n in name_args or []:
+        _add(n)
+    if names_file:
+        if not names_file.exists():
+            print(f"Error: --names-file not found: {names_file}", file=sys.stderr)
+            sys.exit(1)
+        for line in names_file.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            _add(stripped)
+    return ordered
 
 
 def _update_has_image(names):

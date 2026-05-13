@@ -1,0 +1,27 @@
+# Curated cohort for TASK-2182 — well-known comedians missing CDN headshots.
+# Selected by hand from comedians WHERE has_image=false AND parent_comedian_id IS NULL,
+# rather than the default total_shows DESC ordering, which surfaces non-comedian
+# tags ("Drag", "Sketch", "ComedySportz", "Best of", etc.) that have no Wikidata entry.
+#
+# Run: python -m scripts.core.source_comedian_images --names-file scripts/core/curated_missing_image_comedians.txt
+
+Patton Oswalt
+Luenell
+Sheryl Underwood
+Drew Lynch
+Josh Wolf
+Ms. Pat
+Adam Ray
+Rick Glassman
+Chris Porter
+Nate Jackson
+Kam Patterson
+Desi Banks
+Hannibal Buress
+Hasan Minhaj
+Iliza Shlesinger
+Marc Maron
+Nikki Glaser
+Tig Notaro
+Tom Segura
+Whitney Cummings
