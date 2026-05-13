@@ -67,6 +67,18 @@ struct ProfileView: View {
                         nearbyModel: settingsModel,
                         notificationModel: notificationModel
                     )
+                } else {
+                    #if DEBUG
+                    ProfileSettingsSection(
+                        authenticatedUser: AuthenticatedUser(
+                            displayName: "Guest preview",
+                            email: "guest@laughtrack.app",
+                            avatarURL: nil
+                        ),
+                        nearbyModel: settingsModel,
+                        notificationModel: notificationModel
+                    )
+                    #endif
                 }
             }
             .padding(.horizontal, theme.spacing.lg)
