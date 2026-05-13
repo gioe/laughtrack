@@ -601,8 +601,10 @@ class TestScrapeClubsWithMetrics:
     async def test_unresolvable_scraper_key_emits_error_result(self):
         """A club with an enabled ScrapingSource whose scraper_key the resolver can't
         resolve falls through scrape_one's source loop and produces a
-        ClubScrapingResult(error='no enabled scraping source could be resolved')
-        plus matching error metrics — separate from the no-source skip path."""
+        ClubScrapingResult flagged config_error=True with a cause-hint message
+        naming the offending key, plus matching error metrics. Distinguishes
+        config drift from the no-source skip path so the entry script can exit
+        non-zero (TASK-2172)."""
         svc = self._make_service()
 
         # Build a club with a real enabled source, but an unresolvable scraper_key.
@@ -612,7 +614,9 @@ class TestScrapeClubsWithMetrics:
         results, summary, _ = await svc._scrape_clubs_concurrently([club])
 
         assert len(results) == 1
-        assert results[0].error == "no enabled scraping source could be resolved"
+        assert results[0].config_error is True
+        assert "'unknown'" in results[0].error
+        assert "unmerged" in results[0].error
         assert len(summary.per_club) == 1
         assert summary.per_club[0].error == 1
 

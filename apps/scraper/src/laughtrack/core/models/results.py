@@ -45,6 +45,11 @@ class ClubScrapingResult:
     targets_collected: Optional[int] = None
     fetches_ok: Optional[int] = None
     fetches_failed: Optional[int] = None
+    # True when every enabled scraping_source's scraper_key for this club
+    # failed to resolve against the runtime scraper registry. Distinguishes
+    # config drift (unmerged module, renamed key, gitignored file) from a
+    # legitimate zero-shows scrape so the entry script can exit non-zero.
+    config_error: bool = False
 
     @property
     def num_shows(self) -> int:

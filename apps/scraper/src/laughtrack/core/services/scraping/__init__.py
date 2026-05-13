@@ -35,6 +35,15 @@ _OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to
 _DISCORD_DESCRIPTION_LIMIT = 2048  # conservative limit; Discord's actual embed description cap is 4096
 _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard limit but avoids huge payloads
 
+# Cause hint included in the ERROR log and ClubScrapingResult.error when the
+# runtime scraper registry has no class for a configured scraper_key. Tells
+# the operator where to look first (TASK-2169 incident: stale main checkout
+# was missing patron_ticket so the first scrape silently reported 0 shows).
+_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT = (
+    "scraper module may be unmerged on this branch, gitignored, or the "
+    "scraper_key was renamed in scraping_sources without a matching code change"
+)
+
 
 def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPTION_LIMIT) -> str:
     """Join lines into a Discord embed description, truncating with a count suffix if over limit.
@@ -490,13 +499,18 @@ class ScrapingService:
                 _PER_CLUB_TIMEOUT = 300  # seconds; unblocks gather if a thread stalls on network
                 last_result: Optional[ClubScrapingResult] = None
                 last_key = sources[0].scraper_key
+                unresolved_keys: List[str] = []
                 for index, source in enumerate(sources):
                     attempt_club = _build_source_proxy_club(club, source)
                     key = source.scraper_key
                     last_key = key
                     scraper_cls = self._scraping_resolver.get(key)
                     if not scraper_cls:
-                        Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
+                        Logger.error(
+                            f"No scraper found for club '{club.name}' with key '{key}': "
+                            f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
+                        )
+                        unresolved_keys.append(key)
                         continue
                     if index > 0:
                         Logger.warn(
@@ -609,6 +623,25 @@ class ScrapingService:
                 metrics.scraper_type = last_key
                 if last_result is None:
                     metrics.error += 1
+                    # When unresolved_keys is non-empty, every enabled source for this
+                    # club failed to resolve against the runtime scraper registry — a
+                    # configuration error, not a fetch/parse failure. Flag it with
+                    # config_error so the entry script can exit non-zero instead of
+                    # treating it as a legitimate zero-shows scrape.
+                    if unresolved_keys:
+                        joined_keys = ", ".join(repr(k) for k in unresolved_keys)
+                        error_msg = (
+                            f"no scraper registered for configured key(s) {joined_keys}: "
+                            f"{_UNREGISTERED_SCRAPER_KEY_CAUSE_HINT}"
+                        )
+                        return ClubScrapingResult(
+                            club_name=club.name,
+                            shows=[],
+                            execution_time=0.0,
+                            error=error_msg,
+                            club_id=club.id,
+                            config_error=True,
+                        ), metrics
                     return ClubScrapingResult(
                         club_name=club.name,
                         shows=[],
