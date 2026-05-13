@@ -12,8 +12,13 @@ Reads per-club config from ``scraping_sources``:
 
   metadata.patronticket_categories (optional)
               → CSV (or JSON list) of category tokens to keep. Defaults to
-                ``"Comedy"``. Pass an empty string or the literal ``"*"`` to
-                disable category filtering for venues that tag comedy differently.
+                ``"Comedy"``. Matching is token-exact against the venue's
+                semicolon-separated ``category`` field (with surrounding
+                whitespace stripped per token), so the default ``"Comedy"``
+                filter matches ``"Comedy"`` and ``"Comedy;Stand-Up"`` but NOT
+                ``"Tragicomedy"`` or ``"Comedy Music Festival"``. Pass an empty
+                string or the literal ``"*"`` to disable category filtering for
+                venues that tag comedy differently.
 
   metadata.patronticket_name_strip_suffixes (optional)
               → CSV (or JSON list) of trailing strings to strip from show names

@@ -298,6 +298,48 @@ def test_extract_events_accepts_custom_category_token():
     assert [e.instance_id for e in events] == ["O"]
 
 
+def test_extract_events_rejects_substring_matches_against_default_comedy_filter():
+    """'Tragicomedy' and 'Comedy Music Festival' must NOT match the default 'Comedy' filter."""
+    response = _api_response(
+        [
+            _event_blob(
+                name="Tragicomedy",
+                category="Tragicomedy",
+                instances=[_instance(instance_id="T", venue_id="VENUE_A")],
+            ),
+            _event_blob(
+                name="Comedy Music Festival",
+                category="Comedy Music Festival",
+                instances=[_instance(instance_id="F", venue_id="VENUE_A")],
+            ),
+            _event_blob(
+                name="Comedy",
+                category="Comedy",
+                instances=[_instance(instance_id="C", venue_id="VENUE_A")],
+            ),
+        ]
+    )
+
+    events = PatronTicketExtractor.extract_events(response, venue_ids=["VENUE_A"])
+    assert [e.instance_id for e in events] == ["C"]
+
+
+def test_extract_events_strips_whitespace_per_token_on_event_category_field():
+    """Tokens like ' Comedy ' in 'Music ; Comedy ; Drama' must still match 'Comedy'."""
+    response = _api_response(
+        [
+            _event_blob(
+                name="spaced",
+                category="Music ; Comedy ; Drama",
+                instances=[_instance(instance_id="S", venue_id="VENUE_A")],
+            ),
+        ]
+    )
+
+    events = PatronTicketExtractor.extract_events(response, venue_ids=["VENUE_A"])
+    assert [e.instance_id for e in events] == ["S"]
+
+
 def test_extract_events_disables_category_filter_when_categories_is_empty():
     response = _api_response(
         [

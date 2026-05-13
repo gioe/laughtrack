@@ -73,9 +73,12 @@ class PatronTicketExtractor:
             venue_ids: Salesforce venue IDs to filter instances on. Required —
                 an empty sequence yields no events.
             categories: Event category tags to keep. An event is kept if any of
-                these tokens appears in its semicolon-separated ``category`` field.
-                Pass an empty iterable (or a sentinel with the empty string) to
-                disable category filtering.
+                these tokens equals one of the semicolon-separated tokens on its
+                ``category`` field after per-token whitespace stripping (so the
+                default ``"Comedy"`` filter matches ``"Comedy"`` and
+                ``"Comedy;Stand-Up"`` but NOT ``"Tragicomedy"`` or
+                ``"Comedy Music Festival"``). Pass an empty iterable (or a
+                sentinel with the empty string) to disable category filtering.
             name_strip_suffixes: Trailing strings to peel off the show name when
                 converting to a Show (forwarded to the PatronTicketEvent).
             logger_context: Optional logging context dict.
@@ -109,7 +112,7 @@ class PatronTicketExtractor:
             Logger.warn("PatronTicketExtractor: no venue_ids configured — yielding 0 events", ctx)
             return []
 
-        category_tokens = [c for c in categories if c]
+        category_tokens = {c.strip() for c in categories if c and c.strip()}
         category_filter_enabled = bool(category_tokens)
 
         result: List[PatronTicketEvent] = []
@@ -118,10 +121,14 @@ class PatronTicketExtractor:
         for event in events_data:
             event_categories = event.get("category", "") or ""
 
-            if category_filter_enabled and not any(
-                token in event_categories for token in category_tokens
-            ):
-                continue
+            if category_filter_enabled:
+                event_token_set = {
+                    chunk.strip()
+                    for chunk in event_categories.split(";")
+                    if chunk.strip()
+                }
+                if category_tokens.isdisjoint(event_token_set):
+                    continue
 
             event_name = event.get("name", "")
             description = event.get("detail", "")
