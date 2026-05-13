@@ -322,31 +322,33 @@ private struct ShowsDateRangeSheet: View {
     }
 
     private func loadDensity(for monthStart: Date) async {
+        let signature = currentSignature
+        // Synchronous pre-fetch cache check: clears stale entries if the scope
+        // changed, then signals miss/hit before any await. Two concurrent
+        // loaders cannot end up holding the same empty snapshot because the
+        // mutation happens on the live @State, not a copy.
+        guard cacheState.needsFetch(monthStart: monthStart, signature: signature) else { return }
+
         let calendar = Calendar.current
         guard let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: monthStart),
               let lastDayOfMonth = calendar.date(byAdding: .day, value: -1, to: nextMonthStart)
         else { return }
 
-        let effectivePref = effectiveNearbyPreference
-        let pinnedComedian = model.isComedianPinned ? model.pinnedComedianName : nil
-        let pinnedClub = model.isClubPinned ? model.pinnedClubName : nil
+        guard let entry = await DateRangeDensity.compute(
+            preference: effectiveNearbyPreference,
+            comedian: model.pinnedComedianName,
+            club: model.pinnedClubName,
+            fromDate: monthStart,
+            toDate: lastDayOfMonth,
+            now: Date(),
+            apiClient: apiClient
+        ) else { return }
 
-        let result = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthStart,
-            signature: currentSignature,
-            state: cacheState
-        ) {
-            await DateRangeDensity.compute(
-                preference: effectivePref,
-                comedian: pinnedComedian,
-                club: pinnedClub,
-                fromDate: monthStart,
-                toDate: lastDayOfMonth,
-                now: Date(),
-                apiClient: apiClient
-            )
-        }
-        cacheState = result.state
+        // Stale-write guard: the await may have yielded long enough for
+        // another loader to invalidate the cache (signature change). Drop the
+        // entry on the floor in that case rather than smuggling a stale dot
+        // map into the new scope.
+        cacheState.storeIfSignatureMatches(entry, forMonthStart: monthStart, signature: signature)
     }
 
     // Mirrors `ShowsListModel.requestKey`'s zip-handling: on club-pinned views
@@ -359,8 +361,8 @@ private struct ShowsDateRangeSheet: View {
 
     private var currentSignature: String {
         let pref = effectiveNearbyPreference
-        let comedian = model.isComedianPinned ? (model.pinnedComedianName ?? "") : ""
-        let club = model.isClubPinned ? (model.pinnedClubName ?? "") : ""
+        let comedian = model.pinnedComedianName ?? ""
+        let club = model.pinnedClubName ?? ""
         return "z:\(pref?.zipCode ?? "")|d:\(pref?.distanceMiles ?? 0)|c:\(comedian)|v:\(club)"
     }
 }
@@ -459,10 +461,12 @@ enum DateRangeDensity {
     }()
 }
 
-/// Per-month density cache state owned by `ShowsDateRangeSheet`. Stored as a
-/// value because callers want SwiftUI `@State` semantics (reads from the
-/// merged map drive re-renders; writes via `DateRangeDensityCache.ensureLoaded`
-/// produce a new state and the assignment flips the view).
+/// Per-month density cache state owned by `ShowsDateRangeSheet`. Held as
+/// `@State`; mutations go through the two `mutating` methods below so the
+/// pre-fetch check and the post-fetch write are both synchronous, single-step
+/// updates to the live store. This is the reentrancy-safe alternative to
+/// snapshot-and-overwrite, which loses concurrent writers' entries when two
+/// rapid month swipes await fetches simultaneously.
 ///
 /// The `signature` field scopes the cache to a specific (zip, distance,
 /// comedian, club) tuple. When the signature changes — typically because the
@@ -472,35 +476,31 @@ enum DateRangeDensity {
 struct DateRangeDensityCacheState: Equatable {
     var entries: [Date: [Date: Int]] = [:]
     var signature: String?
-}
 
-/// Per-month cache reuse policy. Pulled out of `ShowsDateRangeSheet` so the
-/// "swipe back to a fetched month is a hit, not a fetch" behavior has a
-/// testable surface that does not require instantiating a SwiftUI view.
-enum DateRangeDensityCache {
-    /// Looks up `monthStart` in `state`. On a hit, returns `(state, didFetch: false)`
-    /// without invoking `fetch`. On a miss, awaits `fetch`, stores its non-nil
-    /// result, and returns `(updatedState, didFetch: true)`. A nil fetch result
-    /// (transport failure) is not cached so the next visit retries.
+    /// Returns `true` iff the caller should fetch `monthStart` for the given
+    /// signature. Side-effect: if the signature has changed since the last
+    /// load, the entries map is cleared and the signature recorded. Run
+    /// synchronously immediately before awaiting the fetch.
     @discardableResult
-    static func ensureLoaded(
-        monthStart: Date,
-        signature: String,
-        state: DateRangeDensityCacheState,
-        fetch: () async -> [Date: Int]?
-    ) async -> (state: DateRangeDensityCacheState, didFetch: Bool) {
-        var s = state
-        if s.signature != signature {
-            s.entries = [:]
-            s.signature = signature
+    mutating func needsFetch(monthStart: Date, signature: String) -> Bool {
+        if self.signature != signature {
+            entries = [:]
+            self.signature = signature
         }
-        if s.entries[monthStart] != nil {
-            return (s, false)
-        }
-        if let entry = await fetch() {
-            s.entries[monthStart] = entry
-        }
-        return (s, true)
+        return entries[monthStart] == nil
+    }
+
+    /// Stores `entry` only when the cache's current signature still matches
+    /// the one that was active when the fetch started. A mismatch means a
+    /// concurrent loader changed scope while this load was awaiting; the
+    /// entry is discarded so it cannot poison the new scope's dot map.
+    mutating func storeIfSignatureMatches(
+        _ entry: [Date: Int],
+        forMonthStart monthStart: Date,
+        signature: String
+    ) {
+        guard self.signature == signature else { return }
+        entries[monthStart] = entry
     }
 }
 

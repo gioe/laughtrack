@@ -91,6 +91,43 @@ struct DateRangeDensityTests {
         #expect(transport.capturedRequests.isEmpty)
     }
 
+    @Test("compute respects an explicit toDate and emits matching from/to query params")
+    func computeUsesExplicitToDateForPerMonthWindows() async {
+        let transport = StubClientTransport()
+        transport.setHandler { _, _, _, _ in
+            var response = HTTPResponse(status: .ok)
+            response.headerFields[.contentType] = "application/json"
+            return (response, HTTPBody("{}"))
+        }
+        let apiClient = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+
+        // Pin both endpoints far enough in the future that the `max(anchor, today)`
+        // clamp inside compute can't shorten the from-date; the test asserts the
+        // exact day-window callers pass — this is the contract that the cache
+        // key (monthStart) and the fetch window stay aligned on.
+        let calendar = Calendar.current
+        let from = calendar.date(from: DateComponents(year: 2030, month: 7, day: 1))!
+        let to = calendar.date(from: DateComponents(year: 2030, month: 7, day: 31))!
+
+        let result = await DateRangeDensity.compute(
+            preference: nil,
+            comedian: "Hannibal Buress",
+            fromDate: from,
+            toDate: to,
+            now: from,
+            apiClient: apiClient
+        )
+
+        #expect(result == [:])
+        #expect(transport.capturedRequests.count == 1)
+        let path = transport.capturedRequests.first?.path ?? ""
+        #expect(path.contains("from=2030-07-01"))
+        #expect(path.contains("to=2030-07-31"))
+    }
+
     @Test("cache: revisiting a fetched month with the same signature is a hit, not a fetch")
     func cacheRevisitIsHit() async {
         let monthA = Calendar.current.startOfDay(for: Date())
@@ -98,82 +135,63 @@ struct DateRangeDensityTests {
 
         var state = DateRangeDensityCacheState()
         var fetchCalls = 0
-        let fetch: () async -> [Date: Int]? = {
+
+        @discardableResult
+        func loadIfNeeded(monthStart: Date, signature: String) async -> Bool {
+            guard state.needsFetch(monthStart: monthStart, signature: signature) else {
+                return false
+            }
             fetchCalls += 1
-            return [:]
+            state.storeIfSignatureMatches([:], forMonthStart: monthStart, signature: signature)
+            return true
         }
 
-        var didFetch: Bool
-        (state, didFetch) = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig1", state: state, fetch: fetch
-        )
-        #expect(didFetch)
+        #expect(await loadIfNeeded(monthStart: monthA, signature: "sig1"))
         #expect(fetchCalls == 1)
-
-        (state, didFetch) = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthB, signature: "sig1", state: state, fetch: fetch
-        )
-        #expect(didFetch)
+        #expect(await loadIfNeeded(monthStart: monthB, signature: "sig1"))
         #expect(fetchCalls == 2)
 
         // Revisiting monthA with the same signature must NOT call fetch — this
         // is the "swipe forward, swipe back, no duplicate request" guarantee.
-        (state, didFetch) = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig1", state: state, fetch: fetch
-        )
-        #expect(!didFetch)
+        #expect(!(await loadIfNeeded(monthStart: monthA, signature: "sig1")))
         #expect(fetchCalls == 2)
     }
 
     @Test("cache: signature change clears entries so a stale dot map cannot leak across scopes")
-    func cacheSignatureChangeInvalidates() async {
+    func cacheSignatureChangeInvalidates() {
         let monthA = Calendar.current.startOfDay(for: Date())
 
         var state = DateRangeDensityCacheState()
-        var fetchCalls = 0
-        let fetch: () async -> [Date: Int]? = {
-            fetchCalls += 1
-            return [:]
-        }
-
-        (state, _) = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig1", state: state, fetch: fetch
-        )
-        #expect(fetchCalls == 1)
+        _ = state.needsFetch(monthStart: monthA, signature: "sig1")
+        state.storeIfSignatureMatches([monthA: 3], forMonthStart: monthA, signature: "sig1")
+        #expect(state.entries[monthA] == [monthA: 3])
 
         // A signature change models the user editing zip / distance / entity
         // scope while the sheet is open; stale dots from the old scope must
         // not survive into the new scope.
-        let result = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig2", state: state, fetch: fetch
-        )
-        #expect(result.didFetch)
-        #expect(fetchCalls == 2)
-        #expect(result.state.signature == "sig2")
+        let needsRefetch = state.needsFetch(monthStart: monthA, signature: "sig2")
+        #expect(needsRefetch)
+        #expect(state.entries.isEmpty)
+        #expect(state.signature == "sig2")
     }
 
-    @Test("cache: nil fetch result is not stored so the next visit retries the network")
-    func cacheDoesNotCacheNilFetch() async {
+    @Test("cache: post-await write is dropped when a concurrent loader changed the signature")
+    func cacheStaleWriteIsDroppedAfterSignatureChange() {
         let monthA = Calendar.current.startOfDay(for: Date())
 
         var state = DateRangeDensityCacheState()
-        var fetchCalls = 0
-        let nilFetch: () async -> [Date: Int]? = {
-            fetchCalls += 1
-            return nil
-        }
+        // Loader A starts under sig1, sees the cache miss.
+        _ = state.needsFetch(monthStart: monthA, signature: "sig1")
 
-        (state, _) = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig1", state: state, fetch: nilFetch
-        )
-        #expect(fetchCalls == 1)
-        // Revisiting after a nil result must try the network again — caching
-        // a transient failure would mask the recovery once the network came
-        // back, and would also poison the merged dot map with nothing.
-        let result = await DateRangeDensityCache.ensureLoaded(
-            monthStart: monthA, signature: "sig1", state: state, fetch: nilFetch
-        )
-        #expect(result.didFetch)
-        #expect(fetchCalls == 2)
+        // Loader B runs and changes the signature mid-await for Loader A.
+        _ = state.needsFetch(monthStart: monthA, signature: "sig2")
+
+        // Loader A returns from its await and tries to store the stale entry.
+        // The signature mismatch must drop the write — otherwise the new
+        // (sig2) scope would inherit a row from the old (sig1) scope.
+        state.storeIfSignatureMatches([monthA: 9], forMonthStart: monthA, signature: "sig1")
+
+        #expect(state.entries[monthA] == nil)
+        #expect(state.signature == "sig2")
     }
 }
