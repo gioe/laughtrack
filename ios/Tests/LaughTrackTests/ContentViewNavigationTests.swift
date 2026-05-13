@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Testing
 import LaughTrackBridge
 @testable import LaughTrackApp
@@ -181,4 +180,3 @@ struct ContentViewNavigationTests {
         #expect(try decodedRoutes(in: coordinator, as: AppRoute.self) == routes)
     }
 }
-#endif

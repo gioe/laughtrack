@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Foundation
 import Testing
 import LaughTrackBridge
@@ -132,4 +131,3 @@ private actor DeleteAccountRecorder {
         callCount += 1
     }
 }
-#endif

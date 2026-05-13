@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
@@ -279,4 +278,3 @@ private struct MockShowDetailTransport: ClientTransport {
         }
     }
 }
-#endif

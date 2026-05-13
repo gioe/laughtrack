@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Foundation
 import Testing
 import LaughTrackBridge
@@ -100,4 +99,3 @@ struct SettingsViewStateTests {
         #expect(!notificationStore.preferences.favoriteComedianPushAlertsEnabled)
     }
 }
-#endif

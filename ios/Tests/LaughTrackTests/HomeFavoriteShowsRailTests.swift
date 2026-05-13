@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
@@ -207,4 +206,3 @@ private extension URL {
             } ?? [:]
     }
 }
-#endif

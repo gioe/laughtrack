@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import CoreGraphics
 import Foundation
 import HTTPTypes
@@ -398,4 +397,3 @@ struct MonthCalendarViewTests {
     }
 
 }
-#endif

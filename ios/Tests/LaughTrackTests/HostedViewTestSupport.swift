@@ -1,10 +1,8 @@
-#if canImport(UIKit)
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
 import SwiftUI
 import Testing
-import UIKit
 import LaughTrackAPIClient
 import LaughTrackBridge
 @testable import LaughTrackCore
@@ -200,6 +198,9 @@ private final class MockOAuthSessionRunner: OAuthSessionRunning {
         URL(string: "\(callbackScheme)://auth/callback")!
     }
 }
+
+#if canImport(UIKit)
+import UIKit
 
 @MainActor
 final class HostedView {

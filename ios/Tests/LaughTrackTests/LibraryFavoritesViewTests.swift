@@ -1,4 +1,3 @@
-#if canImport(UIKit)
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
@@ -201,4 +200,3 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
         )
     }
 }
-#endif
