@@ -602,7 +602,7 @@ else
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID) -v
 endif
 
-# Scrape comedian personal websites for tour dates (JSON-LD extraction)
+# Scrape saved comedian tour-date website URLs one at a time
 scrape-comedian-websites:
 	@echo "🌐 Scraping comedian websites for tour dates..."
 ifndef COMEDIAN

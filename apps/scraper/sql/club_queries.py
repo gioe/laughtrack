@@ -234,7 +234,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -290,7 +290,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -341,7 +341,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -413,7 +413,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -446,14 +446,29 @@ class ClubQueries:
                 priority, enabled, metadata
             )
             SELECT
-                id,
+                uc.id,
                 'tour_dates',
                 'tour_dates',
                 'tour_dates',
-                0,
+                COALESCE(
+                    (
+                        SELECT ss.priority
+                        FROM scraping_sources ss
+                        WHERE ss.club_id = uc.id
+                          AND ss.platform = 'tour_dates'
+                        ORDER BY ss.enabled DESC, ss.priority ASC, ss.id ASC
+                        LIMIT 1
+                    ),
+                    (
+                        SELECT COALESCE(MAX(ss.priority), -1) + 1
+                        FROM scraping_sources ss
+                        WHERE ss.club_id = uc.id
+                          AND ss.enabled = TRUE
+                    )
+                ),
                 TRUE,
                 %s::jsonb
-            FROM upserted_club
+            FROM upserted_club uc
             ON CONFLICT (club_id, platform, priority) DO UPDATE SET
                 scraper_key = EXCLUDED.scraper_key,
                 source_url  = COALESCE(NULLIF(scraping_sources.source_url, ''), EXCLUDED.source_url),
@@ -484,7 +499,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE

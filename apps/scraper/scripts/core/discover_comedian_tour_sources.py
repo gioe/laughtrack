@@ -85,10 +85,25 @@ _GET_TOUR_DISCOVERY_CANDIDATES = """
       )
 """
 
-_ORDER_AND_LIMIT = """
-    ORDER BY c.popularity DESC NULLS LAST, c.total_shows DESC NULLS LAST, c.name
+_LIMIT_CANDIDATES = """
     LIMIT %s
 """
+
+_OFFSET_CANDIDATES = """
+    OFFSET %s
+"""
+
+_ORDER_BY_CANDIDATES = {
+    "popularity": "c.popularity DESC NULLS LAST, c.total_shows DESC NULLS LAST, c.name",
+    "total_shows": "c.total_shows DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name",
+    "sold_out_shows": "c.sold_out_shows DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name",
+    "instagram_followers": "c.instagram_followers DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name",
+    "tiktok_followers": "c.tiktok_followers DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name",
+    "youtube_followers": "c.youtube_followers DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name",
+    "name": "c.name ASC",
+}
+
+_ORDER_BY_CHOICES = tuple(_ORDER_BY_CANDIDATES)
 
 _GET_TOUR_SOURCE_COVERAGE = """
     WITH canonical AS (
@@ -258,21 +273,21 @@ _UPDATE_TOUR_SOURCE_DISCOVERY = """
 
 def build_tour_search_queries(comedian_name: str) -> list[str]:
     """Return the Brave queries used for one comedian."""
-    return [
-        f"{comedian_name} tour dates",
-        f"{comedian_name} tickets upcoming shows",
-        f"{comedian_name} upcoming shows",
-        f"{comedian_name} Bandsintown",
-        f"{comedian_name} Songkick",
-    ]
+    return [f"{comedian_name} tour dates"]
 
 
 def load_candidate_comedians(
     *,
     limit: Optional[int],
+    offset: int = 0,
     comedian_name: Optional[str],
+    order_by: str,
 ) -> list[TourDiscoveryCandidate]:
     """Load canonical, non-deny-listed comedians with historical shows."""
+    order_by_clause = _ORDER_BY_CANDIDATES.get(order_by)
+    if order_by_clause is None:
+        raise ValueError(f"Unsupported order_by '{order_by}'")
+
     query = _GET_TOUR_DISCOVERY_CANDIDATES
     params: list[object] = []
 
@@ -280,8 +295,13 @@ def load_candidate_comedians(
         query += "      AND c.name ILIKE %s\n"
         params.append(f"%{comedian_name}%")
 
-    query += _ORDER_AND_LIMIT
-    params.append(limit if limit is not None else 25)
+    query += f"    ORDER BY {order_by_clause}\n"
+    if limit is not None:
+        query += _LIMIT_CANDIDATES
+        params.append(limit)
+    if offset:
+        query += _OFFSET_CANDIDATES
+        params.append(offset)
 
     conn = create_connection(autocommit=True)
     try:
@@ -450,8 +470,8 @@ def _platform_tour_id(candidate: TourSourceCandidate) -> tuple[Optional[str], Op
     return None, None
 
 
-def _official_scraping_url(candidate: TourSourceCandidate) -> Optional[str]:
-    if candidate.source_type == "official_tour" and candidate.confidence == "high":
+def _candidate_scraping_url(candidate: TourSourceCandidate) -> Optional[str]:
+    if candidate.is_scraping_url_candidate:
         return candidate.url
     return None
 
@@ -491,7 +511,7 @@ def persist_tour_source_candidates(
 
     for candidate in candidates:
         bandsintown_id, songkick_id = _platform_tour_id(candidate)
-        scraping_url = _official_scraping_url(candidate)
+        scraping_url = _candidate_scraping_url(candidate)
         evidence_json = json.dumps([_review_evidence(candidate)], sort_keys=True)
         rows.append((bandsintown_id, songkick_id, scraping_url, evidence_json, candidate.comedian_uuid))
         if bandsintown_id or songkick_id:
@@ -550,7 +570,9 @@ def _dedupe_candidates(candidates: list[TourSourceCandidate]) -> list[TourSource
 def discover_tour_sources(
     *,
     limit: Optional[int],
+    offset: int = 0,
     comedian_name: Optional[str],
+    order_by: str,
     dry_run: bool,
 ) -> list[TourSourceCandidate]:
     """Search Brave for tour-source candidates and print a report."""
@@ -559,7 +581,7 @@ def discover_tour_sources(
         Logger.error("Brave Search not configured - set BRAVE_SEARCH_API_KEY")
         return []
 
-    candidates = load_candidate_comedians(limit=limit, comedian_name=comedian_name)
+    candidates = load_candidate_comedians(limit=limit, offset=offset, comedian_name=comedian_name, order_by=order_by)
     discovered: list[TourSourceCandidate] = []
 
     for comedian in candidates:
@@ -685,7 +707,7 @@ def print_tour_source_persistence_summary(summary: TourSourcePersistenceSummary,
     print()
     print(f"Persistence summary ({mode})")
     print(f"  Tour IDs: {summary.tour_id_updates}")
-    print(f"  Official scraping URLs: {summary.scraping_url_updates}")
+    print(f"  Candidate scraping URLs: {summary.scraping_url_updates}")
     print(f"  Review evidence rows: {summary.review_evidence_updates}")
 
 
@@ -694,7 +716,14 @@ def main() -> int:
         description="Discover candidate comedian tour source URLs with Brave Search",
     )
     parser.add_argument("--limit", type=int, help="Maximum number of comedians to process")
+    parser.add_argument("--offset", type=int, default=0, help="Skip this many ordered comedians before applying --limit")
     parser.add_argument("--comedian-name", type=str, help="Process comedians matching this name")
+    parser.add_argument(
+        "--order-by",
+        choices=tuple(choice.replace("_", "-") for choice in _ORDER_BY_CHOICES),
+        default="popularity",
+        help="Metric used to choose the top comedians before applying --limit",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print candidate URLs without writing to the database")
     parser.add_argument("--coverage-only", action="store_true", help="Print current coverage metrics without Brave discovery")
     parser.add_argument("--coverage-report", action="store_true", help="Print coverage metrics alongside candidate URLs")
@@ -724,7 +753,9 @@ def main() -> int:
         else:
             candidates = discover_tour_sources(
                 limit=args.limit,
+                offset=args.offset,
                 comedian_name=args.comedian_name,
+                order_by=args.order_by.replace("-", "_"),
                 dry_run=args.dry_run,
             )
             metrics = (

@@ -99,16 +99,10 @@ def test_candidate_query_limits_to_canonical_non_denied_comedians_with_history()
     assert "NULLIF(BTRIM(c.name), '') IS NOT NULL" in query
 
 
-def test_tour_queries_include_general_ticketing_bandsintown_and_songkick_intent():
+def test_tour_queries_use_only_name_tour_dates_intent():
     queries = mod.build_tour_search_queries("Jane Example")
 
-    assert queries == [
-        "Jane Example tour dates",
-        "Jane Example tickets upcoming shows",
-        "Jane Example upcoming shows",
-        "Jane Example Bandsintown",
-        "Jane Example Songkick",
-    ]
+    assert queries == ["Jane Example tour dates"]
 
 
 def test_dry_run_reports_candidate_urls_without_database_writes(monkeypatch, capsys):
@@ -120,12 +114,12 @@ def test_dry_run_reports_candidate_urls_without_database_writes(monkeypatch, cap
     monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
     monkeypatch.setattr(mod, "BraveSearchClient", lambda: client)
 
-    results = mod.discover_tour_sources(limit=1, comedian_name=None, dry_run=True)
+    results = mod.discover_tour_sources(limit=1, comedian_name=None, order_by="popularity", dry_run=True)
 
     captured = capsys.readouterr()
     assert conn.commits == 0
     assert [call[0] for call in client.calls] == mod.build_tour_search_queries("Jane Example")
-    assert len(results) == 3
+    assert len(results) == 1
     assert results[0].url == "https://jane.example/tour"
     assert results[0].query == "Jane Example tour dates"
     assert results[0].rank == 1
@@ -282,16 +276,19 @@ def test_persist_tour_source_candidates_updates_high_confidence_tour_ids(monkeyp
     summary = mod.persist_tour_source_candidates([c for c in candidates if c], dry_run=False)
 
     assert summary.tour_id_updates == 2
+    assert summary.scraping_url_updates == 2
     assert summary.review_evidence_updates == 2
     assert conn.commits == 1
     assert len(conn.cursor_obj.executed) == 2
     _query, params = conn.cursor_obj.executed[0]
     assert params[0] == "123-jane-example"
     assert params[2] is None
+    assert params[4] == "https://www.bandsintown.com/a/123-jane-example"
     assert params[-1] == "comic-1"
     _query, params = conn.cursor_obj.executed[1]
     assert params[0] is None
     assert params[2] == "456-jane-example"
+    assert params[4] == "https://www.songkick.com/artists/456-jane-example"
     assert params[-1] == "comic-1"
 
 
@@ -456,13 +453,55 @@ def test_name_filter_and_limit_are_passed_to_candidate_query(monkeypatch):
 
     monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
 
-    candidates = mod.load_candidate_comedians(limit=7, comedian_name="Jane")
+    candidates = mod.load_candidate_comedians(limit=7, offset=0, comedian_name="Jane", order_by="popularity")
 
     query, params = conn.cursor_obj.executed[0]
     assert candidates == []
     assert "c.name ILIKE %s" in query
+    assert "ORDER BY c.popularity DESC NULLS LAST, c.total_shows DESC NULLS LAST, c.name" in query
     assert "LIMIT %s" in query
     assert params == ("%Jane%", 7)
+
+
+def test_candidate_query_can_order_by_configured_metric(monkeypatch):
+    conn = _FakeConnection([])
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    candidates = mod.load_candidate_comedians(limit=10, offset=0, comedian_name=None, order_by="total_shows")
+
+    query, params = conn.cursor_obj.executed[0]
+    assert candidates == []
+    assert "ORDER BY c.total_shows DESC NULLS LAST, c.popularity DESC NULLS LAST, c.name" in query
+    assert params == (10,)
+
+
+def test_candidate_query_has_no_default_limit_when_limit_is_omitted(monkeypatch):
+    conn = _FakeConnection([])
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    candidates = mod.load_candidate_comedians(limit=None, offset=0, comedian_name=None, order_by="popularity")
+
+    query, params = conn.cursor_obj.executed[0]
+    assert candidates == []
+    assert "LIMIT %s" not in query
+    assert params == ()
+
+
+def test_candidate_query_can_skip_ordered_rows_with_offset(monkeypatch):
+    conn = _FakeConnection([])
+
+    monkeypatch.setattr(mod, "create_connection", lambda autocommit: conn)
+
+    candidates = mod.load_candidate_comedians(limit=10, offset=10, comedian_name=None, order_by="popularity")
+
+    query, params = conn.cursor_obj.executed[0]
+    assert candidates == []
+    assert "ORDER BY c.popularity DESC NULLS LAST, c.total_shows DESC NULLS LAST, c.name" in query
+    assert "LIMIT %s" in query
+    assert "OFFSET %s" in query
+    assert params == (10, 10)
 
 
 def test_cli_supports_limit_comedian_name_and_dry_run_flags(monkeypatch):
@@ -480,11 +519,17 @@ def test_cli_supports_limit_comedian_name_and_dry_run_flags(monkeypatch):
             "discover_comedian_tour_sources.py",
             "--limit",
             "3",
+            "--offset",
+            "10",
             "--comedian-name",
             "Jane Example",
+            "--order-by",
+            "total-shows",
             "--dry-run",
         ],
     )
 
     assert mod.main() == 0
-    assert calls == [{"limit": 3, "comedian_name": "Jane Example", "dry_run": True}]
+    assert calls == [
+        {"limit": 3, "offset": 10, "comedian_name": "Jane Example", "order_by": "total_shows", "dry_run": True}
+    ]

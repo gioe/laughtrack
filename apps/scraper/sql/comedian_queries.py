@@ -189,6 +189,16 @@ class ComedianQueries:
         ORDER BY website_last_scraped ASC NULLS FIRST
     '''
 
+    GET_ALL_COMEDIANS_FOR_WEBSITE_SCRAPING = '''
+        SELECT uuid, name, website, website_scraping_url,
+               website_discovery_source,
+               website_last_scraped, website_scrape_strategy
+        FROM comedians
+        WHERE website_scraping_url IS NOT NULL
+          AND website_scraping_url <> ''
+        ORDER BY website_last_scraped ASC NULLS FIRST, name
+    '''
+
     UPDATE_COMEDIAN_TOUR_IDS = '''
         UPDATE comedians AS c
         SET bandsintown_id = CASE

@@ -39,7 +39,7 @@ def _scraper_with_rows(rows: list[dict[str, Any]]) -> scraper_mod.ComedianWebsit
     return scraper
 
 
-def test_selection_uses_existing_scraping_urls_for_never_scraped_and_stale_records(monkeypatch):
+def test_all_selection_uses_every_existing_scraping_url_without_staleness_filter(monkeypatch):
     rows = [
         {
             "uuid": "never",
@@ -54,6 +54,13 @@ def test_selection_uses_existing_scraping_urls_for_never_scraped_and_stale_recor
             "website": "https://stale.example",
             "website_scraping_url": "https://stale.example/shows",
             "website_last_scraped": "2026-04-01T00:00:00+00:00",
+        },
+        {
+            "uuid": "fresh",
+            "name": "Fresh Scraped",
+            "website": "https://fresh.example",
+            "website_scraping_url": "https://fresh.example/tour",
+            "website_last_scraped": "2026-05-12T00:00:00+00:00",
         },
     ]
     scraper = _scraper_with_rows(rows)
@@ -70,26 +77,66 @@ def test_selection_uses_existing_scraping_urls_for_never_scraped_and_stale_recor
 
     selected = scraper._get_comedians_for_scraping()
 
-    assert [row["uuid"] for row in selected] == ["never", "stale"]
+    assert [row["uuid"] for row in selected] == ["never", "stale", "fresh"]
     query, params = scraper._comedian_handler.calls[0]
     assert params is None
     assert "website_scraping_url IS NOT NULL" in query
-    assert "website_last_scraped IS NULL" in query
-    assert "website_last_scraped < NOW() - INTERVAL '7 days'" in query
+    assert "website_last_scraped IS NULL" not in query
+    assert "website_last_scraped < NOW() - INTERVAL '7 days'" not in query
     assert "brave" not in query.lower()
 
 
-def test_selection_limit_applies_after_never_scraped_and_stale_records_are_selected():
+def test_selection_limit_applies_after_all_scraping_url_records_are_selected():
     rows = [
         {"uuid": "never", "name": "Never", "website_last_scraped": None},
         {"uuid": "stale", "name": "Stale", "website_last_scraped": "2026-04-01T00:00:00+00:00"},
-        {"uuid": "older", "name": "Older", "website_last_scraped": "2026-03-01T00:00:00+00:00"},
+        {"uuid": "fresh", "name": "Fresh", "website_last_scraped": "2026-05-12T00:00:00+00:00"},
     ]
     scraper = _scraper_with_rows(rows)
 
     selected = scraper._get_comedians_for_scraping(limit=2)
 
     assert [row["uuid"] for row in selected] == ["never", "stale"]
+
+
+def test_scrape_async_processes_comedians_sequentially_and_updates_summary():
+    scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
+    scraper._limit = None
+    scraper._comedian_name_filter = None
+    scraper._club = types.SimpleNamespace(name="Comedian Websites")
+    scraper.logger_context = {}
+    scraper.last_run_summary = scraper_mod.ComedianWebsiteScrapeRunSummary(0, 0, 0, 0, 0, 0, 0)
+
+    rows = [
+        {"uuid": "first", "name": "First", "website_last_scraped": None},
+        {"uuid": "second", "name": "Second", "website_last_scraped": "2026-05-12T00:00:00+00:00"},
+    ]
+    active = 0
+    max_active = 0
+    order = []
+
+    async def fake_scrape(row, semaphore):
+        nonlocal active, max_active
+        async with semaphore:
+            active += 1
+            max_active = max(max_active, active)
+            order.append(row["uuid"])
+            await asyncio.sleep(0)
+            active -= 1
+            return scraper_mod.ComedianWebsiteScrapeOutcome(row["name"], "empty")
+
+    scraper._get_comedians_for_scraping = lambda **_kwargs: rows
+    scraper._scrape_comedian_website = fake_scrape
+    scraper._cleanup_resources = lambda: asyncio.sleep(0)
+
+    asyncio.run(scraper.scrape_async())
+
+    assert order == ["first", "second"]
+    assert max_active == 1
+    assert scraper.last_run_summary.total_eligible == 2
+    assert scraper.last_run_summary.never_scraped == 1
+    assert scraper.last_run_summary.stale == 1
+    assert scraper.last_run_summary.empty == 2
 
 
 def test_run_summary_counts_eligible_never_scraped_success_empty_and_errors():
@@ -143,6 +190,57 @@ def test_platform_extractors_return_event_count_for_success_classification(monke
     )
 
     assert event_count == 3
+
+
+def test_specific_platform_extractors_run_before_text_tour_fallback(monkeypatch):
+    scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
+    scraper._club = types.SimpleNamespace(name="Comedian Websites")
+    scraper._club_handler = types.SimpleNamespace()
+    scraper.logger_context = {}
+
+    calls = []
+
+    async def fake_text_extract(**_kwargs):
+        calls.append("text_tour_list")
+        return 99
+
+    async def fake_vividseats_extract(**_kwargs):
+        calls.append("vividseats")
+        return 2
+
+    monkeypatch.setattr(scraper_mod.TextTourListExtractorForComedian, "has_rows", lambda _html: True)
+    monkeypatch.setattr(scraper_mod.TextTourListExtractorForComedian, "extract_venues", fake_text_extract)
+    monkeypatch.setattr(scraper_mod.VividSeatsExtractorForComedian, "extract_venues", fake_vividseats_extract)
+    monkeypatch.setattr(scraper_mod.SeatedTourListExtractorForComedian, "has_rows", lambda _html: False)
+    monkeypatch.setattr(scraper_mod.SeatedTourListExtractorForComedian, "has_widget", lambda _html: False)
+    monkeypatch.setattr(scraper_mod.TicketNetworkTourListExtractorForComedian, "has_widget", lambda _html: False)
+    monkeypatch.setattr(scraper, "_update_scrape_metadata", lambda *_args: None)
+    monkeypatch.setattr(scraper, "_update_scraping_url_confidence", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(scraper, "_update_confidence", lambda *_args, **_kwargs: None)
+
+    count = asyncio.run(
+        scraper._try_static_tour_extractors(
+            {"uuid": "comic"},
+            scraper_mod.Comedian(name="Tour Comic", uuid="comic"),
+            "https://www.vividseats.com/tour-comic-tickets",
+            "https://comic.example",
+            "<html>May 1 Venue City, TX</html>",
+            "vividseats",
+        )
+    )
+
+    assert count == 2
+    assert calls == ["vividseats"]
+
+
+def test_url_detected_platform_overrides_prior_text_fallback_strategy():
+    platform = scraper_mod.ComedianWebsiteScraper._resolve_website_platform(
+        "https://www.vividseats.com/tour-comic-tickets",
+        "<html>May 1 Venue City, TX</html>",
+        "text_tour_list",
+    )
+
+    assert platform == "vividseats"
 
 
 def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
@@ -202,3 +300,13 @@ def test_script_prints_operator_facing_run_summary(capsys):
     assert "scraped successfully: 1" in captured.out
     assert "empty: 1" in captured.out
     assert "errors: 1" in captured.out
+
+
+def test_build_local_comedian_websites_club_uses_ad_hoc_scraper_config():
+    club = script_mod.build_local_comedian_websites_club()
+
+    assert club.id == 0
+    assert club.name == "Comedian Websites"
+    assert club.scraper == "comedian_websites"
+    assert club.scraping_url == "https://laughtrack.local/comedian-websites"
+    assert club.visible is False

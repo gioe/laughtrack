@@ -12,7 +12,6 @@ Triggered by a single clubs row with scraper='comedian_websites'.
 """
 
 import asyncio
-import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -25,7 +24,14 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.api.comedian_websites.platform_extractors import (
     KomiExtractorForComedian,
+    SeatedTourListExtractorForComedian,
+    ShubertSingleEventExtractorForComedian,
+    ShopifyTourListExtractorForComedian,
     SquarespaceExtractorForComedian,
+    TicketNetworkTourListExtractorForComedian,
+    StructuredTourListExtractorForComedian,
+    TextTourListExtractorForComedian,
+    VividSeatsExtractorForComedian,
     WixExtractorForComedian,
     detect_website_platform,
     detect_website_platform_from_html,
@@ -82,7 +88,6 @@ class ComedianWebsiteScraper(BaseScraper):
 
     key = "comedian_websites"
 
-    _DEFAULT_MAX_CONCURRENT = 5
     _REQUEST_TIMEOUT = 30
 
     def __init__(self, club: Club, comedian_name: Optional[str] = None, limit: Optional[int] = None, **kwargs):
@@ -113,16 +118,8 @@ class ComedianWebsiteScraper(BaseScraper):
         """Not used: scrape_async is fully overridden."""
         return None  # pragma: no cover
 
-    @property
-    def _max_concurrent(self) -> int:
-        try:
-            val = int(os.environ.get("MAX_CONCURRENT_COMEDIANS", self._DEFAULT_MAX_CONCURRENT))
-            return val if val > 0 else self._DEFAULT_MAX_CONCURRENT
-        except (ValueError, TypeError):
-            return self._DEFAULT_MAX_CONCURRENT
-
     async def scrape_async(self) -> list:
-        """Override: fetch comedian websites concurrently, extract events, and upsert venues."""
+        """Override: fetch comedian websites one at a time, extract events, and upsert venues."""
         try:
             comedian_rows = self._get_comedians_for_scraping(
                 limit=self._limit, comedian_name=self._comedian_name_filter,
@@ -132,14 +129,14 @@ class ComedianWebsiteScraper(BaseScraper):
                 return []
 
             Logger.info(
-                f"{self._log_prefix}: scraping websites for {len(comedian_rows)} comedians",
+                f"{self._log_prefix}: scraping websites for {len(comedian_rows)} comedians sequentially",
                 self.logger_context,
             )
 
-            semaphore = asyncio.Semaphore(self._max_concurrent)
-            outcomes = await asyncio.gather(
-                *[self._scrape_comedian_website(row, semaphore) for row in comedian_rows]
-            )
+            semaphore = asyncio.Semaphore(1)
+            outcomes = []
+            for row in comedian_rows:
+                outcomes.append(await self._scrape_comedian_website(row, semaphore))
 
             self.last_run_summary = self._build_run_summary(comedian_rows, list(outcomes))
 
@@ -166,7 +163,18 @@ class ComedianWebsiteScraper(BaseScraper):
     # ------------------------------------------------------------------ #
 
     # Platform strategies that skip JSON-LD entirely on subsequent runs
-    _PLATFORM_STRATEGIES = {"squarespace", "wix", "komi"}
+    _PLATFORM_STRATEGIES = {
+        "squarespace",
+        "wix",
+        "komi",
+        "shopify_tour",
+        "tour_listing",
+        "shubert",
+        "seated",
+        "ticketnetwork",
+        "text_tour_list",
+        "vividseats",
+    }
 
     async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> ComedianWebsiteScrapeOutcome:
         """Fetch a comedian's website_scraping_url, detect platform, and extract venues."""
@@ -202,9 +210,26 @@ class ComedianWebsiteScraper(BaseScraper):
                 # --- Platform-specific extraction ---
                 # If we already know the platform from a prior run, use it directly.
                 # Otherwise detect from URL and try the platform extractor.
-                platform = prior_strategy if prior_strategy in self._PLATFORM_STRATEGIES else (
-                    detect_website_platform(scraping_url) or detect_website_platform_from_html(html)
+                platform = self._resolve_website_platform(
+                    scraping_url=scraping_url,
+                    html=html,
+                    prior_strategy=prior_strategy,
                 )
+
+                extractor_result = await self._try_static_tour_extractors(
+                    row,
+                    comedian,
+                    scraping_url,
+                    website,
+                    html,
+                    platform,
+                )
+                if extractor_result is not None:
+                    return ComedianWebsiteScrapeOutcome(
+                        comedian.name,
+                        "success" if extractor_result else "empty",
+                        extractor_result,
+                    )
 
                 if platform == "squarespace":
                     result = await self._try_squarespace(row, comedian, scraping_url, website, html)
@@ -295,6 +320,14 @@ class ComedianWebsiteScraper(BaseScraper):
     # Platform-specific extraction helpers                                 #
     # ------------------------------------------------------------------ #
 
+    @classmethod
+    def _resolve_website_platform(cls, scraping_url: str, html: str, prior_strategy: str) -> Optional[str]:
+        """Prefer current URL/HTML detection over a previously persisted fallback strategy."""
+        detected_platform = detect_website_platform(scraping_url) or detect_website_platform_from_html(html)
+        if detected_platform:
+            return detected_platform
+        return prior_strategy if prior_strategy in cls._PLATFORM_STRATEGIES else None
+
     async def _try_squarespace(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
     ) -> Optional[int]:
@@ -370,6 +403,94 @@ class ComedianWebsiteScraper(BaseScraper):
         if venue_count:
             Logger.info(
                 f"{self._log_prefix}: {comedian.name} — {venue_count} venues via komi.io/Bandsintown from {scraping_url}",
+                self.logger_context,
+            )
+        return venue_count
+
+    async def _try_static_tour_extractors(
+        self,
+        row: dict,
+        comedian: Comedian,
+        scraping_url: str,
+        website: str,
+        html: str,
+        platform: Optional[str],
+    ) -> Optional[int]:
+        """Run static tour-page extractors for known comedian website patterns."""
+        extractors = []
+        if platform == "shopify_tour" or ShopifyTourListExtractorForComedian.has_rows(html):
+            extractors.append(("shopify_tour", ShopifyTourListExtractorForComedian.extract_venues))
+        if platform == "tour_listing" or StructuredTourListExtractorForComedian.has_rows(html):
+            extractors.append(("tour_listing", StructuredTourListExtractorForComedian.extract_venues))
+        if platform == "seated" or SeatedTourListExtractorForComedian.has_rows(html):
+            extractors.append(("seated", SeatedTourListExtractorForComedian.extract_venues))
+        if platform == "shubert":
+            extractors.append(("shubert", ShubertSingleEventExtractorForComedian.extract_venues))
+        if platform == "vividseats":
+            extractors.append(("vividseats", VividSeatsExtractorForComedian.extract_venues))
+        if platform == "text_tour_list" or TextTourListExtractorForComedian.has_rows(html):
+            extractors.append(("text_tour_list", TextTourListExtractorForComedian.extract_venues))
+
+        if platform == "seated" or SeatedTourListExtractorForComedian.has_widget(html):
+            venue_count = await SeatedTourListExtractorForComedian.extract_venues(
+                scraping_url=scraping_url,
+                html=html,
+                comedian=comedian,
+                club_handler=self._club_handler,
+                log_prefix=self._log_prefix,
+                fetch_json_fn=self.fetch_json,
+            )
+            if venue_count is not None:
+                return self._persist_static_extractor_result(
+                    row, comedian, scraping_url, website, "seated", venue_count
+                )
+
+        if platform == "ticketnetwork" or TicketNetworkTourListExtractorForComedian.has_widget(html):
+            venue_count = await TicketNetworkTourListExtractorForComedian.extract_venues(
+                scraping_url=scraping_url,
+                html=html,
+                comedian=comedian,
+                club_handler=self._club_handler,
+                fetch_json_fn=self.fetch_json,
+                log_prefix=self._log_prefix,
+            )
+            if venue_count is not None:
+                return self._persist_static_extractor_result(
+                    row, comedian, scraping_url, website, "ticketnetwork", venue_count
+                )
+
+        for strategy, extractor in extractors:
+            venue_count = await extractor(
+                scraping_url=scraping_url,
+                html=html,
+                comedian=comedian,
+                club_handler=self._club_handler,
+                log_prefix=self._log_prefix,
+            )
+            if venue_count is None:
+                continue
+
+            return self._persist_static_extractor_result(row, comedian, scraping_url, website, strategy, venue_count)
+
+        return None
+
+    def _persist_static_extractor_result(
+        self,
+        row: dict,
+        comedian: Comedian,
+        scraping_url: str,
+        website: str,
+        strategy: str,
+        venue_count: int,
+    ) -> int:
+        has_events = venue_count > 0
+        self._update_scrape_metadata(row["uuid"], strategy)
+        self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
+        if website:
+            self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
+        if venue_count:
+            Logger.info(
+                f"{self._log_prefix}: {comedian.name} — {venue_count} venues via {strategy} from {scraping_url}",
                 self.logger_context,
             )
         return venue_count
@@ -564,7 +685,7 @@ class ComedianWebsiteScraper(BaseScraper):
             )
         else:
             results = self._comedian_handler.execute_with_cursor(
-                ComedianQueries.GET_COMEDIANS_FOR_WEBSITE_SCRAPING,
+                ComedianQueries.GET_ALL_COMEDIANS_FOR_WEBSITE_SCRAPING,
                 return_results=True,
             )
 

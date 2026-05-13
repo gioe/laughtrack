@@ -25,7 +25,32 @@ for _path in (_root / "src", _root):
         sys.path.insert(0, str(_path))
 
 from laughtrack.core.entities.club.handler import ClubHandler
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from sql.club_queries import ClubQueries
+
+
+def build_local_comedian_websites_club() -> Club:
+    """Build the in-memory scraper config for the local-only ad hoc script."""
+    return Club(
+        id=0,
+        name="Comedian Websites",
+        address="Local",
+        website="https://laughtrack.local/comedian-websites",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=False,
+        city="Local",
+        state="NA",
+        scraping_sources=[
+            ScrapingSource(
+                platform="custom",
+                scraper_key="comedian_websites",
+                source_url="https://laughtrack.local/comedian-websites",
+            )
+        ],
+    )
 
 
 def print_run_summary(summary) -> None:
@@ -47,7 +72,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    parser.add_argument("--all", action="store_true", help="Scrape all comedians with websites needing refresh")
+    parser.add_argument("--all", action="store_true", help="Scrape every comedian with a saved tour-date website URL")
     parser.add_argument("--comedian-name", type=str, help="Scrape a specific comedian by name (partial match)")
     parser.add_argument("--limit", type=int, help="Limit the number of comedians to process")
     parser.add_argument("--dry-run", action="store_true", help="List comedians that would be scraped without fetching")
@@ -68,13 +93,20 @@ def main():
         parser.error("Either --all or --comedian-name is required")
 
     try:
-        # Find the synthetic club row that triggers this scraper
+        # Prefer a real DB row when present, but keep this ad hoc script
+        # local-only and self-contained when the synthetic row is absent.
         club_handler = ClubHandler()
-        clubs = club_handler.get_clubs_for_scraper("comedian_websites")
+        club_rows = club_handler.execute_with_cursor(
+            ClubQueries.GET_CLUBS_BY_SCRAPER,
+            ("comedian_websites",),
+            return_results=True,
+        )
+        clubs = [Club.from_db_row(row) for row in club_rows] if club_rows else []
         if not clubs:
-            Logger.error("No club row with scraper='comedian_websites' found. Insert one first.")
-            sys.exit(1)
-        club = clubs[0]
+            Logger.info("No club row with scraper='comedian_websites' found; using local script config.")
+            club = build_local_comedian_websites_club()
+        else:
+            club = clubs[0]
 
         # Import scraper after path setup
         from laughtrack.scrapers.implementations.api.comedian_websites.scraper import (

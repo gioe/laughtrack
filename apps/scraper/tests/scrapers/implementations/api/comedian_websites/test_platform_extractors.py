@@ -9,7 +9,14 @@ import pytest
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.scrapers.implementations.api.comedian_websites.platform_extractors import (
     KomiExtractorForComedian,
+    SeatedTourListExtractorForComedian,
+    ShubertSingleEventExtractorForComedian,
+    ShopifyTourListExtractorForComedian,
     SquarespaceExtractorForComedian,
+    StructuredTourListExtractorForComedian,
+    TicketNetworkTourListExtractorForComedian,
+    TextTourListExtractorForComedian,
+    VividSeatsExtractorForComedian,
     WixExtractorForComedian,
     _bandsintown_event_to_venue,
     _is_valid_squarespace_event,
@@ -35,6 +42,12 @@ class TestDetectWebsitePlatform:
 
     def test_komi_subdomain(self):
         assert detect_website_platform("https://chriskattan.komi.io/") == "komi"
+
+    def test_vividseats_domain(self):
+        assert detect_website_platform("https://www.vividseats.com/nurse-john-tickets") == "vividseats"
+
+    def test_shubert_domain(self):
+        assert detect_website_platform("https://www.shubert.com/events/detail/example") == "shubert"
 
     def test_custom_domain(self):
         assert detect_website_platform("https://www.mycomedysite.com") is None
@@ -62,6 +75,14 @@ class TestDetectWebsitePlatformFromHtml:
     def test_wix_events_marker(self):
         html = '<div data-hook="wix-one-events">...</div>'
         assert detect_website_platform_from_html(html) == "wix"
+
+    def test_generated_tour_listing_marker(self):
+        html = '<div class="date" data-date="2027-05-15T21:30:00"><span class="venue-name">Club</span></div>'
+        assert detect_website_platform_from_html(html) == "tour_listing"
+
+    def test_shopify_tour_marker(self):
+        html = '<script src="//example/cdn/shopifycloud/x.js"></script><div class="tour-date-article-container"></div>'
+        assert detect_website_platform_from_html(html) == "shopify_tour"
 
     def test_squarespace_takes_precedence_over_wix(self):
         html = 'Static.SQUARESPACE_CONTEXT = {} wix-one-events'
@@ -159,6 +180,336 @@ class TestWixExtractShowsDetection:
 
     def test_returns_true_with_events_widget(self):
         assert WixExtractorForComedian.has_events_widget("...wix-one-events...") is True
+
+
+# ------------------------------------------------------------------ #
+# Static tour-page extractors                                          #
+# ------------------------------------------------------------------ #
+
+
+@pytest.mark.asyncio
+class TestStructuredTourListExtractor:
+    async def test_upserts_generated_tour_listing_rows(self):
+        html = """
+        <div class="date" data-country="USA" data-date="2027-05-15T21:30:00">
+          <span class="venue-name">Chicago Improv Comedy Club</span>
+          <span class="venue-location">Schaumburg, IL</span>
+          <a href="https://tickets.example/show">Buy Tickets</a>
+        </div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await StructuredTourListExtractorForComedian.extract_venues(
+            scraping_url="https://dlhughleytour.com/",
+            html=html,
+            comedian=Comedian(name="D.L. Hughley", uuid="comic-1"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Chicago Improv Comedy Club"
+        assert venue["address"] == "Schaumburg, IL"
+        assert venue["discovery_metadata"]["platform_hints"] == ["tour_listing"]
+        assert venue["discovery_metadata"]["comedian_refs"] == [{"uuid": "comic-1", "name": "D.L. Hughley"}]
+
+
+@pytest.mark.asyncio
+class TestShopifyTourListExtractor:
+    async def test_upserts_steveo_tour_rows(self):
+        html = """
+        <div class="tour-date-article-container">
+          <a href="https://ticket.example/steve-o">
+            <div class="td-but1"><h3><span>MAY<br>21</span></h3></div>
+            <div class="td-but2">
+              <h3><span>Corpus Christi, TX (1ST SHOW)</span></h3>
+              <h4><strong><span>Mesquite Street</span></strong></h4>
+            </div>
+          </a>
+        </div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await ShopifyTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.steveo.com/pages/tour-dates",
+            html=html,
+            comedian=Comedian(name="Steve-O", uuid="comic-1"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Mesquite Street"
+        assert venue["address"] == "Corpus Christi, TX"
+        assert venue["discovery_metadata"]["platform_hints"] == ["shopify_tour"]
+
+    async def test_upserts_andrew_schulz_tour_rows(self):
+        html = """
+        <div class="fa_date_item">
+          <h3>June 5-6, 2027</h3>
+          <div class="location__container">Virginia Beach, VA</div>
+          <div class="venue__container">Funny Bone Comedy Club</div>
+          <a href="https://tickets.example/andrew">Get Tickets</a>
+        </div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await ShopifyTourListExtractorForComedian.extract_venues(
+            scraping_url="https://theandrewschulz.com/pages/upcoming-shows",
+            html=html,
+            comedian=Comedian(name="Andrew Schulz", uuid="comic-2"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Funny Bone Comedy Club"
+        assert venue["address"] == "Virginia Beach, VA"
+
+
+@pytest.mark.asyncio
+class TestShubertSingleEventExtractor:
+    async def test_skips_past_shubert_event(self):
+        html = '<span class="m-date__singleDate">Saturday, June 28, 2025</span>'
+        club_handler = MagicMock()
+
+        count = await ShubertSingleEventExtractorForComedian.extract_venues(
+            scraping_url="https://www.shubert.com/events/detail/marlon-wayans-wild-child-tour",
+            html=html,
+            comedian=Comedian(name="Marlon Wayans", uuid="comic-3"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 0
+        club_handler.upsert_for_tour_date_venue.assert_not_called()
+
+
+@pytest.mark.asyncio
+class TestVividSeatsExtractor:
+    async def test_upserts_rendered_vividseats_rows(self):
+        html = """
+        <a href="/nurse-john/show">
+          Thu Jul 16 7:30pm Nurse John (21+ Event) Oxnard Levity Live • Oxnard, CA From $94
+        </a>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await VividSeatsExtractorForComedian.extract_venues(
+            scraping_url="https://www.vividseats.com/nurse-john-tickets--theater-comedy/performer/182803",
+            html=html,
+            comedian=Comedian(name="Nurse John", uuid="comic-4"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Oxnard Levity Live"
+        assert venue["address"] == "Oxnard, CA"
+        assert venue["discovery_metadata"]["platform_hints"] == ["vividseats"]
+
+
+@pytest.mark.asyncio
+class TestSeatedTourListExtractor:
+    async def test_upserts_seated_event_rows(self):
+        html = """
+        <div class="seated-event-row">
+          <a href="https://tickets.example/gary"></a>
+          <div class="seated-event-date-cell">May 14, 2027</div>
+          <div class="seated-event-venue-name">The Moore Theatre</div>
+          <div class="seated-event-venue-location">Seattle, WA</div>
+        </div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await SeatedTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.garyowen.live/tour-1",
+            html=html,
+            comedian=Comedian(name="Gary Owen", uuid="comic-5"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "The Moore Theatre"
+        assert venue["address"] == "Seattle, WA"
+        assert venue["discovery_metadata"]["platform_hints"] == ["seated"]
+
+    async def test_upserts_seated_api_events_from_embedded_artist_id(self):
+        html = """
+        <div id="seated-55fdf2c0" data-artist-id="artist-123" data-css-version="2"></div>
+        <script src="https://widget.seated.com/app.js"></script>
+        """
+        response = {
+            "included": [
+                {
+                    "id": "event-123",
+                    "type": "tour-events",
+                    "attributes": {
+                        "starts-at": "2027-05-14T03:00:00Z",
+                        "venue-name": "The Moore Theatre",
+                        "formatted-address": "Seattle, WA",
+                    },
+                }
+            ]
+        }
+        fetch_json = AsyncMock(return_value=response)
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await SeatedTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.garyowen.live/tour-1",
+            html=html,
+            comedian=Comedian(name="Gary Owen", uuid="comic-5"),
+            club_handler=club_handler,
+            log_prefix="test",
+            fetch_json_fn=fetch_json,
+        )
+
+        assert count == 1
+        assert fetch_json.call_args.args[0] == "https://cdn.seated.com/api/tour/artist-123?include=tour-events"
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "The Moore Theatre"
+        assert venue["address"] == "Seattle, WA"
+        assert venue["discovery_metadata"]["event_urls"] == ["https://link.seated.com/event-123"]
+
+
+@pytest.mark.asyncio
+class TestTicketNetworkTourListExtractor:
+    async def test_upserts_ticketnetwork_widget_events(self):
+        html = """
+        <script>
+        params.specialFilters = "&performerFilter=text/name eq 'Vinny Guadagnino'&includeFacets=true";
+        csctnCall(params);
+        </script>
+        """
+        response = {
+            "results": [
+                {
+                    "date": {"datetimeOffset": "2027-05-22T19:00:00-04:00"},
+                    "country": {"alphaCode": "US"},
+                    "stateProvince": {"text": {"abbr": "OH"}},
+                    "city": {"text": {"name": "Cleveland"}},
+                    "venue": {"text": {"name": "Hilarities 4th Street Theatre At Pickwick & Frolic"}},
+                    "_links": [{"rel": "self", "href": "https://www.tn-apis.com/catalog/v2/events/7917947"}],
+                }
+            ]
+        }
+        fetch_json = AsyncMock(return_value=response)
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await TicketNetworkTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.vinnyguadagninotour.com/",
+            html=html,
+            comedian=Comedian(name="Vinny Guadagnino", uuid="comic-6"),
+            club_handler=club_handler,
+            fetch_json_fn=fetch_json,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        assert "performerFilter=text%2Fname+eq+%27Vinny+Guadagnino%27" in fetch_json.call_args.args[0]
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Hilarities 4th Street Theatre At Pickwick & Frolic"
+        assert venue["address"] == "Cleveland, OH"
+        assert venue["discovery_metadata"]["platform_hints"] == ["ticketnetwork"]
+
+
+@pytest.mark.asyncio
+class TestTextTourListExtractor:
+    async def test_upserts_location_first_squarespace_text_rows(self):
+        html = """
+        <section>
+          <div>May 15 '27 San Antonio, TX Aztec Theatre Bobby Lee TICKETS</div>
+        </section>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await TextTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.bobbylee.live/tour",
+            html=html,
+            comedian=Comedian(name="Bobby Lee", uuid="comic-7"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Aztec Theatre"
+        assert venue["address"] == "San Antonio, TX"
+        assert venue["discovery_metadata"]["platform_hints"] == ["text_tour_list"]
+
+    async def test_upserts_venue_first_ticket_table_rows(self):
+        html = """
+        <div class="ticket-table">June 12-14, 2027 Mic Drop San Diego, CA TOKENS</div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await TextTourListExtractorForComedian.extract_venues(
+            scraping_url="https://deraydavis.com/shows/",
+            html=html,
+            comedian=Comedian(name="DeRay Davis", uuid="comic-8"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Mic Drop"
+        assert venue["address"] == "San Diego, CA"
+
+    async def test_upserts_venue_first_pete_holmes_rows(self):
+        html = """
+        <div class="group">JUN 10 Wheeler Opera House Aspen, CO calendar_today Buy Tickets</div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await TextTourListExtractorForComedian.extract_venues(
+            scraping_url="https://peteholmes.com/",
+            html=html,
+            comedian=Comedian(name="Pete Holmes", uuid="comic-9"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "Wheeler Opera House"
+        assert venue["address"] == "Aspen, CO"
+
+    async def test_upserts_ed_bassmaster_location_first_rows(self):
+        html = """
+        <div>MAY 8 Tyler, TX The New Rose City Comedy Buy Tickets</div>
+        """
+        club_handler = MagicMock()
+        club_handler.upsert_for_tour_date_venue.return_value = MagicMock(id=1)
+
+        count = await TextTourListExtractorForComedian.extract_venues(
+            scraping_url="https://www.edbassmaster.com/tour",
+            html=html,
+            comedian=Comedian(name="Ed Bassmaster", uuid="comic-10"),
+            club_handler=club_handler,
+            log_prefix="test",
+        )
+
+        assert count == 1
+        venue = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        assert venue["name"] == "The New Rose City Comedy"
+        assert venue["address"] == "Tyler, TX"
 
 
 # ------------------------------------------------------------------ #

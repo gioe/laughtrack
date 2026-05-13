@@ -410,6 +410,19 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         assert "FROM UPSERTED_CLUB" in sql
         assert "RETURNING *" in sql
 
+    def test_tour_date_upsert_escapes_psycopg2_percent_signs(self):
+        sql = ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE
+
+        assert "LIKE 'task_%%_disposition'" in sql
+        assert "LIKE 'task_%_disposition'" not in sql
+
+    def test_tour_date_upsert_uses_next_available_source_priority(self):
+        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE)
+
+        assert "WHERE SS.CLUB_ID = UC.ID AND SS.PLATFORM = 'TOUR_DATES'" in sql
+        assert "SELECT COALESCE(MAX(SS.PRIORITY), -1) + 1 FROM SCRAPING_SOURCES SS" in sql
+        assert "AND SS.ENABLED = TRUE" in sql
+
 
 class TestSeatEngineUpsertRespectsDispositionMetadata:
     """Regression tests for TASK-1968: UPSERT_CLUB_BY_SEATENGINE_VENUE and
@@ -454,7 +467,7 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
             # disposition key and short-circuit the re-enable when found.
             assert "JSONB_OBJECT_KEYS" in conflict, label
             assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            assert "TASK_%_DISPOSITION" in conflict, label
+            assert "TASK_%%_DISPOSITION" in conflict, label
             # Preserves the existing enabled flag (not EXCLUDED.enabled, which
             # would defeat the carve-out by always re-enabling).
             assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
@@ -533,7 +546,7 @@ class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
             # disposition key and short-circuit the re-enable when found.
             assert "JSONB_OBJECT_KEYS" in conflict, label
             assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            assert "TASK_%_DISPOSITION" in conflict, label
+            assert "TASK_%%_DISPOSITION" in conflict, label
             # Preserves the existing enabled flag (not EXCLUDED.enabled, which
             # would defeat the carve-out by always re-enabling).
             assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
