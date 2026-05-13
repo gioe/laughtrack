@@ -26,8 +26,8 @@ export default function SearchBarContainer({
     // Variant-specific classes
     const variantClasses =
         variant === StyleContextKey.Search
-            ? "bg-ivory/95 border border-black/10"
-            : "bg-coconut-cream/30 border border-white/20";
+            ? "bg-white/5 border border-white/10"
+            : "bg-white/10 border border-white/20";
 
     return <div className={`${baseClasses} ${variantClasses}`}>{children}</div>;
 }

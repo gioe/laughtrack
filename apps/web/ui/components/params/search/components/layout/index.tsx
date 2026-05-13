@@ -42,7 +42,7 @@ export default function SearchBarLayout({
 }: SearchBarLayoutProps) {
     return (
         <div
-            className={`w-full mx-auto ${maxWidth} flex flex-col p-3 md:p-4 rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg backdrop-blur-sm bg-ivory/95 border border-black/10`}
+            className={`w-full mx-auto ${maxWidth} flex flex-col p-3 md:p-4 rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg backdrop-blur-sm bg-white/5 border border-white/10`}
         >
             <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
                 {children}
