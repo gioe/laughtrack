@@ -127,7 +127,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues query
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -256,6 +256,7 @@ help-discover:
 	@echo "  list-clubs           - Show all venues with IDs and names"
 	@echo "  club CLUB=<name|id>  - Print full JSON record for a club by name or integer id"
 	@echo "  club ID=<id>         - Same as 'club CLUB=<id>' — exact lookup by integer id"
+	@echo "  query SQL='<sql>'    - Run ad-hoc SQL against the web Postgres DB; prints JSON rows"
 	@echo "  discover-venues      - Discover new venues from comedian tour pages"
 
 help-clean:
@@ -798,6 +799,19 @@ endif
 		'' \
 		'conn.close()' \
 		| $(PYTHON) - "$(CLUB)" "$(ID)"
+
+# Run an ad-hoc SQL statement against the web Postgres DB, JSON output
+# Usage: make query SQL="SELECT 1 AS ok"
+#        make query SQL="SELECT id, name FROM clubs LIMIT 3"
+# Reuses DATABASE_URL / DATABASE_HOST family from apps/scraper/.env (same as bin/migrate).
+query: check-env
+ifndef SQL
+	@echo "❌ Usage: make query SQL='<sql>'"
+	@echo "   Example: make query SQL=\"SELECT 1 AS ok\""
+	@exit 1
+else
+	@$(activate_venv) $(PYTHON) bin/query "$(SQL)"
+endif
 
 # =============================================================================
 # DATA MAINTENANCE & UPDATES

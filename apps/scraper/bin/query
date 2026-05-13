@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""
+Run an ad-hoc SQL statement against the web Postgres DB and print results
+as a JSON array (one object per row).
+
+Usage:
+    cd apps/scraper && python bin/query "SELECT 1 AS ok"
+    cd apps/scraper && make query SQL="SELECT id, name FROM clubs LIMIT 3"
+
+Reads DATABASE_URL from apps/scraper/.env, or composes one from the
+DATABASE_HOST/USER/PASSWORD/NAME/PORT family (same fallback as bin/migrate).
+Uses connect_with_retry() so transient Neon auto-suspend wakeups don't fail.
+
+Output is a JSON array printed to stdout. datetime/date values are ISO 8601;
+Decimal values become strings (to preserve precision); bytes are hex-encoded.
+For non-SELECT statements that don't return rows, prints "[]" and the
+affected row count to stderr.
+"""
+import json
+import os
+import sys
+from datetime import date, datetime
+from decimal import Decimal
+from pathlib import Path
+from urllib.parse import quote
+from uuid import UUID
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
+    sys.exit(1)
+
+if not ENV_FILE.exists():
+    print(f"Warning: .env not found at {ENV_FILE} — falling back to environment variables", file=sys.stderr)
+
+load_dotenv(ENV_FILE)
+
+
+def _resolve_database_url() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+
+    host = os.environ.get("DATABASE_HOST")
+    user = os.environ.get("DATABASE_USER")
+    password = os.environ.get("DATABASE_PASSWORD")
+    name = os.environ.get("DATABASE_NAME")
+    port = os.environ.get("DATABASE_PORT", "5432")
+
+    missing = [
+        var
+        for var, val in (
+            ("DATABASE_HOST", host),
+            ("DATABASE_USER", user),
+            ("DATABASE_PASSWORD", password),
+            ("DATABASE_NAME", name),
+        )
+        if not val
+    ]
+    if missing:
+        print(
+            "Error: DATABASE_URL not set, and could not compose one from "
+            f"DATABASE_HOST/USER/PASSWORD/NAME/PORT — missing: {', '.join(missing)}. "
+            f"Set DATABASE_URL or the host-family vars in {ENV_FILE}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    return (
+        f"postgresql://{quote(user, safe='')}:{quote(password, safe='')}"
+        f"@{host}:{port}/{name}?sslmode=require"
+    )
+
+
+def _to_jsonable(value):
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return bytes(value).hex()
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, (list, tuple)):
+        return [_to_jsonable(v) for v in value]
+    if isinstance(value, dict):
+        return {str(k): _to_jsonable(v) for k, v in value.items()}
+    return str(value)
+
+
+def main() -> None:
+    if len(sys.argv) < 2 or not sys.argv[1].strip():
+        print(
+            'Usage: python bin/query "<SQL>"\n'
+            '  e.g. python bin/query "SELECT 1 AS ok"',
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    sql = sys.argv[1]
+
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
+        sys.exit(1)
+
+    sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+    from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
+    dsn = _resolve_database_url()
+    conn = connect_with_retry(dsn)
+    try:
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            if cur.description is None:
+                print("[]")
+                print(f"({cur.rowcount} row(s) affected)", file=sys.stderr)
+                return
+            cols = [d[0] for d in cur.description]
+            rows = cur.fetchall()
+            results = [
+                {col: _to_jsonable(val) for col, val in zip(cols, row)}
+                for row in rows
+            ]
+            print(json.dumps(results, indent=2))
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    main()
