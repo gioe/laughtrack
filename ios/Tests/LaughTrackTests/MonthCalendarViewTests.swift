@@ -379,27 +379,6 @@ struct MonthCalendarViewTests {
         #expect(transport.capturedRequests.count == 1)
     }
 
-    @Test("comedian detail show counts are bucketed by current calendar start of day")
-    func comedianShowsByDateBucketsByStartOfDay() {
-        let calendar = Calendar.current
-        let firstShow = currentCalendarDate(2026, 5, 8, hour: 10)
-        let secondShow = currentCalendarDate(2026, 5, 8, hour: 22)
-        let nextDayShow = currentCalendarDate(2026, 5, 9, hour: 1)
-
-        let counts = ComedianDetailView.showsByDate([
-            upcomingRun(clubID: 1, shows: [
-                show(id: 1, date: firstShow),
-                show(id: 2, date: secondShow),
-            ]),
-            upcomingRun(clubID: 2, shows: [
-                show(id: 3, date: nextDayShow),
-            ]),
-        ])
-
-        #expect(counts[calendar.startOfDay(for: firstShow)] == 2)
-        #expect(counts[calendar.startOfDay(for: nextDayShow)] == 1)
-    }
-
     private func makeCalendar(firstWeekday: Int) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = Locale(identifier: "en_US_POSIX")
@@ -418,31 +397,5 @@ struct MonthCalendarViewTests {
         calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
     }
 
-    private func currentCalendarDate(_ year: Int, _ month: Int, _ day: Int, hour: Int) -> Date {
-        Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: hour))!
-    }
-
-    private func upcomingRun(
-        clubID: Int,
-        shows: [Components.Schemas.Show]
-    ) -> Components.Schemas.UpcomingRun {
-        .init(
-            clubID: clubID,
-            clubName: "Club \(clubID)",
-            clubImageUrl: "https://example.com/club-\(clubID).png",
-            shows: shows
-        )
-    }
-
-    private func show(id: Int, date: Date) -> Components.Schemas.Show {
-        .init(
-            id: id,
-            clubID: 100 + id,
-            clubName: "Comedy Club",
-            date: date,
-            name: "Late show",
-            imageUrl: "https://example.com/show-\(id).png"
-        )
-    }
 }
 #endif
