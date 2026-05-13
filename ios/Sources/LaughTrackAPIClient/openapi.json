@@ -1205,7 +1205,7 @@
       "get": {
         "operationId": "getShowsDensity",
         "summary": "Per-day show counts for a date range",
-        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.",
+        "description": "Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.\n\nOptional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.",
         "tags": ["shows"],
         "parameters": [
           {
@@ -1231,6 +1231,18 @@
             "in": "query",
             "description": "Radius in miles (1-500, defaults to 25 when zip provided).",
             "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
+          },
+          {
+            "name": "comedian",
+            "in": "query",
+            "description": "Filter density to dates where this comedian appears in the show lineup. Mutually exclusive with `club`.",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "club",
+            "in": "query",
+            "description": "Filter density to dates hosted by this venue. Mutually exclusive with `comedian`.",
+            "schema": { "type": "string" }
           },
           {
             "name": "X-Timezone",
