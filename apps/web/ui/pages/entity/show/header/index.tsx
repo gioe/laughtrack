@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -26,13 +26,21 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
     const { mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    // Re-derive the countdown every minute so future→live→past transitions
+    // fire without a page reload (a user who lands 4 minutes before showtime
+    // otherwise sees the label frozen as the show starts).
+    const [now, setNow] = useState<Date>(() => new Date());
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 60_000);
+        return () => clearInterval(interval);
+    }, []);
     const showImage = !error && show.imageUrl && show.imageUrl !== PLACEHOLDER;
     const heading =
         show.name && show.name.trim()
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
     const dateLabel = formatShowDate(show.date.toString(), show.timezone);
-    const countdown = formatShowCountdown(show.date.toString());
+    const countdown = formatShowCountdown(show.date.toString(), now);
 
     return (
         <div className="max-w-7xl mx-auto">
