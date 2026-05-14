@@ -16,6 +16,12 @@ Verified alternate venue names that resolve to one canonical Club before scraper
 ### Comedian
 Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
 
+### ComedianPodcastAppearance
+Episode-level evidence that a comedian appeared on a podcast episode. Rows are source-scoped by `source` and `sourceEpisodeId` and should only describe an appearance on a specific episode.
+
+### ComedianPodcastIdentityLink
+Reviewed source identity links between a comedian and an external podcast feed. For Podcast Index, `source = "podcast_index"` and `sourceFeedId` stores the feed identity returned by the provider. `reviewStatus` has three meanings: `verified` feeds are trusted for future backfills, `ambiguous` feeds require more review before they can be promoted by identity alone, and `rejected` feeds are known false positives that must be suppressed before writing episode appearance rows. This table is deliberately separate from `ComedianPodcastAppearance` so a reviewed feed relationship is not conflated with an episode appearance.
+
 ### Show
 A comedy show at a club on a date. Has lineup items, tickets, and tags.
 
