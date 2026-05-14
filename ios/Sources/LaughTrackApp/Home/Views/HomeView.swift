@@ -528,7 +528,7 @@ final class HomeShowsTonightModel: ObservableObject {
     static let displayLimit = 5
 
     static func seeMoreSearchSeed(
-        railKind: HomeShowRailKind = .moreNearYou,
+        railKind: HomeShowRailKind,
         nearbyPreference: NearbyPreference?
     ) -> SearchRootModel.Seed {
         SearchRootModel.Seed(

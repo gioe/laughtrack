@@ -78,7 +78,10 @@ struct HomeShowsTonightModelTests {
             state: "NY"
         )
 
-        #expect(HomeShowsTonightModel.seeMoreSearchSeed(nearbyPreference: preference) == SearchRootModel.Seed(
+        #expect(HomeShowsTonightModel.seeMoreSearchSeed(
+            railKind: .moreNearYou,
+            nearbyPreference: preference
+        ) == SearchRootModel.Seed(
             pivot: .shows,
             query: "",
             shortcut: "Near Me",
