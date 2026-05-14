@@ -1156,6 +1156,10 @@ public enum Components {
             public var clubID: Swift.Int
             /// - Remark: Generated from `#/components/schemas/Show/clubName`.
             public var clubName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Show/clubCity`.
+            public var clubCity: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Show/clubState`.
+            public var clubState: Swift.String?
             /// - Remark: Generated from `#/components/schemas/Show/date`.
             public var date: Foundation.Date
             /// - Remark: Generated from `#/components/schemas/Show/tickets`.
@@ -1186,6 +1190,8 @@ public enum Components {
             ///   - id:
             ///   - clubID:
             ///   - clubName:
+            ///   - clubCity:
+            ///   - clubState:
             ///   - date:
             ///   - tickets:
             ///   - name:
@@ -1202,6 +1208,8 @@ public enum Components {
                 id: Swift.Int,
                 clubID: Swift.Int,
                 clubName: Swift.String? = nil,
+                clubCity: Swift.String? = nil,
+                clubState: Swift.String? = nil,
                 date: Foundation.Date,
                 tickets: [Components.Schemas.Ticket]? = nil,
                 name: Swift.String? = nil,
@@ -1218,6 +1226,8 @@ public enum Components {
                 self.id = id
                 self.clubID = clubID
                 self.clubName = clubName
+                self.clubCity = clubCity
+                self.clubState = clubState
                 self.date = date
                 self.tickets = tickets
                 self.name = name
@@ -1235,6 +1245,8 @@ public enum Components {
                 case id
                 case clubID
                 case clubName
+                case clubCity
+                case clubState
                 case date
                 case tickets
                 case name
