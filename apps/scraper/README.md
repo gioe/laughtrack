@@ -123,6 +123,13 @@ copy that file to `.env` to configure them locally.
   scrape volume is ~$1.50/month. Get a key at https://capsolver.com.
 - `SEATENGINE_AUTH_TOKEN` — only needed for SeatEngine-backed venues; run
   `bash apps/scraper/scripts/fetch_seatengine_token.sh` to refresh.
+- `PODCASTINDEX_API_KEY`, `PODCASTINDEX_API_SECRET` — required only for
+  `scripts/core/populate_comedian_podcast_appearances.py`. Generate both
+  from the Podcast Index developer portal at https://api.podcastindex.org/,
+  then run the backfill conservatively, for example:
+  `make run-script SCRIPT=scripts/core/populate_comedian_podcast_appearances.py ARGS='--limit 25 --dry-run'`.
+  `PODCASTINDEX_USER_AGENT` is optional and defaults to `LaughTrack/1.0`;
+  set it for manual or ops runs that need a more specific caller identity.
 - `DISCORD_WEBHOOK_URL`, `HEALTHCHECKS_PING_URL`,
   `BUNNYCDN_STORAGE_*` — alerting / heartbeat / image-upload helpers; see
   `.env.example` for full descriptions.
