@@ -274,7 +274,7 @@ private struct HomeShowsTonightRail: View {
                     Button {
                         coordinator.open(.show(show.id))
                     } label: {
-                        HomeShowsTonightRailCard(show: show)
+                        ShowRow(show: show)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightButton(show.id))
@@ -396,105 +396,6 @@ private struct HomeShowsTonightHeroCard: View {
 enum HomeShowsTonightHeroPresentation {
     static func shouldShowFooter(for show: Components.Schemas.Show) -> Bool {
         false
-    }
-}
-
-private struct HomeShowsTonightRailCard: View {
-    let show: Components.Schemas.Show
-
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        HStack(alignment: .center, spacing: theme.spacing.sm) {
-            artwork
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(ShowTitlePresentation.title(for: show))
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                Text(show.clubName ?? "Unknown club")
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                    .lineLimit(1)
-
-                Text(metadata.joined(separator: " • "))
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-        }
-        .padding(theme.spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(laughTrack.colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(ShowTitlePresentation.title(for: show)), \(show.clubName ?? "Unknown club"), \(metadata.joined(separator: ", "))")
-    }
-
-    private var metadata: [String] {
-        [
-            showTime,
-            ShowRow.priceLabel(for: show),
-        ].compactMap { value in
-            guard let value, !value.isEmpty else { return nil }
-            return value
-        }
-    }
-
-    private var showTime: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        if let timezoneID = show.timezone, let timezone = TimeZone(identifier: timezoneID) {
-            formatter.timeZone = timezone
-        }
-        return formatter.string(from: show.date)
-    }
-
-    @ViewBuilder
-    private var artwork: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        if let url = URL.normalizedExternalURL(show.imageUrl) {
-            CachedAsyncImage(url: url) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(laughTrack.colors.surfaceMuted)
-                    .overlay {
-                        ProgressView()
-                            .tint(laughTrack.colors.accent)
-                    }
-            } error: { _ in
-                fallbackArtwork
-            }
-            .frame(width: 76, height: 58)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        } else {
-            fallbackArtwork
-        }
-    }
-
-    private var fallbackArtwork: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(laughTrack.colors.surfaceMuted)
-            .overlay {
-                Image(systemName: "ticket.fill")
-                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
-            .frame(width: 76, height: 58)
     }
 }
 
