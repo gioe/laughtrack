@@ -34,6 +34,11 @@ _TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 _CDN_HOST = "laughtrack.b-cdn.net"
 _MAX_IMAGE_WIDTH = 500
 
+# BunnyCDN storage zone slug rule: lowercase alphanumeric + hyphen.
+_BUNNYCDN_ZONE_RE = re.compile(r"^[a-z0-9-]+$")
+# BunnyCDN storage regions (https://docs.bunny.net/reference/edge-storage-api-regions).
+_BUNNYCDN_REGIONS = {"la", "ny", "sg", "syd", "uk", "se", "br", "jh", "de"}
+
 # Only allow safe characters in SPARQL string literals
 _SAFE_NAME_RE = re.compile(r"^[a-zA-Z0-9 .'\-]+$")
 _COMMONS_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp")
@@ -223,6 +228,20 @@ def _upload_to_bunny_cdn(
 
     Returns True on success (HTTP 201), False otherwise.
     """
+    if not _BUNNYCDN_ZONE_RE.match(storage_zone):
+        hint = (
+            "looks like the full URL — pass just the zone slug (e.g. 'laughtrack')"
+            if "/" in storage_zone or storage_zone.lower().startswith("http")
+            else f"must match {_BUNNYCDN_ZONE_RE.pattern} (lowercase alphanumeric and hyphens only)"
+        )
+        Logger.warn(f"image_sourcing: malformed BUNNYCDN_STORAGE_ZONE='{storage_zone}' — {hint}")
+        return False
+    if region not in _BUNNYCDN_REGIONS:
+        Logger.warn(
+            f"image_sourcing: unknown BUNNYCDN_STORAGE_REGION='{region}' — "
+            f"expected one of: {sorted(_BUNNYCDN_REGIONS)}"
+        )
+        return False
     url = f"https://{region}.storage.bunnycdn.com/{storage_zone}/{path}"
     try:
         resp = requests.put(
