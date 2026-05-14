@@ -10,11 +10,26 @@ const IS_DEV = process.env.NODE_ENV === "development";
 // React Refresh evaluates compiled strings as JS during dev hydration, which
 // requires 'unsafe-eval'. Prod must never include it.
 // https://va.vercel-scripts.com hosts the Vercel Analytics script (script.js
-// in prod, script.debug.js in dev). connect-src already allows https: so the
-// beacon POST doesn't need a separate entry.
+// in prod, script.debug.js in dev).
 const SCRIPT_SRC = IS_DEV
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com"
     : "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com";
+
+// connect-src allow-list:
+// - 'self' covers same-origin API routes plus Vercel Analytics / Speed Insights
+//   beacons (posted to /_vercel/insights/* and /_vercel/speed-insights/*).
+// - https://va.vercel-scripts.com is a defensive entry for any fetch initiated
+//   by the Vercel Analytics script back to its host.
+// - https://*.ingest.sentry.io plus regional variants cover the @sentry/nextjs
+//   browser SDK's error/trace ingest (host depends on the DSN's region).
+const CONNECT_SRC = [
+    "connect-src",
+    "'self'",
+    "https://va.vercel-scripts.com",
+    "https://*.ingest.sentry.io",
+    "https://*.ingest.us.sentry.io",
+    "https://*.ingest.de.sentry.io",
+].join(" ");
 
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
@@ -26,7 +41,7 @@ const SECURITY_HEADERS: Record<string, string> = {
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https://laughtrack.b-cdn.net https://lh3.googleusercontent.com",
         "font-src 'self' data:",
-        "connect-src 'self' https:",
+        CONNECT_SRC,
         "frame-ancestors 'none'",
     ].join("; "),
     "Permissions-Policy":
