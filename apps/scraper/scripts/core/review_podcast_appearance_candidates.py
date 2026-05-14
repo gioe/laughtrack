@@ -53,6 +53,7 @@ _LOAD_CANDIDATES_SQL = """
         ear.comedian_id,
         c.name,
         ear.episode_id,
+        ear.source,
         ear.source_episode_id,
         ear.candidate_status,
         ear.appearance_role,
@@ -112,6 +113,7 @@ class AppearanceCandidate:
     comedian_id: int
     comedian_name: str
     episode_id: int
+    source: str
     source_episode_id: str
     current_status: str
     appearance_role: str
@@ -158,7 +160,7 @@ def _load_candidates(*, include_resolved: bool = False, limit: Optional[int] = N
             rows = cur.fetchall()
     candidates: list[AppearanceCandidate] = []
     for row in rows:
-        evidence = row[11] or {}
+        evidence = row[12] or {}
         if isinstance(evidence, str):
             evidence = json.loads(evidence)
         candidates.append(
@@ -167,13 +169,14 @@ def _load_candidates(*, include_resolved: bool = False, limit: Optional[int] = N
                 comedian_id=int(row[1]),
                 comedian_name=str(row[2] or ""),
                 episode_id=int(row[3]),
-                source_episode_id=str(row[4]),
-                current_status=str(row[5]),
-                appearance_role=str(row[6]),
-                confidence=float(row[7] or 0.0),
-                podcast_title=str(row[8] or ""),
-                episode_title=str(row[9] or ""),
-                episode_url=str(row[10] or ""),
+                source=str(row[4]),
+                source_episode_id=str(row[5]),
+                current_status=str(row[6]),
+                appearance_role=str(row[7]),
+                confidence=float(row[8] or 0.0),
+                podcast_title=str(row[9] or ""),
+                episode_title=str(row[10] or ""),
+                episode_url=str(row[11] or ""),
                 evidence=dict(evidence),
             )
         )
@@ -340,7 +343,7 @@ def _apply(
                         (
                             candidate.comedian_id,
                             candidate.episode_id,
-                            "podcast_index",
+                            candidate.source,
                             candidate.appearance_role,
                             "accepted",
                             candidate.confidence,

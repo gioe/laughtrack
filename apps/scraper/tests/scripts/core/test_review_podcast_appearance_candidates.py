@@ -33,7 +33,7 @@ class _FakeCursor:
         if normalized.startswith("SELECT ear.id"):
             rows = self._conn.review_rows
             if params and not params[0]:
-                rows = [row for row in rows if row[5] == "pending"]
+                rows = [row for row in rows if row[6] == "pending"]
             self._last_result = rows
         elif normalized.startswith("UPDATE episode_appearance_reviews"):
             status, role, confidence, evidence_json, reviewer, candidate_id = params
@@ -120,6 +120,7 @@ def _review_row(
         comedian_id,
         "Ari Shaffir",
         episode_id,
+        "podcast_index",
         source_episode_id,
         status,
         role,
@@ -211,6 +212,26 @@ def test_apply_confirm_updates_reviews_and_materializes_accepts(monkeypatch, tmp
     assert conn.review_updates[0]["candidate_status"] == "accepted"
     assert conn.review_updates[0]["evidence"]["review_reason"] == "heard it"
     assert conn.appearance_writes[0][:7] == (12, 5, "podcast_index", "guest", "accepted", 0.62, "matt")
+
+
+def test_apply_confirm_records_ignored_status_without_materializing(monkeypatch, tmp_path):
+    conn = _FakeConn([_review_row(candidate_id=1)])
+    _install_fakes(monkeypatch, conn)
+    input_path = tmp_path / "review.csv"
+    _write_decisions(input_path, [{"candidate_id": "1", "decision": "ignore"}])
+
+    summary, errors = mod._apply(
+        decisions_path=input_path,
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert errors == []
+    assert summary.ignored == 1
+    assert summary.appearances_written == 0
+    assert conn.review_updates[0]["candidate_status"] == "ignored"
+    assert conn.appearance_writes == []
 
 
 def test_apply_validates_decisions_candidates_duplicates_and_resolved_status(monkeypatch, tmp_path):
