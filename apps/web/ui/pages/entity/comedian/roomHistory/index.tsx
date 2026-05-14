@@ -23,8 +23,11 @@ const MONTHS = [
     "Dec",
 ];
 
-function formatLastPlayed(date: Date): string {
-    return `${MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+function formatLastPlayed(date: Date | string): string {
+    // unstable_cache JSON-serializes the DTO, so `lastPlayedDate` arrives as
+    // an ISO string on cache hits.
+    const d = date instanceof Date ? date : new Date(date);
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 function formatPlayCount(count: number): string {

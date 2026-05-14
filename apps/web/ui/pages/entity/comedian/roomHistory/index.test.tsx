@@ -85,6 +85,24 @@ describe("RoomHistorySection", () => {
         ).not.toBeNull();
     });
 
+    it("formats lastPlayedDate even when it arrived as an ISO string from unstable_cache", () => {
+        const rooms = [
+            {
+                ...makeRoom({
+                    clubId: 42,
+                    clubName: "Cached Club",
+                    playCount: 7,
+                }),
+                lastPlayedDate: "2025-04-05T20:00:00Z",
+            } as unknown as RoomHistoryDTO,
+        ];
+        const { getByText } = render(
+            <RoomHistorySection comedianName="Jane Comic" rooms={rooms} />,
+        );
+
+        expect(getByText(/Played 7 times · last set Apr 2025/)).not.toBeNull();
+    });
+
     it("uses the singular form for clubs with a single play", () => {
         const rooms = [makeRoom({ playCount: 1 })];
         const { getByText } = render(

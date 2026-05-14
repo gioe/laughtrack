@@ -149,6 +149,55 @@ describe("findRoomHistoryForComedian", () => {
         expect(stand.lastPlayedDate).toEqual(standA);
     });
 
+    it("tracks the per-club max date regardless of row order returned by Prisma", async () => {
+        const earlyDate = new Date("2024-01-01T20:00:00Z");
+        const midDate = new Date("2024-06-01T20:00:00Z");
+        const latestDate = new Date("2025-03-01T20:00:00Z");
+
+        // Return rows in non-ascending order so a naive last-wins
+        // implementation would record midDate instead of latestDate.
+        mockFindMany.mockResolvedValue([
+            makeRow({
+                id: 1,
+                date: latestDate,
+                club: {
+                    id: 20,
+                    name: "Reorder Club",
+                    city: null,
+                    state: null,
+                    hasImage: false,
+                },
+            }),
+            makeRow({
+                id: 2,
+                date: earlyDate,
+                club: {
+                    id: 20,
+                    name: "Reorder Club",
+                    city: null,
+                    state: null,
+                    hasImage: false,
+                },
+            }),
+            makeRow({
+                id: 3,
+                date: midDate,
+                club: {
+                    id: 20,
+                    name: "Reorder Club",
+                    city: null,
+                    state: null,
+                    hasImage: false,
+                },
+            }),
+        ]);
+
+        const result = await findRoomHistoryForComedian(makeHelper() as never);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].lastPlayedDate).toEqual(latestDate);
+    });
+
     it("sorts tiles by play count descending, breaking ties by most-recent date", async () => {
         mockFindMany.mockResolvedValue([
             makeRow({
