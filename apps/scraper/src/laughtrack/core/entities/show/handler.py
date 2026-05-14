@@ -1,10 +1,14 @@
 """Show database handler for show-specific operations."""
 
+import re
+import unicodedata
 from datetime import timezone
 from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
+from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive
 from laughtrack.core.entities.comedian.handler import ComedianHandler
+from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.comedian.name_splitter import split_combined_name
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.tag.handler import TagHandler
@@ -21,6 +25,8 @@ from laughtrack.foundation.infrastructure.database.template import BatchTemplate
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from .model import Show
+
+_HEADLINER_FRIENDS_SUFFIX_RE = re.compile(r"\s+(?:&|and)\s+friends\s*$", re.IGNORECASE)
 
 
 class ShowHandler(BaseDatabaseHandler[Show]):
@@ -445,6 +451,46 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if novel_comedians:
                     show.lineup.extend(novel_comedians)
 
+    def _headliner_from_empty_lineup_title(self, title: Optional[str]) -> Optional[str]:
+        """Derive a headliner from narrowly recognized empty-lineup show titles."""
+        if not title:
+            return None
+
+        without_format_chars = "".join(
+            char for char in title if unicodedata.category(char) != "Cf"
+        ).strip()
+        removed_format_chars = without_format_chars != title.strip()
+
+        match = _HEADLINER_FRIENDS_SUFFIX_RE.search(without_format_chars)
+        removed_friends_suffix = bool(match)
+        if match:
+            without_format_chars = without_format_chars[: match.start()].strip()
+
+        if not (removed_format_chars or removed_friends_suffix):
+            return None
+
+        if detect_false_positive(without_format_chars):
+            return None
+
+        words = without_format_chars.split()
+        if len(words) < 2 or len(words) > 4:
+            return None
+
+        if not all(word[:1].isupper() for word in words):
+            return None
+
+        return without_format_chars
+
+    def _seed_headliners_from_empty_lineup_titles(self, shows: List[Show]) -> None:
+        """Add a narrow headliner fallback for empty-lineup shows."""
+        for show in shows:
+            if show.lineup:
+                continue
+
+            headliner = self._headliner_from_empty_lineup_title(show.name)
+            if headliner:
+                show.lineup.append(Comedian(name=headliner))
+
     def _expand_multi_comedian_lineups(self, shows: List[Show]) -> None:
         """Expand lineup entries that contain multiple comedian names.
 
@@ -505,6 +551,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
             # Process comedian additions in memory
             self._process_comedian_additions(shows, show_name_comedians_map)
+            self._seed_headliners_from_empty_lineup_titles(shows)
 
             # Split multi-comedian lineup entries (e.g. "X & Y") into individual items
             self._expand_multi_comedian_lineups(shows)

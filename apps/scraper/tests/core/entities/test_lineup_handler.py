@@ -51,6 +51,7 @@ _stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandl
 _comedian_pkg = _stub("laughtrack.core.entities.comedian", Comedian=MagicMock())
 _comedian_model_stub = _stub("laughtrack.core.entities.comedian.model", Comedian=MagicMock())
 _comedian_handler_stub_mod = _stub("laughtrack.core.entities.comedian.handler", ComedianHandler=MagicMock())
+_stub("laughtrack.core.entities.comedian.false_positive_detector", detect_false_positive=MagicMock(return_value=None))
 
 # SQL query stubs
 _lineup_queries_stub = _stub("sql.lineup_queries", LineupQueries=MagicMock())
@@ -624,3 +625,67 @@ class TestUpdateShowLineupsStripsFalsePositiveComedians:
         assert "Comic A" in lineup_names
         assert "Comic B" in lineup_names
         assert "Westside Comedy Theater" not in lineup_names
+
+
+class TestUpdateShowLineupsSeedsHeadlinerFromTitle:
+    def _make_handler_for_lineup_update(self):
+        h = _make_show_handler()
+        h.lineup_handler.get_lineup.return_value = {}
+        h.lineup_handler.get_comedians_from_show_names.return_value = {}
+        h.lineup_handler.batch_update_lineups.return_value = (0, 0)
+        h.comedian_handler.insert_comedians.return_value = []
+        h.comedian_handler._filter_denied_comedians.side_effect = lambda comedians: comedians
+        h.comedian_handler._filter_false_positive_comedians.side_effect = lambda comedians: comedians
+        h.comedian_handler.source_images_for_new_comedians.return_value = 0
+        h.calculate_and_update_popularity = MagicMock()
+        return h
+
+    def test_invisible_prefix_empty_lineup_title_becomes_clean_headliner(self):
+        show = _make_show_stub(1, [])
+        show.name = "\u200bPete Davidson"
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[1])
+
+        created = []
+
+        def make_comedian(name):
+            comedian = _make_comedian_stub(name, f"uuid-{name.lower().replace(' ', '-')}")
+            created.append(comedian)
+            return comedian
+
+        with patch.object(_show_handler_mod, "Comedian", side_effect=make_comedian):
+            with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+                h.update_show_lineups([show])
+
+        assert [c.name for c in created] == ["Pete Davidson"]
+        assert [c.name for c in show.lineup] == ["Pete Davidson"]
+
+    def test_friends_suffix_empty_lineup_title_seeds_headliner_only(self):
+        show = _make_show_stub(2, [])
+        show.name = "Theo Von & Friends"
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[2])
+
+        with patch.object(
+            _show_handler_mod,
+            "Comedian",
+            side_effect=lambda name: _make_comedian_stub(name, f"uuid-{name.lower().replace(' ', '-')}"),
+        ):
+            with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+                h.update_show_lineups([show])
+
+        assert [c.name for c in show.lineup] == ["Theo Von"]
+
+    def test_generic_empty_lineup_title_is_not_seeded(self):
+        show = _make_show_stub(3, [])
+        show.name = "Dad Jokes"
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[3])
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        assert show.lineup == []
