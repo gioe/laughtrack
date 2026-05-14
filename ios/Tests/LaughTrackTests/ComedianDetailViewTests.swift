@@ -156,7 +156,7 @@ struct ComedianDetailViewTests {
     @Test("comedian stats omit zero-valued buckets")
     func comedianStatsOmitEmptyBuckets() {
         var comedian = DemoContent.primaryComedian
-        comedian.socialData = nil
+        comedian.socialData = .init(id: 0)
 
         let stats = ComedianStatsPresentation.stats(for: comedian, runs: [])
 
@@ -368,4 +368,3 @@ private struct MockComedianDetailTransport: ClientTransport {
         }
     }
 }
-

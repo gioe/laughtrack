@@ -241,13 +241,12 @@ enum ComedianStatsPresentation {
             result.append(.upcoming(showCount: showCount, venueCount: venueCount))
         }
 
-        if let social = comedian.socialData {
-            let total = (social.instagramFollowers ?? 0)
-                + (social.tiktokFollowers ?? 0)
-                + (social.youtubeFollowers ?? 0)
-            if total > 0 {
-                result.append(.followers(total: total))
-            }
+        let social = comedian.socialData
+        let total = (social.instagramFollowers ?? 0)
+            + (social.tiktokFollowers ?? 0)
+            + (social.youtubeFollowers ?? 0)
+        if total > 0 {
+            result.append(.followers(total: total))
         }
 
         return result

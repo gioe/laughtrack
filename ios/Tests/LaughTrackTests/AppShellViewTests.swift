@@ -42,7 +42,9 @@ struct AppShellViewTests {
         #expect(shellState.selectedPrimitive == nil)
         #expect(shellState.showsLocationHeader)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
-            .shows,
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
             .favoriteShows,
             .comedians,
             .clubs,
@@ -68,12 +70,19 @@ struct AppShellViewTests {
         #expect(preference.city == "New York")
         #expect(preference.state == "NY")
         #expect(HomeContentSection.sections(for: nil) == [
-            .shows,
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
             .favoriteShows,
             .comedians,
             .clubs,
         ])
-        #expect(HomeContentSection.sections(for: .shows) == [.shows])
+        #expect(HomeContentSection.sections(for: .shows) == [
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
+            .favoriteShows,
+        ])
     }
 
     @Test("home no longer exposes the search-pivot hero after shows-tonight redesign")
