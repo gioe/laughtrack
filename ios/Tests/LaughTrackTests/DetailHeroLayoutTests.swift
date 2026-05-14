@@ -49,11 +49,14 @@ struct DetailHeroLayoutTests {
         #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 0, zipCode: "10012") == nil)
     }
 
-    @Test("show detail hero does not duplicate summary facts")
-    func showHeroBadgesAreEmpty() {
+    @Test("show detail hero renders a countdown badge")
+    func showHeroBadgeIncludesCountdown() {
         let show = Self.showDetail()
+        let badges = ShowDetailPresentation.heroBadges(for: show)
 
-        #expect(ShowDetailPresentation.heroBadges(for: show).isEmpty)
+        #expect(badges.count == 1)
+        let expected = ShowFormatting.countdown(for: show.date).label
+        #expect(badges.first?.title == expected)
     }
 
     @Test("show detail summary facts include event operations")
