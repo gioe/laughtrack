@@ -49,14 +49,17 @@ Flags:
 
 import argparse
 import csv
-import os
 import sys
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-# Load scraper .env (not repo root)
-load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
+_root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
+for _path in (_root / "src", _root):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
+load_dotenv(_root / ".env")
 
 from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa: E402
