@@ -77,9 +77,7 @@ struct ShowDetailView: View {
                             }
 
                             ShowLineupSection(
-                                lineup: show.lineup ?? [],
-                                apiClient: apiClient,
-                                feedbackMessage: $feedbackMessage
+                                lineup: show.lineup ?? []
                             ) { comedian in
                                 coordinator.open(.comedian(comedian.id))
                             }
@@ -413,9 +411,9 @@ private final class ShowCalendarWriter: ObservableObject {
 
 private struct ShowLineupSection: View {
     let lineup: [Components.Schemas.ComedianLineup]
-    let apiClient: Client
-    @Binding var feedbackMessage: String?
     let openDetail: (Components.Schemas.ComedianLineup) -> Void
+
+    @Environment(\.appTheme) private var theme
 
     var body: some View {
         LaughTrackCard(density: .tight) {
@@ -423,19 +421,95 @@ private struct ShowLineupSection: View {
                 LaughTrackSectionHeader(title: "Lineup")
 
                 if lineup.isEmpty {
-                    EmptyCard(message: "Lineup details are not available yet.")
+                    EmptyCard(message: "No announced lineup.")
                 } else {
-                    ForEach(lineup, id: \.uuid) { comedian in
-                        ComedianLineupRow(
-                            comedian: comedian,
-                            apiClient: apiClient,
-                            feedbackMessage: $feedbackMessage,
-                            openDetail: { openDetail(comedian) }
-                        )
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: theme.spacing.md) {
+                            ForEach(lineup, id: \.uuid) { comedian in
+                                Button {
+                                    openDetail(comedian)
+                                } label: {
+                                    ComedianLineupTile(comedian: comedian)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(comedian.name)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
                     }
                 }
             }
         }
+    }
+}
+
+private struct ComedianLineupTile: View {
+    let comedian: Components.Schemas.ComedianLineup
+
+    @Environment(\.appTheme) private var theme
+
+    private static let tileWidth: CGFloat = 96
+    private static let photoSize: CGFloat = 88
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(spacing: 8) {
+            photo
+                .frame(width: Self.photoSize, height: Self.photoSize)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+
+            Text(comedian.name)
+                .font(laughTrack.typography.metadata.weight(.semibold))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(width: Self.tileWidth)
+    }
+
+    @ViewBuilder
+    private var photo: some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = comedian.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        let url = URL.normalizedExternalURL(trimmed)
+
+        if let url {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Circle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackPhoto
+            }
+        } else {
+            fallbackPhoto
+        }
+    }
+
+    private var fallbackPhoto: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return Circle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "music.mic")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
     }
 }
 
