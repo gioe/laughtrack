@@ -59,7 +59,7 @@ function buildComedianSelect() {
             },
             orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
         },
-    } as const;
+    } satisfies Prisma.ComedianSelect;
 }
 
 function sortPodcastAppearances(
