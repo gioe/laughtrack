@@ -6,6 +6,8 @@ import hashlib
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+import pytest
+
 from laughtrack.core.services import image_sourcing
 from scripts.core import source_comedian_images
 
@@ -19,6 +21,11 @@ class _FakeResponse:
 
     def json(self) -> Dict[str, Any]:
         return self.payload
+
+
+@dataclass
+class _FakePutResponse:
+    status_code: int
 
 
 def _wikidata_payload(image_url: str) -> Dict[str, Any]:
@@ -186,3 +193,179 @@ def test_load_env_defaults_populates_missing_environment(monkeypatch, tmp_path):
     assert source_comedian_images.os.environ["BUNNYCDN_STORAGE_PASSWORD"] == "from-file"
     assert source_comedian_images.os.environ["BUNNYCDN_STORAGE_ZONE"] == "image-zone"
     assert source_comedian_images.os.environ["IMAGE_SOURCE_DELAY_S"] == "already-set"
+
+
+def test_collect_explicit_names_preserves_order_dedups_and_skips_comments(tmp_path):
+    names_file = tmp_path / "names.txt"
+    names_file.write_text(
+        "\n".join(
+            [
+                "# curated missing-image comedians",
+                "  Tig Notaro  ",
+                "",
+                "Ali Wong",
+                "Hasan Minhaj",
+                "Ali Wong",
+                "  # still a comment after stripping  ",
+                "Maria Bamford",
+            ],
+        ),
+        encoding="utf-8",
+    )
+
+    assert source_comedian_images._collect_explicit_names(
+        ["Hasan Minhaj", "Tig Notaro", "Hasan Minhaj"],
+        names_file,
+    ) == [
+        "Hasan Minhaj",
+        "Tig Notaro",
+        "Ali Wong",
+        "Maria Bamford",
+    ]
+
+
+def test_collect_explicit_names_rejects_unsafe_file_names(tmp_path):
+    names_file = tmp_path / "names.txt"
+    names_file.write_text("Safe Name\n../escape\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit) as exc:
+        source_comedian_images._collect_explicit_names([], names_file)
+
+    assert exc.value.code == 2
+
+
+def test_collect_explicit_names_rejects_unsafe_cli_names():
+    with pytest.raises(SystemExit) as exc:
+        source_comedian_images._collect_explicit_names([".hidden"], None)
+
+    assert exc.value.code == 2
+
+
+def test_fetch_comedian_image_png_downloads_and_resizes_wikidata_image(monkeypatch):
+    calls: List[str] = []
+
+    class FakeDownloadResponse:
+        content = b"raw-image"
+
+        def raise_for_status(self) -> None:
+            pass
+
+    def fake_get(url: str, **_kwargs: Any):
+        calls.append(url)
+        if url == image_sourcing._WIKIDATA_SPARQL_URL:
+            return _FakeResponse(_wikidata_payload("https://upload.wikimedia.org/example.jpg"))
+        return FakeDownloadResponse()
+
+    monkeypatch.setattr(image_sourcing.requests, "get", fake_get)
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"png:" + data)
+
+    assert image_sourcing.fetch_comedian_image_png("Tig Notaro") == b"png:raw-image"
+    assert calls == [
+        image_sourcing._WIKIDATA_SPARQL_URL,
+        "https://upload.wikimedia.org/example.jpg",
+    ]
+
+
+def test_fetch_comedian_image_png_falls_back_to_tmdb_when_wikidata_has_no_image(monkeypatch):
+    calls: List[str] = []
+
+    class FakeDownloadResponse:
+        content = b"tmdb-image"
+
+        def raise_for_status(self) -> None:
+            pass
+
+    def fake_get(url: str, **_kwargs: Any):
+        calls.append(url)
+        if url == image_sourcing._WIKIDATA_SPARQL_URL:
+            return _FakeResponse({"results": {"bindings": []}})
+        if url == image_sourcing._COMMONS_API_URL:
+            return _FakeResponse({"query": {"pages": {}}})
+        if url == f"{image_sourcing._TMDB_API_URL}/search/person":
+            return _FakeResponse({"results": [{"profile_path": "/profile.png"}]})
+        return FakeDownloadResponse()
+
+    monkeypatch.setenv("TMDB_API_KEY", "tmdb-key")
+    monkeypatch.setattr(image_sourcing.requests, "get", fake_get)
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"png:" + data)
+
+    assert image_sourcing.fetch_comedian_image_png("Ali Wong") == b"png:tmdb-image"
+    assert calls == [
+        image_sourcing._WIKIDATA_SPARQL_URL,
+        image_sourcing._COMMONS_API_URL,
+        f"{image_sourcing._TMDB_API_URL}/search/person",
+        f"{image_sourcing._TMDB_IMAGE_BASE}/profile.png",
+    ]
+
+
+def test_upload_comedian_image_png_resizes_and_puts_to_bunny(monkeypatch):
+    captured: Dict[str, Any] = {}
+
+    def fake_put(url: str, **kwargs: Any) -> _FakePutResponse:
+        captured["url"] = url
+        captured["data"] = kwargs["data"]
+        captured["headers"] = kwargs["headers"]
+        return _FakePutResponse(status_code=201)
+
+    monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"resized:" + data)
+    monkeypatch.setattr(image_sourcing.requests, "put", fake_put)
+
+    assert image_sourcing.upload_comedian_image_png("Tig Notaro", b"raw-png") is True
+    assert captured["url"] == "https://ny.storage.bunnycdn.com/laughtrack-images/comedians/Tig%20Notaro.png"
+    assert captured["data"] == b"resized:raw-png"
+    assert captured["headers"] == {
+        "AccessKey": "secret",
+        "Content-Type": "image/png",
+    }
+
+
+def test_main_upload_from_dir_dry_run_dedups_sibling_stems(monkeypatch, tmp_path, capsys):
+    review_dir = tmp_path / "reviewed"
+    review_dir.mkdir()
+    (review_dir / "Ali Wong.jpg").write_bytes(b"jpg")
+    (review_dir / "Ali Wong.png").write_bytes(b"png")
+    (review_dir / "Tig Notaro.webp").write_bytes(b"webp")
+    (review_dir / "notes.txt").write_text("ignored", encoding="utf-8")
+
+    monkeypatch.setattr(source_comedian_images, "_load_env_defaults", lambda: None)
+    monkeypatch.setattr(
+        source_comedian_images.sys,
+        "argv",
+        ["source_comedian_images.py", "--upload-from-dir", str(review_dir), "--dry-run"],
+    )
+
+    source_comedian_images.main()
+
+    out = capsys.readouterr().out
+    assert "Skipping 1 sibling file(s)" in out
+    assert "Ali Wong.png (stem already covered by another file)" in out
+    assert "Found 2 reviewed image(s)" in out
+    assert "Ali Wong  (Ali Wong.jpg)" in out
+    assert "Tig Notaro  (Tig Notaro.webp)" in out
+
+
+def test_main_rejects_upload_from_dir_with_targeting_modes(monkeypatch, tmp_path, capsys):
+    review_dir = tmp_path / "reviewed"
+    review_dir.mkdir()
+
+    monkeypatch.setattr(source_comedian_images, "_load_env_defaults", lambda: None)
+    monkeypatch.setattr(
+        source_comedian_images.sys,
+        "argv",
+        [
+            "source_comedian_images.py",
+            "--upload-from-dir",
+            str(review_dir),
+            "--name",
+            "Ali Wong",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        source_comedian_images.main()
+
+    assert exc.value.code == 2
+    assert "--upload-from-dir cannot be combined" in capsys.readouterr().err
