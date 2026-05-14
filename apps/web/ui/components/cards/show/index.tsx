@@ -200,9 +200,12 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
             Math.abs(show.id + dateForTheme.getUTCDate()) %
                 ARTWORK_PLACEHOLDER_THEMES.length
         ];
+    const isSoldOut = show.soldOut === true;
 
     return (
-        <div className="pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/10 bg-cedar text-coconut-cream shadow-inner sm:min-h-[220px] lg:min-h-[248px]">
+        <div
+            className={`pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/10 bg-cedar text-coconut-cream shadow-inner sm:min-h-[220px] lg:min-h-[248px] ${isSoldOut ? "grayscale opacity-70" : ""}`}
+        >
             {showImage ? (
                 <Image
                     src={show.imageUrl}

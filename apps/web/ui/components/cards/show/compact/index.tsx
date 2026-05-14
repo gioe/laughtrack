@@ -25,6 +25,13 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
         availableTickets.length > 0
             ? availableTickets[0].purchaseUrl
             : undefined;
+    const isSoldOut =
+        parsedShow.soldOut === true ||
+        (parsedShow.tickets.length > 0 && availableTickets.length === 0);
+    const struckPriceLabel =
+        isSoldOut && parsedShow.tickets.length > 0
+            ? formatTicketString(parsedShow.tickets)
+            : "";
 
     const lineupNames = parsedShow.lineup.map((c) => c.name).filter(Boolean);
     const displayNames = lineupNames.slice(0, 2).join(", ");
@@ -58,7 +65,9 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
 
             {/* Club header */}
             <div className="flex items-center gap-3">
-                <div className="relative w-10 h-10 rounded-full overflow-hidden flex-none">
+                <div
+                    className={`relative w-10 h-10 rounded-full overflow-hidden flex-none ${isSoldOut ? "grayscale opacity-60" : ""}`}
+                >
                     <Image
                         src={imgError ? PLACEHOLDER : parsedShow.imageUrl}
                         onError={() => setImgError(true)}
@@ -127,9 +136,16 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                             {ticketLabel || "Get Tickets"}
                         </Link>
                     ) : (
-                        <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
-                            Sold Out
-                        </span>
+                        <div className="flex items-center gap-2">
+                            {struckPriceLabel && (
+                                <span className="text-caption text-gray-500 line-through font-dmSans">
+                                    {struckPriceLabel}
+                                </span>
+                            )}
+                            <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
+                                Sold Out
+                            </span>
+                        </div>
                     )}
                 </div>
             )}

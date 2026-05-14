@@ -25,10 +25,16 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 }: ShowCardHeaderProps) => {
     const [error, setError] = useState(false);
     const isPast = variant === "past";
+    const isSoldOut = show.soldOut === true;
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden">
+            <div
+                className={cn(
+                    "relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden",
+                    isSoldOut && "grayscale opacity-60",
+                )}
+            >
                 <Image
                     src={error ? PLACEHOLDER : show.imageUrl}
                     onError={() => setError(true)}
@@ -81,11 +87,16 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                             : `${Math.round(distanceMiles)} miles away`}
                     </p>
                 )}
-                {!isPast && !show.soldOut && (
+                {!isPast && !isSoldOut && (
                     <p className="text-lg sm:text-xl md:text-lead text-copper font-semibold mt-1 font-dmSans">
                         {formatTicketString(
                             show.tickets.filter((ticket) => !ticket.soldOut),
                         )}
+                    </p>
+                )}
+                {!isPast && isSoldOut && formatTicketString(show.tickets) && (
+                    <p className="text-lg sm:text-xl md:text-lead text-gray-500 line-through font-semibold mt-1 font-dmSans">
+                        {formatTicketString(show.tickets)}
                     </p>
                 )}
             </div>
