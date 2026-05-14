@@ -59,6 +59,7 @@ def test_discovery_query_uses_canonical_non_denied_comedians_and_alias_inputs():
     assert "c.parent_comedian_id IS NULL" in query
     assert "comedian_deny_list" in query
     assert "NOT EXISTS" in query
+    assert "LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))" in query
     assert "a.parent_comedian_id = c.id" in query
     assert "array_agg" in query
 

@@ -84,7 +84,7 @@ _GET_DISCOVERY_COMEDIANS_SQL = """
       AND NOT EXISTS (
           SELECT 1
           FROM comedian_deny_list d
-          WHERE LOWER(d.name) = LOWER(c.name)
+          WHERE LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))
       )
       {extra_filter}
     GROUP BY c.id, c.name
