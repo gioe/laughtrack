@@ -111,7 +111,7 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.upload_from_dir and (args.name or args.names_file or args.limit or args.review_dir):
+    if args.upload_from_dir and (args.name or args.names_file or args.limit is not None or args.review_dir):
         print("Error: --upload-from-dir cannot be combined with --name/--names-file/--limit/--review-dir", file=sys.stderr)
         sys.exit(2)
 
@@ -213,13 +213,32 @@ def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
         print(f"Error: --upload-from-dir not a directory: {upload_dir}", file=sys.stderr)
         sys.exit(1)
 
-    candidates = sorted(
+    all_files = sorted(
         p for p in upload_dir.iterdir()
         if p.is_file() and p.suffix.lower() in _SUPPORTED_REVIEW_EXTS
     )
+    # Dedup by stem so a sibling 'Patton Oswalt.jpg' doesn't double-upload after
+    # 'Patton Oswalt.png'. First match (sorted alpha by full name) wins.
+    by_stem: dict[str, Path] = {}
+    skipped: list[Path] = []
+    for p in all_files:
+        if p.stem in by_stem:
+            skipped.append(p)
+            continue
+        by_stem[p.stem] = p
+    candidates = list(by_stem.values())
+
     if not candidates:
         print(f"No images found in {upload_dir} (looking for {sorted(_SUPPORTED_REVIEW_EXTS)})")
         return
+
+    for p in candidates:
+        _reject_unsafe_name(p.stem, f"--upload-from-dir file {p.name}")
+
+    if skipped:
+        print(f"Skipping {len(skipped)} sibling file(s) sharing a stem with an earlier file:")
+        for p in skipped:
+            print(f"  - {p.name} (stem already covered by another file)")
 
     print(f"Found {len(candidates)} reviewed image(s) in {upload_dir}")
     if dry_run:
@@ -252,24 +271,39 @@ def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(candidates):.1f}%)")
 
 
+def _reject_unsafe_name(name: str, source: str) -> None:
+    """Refuse names that could escape the review_dir or push to unintended CDN paths.
+
+    Comedian names flow into ``review_dir / f"{name}.png"`` and into the CDN
+    upload path. Reject path separators, parent traversal, NUL, and leading
+    dots so a curated --names-file cannot smuggle e.g. '../etc/passwd'.
+    """
+    if "/" in name or "\\" in name or ".." in name or "\x00" in name or name.startswith("."):
+        print(f"Error: unsafe comedian name from {source}: {name!r}", file=sys.stderr)
+        sys.exit(2)
+
+
 def _collect_explicit_names(name_args, names_file):
     """Merge --name and --names-file inputs into a deduped, ordered list.
 
     Preserves first-seen order. File lines are stripped; blanks and lines
-    starting with '#' are skipped.
+    starting with '#' are skipped. Names containing path separators, '..',
+    NUL, or a leading dot are rejected to keep --review-dir writes inside
+    the chosen directory and CDN paths under comedians/.
     """
     seen = set()
     ordered = []
 
-    def _add(n):
+    def _add(n, source):
         n = n.strip()
         if not n or n in seen:
             return
+        _reject_unsafe_name(n, source)
         seen.add(n)
         ordered.append(n)
 
     for n in name_args or []:
-        _add(n)
+        _add(n, "--name")
     if names_file:
         if not names_file.exists():
             print(f"Error: --names-file not found: {names_file}", file=sys.stderr)
@@ -278,7 +312,7 @@ def _collect_explicit_names(name_args, names_file):
             stripped = line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
-            _add(stripped)
+            _add(stripped, f"--names-file {names_file}")
     return ordered
 
 
