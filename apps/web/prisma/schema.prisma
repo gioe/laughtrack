@@ -242,18 +242,23 @@ model Comedian {
 model ComedianPodcastAppearance {
   id                 Int       @id @default(autoincrement())
   comedianId         Int       @map("comedian_id")
-  podchaserEpisodeId String    @map("podchaser_episode_id")
+  source             String
+  sourceEpisodeId    String    @map("source_episode_id")
   podcastName        String    @map("podcast_name")
   episodeTitle       String    @map("episode_title")
   releaseDate        DateTime? @map("release_date") @db.Timestamptz
   episodeUrl         String    @map("episode_url")
+  matchConfidence    Float     @map("match_confidence")
+  matchEvidence      Json      @map("match_evidence")
+  matchReviewedAt    DateTime? @map("match_reviewed_at") @db.Timestamptz
+  matchReviewedBy    String?   @map("match_reviewed_by")
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   comedian           Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
 
-  @@unique([comedianId, podchaserEpisodeId])
+  @@unique([comedianId, source, sourceEpisodeId])
   @@index([comedianId])
-  @@index([podchaserEpisodeId])
+  @@index([source, sourceEpisodeId])
   @@map("comedian_podcast_appearances")
 }
 
