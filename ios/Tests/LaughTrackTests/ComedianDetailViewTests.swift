@@ -573,7 +573,15 @@ private struct MockComedianDetailTransport: ClientTransport {
             let index = pastShowsCallCount.next()
             guard index < pastShowsResponses.count else {
                 Issue.record("Unexpected extra getComedianPastShows call at index \(index)")
-                return (HTTPResponse(status: .internalServerError), nil)
+                // Mirror the documented-status body shape so a decoder error
+                // doesn't reroute the failure into the model's network catch.
+                return (
+                    HTTPResponse(
+                        status: .internalServerError,
+                        headerFields: [.contentType: "application/json"]
+                    ),
+                    HTTPBody(#"{"error":"mock"}"#)
+                )
             }
             return try encodedResponse(for: pastShowsResponses[index])
         default:
