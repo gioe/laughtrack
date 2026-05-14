@@ -28,6 +28,7 @@ Usage:
 
 import argparse
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -53,6 +54,50 @@ _SUPPORTED_REVIEW_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 
 # Delay between per-comedian requests (Wikidata + TMDb rate limits)
 _IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "5.0"))
+
+# BunnyCDN storage zone slug rule: lowercase alphanumeric + hyphen.
+_BUNNYCDN_ZONE_RE = re.compile(r"^[a-z0-9-]+$")
+# BunnyCDN storage regions (https://docs.bunny.net/reference/edge-storage-api-regions).
+_BUNNYCDN_REGIONS = {"la", "ny", "sg", "syd", "uk", "se", "br", "jh", "de"}
+
+
+def _validate_bunny_credentials() -> None:
+    """Validate BunnyCDN env vars are present and well-shaped. Exits on failure.
+
+    Assumes ``.env`` defaults have already been merged into ``os.environ`` by
+    :func:`_load_env_defaults`.
+    """
+    if not os.environ.get("BUNNYCDN_STORAGE_PASSWORD"):
+        print("Error: BUNNYCDN_STORAGE_PASSWORD not set in environment or .env", file=sys.stderr)
+        sys.exit(1)
+
+    zone = os.environ.get("BUNNYCDN_STORAGE_ZONE", "")
+    if not zone:
+        print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
+        sys.exit(1)
+    if not _BUNNYCDN_ZONE_RE.match(zone):
+        if "/" in zone or zone.lower().startswith("http"):
+            print(
+                f"Error: BUNNYCDN_STORAGE_ZONE='{zone}' looks like the full URL — "
+                "pass just the zone slug (e.g. 'laughtrack')",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"Error: BUNNYCDN_STORAGE_ZONE='{zone}' must match {_BUNNYCDN_ZONE_RE.pattern} "
+                "(lowercase alphanumeric and hyphens only)",
+                file=sys.stderr,
+            )
+        sys.exit(1)
+
+    region = os.environ.get("BUNNYCDN_STORAGE_REGION", "")
+    if region and region not in _BUNNYCDN_REGIONS:
+        print(
+            f"Error: BUNNYCDN_STORAGE_REGION='{region}' is not a known BunnyCDN region. "
+            f"Expected one of: {sorted(_BUNNYCDN_REGIONS)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
 
 def get_missing_image_comedians(conn, limit=None):
@@ -138,12 +183,7 @@ def main():
     # Validate CDN credentials before starting (skip for dry-run and review-only)
     needs_cdn = not args.dry_run and not args.review_dir
     if needs_cdn:
-        if not os.environ.get("BUNNYCDN_STORAGE_PASSWORD"):
-            print("Error: BUNNYCDN_STORAGE_PASSWORD not set in environment or .env", file=sys.stderr)
-            sys.exit(1)
-        if not os.environ.get("BUNNYCDN_STORAGE_ZONE"):
-            print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
-            sys.exit(1)
+        _validate_bunny_credentials()
 
     if args.upload_from_dir:
         _run_upload_from_dir(args.upload_from_dir, dry_run=args.dry_run)
