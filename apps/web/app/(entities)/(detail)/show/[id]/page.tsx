@@ -115,16 +115,16 @@ export default async function ShowDetailPage(props: {
     const { show, relatedShows } = result;
     const jsonLdData = [buildShowJsonLd(show)];
     // Derive isPast at render time — computing it inside the cached fetcher
-    // would freeze the value for the cache TTL and let the "Archived" badge and
-    // CTA drift after the show crosses "now". This is a Server Component, so
-    // Date.now() resolves once per request.
+    // would freeze the value for the cache TTL and let the CTA drift after the
+    // show crosses "now". This is a Server Component, so Date.now() resolves
+    // once per request.
     // eslint-disable-next-line react-hooks/purity
     const isPast = new Date(show.date).getTime() < Date.now();
 
     return (
         <>
             <JsonLd data={jsonLdData} />
-            <ShowDetailHeader show={show} isPast={isPast} />
+            <ShowDetailHeader show={show} />
             <ShowTicketCta show={show} isPast={isPast} />
             <ShowDescription description={show.description} />
             <ShowLineupSection lineup={show.lineup ?? []} />

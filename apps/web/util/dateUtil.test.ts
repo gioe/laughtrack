@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatShowDate } from "./dateUtil";
+import { formatShowCountdown, formatShowDate } from "./dateUtil";
 
 describe("formatShowDate", () => {
     it("renders a Pacific show at 9:30 pm PDT from its UTC instant", () => {
@@ -59,6 +59,54 @@ describe("formatShowDate", () => {
         // Noon local ET
         expect(formatShowDate("2026-04-17T16:00:00Z", "America/New_York")).toBe(
             "April 17th at 12:00 pm EDT",
+        );
+    });
+});
+
+describe("formatShowCountdown", () => {
+    const now = new Date("2026-05-14T18:00:00Z");
+
+    it("renders future shows with 'Show in N' phrasing and a future tone", () => {
+        const inThreeDays = new Date(
+            now.getTime() + 3 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        expect(formatShowCountdown(inThreeDays, now)).toEqual({
+            label: "Show in 3 days",
+            tone: "future",
+        });
+    });
+
+    it("treats a show that started within the live window as happening now", () => {
+        const halfHourAgo = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
+        expect(formatShowCountdown(halfHourAgo, now)).toEqual({
+            label: "Happening now",
+            tone: "live",
+        });
+    });
+
+    it("renders past shows with 'Ended N ago' phrasing and a past tone", () => {
+        const twoDaysAgo = new Date(
+            now.getTime() - 2 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        expect(formatShowCountdown(twoDaysAgo, now)).toEqual({
+            label: "Ended 2 days ago",
+            tone: "past",
+        });
+    });
+
+    it("scales the unit down to hours and minutes for imminent shows", () => {
+        const inNinetyMinutes = new Date(
+            now.getTime() + 90 * 60 * 1000,
+        ).toISOString();
+        expect(formatShowCountdown(inNinetyMinutes, now).label).toBe(
+            "Show in 2 hours",
+        );
+
+        const inFifteenMinutes = new Date(
+            now.getTime() + 15 * 60 * 1000,
+        ).toISOString();
+        expect(formatShowCountdown(inFifteenMinutes, now).label).toBe(
+            "Show in 15 minutes",
         );
     });
 });

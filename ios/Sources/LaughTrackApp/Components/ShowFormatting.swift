@@ -84,6 +84,78 @@ enum ShowFormatting {
         guard let miles else { return nil }
         return String(format: "%.1f miles away", miles)
     }
+
+    /// Treat the show as live from start through this many seconds after — covers a
+    /// typical standup set plus a buffer for late starts.
+    private static let liveWindow: TimeInterval = 2.5 * 60 * 60
+
+    enum ShowCountdownTone {
+        case future
+        case live
+        case past
+    }
+
+    struct ShowCountdown: Equatable {
+        let label: String
+        let tone: ShowCountdownTone
+    }
+
+    static func countdown(for showDate: Date, now: Date = Date()) -> ShowCountdown {
+        let diff = showDate.timeIntervalSince(now)
+        if diff <= 0, diff > -liveWindow {
+            return ShowCountdown(label: "Happening now", tone: .live)
+        }
+        if diff > 0 {
+            return ShowCountdown(label: "Show in \(relativeFuture(diff))", tone: .future)
+        }
+        return ShowCountdown(label: "Ended \(relativePast(-diff)) ago", tone: .past)
+    }
+
+    private static func relativeFuture(_ seconds: TimeInterval) -> String {
+        let minutes = Int((seconds / 60).rounded())
+        if minutes < 60 {
+            return "\(minutes) \(minutes == 1 ? "minute" : "minutes")"
+        }
+        let hours = Int((seconds / 3600).rounded())
+        if hours < 24 {
+            return "\(hours) \(hours == 1 ? "hour" : "hours")"
+        }
+        let days = Int((seconds / 86_400).rounded())
+        if days < 14 {
+            return "\(days) \(days == 1 ? "day" : "days")"
+        }
+        let weeks = Int((Double(days) / 7).rounded())
+        if weeks < 9 {
+            return "\(weeks) \(weeks == 1 ? "week" : "weeks")"
+        }
+        let months = Int((Double(days) / 30).rounded())
+        return "\(months) \(months == 1 ? "month" : "months")"
+    }
+
+    private static func relativePast(_ seconds: TimeInterval) -> String {
+        let minutes = Int(seconds / 60)
+        if minutes < 60 {
+            return "\(minutes) \(minutes == 1 ? "minute" : "minutes")"
+        }
+        let hours = Int(seconds / 3600)
+        if hours < 24 {
+            return "\(hours) \(hours == 1 ? "hour" : "hours")"
+        }
+        let days = Int(seconds / 86_400)
+        if days < 14 {
+            return "\(days) \(days == 1 ? "day" : "days")"
+        }
+        let weeks = days / 7
+        if weeks < 9 {
+            return "\(weeks) \(weeks == 1 ? "week" : "weeks")"
+        }
+        let months = days / 30
+        if months < 12 {
+            return "\(months) \(months == 1 ? "month" : "months")"
+        }
+        let years = days / 365
+        return "\(years) \(years == 1 ? "year" : "years")"
+    }
 }
 
 enum FavoriteFeedback {

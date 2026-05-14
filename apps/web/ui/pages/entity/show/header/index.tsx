@@ -6,20 +6,23 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
 import { useMotionProps } from "@/hooks";
-import { formatShowDate } from "@/util/dateUtil";
+import { formatShowCountdown, formatShowDate } from "@/util/dateUtil";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ShowDetailHeaderProps {
     show: ShowDetailDTO;
-    isPast: boolean;
 }
 
-const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
-    show,
-    isPast,
-}) => {
+// Tailwind background for each countdown tone — kept literal so the JIT picks them up.
+const COUNTDOWN_TONE_CLASSES: Record<string, string> = {
+    future: "bg-copper/90",
+    live: "bg-emerald-600/90",
+    past: "bg-stone-600/90",
+};
+
+const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
     const { mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -29,6 +32,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
             ? show.name
             : `Comedy at ${show.clubName ?? ""}`;
     const dateLabel = formatShowDate(show.date.toString(), show.timezone);
+    const countdown = formatShowCountdown(show.date.toString());
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -64,11 +68,12 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
                 )}
 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                    {isPast && (
-                        <span className="inline-block mb-3 text-caption font-bold uppercase tracking-wider text-white bg-stone-600/90 px-2.5 py-1 rounded-full font-dmSans">
-                            Archived
-                        </span>
-                    )}
+                    <span
+                        className={`inline-block mb-3 text-caption font-bold uppercase tracking-wider text-white px-2.5 py-1 rounded-full font-dmSans ${COUNTDOWN_TONE_CLASSES[countdown.tone]}`}
+                        aria-live={countdown.tone === "live" ? "polite" : "off"}
+                    >
+                        {countdown.label}
+                    </span>
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-gilroy-bold font-bold text-white drop-shadow-md">
                         {heading}
                     </h1>

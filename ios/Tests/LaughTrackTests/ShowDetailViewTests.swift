@@ -142,11 +142,14 @@ struct ShowDetailViewTests {
         #expect(coordinator.path.count == expectedRoutes.count)
     }
 
-    @Test("show detail hero does not duplicate summary facts")
-    func showHeroBadgesAreEmpty() {
+    @Test("show detail hero renders a countdown badge derived from the show date")
+    func showHeroBadgeIncludesCountdown() {
         let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        let badges = ShowDetailPresentation.heroBadges(for: show)
 
-        #expect(ShowDetailPresentation.heroBadges(for: show).isEmpty)
+        #expect(badges.count == 1)
+        let expected = ShowFormatting.countdown(for: show.date).label
+        #expect(badges.first?.title == expected)
     }
 
     @Test("show detail summary facts include event operations")

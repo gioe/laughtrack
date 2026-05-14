@@ -119,7 +119,30 @@ struct ShowDetailFact: Equatable {
 
 enum ShowDetailPresentation {
     static func heroBadges(for show: Components.Schemas.ShowDetail) -> [DetailHeroBadge] {
-        []
+        let countdown = ShowFormatting.countdown(for: show.date)
+        return [
+            DetailHeroBadge(
+                title: countdown.label,
+                systemImage: countdownSymbol(countdown.tone),
+                tone: countdownBadgeTone(countdown.tone)
+            )
+        ]
+    }
+
+    private static func countdownSymbol(_ tone: ShowFormatting.ShowCountdownTone) -> String {
+        switch tone {
+        case .future: return "clock"
+        case .live: return "dot.radiowaves.left.and.right"
+        case .past: return "clock.arrow.circlepath"
+        }
+    }
+
+    private static func countdownBadgeTone(_ tone: ShowFormatting.ShowCountdownTone) -> LaughTrackBadgeTone {
+        switch tone {
+        case .future: return .accent
+        case .live: return .highlight
+        case .past: return .neutral
+        }
     }
 
     static func summaryFacts(for show: Components.Schemas.ShowDetail) -> [ShowDetailFact] {

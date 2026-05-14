@@ -46,6 +46,83 @@ export function formatShowDate(
     return `${month} ${day}${suffix} at ${displayHours}:${displayMinutes} ${period} ${tzLabel}`;
 }
 
+// "Happening now" window: show is treated as live from start time through this many
+// hours after. 2.5h covers a typical standup show with buffer for late starts.
+const LIVE_WINDOW_HOURS = 2.5;
+
+export type ShowCountdownTone = "future" | "live" | "past";
+
+export interface ShowCountdown {
+    label: string;
+    tone: ShowCountdownTone;
+}
+
+export function formatShowCountdown(
+    dateString: string,
+    now: Date = new Date(),
+): ShowCountdown {
+    const showTime = new Date(dateString).getTime();
+    const nowTime = now.getTime();
+    const diffMs = showTime - nowTime;
+    const liveWindowMs = LIVE_WINDOW_HOURS * 60 * 60 * 1000;
+
+    if (diffMs <= 0 && diffMs > -liveWindowMs) {
+        return { label: "Happening now", tone: "live" };
+    }
+
+    if (diffMs > 0) {
+        return { label: `Show in ${relativeFuture(diffMs)}`, tone: "future" };
+    }
+
+    return { label: `Ended ${relativePast(-diffMs)} ago`, tone: "past" };
+}
+
+function relativeFuture(ms: number): string {
+    const minutes = Math.round(ms / (60 * 1000));
+    if (minutes < 60) {
+        return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+    }
+    const hours = Math.round(ms / (60 * 60 * 1000));
+    if (hours < 24) {
+        return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+    }
+    const days = Math.round(ms / (24 * 60 * 60 * 1000));
+    if (days < 14) {
+        return `${days} ${days === 1 ? "day" : "days"}`;
+    }
+    const weeks = Math.round(days / 7);
+    if (weeks < 9) {
+        return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+    }
+    const months = Math.round(days / 30);
+    return `${months} ${months === 1 ? "month" : "months"}`;
+}
+
+function relativePast(ms: number): string {
+    const minutes = Math.floor(ms / (60 * 1000));
+    if (minutes < 60) {
+        return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+    }
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    if (hours < 24) {
+        return `${hours} ${hours === 1 ? "hour" : "hours"}`;
+    }
+    const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+    if (days < 14) {
+        return `${days} ${days === 1 ? "day" : "days"}`;
+    }
+    const weeks = Math.floor(days / 7);
+    if (weeks < 9) {
+        return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+    }
+    const months = Math.floor(days / 30);
+    if (months < 12) {
+        return `${months} ${months === 1 ? "month" : "months"}`;
+    }
+    const years = Math.floor(days / 365);
+    return `${years} ${years === 1 ? "year" : "years"}`;
+}
+
 function getDaySuffix(day: number): string {
     if (day >= 11 && day <= 13) {
         return "th";
