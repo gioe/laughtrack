@@ -34,6 +34,13 @@ struct ShowRow: View {
                             .lineLimit(1)
                     }
 
+                    if let room = Self.roomLabel(for: show) {
+                        Text(room)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+                    }
+
                     if !isOpenMic {
                         badgeRow(isSoldOut: isSoldOut)
                     }
@@ -218,6 +225,11 @@ struct ShowRow: View {
 
     static func previousPriceLabel(for show: Components.Schemas.Show) -> String? {
         priceRangeLabel(from: show.tickets, includeSoldOut: true)
+    }
+
+    static func roomLabel(for show: Components.Schemas.Show) -> String? {
+        let room = show.room?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return room.isEmpty ? nil : room
     }
 
     private static func priceRangeLabel(

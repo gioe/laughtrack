@@ -261,9 +261,24 @@ struct ShowRowTests {
         #expect(ShowRow.previousPriceLabel(for: show) == nil)
     }
 
+    @Test("show row exposes a trimmed room label")
+    func showRowExposesTrimmedRoomLabel() {
+        let show = makeShow(room: "  Village Underground  ", lineup: [])
+
+        #expect(ShowRow.roomLabel(for: show) == "Village Underground")
+    }
+
+    @Test("show row omits blank room labels")
+    func showRowOmitsBlankRoomLabels() {
+        let show = makeShow(room: "   ", lineup: [])
+
+        #expect(ShowRow.roomLabel(for: show) == nil)
+    }
+
     private func makeShow(
         name: String = "Late show",
         clubName: String = "Comedy Cellar",
+        room: String? = nil,
         tickets: [Components.Schemas.Ticket] = [],
         lineup: [Components.Schemas.ComedianLineup]?
     ) -> Components.Schemas.Show {
@@ -275,6 +290,7 @@ struct ShowRowTests {
             tickets: tickets,
             name: name,
             lineup: lineup,
+            room: room,
             imageUrl: "https://example.com/show.jpg",
             distanceMiles: 2.1
         )
