@@ -88,13 +88,15 @@ struct ShowRow: View {
         }
         .frame(width: isOpenMic ? 52 : 64, alignment: .center)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(stack.weekday), day \(stack.day), \(stack.time)")
+        .accessibilityLabel(ShowFormatting.detailDate(show.date, timezoneID: show.timezone))
     }
 
     @ViewBuilder
     private func badgeRow(isSoldOut: Bool) -> some View {
         let laughTrack = theme.laughTrackTokens
-        let priceText = Self.priceLabel(for: show)
+        let priceText = isSoldOut
+            ? Self.previousPriceLabel(for: show)
+            : Self.priceLabel(for: show)
 
         HStack(spacing: theme.spacing.xs) {
             if let priceText {
@@ -136,7 +138,7 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
 
         HStack(alignment: .top, spacing: theme.spacing.sm) {
-            ForEach(Array(lineup.enumerated()), id: \.offset) { _, comedian in
+            ForEach(lineup, id: \.id) { comedian in
                 VStack(spacing: 4) {
                     lineupAvatar(for: comedian, isSoldOut: isSoldOut)
                     Text(comedian.name)
@@ -205,22 +207,25 @@ struct ShowRow: View {
         return "Comedy show"
     }
 
-    static func metadata(for show: Components.Schemas.Show) -> [String] {
-        [
-            ShowFormatting.listDate(show.date, timezoneID: show.timezone),
-            Self.priceLabel(for: show),
-            show.soldOut == true ? "Sold out" : nil,
-        ].compactMap { $0 }
-    }
-
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
         let imageURL = featuredComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
         return imageURL?.isEmpty == false ? imageURL : nil
     }
 
     static func priceLabel(for show: Components.Schemas.Show) -> String? {
-        let prices = (show.tickets ?? [])
-            .filter { $0.soldOut != true }
+        priceRangeLabel(from: show.tickets, includeSoldOut: false)
+    }
+
+    static func previousPriceLabel(for show: Components.Schemas.Show) -> String? {
+        priceRangeLabel(from: show.tickets, includeSoldOut: true)
+    }
+
+    private static func priceRangeLabel(
+        from tickets: [Components.Schemas.Ticket]?,
+        includeSoldOut: Bool
+    ) -> String? {
+        let prices = (tickets ?? [])
+            .filter { includeSoldOut || $0.soldOut != true }
             .compactMap(\.price)
             .sorted()
 

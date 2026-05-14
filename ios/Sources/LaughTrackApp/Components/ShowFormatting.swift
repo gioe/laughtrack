@@ -15,6 +15,26 @@ enum ShowFormatting {
         return formatter
     }()
 
+    private static let weekdayStackFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE"
+        return formatter
+    }()
+
+    private static let dayStackFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "d"
+        return formatter
+    }()
+
+    private static let timeStackFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
     static func listDate(_ date: Date, timezoneID: String? = nil) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -26,32 +46,16 @@ enum ShowFormatting {
     }
 
     static func dateStack(_ date: Date, timezoneID: String? = nil) -> ShowDateStack {
-        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:))
+        let resolvedTimezone = timezoneID.flatMap(TimeZone.init(identifier:)) ?? TimeZone.current
 
-        let weekdayFormatter = DateFormatter()
-        weekdayFormatter.locale = Locale(identifier: "en_US_POSIX")
-        weekdayFormatter.dateFormat = "EEE"
-        if let resolvedTimezone {
-            weekdayFormatter.timeZone = resolvedTimezone
-        }
-
-        let dayFormatter = DateFormatter()
-        dayFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dayFormatter.dateFormat = "d"
-        if let resolvedTimezone {
-            dayFormatter.timeZone = resolvedTimezone
-        }
-
-        let timeFormatter = DateFormatter()
-        timeFormatter.timeStyle = .short
-        if let resolvedTimezone {
-            timeFormatter.timeZone = resolvedTimezone
-        }
+        weekdayStackFormatter.timeZone = resolvedTimezone
+        dayStackFormatter.timeZone = resolvedTimezone
+        timeStackFormatter.timeZone = resolvedTimezone
 
         return ShowDateStack(
-            weekday: weekdayFormatter.string(from: date).uppercased(),
-            day: dayFormatter.string(from: date),
-            time: timeFormatter.string(from: date)
+            weekday: weekdayStackFormatter.string(from: date).uppercased(),
+            day: dayStackFormatter.string(from: date),
+            time: timeStackFormatter.string(from: date)
         )
     }
 

@@ -192,16 +192,6 @@ struct ShowRowTests {
         #expect(ShowRow.priceLabel(for: show) == "$24")
     }
 
-    @Test("show row metadata omits distance")
-    func showRowMetadataOmitsDistance() {
-        let show = makeShow(
-            tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission")],
-            lineup: []
-        )
-
-        #expect(ShowRow.metadata(for: show).contains { $0.contains("miles away") } == false)
-    }
-
     @Test("show row formats a ticket price range")
     func showRowFormatsTicketPriceRange() {
         let show = makeShow(
@@ -236,6 +226,39 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.priceLabel(for: show) == nil)
+    }
+
+    @Test("previous price label exposes the price of every-ticket-sold-out shows for strikethrough")
+    func previousPriceLabelExposesAllSoldOutPrice() {
+        let show = makeShow(
+            tickets: [
+                .init(price: 20, purchaseUrl: "https://example.com/ga", soldOut: true, _type: "General admission"),
+                .init(price: 35, purchaseUrl: "https://example.com/vip", soldOut: true, _type: "VIP"),
+            ],
+            lineup: []
+        )
+
+        #expect(ShowRow.priceLabel(for: show) == nil)
+        #expect(ShowRow.previousPriceLabel(for: show) == "$20 - $35")
+    }
+
+    @Test("previous price label matches priceLabel when tickets are still available")
+    func previousPriceLabelMatchesAvailableTickets() {
+        let show = makeShow(
+            tickets: [
+                .init(price: 24, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission"),
+            ],
+            lineup: []
+        )
+
+        #expect(ShowRow.previousPriceLabel(for: show) == ShowRow.priceLabel(for: show))
+    }
+
+    @Test("previous price label is nil when the show has no tickets at all")
+    func previousPriceLabelNilWhenNoTickets() {
+        let show = makeShow(tickets: [], lineup: [])
+
+        #expect(ShowRow.previousPriceLabel(for: show) == nil)
     }
 
     private func makeShow(
