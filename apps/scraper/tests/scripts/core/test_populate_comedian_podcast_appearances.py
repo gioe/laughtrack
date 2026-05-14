@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -86,24 +87,44 @@ def test_build_episode_search_payload_requests_minimal_episode_fields():
 
 
 def test_parse_episode_rows_skips_incomplete_episodes_and_prefers_podchaser_url():
-    rows = mod._parse_episode_rows(comedian_id=12, payload=_episode_payload())
+    rows = mod._parse_episode_rows(
+        comedian_id=12,
+        comedian_name="Ari Shaffir",
+        payload=_episode_payload(),
+    )
 
     assert rows == [
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-1",
+            source="podchaser",
+            source_episode_id="ep-1",
             podcast_name="Comedy Talk",
             episode_title="Ari Shaffir Returns",
             release_date="2024-01-03T10:00:00Z",
             episode_url="https://www.podchaser.com/podcasts/example/episodes/ari-shaffir-returns-1",
+            match_confidence=1.0,
+            match_evidence={
+                "search_term": "Ari Shaffir",
+                "matched_terms": ["ari", "shaffir"],
+                "episode_title": "Ari Shaffir Returns",
+                "podcast_name": "Comedy Talk",
+            },
         ),
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-2",
+            source="podchaser",
+            source_episode_id="ep-2",
             podcast_name="Comedy Talk",
             episode_title="Unrelated Episode",
             release_date=None,
             episode_url="https://www.podchaser.com/podcasts/example/episodes/unrelated-2",
+            match_confidence=0.0,
+            match_evidence={
+                "search_term": "Ari Shaffir",
+                "matched_terms": [],
+                "episode_title": "Unrelated Episode",
+                "podcast_name": "Comedy Talk",
+            },
         ),
     ]
 
@@ -286,11 +307,19 @@ def test_write_rows_replaces_only_processed_comedians(monkeypatch):
     rows = [
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-1",
+            source="podchaser",
+            source_episode_id="ep-1",
             podcast_name="Comedy Talk",
             episode_title="Ari Shaffir Returns",
             release_date="2024-01-03T10:00:00Z",
             episode_url="https://podchaser.example/ep-1",
+            match_confidence=1.0,
+            match_evidence={
+                "search_term": "Ari Shaffir",
+                "matched_terms": ["ari", "shaffir"],
+                "episode_title": "Ari Shaffir Returns",
+                "podcast_name": "Comedy Talk",
+            },
         )
     ]
 
@@ -302,10 +331,23 @@ def test_write_rows_replaces_only_processed_comedians(monkeypatch):
     assert values_calls[0][1] == [
         (
             12,
+            "podchaser",
             "ep-1",
             "Comedy Talk",
             "Ari Shaffir Returns",
             "2024-01-03T10:00:00Z",
             "https://podchaser.example/ep-1",
+            1.0,
+            json.dumps(
+                {
+                    "search_term": "Ari Shaffir",
+                    "matched_terms": ["ari", "shaffir"],
+                    "episode_title": "Ari Shaffir Returns",
+                    "podcast_name": "Comedy Talk",
+                },
+                sort_keys=True,
+            ),
         )
     ]
+    assert "source_episode_id" in values_calls[0][0]
+    assert "ON CONFLICT (comedian_id, source, source_episode_id)" in values_calls[0][0]

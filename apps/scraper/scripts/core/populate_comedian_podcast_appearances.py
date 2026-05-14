@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -45,11 +47,14 @@ _TIMEOUT_SECONDS = 30
 @dataclass(frozen=True)
 class PodcastAppearanceRow:
     comedian_id: int
-    podchaser_episode_id: str
+    source: str
+    source_episode_id: str
     podcast_name: str
     episode_title: str
     release_date: Optional[str]
     episode_url: str
+    match_confidence: float
+    match_evidence: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -70,22 +75,27 @@ _GET_COMEDIANS_SQL = """
 _INSERT_SQL = """
     INSERT INTO comedian_podcast_appearances (
         comedian_id,
-        podchaser_episode_id,
+        source,
+        source_episode_id,
         podcast_name,
         episode_title,
         release_date,
-        episode_url
+        episode_url,
+        match_confidence,
+        match_evidence
     )
     VALUES %s
-    ON CONFLICT (comedian_id, podchaser_episode_id) DO UPDATE SET
+    ON CONFLICT (comedian_id, source, source_episode_id) DO UPDATE SET
         podcast_name = EXCLUDED.podcast_name,
         episode_title = EXCLUDED.episode_title,
         release_date = EXCLUDED.release_date,
         episode_url = EXCLUDED.episode_url,
+        match_confidence = EXCLUDED.match_confidence,
+        match_evidence = EXCLUDED.match_evidence,
         updated_at = NOW()
 """
 
-_VALUES_TEMPLATE = "(%s, %s, %s, %s, %s::timestamptz, %s)"
+_VALUES_TEMPLATE = "(%s, %s, %s, %s, %s, %s::timestamptz, %s, %s, %s::jsonb)"
 
 
 def _load_env_defaults(path: Path = Path(".env")) -> None:
@@ -135,7 +145,35 @@ def _extract_episode_items(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return [item for item in items if isinstance(item, dict)]
 
 
-def _parse_episode_rows(comedian_id: int, payload: dict[str, Any]) -> list[PodcastAppearanceRow]:
+def _normalized_terms(value: str) -> list[str]:
+    return [term for term in re.findall(r"[a-z0-9]+", value.lower()) if len(term) > 1]
+
+
+def _match_evidence(comedian_name: str, episode_title: str, podcast_name: str) -> dict[str, Any]:
+    terms = _normalized_terms(comedian_name)
+    haystack = set(_normalized_terms(f"{episode_title} {podcast_name}"))
+    matched_terms = [term for term in terms if term in haystack]
+    return {
+        "search_term": comedian_name,
+        "matched_terms": matched_terms,
+        "episode_title": episode_title,
+        "podcast_name": podcast_name,
+    }
+
+
+def _match_confidence(evidence: dict[str, Any]) -> float:
+    matched_terms = evidence.get("matched_terms")
+    search_terms = _normalized_terms(str(evidence.get("search_term") or ""))
+    if not isinstance(matched_terms, list) or not search_terms:
+        return 0.0
+    return round(len(matched_terms) / len(search_terms), 2)
+
+
+def _parse_episode_rows(
+    comedian_id: int,
+    comedian_name: str,
+    payload: dict[str, Any],
+) -> list[PodcastAppearanceRow]:
     rows: list[PodcastAppearanceRow] = []
     for episode in _extract_episode_items(payload):
         episode_id = episode.get("id")
@@ -145,14 +183,22 @@ def _parse_episode_rows(comedian_id: int, payload: dict[str, Any]) -> list[Podca
         episode_url = episode.get("url") or episode.get("webUrl")
         if not episode_id or not title or not podcast_name or not episode_url:
             continue
+        evidence = _match_evidence(
+            comedian_name=comedian_name,
+            episode_title=str(title),
+            podcast_name=str(podcast_name),
+        )
         rows.append(
             PodcastAppearanceRow(
                 comedian_id=comedian_id,
-                podchaser_episode_id=str(episode_id),
+                source="podchaser",
+                source_episode_id=str(episode_id),
                 podcast_name=str(podcast_name),
                 episode_title=str(title),
                 release_date=episode.get("airDate") or episode.get("releaseDate"),
                 episode_url=str(episode_url),
+                match_confidence=_match_confidence(evidence),
+                match_evidence=evidence,
             )
         )
     return rows
@@ -268,7 +314,11 @@ async def _fetch_podchaser_episode_result(
             )
         return PodcastAppearanceFetchResult(
             succeeded=True,
-            rows=_parse_episode_rows(comedian_id=comedian_id, payload=data),
+            rows=_parse_episode_rows(
+                comedian_id=comedian_id,
+                comedian_name=comedian_name,
+                payload=data,
+            ),
         )
 
     return PodcastAppearanceFetchResult(succeeded=False, rows=[])
@@ -302,11 +352,14 @@ def _row_values(rows: Iterable[PodcastAppearanceRow]) -> list[tuple[Any, ...]]:
     return [
         (
             row.comedian_id,
-            row.podchaser_episode_id,
+            row.source,
+            row.source_episode_id,
             row.podcast_name,
             row.episode_title,
             row.release_date,
             row.episode_url,
+            row.match_confidence,
+            json.dumps(row.match_evidence, sort_keys=True),
         )
         for row in rows
     ]
@@ -361,7 +414,8 @@ async def _populate(
         for row in all_rows:
             print(
                 f"  comedian_id={row.comedian_id} podcast={row.podcast_name!r} "
-                f"title={row.episode_title!r} url={row.episode_url}"
+                f"title={row.episode_title!r} confidence={row.match_confidence:.2f} "
+                f"url={row.episode_url}"
             )
         written = 0
     else:
