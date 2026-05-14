@@ -78,4 +78,16 @@ if [[ "$FRESH" -eq 1 ]]; then
 fi
 
 cd "$WEB_DIR"
+
+# Regenerate the Prisma client when schema.prisma is newer than the generated
+# client (or the client is missing). Catches the case where `git pull` brings
+# in a schema change but the developer hasn't re-run `prisma generate`, which
+# otherwise surfaces as `Unknown field` errors at request time.
+SCHEMA_FILE="$WEB_DIR/prisma/schema.prisma"
+CLIENT_FILE="$WEB_DIR/node_modules/.prisma/client/index.d.ts"
+if [[ ! -f "$CLIENT_FILE" || "$SCHEMA_FILE" -nt "$CLIENT_FILE" ]]; then
+    echo "Prisma schema changed since last generate — running 'prisma generate'..." >&2
+    npx prisma generate >&2
+fi
+
 exec npx next dev ${NEXT_ARGS[@]+"${NEXT_ARGS[@]}"}
