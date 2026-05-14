@@ -49,12 +49,18 @@ struct ShowDetailView: View {
                 let show = response.data
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        DetailHero(
-                            title: nil,
-                            subtitle: nil,
-                            imageURL: show.imageUrl,
-                            badges: ShowDetailPresentation.heroBadges(for: show)
-                        )
+                        // TimelineView pulses every 60s so the countdown badge
+                        // re-derives without waiting for a navigation push or
+                        // pull-to-refresh — the future→live→past transition
+                        // fires while the user is sitting on the screen.
+                        TimelineView(.periodic(from: .now, by: 60)) { context in
+                            DetailHero(
+                                title: nil,
+                                subtitle: nil,
+                                imageURL: show.imageUrl,
+                                badges: ShowDetailPresentation.heroBadges(for: show, now: context.date)
+                            )
+                        }
                         .ignoresSafeArea(.container, edges: .top)
 
                         VStack(alignment: .leading, spacing: 20) {
@@ -116,8 +122,8 @@ struct ShowDetailFact: Equatable {
 }
 
 enum ShowDetailPresentation {
-    static func heroBadges(for show: Components.Schemas.ShowDetail) -> [DetailHeroBadge] {
-        let countdown = ShowFormatting.countdown(for: show.date)
+    static func heroBadges(for show: Components.Schemas.ShowDetail, now: Date = Date()) -> [DetailHeroBadge] {
+        let countdown = ShowFormatting.countdown(for: show.date, now: now)
         return [
             DetailHeroBadge(
                 title: countdown.label,
