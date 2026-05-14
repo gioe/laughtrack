@@ -23,10 +23,14 @@ struct PinnedShowsList: View {
         pinnedComedianName: String? = nil
     ) {
         self.apiClient = apiClient
+        // Pinned detail views default to "Any date" — the shows endpoint already
+        // returns upcoming-only when no date filter is set, and the prior
+        // "Today" default left most comedian/club pages near-empty.
         _model = StateObject(wrappedValue: ShowsListModel(
             nearbyLocationController: nearbyLocationController,
             pinnedClubName: pinnedClubName,
-            pinnedComedianName: pinnedComedianName
+            pinnedComedianName: pinnedComedianName,
+            initialUseDateRange: false
         ))
     }
 
