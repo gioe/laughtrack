@@ -41,7 +41,28 @@ def _make_comedian(name: str) -> Comedian:
     return comedian
 
 
-@pytest.mark.parametrize("name", ["Music", "More", "Best of", "The", "Show", "Live"])
+@pytest.mark.parametrize(
+    "name",
+    [
+        "Music",
+        "More",
+        "Best of",
+        "The",
+        "Show",
+        "Live",
+        "Drag",
+        "Sketch",
+        "ComedySportz",
+        "Laughs",
+        "Alex",
+        "Blue",
+        "Down",
+        "LOVE",
+        "Columbus",
+        "JESSICA",
+        "Paranormal",
+    ],
+)
 def test_validator_rejects_generic_comedian_name_fragments(name: str):
     assert detect_false_positive(name) is not None
 
@@ -66,4 +87,3 @@ def test_comedian_write_boundary_still_inserts_valid_name():
 
     assert result == [{"uuid": "uuid-real-comic"}]
     handler.execute_batch_operation.assert_called_once()
-

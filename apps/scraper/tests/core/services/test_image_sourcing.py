@@ -241,6 +241,40 @@ def test_collect_explicit_names_rejects_unsafe_cli_names():
     assert exc.value.code == 2
 
 
+def test_get_missing_image_comedians_filters_false_positive_rows():
+    class FakeCursor:
+        def __init__(self):
+            self.query = ""
+
+        def execute(self, query):
+            self.query = query
+
+        def fetchall(self):
+            return [
+                ("Drag",),
+                ("Sketch",),
+                ("ComedySportz",),
+                ("Real Comic",),
+                ("Best of",),
+                ("Another Comic",),
+            ]
+
+    class FakeConnection:
+        def __init__(self):
+            self.cursor_obj = FakeCursor()
+
+        def cursor(self):
+            return self.cursor_obj
+
+    conn = FakeConnection()
+
+    assert source_comedian_images.get_missing_image_comedians(conn, limit=2) == [
+        "Real Comic",
+        "Another Comic",
+    ]
+    assert "LIMIT 10" in conn.cursor_obj.query
+
+
 def test_fetch_comedian_image_png_downloads_and_resizes_wikidata_image(monkeypatch):
     calls: List[str] = []
 

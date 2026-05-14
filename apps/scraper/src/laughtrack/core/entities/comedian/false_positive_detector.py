@@ -74,6 +74,17 @@ PLACEHOLDER_NAMES: frozenset[str] = frozenset({
     "lovers",
     "culture",
     "best of",
+    "alex",
+    "blue",
+    "columbus",
+    "comedysportz",
+    "down",
+    "drag",
+    "jessica",
+    "laughs",
+    "love",
+    "paranormal",
+    "sketch",
 })
 
 # Generic title/category fragments commonly produced when a scraper splits an

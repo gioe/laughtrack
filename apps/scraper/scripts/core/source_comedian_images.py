@@ -47,6 +47,7 @@ from laughtrack.core.services.image_sourcing import (
     source_comedian_image,
     upload_comedian_image_png,
 )
+from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.database.connection import get_connection, get_transaction
 
@@ -100,6 +101,11 @@ def _validate_bunny_credentials() -> None:
         sys.exit(1)
 
 
+def _is_missing_image_candidate(name: str) -> bool:
+    """Return True when a DB row is worth spending image-source requests on."""
+    return detect_false_positive(name) is None
+
+
 def get_missing_image_comedians(conn, limit=None):
     """Fetch comedian names where has_image=false (non-alias only)."""
     query = """
@@ -109,11 +115,14 @@ def get_missing_image_comedians(conn, limit=None):
         ORDER BY total_shows DESC NULLS LAST, name
     """
     if limit:
-        query += f" LIMIT {int(limit)}"
+        query += f" LIMIT {int(limit) * 5}"
 
     cur = conn.cursor()
     cur.execute(query)
-    return [row[0] for row in cur.fetchall()]
+    candidates = [row[0] for row in cur.fetchall() if _is_missing_image_candidate(row[0])]
+    if limit:
+        return candidates[: int(limit)]
+    return candidates
 
 
 def _read_names_file(path: Path):
