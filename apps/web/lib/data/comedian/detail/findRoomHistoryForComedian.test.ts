@@ -22,7 +22,6 @@ function makeHelper(
         "comedian" in overrides ? overrides.comedian : "Jane Comic";
     return {
         params: { comedian },
-        getLineupItemClause: vi.fn(() => ({ lineupItems: {} })),
     };
 }
 
@@ -158,8 +157,18 @@ describe("findRoomHistoryForComedian", () => {
         expect(result[0].lastPlayedDate).toEqual(maxDate);
     });
 
-    it("preserves the database's ordering (count desc, then most-recent date desc)", async () => {
+    it("preserves DB-returned row order (no client-side resort)", async () => {
+        // Feed rows in an order that is NOT the function's natural sort
+        // (count desc, then date desc) so this test would fail if the
+        // implementation silently re-sorted. The SQL string match in the
+        // "queries past shows" test covers the DB-side ORDER BY clause.
         mockQueryRaw.mockResolvedValue([
+            makeRow({
+                club_id: 1,
+                club_name: "One Show Club",
+                play_count: 1,
+                last_played_date: new Date("2024-01-01"),
+            }),
             makeRow({
                 club_id: 2,
                 club_name: "Three Show Club",
@@ -172,20 +181,23 @@ describe("findRoomHistoryForComedian", () => {
                 play_count: 1,
                 last_played_date: new Date("2025-01-01"),
             }),
-            makeRow({
-                club_id: 1,
-                club_name: "One Show Club",
-                play_count: 1,
-                last_played_date: new Date("2024-01-01"),
-            }),
         ]);
 
         const result = await findRoomHistoryForComedian(makeHelper() as never);
 
         expect(result.map((r) => r.clubName)).toEqual([
+            "One Show Club",
             "Three Show Club",
             "Recent One",
-            "One Show Club",
         ]);
+    });
+
+    it("emits ORDER BY play_count DESC, last_played_date DESC in the SQL", async () => {
+        mockQueryRaw.mockResolvedValue([]);
+
+        await findRoomHistoryForComedian(makeHelper() as never);
+
+        const sql = getQueryStrings();
+        expect(sql).toMatch(/ORDER BY play_count DESC, last_played_date DESC/);
     });
 });
