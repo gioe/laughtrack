@@ -476,6 +476,15 @@ private struct ComedianLineupTile: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if let role = comedian.role?.trimmingCharacters(in: .whitespacesAndNewlines), !role.isEmpty {
+                Text(role)
+                    .font(laughTrack.typography.metadata.weight(.bold))
+                    .textCase(.uppercase)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
         .frame(width: Self.tileWidth)
     }

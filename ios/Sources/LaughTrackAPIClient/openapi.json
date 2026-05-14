@@ -1868,6 +1868,7 @@
           "social_data": { "$ref": "#/components/schemas/SocialData" },
           "isFavorite": { "type": "boolean" },
           "show_count": { "type": "integer" },
+          "role": { "type": ["string", "null"] },
           "isAlias": { "type": "boolean" },
           "parentComedian": { "$ref": "#/components/schemas/ComedianLineup" },
           "lineupItems": {

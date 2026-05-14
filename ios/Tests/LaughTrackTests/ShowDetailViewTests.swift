@@ -142,6 +142,42 @@ struct ShowDetailViewTests {
         #expect(coordinator.path.count == expectedRoutes.count)
     }
 
+    @Test("show detail lineup renders explicit comedian role badges")
+    func showLineupRendersExplicitRoleBadge() async throws {
+        var response = DemoContent.showDetailResponse(id: 301) ?? DemoContent.primaryShowDetail
+        response.data.lineup = [
+            .init(
+                name: "Jordan Temple",
+                imageUrl: "",
+                uuid: "comedian-role-1",
+                id: 901,
+                role: "Headliner"
+            ),
+            .init(
+                name: "No Role Comic",
+                imageUrl: "",
+                uuid: "comedian-role-2",
+                id: 902
+            ),
+        ]
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "show-detail-lineup-role")
+        let host = HostedView(
+            NavigationStack {
+                ShowDetailView(showID: 301, apiClient: makeClient(response: .success(response)))
+            }
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+            .environmentObject(ComedianFavoriteStore())
+        )
+
+        await host.settle()
+
+        try host.requireText("Headliner")
+        #expect(host.findText("Feature") == nil)
+    }
+
     @Test("show detail hero renders a countdown badge derived from the show date")
     func showHeroBadgeIncludesCountdown() {
         let show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data

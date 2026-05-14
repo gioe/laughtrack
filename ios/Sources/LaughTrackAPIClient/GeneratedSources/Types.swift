@@ -1008,6 +1008,15 @@ public enum Components {
                     yield &self.storage.value.showCount
                 }
             }
+            /// - Remark: Generated from `#/components/schemas/ComedianLineup/role`.
+            public var role: Swift.String? {
+                get  {
+                    self.storage.value.role
+                }
+                _modify {
+                    yield &self.storage.value.role
+                }
+            }
             /// - Remark: Generated from `#/components/schemas/ComedianLineup/isAlias`.
             public var isAlias: Swift.Bool? {
                 get  {
@@ -1046,6 +1055,7 @@ public enum Components {
             ///   - socialData:
             ///   - isFavorite:
             ///   - showCount:
+            ///   - role:
             ///   - isAlias:
             ///   - parentComedian:
             ///   - lineupItems:
@@ -1058,6 +1068,7 @@ public enum Components {
                 socialData: Components.Schemas.SocialData? = nil,
                 isFavorite: Swift.Bool? = nil,
                 showCount: Swift.Int? = nil,
+                role: Swift.String? = nil,
                 isAlias: Swift.Bool? = nil,
                 parentComedian: Components.Schemas.ComedianLineup? = nil,
                 lineupItems: [OpenAPIRuntime.OpenAPIValueContainer]? = nil
@@ -1071,6 +1082,7 @@ public enum Components {
                     socialData: socialData,
                     isFavorite: isFavorite,
                     showCount: showCount,
+                    role: role,
                     isAlias: isAlias,
                     parentComedian: parentComedian,
                     lineupItems: lineupItems
@@ -1085,6 +1097,7 @@ public enum Components {
                 case socialData = "social_data"
                 case isFavorite
                 case showCount = "show_count"
+                case role
                 case isAlias
                 case parentComedian
                 case lineupItems
@@ -1114,6 +1127,8 @@ public enum Components {
                 var isFavorite: Swift.Bool?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/show_count`.
                 var showCount: Swift.Int?
+                /// - Remark: Generated from `#/components/schemas/ComedianLineup/role`.
+                var role: Swift.String?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/isAlias`.
                 var isAlias: Swift.Bool?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/parentComedian`.
@@ -1129,6 +1144,7 @@ public enum Components {
                     socialData: Components.Schemas.SocialData? = nil,
                     isFavorite: Swift.Bool? = nil,
                     showCount: Swift.Int? = nil,
+                    role: Swift.String? = nil,
                     isAlias: Swift.Bool? = nil,
                     parentComedian: Components.Schemas.ComedianLineup? = nil,
                     lineupItems: [OpenAPIRuntime.OpenAPIValueContainer]? = nil
@@ -1141,6 +1157,7 @@ public enum Components {
                     self.socialData = socialData
                     self.isFavorite = isFavorite
                     self.showCount = showCount
+                    self.role = role
                     self.isAlias = isAlias
                     self.parentComedian = parentComedian
                     self.lineupItems = lineupItems
