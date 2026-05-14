@@ -27,11 +27,15 @@ if [[ ! -f "$SCRAPER_ENV" ]]; then
 fi
 
 # Source KEY=VALUE pairs from scraper/.env (shell handles comments and blank
-# lines; `set -a` exports everything assigned until `set +a`).
+# lines; `set -a` exports everything assigned until `set +a`). Disable nounset
+# while sourcing so values containing literal $ sequences (e.g. an API secret
+# with $m in it) don't trip "unbound variable" during expansion.
+set +u
 set -a
 # shellcheck disable=SC1090
 . "$SCRAPER_ENV"
 set +a
+set -u
 
 : "${DATABASE_USER:?scraper/.env is missing DATABASE_USER}"
 : "${DATABASE_PASSWORD:?scraper/.env is missing DATABASE_PASSWORD}"
