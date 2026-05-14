@@ -32,6 +32,7 @@ export async function getComedianDetailPageData(
             total: showsWithCount.totalCount,
             relatedComedians,
             roomHistory,
+            podcastAppearances: comedianData.podcastAppearances ?? [],
             filters,
         };
     } catch (error) {

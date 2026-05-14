@@ -4,6 +4,7 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
+import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 
 function buildComedianSelect() {
     return {
@@ -48,7 +49,34 @@ function buildComedianSelect() {
                 },
             },
         },
+        podcastAppearances: {
+            select: {
+                id: true,
+                podcastName: true,
+                episodeTitle: true,
+                releaseDate: true,
+                episodeUrl: true,
+            },
+            orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
+        },
     } as const;
+}
+
+function sortPodcastAppearances(
+    appearances: ComedianPodcastAppearanceDTO[],
+): ComedianPodcastAppearanceDTO[] {
+    return [...appearances].sort((a, b) => {
+        if (!a.releaseDate && !b.releaseDate) {
+            return b.id - a.id;
+        }
+        if (!a.releaseDate) return 1;
+        if (!b.releaseDate) return -1;
+
+        return (
+            new Date(b.releaseDate).getTime() -
+            new Date(a.releaseDate).getTime()
+        );
+    });
 }
 
 export async function findComedianByName(
@@ -125,6 +153,9 @@ export async function findComedianByName(
                 website: comedianData.website,
                 popularity: comedianData.popularity,
             },
+            podcastAppearances: sortPodcastAppearances(
+                comedianData.podcastAppearances,
+            ),
         };
     } catch (error) {
         if (error instanceof Error) {

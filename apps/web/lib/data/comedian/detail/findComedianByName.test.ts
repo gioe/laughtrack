@@ -74,6 +74,13 @@ function makeComedianRow(
                 };
             };
         }[];
+        podcastAppearances: {
+            id: number;
+            podcastName: string;
+            episodeTitle: string;
+            releaseDate: Date | null;
+            episodeUrl: string;
+        }[];
         favoriteComedians: { id: number }[];
     }> = {},
 ) {
@@ -149,6 +156,7 @@ function makeComedianRow(
                 },
             },
         ],
+        podcastAppearances: [],
         favoriteComedians: [],
         ...overrides,
     };
@@ -302,6 +310,80 @@ describe("findComedianByName", () => {
             const result = await findComedianByName(makeHelper());
 
             expect(result.hasImage).toBe(false);
+        });
+    });
+
+    describe("podcastAppearances", () => {
+        it("maps recent podcast appearance fields most-recent first", async () => {
+            const row = makeComedianRow({
+                podcastAppearances: [
+                    {
+                        id: 1,
+                        podcastName: "Older Pod",
+                        episodeTitle: "Older Episode",
+                        releaseDate: new Date("2024-01-01T00:00:00.000Z"),
+                        episodeUrl: "https://example.com/older",
+                    },
+                    {
+                        id: 2,
+                        podcastName: "Newer Pod",
+                        episodeTitle: "Newer Episode",
+                        releaseDate: new Date("2025-01-01T00:00:00.000Z"),
+                        episodeUrl: "https://example.com/newer",
+                    },
+                    {
+                        id: 3,
+                        podcastName: "Undated Pod",
+                        episodeTitle: "Undated Episode",
+                        releaseDate: null,
+                        episodeUrl: "https://example.com/undated",
+                    },
+                ],
+            });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.podcastAppearances).toEqual([
+                {
+                    id: 2,
+                    podcastName: "Newer Pod",
+                    episodeTitle: "Newer Episode",
+                    releaseDate: new Date("2025-01-01T00:00:00.000Z"),
+                    episodeUrl: "https://example.com/newer",
+                },
+                {
+                    id: 1,
+                    podcastName: "Older Pod",
+                    episodeTitle: "Older Episode",
+                    releaseDate: new Date("2024-01-01T00:00:00.000Z"),
+                    episodeUrl: "https://example.com/older",
+                },
+                {
+                    id: 3,
+                    podcastName: "Undated Pod",
+                    episodeTitle: "Undated Episode",
+                    releaseDate: null,
+                    episodeUrl: "https://example.com/undated",
+                },
+            ]);
+        });
+
+        it("requests podcast appearances from Prisma in release-date order", async () => {
+            const row = makeComedianRow();
+            mockFindFirst.mockResolvedValue(row);
+
+            await findComedianByName(makeHelper());
+
+            expect(mockFindFirst).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    select: expect.objectContaining({
+                        podcastAppearances: expect.objectContaining({
+                            orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
+                        }),
+                    }),
+                }),
+            );
         });
     });
 
