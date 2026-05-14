@@ -203,6 +203,63 @@ def test_populate_continues_after_transient_failure(monkeypatch):
     assert len(session.posts) == 4
 
 
+def test_populate_preserves_existing_rows_for_failed_lookups(monkeypatch):
+    session = _FakeSession(
+        [
+            _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
+            _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
+            _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
+        ]
+    )
+    replace_calls: list[tuple[list[int], list[mod.PodcastAppearanceRow]]] = []
+
+    async def fake_sleep(_seconds: float) -> None:
+        return None
+
+    class _FakeAsyncSessionCtx:
+        def __init__(self, *_args: Any, **_kwargs: Any):
+            pass
+
+        async def __aenter__(self) -> _FakeSession:
+            return session
+
+        async def __aexit__(self, *_exc: Any) -> bool:
+            return False
+
+    class _Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc: Any) -> bool:
+            return False
+
+        def commit(self) -> None:
+            pass
+
+    def fake_replace(_conn: Any, comedian_ids: list[int], rows: list[mod.PodcastAppearanceRow]) -> int:
+        replace_calls.append((comedian_ids, rows))
+        return len(rows)
+
+    monkeypatch.setattr(mod.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(mod, "AsyncSession", _FakeAsyncSessionCtx)
+    monkeypatch.setattr(mod, "get_connection", lambda: _Conn())
+    monkeypatch.setattr(mod, "_replace_appearances", fake_replace)
+
+    summary = asyncio.run(
+        mod._populate(
+            comedians=[(12, "Ari Shaffir")],
+            token="token",
+            first=25,
+            dry_run=False,
+        )
+    )
+
+    assert summary["processed"] == 1
+    assert summary["failed"] == 1
+    assert summary["written"] == 0
+    assert replace_calls == []
+
+
 def test_write_rows_replaces_only_processed_comedians(monkeypatch):
     calls: list[tuple[str, Any]] = []
     values_calls: list[tuple[str, list[tuple[Any, ...]], str]] = []

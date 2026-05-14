@@ -52,6 +52,12 @@ class PodcastAppearanceRow:
     episode_url: str
 
 
+@dataclass(frozen=True)
+class PodcastAppearanceFetchResult:
+    succeeded: bool
+    rows: list[PodcastAppearanceRow]
+
+
 _GET_COMEDIANS_SQL = """
     SELECT id, name
     FROM comedians
@@ -181,6 +187,23 @@ async def _fetch_podchaser_episodes(
     token: str,
     first: int = _DEFAULT_FIRST,
 ) -> list[PodcastAppearanceRow]:
+    result = await _fetch_podchaser_episode_result(
+        session=session,
+        comedian_id=comedian_id,
+        comedian_name=comedian_name,
+        token=token,
+        first=first,
+    )
+    return result.rows
+
+
+async def _fetch_podchaser_episode_result(
+    session: AsyncSession,
+    comedian_id: int,
+    comedian_name: str,
+    token: str,
+    first: int = _DEFAULT_FIRST,
+) -> PodcastAppearanceFetchResult:
     payload = _build_episode_search_payload(comedian_name, first=first)
     headers = {
         "Authorization": f"Bearer {token}",
@@ -201,7 +224,7 @@ async def _fetch_podchaser_episodes(
                 Logger.warn(
                     f"[podchaser] fetch failed for comedian {comedian_id} '{comedian_name}': {exc}"
                 )
-                return []
+                return PodcastAppearanceFetchResult(succeeded=False, rows=[])
             await asyncio.sleep(_BASE_RETRY_DELAY_S * (2 ** attempt))
             continue
 
@@ -210,7 +233,7 @@ async def _fetch_podchaser_episodes(
                 Logger.warn(
                     f"[podchaser] HTTP {response.status_code} for comedian {comedian_id} '{comedian_name}' after {_MAX_RETRIES} attempts"
                 )
-                return []
+                return PodcastAppearanceFetchResult(succeeded=False, rows=[])
             delay = _retry_after_seconds(response.headers, attempt)
             Logger.warn(
                 f"[podchaser] HTTP {response.status_code} for comedian {comedian_id} '{comedian_name}' — retrying in {delay:.1f}s"
@@ -222,7 +245,7 @@ async def _fetch_podchaser_episodes(
             Logger.warn(
                 f"[podchaser] HTTP {response.status_code} for comedian {comedian_id} '{comedian_name}'"
             )
-            return []
+            return PodcastAppearanceFetchResult(succeeded=False, rows=[])
 
         try:
             data = response.json()
@@ -230,22 +253,25 @@ async def _fetch_podchaser_episodes(
             Logger.warn(
                 f"[podchaser] non-JSON response for comedian {comedian_id} '{comedian_name}': {exc}"
             )
-            return []
+            return PodcastAppearanceFetchResult(succeeded=False, rows=[])
 
         if data.get("errors"):
             Logger.warn(
                 f"[podchaser] GraphQL errors for comedian {comedian_id} '{comedian_name}': {data.get('errors')}"
             )
-            return []
+            return PodcastAppearanceFetchResult(succeeded=False, rows=[])
 
         remaining = _points_remaining(response.headers)
         if remaining is not None and remaining <= _MIN_POINTS_REMAINING:
             Logger.warn(
                 f"[podchaser] quota nearly exhausted after comedian {comedian_id} '{comedian_name}': remaining_points={remaining}"
             )
-        return _parse_episode_rows(comedian_id=comedian_id, payload=data)
+        return PodcastAppearanceFetchResult(
+            succeeded=True,
+            rows=_parse_episode_rows(comedian_id=comedian_id, payload=data),
+        )
 
-    return []
+    return PodcastAppearanceFetchResult(succeeded=False, rows=[])
 
 
 def _load_target_comedians(
@@ -315,13 +341,18 @@ async def _populate(
         for index, (comedian_id, name) in enumerate(comedians, start=1):
             if index > 1:
                 await asyncio.sleep(_REQUEST_DELAY_S)
-            rows = await _fetch_podchaser_episodes(
+            result = await _fetch_podchaser_episode_result(
                 session,
                 comedian_id=comedian_id,
                 comedian_name=name,
                 token=token,
                 first=first,
             )
+            if not result.succeeded:
+                failed += 1
+                print(f"{name}: lookup failed; preserving existing rows")
+                continue
+            rows = result.rows
             processed_ids.append(comedian_id)
             all_rows.extend(rows)
             print(f"{name}: {len(rows)} episode(s)")
@@ -334,9 +365,12 @@ async def _populate(
             )
         written = 0
     else:
-        with get_connection() as conn:
-            written = _replace_appearances(conn, processed_ids, all_rows)
-            conn.commit()
+        if processed_ids:
+            with get_connection() as conn:
+                written = _replace_appearances(conn, processed_ids, all_rows)
+                conn.commit()
+        else:
+            written = 0
 
     return {
         "processed": len(comedians),
