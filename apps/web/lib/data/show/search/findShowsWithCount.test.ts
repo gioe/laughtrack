@@ -88,6 +88,8 @@ function makeShow(
             id?: number;
             name: string;
             address: string;
+            city?: string | null;
+            state?: string | null;
             zipCode?: string | null;
             hasImage?: boolean;
             timezone?: string | null;
@@ -152,6 +154,8 @@ describe("findShowsWithCount", () => {
                     id: 321,
                     name: "Laugh Factory",
                     address: "456 Sunset Blvd",
+                    city: "Los Angeles",
+                    state: "CA",
                 },
             });
             mockCount.mockResolvedValue(1);
@@ -162,6 +166,8 @@ describe("findShowsWithCount", () => {
             expect(result.shows[0].clubID).toBe(321);
             expect(result.shows[0].clubName).toBe("Laugh Factory");
             expect(result.shows[0].address).toBe("456 Sunset Blvd");
+            expect(result.shows[0].clubCity).toBe("Los Angeles");
+            expect(result.shows[0].clubState).toBe("CA");
         });
     });
 

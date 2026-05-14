@@ -57,6 +57,8 @@ describe("GET /api/v1/comedians/[id]/upcoming-runs", () => {
                         id: 101,
                         clubID: 10,
                         clubName: "Comedy Cellar",
+                        clubCity: "New York",
+                        clubState: "NY",
                         date: new Date("2026-07-01T23:00:00.000Z"),
                         tickets: [],
                         name: "Tour Stop",

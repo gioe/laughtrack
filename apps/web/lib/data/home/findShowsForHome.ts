@@ -32,6 +32,8 @@ const HOME_SHOW_SELECT = {
             id: true,
             name: true,
             address: true,
+            city: true,
+            state: true,
             zipCode: true,
             hasImage: true,
             timezone: true,
@@ -113,6 +115,8 @@ export async function findShowsForHome(
                 date: show.date,
                 clubID: show.club.id,
                 clubName: show.club.name,
+                clubCity: show.club.city,
+                clubState: show.club.state,
                 address: show.club.address,
                 imageUrl:
                     getBestLineupImageUrl(lineup) ??

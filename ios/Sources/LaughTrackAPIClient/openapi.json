@@ -1883,6 +1883,8 @@
           "id": { "type": "integer" },
           "clubID": { "type": "integer" },
           "clubName": { "type": "string" },
+          "clubCity": { "type": ["string", "null"] },
+          "clubState": { "type": ["string", "null"] },
           "date": { "type": "string", "format": "date-time" },
           "tickets": {
             "type": "array",

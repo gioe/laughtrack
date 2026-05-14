@@ -221,6 +221,8 @@ function mapUpcomingRunShow(
         address: show.club.address,
         clubID: show.club.id,
         clubName: show.club.name,
+        clubCity: show.club.city,
+        clubState: show.club.state,
         imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
         soldOut:
             show.tickets.length > 0 &&
