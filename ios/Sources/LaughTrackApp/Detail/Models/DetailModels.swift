@@ -105,6 +105,14 @@ struct ComedianDetailContent: Hashable {
     let relatedContentMessage: String?
 }
 
+struct ComedianPastShowsPage: Hashable {
+    let shows: [Components.Schemas.Show]
+    let total: Int
+    let page: Int
+
+    var canLoadMore: Bool { shows.count < total }
+}
+
 struct ClubDetailContent: Hashable {
     let club: Components.Schemas.ClubDetail
     let upcomingShows: [Components.Schemas.Show]
@@ -114,7 +122,13 @@ struct ClubDetailContent: Hashable {
 
 @MainActor
 final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
+    static let pastShowsPageSize = 20
+
     let comedianID: Int
+
+    @Published private(set) var pastShowsPhase: LoadPhase<ComedianPastShowsPage> = .idle
+    @Published private(set) var isLoadingMorePastShows = false
+    @Published private(set) var pastShowsPaginationFailure: LoadFailure?
 
     init(comedianID: Int) {
         self.comedianID = comedianID
@@ -253,6 +267,99 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
                     relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
                 )
             )
+        }
+    }
+
+    func loadPastShowsIfNeeded(apiClient: Client, comedianName: String) async {
+        guard case .idle = pastShowsPhase else { return }
+        await reloadPastShows(apiClient: apiClient, comedianName: comedianName)
+    }
+
+    func reloadPastShows(apiClient: Client, comedianName: String) async {
+        pastShowsPhase = .loading
+        pastShowsPaginationFailure = nil
+        let result = await fetchPastShows(
+            apiClient: apiClient,
+            comedianName: comedianName,
+            page: 0
+        )
+        guard !Task.isCancelled else { return }
+        switch result {
+        case .success(let payload):
+            pastShowsPhase = .success(.init(
+                shows: payload.data,
+                total: payload.total,
+                page: 0
+            ))
+        case .failure(let failure):
+            pastShowsPhase = .failure(failure)
+        }
+    }
+
+    func loadMorePastShows(apiClient: Client, comedianName: String) async {
+        guard case .success(let current) = pastShowsPhase,
+              current.canLoadMore,
+              !isLoadingMorePastShows
+        else { return }
+
+        isLoadingMorePastShows = true
+        pastShowsPaginationFailure = nil
+        defer { isLoadingMorePastShows = false }
+
+        let nextPage = current.page + 1
+        let result = await fetchPastShows(
+            apiClient: apiClient,
+            comedianName: comedianName,
+            page: nextPage
+        )
+        guard !Task.isCancelled else { return }
+        switch result {
+        case .success(let payload):
+            pastShowsPhase = .success(.init(
+                shows: current.shows + payload.data,
+                total: payload.total,
+                page: nextPage
+            ))
+        case .failure(let failure):
+            pastShowsPaginationFailure = failure
+        }
+    }
+
+    private func fetchPastShows(
+        apiClient: Client,
+        comedianName: String,
+        page: Int
+    ) async -> Result<(data: [Components.Schemas.Show], total: Int), LoadFailure> {
+        do {
+            let output = try await apiClient.getComedianPastShows(
+                .init(
+                    query: .init(
+                        comedian: comedianName,
+                        page: page,
+                        size: Self.pastShowsPageSize
+                    ),
+                    headers: .init(xTimezone: TimeZone.current.identifier)
+                )
+            )
+            switch output {
+            case .ok(let ok):
+                let payload = try ok.body.json
+                return .success((data: payload.data, total: payload.total))
+            case .badRequest:
+                return .failure(.badParams("LaughTrack could not load past shows right now."))
+            case .tooManyRequests(let tooManyRequests):
+                let retryAfter = tooManyRequests.headers.retryAfter.map(TimeInterval.init)
+                return .failure(.rateLimited(
+                    retryAfter: retryAfter,
+                    message: "LaughTrack is rate-limiting past shows right now."
+                ))
+            case .internalServerError:
+                return .failure(.serverError(status: 500, message: nil))
+            case .undocumented(let status, _):
+                return .failure(classifyUndocumented(status: status, context: "past shows"))
+            }
+        } catch {
+            return .failure(classifyDetailFetchError(error, context: "past shows"))
         }
     }
 
