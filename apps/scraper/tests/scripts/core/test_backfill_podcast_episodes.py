@@ -64,6 +64,7 @@ class _FakeConn:
         self.upserts: list[Any] = []
         self.commits = 0
         self.rollbacks = 0
+        self.autocommit_args: list[bool] = []
 
     def __enter__(self) -> "_FakeConn":
         return self
@@ -253,7 +254,11 @@ def test_backfill_confirm_upserts_rows_and_reports_insert_update_skip(monkeypatc
             {"title": "Missing stable identifiers"},
         ]
 
-    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+    def fake_get_connection(autocommit: bool = True):
+        conn.autocommit_args.append(autocommit)
+        return conn
+
+    monkeypatch.setattr(mod, "get_connection", fake_get_connection)
     monkeypatch.setattr(
         mod,
         "_load_podcast_index_credentials",
@@ -279,6 +284,7 @@ def test_backfill_confirm_upserts_rows_and_reports_insert_update_skip(monkeypatc
     assert summary.episodes_skipped == 1
     assert summary.api_failures == 0
     assert conn.commits == 1
+    assert conn.autocommit_args == [True, False]
     assert len(conn.upserts) == 2
     insert_params = conn.upserts[0]
     assert insert_params[0:5] == (42, mod._SOURCE, "987", None, "Stored")

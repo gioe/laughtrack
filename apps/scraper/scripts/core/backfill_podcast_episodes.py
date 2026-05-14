@@ -479,11 +479,8 @@ def backfill_podcast_episodes(
     )
     until_ts = _parse_bound_timestamp(until)
     summary = BackfillSummary()
-    conn = None if dry_run else get_connection()
 
-    try:
-        if conn is not None:
-            conn = conn.__enter__()
+    def process_feeds(conn: Any | None) -> None:
         for feed in feeds:
             summary.feeds_scanned += 1
             params = _build_fetch_params(
@@ -519,15 +516,18 @@ def backfill_podcast_episodes(
                     summary.episodes_inserted += 1
                 else:
                     summary.episodes_updated += 1
-        if conn is not None:
+
+    if dry_run:
+        process_feeds(None)
+        return summary
+
+    with get_connection(autocommit=False) as conn:
+        try:
+            process_feeds(conn)
             conn.commit()
-    except Exception:
-        if conn is not None:
+        except Exception:
             conn.rollback()
-        raise
-    finally:
-        if conn is not None:
-            conn.__exit__(None, None, None)
+            raise
 
     return summary
 
