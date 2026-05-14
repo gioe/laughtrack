@@ -9,6 +9,7 @@ raised to callers.
 """
 
 import io
+import hashlib
 import os
 import re
 import time
@@ -22,6 +23,8 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Wikidata SPARQL endpoint
 _WIKIDATA_SPARQL_URL = "https://query.wikidata.org/sparql"
+_COMMONS_API_URL = "https://commons.wikimedia.org/w/api.php"
+_WIKIMEDIA_USER_AGENT = "LaughTrack/1.0 (comedy show aggregator; contact: gioematt@gmail.com)"
 
 # TMDb API
 _TMDB_API_URL = "https://api.themoviedb.org/3"
@@ -33,9 +36,10 @@ _MAX_IMAGE_WIDTH = 500
 
 # Only allow safe characters in SPARQL string literals
 _SAFE_NAME_RE = re.compile(r"^[a-zA-Z0-9 .'\-]+$")
+_COMMONS_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp")
 
 # Delay between per-comedian image sourcing requests to avoid rate-limiting
-_IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
+_IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "5.0"))
 
 
 def _escape_sparql_string(s: str) -> str:
@@ -50,6 +54,75 @@ def _escape_sparql_string(s: str) -> str:
     s = s.replace("\r", "\\r")
     s = s.replace("\t", "\\t")
     return s
+
+
+def _wikimedia_upload_thumbnail_url(image_url: str) -> str:
+    """Convert Commons Special:FilePath URLs to direct upload.wikimedia.org thumbnails."""
+    parsed = urllib.parse.urlparse(image_url)
+    if parsed.netloc.lower() != "commons.wikimedia.org" or not parsed.path.startswith("/wiki/Special:FilePath/"):
+        return image_url
+
+    raw_filename = parsed.path.removeprefix("/wiki/Special:FilePath/")
+    filename = urllib.parse.unquote(raw_filename).replace(" ", "_")
+    digest = hashlib.md5(filename.encode("utf-8")).hexdigest()
+    quoted_filename = urllib.parse.quote(filename)
+    return (
+        f"https://upload.wikimedia.org/wikipedia/commons/thumb/{digest[0]}/{digest[:2]}/"
+        f"{quoted_filename}/500px-{quoted_filename}"
+    )
+
+
+def _strip_url_query(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    return urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
+
+
+def _commons_filename_matches_name(title: str, comedian_name: str) -> bool:
+    if not title.startswith("File:"):
+        return False
+
+    filename = title.removeprefix("File:")
+    if not filename.lower().endswith(_COMMONS_IMAGE_EXTENSIONS):
+        return False
+
+    normalized_filename = urllib.parse.unquote(filename).replace("_", " ").lower()
+    normalized_name = comedian_name.lower()
+    return normalized_filename.startswith(normalized_name)
+
+
+def _get_commons_file_search_image_url(comedian_name: str) -> Optional[str]:
+    """Search Commons for a direct thumbnail when Wikidata lacks a P18 image."""
+    try:
+        resp = requests.get(
+            _COMMONS_API_URL,
+            params={
+                "action": "query",
+                "format": "json",
+                "generator": "search",
+                "gsrsearch": comedian_name,
+                "gsrnamespace": 6,
+                "gsrlimit": 10,
+                "prop": "imageinfo",
+                "iiprop": "url",
+                "iiurlwidth": _MAX_IMAGE_WIDTH,
+            },
+            headers={"User-Agent": _WIKIMEDIA_USER_AGENT},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        pages = resp.json().get("query", {}).get("pages", {}).values()
+        for page in pages:
+            title = page.get("title", "")
+            if not _commons_filename_matches_name(title, comedian_name):
+                continue
+            image_info = page.get("imageinfo", [])
+            if image_info:
+                url = image_info[0].get("thumburl") or image_info[0].get("url")
+                if url:
+                    return _strip_url_query(url)
+    except Exception as e:
+        Logger.warn(f"image_sourcing: Commons image search failed for '{comedian_name}': {e}")
+    return None
 
 
 def _get_wikidata_image_url(comedian_name: str) -> Optional[str]:
@@ -74,16 +147,16 @@ def _get_wikidata_image_url(comedian_name: str) -> Optional[str]:
         resp = requests.get(
             _WIKIDATA_SPARQL_URL,
             params={"query": query, "format": "json"},
-            headers={"User-Agent": "LaughTrack/1.0 (comedy show aggregator)"},
+            headers={"User-Agent": _WIKIMEDIA_USER_AGENT},
             timeout=10,
         )
         resp.raise_for_status()
         results = resp.json().get("results", {}).get("bindings", [])
         if results:
-            return results[0]["image"]["value"]
+            return _wikimedia_upload_thumbnail_url(results[0]["image"]["value"])
     except Exception as e:
         Logger.warn(f"image_sourcing: Wikidata lookup failed for '{comedian_name}': {e}")
-    return None
+    return _get_commons_file_search_image_url(comedian_name)
 
 
 def _get_tmdb_image_url(comedian_name: str, api_key: str) -> Optional[str]:
@@ -111,7 +184,7 @@ def _download_image(url: str) -> Optional[bytes]:
     try:
         resp = requests.get(
             url,
-            headers={"User-Agent": "LaughTrack/1.0 (comedy show aggregator)"},
+            headers={"User-Agent": _WIKIMEDIA_USER_AGENT},
             timeout=15,
         )
         resp.raise_for_status()

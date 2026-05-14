@@ -17,6 +17,7 @@ Usage:
     python -m scripts.core.source_comedian_images --name "Patton Oswalt"
     python -m scripts.core.source_comedian_images --name "Patton Oswalt" --name "Luenell"
     python -m scripts.core.source_comedian_images --names-file curated.txt
+    python -m scripts.core.source_comedian_images --names-file scripts/core/curated_missing_image_comedians.txt
 
     # Review mode: source images to a folder for human review (no CDN write)
     python -m scripts.core.source_comedian_images --names-file curated.txt --review-dir /tmp/headshots
@@ -51,7 +52,7 @@ from laughtrack.infrastructure.database.connection import get_connection, get_tr
 _SUPPORTED_REVIEW_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 
 # Delay between per-comedian requests (Wikidata + TMDb rate limits)
-_IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
+_IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "5.0"))
 
 
 def get_missing_image_comedians(conn, limit=None):
@@ -68,6 +69,23 @@ def get_missing_image_comedians(conn, limit=None):
     cur = conn.cursor()
     cur.execute(query)
     return [row[0] for row in cur.fetchall()]
+
+
+def _read_names_file(path: Path):
+    """Read comedian names from a newline-delimited file."""
+    names = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        name = line.strip()
+        if name and not name.startswith("#"):
+            names.append(name)
+    return names
+
+
+def _load_env_defaults(path: Path = Path(".env")):
+    """Load .env values needed by downstream sourcing helpers."""
+    for key, value in dotenv_values(path).items():
+        if value:
+            os.environ.setdefault(key, value)
 
 
 def main():
@@ -111,6 +129,8 @@ def main():
     )
     args = parser.parse_args()
 
+    _load_env_defaults()
+
     if args.upload_from_dir and (args.name or args.names_file or args.limit is not None or args.review_dir):
         print("Error: --upload-from-dir cannot be combined with --name/--names-file/--limit/--review-dir", file=sys.stderr)
         sys.exit(2)
@@ -118,10 +138,10 @@ def main():
     # Validate CDN credentials before starting (skip for dry-run and review-only)
     needs_cdn = not args.dry_run and not args.review_dir
     if needs_cdn:
-        if not os.environ.get("BUNNYCDN_STORAGE_PASSWORD") and not dotenv_values(".env").get("BUNNYCDN_STORAGE_PASSWORD"):
+        if not os.environ.get("BUNNYCDN_STORAGE_PASSWORD"):
             print("Error: BUNNYCDN_STORAGE_PASSWORD not set in environment or .env", file=sys.stderr)
             sys.exit(1)
-        if not os.environ.get("BUNNYCDN_STORAGE_ZONE") and not dotenv_values(".env").get("BUNNYCDN_STORAGE_ZONE"):
+        if not os.environ.get("BUNNYCDN_STORAGE_ZONE"):
             print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
             sys.exit(1)
 
