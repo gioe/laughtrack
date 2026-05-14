@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import contextlib
 import csv
 import json
 import sys
 from pathlib import Path
 from typing import Any
+
+import pytest
 
 _repo_root = Path(__file__).resolve().parents[3]
 _src_path = _repo_root / "src"
@@ -71,6 +74,14 @@ class _FakeCursor:
         return False
 
     def execute(self, sql: str, params: Any = None) -> None:
+        self._conn._execute_count += 1
+        if (
+            self._conn._raise_on_execute_count is not None
+            and self._conn._execute_count == self._conn._raise_on_execute_count
+        ):
+            raise RuntimeError(
+                f"injected failure on execute #{self._conn._execute_count}"
+            )
         self._conn.executed.append((sql, params))
         normalized = " ".join(sql.split())
         if normalized.startswith("SELECT comedian_id, source_feed_id, LOWER(review_status)"):
@@ -121,6 +132,7 @@ class _FakeConn:
         *,
         comedian_names: dict[int, str] | None = None,
         identity_links: dict[tuple[int, str], str] | None = None,
+        raise_on_execute_count: int | None = None,
     ) -> None:
         self.comedian_names = comedian_names or {}
         self.identity_links = dict(identity_links or {})
@@ -128,6 +140,9 @@ class _FakeConn:
         self.appearance_writes: list[tuple[Any, ...]] = []
         self.executed: list[tuple[str, Any]] = []
         self.commits = 0
+        self.rollbacks = 0
+        self._execute_count = 0
+        self._raise_on_execute_count = raise_on_execute_count
 
     def __enter__(self) -> "_FakeConn":
         return self
@@ -141,6 +156,9 @@ class _FakeConn:
     def commit(self) -> None:
         self.commits += 1
 
+    def rollback(self) -> None:
+        self.rollbacks += 1
+
 
 def _fake_execute_values(cur: _FakeCursor, sql: str, values: list[tuple[Any, ...]], template: str) -> None:
     cur._conn.appearance_writes.extend(values)
@@ -148,6 +166,18 @@ def _fake_execute_values(cur: _FakeCursor, sql: str, values: list[tuple[Any, ...
 
 def _install_fakes(monkeypatch, conn: _FakeConn) -> None:
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    @contextlib.contextmanager
+    def fake_transaction():
+        try:
+            yield conn
+        except Exception:
+            conn.rollback()
+            raise
+        else:
+            conn.commit()
+
+    monkeypatch.setattr(mod, "get_transaction", fake_transaction)
     monkeypatch.setattr(mod, "execute_values", _fake_execute_values)
 
 
@@ -744,6 +774,119 @@ def test_main_apply_requires_dry_run_or_confirm(monkeypatch, tmp_path):
         assert exc.code == 2
     else:
         raise AssertionError("expected --dry-run/--confirm requirement to abort")
+
+
+def test_apply_errors_when_audit_path_missing(monkeypatch, tmp_path):
+    review_path = tmp_path / "review.csv"
+    _write_decisions(
+        review_path,
+        ["candidate_id", "decision"],
+        [{"candidate_id": "12:456", "decision": "accept"}],
+    )
+    conn = _FakeConn(comedian_names={12: "Ari Shaffir"})
+    _install_fakes(monkeypatch, conn)
+
+    summary, errors = mod._apply(
+        decisions_path=review_path,
+        audit_path=tmp_path / "does-not-exist.jsonl",
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert summary.accepted == 0
+    assert summary.errored == 1
+    assert len(errors) == 1
+    assert "audit log not found" in errors[0].message
+    # No DB writes attempted
+    assert conn.identity_link_writes == []
+    assert conn.appearance_writes == []
+    assert conn.commits == 0
+
+
+def test_apply_errors_when_input_csv_missing(monkeypatch, tmp_path):
+    conn = _FakeConn(comedian_names={12: "Ari Shaffir"})
+    _install_fakes(monkeypatch, conn)
+
+    summary, errors = mod._apply(
+        decisions_path=tmp_path / "nonexistent.csv",
+        audit_path=tmp_path / "audit.jsonl",
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert summary.errored == 1
+    assert "input CSV not found" in errors[0].message
+    # No further work attempted
+    assert summary.accepted == 0
+    assert conn.identity_link_writes == []
+
+
+def test_apply_rejects_duplicate_candidate_id_rows(monkeypatch, tmp_path):
+    audit_path = _seed_two_candidates(tmp_path)
+    review_path = tmp_path / "review.csv"
+    _write_decisions(
+        review_path,
+        ["candidate_id", "decision"],
+        [
+            {"candidate_id": "12:456", "decision": "accept"},
+            {"candidate_id": "12:456", "decision": "reject"},
+        ],
+    )
+    conn = _FakeConn(comedian_names={12: "Ari Shaffir", 14: "Mark Normand"})
+    _install_fakes(monkeypatch, conn)
+
+    summary, errors = mod._apply(
+        decisions_path=review_path,
+        audit_path=audit_path,
+        dry_run=False,
+        force=False,
+        reviewer="matt",
+    )
+
+    assert summary.accepted == 1  # the first decision still wins
+    assert summary.rejected == 0
+    assert summary.errored == 1
+    duplicate_error = next(e for e in errors if "already decided" in e.message)
+    assert duplicate_error.row_number == 3
+    assert "row 2" in duplicate_error.message
+
+
+def test_apply_rolls_back_on_mid_batch_failure(monkeypatch, tmp_path):
+    audit_path = _seed_two_candidates(tmp_path)
+    review_path = tmp_path / "review.csv"
+    _write_decisions(
+        review_path,
+        ["candidate_id", "decision"],
+        [
+            {"candidate_id": "12:456", "decision": "accept"},
+            {"candidate_id": "14:999", "decision": "accept"},
+        ],
+    )
+    # Execute order during _apply: 2 SELECTs from _build_candidates
+    # (identity_link statuses + comedian names), then 1 identity_link
+    # INSERT per planned action. Inject the failure on execute #4 so the
+    # first accept commits its identity_link write and the second
+    # accept's INSERT raises mid-batch.
+    conn = _FakeConn(
+        comedian_names={12: "Ari Shaffir", 14: "Mark Normand"},
+        raise_on_execute_count=4,
+    )
+    _install_fakes(monkeypatch, conn)
+
+    with pytest.raises(RuntimeError, match="injected failure"):
+        mod._apply(
+            decisions_path=review_path,
+            audit_path=audit_path,
+            dry_run=False,
+            force=False,
+            reviewer="matt",
+        )
+
+    # Transaction wrapper invoked rollback, not commit
+    assert conn.commits == 0
+    assert conn.rollbacks == 1
 
 
 def test_main_apply_with_errors_returns_nonzero(monkeypatch, tmp_path, capsys):

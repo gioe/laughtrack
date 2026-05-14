@@ -46,7 +46,7 @@ for _path in (_root / "src", _root):
 
 from psycopg2.extras import execute_values
 
-from laughtrack.adapters.db import get_connection
+from laughtrack.adapters.db import get_connection, get_transaction
 
 _SOURCE = "podcast_index"
 
@@ -260,25 +260,16 @@ def _build_candidates(
     if connection_factory is None:
         connection_factory = get_connection
     grouped = _aggregate_by_candidate(audit_rows)
-    keys: list[tuple[int, str]] = []
-    comedian_ids: list[int] = []
-    for rows in grouped.values():
-        for row in rows:
-            evidence = row.get("match_evidence") or {}
-            feed_id = str(evidence.get("source_feed_id") or "")
-            if not feed_id:
-                continue
-            try:
-                cid = int(row.get("comedian_id"))
-            except (TypeError, ValueError):
-                continue
-            keys.append((cid, feed_id))
-            comedian_ids.append(cid)
-    keys = sorted(set(keys))
+    keys: set[tuple[int, str]] = set()
+    for candidate_id in grouped.keys():
+        parsed = _parse_candidate_id(candidate_id)
+        if parsed is not None:
+            keys.add(parsed)
+    sorted_keys = sorted(keys)
 
     with connection_factory() as conn:
-        identity_links = _load_identity_link_statuses(conn, keys)
-        comedian_names = _load_comedian_names(conn, comedian_ids)
+        identity_links = _load_identity_link_statuses(conn, sorted_keys)
+        comedian_names = _load_comedian_names(conn, [cid for cid, _ in sorted_keys])
 
     candidates: list[PendingCandidate] = []
     for candidate_id, appearances in grouped.items():
@@ -337,6 +328,8 @@ def _export(
 def _read_decision_csv(path: Path) -> tuple[list[DecisionRow], list[ApplyError]]:
     decisions: list[DecisionRow] = []
     errors: list[ApplyError] = []
+    if not path.exists():
+        return decisions, [ApplyError(1, f"input CSV not found: {path}")]
     with path.open("r", encoding="utf-8", newline="") as fh:
         reader = csv.DictReader(fh)
         if reader.fieldnames is None:
@@ -469,23 +462,42 @@ def _apply(
     force: bool,
     reviewer: str,
     connection_factory: Any = None,
+    transaction_factory: Any = None,
 ) -> tuple[ApplySummary, list[ApplyError]]:
     if connection_factory is None:
         connection_factory = get_connection
+    if transaction_factory is None:
+        transaction_factory = get_transaction
     decisions, parse_errors = _read_decision_csv(decisions_path)
+
+    summary = ApplySummary()
+    errors: list[ApplyError] = list(parse_errors)
+    summary.errored = len(errors)
+    if parse_errors:
+        return summary, errors
+
     audit_rows = _read_audit_rows(audit_path)
+    if not audit_rows and not audit_path.exists():
+        errors.append(
+            ApplyError(
+                1,
+                f"audit log not found: {audit_path}; "
+                "candidate lookups cannot resolve. Re-run discovery "
+                "or pass --audit-path to the correct JSONL.",
+            )
+        )
+        summary.errored += 1
+        return summary, errors
+
     candidates, grouped_appearances = _build_candidates(
         audit_rows, connection_factory=connection_factory
     )
     candidates_by_id = {c.candidate_id: c for c in candidates}
 
-    summary = ApplySummary()
-    errors: list[ApplyError] = list(parse_errors)
-    summary.errored = len(errors)
-
     planned_accepts: list[_PlannedAction] = []
     planned_rejects: list[_PlannedAction] = []
     planned_ignores: list[_PlannedAction] = []
+    decided_rows: dict[str, int] = {}
 
     for decision in decisions:
         if not decision.decision:
@@ -533,6 +545,18 @@ def _apply(
             )
             summary.errored += 1
             continue
+        prior_row = decided_rows.get(decision.candidate_id)
+        if prior_row is not None:
+            errors.append(
+                ApplyError(
+                    decision.row_number,
+                    f"candidate {decision.candidate_id} already decided in row "
+                    f"{prior_row}; remove the duplicate before applying",
+                )
+            )
+            summary.errored += 1
+            continue
+        decided_rows[decision.candidate_id] = decision.row_number
         action = _PlannedAction(
             decision=decision,
             candidate=candidate,
@@ -553,7 +577,7 @@ def _apply(
         summary.appearances_written = sum(len(p.appearances) for p in planned_accepts)
         return summary, errors
 
-    with connection_factory() as conn:
+    with transaction_factory() as conn:
         for plan in planned_accepts:
             _upsert_identity_link(
                 conn,
@@ -579,7 +603,6 @@ def _apply(
                 reviewer,
                 plan.decision.review_reason,
             )
-        conn.commit()
 
     return summary, errors
 
