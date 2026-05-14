@@ -15,7 +15,9 @@ struct ContentViewNavigationTests {
         #expect(shellState.selectedPrimitive == nil)
         #expect(shellState.showsLocationHeader)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
-            .shows,
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
             .favoriteShows,
             .comedians,
             .clubs,
@@ -41,7 +43,12 @@ struct ContentViewNavigationTests {
 
         #expect(shellState.selectedTab == .nearMe)
         #expect(shellState.selectedPrimitive == .shows)
-        #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [.shows])
+        #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
+            .favoriteShows,
+        ])
     }
 
     @Test("home comedians pill keeps home focused on comedian backend content")
@@ -96,14 +103,26 @@ struct ContentViewNavigationTests {
 
     @Test("home shows-tonight hero is mounted with the show-detail accessibility id")
     func homeShowsTonightHeroIsMountedWithShowDetailAccessibilityId() async throws {
-        #expect(HomeContentSection.sections(for: .shows) == [.shows])
+        #expect(HomeContentSection.sections(for: .shows).first == .showsTonight)
         #expect(EntityNavigationTarget.show(701).route == .showDetail(701))
     }
 
     @Test("home removes the search entry rail from the body")
     func homeRemovesSearchEntryRail() async throws {
-        #expect(HomeContentSection.sections(for: nil) == [.shows, .favoriteShows, .comedians, .clubs])
-        #expect(HomeContentSection.sections(for: .shows) == [.shows])
+        #expect(HomeContentSection.sections(for: nil) == [
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
+            .favoriteShows,
+            .comedians,
+            .clubs,
+        ])
+        #expect(HomeContentSection.sections(for: .shows) == [
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
+            .favoriteShows,
+        ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])
     }

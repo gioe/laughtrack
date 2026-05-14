@@ -5,19 +5,26 @@ import LaughTrackAPIClient
 
 @Suite("Home content sections")
 struct HomeContentSectionTests {
-    @Test("unfiltered home includes shows comedians and clubs")
-    func unfilteredHomeIncludesShowsComediansAndClubs() {
+    @Test("unfiltered home leads with show rails before comedians and clubs")
+    func unfilteredHomeLeadsWithShowRailsBeforeComediansAndClubs() {
         #expect(HomeContentSection.sections(for: nil) == [
-            .shows,
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
             .favoriteShows,
             .comedians,
             .clubs,
         ])
     }
 
-    @Test("home primitive filters render only their matching content section")
+    @Test("home primitive filters render only their matching content sections")
     func homePrimitiveFiltersRenderOnlyMatchingContentSection() {
-        #expect(HomeContentSection.sections(for: .shows) == [.shows])
+        #expect(HomeContentSection.sections(for: .shows) == [
+            .showsTonight,
+            .moreNearYou,
+            .trendingThisWeek,
+            .favoriteShows,
+        ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])
     }
@@ -50,6 +57,17 @@ struct HomeContentSectionTests {
 
         #expect(!source.contains("\n            AsyncImage(url:"))
         #expect(source.contains("CachedAsyncImage(url:"))
+    }
+
+    @Test("home source uses carousel hero grid entity rails and lifted rail copy")
+    func homeSourceUsesCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
+        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains("TabView"))
+        #expect(source.contains("PageTabViewStyle"))
+        #expect(source.contains("LazyVGrid"))
+        #expect(source.contains("Comics on the rise this week"))
+        #expect(!source.contains("eyebrow: \"Trending comedians\""))
     }
 
     private func homeViewSourceURL(filePath: String = #filePath) throws -> URL {

@@ -4,7 +4,9 @@ import LaughTrackBridge
 import LaughTrackCore
 
 enum HomeContentSection: Equatable {
-    case shows
+    case showsTonight
+    case moreNearYou
+    case trendingThisWeek
     case favoriteShows
     case comedians
     case clubs
@@ -12,13 +14,99 @@ enum HomeContentSection: Equatable {
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
         case .shows:
-            return [.shows]
+            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows]
         case .comedians:
             return [.comedians]
         case .clubs:
             return [.clubs]
         default:
-            return [.shows, .favoriteShows, .comedians, .clubs]
+            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows, .comedians, .clubs]
+        }
+    }
+}
+
+enum HomeShowRailKind: Equatable {
+    case showsTonight
+    case moreNearYou
+    case trendingThisWeek
+
+    var eyebrow: String {
+        switch self {
+        case .showsTonight:
+            return "Tonight"
+        case .moreNearYou:
+            return "More near you"
+        case .trendingThisWeek:
+            return "Trending this week"
+        }
+    }
+
+    func title(cityTitle: String?) -> String {
+        switch self {
+        case .showsTonight:
+            if let cityTitle {
+                return "Shows tonight near \(cityTitle)"
+            }
+            return "Shows tonight"
+        case .moreNearYou:
+            return "More near you"
+        case .trendingThisWeek:
+            return "Trending this week"
+        }
+    }
+
+    var subtitle: String? {
+        switch self {
+        case .showsTonight:
+            return nil
+        case .moreNearYou:
+            return "Upcoming shows at clubs in your area."
+        case .trendingThisWeek:
+            return "The most popular shows happening in the next 7 days."
+        }
+    }
+
+    var emptyMessage: String {
+        switch self {
+        case .showsTonight:
+            return "No shows are listed for tonight yet."
+        case .moreNearYou:
+            return "No nearby shows are listed yet."
+        case .trendingThisWeek:
+            return "No trending shows are listed for this week yet."
+        }
+    }
+
+    var searchShortcut: String? {
+        switch self {
+        case .showsTonight:
+            return "Tonight"
+        case .moreNearYou:
+            return "Near Me"
+        case .trendingThisWeek:
+            return "This Week"
+        }
+    }
+
+    var railAccessibilityIdentifier: String {
+        switch self {
+        case .showsTonight:
+            return LaughTrackViewTestID.homeShowsTonightRail
+        case .moreNearYou:
+            return "laughtrack.home.more-near-you-rail"
+        case .trendingThisWeek:
+            return "laughtrack.home.trending-this-week-rail"
+        }
+    }
+
+    var seeMoreAccessibilityIdentifier: String {
+        switch self {
+        case .showsTonight:
+            return LaughTrackViewTestID.homeShowsTonightSeeMoreButton
+        case .moreNearYou:
+            return "laughtrack.home.more-near-you-see-more-button"
+        case .trendingThisWeek:
+            return "laughtrack.home.trending-this-week-see-more-button"
         }
     }
 }
@@ -96,8 +184,12 @@ struct HomeView: View {
     private var contentSections: some View {
         ForEach(HomeContentSection.sections(for: selectedPrimitive), id: \.self) { section in
             switch section {
-            case .shows:
-                showsSection
+            case .showsTonight:
+                showsSection(.showsTonight)
+            case .moreNearYou:
+                showsSection(.moreNearYou)
+            case .trendingThisWeek:
+                showsSection(.trendingThisWeek)
             case .favoriteShows:
                 HomeFavoriteShowsRail(
                     apiClient: apiClient,
@@ -112,8 +204,9 @@ struct HomeView: View {
         }
     }
 
-    private var showsSection: some View {
+    private func showsSection(_ railKind: HomeShowRailKind) -> some View {
         HomeShowsTonightRail(
+            railKind: railKind,
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
             searchNavigationBridge: searchNavigationBridge,
@@ -177,6 +270,7 @@ private struct HomeNearMeHeader: View {
 }
 
 private struct HomeShowsTonightRail: View {
+    let railKind: HomeShowRailKind
     let apiClient: Client
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
     let searchNavigationBridge: SearchNavigationBridge
@@ -196,15 +290,15 @@ private struct HomeShowsTonightRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Tonight",
+                eyebrow: railKind.eyebrow,
                 title: title,
-                subtitle: nil
+                subtitle: railKind.subtitle
             )
             // Anchoring the rail's test identifier on the shelf header — not the
             // outer VStack — keeps it from propagating to the combined-children
             // accessibility nodes produced by the hero/rail cards under iOS 26,
             // which would otherwise mask the inner Button identifiers.
-            .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightRail)
+            .accessibilityIdentifier(railKind.railAccessibilityIdentifier)
 
             switch model.phase {
             case .idle, .loading:
@@ -214,6 +308,7 @@ private struct HomeShowsTonightRail: View {
                     failure: failure,
                     retry: {
                         await model.refresh(
+                            railKind: railKind,
                             apiClient: apiClient,
                             zipCode: zipCode,
                             cache: cache,
@@ -224,14 +319,15 @@ private struct HomeShowsTonightRail: View {
                 )
             case .success(let shows):
                 if shows.isEmpty {
-                    EmptyCard(message: "No shows are listed for tonight yet.")
+                    EmptyCard(message: railKind.emptyMessage)
                 } else {
                     showsContent(shows)
                 }
             }
         }
-        .task(id: model.requestKey(for: zipCode)) {
+        .task(id: model.requestKey(for: zipCode, railKind: railKind)) {
             await model.refresh(
+                railKind: railKind,
                 apiClient: apiClient,
                 zipCode: zipCode,
                 cache: cache,
@@ -249,28 +345,16 @@ private struct HomeShowsTonightRail: View {
     }
 
     private var title: String {
-        if let city = model.cityTitle {
-            return "Shows tonight near \(city)"
-        }
-        return "Shows tonight"
+        railKind.title(cityTitle: model.cityTitle)
     }
 
     @ViewBuilder
     private func showsContent(_ shows: [Components.Schemas.Show]) -> some View {
-        if let heroShow = shows.first {
-            Button {
-                coordinator.open(.show(heroShow.id))
-            } label: {
-                HomeShowsTonightHeroCard(show: heroShow)
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightHeroButton)
-        }
-
-        let railShows = Array(shows.dropFirst())
-        if !railShows.isEmpty {
+        if railKind == .showsTonight {
+            HomeShowsTonightCarousel(shows: shows)
+        } else {
             VStack(spacing: theme.spacing.sm) {
-                ForEach(railShows, id: \.id) { show in
+                ForEach(shows, id: \.id) { show in
                     Button {
                         coordinator.open(.show(show.id))
                     } label: {
@@ -284,14 +368,54 @@ private struct HomeShowsTonightRail: View {
 
         LaughTrackButton("See more", systemImage: "magnifyingglass", tone: .secondary, density: .compact) {
             searchNavigationBridge.openSearch(
-                HomeShowsTonightModel.seeMoreSearchSeed(nearbyPreference: seeMoreNearbyPreference)
+                HomeShowsTonightModel.seeMoreSearchSeed(
+                    railKind: railKind,
+                    nearbyPreference: seeMoreNearbyPreference
+                )
             )
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsTonightSeeMoreButton)
+        .accessibilityIdentifier(railKind.seeMoreAccessibilityIdentifier)
     }
 
     private var seeMoreNearbyPreference: NearbyPreference? {
         nearbyPreferenceStore.preference ?? model.feedNearbyPreference
+    }
+}
+
+private struct HomeShowsTonightCarousel: View {
+    let shows: [Components.Schemas.Show]
+
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        #if os(iOS)
+        TabView {
+            carouselButtons
+        }
+        .frame(height: 292)
+        .tabViewStyle(PageTabViewStyle(indexDisplayMode: shows.count > 1 ? .automatic : .never))
+        #else
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: theme.spacing.sm) {
+                carouselButtons
+                    .frame(width: 320)
+            }
+        }
+        #endif
+    }
+
+    private var carouselButtons: some View {
+        ForEach(shows, id: \.id) { show in
+            Button {
+                coordinator.open(.show(show.id))
+            } label: {
+                HomeShowsTonightHeroCard(show: show)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
+            .padding(.horizontal, 1)
+        }
     }
 }
 
@@ -403,11 +527,14 @@ enum HomeShowsTonightHeroPresentation {
 final class HomeShowsTonightModel: ObservableObject {
     static let displayLimit = 5
 
-    static func seeMoreSearchSeed(nearbyPreference: NearbyPreference?) -> SearchRootModel.Seed {
+    static func seeMoreSearchSeed(
+        railKind: HomeShowRailKind = .moreNearYou,
+        nearbyPreference: NearbyPreference?
+    ) -> SearchRootModel.Seed {
         SearchRootModel.Seed(
             pivot: .shows,
             query: "",
-            shortcut: "Near Me",
+            shortcut: railKind.searchShortcut,
             nearbyPreference: nearbyPreference
         )
     }
@@ -419,18 +546,19 @@ final class HomeShowsTonightModel: ObservableObject {
     private var loadedRequestKey: String?
     private var loadedAt: Date?
 
-    func requestKey(for zipCode: String?) -> String {
-        zipCode ?? ""
+    func requestKey(for zipCode: String?, railKind: HomeShowRailKind? = nil) -> String {
+        "\(railKind.map(String.init(describing:)) ?? "showsTonight")|\(zipCode ?? "")"
     }
 
     func refresh(
+        railKind: HomeShowRailKind = .showsTonight,
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>? = nil,
         cacheTTL: TimeInterval = MainPageCache.defaultTTL,
         persistentCache: PersistentMainPageCache?
     ) async {
-        let requestKey = requestKey(for: zipCode)
+        let requestKey = requestKey(for: zipCode, railKind: railKind)
         if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
             return
         }
@@ -440,7 +568,7 @@ final class HomeShowsTonightModel: ObservableObject {
             from: cache,
             persistentCache: persistentCache
         ) {
-            apply(feed: cachedFeed, requestKey: requestKey)
+            apply(feed: cachedFeed, railKind: railKind, requestKey: requestKey)
             return
         }
 
@@ -462,16 +590,16 @@ final class HomeShowsTonightModel: ObservableObject {
 
         switch result {
         case .success(let feed):
-            apply(feed: feed, requestKey: requestKey)
+            apply(feed: feed, railKind: railKind, requestKey: requestKey)
         case .failure(let failure):
             phase = .failure(failure)
         }
     }
 
-    private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
+    private func apply(feed: Components.Schemas.HomeFeed, railKind: HomeShowRailKind, requestKey: String) {
         cityTitle = Self.locationTitle(city: feed.hero.city, state: feed.hero.state)
         feedNearbyPreference = Self.nearbyPreference(from: feed.hero)
-        phase = .success(Self.shows(from: feed))
+        phase = .success(Self.shows(from: feed, railKind: railKind))
         loadedRequestKey = requestKey
         loadedAt = Date()
     }
@@ -481,9 +609,19 @@ final class HomeShowsTonightModel: ObservableObject {
         return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 
-    private static func shows(from feed: Components.Schemas.HomeFeed) -> [Components.Schemas.Show] {
+    private static func shows(from feed: Components.Schemas.HomeFeed, railKind: HomeShowRailKind) -> [Components.Schemas.Show] {
+        let sourceShows: [Components.Schemas.Show]
+        switch railKind {
+        case .showsTonight:
+            sourceShows = feed.showsTonight + feed.hero.shows + feed.trendingThisWeek
+        case .moreNearYou:
+            sourceShows = feed.moreNearYou + feed.hero.shows + feed.showsTonight
+        case .trendingThisWeek:
+            sourceShows = feed.trendingThisWeek + feed.showsTonight + feed.moreNearYou
+        }
+
         var seenIDs: Set<Int> = []
-        return (feed.showsTonight + feed.hero.shows + feed.trendingThisWeek).filter { show in
+        return sourceShows.filter { show in
             seenIDs.insert(show.id).inserted
         }.prefix(Self.displayLimit).map { $0 }
     }
@@ -710,7 +848,7 @@ private struct HomeTrendingComediansRail: View {
 
         VStack(alignment: .leading, spacing: theme.spacing.md) {
             LaughTrackShelfHeader(
-                eyebrow: "Trending comedians",
+                eyebrow: "Comics on the rise this week",
                 title: "Comedians drawing crowds",
                 subtitle: nil
             )
@@ -740,7 +878,7 @@ private struct HomeTrendingComediansRail: View {
                 if items.isEmpty {
                     EmptyCard(message: "No trending comedians with photos are available right now.")
                 } else {
-                    VStack(spacing: theme.spacing.sm) {
+                    LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
                         ForEach(items, id: \.uuid) { comedian in
                             Button {
                                 coordinator.open(.comedian(comedian.id))
@@ -771,6 +909,13 @@ private struct HomeTrendingComediansRail: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
     }
+
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+        ]
+    }
 }
 
 private struct HomeTrendingComedianCard: View {
@@ -781,7 +926,7 @@ private struct HomeTrendingComedianCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .center, spacing: theme.spacing.sm) {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
             artwork
 
             VStack(alignment: .leading, spacing: 3) {
@@ -799,7 +944,7 @@ private struct HomeTrendingComedianCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
         .background(laughTrack.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
@@ -832,7 +977,8 @@ private struct HomeTrendingComedianCard: View {
                             .foregroundStyle(laughTrack.colors.textSecondary)
                     }
             }
-            .frame(width: 76, height: 76)
+            .frame(maxWidth: .infinity)
+            .frame(height: 112)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -842,7 +988,8 @@ private struct HomeTrendingComedianCard: View {
                         .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.accentStrong)
                 }
-                .frame(width: 76, height: 76)
+                .frame(maxWidth: .infinity)
+                .frame(height: 112)
         }
     }
 
@@ -985,7 +1132,7 @@ private struct HomePopularClubsRail: View {
                 if clubs.isEmpty {
                     EmptyCard(message: "No clubs are available right now.")
                 } else {
-                    VStack(spacing: theme.spacing.sm) {
+                    LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
                         ForEach(clubs, id: \.id) { club in
                             Button {
                                 coordinator.open(.club(club.id))
@@ -1015,6 +1162,13 @@ private struct HomePopularClubsRail: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
     }
+
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+        ]
+    }
 }
 
 private struct HomePopularClubCard: View {
@@ -1025,7 +1179,7 @@ private struct HomePopularClubCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .center, spacing: theme.spacing.sm) {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
             artwork
 
             Text(club.name)
@@ -1036,7 +1190,7 @@ private struct HomePopularClubCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(theme.spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
         .background(laughTrack.colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .contentShape(Rectangle())
@@ -1063,7 +1217,8 @@ private struct HomePopularClubCard: View {
             } error: { _ in
                 fallbackArtwork
             }
-            .frame(width: 84, height: 64)
+            .frame(maxWidth: .infinity)
+            .frame(height: 104)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             fallbackArtwork
@@ -1080,7 +1235,8 @@ private struct HomePopularClubCard: View {
                     .font(.system(size: theme.iconSizes.lg, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accentStrong)
             }
-            .frame(width: 84, height: 64)
+            .frame(maxWidth: .infinity)
+            .frame(height: 104)
     }
 
 }
