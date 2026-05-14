@@ -163,3 +163,26 @@ def test_read_names_file_strips_blanks_and_comment_lines(tmp_path):
         "Hasan Minhaj",
         "Tig Notaro",
     ]
+
+
+def test_load_env_defaults_populates_missing_environment(monkeypatch, tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "BUNNYCDN_STORAGE_PASSWORD=from-file",
+                "BUNNYCDN_STORAGE_ZONE=image-zone",
+                "IMAGE_SOURCE_DELAY_S=2",
+            ],
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("BUNNYCDN_STORAGE_PASSWORD", raising=False)
+    monkeypatch.delenv("BUNNYCDN_STORAGE_ZONE", raising=False)
+    monkeypatch.setenv("IMAGE_SOURCE_DELAY_S", "already-set")
+
+    source_comedian_images._load_env_defaults(env_file)
+
+    assert source_comedian_images.os.environ["BUNNYCDN_STORAGE_PASSWORD"] == "from-file"
+    assert source_comedian_images.os.environ["BUNNYCDN_STORAGE_ZONE"] == "image-zone"
+    assert source_comedian_images.os.environ["IMAGE_SOURCE_DELAY_S"] == "already-set"
