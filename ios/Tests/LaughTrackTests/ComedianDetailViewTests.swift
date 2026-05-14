@@ -137,6 +137,32 @@ struct ComedianDetailViewTests {
         ])
     }
 
+    @Test("comedian stats summarize upcoming shows by venue and combined social followers")
+    func comedianStatsAggregateUpcomingAndFollowers() {
+        let comedian = DemoContent.primaryComedian
+        let runs: [Components.Schemas.UpcomingRun] = [
+            fallbackRun(showIDs: [301, 302], clubID: 201, clubName: "Comedy Cellar"),
+            fallbackRun(showIDs: [303], clubID: 202, clubName: "The Stand"),
+        ]
+
+        let stats = ComedianStatsPresentation.stats(for: comedian, runs: runs)
+        let labels = stats.map(ComedianStatsPresentation.label(for:))
+
+        #expect(labels.contains("3 upcoming shows at 2 venues"))
+        // primaryComedian follower totals = 370k + 210k + 128k = 708,000 → "708K"
+        #expect(labels.contains("708K social followers"))
+    }
+
+    @Test("comedian stats omit zero-valued buckets")
+    func comedianStatsOmitEmptyBuckets() {
+        var comedian = DemoContent.primaryComedian
+        comedian.socialData = nil
+
+        let stats = ComedianStatsPresentation.stats(for: comedian, runs: [])
+
+        #expect(stats.isEmpty)
+    }
+
     private func makeClient(
         comedianResponse: MockComedianDetailTransport.EntityResponse<Operations.GetComedian.Output.Ok.Body.JsonPayload>,
         upcomingRunsResponse: MockComedianDetailTransport.EntityResponse<Components.Schemas.UpcomingRunResponse>,

@@ -18,6 +18,8 @@ struct ComedianDetailView: View {
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
 
+    fileprivate static let upcomingShowsAnchor = "comedian-upcoming-shows"
+
     init(comedianID: Int, apiClient: Client) {
         self.comedianID = comedianID
         self.apiClient = apiClient
@@ -40,7 +42,9 @@ struct ComedianDetailView: View {
             case .success(let content):
                 let comedian = content.comedian
                 let isFavorite = favorites.value(for: comedian.uuid)
+                let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
+                    ScrollViewReader { proxy in
                     VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
                         title: comedian.name,
@@ -60,6 +64,18 @@ struct ComedianDetailView: View {
                     .ignoresSafeArea(.container, edges: .top)
 
                     VStack(alignment: .leading, spacing: 20) {
+                        if !stats.isEmpty {
+                            ComedianStatsBar(
+                                stats: stats,
+                                hasUpcomingShows: !content.upcomingRuns.isEmpty,
+                                onSeeNextShow: {
+                                    withAnimation {
+                                        proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
+                                    }
+                                }
+                            )
+                        }
+
                         if let relatedContentMessage = content.relatedContentMessage {
                             InlineStatusMessage(message: relatedContentMessage)
                         }
@@ -69,6 +85,7 @@ struct ComedianDetailView: View {
                             nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
                             pinnedComedianName: comedian.name
                         )
+                        .id(Self.upcomingShowsAnchor)
 
                         if !content.relatedComedians.isEmpty {
                             LaughTrackCard(tone: .muted, density: .tight) {
@@ -93,6 +110,7 @@ struct ComedianDetailView: View {
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, theme.spacing.lg)
+                    }
                     }
                 }
             }
@@ -199,5 +217,128 @@ enum ComedianRelatedPresentation {
             }
             .prefix(5)
             .map(\.element)
+    }
+}
+
+enum ComedianStatsPresentation {
+    enum Stat: Equatable {
+        case upcoming(showCount: Int, venueCount: Int)
+        case followers(total: Int)
+    }
+
+    static func stats(
+        for comedian: Components.Schemas.ComedianDetail,
+        runs: [Components.Schemas.UpcomingRun]
+    ) -> [Stat] {
+        var result: [Stat] = []
+
+        let showCount = runs.reduce(0) { $0 + $1.shows.count }
+        if showCount > 0 {
+            // iOS doesn't carry city/state on Show, so we approximate the web's
+            // "in N cities" breadth signal with unique venue counts (one
+            // UpcomingRun per club). File a follow-up to surface city directly.
+            let venueCount = Set(runs.map(\.clubID)).count
+            result.append(.upcoming(showCount: showCount, venueCount: venueCount))
+        }
+
+        if let social = comedian.socialData {
+            let total = (social.instagramFollowers ?? 0)
+                + (social.tiktokFollowers ?? 0)
+                + (social.youtubeFollowers ?? 0)
+            if total > 0 {
+                result.append(.followers(total: total))
+            }
+        }
+
+        return result
+    }
+
+    static func label(for stat: Stat) -> String {
+        switch stat {
+        case let .upcoming(showCount, venueCount):
+            let showWord = showCount == 1 ? "show" : "shows"
+            let base = "\(showCount.formatted()) upcoming \(showWord)"
+            guard venueCount > 0 else { return base }
+            let venueWord = venueCount == 1 ? "venue" : "venues"
+            return "\(base) at \(venueCount.formatted()) \(venueWord)"
+        case let .followers(total):
+            return "\(compactFollowers(total)) social followers"
+        }
+    }
+
+    static func systemImage(for stat: Stat) -> String {
+        switch stat {
+        case .upcoming: return "calendar"
+        case .followers: return "person.2.fill"
+        }
+    }
+
+    private static func compactFollowers(_ value: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
+        formatter.maximumFractionDigits = 1
+
+        switch value {
+        case 1_000_000...:
+            let scaled = Double(value) / 1_000_000
+            return "\(formatter.string(from: NSNumber(value: scaled)) ?? "\(scaled)")M"
+        case 1_000...:
+            let scaled = Double(value) / 1_000
+            return "\(formatter.string(from: NSNumber(value: scaled)) ?? "\(scaled)")K"
+        default:
+            return value.formatted()
+        }
+    }
+}
+
+struct ComedianStatsBar: View {
+    let stats: [ComedianStatsPresentation.Stat]
+    let hasUpcomingShows: Bool
+    let onSeeNextShow: () -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        LaughTrackCard(density: .tight) {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(Array(stats.enumerated()), id: \.offset) { _, stat in
+                    HStack(spacing: 10) {
+                        Image(systemName: ComedianStatsPresentation.systemImage(for: stat))
+                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                            .frame(width: 24)
+                        Text(ComedianStatsPresentation.label(for: stat))
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                    }
+                }
+
+                if hasUpcomingShows {
+                    Button(action: onSeeNextShow) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                            Text("See next show")
+                                .font(laughTrack.typography.body.weight(.semibold))
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(laughTrack.colors.textInverse.opacity(0.7))
+                        }
+                        .foregroundStyle(laughTrack.colors.textInverse)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(laughTrack.colors.accentStrong)
+                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Scrolls to the upcoming shows list")
+                }
+            }
+        }
     }
 }
