@@ -22,6 +22,7 @@ export class Comedian implements ComedianInterface {
     showCount?: number;
     coAppearances?: number;
     isAlias?: boolean;
+    role?: string;
 
     constructor(input: ComedianDTO | ComedianLineupDTO) {
         this.name = input.name;
@@ -35,6 +36,7 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.isFavorite ?? false;
         this.id = input.id;
         this.showCount = input.show_count;
+        this.role = "role" in input ? (input.role ?? undefined) : undefined;
         this.coAppearances = (input as ComedianDTO).co_appearances;
         this.imageUrl = input.imageUrl;
         this.hasImage = input.hasImage ?? Boolean(input.imageUrl);

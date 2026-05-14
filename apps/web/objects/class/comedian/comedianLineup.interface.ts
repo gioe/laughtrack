@@ -16,6 +16,7 @@ export interface ComedianLineupDTO {
     social_data?: SocialDataDTO;
     isFavorite?: boolean;
     show_count?: number;
+    role?: string | null;
     isAlias?: boolean;
     parentComedian?: ComedianLineupDTO;
     lineupItems?: ComedianLineupItemDTO[];
@@ -23,4 +24,5 @@ export interface ComedianLineupDTO {
 
 export interface ComedianLineupItemDTO {
     comedian: ComedianLineupDTO;
+    role?: string | null;
 }

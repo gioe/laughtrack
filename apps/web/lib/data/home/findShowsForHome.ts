@@ -48,6 +48,7 @@ const HOME_SHOW_SELECT = {
             },
         },
         select: {
+            role: true,
             comedian: {
                 select: {
                     id: true,

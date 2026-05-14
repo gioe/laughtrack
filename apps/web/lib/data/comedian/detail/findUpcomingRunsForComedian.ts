@@ -47,6 +47,7 @@ const UPCOMING_RUN_SHOW_SELECT = {
             },
         },
         select: {
+            role: true,
             comedian: {
                 select: {
                     id: true,
@@ -158,6 +159,7 @@ export async function findUpcomingRunsForComedian(
             lineupItems: {
                 ...UPCOMING_RUN_SHOW_SELECT.lineupItems,
                 select: {
+                    role: true,
                     comedian: {
                         select: {
                             ...UPCOMING_RUN_SHOW_SELECT.lineupItems.select

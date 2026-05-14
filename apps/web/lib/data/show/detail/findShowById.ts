@@ -57,6 +57,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                         },
                     },
                     select: {
+                        role: true,
                         comedian: {
                             select: {
                                 id: true,

@@ -53,6 +53,7 @@ const SHOW_SELECT = {
             },
         },
         select: {
+            role: true,
             comedian: {
                 select: {
                     id: true,
@@ -142,6 +143,7 @@ export async function findShowsWithCount(
                 lineupItems: {
                     ...SHOW_SELECT.lineupItems,
                     select: {
+                        role: true,
                         comedian: {
                             select: {
                                 ...SHOW_SELECT.lineupItems.select.comedian

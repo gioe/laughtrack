@@ -96,6 +96,11 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                                 {nameString}
                             </p>
                         ))}
+                        {comedian.role && (
+                            <p className="mt-1 text-center font-dmSans text-[11px] font-bold uppercase tracking-wide text-copper">
+                                {comedian.role}
+                            </p>
+                        )}
                     </div>
                 ))}
             </div>

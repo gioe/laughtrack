@@ -1,3 +1,4 @@
+import type { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { buildComedianImageUrl } from "../imageUtil";
 
 type TaggedComedian = {
@@ -30,6 +31,7 @@ type LineupComedian = {
 
 type LineupItem = {
     comedian: LineupComedian;
+    role?: string | null;
 };
 
 export const filterAndMapLineupItems = (
@@ -60,7 +62,10 @@ export const filterAndMapLineupItems = (
     return filteredItems.map((item) => mapLineupItem(item, userId));
 };
 
-const mapLineupItem = (item: LineupItem, userId?: string) => {
+const mapLineupItem = (
+    item: LineupItem,
+    userId?: string,
+): ComedianLineupDTO => {
     const effectiveComedian = getEffectiveComedian(item.comedian);
     const isAlias = containsAliasTag(effectiveComedian.taggedComedians ?? []);
     return {
@@ -73,6 +78,7 @@ const mapLineupItem = (item: LineupItem, userId?: string) => {
         ),
         hasImage: Boolean(effectiveComedian.hasImage),
         show_count: effectiveComedian._count?.lineupItems ?? undefined,
+        ...(item.role ? { role: item.role } : {}),
         isFavorite: userId
             ? (item.comedian.favoriteComedians?.length ?? 0) > 0
             : false,

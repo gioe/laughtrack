@@ -77,6 +77,7 @@ export async function findPastShowsForComedian(
                         },
                     },
                     select: {
+                        role: true,
                         comedian: {
                             select: {
                                 id: true,

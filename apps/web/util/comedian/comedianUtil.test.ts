@@ -103,6 +103,22 @@ describe("filterAndMapLineupItems", () => {
         });
     });
 
+    describe("role", () => {
+        it("maps explicit lineup item role without deriving it from comedian data", () => {
+            const [result] = filterAndMapLineupItems([
+                { ...makeItem(), role: "Headliner" },
+            ]);
+
+            expect(result.role).toBe("Headliner");
+        });
+
+        it("leaves role absent when the lineup item does not provide one", () => {
+            const [result] = filterAndMapLineupItems([makeItem()]);
+
+            expect(result.role).toBeUndefined();
+        });
+    });
+
     describe("parent-deduplication", () => {
         it("excludes a child comedian when its parent is present in the lineup", () => {
             const parent = makeParent();
