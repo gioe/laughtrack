@@ -111,25 +111,32 @@ enum ShowFormatting {
         return ShowCountdown(label: "Ended \(relativePast(-diff)) ago", tone: .past)
     }
 
+    // Floor for both directions so the unit only flips when the boundary is
+    // crossed and a 14-month-out show renders symmetrically with a 14-month-ago
+    // show.
     private static func relativeFuture(_ seconds: TimeInterval) -> String {
-        let minutes = Int((seconds / 60).rounded())
+        let minutes = Int(seconds / 60)
         if minutes < 60 {
             return "\(minutes) \(minutes == 1 ? "minute" : "minutes")"
         }
-        let hours = Int((seconds / 3600).rounded())
+        let hours = Int(seconds / 3600)
         if hours < 24 {
             return "\(hours) \(hours == 1 ? "hour" : "hours")"
         }
-        let days = Int((seconds / 86_400).rounded())
+        let days = Int(seconds / 86_400)
         if days < 14 {
             return "\(days) \(days == 1 ? "day" : "days")"
         }
-        let weeks = Int((Double(days) / 7).rounded())
+        let weeks = days / 7
         if weeks < 9 {
             return "\(weeks) \(weeks == 1 ? "week" : "weeks")"
         }
-        let months = Int((Double(days) / 30).rounded())
-        return "\(months) \(months == 1 ? "month" : "months")"
+        let months = days / 30
+        if months < 12 {
+            return "\(months) \(months == 1 ? "month" : "months")"
+        }
+        let years = days / 365
+        return "\(years) \(years == 1 ? "year" : "years")"
     }
 
     private static func relativePast(_ seconds: TimeInterval) -> String {

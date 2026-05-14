@@ -45,72 +45,72 @@ struct ComedianDetailView: View {
                 let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
                     ScrollViewReader { proxy in
-                    VStack(alignment: .leading, spacing: 0) {
-                    DetailHero(
-                        title: comedian.name,
-                        subtitle: nil,
-                        imageURL: comedian.imageUrl,
-                        badges: [],
-                        actions: comedianHeroActions(socialData: comedian.socialData),
-                        openURL: { url in openURL(url) },
-                        favoriteState: DetailHeroFavoriteState(
-                            isFavorite: isFavorite,
-                            isPending: favorites.isPending(comedian.uuid),
-                            action: {
-                                await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
-                            }
-                        )
-                    )
-                    .ignoresSafeArea(.container, edges: .top)
-
-                    VStack(alignment: .leading, spacing: 20) {
-                        if !stats.isEmpty {
-                            ComedianStatsBar(
-                                stats: stats,
-                                hasUpcomingShows: !content.upcomingRuns.isEmpty,
-                                onSeeNextShow: {
-                                    withAnimation {
-                                        proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
+                        VStack(alignment: .leading, spacing: 0) {
+                            DetailHero(
+                                title: comedian.name,
+                                subtitle: nil,
+                                imageURL: comedian.imageUrl,
+                                badges: [],
+                                actions: comedianHeroActions(socialData: comedian.socialData),
+                                openURL: { url in openURL(url) },
+                                favoriteState: DetailHeroFavoriteState(
+                                    isFavorite: isFavorite,
+                                    isPending: favorites.isPending(comedian.uuid),
+                                    action: {
+                                        await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
                                     }
-                                }
+                                )
                             )
-                        }
+                            .ignoresSafeArea(.container, edges: .top)
 
-                        if let relatedContentMessage = content.relatedContentMessage {
-                            InlineStatusMessage(message: relatedContentMessage)
-                        }
+                            VStack(alignment: .leading, spacing: 20) {
+                                if !stats.isEmpty {
+                                    ComedianStatsBar(
+                                        stats: stats,
+                                        hasUpcomingShows: !content.upcomingRuns.isEmpty,
+                                        onSeeNextShow: {
+                                            withAnimation {
+                                                proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
+                                            }
+                                        }
+                                    )
+                                }
 
-                        PinnedShowsList(
-                            apiClient: apiClient,
-                            nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                            pinnedComedianName: comedian.name
-                        )
-                        .id(Self.upcomingShowsAnchor)
+                                if let relatedContentMessage = content.relatedContentMessage {
+                                    InlineStatusMessage(message: relatedContentMessage)
+                                }
 
-                        if !content.relatedComedians.isEmpty {
-                            LaughTrackCard(tone: .muted, density: .tight) {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    LaughTrackSectionHeader(title: "Often on the same bill")
+                                PinnedShowsList(
+                                    apiClient: apiClient,
+                                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                    pinnedComedianName: comedian.name
+                                )
+                                .id(Self.upcomingShowsAnchor)
 
-                                    ForEach(ComedianRelatedPresentation.rankedRelatedComedians(
-                                        candidates: content.relatedComedians,
-                                        runs: content.upcomingRuns,
-                                        currentComedianUUID: comedian.uuid
-                                    ), id: \.uuid) { relatedComedian in
-                                        ComedianLineupRow(
-                                            comedian: relatedComedian,
-                                            apiClient: apiClient,
-                                            feedbackMessage: $feedbackMessage,
-                                            openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
-                                        )
+                                if !content.relatedComedians.isEmpty {
+                                    LaughTrackCard(tone: .muted, density: .tight) {
+                                        VStack(alignment: .leading, spacing: 12) {
+                                            LaughTrackSectionHeader(title: "Often on the same bill")
+
+                                            ForEach(ComedianRelatedPresentation.rankedRelatedComedians(
+                                                candidates: content.relatedComedians,
+                                                runs: content.upcomingRuns,
+                                                currentComedianUUID: comedian.uuid
+                                            ), id: \.uuid) { relatedComedian in
+                                                ComedianLineupRow(
+                                                    comedian: relatedComedian,
+                                                    apiClient: apiClient,
+                                                    feedbackMessage: $feedbackMessage,
+                                                    openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, theme.spacing.lg)
                         }
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, theme.spacing.lg)
-                    }
                     }
                 }
             }
@@ -221,7 +221,7 @@ enum ComedianRelatedPresentation {
 }
 
 enum ComedianStatsPresentation {
-    enum Stat: Equatable {
+    enum Stat: Hashable {
         case upcoming(showCount: Int, venueCount: Int)
         case followers(total: Int)
     }
@@ -304,7 +304,7 @@ struct ComedianStatsBar: View {
 
         LaughTrackCard(density: .tight) {
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(Array(stats.enumerated()), id: \.offset) { _, stat in
+                ForEach(stats, id: \.self) { stat in
                     HStack(spacing: 10) {
                         Image(systemName: ComedianStatsPresentation.systemImage(for: stat))
                             .font(.system(size: theme.iconSizes.sm, weight: .semibold))

@@ -77,25 +77,32 @@ export function formatShowCountdown(
     return { label: `Ended ${relativePast(-diffMs)} ago`, tone: "past" };
 }
 
+// Floor for both directions so the unit only flips when the boundary is crossed
+// (e.g. 119 min → "1 hour", 120 min → "2 hours") and so a 14-month-out show and
+// a 14-month-ago show render symmetrically.
 function relativeFuture(ms: number): string {
-    const minutes = Math.round(ms / (60 * 1000));
+    const minutes = Math.floor(ms / (60 * 1000));
     if (minutes < 60) {
         return `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
     }
-    const hours = Math.round(ms / (60 * 60 * 1000));
+    const hours = Math.floor(ms / (60 * 60 * 1000));
     if (hours < 24) {
         return `${hours} ${hours === 1 ? "hour" : "hours"}`;
     }
-    const days = Math.round(ms / (24 * 60 * 60 * 1000));
+    const days = Math.floor(ms / (24 * 60 * 60 * 1000));
     if (days < 14) {
         return `${days} ${days === 1 ? "day" : "days"}`;
     }
-    const weeks = Math.round(days / 7);
+    const weeks = Math.floor(days / 7);
     if (weeks < 9) {
         return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
     }
-    const months = Math.round(days / 30);
-    return `${months} ${months === 1 ? "month" : "months"}`;
+    const months = Math.floor(days / 30);
+    if (months < 12) {
+        return `${months} ${months === 1 ? "month" : "months"}`;
+    }
+    const years = Math.floor(days / 365);
+    return `${years} ${years === 1 ? "year" : "years"}`;
 }
 
 function relativePast(ms: number): string {

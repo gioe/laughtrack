@@ -95,11 +95,13 @@ describe("formatShowCountdown", () => {
     });
 
     it("scales the unit down to hours and minutes for imminent shows", () => {
+        // 90 minutes floors to 1 hour — the bucket flips only when the next unit
+        // boundary is fully crossed (no jump from '89 minutes' to '2 hours').
         const inNinetyMinutes = new Date(
             now.getTime() + 90 * 60 * 1000,
         ).toISOString();
         expect(formatShowCountdown(inNinetyMinutes, now).label).toBe(
-            "Show in 2 hours",
+            "Show in 1 hour",
         );
 
         const inFifteenMinutes = new Date(
@@ -107,6 +109,15 @@ describe("formatShowCountdown", () => {
         ).toISOString();
         expect(formatShowCountdown(inFifteenMinutes, now).label).toBe(
             "Show in 15 minutes",
+        );
+    });
+
+    it("promotes to years for far-future shows, matching past-show symmetry", () => {
+        const inFourteenMonths = new Date(
+            now.getTime() + 14 * 30 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+        expect(formatShowCountdown(inFourteenMonths, now).label).toBe(
+            "Show in 1 year",
         );
     });
 });
