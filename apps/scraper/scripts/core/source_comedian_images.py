@@ -114,9 +114,6 @@ def get_missing_image_comedians(conn, limit=None):
           AND parent_comedian_id IS NULL
         ORDER BY total_shows DESC NULLS LAST, name
     """
-    if limit:
-        query += f" LIMIT {int(limit) * 5}"
-
     cur = conn.cursor()
     cur.execute(query)
     candidates = [row[0] for row in cur.fetchall() if _is_missing_image_candidate(row[0])]

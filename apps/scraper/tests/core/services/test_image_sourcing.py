@@ -272,7 +272,7 @@ def test_get_missing_image_comedians_filters_false_positive_rows():
         "Real Comic",
         "Another Comic",
     ]
-    assert "LIMIT 10" in conn.cursor_obj.query
+    assert "LIMIT" not in conn.cursor_obj.query
 
 
 def test_fetch_comedian_image_png_downloads_and_resizes_wikidata_image(monkeypatch):
