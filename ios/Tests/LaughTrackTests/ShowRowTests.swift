@@ -176,13 +176,6 @@ struct ShowRowTests {
         #expect(ShowRow.topLineup(for: show).map(\.name) == ["First", "Second"])
     }
 
-    @Test("lineup role labels map by position")
-    func lineupRoleLabelsByPosition() {
-        #expect(ShowRow.lineupRoleLabel(at: 0) == "Headliner")
-        #expect(ShowRow.lineupRoleLabel(at: 1) == "Feature")
-        #expect(ShowRow.lineupRoleLabel(at: 2) == "Support")
-    }
-
     @Test("ShowRow.isOpenMic delegates to ShowFormatting on the show name")
     func showRowIsOpenMicMatchesName() {
         let show = makeShow(name: "Tuesday Open Mic", lineup: nil)

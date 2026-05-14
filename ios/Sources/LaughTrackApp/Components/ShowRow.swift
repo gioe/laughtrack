@@ -136,13 +136,9 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
 
         HStack(alignment: .top, spacing: theme.spacing.sm) {
-            ForEach(Array(lineup.enumerated()), id: \.offset) { index, comedian in
+            ForEach(Array(lineup.enumerated()), id: \.offset) { _, comedian in
                 VStack(spacing: 4) {
                     lineupAvatar(for: comedian, isSoldOut: isSoldOut)
-                    Text(Self.lineupRoleLabel(at: index))
-                        .font(laughTrack.typography.eyebrow)
-                        .textCase(.uppercase)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
                     Text(comedian.name)
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(laughTrack.colors.textPrimary)
@@ -260,14 +256,6 @@ struct ShowRow: View {
         }
 
         return Array(ordered.prefix(limit))
-    }
-
-    static func lineupRoleLabel(at index: Int) -> String {
-        switch index {
-        case 0: return "Headliner"
-        case 1: return "Feature"
-        default: return "Support"
-        }
     }
 
     private static func featuredComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
