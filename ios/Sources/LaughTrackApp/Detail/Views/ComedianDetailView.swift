@@ -18,6 +18,7 @@ struct ComedianDetailView: View {
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
     @State private var activeTab: ComedianDetailTab = .upcoming
+    @State private var activatedTabs: Set<ComedianDetailTab> = [.upcoming]
 
     fileprivate static let upcomingShowsAnchor = "comedian-upcoming-shows"
 
@@ -70,7 +71,7 @@ struct ComedianDetailView: View {
                                         stats: stats,
                                         hasUpcomingShows: !content.upcomingRuns.isEmpty,
                                         onSeeNextShow: {
-                                            activeTab = .upcoming
+                                            activate(.upcoming)
                                             withAnimation {
                                                 proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
                                             }
@@ -82,7 +83,7 @@ struct ComedianDetailView: View {
                                     InlineStatusMessage(message: relatedContentMessage)
                                 }
 
-                                Picker("Section", selection: $activeTab) {
+                                Picker("Section", selection: tabSelectionBinding) {
                                     ForEach(ComedianDetailTab.allCases) { tab in
                                         Text(tab.title).tag(tab)
                                     }
@@ -90,31 +91,37 @@ struct ComedianDetailView: View {
                                 .pickerStyle(.segmented)
                                 .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
 
-                                switch activeTab {
-                                case .upcoming:
+                                ZStack(alignment: .top) {
                                     PinnedShowsList(
                                         apiClient: apiClient,
                                         nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
                                         pinnedComedianName: comedian.name
                                     )
                                     .id(Self.upcomingShowsAnchor)
-                                case .past:
-                                    ComedianPastShowsPanel(
-                                        model: model,
-                                        apiClient: apiClient,
-                                        comedianName: comedian.name,
-                                        onOpenShow: { showID in coordinator.open(.show(showID)) },
-                                        onSignIn: { coordinator.push(.profile) }
-                                    )
-                                case .related:
-                                    ComedianRelatedPanel(
-                                        relatedComedians: content.relatedComedians,
-                                        upcomingRuns: content.upcomingRuns,
-                                        currentComedianUUID: comedian.uuid,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage,
-                                        onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
-                                    )
+                                    .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .upcoming))
+
+                                    if activatedTabs.contains(.past) {
+                                        ComedianPastShowsPanel(
+                                            model: model,
+                                            apiClient: apiClient,
+                                            comedianName: comedian.name,
+                                            onOpenShow: { showID in coordinator.open(.show(showID)) },
+                                            onSignIn: { coordinator.push(.profile) }
+                                        )
+                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .past))
+                                    }
+
+                                    if activatedTabs.contains(.related) {
+                                        ComedianRelatedPanel(
+                                            relatedComedians: content.relatedComedians,
+                                            upcomingRuns: content.upcomingRuns,
+                                            currentComedianUUID: comedian.uuid,
+                                            apiClient: apiClient,
+                                            feedbackMessage: $feedbackMessage,
+                                            onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
+                                        )
+                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .related))
+                                    }
                                 }
                             }
                             .padding(.horizontal, 8)
@@ -138,6 +145,18 @@ struct ComedianDetailView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
+    }
+
+    private var tabSelectionBinding: Binding<ComedianDetailTab> {
+        Binding(
+            get: { activeTab },
+            set: { activate($0) }
+        )
+    }
+
+    private func activate(_ tab: ComedianDetailTab) {
+        activeTab = tab
+        activatedTabs.insert(tab)
     }
 
     private func comedianHeroActions(socialData: Components.Schemas.SocialData) -> [DetailHeroAction] {
@@ -360,6 +379,23 @@ struct ComedianStatsBar: View {
                 }
             }
         }
+    }
+}
+
+/// Keeps an activated tab panel in the view hierarchy so its `@StateObject`s
+/// (notably `PinnedShowsList`'s `ShowsListModel`) survive tab switches, mirroring
+/// the web `activatedTabs` pattern. Inactive panels collapse to zero layout space
+/// so the ScrollView sizes only to the active tab.
+private struct ComedianDetailTabPanelVisibility: ViewModifier {
+    let isActive: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxHeight: isActive ? nil : 0, alignment: .top)
+            .clipped()
+            .opacity(isActive ? 1 : 0)
+            .allowsHitTesting(isActive)
+            .accessibilityHidden(!isActive)
     }
 }
 
