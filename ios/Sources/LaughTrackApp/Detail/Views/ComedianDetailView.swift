@@ -17,6 +17,7 @@ struct ComedianDetailView: View {
 
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
+    @State private var activeTab: ComedianDetailTab = .upcoming
 
     fileprivate static let upcomingShowsAnchor = "comedian-upcoming-shows"
 
@@ -69,6 +70,7 @@ struct ComedianDetailView: View {
                                         stats: stats,
                                         hasUpcomingShows: !content.upcomingRuns.isEmpty,
                                         onSeeNextShow: {
+                                            activeTab = .upcoming
                                             withAnimation {
                                                 proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
                                             }
@@ -80,32 +82,39 @@ struct ComedianDetailView: View {
                                     InlineStatusMessage(message: relatedContentMessage)
                                 }
 
-                                PinnedShowsList(
-                                    apiClient: apiClient,
-                                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
-                                    pinnedComedianName: comedian.name
-                                )
-                                .id(Self.upcomingShowsAnchor)
-
-                                if !content.relatedComedians.isEmpty {
-                                    LaughTrackCard(tone: .muted, density: .tight) {
-                                        VStack(alignment: .leading, spacing: 12) {
-                                            LaughTrackSectionHeader(title: "Often on the same bill")
-
-                                            ForEach(ComedianRelatedPresentation.rankedRelatedComedians(
-                                                candidates: content.relatedComedians,
-                                                runs: content.upcomingRuns,
-                                                currentComedianUUID: comedian.uuid
-                                            ), id: \.uuid) { relatedComedian in
-                                                ComedianLineupRow(
-                                                    comedian: relatedComedian,
-                                                    apiClient: apiClient,
-                                                    feedbackMessage: $feedbackMessage,
-                                                    openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
-                                                )
-                                            }
-                                        }
+                                Picker("Section", selection: $activeTab) {
+                                    ForEach(ComedianDetailTab.allCases) { tab in
+                                        Text(tab.title).tag(tab)
                                     }
+                                }
+                                .pickerStyle(.segmented)
+                                .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
+
+                                switch activeTab {
+                                case .upcoming:
+                                    PinnedShowsList(
+                                        apiClient: apiClient,
+                                        nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
+                                        pinnedComedianName: comedian.name
+                                    )
+                                    .id(Self.upcomingShowsAnchor)
+                                case .past:
+                                    ComedianPastShowsPanel(
+                                        model: model,
+                                        apiClient: apiClient,
+                                        comedianName: comedian.name,
+                                        onOpenShow: { showID in coordinator.open(.show(showID)) },
+                                        onSignIn: { coordinator.push(.profile) }
+                                    )
+                                case .related:
+                                    ComedianRelatedPanel(
+                                        relatedComedians: content.relatedComedians,
+                                        upcomingRuns: content.upcomingRuns,
+                                        currentComedianUUID: comedian.uuid,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
+                                    )
                                 }
                             }
                             .padding(.horizontal, 8)
@@ -348,6 +357,139 @@ struct ComedianStatsBar: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Scrolls to the upcoming shows list")
+                }
+            }
+        }
+    }
+}
+
+enum ComedianDetailTab: String, CaseIterable, Identifiable {
+    case upcoming
+    case past
+    case related
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .upcoming: return "Upcoming"
+        case .past: return "Past"
+        case .related: return "Related"
+        }
+    }
+}
+
+struct ComedianPastShowsPanel: View {
+    @ObservedObject var model: ComedianDetailModel
+    let apiClient: Client
+    let comedianName: String
+    let onOpenShow: (Int) -> Void
+    let onSignIn: () -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        LaughTrackCard(density: .compact) {
+            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                LaughTrackSectionHeader(title: "Past Shows")
+
+                switch model.pastShowsPhase {
+                case .idle, .loading:
+                    ShowsListSkeleton()
+                case .failure(let failure):
+                    FailureCard(
+                        failure: failure,
+                        retry: {
+                            await model.reloadPastShows(
+                                apiClient: apiClient,
+                                comedianName: comedianName
+                            )
+                        },
+                        signIn: onSignIn
+                    )
+                case .success(let page):
+                    if page.shows.isEmpty {
+                        EmptyCard(
+                            title: "No past shows yet",
+                            message: "LaughTrack hasn't recorded a show for \(comedianName) yet."
+                        )
+                    } else {
+                        VStack(alignment: .leading, spacing: theme.spacing.md) {
+                            SearchResultsSummary(count: page.shows.count, total: page.total)
+
+                            ForEach(page.shows, id: \.id) { show in
+                                Button {
+                                    onOpenShow(show.id)
+                                } label: {
+                                    ShowRow(show: show)
+                                }
+                                .buttonStyle(.plain)
+                            }
+
+                            if let paginationFailure = model.pastShowsPaginationFailure {
+                                InlineStatusMessage(message: paginationFailure.message)
+                            }
+
+                            if page.canLoadMore {
+                                LoadMoreButton(
+                                    title: "Load more past shows",
+                                    isLoading: model.isLoadingMorePastShows
+                                ) {
+                                    await model.loadMorePastShows(
+                                        apiClient: apiClient,
+                                        comedianName: comedianName
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .task {
+            await model.loadPastShowsIfNeeded(
+                apiClient: apiClient,
+                comedianName: comedianName
+            )
+        }
+    }
+}
+
+struct ComedianRelatedPanel: View {
+    let relatedComedians: [Components.Schemas.ComedianLineup]
+    let upcomingRuns: [Components.Schemas.UpcomingRun]
+    let currentComedianUUID: String
+    let apiClient: Client
+    @Binding var feedbackMessage: String?
+    let onOpenComedian: (Int) -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let ranked = ComedianRelatedPresentation.rankedRelatedComedians(
+            candidates: relatedComedians,
+            runs: upcomingRuns,
+            currentComedianUUID: currentComedianUUID
+        )
+
+        LaughTrackCard(tone: .muted, density: .tight) {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: "Often on the same bill")
+
+                if ranked.isEmpty {
+                    EmptyCard(
+                        title: "No related comedians yet",
+                        message: "LaughTrack hasn't matched this comedian with shared-bill comedians yet."
+                    )
+                } else {
+                    ForEach(ranked, id: \.uuid) { relatedComedian in
+                        ComedianLineupRow(
+                            comedian: relatedComedian,
+                            apiClient: apiClient,
+                            feedbackMessage: $feedbackMessage,
+                            openDetail: { onOpenComedian(relatedComedian.id) }
+                        )
+                    }
                 }
             }
         }
