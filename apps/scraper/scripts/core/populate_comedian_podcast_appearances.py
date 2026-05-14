@@ -87,6 +87,13 @@ class PodcastAppearanceRow:
 
 
 @dataclass(frozen=True)
+class PodcastIdentityLink:
+    comedian_id: int
+    source_feed_id: str
+    review_status: str
+
+
+@dataclass(frozen=True)
 class PodcastAppearanceFetchResult:
     succeeded: bool
     rows: list[PodcastAppearanceRow]
@@ -125,6 +132,13 @@ _INSERT_SQL = """
 """
 
 _VALUES_TEMPLATE = "(%s, %s, %s, %s, %s, %s::timestamptz, %s, %s, %s::jsonb)"
+
+_GET_REVIEWED_IDENTITY_LINKS_SQL = """
+    SELECT comedian_id, source_feed_id, LOWER(review_status)
+    FROM comedian_podcast_identity_links
+    WHERE comedian_id = ANY(%s::int[])
+      AND source = %s
+"""
 
 
 def _load_env_defaults(path: Path = Path(".env")) -> None:
@@ -196,6 +210,8 @@ def _match_evidence(
         "podcast_name": podcast_name,
         "podcast_index_episode_id": episode.get("id"),
         "podcast_index_guid": episode.get("guid"),
+        "source_feed_id": _source_feed_id(episode),
+        "source_feed_url": episode.get("feedUrl"),
         "feed_url": episode.get("feedUrl"),
         "metadata_source": metadata_source,
     }
@@ -314,6 +330,16 @@ def _source_episode_id(episode: dict[str, Any]) -> Optional[str]:
     url = _episode_url_from_index(episode)
     if url:
         return f"url:{hashlib.sha1(url.encode('utf-8')).hexdigest()}"
+    return None
+
+
+def _source_feed_id(episode: dict[str, Any]) -> Optional[str]:
+    feed_id = episode.get("feedId")
+    if feed_id not in (None, ""):
+        return str(feed_id)
+    feed_url = episode.get("feedUrl")
+    if isinstance(feed_url, str) and feed_url:
+        return f"feed_url:{hashlib.sha1(feed_url.encode('utf-8')).hexdigest()}"
     return None
 
 
@@ -560,6 +586,24 @@ def _replace_appearances(conn: Any, comedian_ids: list[int], rows: list[PodcastA
     return len(rows)
 
 
+def _load_reviewed_identity_links(comedian_ids: list[int]) -> dict[tuple[int, str], PodcastIdentityLink]:
+    if not comedian_ids:
+        return {}
+    links: dict[tuple[int, str], PodcastIdentityLink] = {}
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(_GET_REVIEWED_IDENTITY_LINKS_SQL, (comedian_ids, _SOURCE))
+            for comedian_id, source_feed_id, review_status in cur.fetchall():
+                if review_status in {"verified", "ambiguous", "rejected"}:
+                    link = PodcastIdentityLink(
+                        comedian_id=int(comedian_id),
+                        source_feed_id=str(source_feed_id),
+                        review_status=str(review_status),
+                    )
+                    links[(link.comedian_id, link.source_feed_id)] = link
+    return links
+
+
 def _append_audit_rows(path: Path, rows: list[PodcastAppearanceRow]) -> None:
     if not rows:
         return
@@ -569,18 +613,30 @@ def _append_audit_rows(path: Path, rows: list[PodcastAppearanceRow]) -> None:
             f.write(json.dumps(asdict(row), sort_keys=True) + "\n")
 
 
-def _split_confidence(
+def _split_by_reviewed_identity_links(
     rows: list[PodcastAppearanceRow],
     min_confidence: float,
-) -> tuple[list[PodcastAppearanceRow], list[PodcastAppearanceRow]]:
+    identity_links: dict[tuple[int, str], PodcastIdentityLink],
+) -> tuple[list[PodcastAppearanceRow], list[PodcastAppearanceRow], list[PodcastAppearanceRow]]:
     confirmed: list[PodcastAppearanceRow] = []
     audit: list[PodcastAppearanceRow] = []
+    suppressed: list[PodcastAppearanceRow] = []
     for row in rows:
-        if row.match_confidence >= min_confidence:
+        source_feed_id = row.match_evidence.get("source_feed_id")
+        link = (
+            identity_links.get((row.comedian_id, str(source_feed_id)))
+            if isinstance(source_feed_id, str) and source_feed_id
+            else None
+        )
+        if link and link.review_status == "rejected":
+            suppressed.append(row)
+        elif link and link.review_status == "verified":
+            confirmed.append(row)
+        elif row.match_confidence >= min_confidence:
             confirmed.append(row)
         else:
             audit.append(row)
-    return confirmed, audit
+    return confirmed, audit, suppressed
 
 
 async def _populate(
@@ -592,11 +648,14 @@ async def _populate(
     request_delay: float,
     audit_path: Path,
     min_confidence: float,
+    identity_links: Optional[dict[tuple[int, str], PodcastIdentityLink]] = None,
 ) -> dict[str, int]:
     all_confirmed_rows: list[PodcastAppearanceRow] = []
     audit_rows: list[PodcastAppearanceRow] = []
+    suppressed_rows: list[PodcastAppearanceRow] = []
     processed_ids: list[int] = []
     failed = 0
+    reviewed_identity_links = identity_links if identity_links is not None else {}
 
     async with AsyncSession() as session:
         for index, (comedian_id, name) in enumerate(comedians, start=1):
@@ -615,18 +674,29 @@ async def _populate(
                 failed += 1
                 print(f"{name}: lookup failed; preserving existing {_SOURCE} rows")
                 continue
-            confirmed, low_confidence = _split_confidence(result.rows, min_confidence=min_confidence)
+            confirmed, low_confidence, suppressed = _split_by_reviewed_identity_links(
+                result.rows,
+                min_confidence=min_confidence,
+                identity_links=reviewed_identity_links,
+            )
             processed_ids.append(comedian_id)
             all_confirmed_rows.extend(confirmed)
             audit_rows.extend(low_confidence)
+            suppressed_rows.extend(suppressed)
             print(
                 f"{name}: {len(result.rows)} candidate episode(s), "
-                f"{len(confirmed)} confirmed, {len(low_confidence)} audit"
+                f"{len(confirmed)} confirmed, {len(low_confidence)} audit, "
+                f"{len(suppressed)} suppressed"
             )
 
     if dry_run:
-        for row in all_confirmed_rows + audit_rows:
-            disposition = "confirmed" if row.match_confidence >= min_confidence else "audit"
+        for row in all_confirmed_rows + audit_rows + suppressed_rows:
+            if row in suppressed_rows:
+                disposition = "suppressed"
+            elif row.match_confidence >= min_confidence:
+                disposition = "confirmed"
+            else:
+                disposition = "audit"
             print(
                 f"  {disposition} comedian_id={row.comedian_id} podcast={row.podcast_name!r} "
                 f"title={row.episode_title!r} confidence={row.match_confidence:.2f} "
@@ -645,9 +715,10 @@ async def _populate(
     return {
         "processed": len(comedians),
         "failed": failed,
-        "matched_episodes": len(all_confirmed_rows) + len(audit_rows),
+        "matched_episodes": len(all_confirmed_rows) + len(audit_rows) + len(suppressed_rows),
         "written": written,
         "audit_rows": len(audit_rows),
+        "suppressed_rows": len(suppressed_rows),
     }
 
 
@@ -682,6 +753,7 @@ def main() -> None:
     if not comedians:
         print("No comedians matched.")
         return
+    identity_links = _load_reviewed_identity_links([comedian_id for comedian_id, _ in comedians])
 
     print(f"Processing {len(comedians)} comedian(s)")
     summary = asyncio.run(
@@ -694,6 +766,7 @@ def main() -> None:
             request_delay=args.request_delay,
             audit_path=args.audit_path,
             min_confidence=args.min_confidence,
+            identity_links=identity_links,
         )
     )
     print(summary)

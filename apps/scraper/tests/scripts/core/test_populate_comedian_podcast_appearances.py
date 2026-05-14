@@ -52,6 +52,7 @@ def _person_search_payload() -> dict[str, Any]:
         "items": [
             {
                 "id": 987,
+                "feedId": 456,
                 "guid": "rss-guid-1",
                 "title": "Index Title For Ari Shaffir",
                 "datePublished": 1704261600,
@@ -62,6 +63,7 @@ def _person_search_payload() -> dict[str, Any]:
             },
             {
                 "id": 654,
+                "feedId": 456,
                 "guid": "low-guid",
                 "title": "Unrelated Episode",
                 "datePublished": 1704348000,
@@ -71,6 +73,7 @@ def _person_search_payload() -> dict[str, Any]:
             },
             {
                 "id": None,
+                "feedId": 456,
                 "title": "Missing ID Is Ignored",
                 "feedTitle": "Comedy Talk",
                 "feedUrl": "https://feeds.example/comedy-talk.xml",
@@ -146,6 +149,8 @@ def test_parse_candidate_rows_prefers_matching_rss_metadata():
             "podcast_name": "Comedy Talk RSS",
             "podcast_index_episode_id": 987,
             "podcast_index_guid": "rss-guid-1",
+            "source_feed_id": "456",
+            "source_feed_url": "https://feeds.example/comedy-talk.xml",
             "feed_url": "https://feeds.example/comedy-talk.xml",
             "metadata_source": "rss",
         },
@@ -253,6 +258,7 @@ def test_populate_writes_low_confidence_matches_to_audit_path_not_database(monke
         "matched_episodes": 2,
         "written": 1,
         "audit_rows": 1,
+        "suppressed_rows": 0,
     }
     assert replace_calls[0][0] == [12]
     assert [row.source_episode_id for row in replace_calls[0][1]] == ["987"]
@@ -381,3 +387,139 @@ def test_write_rows_replaces_only_processed_comedians(monkeypatch):
     )
     assert "source_episode_id" in values_calls[0][0]
     assert "ON CONFLICT (comedian_id, source, source_episode_id)" in values_calls[0][0]
+
+
+def test_reviewed_identity_links_promote_verified_feed_candidates(monkeypatch, tmp_path):
+    session = _FakeSession(
+        [
+            _FakeResponse(200, _person_search_payload(), {}),
+            _FakeResponse(200, _rss_feed(), {}),
+        ]
+    )
+    replace_calls: list[tuple[list[int], list[mod.PodcastAppearanceRow]]] = []
+
+    async def fake_sleep(_seconds: float) -> None:
+        return None
+
+    class _FakeAsyncSessionCtx:
+        def __init__(self, *_args: Any, **_kwargs: Any):
+            pass
+
+        async def __aenter__(self) -> _FakeSession:
+            return session
+
+        async def __aexit__(self, *_exc: Any) -> bool:
+            return False
+
+    class _Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc: Any) -> bool:
+            return False
+
+        def commit(self) -> None:
+            pass
+
+    def fake_replace(_conn: Any, comedian_ids: list[int], rows: list[mod.PodcastAppearanceRow]) -> int:
+        replace_calls.append((comedian_ids, rows))
+        return len(rows)
+
+    monkeypatch.setattr(mod.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(mod, "AsyncSession", _FakeAsyncSessionCtx)
+    monkeypatch.setattr(mod, "get_connection", lambda: _Conn())
+    monkeypatch.setattr(mod, "_replace_appearances", fake_replace)
+
+    summary = asyncio.run(
+        mod._populate(
+            comedians=[(12, "Ari Shaffir")],
+            credentials=mod.PodcastIndexCredentials("key", "secret", "ua"),
+            max_episodes=25,
+            dry_run=False,
+            batch_size=10,
+            request_delay=0.0,
+            audit_path=tmp_path / "audit.jsonl",
+            min_confidence=0.75,
+            identity_links={
+                (12, "456"): mod.PodcastIdentityLink(
+                    comedian_id=12,
+                    source_feed_id="456",
+                    review_status="verified",
+                )
+            },
+        )
+    )
+
+    assert summary["written"] == 2
+    assert summary["matched_episodes"] == 2
+    assert summary["audit_rows"] == 0
+    assert summary["suppressed_rows"] == 0
+    assert [row.source_episode_id for row in replace_calls[0][1]] == ["987", "654"]
+
+
+def test_reviewed_identity_links_suppress_rejected_feed_candidates(monkeypatch, tmp_path):
+    session = _FakeSession(
+        [
+            _FakeResponse(200, _person_search_payload(), {}),
+            _FakeResponse(200, _rss_feed(), {}),
+        ]
+    )
+    replace_calls: list[tuple[list[int], list[mod.PodcastAppearanceRow]]] = []
+
+    async def fake_sleep(_seconds: float) -> None:
+        return None
+
+    class _FakeAsyncSessionCtx:
+        def __init__(self, *_args: Any, **_kwargs: Any):
+            pass
+
+        async def __aenter__(self) -> _FakeSession:
+            return session
+
+        async def __aexit__(self, *_exc: Any) -> bool:
+            return False
+
+    class _Conn:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc: Any) -> bool:
+            return False
+
+        def commit(self) -> None:
+            pass
+
+    def fake_replace(_conn: Any, comedian_ids: list[int], rows: list[mod.PodcastAppearanceRow]) -> int:
+        replace_calls.append((comedian_ids, rows))
+        return len(rows)
+
+    monkeypatch.setattr(mod.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(mod, "AsyncSession", _FakeAsyncSessionCtx)
+    monkeypatch.setattr(mod, "get_connection", lambda: _Conn())
+    monkeypatch.setattr(mod, "_replace_appearances", fake_replace)
+
+    summary = asyncio.run(
+        mod._populate(
+            comedians=[(12, "Ari Shaffir")],
+            credentials=mod.PodcastIndexCredentials("key", "secret", "ua"),
+            max_episodes=25,
+            dry_run=False,
+            batch_size=10,
+            request_delay=0.0,
+            audit_path=tmp_path / "audit.jsonl",
+            min_confidence=0.75,
+            identity_links={
+                (12, "456"): mod.PodcastIdentityLink(
+                    comedian_id=12,
+                    source_feed_id="456",
+                    review_status="rejected",
+                )
+            },
+        )
+    )
+
+    assert summary["written"] == 0
+    assert summary["matched_episodes"] == 2
+    assert summary["audit_rows"] == 0
+    assert summary["suppressed_rows"] == 2
+    assert replace_calls[0] == ([12], [])
