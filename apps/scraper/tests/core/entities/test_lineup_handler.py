@@ -8,6 +8,7 @@ Covers:
 """
 
 import sys
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch, call
 
 import pytest
@@ -216,29 +217,87 @@ class TestGetComediansFromShowNamesHappyPath:
         mock_comedian = MagicMock()
 
         h.execute_batch_operation.return_value = [
-            {"show_name": "Comedy Night"},
+            {"show_name": "Alice Smith Live", "name": "Alice Smith"},
         ]
 
         with patch.object(_lineup_handler_mod.Comedian, "from_db_row", return_value=mock_comedian):
-            result = h.get_comedians_from_show_names([("Comedy Night",)])
+            result = h.get_comedians_from_show_names([("Alice Smith Live",)])
 
-        assert "Comedy Night" in result
-        assert result["Comedy Night"] == [mock_comedian]
+        assert "Alice Smith Live" in result
+        assert result["Alice Smith Live"] == [mock_comedian]
 
     def test_groups_multiple_comedians_under_same_show_name(self):
         h = _make_lineup_handler()
         c1, c2 = MagicMock(), MagicMock()
 
         h.execute_batch_operation.return_value = [
-            {"show_name": "Late Night"},
-            {"show_name": "Late Night"},
+            {"show_name": "Alice Smith and Bob Jones", "name": "Alice Smith"},
+            {"show_name": "Alice Smith and Bob Jones", "name": "Bob Jones"},
         ]
 
         with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=[c1, c2]):
-            result = h.get_comedians_from_show_names([("Late Night",)])
+            result = h.get_comedians_from_show_names([("Alice Smith and Bob Jones",)])
 
-        assert len(result["Late Night"]) == 2
-        assert result["Late Night"] == [c1, c2]
+        assert len(result["Alice Smith and Bob Jones"]) == 2
+        assert result["Alice Smith and Bob Jones"] == [c1, c2]
+
+    def test_filters_generic_fragment_matches_from_show_titles(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Best of Columbus Comedy", "name": "Best of", "uuid": "uuid-best-of"},
+            {"show_name": "Best of Columbus Comedy", "name": "Columbus", "uuid": "uuid-columbus"},
+            {"show_name": "Paranormal Comedy Night", "name": "Paranormal", "uuid": "uuid-paranormal"},
+            {"show_name": "Jessica Kirson Live", "name": "Jessica Kirson", "uuid": "uuid-jessica-kirson"},
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with (
+            patch.object(
+                _lineup_handler_mod,
+                "detect_false_positive",
+                side_effect=lambda name: "generic" if name.lower() in {"best of", "columbus", "paranormal"} else None,
+                create=True,
+            ),
+            patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row),
+        ):
+            result = h.get_comedians_from_show_names([
+                ("Best of Columbus Comedy",),
+                ("Paranormal Comedy Night",),
+                ("Jessica Kirson Live",),
+            ])
+
+        assert result == {
+            "Jessica Kirson Live": [SimpleNamespace(name="Jessica Kirson", uuid="uuid-jessica-kirson")]
+        }
+
+    def test_preserves_multi_comedian_full_name_matches(self):
+        h = _make_lineup_handler()
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Des Mulrooney, Caleb Synan", "name": "Caleb Synan", "uuid": "uuid-caleb"},
+            {"show_name": "Des Mulrooney, Caleb Synan", "name": "Des Mulrooney", "uuid": "uuid-des"},
+            {"show_name": "Des Mulrooney, Caleb Synan", "name": "Down", "uuid": "uuid-down"},
+        ]
+
+        def _fake_from_db_row(row):
+            return SimpleNamespace(name=row["name"], uuid=row["uuid"])
+
+        with (
+            patch.object(
+                _lineup_handler_mod,
+                "detect_false_positive",
+                side_effect=lambda name: "generic" if name.lower() == "down" else None,
+                create=True,
+            ),
+            patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=_fake_from_db_row),
+        ):
+            result = h.get_comedians_from_show_names([("Des Mulrooney, Caleb Synan",)])
+
+        assert result["Des Mulrooney, Caleb Synan"] == [
+            SimpleNamespace(name="Caleb Synan", uuid="uuid-caleb"),
+            SimpleNamespace(name="Des Mulrooney", uuid="uuid-des"),
+        ]
 
 
 # ---------------------------------------------------------------------------

@@ -1,16 +1,45 @@
 """Lineup database handler for lineup-specific operations."""
 
+import re
 from typing import Dict, List, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.lineup_queries import LineupQueries
 
+from laughtrack.core.entities.comedian.false_positive_detector import detect_false_positive
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from .model import LineupItem
+
+
+_NAME_WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+
+
+def _is_credible_show_name_comedian_match(show_name: str, comedian_name: str) -> bool:
+    """Return whether a show-title substring match is credible enough for enrichment."""
+    cleaned_name = (comedian_name or "").strip()
+    cleaned_show_name = (show_name or "").strip()
+    if not cleaned_name or not cleaned_show_name:
+        return False
+
+    if detect_false_positive(cleaned_name):
+        return False
+
+    if len(_NAME_WORD_RE.findall(cleaned_name)) < 2:
+        return False
+
+    escaped_name = re.escape(cleaned_name)
+    return (
+        re.search(
+            rf"(?<![A-Za-z0-9]){escaped_name}(?![A-Za-z0-9])",
+            cleaned_show_name,
+            re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 class LineupHandler(BaseDatabaseHandler[LineupItem]):
@@ -120,8 +149,11 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
 
             show_comedians_map = {}
             for row in results:
-                comedian = Comedian.from_db_row(row)
                 show_name = row["show_name"]
+                if not _is_credible_show_name_comedian_match(show_name, row["name"]):
+                    continue
+
+                comedian = Comedian.from_db_row(row)
                 if show_name not in show_comedians_map:
                     show_comedians_map[show_name] = []
                 show_comedians_map[show_name].append(comedian)
