@@ -233,9 +233,28 @@ model Comedian {
   lineupItems                  LineupItem[]
   taggedComedians              TaggedComedian[]
   sentNotifications            SentNotification[]
+  podcastAppearances           ComedianPodcastAppearance[]
 
   @@index([parentComedianId])
   @@map("comedians")
+}
+
+model ComedianPodcastAppearance {
+  id                 Int       @id @default(autoincrement())
+  comedianId         Int       @map("comedian_id")
+  podchaserEpisodeId String    @map("podchaser_episode_id")
+  podcastName        String    @map("podcast_name")
+  episodeTitle       String    @map("episode_title")
+  releaseDate        DateTime? @map("release_date") @db.Timestamptz
+  episodeUrl         String    @map("episode_url")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian           Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+
+  @@unique([comedianId, podchaserEpisodeId])
+  @@index([comedianId])
+  @@index([podchaserEpisodeId])
+  @@map("comedian_podcast_appearances")
 }
 
 model User {
