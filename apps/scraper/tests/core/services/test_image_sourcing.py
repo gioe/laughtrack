@@ -347,11 +347,23 @@ def test_main_upload_from_dir_dry_run_dedups_sibling_stems(monkeypatch, tmp_path
     assert "Tig Notaro  (Tig Notaro.webp)" in out
 
 
-def test_main_rejects_upload_from_dir_with_targeting_modes(monkeypatch, tmp_path, capsys):
+@pytest.mark.parametrize(
+    "extra_args",
+    [
+        ["--name", "Ali Wong"],
+        ["--names-file", "names.txt"],
+        ["--limit", "5"],
+        ["--review-dir", "review"],
+    ],
+)
+def test_main_rejects_upload_from_dir_with_targeting_modes(monkeypatch, tmp_path, capsys, extra_args):
     review_dir = tmp_path / "reviewed"
     review_dir.mkdir()
+    names_file = tmp_path / "names.txt"
+    names_file.write_text("Ali Wong\n", encoding="utf-8")
 
     monkeypatch.setattr(source_comedian_images, "_load_env_defaults", lambda: None)
+    argv_extra = [str(tmp_path / arg) if arg in {"names.txt", "review"} else arg for arg in extra_args]
     monkeypatch.setattr(
         source_comedian_images.sys,
         "argv",
@@ -359,8 +371,7 @@ def test_main_rejects_upload_from_dir_with_targeting_modes(monkeypatch, tmp_path
             "source_comedian_images.py",
             "--upload-from-dir",
             str(review_dir),
-            "--name",
-            "Ali Wong",
+            *argv_extra,
         ],
     )
 
