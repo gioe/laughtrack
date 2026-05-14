@@ -228,6 +228,46 @@ struct EntityDataFlowTests {
         #expect(page.filters.map(\.slug) == ["late-night", "stand-up"])
     }
 
+    @Test("shows discovery model relaxes nearby radius for comedian searches")
+    func showsDiscoveryModelRelaxesNearbyRadiusForComedianSearches() async {
+        let transport = StubClientTransport { _, _, _, operationID in
+            #expect(operationID == "searchShows")
+            return testJSONResponse(
+                """
+                {
+                  "data": [],
+                  "total": 0,
+                  "filters": [],
+                  "zipCapTriggered": false
+                }
+                """
+            )
+        }
+        let store = NearbyPreferenceStore()
+        store.setManualZip("90028", distanceMiles: 100)
+        let model = ShowsListModel(
+            nearbyLocationController: NearbyLocationController(
+                store: store,
+                resolver: StubNearbyLocationResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+        model.comedianSearchText = "Christina P"
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: transport
+        )
+
+        await model.reload(apiClient: client)
+
+        let path = transport.capturedRequests.last?.path
+        #expect(queryValue("comedian", from: path) == "Christina P")
+        #expect(queryValue("zip", from: path) == nil)
+        #expect(queryValue("distance", from: path) == nil)
+        #expect(model.isShowingNationwideComedianSearch)
+    }
+
     @Test("shows discovery model can pin show searches to a club")
     func showsDiscoveryModelPinsSearchesToClub() async {
         let transport = StubClientTransport { _, _, _, operationID in

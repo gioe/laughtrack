@@ -52,6 +52,13 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         !isClubPinned
     }
 
+    var isShowingNationwideComedianSearch: Bool {
+        allowsLocationFiltering &&
+            activeNearbyPreference != nil &&
+            pinnedComedianName == nil &&
+            !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     private let nearbyLocationController: NearbyLocationController
     let pinnedClubName: String?
     let pinnedComedianName: String?
@@ -85,7 +92,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
             comedian: pinnedComedianName ?? comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             club: pinnedClubName ?? clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             filters: selectedFilterSlugs.sorted(),
-            zip: allowsLocationFiltering ? (activeNearbyPreference?.zipCode ?? "") : "",
+            zip: allowsLocationFiltering && !isShowingNationwideComedianSearch ? (activeNearbyPreference?.zipCode ?? "") : "",
             dateRange: dateRange,
             distance: distance,
             sort: sort

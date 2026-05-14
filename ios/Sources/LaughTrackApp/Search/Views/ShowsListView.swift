@@ -64,6 +64,13 @@ struct ShowsListView: View {
                     openDropdownID: $openDropdownID
                 )
 
+                if let message = nationwideComedianSearchMessage {
+                    Text(message)
+                        .font(theme.laughTrackTokens.typography.metadata)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 switch model.phase {
                 case .idle, .loading:
                     ShowsListSkeleton()
@@ -165,6 +172,12 @@ struct ShowsListView: View {
     private var currentTotal: Int {
         guard case .success(let result) = model.phase else { return 0 }
         return result.total
+    }
+
+    private var nationwideComedianSearchMessage: String? {
+        guard model.isShowingNationwideComedianSearch else { return nil }
+        let name = model.comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return "Showing nationwide results for \(name). Clear search to use your nearby radius."
     }
 
     private var emptyMessage: String {
@@ -505,4 +518,3 @@ struct DateRangeDensityCacheState: Equatable {
         entries[monthStart] = entry
     }
 }
-
