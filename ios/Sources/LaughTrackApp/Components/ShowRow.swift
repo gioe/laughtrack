@@ -3,26 +3,191 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 
 struct ShowRow: View {
+    @Environment(\.appTheme) private var theme
+
     let show: Components.Schemas.Show
     var nearbyRadiusMiles: Double?
 
     var body: some View {
-        LaughTrackEntityRow(
-            title: Self.listTitle(for: show),
-            subtitle: show.clubName ?? "Unknown club",
-            metadata: metadata,
-            systemImage: "ticket.fill",
-            imageURL: Self.artworkImageURL(for: show),
-            showsDisclosureIndicator: true
+        let laughTrack = theme.laughTrackTokens
+        let isOpenMic = Self.isOpenMic(show)
+        let isSoldOut = show.soldOut == true
+        let dateStack = ShowFormatting.dateStack(show.date, timezoneID: show.timezone)
+        let lineup = isOpenMic ? [] : Self.topLineup(for: show, limit: 3)
+
+        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                dateColumn(stack: dateStack, isOpenMic: isOpenMic)
+
+                VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                    Text(Self.listTitle(for: show))
+                        .font(isOpenMic ? laughTrack.typography.metadata : laughTrack.typography.cardTitle)
+                        .fontWeight(isOpenMic ? .semibold : nil)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(isOpenMic ? 1 : 2)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let clubName = show.clubName, !clubName.isEmpty {
+                        Text(clubName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+                    }
+
+                    if !isOpenMic {
+                        badgeRow(isSoldOut: isSoldOut)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+            }
+
+            if !lineup.isEmpty {
+                lineupTiles(lineup, isSoldOut: isSoldOut)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: isOpenMic ? 56 : 86, alignment: .leading)
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, isOpenMic ? theme.spacing.sm : laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
         )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
     }
 
-    private var metadata: [String] {
-        var values = Self.metadata(for: show)
-        if isWithinNearbyRadius {
-            values.append("Near you")
+    @ViewBuilder
+    private func dateColumn(stack: ShowDateStack, isOpenMic: Bool) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .center, spacing: 2) {
+            Text(stack.weekday)
+                .font(laughTrack.typography.eyebrow)
+                .textCase(.uppercase)
+                .foregroundStyle(laughTrack.colors.accentStrong)
+
+            Text(stack.day)
+                .font(.system(
+                    size: isOpenMic ? 22 : 28,
+                    weight: .bold,
+                    design: .rounded
+                ))
+                .foregroundStyle(laughTrack.colors.textPrimary)
+
+            Text(stack.time)
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        return values
+        .frame(width: isOpenMic ? 52 : 64, alignment: .center)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(stack.weekday), day \(stack.day), \(stack.time)")
+    }
+
+    @ViewBuilder
+    private func badgeRow(isSoldOut: Bool) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let priceText = Self.priceLabel(for: show)
+
+        HStack(spacing: theme.spacing.xs) {
+            if let priceText {
+                Text(priceText)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .strikethrough(isSoldOut, color: laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+            }
+
+            if isSoldOut {
+                Text("Sold out")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.danger)
+                    .padding(.horizontal, theme.spacing.xs)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(laughTrack.colors.danger.opacity(0.12))
+                    )
+            }
+
+            if isWithinNearbyRadius {
+                Text("Near you")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .padding(.horizontal, theme.spacing.xs)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(laughTrack.colors.highlight.opacity(0.18))
+                    )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func lineupTiles(_ lineup: [Components.Schemas.ComedianLineup], isSoldOut: Bool) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(alignment: .top, spacing: theme.spacing.sm) {
+            ForEach(Array(lineup.enumerated()), id: \.offset) { index, comedian in
+                VStack(spacing: 4) {
+                    lineupAvatar(for: comedian, isSoldOut: isSoldOut)
+                    Text(Self.lineupRoleLabel(at: index))
+                        .font(laughTrack.typography.eyebrow)
+                        .textCase(.uppercase)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                    Text(comedian.name)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.top, theme.spacing.xxs)
+    }
+
+    @ViewBuilder
+    private func lineupAvatar(for comedian: Components.Schemas.ComedianLineup, isSoldOut: Bool) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = Self.effectiveComedian(comedian).imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = trimmed.isEmpty ? nil : trimmed
+
+        Group {
+            if let url = URL.normalizedExternalURL(normalized) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Circle().fill(laughTrack.colors.surfaceMuted)
+                } error: { _ in
+                    Circle()
+                        .fill(laughTrack.colors.surfaceMuted)
+                        .overlay {
+                            Image(systemName: "person.fill")
+                                .foregroundStyle(laughTrack.colors.accentStrong)
+                        }
+                }
+            } else {
+                Circle()
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        Image(systemName: "person.fill")
+                            .foregroundStyle(laughTrack.colors.accentStrong)
+                    }
+            }
+        }
+        .frame(width: 44, height: 44)
+        .clipShape(Circle())
+        .saturation(isSoldOut ? 0 : 1)
+        .opacity(isSoldOut ? 0.6 : 1)
     }
 
     private var isWithinNearbyRadius: Bool {
@@ -78,6 +243,33 @@ struct ShowRow: View {
         return "\(formatPrice(lowestPrice)) - \(formatPrice(highestPrice))"
     }
 
+    static func isOpenMic(_ show: Components.Schemas.Show) -> Bool {
+        ShowFormatting.isOpenMic(show.name)
+    }
+
+    static func topLineup(for show: Components.Schemas.Show, limit: Int = 3) -> [Components.Schemas.ComedianLineup] {
+        guard let lineup = show.lineup, !lineup.isEmpty else { return [] }
+
+        let resolved = lineup.map(Self.effectiveComedian)
+        let counts = resolved.compactMap(\.showCount)
+        let ordered: [Components.Schemas.ComedianLineup]
+        if counts.isEmpty {
+            ordered = resolved
+        } else {
+            ordered = resolved.sorted { ($0.showCount ?? 0) > ($1.showCount ?? 0) }
+        }
+
+        return Array(ordered.prefix(limit))
+    }
+
+    static func lineupRoleLabel(at index: Int) -> String {
+        switch index {
+        case 0: return "Headliner"
+        case 1: return "Feature"
+        default: return "Support"
+        }
+    }
+
     private static func featuredComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
         guard let lineup = show.lineup, !lineup.isEmpty else {
             return nil
@@ -90,7 +282,7 @@ struct ShowRow: View {
             }
     }
 
-    private static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {
+    static func effectiveComedian(_ comedian: Components.Schemas.ComedianLineup) -> Components.Schemas.ComedianLineup {
         comedian.parentComedian ?? comedian
     }
 

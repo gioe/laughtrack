@@ -132,6 +132,63 @@ struct ShowRowTests {
         #expect(ShowFormatting.listDate(date, timezoneID: "America/Los_Angeles").contains("5:00"))
     }
 
+    @Test("date stack returns weekday, day, and time in the venue timezone")
+    func dateStackReturnsComponentsInVenueTimezone() {
+        // 2024-05-04 00:00:00 UTC → 2024-05-03 20:00 ET → Friday the 3rd
+        let date = Date(timeIntervalSince1970: 1_714_780_800)
+        let stack = ShowFormatting.dateStack(date, timezoneID: "America/New_York")
+
+        #expect(stack.weekday == "FRI")
+        #expect(stack.day == "3")
+        #expect(stack.time.contains("8:00"))
+    }
+
+    @Test("open mic detection matches common naming variants")
+    func openMicDetection() {
+        #expect(ShowFormatting.isOpenMic("Tuesday Open Mic"))
+        #expect(ShowFormatting.isOpenMic("OPEN MIC"))
+        #expect(ShowFormatting.isOpenMic("Comedy open-mic night"))
+        #expect(ShowFormatting.isOpenMic("Atsuko Late Set") == false)
+        #expect(ShowFormatting.isOpenMic(nil) == false)
+    }
+
+    @Test("top lineup picks the three highest-show-count comedians")
+    func topLineupPicksMostPopular() {
+        let show = makeShow(lineup: [
+            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 3),
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
+            lineup(name: "Filler", imageURL: "https://example.com/filler.jpg", showCount: 1),
+        ])
+
+        let top = ShowRow.topLineup(for: show)
+
+        #expect(top.map(\.name) == ["Headliner", "Feature", "Opener"])
+    }
+
+    @Test("top lineup preserves order when show counts are absent")
+    func topLineupPreservesOrderWhenCountsAbsent() {
+        let show = makeShow(lineup: [
+            lineup(name: "First", imageURL: "https://example.com/first.jpg", showCount: nil),
+            lineup(name: "Second", imageURL: "https://example.com/second.jpg", showCount: nil),
+        ])
+
+        #expect(ShowRow.topLineup(for: show).map(\.name) == ["First", "Second"])
+    }
+
+    @Test("lineup role labels map by position")
+    func lineupRoleLabelsByPosition() {
+        #expect(ShowRow.lineupRoleLabel(at: 0) == "Headliner")
+        #expect(ShowRow.lineupRoleLabel(at: 1) == "Feature")
+        #expect(ShowRow.lineupRoleLabel(at: 2) == "Support")
+    }
+
+    @Test("ShowRow.isOpenMic delegates to ShowFormatting on the show name")
+    func showRowIsOpenMicMatchesName() {
+        let show = makeShow(name: "Tuesday Open Mic", lineup: nil)
+        #expect(ShowRow.isOpenMic(show))
+    }
+
     @Test("show row formats a single ticket price")
     func showRowFormatsSingleTicketPrice() {
         let show = makeShow(
