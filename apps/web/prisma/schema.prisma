@@ -432,6 +432,7 @@ model LineupItem {
   id         Int      @default(autoincrement())
   showId     Int      @map("show_id")
   comedianId String   @map("comedian_id")
+  role       String?
   comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
