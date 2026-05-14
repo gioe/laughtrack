@@ -17,6 +17,12 @@ Usage:
     python -m scripts.core.source_comedian_images --name "Patton Oswalt"
     python -m scripts.core.source_comedian_images --name "Patton Oswalt" --name "Luenell"
     python -m scripts.core.source_comedian_images --names-file curated.txt
+
+    # Review mode: source images to a folder for human review (no CDN write)
+    python -m scripts.core.source_comedian_images --names-file curated.txt --review-dir /tmp/headshots
+
+    # Publish reviewed images: each file's stem becomes the comedian name
+    python -m scripts.core.source_comedian_images --upload-from-dir /tmp/headshots
 """
 
 import argparse
@@ -34,9 +40,15 @@ for _path in (_root / "src", _root):
 
 from dotenv import dotenv_values
 
-from laughtrack.core.services.image_sourcing import source_comedian_image
+from laughtrack.core.services.image_sourcing import (
+    fetch_comedian_image_png,
+    source_comedian_image,
+    upload_comedian_image_png,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.database.connection import get_connection, get_transaction
+
+_SUPPORTED_REVIEW_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 
 # Delay between per-comedian requests (Wikidata + TMDb rate limits)
 _IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
@@ -85,16 +97,37 @@ def main():
         default=None,
         help="Path to a file with one comedian name per line (blank lines and # comments ignored).",
     )
+    parser.add_argument(
+        "--review-dir",
+        type=Path,
+        default=None,
+        help="Save sourced images to this directory as <name>.png instead of uploading to the CDN. has_image is NOT flipped — review images, then re-run with --upload-from-dir to publish.",
+    )
+    parser.add_argument(
+        "--upload-from-dir",
+        type=Path,
+        default=None,
+        help="Upload pre-reviewed images from this directory. Each file's stem is treated as the comedian name. Mutually exclusive with --name/--names-file/--limit/--review-dir.",
+    )
     args = parser.parse_args()
 
-    # Validate CDN credentials before starting
-    if not args.dry_run:
+    if args.upload_from_dir and (args.name or args.names_file or args.limit or args.review_dir):
+        print("Error: --upload-from-dir cannot be combined with --name/--names-file/--limit/--review-dir", file=sys.stderr)
+        sys.exit(2)
+
+    # Validate CDN credentials before starting (skip for dry-run and review-only)
+    needs_cdn = not args.dry_run and not args.review_dir
+    if needs_cdn:
         if not os.environ.get("BUNNYCDN_STORAGE_PASSWORD") and not dotenv_values(".env").get("BUNNYCDN_STORAGE_PASSWORD"):
             print("Error: BUNNYCDN_STORAGE_PASSWORD not set in environment or .env", file=sys.stderr)
             sys.exit(1)
         if not os.environ.get("BUNNYCDN_STORAGE_ZONE") and not dotenv_values(".env").get("BUNNYCDN_STORAGE_ZONE"):
             print("Error: BUNNYCDN_STORAGE_ZONE not set in environment or .env", file=sys.stderr)
             sys.exit(1)
+
+    if args.upload_from_dir:
+        _run_upload_from_dir(args.upload_from_dir, dry_run=args.dry_run)
+        return
 
     explicit_names = _collect_explicit_names(args.name, args.names_file)
     if explicit_names:
@@ -116,12 +149,20 @@ def main():
             print(f"  {name}")
         return
 
+    if args.review_dir:
+        args.review_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Review mode: saving images to {args.review_dir} (CDN upload skipped, has_image not flipped)")
+
     sourced = []
     failed = []
     for i, name in enumerate(names):
         progress = f"[{i + 1}/{len(names)}]"
         try:
-            if source_comedian_image(name):
+            if args.review_dir:
+                ok = _source_to_review_dir(name, args.review_dir)
+            else:
+                ok = source_comedian_image(name)
+            if ok:
                 sourced.append(name)
                 print(f"  {progress} ✓ {name}")
             else:
@@ -136,19 +177,79 @@ def main():
         if i < len(names) - 1:
             time.sleep(_IMAGE_SOURCE_DELAY_S)
 
-        # Batch-update has_image every 50 successful uploads
-        if len(sourced) > 0 and len(sourced) % 50 == 0:
+        # Batch-update has_image every 50 successful uploads (CDN mode only)
+        if not args.review_dir and len(sourced) > 0 and len(sourced) % 50 == 0:
             _update_has_image(sourced[-50:])
 
-    # Final batch update for remaining
-    remainder = len(sourced) % 50
-    if remainder > 0:
-        _update_has_image(sourced[-remainder:])
+    # Final batch update for remaining (CDN mode only)
+    if not args.review_dir:
+        remainder = len(sourced) % 50
+        if remainder > 0:
+            _update_has_image(sourced[-remainder:])
 
     print(f"\n=== Image Sourcing Complete ===")
     print(f"Processed: {len(names)}")
     print(f"Sourced:   {len(sourced)} ({100 * len(sourced) / len(names):.1f}%)")
     print(f"Failed:    {len(failed)} ({100 * len(failed) / len(names):.1f}%)")
+    if args.review_dir:
+        print(f"\nReview the images in {args.review_dir}, delete any wrong-person matches,")
+        print(f"then publish with:")
+        print(f"  python -m scripts.core.source_comedian_images --upload-from-dir {args.review_dir}")
+
+
+def _source_to_review_dir(name: str, review_dir: Path) -> bool:
+    """Source an image and save to review_dir/<name>.png. Returns True on success."""
+    png = fetch_comedian_image_png(name)
+    if png is None:
+        return False
+    out_path = review_dir / f"{name}.png"
+    out_path.write_bytes(png)
+    return True
+
+
+def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
+    """Upload pre-reviewed images from a directory and flip has_image=true."""
+    if not upload_dir.exists() or not upload_dir.is_dir():
+        print(f"Error: --upload-from-dir not a directory: {upload_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    candidates = sorted(
+        p for p in upload_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in _SUPPORTED_REVIEW_EXTS
+    )
+    if not candidates:
+        print(f"No images found in {upload_dir} (looking for {sorted(_SUPPORTED_REVIEW_EXTS)})")
+        return
+
+    print(f"Found {len(candidates)} reviewed image(s) in {upload_dir}")
+    if dry_run:
+        for p in candidates:
+            print(f"  {p.stem}  ({p.name})")
+        return
+
+    sourced = []
+    failed = []
+    for i, path in enumerate(candidates):
+        name = path.stem
+        progress = f"[{i + 1}/{len(candidates)}]"
+        try:
+            if upload_comedian_image_png(name, path.read_bytes()):
+                sourced.append(name)
+                print(f"  {progress} ✓ {name}  ({path.name})")
+            else:
+                failed.append(name)
+                print(f"  {progress} ✗ {name}  ({path.name})")
+        except Exception as e:
+            failed.append(name)
+            Logger.warn(f"image_sourcing: unexpected upload error for '{name}': {e}")
+            print(f"  {progress} ✗ {name} — {e}")
+
+    if sourced:
+        _update_has_image(sourced)
+
+    print(f"\n=== Upload-from-dir Complete ===")
+    print(f"Uploaded:  {len(sourced)} ({100 * len(sourced) / len(candidates):.1f}%)")
+    print(f"Failed:    {len(failed)} ({100 * len(failed) / len(candidates):.1f}%)")
 
 
 def _collect_explicit_names(name_args, names_file):

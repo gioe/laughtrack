@@ -171,49 +171,69 @@ def _upload_to_bunny_cdn(
         return False
 
 
-def source_comedian_image(comedian_name: str) -> bool:
-    """Attempt to find, download, resize, and upload an image for a comedian.
+def fetch_comedian_image_png(comedian_name: str) -> Optional[bytes]:
+    """Fetch and resize a headshot for a comedian without uploading.
 
-    Tries Wikidata first, then TMDb. Uploads to Bunny CDN as
-    ``comedians/{name}.png``.
+    Tries Wikidata first, then TMDb (when ``TMDB_API_KEY`` is set). Returns
+    the resized PNG bytes, or ``None`` if no image could be sourced.
 
-    Returns True if an image was successfully uploaded, False otherwise.
+    Splitting fetch from upload lets callers stage images locally for human
+    review before publishing them to the CDN.
     """
-    # Bunny CDN config — required for upload
-    storage_password = os.environ.get("BUNNYCDN_STORAGE_PASSWORD", "")
-    storage_zone = os.environ.get("BUNNYCDN_STORAGE_ZONE", "")
-    if not storage_password or not storage_zone:
-        return False
-
-    region = os.environ.get("BUNNYCDN_STORAGE_REGION", "la")
-
-    # Try Wikidata first
     image_url = _get_wikidata_image_url(comedian_name)
-
-    # Fall back to TMDb
     if not image_url:
         tmdb_key = os.environ.get("TMDB_API_KEY", "")
         if tmdb_key:
             image_url = _get_tmdb_image_url(comedian_name, tmdb_key)
-
     if not image_url:
-        return False
+        return None
 
-    # Download
     raw_data = _download_image(image_url)
     if not raw_data:
-        return False
+        return None
 
-    # Resize
     try:
-        png_data = _resize_image(raw_data)
+        return _resize_image(raw_data)
+    except Exception as e:
+        Logger.warn(f"image_sourcing: resize failed for '{comedian_name}': {e}")
+        return None
+
+
+def upload_comedian_image_png(comedian_name: str, png_data: bytes) -> bool:
+    """Upload pre-fetched PNG bytes for a comedian to Bunny CDN.
+
+    Returns True on success, False if credentials are missing or the upload
+    fails. Resizes the input again so callers can pass arbitrary image bytes
+    (jpeg/webp/png at any size) — output on the CDN is always normalized PNG
+    at <= ``_MAX_IMAGE_WIDTH`` width.
+    """
+    storage_password = os.environ.get("BUNNYCDN_STORAGE_PASSWORD", "")
+    storage_zone = os.environ.get("BUNNYCDN_STORAGE_ZONE", "")
+    if not storage_password or not storage_zone:
+        Logger.warn("image_sourcing: skipping upload — BUNNYCDN_STORAGE_PASSWORD or BUNNYCDN_STORAGE_ZONE not set")
+        return False
+    region = os.environ.get("BUNNYCDN_STORAGE_REGION", "la")
+
+    try:
+        png_data = _resize_image(png_data)
     except Exception as e:
         Logger.warn(f"image_sourcing: resize failed for '{comedian_name}': {e}")
         return False
 
-    # Upload — use same URL-encoded path convention as the audit script
     cdn_path = f"comedians/{urllib.parse.quote(comedian_name)}.png"
     return _upload_to_bunny_cdn(png_data, cdn_path, storage_password, storage_zone, region)
+
+
+def source_comedian_image(comedian_name: str) -> bool:
+    """Find, download, resize, and upload a headshot for a comedian.
+
+    Tries Wikidata first, then TMDb. Uploads to Bunny CDN as
+    ``comedians/{name}.png``. Returns True on success, False otherwise.
+    """
+    png_data = fetch_comedian_image_png(comedian_name)
+    if png_data is None:
+        return False
+    return upload_comedian_image_png(comedian_name, png_data)
 
 
 def source_images_for_comedians(
