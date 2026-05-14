@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockFindMany } = vi.hoisted(() => ({
-    mockFindMany: vi.fn(),
+const { mockQueryRaw } = vi.hoisted(() => ({
+    mockQueryRaw: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
-    db: { show: { findMany: mockFindMany } },
+    db: { $queryRaw: mockQueryRaw },
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildClubImageUrl: vi.fn(
@@ -26,35 +26,44 @@ function makeHelper(
     };
 }
 
-type ShowRow = {
-    id: number;
-    date: Date;
-    club: {
-        id: number;
-        name: string;
-        city: string | null;
-        state: string | null;
-        hasImage: boolean;
-    };
+type AggregatedRow = {
+    club_id: number;
+    club_name: string;
+    club_city: string | null;
+    club_state: string | null;
+    has_image: boolean;
+    play_count: number | bigint;
+    last_played_date: Date;
 };
 
-function makeRow(over: Partial<ShowRow> & Pick<ShowRow, "id" | "date">): ShowRow {
+function makeRow(over: Partial<AggregatedRow>): AggregatedRow {
     return {
-        club: {
-            id: 1,
-            name: "Default Club",
-            city: "NYC",
-            state: "NY",
-            hasImage: false,
-            ...over.club,
-        },
+        club_id: 1,
+        club_name: "Default Club",
+        club_city: "NYC",
+        club_state: "NY",
+        has_image: false,
+        play_count: 1,
+        last_played_date: new Date("2024-01-01T00:00:00Z"),
         ...over,
-    } as ShowRow;
+    };
+}
+
+function getQueryStrings(): string {
+    return mockQueryRaw.mock.calls
+        .flatMap((call) => {
+            const arg = call[0];
+            if (arg && Array.isArray(arg.strings)) {
+                return arg.strings as string[];
+            }
+            return [];
+        })
+        .join(" ");
 }
 
 describe("findRoomHistoryForComedian", () => {
     beforeEach(() => {
-        mockFindMany.mockReset();
+        mockQueryRaw.mockReset();
     });
 
     it("returns an empty array when no comedian is set on the helper", async () => {
@@ -62,73 +71,50 @@ describe("findRoomHistoryForComedian", () => {
         const result = await findRoomHistoryForComedian(helper as never);
 
         expect(result).toEqual([]);
-        expect(mockFindMany).not.toHaveBeenCalled();
+        expect(mockQueryRaw).not.toHaveBeenCalled();
     });
 
     it("queries past shows for visible clubs scoped by lineup", async () => {
-        mockFindMany.mockResolvedValue([]);
+        mockQueryRaw.mockResolvedValue([]);
 
         const helper = makeHelper();
         await findRoomHistoryForComedian(helper as never);
 
-        expect(mockFindMany).toHaveBeenCalledTimes(1);
-        const args = mockFindMany.mock.calls[0][0];
-        expect(args.where.club).toEqual({ visible: true });
-        expect(args.where.date.lt).toBeInstanceOf(Date);
-        expect(args.where.lineupItems).toEqual({});
-        expect(helper.getLineupItemClause).toHaveBeenCalledTimes(1);
+        expect(mockQueryRaw).toHaveBeenCalledTimes(1);
+
+        const sql = getQueryStrings();
+        expect(sql).toMatch(/FROM "shows"/);
+        expect(sql).toMatch(/JOIN "clubs"/);
+        expect(sql).toMatch(/JOIN "lineup_items"/);
+        expect(sql).toMatch(/JOIN "comedians"/);
+        expect(sql).toMatch(/cl\.visible = true/);
+        expect(sql).toMatch(/s\.date </);
+        expect(sql).toMatch(/GROUP BY/);
+        expect(sql).toMatch(/ORDER BY/);
     });
 
     it("groups distinct shows per (comedian, club) pair and tracks the per-club max date", async () => {
-        const cellarA = new Date("2024-01-10T20:00:00Z");
-        const cellarB = new Date("2024-06-04T20:00:00Z");
-        const cellarC = new Date("2025-02-14T20:00:00Z");
-        const standA = new Date("2023-09-01T20:00:00Z");
+        const cellarMax = new Date("2025-02-14T20:00:00Z");
+        const standMax = new Date("2023-09-01T20:00:00Z");
 
-        mockFindMany.mockResolvedValue([
+        mockQueryRaw.mockResolvedValue([
             makeRow({
-                id: 1,
-                date: cellarA,
-                club: {
-                    id: 10,
-                    name: "Comedy Cellar",
-                    city: "NYC",
-                    state: "NY",
-                    hasImage: true,
-                },
+                club_id: 10,
+                club_name: "Comedy Cellar",
+                club_city: "NYC",
+                club_state: "NY",
+                has_image: true,
+                play_count: 3,
+                last_played_date: cellarMax,
             }),
             makeRow({
-                id: 2,
-                date: cellarB,
-                club: {
-                    id: 10,
-                    name: "Comedy Cellar",
-                    city: "NYC",
-                    state: "NY",
-                    hasImage: true,
-                },
-            }),
-            makeRow({
-                id: 3,
-                date: cellarC,
-                club: {
-                    id: 10,
-                    name: "Comedy Cellar",
-                    city: "NYC",
-                    state: "NY",
-                    hasImage: true,
-                },
-            }),
-            makeRow({
-                id: 4,
-                date: standA,
-                club: {
-                    id: 11,
-                    name: "The Stand",
-                    city: "NYC",
-                    state: "NY",
-                    hasImage: false,
-                },
+                club_id: 11,
+                club_name: "The Stand",
+                club_city: "NYC",
+                club_state: "NY",
+                has_image: false,
+                play_count: 1,
+                last_played_date: standMax,
             }),
         ]);
 
@@ -138,7 +124,7 @@ describe("findRoomHistoryForComedian", () => {
         const cellar = result[0];
         expect(cellar.clubId).toBe(10);
         expect(cellar.playCount).toBe(3);
-        expect(cellar.lastPlayedDate).toEqual(cellarC);
+        expect(cellar.lastPlayedDate).toEqual(cellarMax);
         expect(cellar.imageUrl).toBe(
             "https://cdn.example.com/Comedy Cellar.png",
         );
@@ -146,114 +132,51 @@ describe("findRoomHistoryForComedian", () => {
         const stand = result[1];
         expect(stand.clubId).toBe(11);
         expect(stand.playCount).toBe(1);
-        expect(stand.lastPlayedDate).toEqual(standA);
+        expect(stand.lastPlayedDate).toEqual(standMax);
     });
 
-    it("tracks the per-club max date regardless of row order returned by Prisma", async () => {
-        const earlyDate = new Date("2024-01-01T20:00:00Z");
-        const midDate = new Date("2024-06-01T20:00:00Z");
-        const latestDate = new Date("2025-03-01T20:00:00Z");
+    it("coerces Postgres BigInt counts and timestamptz values into JS Number and Date", async () => {
+        const maxDate = new Date("2025-03-01T20:00:00Z");
 
-        // Return rows in non-ascending order so a naive last-wins
-        // implementation would record midDate instead of latestDate.
-        mockFindMany.mockResolvedValue([
+        mockQueryRaw.mockResolvedValue([
             makeRow({
-                id: 1,
-                date: latestDate,
-                club: {
-                    id: 20,
-                    name: "Reorder Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
-            }),
-            makeRow({
-                id: 2,
-                date: earlyDate,
-                club: {
-                    id: 20,
-                    name: "Reorder Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
-            }),
-            makeRow({
-                id: 3,
-                date: midDate,
-                club: {
-                    id: 20,
-                    name: "Reorder Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
+                club_id: 20,
+                club_name: "Reorder Club",
+                club_city: null,
+                club_state: null,
+                has_image: false,
+                play_count: BigInt(7),
+                last_played_date: maxDate,
             }),
         ]);
 
         const result = await findRoomHistoryForComedian(makeHelper() as never);
 
         expect(result).toHaveLength(1);
-        expect(result[0].lastPlayedDate).toEqual(latestDate);
+        expect(result[0].playCount).toBe(7);
+        expect(typeof result[0].playCount).toBe("number");
+        expect(result[0].lastPlayedDate).toEqual(maxDate);
     });
 
-    it("sorts tiles by play count descending, breaking ties by most-recent date", async () => {
-        mockFindMany.mockResolvedValue([
+    it("preserves the database's ordering (count desc, then most-recent date desc)", async () => {
+        mockQueryRaw.mockResolvedValue([
             makeRow({
-                id: 1,
-                date: new Date("2024-01-01"),
-                club: {
-                    id: 1,
-                    name: "One Show Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
+                club_id: 2,
+                club_name: "Three Show Club",
+                play_count: 3,
+                last_played_date: new Date("2024-04-01"),
             }),
             makeRow({
-                id: 2,
-                date: new Date("2024-02-01"),
-                club: {
-                    id: 2,
-                    name: "Three Show Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
+                club_id: 3,
+                club_name: "Recent One",
+                play_count: 1,
+                last_played_date: new Date("2025-01-01"),
             }),
             makeRow({
-                id: 3,
-                date: new Date("2024-03-01"),
-                club: {
-                    id: 2,
-                    name: "Three Show Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
-            }),
-            makeRow({
-                id: 4,
-                date: new Date("2024-04-01"),
-                club: {
-                    id: 2,
-                    name: "Three Show Club",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
-            }),
-            makeRow({
-                id: 5,
-                date: new Date("2025-01-01"),
-                club: {
-                    id: 3,
-                    name: "Recent One",
-                    city: null,
-                    state: null,
-                    hasImage: false,
-                },
+                club_id: 1,
+                club_name: "One Show Club",
+                play_count: 1,
+                last_played_date: new Date("2024-01-01"),
             }),
         ]);
 
