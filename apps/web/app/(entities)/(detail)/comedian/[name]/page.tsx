@@ -8,6 +8,7 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import ComedianDetailTabs from "@/ui/pages/entity/comedian/tabs";
+import RoomHistorySection from "@/ui/pages/entity/comedian/roomHistory";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
@@ -117,7 +118,8 @@ export default async function ComedianDetailsPage(props: {
         throw error;
     }
 
-    const { data, shows, total, relatedComedians, filters } = result;
+    const { data, shows, total, relatedComedians, roomHistory, filters } =
+        result;
     const heroPalette = await getComedianHeroPalette({
         comedianId: data.id,
         imageUrl: data.imageUrl,
@@ -134,6 +136,10 @@ export default async function ComedianDetailsPage(props: {
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} heroPalette={heroPalette} />
+            <RoomHistorySection
+                comedianName={data.name}
+                rooms={roomHistory}
+            />
             <ComedianDetailTabs
                 shows={shows}
                 total={total}
