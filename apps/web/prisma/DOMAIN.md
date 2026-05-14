@@ -19,8 +19,30 @@ Individual comedian. Has social media stats, popularity, alternate names (aliase
 ### ComedianPodcastAppearance
 Episode-level evidence that a comedian appeared on a podcast episode. Rows are source-scoped by `source` and `sourceEpisodeId` and should only describe an appearance on a specific episode.
 
+Legacy compatibility table for the first podcast ingestion path. New PodcastIndex-backed discovery should write canonical episode rows to `PodcastEpisode`, accepted graph edges to `EpisodeAppearance`, and review decisions to `EpisodeAppearanceReview`. Keep this table available for existing UI/data callers until those reads are migrated; do not use it as the source of podcast identity.
+
 ### ComedianPodcastIdentityLink
 Reviewed source identity links between a comedian and an external podcast feed. For Podcast Index, `source = "podcast_index"` and `sourceFeedId` stores the feed identity returned by the provider. `reviewStatus` has three meanings: `verified` feeds are trusted for future backfills, `ambiguous` feeds require more review before they can be promoted by identity alone, and `rejected` feeds are known false positives that must be suppressed before writing episode appearance rows. This table is deliberately separate from `ComedianPodcastAppearance` so a reviewed feed relationship is not conflated with an episode appearance.
+
+Legacy compatibility table for source feed links. New PodcastIndex-backed discovery should prefer `Podcast`, `ComedianPodcast`, and `PodcastCandidateReview` so candidate decisions can point at canonical podcast rows and preserve accepted/rejected review history. Keep this table for existing callers until the source identity workflow is moved onto the normalized graph.
+
+### Podcast
+Canonical podcast/feed identity. A row is source-scoped by `source` and `sourcePodcastId`, preserving PodcastIndex feed ids, feed URLs, external ids, provider payloads, and discovery evidence without tying identity to any one comedian.
+
+### PodcastEpisode
+Canonical episode identity under a podcast. A row is unique by `source` and `sourceEpisodeId` so the same episode is stored once even when multiple comedians appear on it.
+
+### ComedianPodcast
+Reviewed comedian-to-podcast association such as host, cohost, owner, producer, network, or other. This table represents podcast ownership/hosting relationships only; it does not imply a guest appearance on every episode. Episode-level participation belongs in `EpisodeAppearance`.
+
+### PodcastCandidateReview
+Review queue and audit log for candidate comedian-to-podcast associations. Accepted and rejected candidates remain stored with source ids, confidence, evidence, review status, reviewer, and optional canonical podcast linkage.
+
+### EpisodeAppearance
+Accepted or pending graph edge connecting a comedian to a specific podcast episode. This is the normalized replacement for new episode appearance writes and is separate from `ComedianPodcast`, so hosts are not automatically treated as episode guests.
+
+### EpisodeAppearanceReview
+Review queue and audit log for candidate episode appearances. Stores accepted and rejected candidates with source episode ids, confidence, evidence, review status, reviewer, role, and optional canonical episode linkage.
 
 ### Show
 A comedy show at a club on a date. Has lineup items, tickets, and tags.

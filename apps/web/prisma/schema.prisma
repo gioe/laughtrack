@@ -195,67 +195,71 @@ model ClubAlias {
 }
 
 model Comedian {
-  id                           Int                @id @default(autoincrement())
-  name                         String
-  instagramAccount             String?            @map("instagram_account")
-  instagramFollowers           Int?               @map("instagram_followers")
-  tiktokAccount                String?            @map("tiktok_account")
-  tiktokFollowers              Int?               @map("tiktok_followers")
-  website                      String?
-  popularity                   Float              @default(0.0)
-  youtubeAccount               String?            @map("youtube_account")
-  youtubeFollowers             Int?               @map("youtube_followers")
-  uuid                         String             @unique
-  totalShows                   Int                @default(0) @map("total_shows")
-  soldOutShows                 Int                @default(0) @map("sold_out_shows")
-  linktree                     String?
-  songkickId                   String?            @map("songkick_id")
-  bandsintownId                String?            @map("bandsintown_id")
-  hasImage                     Boolean            @default(false) @map("has_image")
-  websiteDiscoverySource       String?            @map("website_discovery_source")
-  websiteLastScraped           DateTime?          @map("website_last_scraped") @db.Timestamptz
-  websiteScrapeStrategy        String?            @map("website_scrape_strategy")
-  websiteScrapingUrl           String?            @map("website_scraping_url")
-  websiteConfidence            String?            @map("website_confidence")
-  websiteScrapingUrlConfidence String?            @map("website_scraping_url_confidence")
-  websiteHealthStatus          String?            @map("website_health_status")
-  websiteHealthFailureCount    Int                @default(0) @map("website_health_failure_count")
-  websiteHealthCheckedAt       DateTime?          @map("website_health_checked_at") @db.Timestamptz
-  websiteScrapingUrlHealthStatus       String?   @map("website_scraping_url_health_status")
-  websiteScrapingUrlHealthFailureCount Int       @default(0) @map("website_scraping_url_health_failure_count")
-  websiteScrapingUrlHealthCheckedAt    DateTime? @map("website_scraping_url_health_checked_at") @db.Timestamptz
-  tourSourceReviewEvidence             Json?     @map("tour_source_review_evidence")
-  bio                          String?
-  parentComedianId             Int?               @map("parent_comedian_id")
-  parentComedian               Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])
-  alternativeNames             Comedian[]         @relation("ComedianAliases")
-  favoriteComedians            FavoriteComedian[]
-  lineupItems                  LineupItem[]
-  taggedComedians              TaggedComedian[]
-  sentNotifications            SentNotification[]
-  podcastAppearances           ComedianPodcastAppearance[]
-  podcastIdentityLinks         ComedianPodcastIdentityLink[]
+  id                                   Int                           @id @default(autoincrement())
+  name                                 String
+  instagramAccount                     String?                       @map("instagram_account")
+  instagramFollowers                   Int?                          @map("instagram_followers")
+  tiktokAccount                        String?                       @map("tiktok_account")
+  tiktokFollowers                      Int?                          @map("tiktok_followers")
+  website                              String?
+  popularity                           Float                         @default(0.0)
+  youtubeAccount                       String?                       @map("youtube_account")
+  youtubeFollowers                     Int?                          @map("youtube_followers")
+  uuid                                 String                        @unique
+  totalShows                           Int                           @default(0) @map("total_shows")
+  soldOutShows                         Int                           @default(0) @map("sold_out_shows")
+  linktree                             String?
+  songkickId                           String?                       @map("songkick_id")
+  bandsintownId                        String?                       @map("bandsintown_id")
+  hasImage                             Boolean                       @default(false) @map("has_image")
+  websiteDiscoverySource               String?                       @map("website_discovery_source")
+  websiteLastScraped                   DateTime?                     @map("website_last_scraped") @db.Timestamptz
+  websiteScrapeStrategy                String?                       @map("website_scrape_strategy")
+  websiteScrapingUrl                   String?                       @map("website_scraping_url")
+  websiteConfidence                    String?                       @map("website_confidence")
+  websiteScrapingUrlConfidence         String?                       @map("website_scraping_url_confidence")
+  websiteHealthStatus                  String?                       @map("website_health_status")
+  websiteHealthFailureCount            Int                           @default(0) @map("website_health_failure_count")
+  websiteHealthCheckedAt               DateTime?                     @map("website_health_checked_at") @db.Timestamptz
+  websiteScrapingUrlHealthStatus       String?                       @map("website_scraping_url_health_status")
+  websiteScrapingUrlHealthFailureCount Int                           @default(0) @map("website_scraping_url_health_failure_count")
+  websiteScrapingUrlHealthCheckedAt    DateTime?                     @map("website_scraping_url_health_checked_at") @db.Timestamptz
+  tourSourceReviewEvidence             Json?                         @map("tour_source_review_evidence")
+  bio                                  String?
+  parentComedianId                     Int?                          @map("parent_comedian_id")
+  parentComedian                       Comedian?                     @relation("ComedianAliases", fields: [parentComedianId], references: [id])
+  alternativeNames                     Comedian[]                    @relation("ComedianAliases")
+  favoriteComedians                    FavoriteComedian[]
+  lineupItems                          LineupItem[]
+  taggedComedians                      TaggedComedian[]
+  sentNotifications                    SentNotification[]
+  podcastAppearances                   ComedianPodcastAppearance[]
+  podcastIdentityLinks                 ComedianPodcastIdentityLink[]
+  comedianPodcasts                     ComedianPodcast[]
+  podcastCandidateReviews              PodcastCandidateReview[]
+  episodeAppearances                   EpisodeAppearance[]
+  episodeAppearanceReviews             EpisodeAppearanceReview[]
 
   @@index([parentComedianId])
   @@map("comedians")
 }
 
 model ComedianPodcastAppearance {
-  id                 Int       @id @default(autoincrement())
-  comedianId         Int       @map("comedian_id")
-  source             String
-  sourceEpisodeId    String    @map("source_episode_id")
-  podcastName        String    @map("podcast_name")
-  episodeTitle       String    @map("episode_title")
-  releaseDate        DateTime? @map("release_date") @db.Timestamptz
-  episodeUrl         String    @map("episode_url")
-  matchConfidence    Float     @map("match_confidence")
-  matchEvidence      Json      @map("match_evidence")
-  matchReviewedAt    DateTime? @map("match_reviewed_at") @db.Timestamptz
-  matchReviewedBy    String?   @map("match_reviewed_by")
-  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
-  comedian           Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+  id              Int       @id @default(autoincrement())
+  comedianId      Int       @map("comedian_id")
+  source          String
+  sourceEpisodeId String    @map("source_episode_id")
+  podcastName     String    @map("podcast_name")
+  episodeTitle    String    @map("episode_title")
+  releaseDate     DateTime? @map("release_date") @db.Timestamptz
+  episodeUrl      String    @map("episode_url")
+  matchConfidence Float     @map("match_confidence")
+  matchEvidence   Json      @map("match_evidence")
+  matchReviewedAt DateTime? @map("match_reviewed_at") @db.Timestamptz
+  matchReviewedBy String?   @map("match_reviewed_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian        Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
 
   @@unique([comedianId, source, sourceEpisodeId])
   @@index([comedianId])
@@ -283,6 +287,158 @@ model ComedianPodcastIdentityLink {
   @@index([source, sourceFeedId])
   @@index([reviewStatus])
   @@map("comedian_podcast_identity_links")
+}
+
+model Podcast {
+  id               Int                      @id @default(autoincrement())
+  source           String
+  sourcePodcastId  String                   @map("source_podcast_id")
+  feedUrl          String?                  @map("feed_url")
+  title            String
+  authorName       String?                  @map("author_name")
+  websiteUrl       String?                  @map("website_url")
+  imageUrl         String?                  @map("image_url")
+  description      String?
+  externalIds      Json                     @default("{}") @map("external_ids")
+  evidence         Json                     @default("{}")
+  sourcePayload    Json?                    @map("source_payload")
+  lastSyncedAt     DateTime?                @map("last_synced_at") @db.Timestamptz
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  episodes         PodcastEpisode[]
+  comedianPodcasts ComedianPodcast[]
+  candidateReviews PodcastCandidateReview[]
+
+  @@unique([source, sourcePodcastId])
+  @@index([source])
+  @@index([feedUrl])
+  @@map("podcasts")
+}
+
+model PodcastEpisode {
+  id                       Int                       @id @default(autoincrement())
+  podcastId                Int                       @map("podcast_id")
+  source                   String
+  sourceEpisodeId          String                    @map("source_episode_id")
+  guid                     String?
+  title                    String
+  description              String?
+  releaseDate              DateTime?                 @map("release_date") @db.Timestamptz
+  durationSeconds          Int?                      @map("duration_seconds")
+  episodeUrl               String?                   @map("episode_url")
+  audioUrl                 String?                   @map("audio_url")
+  externalIds              Json                      @default("{}") @map("external_ids")
+  evidence                 Json                      @default("{}")
+  sourcePayload            Json?                     @map("source_payload")
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
+  podcast                  Podcast                   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  appearances              EpisodeAppearance[]
+  episodeAppearanceReviews EpisodeAppearanceReview[]
+
+  @@unique([source, sourceEpisodeId])
+  @@index([podcastId])
+  @@index([podcastId, releaseDate])
+  @@index([guid])
+  @@map("podcast_episodes")
+}
+
+model ComedianPodcast {
+  id              Int       @id @default(autoincrement())
+  comedianId      Int       @map("comedian_id")
+  podcastId       Int       @map("podcast_id")
+  associationType String    @map("association_type")
+  source          String
+  reviewStatus    String    @default("pending") @map("review_status")
+  confidence      Float
+  evidence        Json      @default("{}")
+  reviewedAt      DateTime? @map("reviewed_at") @db.Timestamptz
+  reviewedBy      String?   @map("reviewed_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian        Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+  podcast         Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  @@unique([comedianId, podcastId, associationType, source])
+  @@index([comedianId])
+  @@index([podcastId])
+  @@index([reviewStatus])
+  @@index([source])
+  @@map("comedian_podcasts")
+}
+
+model PodcastCandidateReview {
+  id              Int       @id @default(autoincrement())
+  comedianId      Int       @map("comedian_id")
+  podcastId       Int?      @map("podcast_id")
+  source          String
+  sourcePodcastId String    @map("source_podcast_id")
+  candidateStatus String    @default("pending") @map("candidate_status")
+  associationType String?   @map("association_type")
+  confidence      Float
+  evidence        Json      @default("{}")
+  reviewedAt      DateTime? @map("reviewed_at") @db.Timestamptz
+  reviewedBy      String?   @map("reviewed_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  comedian        Comedian  @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+  podcast         Podcast?  @relation(fields: [podcastId], references: [id], onDelete: SetNull)
+
+  @@unique([comedianId, source, sourcePodcastId])
+  @@index([comedianId])
+  @@index([podcastId])
+  @@index([candidateStatus])
+  @@index([source, sourcePodcastId])
+  @@map("podcast_candidate_reviews")
+}
+
+model EpisodeAppearance {
+  id             Int            @id @default(autoincrement())
+  comedianId     Int            @map("comedian_id")
+  episodeId      Int            @map("episode_id")
+  source         String
+  appearanceRole String         @default("guest") @map("appearance_role")
+  reviewStatus   String         @default("pending") @map("review_status")
+  confidence     Float
+  evidence       Json           @default("{}")
+  reviewedAt     DateTime?      @map("reviewed_at") @db.Timestamptz
+  reviewedBy     String?        @map("reviewed_by")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  comedian       Comedian       @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+  episode        PodcastEpisode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+
+  @@unique([comedianId, episodeId, source])
+  @@index([comedianId])
+  @@index([episodeId])
+  @@index([reviewStatus])
+  @@index([source])
+  @@map("episode_appearances")
+}
+
+model EpisodeAppearanceReview {
+  id              Int             @id @default(autoincrement())
+  comedianId      Int             @map("comedian_id")
+  episodeId       Int?            @map("episode_id")
+  source          String
+  sourceEpisodeId String          @map("source_episode_id")
+  candidateStatus String          @default("pending") @map("candidate_status")
+  appearanceRole  String          @default("guest") @map("appearance_role")
+  confidence      Float
+  evidence        Json            @default("{}")
+  reviewedAt      DateTime?       @map("reviewed_at") @db.Timestamptz
+  reviewedBy      String?         @map("reviewed_by")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  comedian        Comedian        @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+  episode         PodcastEpisode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+
+  @@unique([comedianId, source, sourceEpisodeId])
+  @@index([comedianId])
+  @@index([episodeId])
+  @@index([candidateStatus])
+  @@index([source, sourceEpisodeId])
+  @@map("episode_appearance_reviews")
 }
 
 model User {
