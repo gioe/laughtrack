@@ -137,20 +137,35 @@ struct ComedianDetailViewTests {
         ])
     }
 
-    @Test("comedian stats summarize upcoming shows by venue and combined social followers")
+    @Test("comedian stats summarize upcoming shows by city and combined social followers")
     func comedianStatsAggregateUpcomingAndFollowers() {
         let comedian = DemoContent.primaryComedian
         let runs: [Components.Schemas.UpcomingRun] = [
-            fallbackRun(showIDs: [301, 302], clubID: 201, clubName: "Comedy Cellar"),
-            fallbackRun(showIDs: [303], clubID: 202, clubName: "The Stand"),
+            // Two NY clubs in the same city collapse to one city.
+            fallbackRun(showIDs: [301, 302], clubID: 201, clubName: "Comedy Cellar", clubCity: "New York", clubState: "NY"),
+            fallbackRun(showIDs: [303], clubID: 202, clubName: "The Stand", clubCity: "New York", clubState: "NY"),
+            fallbackRun(showIDs: [304], clubID: 203, clubName: "Punch Line", clubCity: "San Francisco", clubState: "CA"),
         ]
 
         let stats = ComedianStatsPresentation.stats(for: comedian, runs: runs)
         let labels = stats.map(ComedianStatsPresentation.label(for:))
 
-        #expect(labels.contains("3 upcoming shows at 2 venues"))
+        #expect(labels.contains("4 upcoming shows in 2 cities"))
         // primaryComedian follower totals = 370k + 210k + 128k = 708,000 → "708K"
         #expect(labels.contains("708K social followers"))
+    }
+
+    @Test("comedian stats omit city count when no city is available")
+    func comedianStatsOmitCityCountWhenMissing() {
+        let comedian = DemoContent.primaryComedian
+        let runs: [Components.Schemas.UpcomingRun] = [
+            fallbackRun(showIDs: [301], clubID: 201, clubName: "Comedy Cellar"),
+        ]
+
+        let stats = ComedianStatsPresentation.stats(for: comedian, runs: runs)
+        let labels = stats.map(ComedianStatsPresentation.label(for:))
+
+        #expect(labels.contains("1 upcoming show"))
     }
 
     @Test("comedian stats omit zero-valued buckets")
@@ -205,12 +220,16 @@ struct ComedianDetailViewTests {
     private func fallbackShow(
         id: Int,
         clubID: Int = 101,
-        clubName: String = "Comedy Cellar"
+        clubName: String = "Comedy Cellar",
+        clubCity: String? = nil,
+        clubState: String? = nil
     ) -> Components.Schemas.Show {
         .init(
             id: id,
             clubID: clubID,
             clubName: clubName,
+            clubCity: clubCity,
+            clubState: clubState,
             date: Date().addingTimeInterval(60 * 60 * 24),
             tickets: nil,
             name: "Mark Normand and Friends",
@@ -287,12 +306,26 @@ struct ComedianDetailViewTests {
         return show
     }
 
-    private func fallbackRun(showIDs: [Int], clubID: Int = 101, clubName: String = "Comedy Cellar") -> Components.Schemas.UpcomingRun {
+    private func fallbackRun(
+        showIDs: [Int],
+        clubID: Int = 101,
+        clubName: String = "Comedy Cellar",
+        clubCity: String? = nil,
+        clubState: String? = nil
+    ) -> Components.Schemas.UpcomingRun {
         .init(
             clubID: clubID,
             clubName: clubName,
             clubImageUrl: "https://example.com/show.png",
-            shows: showIDs.map { fallbackShow(id: $0, clubID: clubID, clubName: clubName) }
+            shows: showIDs.map {
+                fallbackShow(
+                    id: $0,
+                    clubID: clubID,
+                    clubName: clubName,
+                    clubCity: clubCity,
+                    clubState: clubState
+                )
+            }
         )
     }
 }

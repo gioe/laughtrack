@@ -222,7 +222,7 @@ enum ComedianRelatedPresentation {
 
 enum ComedianStatsPresentation {
     enum Stat: Hashable {
-        case upcoming(showCount: Int, venueCount: Int)
+        case upcoming(showCount: Int, cityCount: Int)
         case followers(total: Int)
     }
 
@@ -234,11 +234,8 @@ enum ComedianStatsPresentation {
 
         let showCount = runs.reduce(0) { $0 + $1.shows.count }
         if showCount > 0 {
-            // iOS doesn't carry city/state on Show, so we approximate the web's
-            // "in N cities" breadth signal with unique venue counts (one
-            // UpcomingRun per club). File a follow-up to surface city directly.
-            let venueCount = Set(runs.map(\.clubID)).count
-            result.append(.upcoming(showCount: showCount, venueCount: venueCount))
+            let cityCount = uniqueCityCount(in: runs)
+            result.append(.upcoming(showCount: showCount, cityCount: cityCount))
         }
 
         let social = comedian.socialData
@@ -254,15 +251,30 @@ enum ComedianStatsPresentation {
 
     static func label(for stat: Stat) -> String {
         switch stat {
-        case let .upcoming(showCount, venueCount):
+        case let .upcoming(showCount, cityCount):
             let showWord = showCount == 1 ? "show" : "shows"
             let base = "\(showCount.formatted()) upcoming \(showWord)"
-            guard venueCount > 0 else { return base }
-            let venueWord = venueCount == 1 ? "venue" : "venues"
-            return "\(base) at \(venueCount.formatted()) \(venueWord)"
+            guard cityCount > 0 else { return base }
+            let cityWord = cityCount == 1 ? "city" : "cities"
+            return "\(base) in \(cityCount.formatted()) \(cityWord)"
         case let .followers(total):
             return "\(compactFollowers(total)) social followers"
         }
+    }
+
+    private static func uniqueCityCount(in runs: [Components.Schemas.UpcomingRun]) -> Int {
+        var cities = Set<String>()
+        for show in runs.flatMap(\.shows) {
+            let city = show.clubCity?.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let city, !city.isEmpty else { continue }
+            let state = show.clubState?.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let state, !state.isEmpty {
+                cities.insert("\(city), \(state)")
+            } else {
+                cities.insert(city)
+            }
+        }
+        return cities.count
     }
 
     static func systemImage(for stat: Stat) -> String {
