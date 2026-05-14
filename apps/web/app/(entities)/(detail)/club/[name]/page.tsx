@@ -15,7 +15,6 @@ import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
-import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { buildClubImageUrl } from "@/util/imageUtil";
@@ -23,6 +22,7 @@ import JsonLd from "@/ui/components/JsonLd";
 import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
 import { readTimezoneCookie } from "@/util/timezone";
+import ClubShowRooms from "@/ui/pages/entity/club/showRooms";
 
 type DetailSearchParams = Record<string, string | string[] | undefined>;
 
@@ -173,7 +173,7 @@ export default async function ClubDetailPage(props: {
                 total={total}
                 filterData={filters}
             />
-            <ShowTable shows={shows} hideClubName />
+            <ClubShowRooms shows={shows} />
         </>
     );
 }
