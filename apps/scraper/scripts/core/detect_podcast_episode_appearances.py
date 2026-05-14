@@ -9,7 +9,7 @@ import json
 import re
 import sys
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
@@ -78,6 +78,12 @@ _GET_EPISODES_SQL = """
         AND cp.association_type IN ('host', 'cohost', 'owner')
     WHERE p.source = %s
       AND pe.source = %s
+      AND EXISTS (
+          SELECT 1
+          FROM comedian_podcasts accepted_cp
+          WHERE accepted_cp.podcast_id = p.id
+            AND accepted_cp.review_status = 'accepted'
+      )
       {extra_filter}
     GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title,
         pe.title, pe.description, pe.episode_url

@@ -105,6 +105,14 @@ def test_comedian_query_uses_canonical_non_denied_comedians_and_aliases():
     assert "a.parent_comedian_id = c.id" in query
 
 
+def test_episode_query_scans_only_accepted_podcast_relationships():
+    query = mod._GET_EPISODES_SQL
+
+    assert "EXISTS" in query
+    assert "accepted_cp.podcast_id = p.id" in query
+    assert "accepted_cp.review_status = 'accepted'" in query
+
+
 def test_normalization_handles_entities_unicode_punctuation_variants_and_initials():
     assert mod.normalize_match_text("J.R. De&#45;Guzman's Cafe") == "j r de guzman cafe"
     assert mod.normalize_match_text("Steve-O") == mod.normalize_match_text("Steve O")
