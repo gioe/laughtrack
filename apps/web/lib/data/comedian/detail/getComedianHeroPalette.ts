@@ -12,7 +12,7 @@ const MAX_IMAGE_BYTES = 4_000_000;
 const PALETTE_ALGORITHM_VERSION = "v2";
 
 async function fetchImageBuffer(imageUrl: string) {
-    const response = await fetch(imageUrl);
+    const response = await fetch(imageUrl, { cache: "no-store" });
     if (!response.ok) return null;
 
     const contentLength = Number(response.headers.get("content-length"));
@@ -20,10 +20,37 @@ async function fetchImageBuffer(imageUrl: string) {
         return null;
     }
 
-    const bytes = await response.arrayBuffer();
-    if (bytes.byteLength > MAX_IMAGE_BYTES) return null;
+    // Stream the body chunk-by-chunk instead of awaiting response.arrayBuffer()
+    // or response.bytes(). Next.js's dev-mode fetch instrumentation wraps the
+    // Response and recurses into a stack overflow when those one-shot consumers
+    // are awaited inside an RSC render — surfaces as
+    // "RangeError: Maximum call stack size exceeded" with no real stack trace,
+    // wrapped as "failed to pipe response", killing the first request after a
+    // fresh compile of `/comedian/[name]`. The streaming reader path bypasses
+    // the wrapper and is byte-equivalent to arrayBuffer().
+    if (!response.body) return null;
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!value) continue;
+        chunks.push(value);
+        total += value.byteLength;
+        if (total > MAX_IMAGE_BYTES) {
+            await reader.cancel();
+            return null;
+        }
+    }
 
-    return Buffer.from(bytes);
+    const merged = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    return Buffer.from(merged);
 }
 
 async function extractComedianHeroPalette(imageUrl: string) {
