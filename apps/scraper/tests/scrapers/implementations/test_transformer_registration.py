@@ -20,6 +20,7 @@ from laughtrack.scrapers.implementations.venues.broadway_comedy_club.scraper imp
 from laughtrack.scrapers.implementations.api.ovationtix.scraper import OvationTixScraper
 from laughtrack.scrapers.implementations.api.wix_events.scraper import WixEventsScraper
 from laughtrack.scrapers.implementations.api.squadup.scraper import SquadUpScraper
+from laughtrack.scrapers.implementations.venues.barclays_center.scraper import BarclaysCenterScraper
 from laughtrack.scrapers.implementations.venues.comedy_cellar.scraper import ComedyCellarScraper
 from laughtrack.scrapers.implementations.venues.comedy_key_west.scraper import ComedyKeyWestScraper
 from laughtrack.scrapers.implementations.venues.gotham.scraper import GothamComedyClubScraper
@@ -107,6 +108,7 @@ PIPELINE_SCRAPERS = [
     (WixEventsScraper, {"wix_comp_id": "comp-test"}),
     (SquadUpScraper, {"squadup_user_id": "99999"}),
     # Venue-specific scrapers
+    (BarclaysCenterScraper, {"scraper": "barclays_center"}),
     (BroadwayComedyClubScraper, {}),
     (ComedyCellarScraper, {}),
     (ComedyKeyWestScraper, {}),
