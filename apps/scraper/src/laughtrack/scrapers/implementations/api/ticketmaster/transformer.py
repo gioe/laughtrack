@@ -14,6 +14,7 @@ from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
 
 _COMEDY_GENRE_NAMES = {"comedy", "stand-up comedy", "standup comedy"}
+_COMEDY_SEGMENT_NAMES = {"arts & theatre"}
 
 # Genres that are effectively uncategorised — treat the same as missing genre
 _UNCATEGORISED_GENRE_NAMES = {"miscellaneous", "undefined", "other"}
@@ -79,9 +80,14 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
                 return True
 
         # If every classification has empty or uncategorised genre info, treat the
-        # event as unclassified and allow it through — the venue was explicitly
-        # onboarded as a comedy club, so the event is very likely comedy.
+        # event as unclassified only when Ticketmaster's broader segment is
+        # compatible with comedy. This preserves venues such as The Second City,
+        # while excluding Music/Sports/etc. events whose genre is just Undefined.
         for classification in classifications:
+            segment = classification.get("segment", {})
+            segment_name = segment.get("name", "").lower() if segment else ""
+            if segment_name and segment_name not in _COMEDY_SEGMENT_NAMES:
+                return False
             genre = classification.get("genre", {})
             genre_name = genre.get("name", "").lower() if genre else ""
             if genre_name and genre_name not in _UNCATEGORISED_GENRE_NAMES:

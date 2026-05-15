@@ -28,6 +28,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.ticketmaster.data import TicketmasterPageData
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
+from laughtrack.scrapers.implementations.api.ticketmaster.transformer import TicketmasterEventTransformer
 
 
 @dataclasses.dataclass
@@ -142,6 +143,21 @@ def _fake_show(v, name=None):
         date=datetime(2026, 4, 10, 20, 0, tzinfo=timezone.utc),
         show_page_url=f"https://www.ticketmaster.com/event/{v.event_id}",
     )
+
+
+def _event_with_classification(segment: str, genre: str, sub_genre: str = "Undefined") -> dict:
+    return {
+        "id": "FAKE0000CLASS001",
+        "name": "Classified Event",
+        "dates": {"start": {"localDate": "2026-04-10", "localTime": "20:00:00"}},
+        "classifications": [
+            {
+                "segment": {"name": segment},
+                "genre": {"name": genre},
+                "subGenre": {"name": sub_genre},
+            }
+        ],
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -267,6 +283,18 @@ def test_transformation_pipeline_preserves_event_name(v):
 
     assert len(shows) == 1
     assert shows[0].name == event_name
+
+
+def test_music_events_with_undefined_genre_are_not_treated_as_comedy():
+    event = _event_with_classification("Music", "Undefined", "Undefined")
+
+    assert TicketmasterEventTransformer._is_comedy_event(event) is False
+
+
+def test_arts_theatre_events_with_undefined_genre_remain_eligible():
+    event = _event_with_classification("Arts & Theatre", "Undefined", "Undefined")
+
+    assert TicketmasterEventTransformer._is_comedy_event(event) is True
 
 
 @pytest.mark.asyncio
