@@ -3,6 +3,7 @@ import Foundation
 public enum AuthProvider: String, CaseIterable, Codable, Equatable, Sendable {
     case apple
     case google
+    case email
 
     public var title: String {
         switch self {
@@ -10,6 +11,8 @@ public enum AuthProvider: String, CaseIterable, Codable, Equatable, Sendable {
             "Continue with Apple"
         case .google:
             "Continue with Google"
+        case .email:
+            "Email me a sign-in link"
         }
     }
 
@@ -19,6 +22,8 @@ public enum AuthProvider: String, CaseIterable, Codable, Equatable, Sendable {
             "Use your Apple ID to sign in quickly."
         case .google:
             "Use the Google account you already use on the web."
+        case .email:
+            "Use LaughTrack’s existing magic-link email sign-in."
         }
     }
 
@@ -28,6 +33,8 @@ public enum AuthProvider: String, CaseIterable, Codable, Equatable, Sendable {
             "apple.logo"
         case .google:
             "globe"
+        case .email:
+            "envelope.fill"
         }
     }
 

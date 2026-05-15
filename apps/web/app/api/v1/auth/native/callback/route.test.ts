@@ -68,6 +68,62 @@ describe("GET /api/v1/auth/native/callback", () => {
         );
     });
 
+    it("accepts email magic-link callbacks and returns the mobile token session", async () => {
+        vi.spyOn(global, "fetch").mockResolvedValue(
+            new Response(
+                JSON.stringify({
+                    accessToken: "access-jwt",
+                    refreshToken: "opaque-refresh",
+                    expiresIn: 900,
+                }),
+                {
+                    status: 200,
+                    headers: { "content-type": "application/json" },
+                },
+            ),
+        );
+
+        const { GET } = await import("./route");
+        const response = await GET(
+            new NextRequest(
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=email",
+                {
+                    headers: {
+                        cookie: "next-auth.session-token=session-cookie",
+                    },
+                },
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+            "laughtrack://auth/callback?provider=email&accessToken=access-jwt&refreshToken=opaque-refresh&expiresIn=900",
+        );
+        expect(global.fetch).toHaveBeenCalledWith(
+            "https://laughtrack.app/api/v1/auth/token",
+            expect.objectContaining({
+                method: "POST",
+            }),
+        );
+    });
+
+    it("rejects unsupported provider values before token exchange", async () => {
+        const fetchSpy = vi.spyOn(global, "fetch");
+
+        const { GET } = await import("./route");
+        const response = await GET(
+            new NextRequest(
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=evil",
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+            "laughtrack://auth/callback?error=unsupported_provider",
+        );
+        expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
     it("preserves upstream oauth errors", async () => {
         const { GET } = await import("./route");
         const response = await GET(
@@ -223,31 +279,4 @@ describe("GET /api/v1/auth/native/callback", () => {
         );
     });
 
-    it("drops unknown provider values from the redirect", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
-        );
-
-        const { GET } = await import("./route");
-        const response = await GET(
-            new NextRequest(
-                "https://laughtrack.app/api/v1/auth/native/callback?provider=evil",
-            ),
-        );
-
-        expect(response.status).toBe(307);
-        expect(response.headers.get("location")).toBe(
-            "laughtrack://auth/callback?accessToken=access-jwt&refreshToken=opaque-refresh&expiresIn=900",
-        );
-    });
 });

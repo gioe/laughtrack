@@ -715,7 +715,7 @@ struct LaughTrackAuthProviderCard: View {
         let laughTrack = theme.laughTrackTokens
 
         Button(action: action) {
-            LaughTrackCard(tone: provider == .google ? .muted : .standard) {
+            LaughTrackCard(tone: provider == .apple ? .standard : .muted) {
                 HStack(alignment: .center, spacing: laughTrack.spacing.itemGap) {
                     ZStack {
                         RoundedRectangle(cornerRadius: laughTrack.radius.chip, style: .continuous)
@@ -758,7 +758,7 @@ struct LaughTrackAuthProviderCard: View {
         switch provider {
         case .apple:
             return laughTrack.colors.surfaceMuted
-        case .google:
+        case .google, .email:
             return laughTrack.colors.highlight
         }
     }
@@ -768,7 +768,7 @@ struct LaughTrackAuthProviderCard: View {
         switch provider {
         case .apple:
             return laughTrack.colors.textPrimary
-        case .google:
+        case .google, .email:
             return laughTrack.colors.accentStrong
         }
     }

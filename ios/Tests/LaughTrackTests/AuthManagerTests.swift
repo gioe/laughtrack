@@ -74,6 +74,52 @@ struct AuthManagerTests {
         #expect(await authMiddleware.hasAccessToken)
     }
 
+    @Test("native email auth provider starts expected magic-link flow")
+    @MainActor
+    func nativeEmailAuthProviderStartsExpectedFlow() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.email.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+        let accessToken = Self.jwt(expirationOffset: 7200)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        runner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=email&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+
+        await manager.signIn(with: .email)
+
+        let startComponents = runner.lastStartURL.flatMap {
+            URLComponents(url: $0, resolvingAgainstBaseURL: false)
+        }
+        let callbackURL = startComponents?.queryItems?.first(where: { $0.name == "callbackUrl" })?.value
+        let callbackComponents = callbackURL
+            .flatMap(URL.init(string:))
+            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
+
+        #expect(runner.lastCallbackScheme == "laughtrack")
+        #expect(startComponents?.path == "/api/auth/signin/email")
+        #expect(callbackComponents?.path == "/api/v1/auth/native/callback")
+        #expect(callbackComponents?.queryItems?.first(where: { $0.name == "provider" })?.value == "email")
+
+        guard case .authenticated(let session) = manager.state else {
+            Issue.record("Expected authenticated state")
+            return
+        }
+        #expect(session.provider == .email)
+        #expect(tokenManager.retrieveAccessToken() == accessToken)
+        #expect(tokenManager.retrieveRefreshToken() == refreshToken)
+        #expect(await authMiddleware.hasAccessToken)
+    }
+
     @Test("restoreSession clears legacy installs that stored the access token in both slots")
     @MainActor
     func restoreSessionClearsLegacyDualAccessTokenInstall() async {
@@ -537,8 +583,12 @@ private actor LoadUserErrorRecorder {
 private final class MockOAuthSessionRunner: OAuthSessionRunning {
     var callbackURL = URL(string: "laughtrack://auth/callback")!
     var error: Error?
+    private(set) var lastStartURL: URL?
+    private(set) var lastCallbackScheme: String?
 
     func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
+        lastStartURL = startURL
+        lastCallbackScheme = callbackScheme
         if let error {
             throw error
         }

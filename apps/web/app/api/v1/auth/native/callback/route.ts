@@ -10,7 +10,7 @@ import {
 // are ignored entirely so an attacker cannot smuggle a foreign host, extra
 // query params, a fragment, or userinfo into the token-bearing redirect.
 const CANONICAL_DEEP_LINK = "laughtrack://auth/callback";
-const ALLOWED_PROVIDERS = new Set(["apple", "google"]);
+const ALLOWED_PROVIDERS = new Set(["apple", "google", "email"]);
 
 function safeProvider(raw: string | null): string | null {
     return raw && ALLOWED_PROVIDERS.has(raw) ? raw : null;
@@ -31,9 +31,11 @@ function buildCallbackURL(params: Record<string, string | null | undefined>) {
 /**
  * GET /api/v1/auth/native/callback
  *
- * Final hop for native iOS OAuth. NextAuth redirects here after Apple/Google
- * sign-in; this route exchanges the authenticated session for a JWT through
- * /api/v1/auth/token, then redirects back into the app's URL scheme.
+ * Final hop for native iOS auth. Apple/Google complete OAuth here, and email
+ * reuses the existing NextAuth magic-link provider instead of adding a new
+ * password credential surface. In every case, this route exchanges the
+ * authenticated NextAuth session for the same mobile access + refresh token
+ * pair, then redirects back into the app's URL scheme.
  */
 export async function GET(req: NextRequest) {
     const rl = await checkRateLimit(
@@ -43,6 +45,14 @@ export async function GET(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl);
 
     const provider = safeProvider(req.nextUrl.searchParams.get("provider"));
+    if (!provider) {
+        return NextResponse.redirect(
+            buildCallbackURL({
+                error: "unsupported_provider",
+            }),
+        );
+    }
+
     const oauthError = req.nextUrl.searchParams.get("error");
 
     if (oauthError) {

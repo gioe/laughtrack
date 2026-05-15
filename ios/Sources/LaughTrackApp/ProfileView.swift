@@ -192,7 +192,7 @@ struct ProfileView: View {
             .background(heroAuthButtonBackground(for: provider))
             .overlay(
                 RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
-                    .stroke(provider == .google ? laughTrack.colors.borderStrong.opacity(0.5) : .clear, lineWidth: 1)
+                    .stroke(provider == .apple ? .clear : laughTrack.colors.borderStrong.opacity(0.5), lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         }
@@ -207,7 +207,7 @@ struct ProfileView: View {
         switch provider {
         case .apple:
             laughTrack.colors.textPrimary
-        case .google:
+        case .google, .email:
             laughTrack.colors.surfaceElevated
         }
     }

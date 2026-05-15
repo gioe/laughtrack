@@ -104,7 +104,7 @@ struct LaughTrackLoginModalView: View {
         switch provider {
         case .apple:
             laughTrack.colors.textPrimary
-        case .google:
+        case .google, .email:
             laughTrack.colors.surfaceElevated
         }
     }
@@ -114,7 +114,7 @@ struct LaughTrackLoginModalView: View {
         let laughTrack = theme.laughTrackTokens
 
         RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
-            .stroke(provider == .google ? laughTrack.colors.borderStrong.opacity(0.55) : .clear, lineWidth: 1)
+            .stroke(provider == .apple ? .clear : laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
     }
 
     private func signIn(with provider: AuthProvider) {
