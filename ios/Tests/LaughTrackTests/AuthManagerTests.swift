@@ -106,7 +106,8 @@ struct AuthManagerTests {
             .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
 
         #expect(runner.lastCallbackScheme == "laughtrack")
-        #expect(startComponents?.path == "/api/auth/signin/email")
+        #expect(startComponents?.path.isEmpty == true)
+        #expect(startComponents?.queryItems?.first(where: { $0.name == "nativeAuthProvider" })?.value == "email")
         #expect(callbackComponents?.path == "/api/v1/auth/native/callback")
         #expect(callbackComponents?.queryItems?.first(where: { $0.name == "provider" })?.value == "email")
 

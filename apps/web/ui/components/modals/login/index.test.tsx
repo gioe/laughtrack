@@ -57,7 +57,10 @@ beforeEach(() => {
     mockIsOpen = false;
     mockSearchParamsGet = () => null;
     Object.defineProperty(window, "location", {
-        value: { href: "https://laugh-track.com/" },
+        value: {
+            href: "https://laugh-track.com/",
+            origin: "https://laugh-track.com",
+        },
         writable: true,
         configurable: true,
     });
@@ -89,9 +92,43 @@ describe("LoginModal", () => {
         expect(mockOnOpen).toHaveBeenCalledTimes(1);
     });
 
+    it("opens the modal for a native email magic-link request", () => {
+        mockSearchParamsGet = (key) => {
+            if (key === "nativeAuthProvider") return "email";
+            if (key === "callbackUrl") {
+                return "https://laugh-track.com/api/v1/auth/native/callback?provider=email";
+            }
+            return null;
+        };
+
+        act(() => {
+            render(<LoginModal />);
+        });
+
+        expect(mockOnOpen).toHaveBeenCalledTimes(1);
+        expect(mockToastError).not.toHaveBeenCalled();
+    });
+
+    it("ignores non-native callback URLs when deciding whether to open", () => {
+        mockSearchParamsGet = (key) => {
+            if (key === "nativeAuthProvider") return "email";
+            if (key === "callbackUrl") return "https://attacker.example/auth";
+            return null;
+        };
+
+        act(() => {
+            render(<LoginModal />);
+        });
+
+        expect(mockOnOpen).not.toHaveBeenCalled();
+    });
+
     it("removes the error param from the URL after handling", () => {
         Object.defineProperty(window, "location", {
-            value: { href: "https://laugh-track.com/?error=OAuthCallback" },
+            value: {
+                href: "https://laugh-track.com/?error=OAuthCallback",
+                origin: "https://laugh-track.com",
+            },
             writable: true,
             configurable: true,
         });

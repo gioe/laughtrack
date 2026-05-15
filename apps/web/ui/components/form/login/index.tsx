@@ -7,6 +7,7 @@ import { z } from "zod";
 import SocialAuthButtons from "../../auth/social";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { Button } from "@/ui/components/ui/button";
@@ -25,6 +26,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSubmit }: LoginFormProps) {
     const [isSocialLoading, setIsSocialLoading] = useState(false);
+    const searchParams = useSearchParams();
     const { mv } = useMotionProps();
 
     const form = useForm<LoginFormValues>({
@@ -35,12 +37,14 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
 
     const isSubmitting = form.formState.isSubmitting;
     const isLoading = isSocialLoading || isSubmitting;
+    const nativeEmailCallbackUrl = getNativeEmailCallbackUrl(searchParams);
 
     const handleEmailSubmit = async (values: LoginFormValues) => {
         try {
             const result = await signIn("email", {
                 email: values.email,
                 redirect: false,
+                callbackUrl: nativeEmailCallbackUrl,
             });
             if (!result || !result.ok || result.error) {
                 toast.error("Failed to send sign-in link. Please try again.");
@@ -147,4 +151,25 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             )}
         </motion.div>
     );
+}
+
+function getNativeEmailCallbackUrl(searchParams: {
+    get(name: string): string | null;
+}): string | undefined {
+    const callbackUrl = searchParams.get("callbackUrl");
+    if (!callbackUrl) return undefined;
+
+    try {
+        const parsed = new URL(callbackUrl, window.location.origin);
+        if (
+            parsed.origin !== window.location.origin ||
+            parsed.pathname !== "/api/v1/auth/native/callback" ||
+            parsed.searchParams.get("provider") !== "email"
+        ) {
+            return undefined;
+        }
+        return parsed.href;
+    } catch {
+        return undefined;
+    }
 }

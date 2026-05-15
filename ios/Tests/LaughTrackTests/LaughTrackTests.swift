@@ -30,16 +30,22 @@ struct LaughTrackTests {
     func routeDefinitionsRemainDistinct() {
         let googleSignInURL = AuthRouteConfiguration.signInURL(for: .google)
         let appleSignInURL = AuthRouteConfiguration.signInURL(for: .apple)
+        let emailSignInURL = AuthRouteConfiguration.signInURL(for: .email)
         let callbackURL = AuthRouteConfiguration.nativeCallbackURL(for: .google)
+        let emailCallbackURL = AuthRouteConfiguration.nativeCallbackURL(for: .email)
 
         #expect(AuthRouteConfiguration.callbackScheme == "laughtrack")
         #expect(googleSignInURL.host == "www.laugh-track.com")
         #expect(googleSignInURL.path == "/api/auth/signin/google")
         #expect(appleSignInURL.host == "www.laugh-track.com")
         #expect(appleSignInURL.path == "/api/auth/signin/apple")
+        #expect(emailSignInURL.host == "www.laugh-track.com")
+        #expect(emailSignInURL.path.isEmpty)
+        #expect(URLComponents(url: emailSignInURL, resolvingAgainstBaseURL: false)?.queryItems?.first(where: { $0.name == "nativeAuthProvider" })?.value == "email")
         #expect(callbackURL.host == "www.laugh-track.com")
         #expect(callbackURL.path == "/api/v1/auth/native/callback")
         #expect(URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "google")
+        #expect(URLComponents(url: emailCallbackURL, resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "email")
     }
 
     @Test("bootstrap theme keeps bridge semantics available at launch")

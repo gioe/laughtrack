@@ -15,6 +15,26 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
     Default: "Sign-in failed. Please try again.",
 };
 
+function isNativeEmailAuthRequest(searchParams: {
+    get(name: string): string | null;
+}): boolean {
+    if (searchParams.get("nativeAuthProvider") !== "email") return false;
+
+    const callbackUrl = searchParams.get("callbackUrl");
+    if (!callbackUrl) return false;
+
+    try {
+        const parsed = new URL(callbackUrl, window.location.origin);
+        return (
+            parsed.origin === window.location.origin &&
+            parsed.pathname === "/api/v1/auth/native/callback" &&
+            parsed.searchParams.get("provider") === "email"
+        );
+    } catch {
+        return false;
+    }
+}
+
 const LoginModal = () => {
     const router = useRouter();
     const onOpen = useLoginModal((s) => s.onOpen);
@@ -33,6 +53,10 @@ const LoginModal = () => {
             const url = new URL(window.location.href);
             url.searchParams.delete("error");
             router.replace(url.pathname + url.search, { scroll: false });
+        }
+
+        if (isNativeEmailAuthRequest(searchParams)) {
+            onOpen();
         }
     }, [searchParams, onOpen, router]);
 
