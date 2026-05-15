@@ -9,6 +9,7 @@ struct ProfileView: View {
     static let favoriteComedianAlertsTitle = "Favorite comedian alerts"
     static let signOutButtonTitle = "Sign out"
     static let deleteAccountButtonTitle = "Delete account"
+    static let signedOutAuthOptions = SignedOutAuthOption.all
 
     let apiClient: Client
     let signedOutMessage: String?
@@ -158,58 +159,18 @@ struct ProfileView: View {
                     }
                 } else {
                     VStack(spacing: theme.spacing.sm) {
-                        ForEach(AuthProvider.allCases, id: \.self) { provider in
-                            heroAuthButton(for: provider)
+                        ForEach(Self.signedOutAuthOptions) { option in
+                            SignedOutAuthOptionButton(option: option) { provider in
+                                Task {
+                                    await authManager.signIn(with: provider)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileHero)
-    }
-
-    private func heroAuthButton(for provider: AuthProvider) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return Button {
-            Task {
-                await authManager.signIn(with: provider)
-            }
-        } label: {
-            HStack(spacing: theme.spacing.sm) {
-                Image(systemName: provider.symbolName)
-                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                    .frame(width: 24)
-
-                Text(provider.title)
-                    .font(.system(size: 17, weight: .medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.86)
-            }
-            .foregroundStyle(provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .padding(.horizontal, theme.spacing.md)
-            .background(heroAuthButtonBackground(for: provider))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
-                    .stroke(provider == .apple ? .clear : laughTrack.colors.borderStrong.opacity(0.5), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(provider.title)
-    }
-
-    @ViewBuilder
-    private func heroAuthButtonBackground(for provider: AuthProvider) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        switch provider {
-        case .apple:
-            laughTrack.colors.textPrimary
-        case .google, .email:
-            laughTrack.colors.surfaceElevated
-        }
     }
 
     private var heroTitle: String {

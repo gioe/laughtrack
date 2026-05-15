@@ -68,7 +68,11 @@ struct ProfileViewTests {
         let authManager = makeAuthManager(runner: runner)
 
         #expect(ProfileView.makeHeroTitle(user: nil, session: nil) == "Guest mode")
-        #expect(AuthProvider.allCases.map(\.title) == ["Continue with Apple", "Continue with Google"])
+        #expect(ProfileView.signedOutAuthOptions.map(\.title) == [
+            "Continue with Apple",
+            "Continue with Google",
+            "Email me a sign-in link",
+        ])
 
         await authManager.signIn(with: .google)
 
@@ -79,6 +83,14 @@ struct ProfileViewTests {
         #expect(session.provider == .google)
         #expect(ProfileView.makeHeroTitle(user: nil, session: session) == "Google account")
         #expect(ProfileView.makeHeroSubtitle(user: nil, session: session) == "Favorites sync through Google is on.")
+    }
+
+    @Test("profile and login modal render the same signed-out auth option set")
+    func signedOutAuthOptionsMatchSharedAuthOptionSet() {
+        #expect(ProfileView.signedOutAuthOptions == SignedOutAuthOption.all)
+        #expect(LaughTrackLoginModalView.signedOutAuthOptions == SignedOutAuthOption.all)
+        #expect(ProfileView.signedOutAuthOptions == LaughTrackLoginModalView.signedOutAuthOptions)
+        #expect(ProfileView.signedOutAuthOptions.map(\.provider) == [.apple, .google, .email])
     }
 
     @Test("signed-in auth state surfaces display-name hero and unlocks settings panel")

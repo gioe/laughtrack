@@ -222,6 +222,8 @@ struct HomeLocationFilterModal: View {
 }
 
 struct ContentView: View {
+    static let firstEntrySignedOutAuthOptions = ProfileView.signedOutAuthOptions
+
     enum RootSurface: Equatable {
         case loading
         case signedOutShell(message: String?)

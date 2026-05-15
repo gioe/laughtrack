@@ -4,6 +4,8 @@ import LaughTrackCore
 
 @MainActor
 struct LaughTrackLoginModalView: View {
+    static let signedOutAuthOptions = SignedOutAuthOption.all
+
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
@@ -43,28 +45,8 @@ struct LaughTrackLoginModalView: View {
                 }
 
                 VStack(spacing: laughTrack.spacing.itemGap) {
-                    ForEach(AuthProvider.allCases, id: \.self) { provider in
-                        Button {
-                            signIn(with: provider)
-                        } label: {
-                            HStack(spacing: laughTrack.spacing.itemGap) {
-                                Image(systemName: provider.symbolName)
-                                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                                    .frame(width: 24)
-
-                                Text(provider.title)
-                                    .font(.system(size: 17, weight: .medium))
-                            }
-                            .foregroundStyle(provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
-                            .padding(.horizontal, theme.spacing.lg)
-                            .padding(.vertical, theme.spacing.md)
-                            .frame(maxWidth: .infinity, minHeight: 50)
-                            .background(buttonBackground(for: provider))
-                            .overlay(buttonBorder(for: provider))
-                            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(provider.title)
+                    ForEach(Self.signedOutAuthOptions) { option in
+                        SignedOutAuthOptionButton(option: option, action: signIn)
                     }
                 }
 
@@ -95,26 +77,6 @@ struct LaughTrackLoginModalView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.hidden)
-    }
-
-    @ViewBuilder
-    private func buttonBackground(for provider: AuthProvider) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        switch provider {
-        case .apple:
-            laughTrack.colors.textPrimary
-        case .google, .email:
-            laughTrack.colors.surfaceElevated
-        }
-    }
-
-    @ViewBuilder
-    private func buttonBorder(for provider: AuthProvider) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
-            .stroke(provider == .apple ? .clear : laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
     }
 
     private func signIn(with provider: AuthProvider) {

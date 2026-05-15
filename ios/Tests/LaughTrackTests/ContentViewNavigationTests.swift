@@ -53,7 +53,14 @@ struct ContentViewNavigationTests {
     func signedOutEntryPointsRouteGuestsTowardProfileSignIn() async throws {
         #expect(AppRoute.nearMeToolbarTarget(isSignedIn: false) == .profile)
         #expect(AppRoute.accountHeaderTarget() == .profile)
-        #expect(AuthProvider.allCases.map(\.title) == ["Continue with Apple", "Continue with Google"])
+        #expect(ContentView.firstEntrySignedOutAuthOptions == ProfileView.signedOutAuthOptions)
+    }
+
+    @Test("first-entry auth options match profile options")
+    func firstEntryAuthOptionsMatchProfileOptions() {
+        #expect(ContentView.firstEntrySignedOutAuthOptions == ProfileView.signedOutAuthOptions)
+        #expect(ContentView.firstEntrySignedOutAuthOptions == SignedOutAuthOption.all)
+        #expect(ContentView.firstEntrySignedOutAuthOptions.map(\.provider) == [.apple, .google, .email])
     }
 
     @Test("content view routes authenticated users into the app shell")
