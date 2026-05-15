@@ -17,7 +17,7 @@ A new Etix venue can be onboarded with only a DB row — no Python changes.
 import re
 from datetime import date
 from typing import List, Optional
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.etix import EtixEvent
@@ -75,6 +75,8 @@ class EtixScraper(BaseScraper):
     def _extract_venue_id(self) -> str:
         """Extract the Etix venue ID from scraping_url."""
         url = self.club.scraping_url or ""
+        if self._is_funny_bone_public_url(url):
+            return ""
         # Try venue_id query param
         m = re.search(r"venue_id=(\d+)", url)
         if m:
@@ -95,6 +97,9 @@ class EtixScraper(BaseScraper):
         Fetches page 1 first to discover the total page count, then
         returns URLs for all pages.
         """
+        if self._uses_funny_bone_public_source():
+            return [self.club.scraping_url]
+
         if not self._venue_id:
             Logger.error(
                 f"{self._log_prefix}: no venue_id — cannot scrape",
@@ -121,6 +126,9 @@ class EtixScraper(BaseScraper):
     async def get_data(self, url: str) -> Optional[EtixPageData]:
         """Fetch a single page and extract event cards."""
         try:
+            if self._is_funny_bone_public_url(url):
+                return await self._get_funny_bone_public_data(url)
+
             html = await self._fetch_etix_html(url)
             if not html:
                 Logger.warn(
@@ -298,6 +306,15 @@ class EtixScraper(BaseScraper):
             self._venue_id in _FUNNY_BONE_FALLBACKS
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
+
+    def _uses_funny_bone_public_source(self) -> bool:
+        return self._is_funny_bone_public_url(self.club.scraping_url)
+
+    def _is_funny_bone_public_url(self, url: str) -> bool:
+        if not url:
+            return False
+        host = urlparse(url).netloc.lower()
+        return host.endswith(".funnybone.com") or host == "funnybone.com"
 
     def _uses_zanies_nashville_fallback(self, url: str) -> bool:
         return (
@@ -492,6 +509,38 @@ class EtixScraper(BaseScraper):
 
         Logger.warn(
             f"{self._log_prefix}: Funny Bone fallback found no usable events at {shows_url}",
+            self.logger_context,
+        )
+        return None
+
+    async def _get_funny_bone_public_data(self, shows_url: str) -> Optional[EtixPageData]:
+        """Parse a Funny Bone public page configured directly as source_url."""
+        try:
+            html = await self.fetch_html_bare(shows_url)
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: Funny Bone public source fetch failed for {shows_url}: {e}",
+                self.logger_context,
+            )
+            return None
+
+        if not html:
+            Logger.warn(
+                f"{self._log_prefix}: Funny Bone public source returned no HTML for {shows_url}",
+                self.logger_context,
+            )
+            return None
+
+        events = self._extract_funny_bone_events(html)
+        if events:
+            Logger.info(
+                f"{self._log_prefix}: Funny Bone public source extracted {len(events)} events from {shows_url}",
+                self.logger_context,
+            )
+            return EtixPageData(event_list=events)
+
+        Logger.warn(
+            f"{self._log_prefix}: Funny Bone public source found no usable events at {shows_url}",
             self.logger_context,
         )
         return None

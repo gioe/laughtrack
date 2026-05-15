@@ -188,3 +188,49 @@ def test_tampa_funny_bone_fallback_only_triggers_for_venue_31600():
 
     other_etix = "https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=12345&orderBy=1&pageNumber=1"
     assert not scraper._uses_funny_bone_fallback(other_etix)
+
+
+@pytest.mark.asyncio
+async def test_funny_bone_public_source_is_scrape_target(monkeypatch):
+    from laughtrack.core.entities.club.model import Club, ScrapingSource
+    from laughtrack.scrapers.implementations.api.etix.data import EtixPageData
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    club = Club(
+        id=2462,
+        name="Funny Bone Comedy Club (formerly Kansas City Improv)",
+        address="Kansas City, MO",
+        website="https://kc.funnybone.com",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=True,
+        timezone="America/Chicago",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=1471,
+        club_id=club.id,
+        platform="etix",
+        scraper_key="etix",
+        source_url="https://kc.funnybone.com/",
+        external_id=None,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    scraper = EtixScraper(club)
+    fetch_bare_calls: list[str] = []
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        fetch_bare_calls.append(url)
+        if url == "https://kc.funnybone.com/":
+            return _shows_html()
+        raise AssertionError(f"unexpected fetch_html_bare: {url}")
+
+    monkeypatch.setattr(EtixScraper, "fetch_html_bare", fake_fetch_html_bare)
+
+    targets = await scraper.collect_scraping_targets()
+    result = await scraper.get_data(targets[0])
+
+    assert targets == ["https://kc.funnybone.com/"]
+    assert isinstance(result, EtixPageData)
+    assert fetch_bare_calls == ["https://kc.funnybone.com/"]
+    assert len(result.event_list) == 3
