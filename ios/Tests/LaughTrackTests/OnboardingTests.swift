@@ -10,6 +10,56 @@ import LaughTrackCore
 @Suite("Onboarding")
 @MainActor
 struct OnboardingTests {
+    @Test("incomplete authenticated users route to onboarding only after profile load")
+    func incompleteAuthenticatedUsersRouteToOnboardingAfterProfileLoad() {
+        let session = AuthSessionMetadata(provider: .apple, signedInAt: Date(), expiresAt: nil)
+        let incompleteUser = AuthenticatedUser(
+            displayName: "Maya",
+            email: "maya@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: false
+        )
+
+        #expect(ContentView.rootSurface(
+            authState: .authenticated(session),
+            hasLoadedCurrentUser: false,
+            currentUser: incompleteUser
+        ) == .loading)
+        #expect(ContentView.rootSurface(
+            authState: .authenticated(session),
+            hasLoadedCurrentUser: true,
+            currentUser: incompleteUser
+        ) == .comedianOnboarding)
+    }
+
+    @Test("completed and signed-out users bypass comedian onboarding")
+    func completedAndSignedOutUsersBypassComedianOnboarding() {
+        let session = AuthSessionMetadata(provider: .apple, signedInAt: Date(), expiresAt: nil)
+        let completedUser = AuthenticatedUser(
+            displayName: "Maya",
+            email: "maya@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true
+        )
+        let incompleteUser = AuthenticatedUser(
+            displayName: "Maya",
+            email: "maya@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: false
+        )
+
+        #expect(ContentView.rootSurface(
+            authState: .authenticated(session),
+            hasLoadedCurrentUser: true,
+            currentUser: completedUser
+        ) == .authenticatedShell)
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: true,
+            currentUser: incompleteUser
+        ) == .signedOutShell(message: nil))
+    }
+
     @Test("first-auth incomplete users are gated before the home shell")
     func incompleteAuthenticatedUsersAreGated() {
         let incompleteUser = AuthenticatedUser(
