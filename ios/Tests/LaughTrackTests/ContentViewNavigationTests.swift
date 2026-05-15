@@ -1,10 +1,61 @@
 import Testing
 import LaughTrackBridge
+import LaughTrackCore
 @testable import LaughTrackApp
 
 @Suite("ContentView navigation")
 @MainActor
 struct ContentViewNavigationTests {
+    @Test("first launch waits for auth restoration before choosing a route")
+    func firstLaunchWaitsForAuthRestoration() async throws {
+        #expect(ContentView.rootSurface(
+            authState: .restoring,
+            hasLoadedCurrentUser: false,
+            currentUser: nil
+        ) == .loading)
+        #expect(ContentView.rootSurface(
+            authState: .signingIn(.apple),
+            hasLoadedCurrentUser: false,
+            currentUser: nil
+        ) == .loading)
+    }
+
+    @Test("signed-out first entry opens the guest shell instead of blocking launch")
+    func signedOutFirstEntryOpensGuestShell() async throws {
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil
+        ) == .signedOutShell(message: nil))
+        #expect(AppRoute.nearMe.shellTab == .nearMe)
+        #expect(AppTab.allCases == [.nearMe, .search, .favorites])
+    }
+
+    @Test("returning guest keeps the shell visible and carries the signed-out message")
+    func returningGuestKeepsShellVisible() async throws {
+        let message = "Your session expired. Sign in again."
+
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: message),
+            hasLoadedCurrentUser: false,
+            currentUser: nil
+        ) == .signedOutShell(message: message))
+
+        let presenter = LoginModalPresenter()
+        #expect(!presenter.isPresented)
+        presenter.present()
+        #expect(presenter.isPresented)
+        presenter.dismiss()
+        #expect(!presenter.isPresented)
+    }
+
+    @Test("signed-out entry points route guests toward profile sign-in")
+    func signedOutEntryPointsRouteGuestsTowardProfileSignIn() async throws {
+        #expect(AppRoute.nearMeToolbarTarget(isSignedIn: false) == .profile)
+        #expect(AppRoute.accountHeaderTarget() == .profile)
+        #expect(AuthProvider.allCases.map(\.title) == ["Continue with Apple", "Continue with Google"])
+    }
+
     @Test("content view routes authenticated users into the app shell")
     func contentViewRendersShell() async throws {
         #expect(AppRoute.nearMe.shellTab == .nearMe)

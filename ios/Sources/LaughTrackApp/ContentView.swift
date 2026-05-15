@@ -222,6 +222,13 @@ struct HomeLocationFilterModal: View {
 }
 
 struct ContentView: View {
+    enum RootSurface: Equatable {
+        case loading
+        case signedOutShell(message: String?)
+        case authenticatedShell
+        case comedianOnboarding
+    }
+
     let apiClient: Client
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -234,28 +241,25 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            switch authManager.state {
-            case .restoring, .signingIn:
+            switch Self.rootSurface(
+                authState: authManager.state,
+                hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
+                currentUser: authManager.currentUser
+            ) {
+            case .loading:
                 AuthLoadingView()
-            case .signedOut(let message):
+            case .signedOutShell(let message):
                 appShell(signedOutMessage: message)
-            case .authenticated:
-                if !authManager.hasLoadedCurrentUser {
-                    AuthLoadingView()
-                } else if Self.shouldPresentComedianOnboarding(
-                    authState: authManager.state,
-                    currentUser: authManager.currentUser
-                ) {
-                    ComedianOnboardingView(
-                        apiClient: apiClient,
-                        favorites: favorites,
-                        notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
-                        notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self)
-                    )
-                    .environmentObject(favorites)
-                } else {
-                    appShell(signedOutMessage: nil)
-                }
+            case .comedianOnboarding:
+                ComedianOnboardingView(
+                    apiClient: apiClient,
+                    favorites: favorites,
+                    notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
+                    notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self)
+                )
+                .environmentObject(favorites)
+            case .authenticatedShell:
+                appShell(signedOutMessage: nil)
             }
         }
         .tint(theme.colors.primary)
@@ -271,6 +275,29 @@ struct ContentView: View {
         }
         .sheet(isPresented: $loginModalPresenter.isPresented) {
             LaughTrackLoginModalView()
+        }
+    }
+
+    static func rootSurface(
+        authState: AuthManager.State,
+        hasLoadedCurrentUser: Bool,
+        currentUser: AuthenticatedUser?
+    ) -> RootSurface {
+        switch authState {
+        case .restoring, .signingIn:
+            return .loading
+        case .signedOut(let message):
+            return .signedOutShell(message: message)
+        case .authenticated:
+            guard hasLoadedCurrentUser else {
+                return .loading
+            }
+
+            if shouldPresentComedianOnboarding(authState: authState, currentUser: currentUser) {
+                return .comedianOnboarding
+            }
+
+            return .authenticatedShell
         }
     }
 
