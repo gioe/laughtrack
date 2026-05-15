@@ -41,6 +41,7 @@ _LAUGH_PATRIOT_PLACE_FALLBACK_MONTHS = 6
 # the parser is shared because every Funny Bone WordPress site uses the
 # identical Rockhouse Partners event widget.
 _FUNNY_BONE_FALLBACKS: dict[str, str] = {
+    "28453": "https://desmoines.funnybone.com/shows/",
     "31600": "https://tampa.funnybone.com/shows/",
     "31602": "https://vb.funnybone.com/shows/",
 }
