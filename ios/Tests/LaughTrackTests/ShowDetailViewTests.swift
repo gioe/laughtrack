@@ -142,6 +142,7 @@ struct ShowDetailViewTests {
         #expect(coordinator.path.count == expectedRoutes.count)
     }
 
+    #if canImport(UIKit)
     @Test("show detail lineup renders explicit comedian role badges")
     func showLineupRendersExplicitRoleBadge() async throws {
         var response = DemoContent.showDetailResponse(id: 301) ?? DemoContent.primaryShowDetail
@@ -177,6 +178,7 @@ struct ShowDetailViewTests {
         try host.requireText("Headliner")
         #expect(host.findText("Feature") == nil)
     }
+    #endif
 
     @Test("show detail hero renders a countdown badge derived from the show date")
     func showHeroBadgeIncludesCountdown() {

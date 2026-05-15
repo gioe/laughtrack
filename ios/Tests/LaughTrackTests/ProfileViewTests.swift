@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import APIClient
 import LaughTrackBridge
 import LaughTrackCore
 @testable import LaughTrackApp
@@ -54,6 +55,30 @@ struct ProfileViewTests {
             ProfileView.makeHeroSubtitle(user: nil, session: sessionWithoutUser)
                 == "Favorites sync through Apple is on."
         )
+    }
+
+    @Test("profile sign-in entry point authenticates with the selected provider")
+    func profileSignInEntryPointAuthenticatesWithSelectedProvider() async throws {
+        let runner = ProfileSignInOAuthSessionRunner()
+        let accessToken = makeAccessToken(expiresAt: Date().addingTimeInterval(60 * 60))
+        let refreshToken = makeAccessToken(expiresAt: Date().addingTimeInterval(60 * 61))
+        runner.callbackURL = URL(
+            string: "laughtrack://auth/callback?accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
+        let authManager = makeAuthManager(runner: runner)
+
+        #expect(ProfileView.makeHeroTitle(user: nil, session: nil) == "Guest mode")
+        #expect(AuthProvider.allCases.map(\.title) == ["Continue with Apple", "Continue with Google"])
+
+        await authManager.signIn(with: .google)
+
+        guard case .authenticated(let session) = authManager.state else {
+            Issue.record("Expected selected profile sign-in provider to authenticate")
+            return
+        }
+        #expect(session.provider == .google)
+        #expect(ProfileView.makeHeroTitle(user: nil, session: session) == "Google account")
+        #expect(ProfileView.makeHeroSubtitle(user: nil, session: session) == "Favorites sync through Google is on.")
     }
 
     @Test("signed-in auth state surfaces display-name hero and unlocks settings panel")
@@ -129,5 +154,45 @@ private actor DeleteAccountRecorder {
 
     func record() {
         callCount += 1
+    }
+}
+
+@MainActor
+private func makeAuthManager(runner: any OAuthSessionRunning) -> AuthManager {
+    let secureStorage = InMemorySecureStorage()
+    return AuthManager(
+        tokenManager: AuthTokenManager(secureStorage: secureStorage),
+        authMiddleware: AuthenticationMiddleware(secureStorage: secureStorage),
+        appStateStorage: AppStateStorage(
+            userDefaults: UserDefaults(suiteName: "ProfileViewTests.signIn.\(UUID().uuidString)")!
+        ),
+        oauthSessionRunner: runner
+    )
+}
+
+private func makeAccessToken(expiresAt: Date) -> String {
+    let header = ["alg": "HS256", "typ": "JWT"]
+    let payload = ["exp": Int(expiresAt.timeIntervalSince1970)]
+
+    return [
+        base64URL(header),
+        base64URL(payload),
+        "signature",
+    ].joined(separator: ".")
+}
+
+private func base64URL(_ object: [String: Any]) -> String {
+    let data = try! JSONSerialization.data(withJSONObject: object)
+    return data.base64EncodedString()
+        .replacingOccurrences(of: "+", with: "-")
+        .replacingOccurrences(of: "/", with: "_")
+        .replacingOccurrences(of: "=", with: "")
+}
+
+private final class ProfileSignInOAuthSessionRunner: OAuthSessionRunning {
+    var callbackURL = URL(string: "laughtrack://auth/callback")!
+
+    func authenticate(startURL: URL, callbackScheme: String) async throws -> URL {
+        callbackURL
     }
 }
