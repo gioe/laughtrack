@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import LaughTrackBridge
 import LaughTrackCore
@@ -20,15 +21,47 @@ struct ContentViewNavigationTests {
         ) == .loading)
     }
 
-    @Test("signed-out first entry opens the guest shell instead of blocking launch")
-    func signedOutFirstEntryOpensGuestShell() async throws {
+    @Test("first-launch signed-out user sees auth choice gate")
+    func firstLaunchSignedOutUserSeesAuthChoiceGate() async throws {
         #expect(ContentView.rootSurface(
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: false,
-            currentUser: nil
-        ) == .signedOutShell(message: nil))
+            currentUser: nil,
+            hasChosenGuestBrowsing: false
+        ) == .authChoiceGate(message: nil))
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
+    }
+
+    @Test("choosing Continue as guest records choice and shows shell")
+    func continueAsGuestRecordsChoiceAndShowsShell() async throws {
+        let storage = AppStateStorage(
+            userDefaults: UserDefaults(suiteName: "ContentViewNavigationTests.guest.\(UUID().uuidString)")!
+        )
+        let store = FirstEntryAuthChoiceStore(appStateStorage: storage)
+
+        #expect(!store.hasChosenGuestBrowsing)
+
+        store.continueAsGuest()
+
+        #expect(store.hasChosenGuestBrowsing)
+        #expect(FirstEntryAuthChoiceStore(appStateStorage: storage).hasChosenGuestBrowsing)
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasChosenGuestBrowsing: store.hasChosenGuestBrowsing
+        ) == .signedOutShell(message: nil))
+    }
+
+    @Test("returning guest bypasses auth choice gate")
+    func returningGuestBypassesAuthChoiceGate() async throws {
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasChosenGuestBrowsing: true
+        ) == .signedOutShell(message: nil))
     }
 
     @Test("returning guest keeps the shell visible and carries the signed-out message")
@@ -38,7 +71,8 @@ struct ContentViewNavigationTests {
         #expect(ContentView.rootSurface(
             authState: .signedOut(message: message),
             hasLoadedCurrentUser: false,
-            currentUser: nil
+            currentUser: nil,
+            hasChosenGuestBrowsing: true
         ) == .signedOutShell(message: message))
 
         let presenter = LoginModalPresenter()

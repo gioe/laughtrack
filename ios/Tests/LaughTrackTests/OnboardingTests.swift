@@ -56,7 +56,8 @@ struct OnboardingTests {
         #expect(ContentView.rootSurface(
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: true,
-            currentUser: incompleteUser
+            currentUser: incompleteUser,
+            hasChosenGuestBrowsing: true
         ) == .signedOutShell(message: nil))
     }
 

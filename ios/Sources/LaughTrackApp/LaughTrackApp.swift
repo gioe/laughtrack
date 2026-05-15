@@ -51,6 +51,7 @@ struct LaughTrackApp: App {
         defaults.removeObject(forKey: "laughtrack.discovery.nearby-preference")
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
+        defaults.removeObject(forKey: FirstEntryAuthChoiceStore.storageKey)
     }
 
     /// In mock mode, pre-populate the saved nearby preference to Hollywood (90028)

@@ -62,6 +62,8 @@ enum LaughTrackViewTestID {
     static let favoritesShowsSection = "laughtrack.favorites.shows-section"
     static let favoritesClubsSection = "laughtrack.favorites.clubs-section"
     static let libraryFavoritesSection = favoritesComediansSection
+    static let firstEntryAuthChoiceScreen = "laughtrack.auth-choice.screen"
+    static let firstEntryContinueAsGuestButton = "laughtrack.auth-choice.continue-as-guest"
 
     static func showsSearchResultButton(_ id: Int) -> String {
         "laughtrack.shows-search.result-\(id)"
@@ -226,6 +228,7 @@ struct ContentView: View {
 
     enum RootSurface: Equatable {
         case loading
+        case authChoiceGate(message: String?)
         case signedOutShell(message: String?)
         case authenticatedShell
         case comedianOnboarding
@@ -240,16 +243,28 @@ struct ContentView: View {
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var shellState = AppShellState()
+    @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
 
     var body: some View {
         Group {
             switch Self.rootSurface(
                 authState: authManager.state,
                 hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
-                currentUser: authManager.currentUser
+                currentUser: authManager.currentUser,
+                hasChosenGuestBrowsing: firstEntryAuthChoiceStore.hasChosenGuestBrowsing
             ) {
             case .loading:
                 AuthLoadingView()
+            case .authChoiceGate(let message):
+                FirstEntryAuthChoiceView(
+                    message: message,
+                    continueAsGuest: firstEntryAuthChoiceStore.continueAsGuest,
+                    signIn: { provider in
+                        Task {
+                            await authManager.signIn(with: provider)
+                        }
+                    }
+                )
             case .signedOutShell(let message):
                 appShell(signedOutMessage: message)
             case .comedianOnboarding:
@@ -283,12 +298,17 @@ struct ContentView: View {
     static func rootSurface(
         authState: AuthManager.State,
         hasLoadedCurrentUser: Bool,
-        currentUser: AuthenticatedUser?
+        currentUser: AuthenticatedUser?,
+        hasChosenGuestBrowsing: Bool = false
     ) -> RootSurface {
         switch authState {
         case .restoring, .signingIn:
             return .loading
         case .signedOut(let message):
+            guard hasChosenGuestBrowsing else {
+                return .authChoiceGate(message: message)
+            }
+
             return .signedOutShell(message: message)
         case .authenticated:
             guard hasLoadedCurrentUser else {
@@ -371,5 +391,80 @@ struct ContentView: View {
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
+    }
+}
+
+@MainActor
+final class FirstEntryAuthChoiceStore: ObservableObject {
+    static let storageKey = "laughtrack.auth.first-entry-guest-choice"
+
+    @Published private(set) var hasChosenGuestBrowsing: Bool
+
+    private let appStateStorage: AppStateStorageProtocol
+
+    init(appStateStorage: AppStateStorageProtocol = AppStateStorage()) {
+        self.appStateStorage = appStateStorage
+        self.hasChosenGuestBrowsing = appStateStorage.getValue(
+            forKey: Self.storageKey,
+            as: Bool.self
+        ) ?? false
+    }
+
+    func continueAsGuest() {
+        hasChosenGuestBrowsing = true
+        appStateStorage.setValue(true, forKey: Self.storageKey)
+    }
+}
+
+private struct FirstEntryAuthChoiceView: View {
+    @Environment(\.appTheme) private var theme
+
+    let message: String?
+    let continueAsGuest: () -> Void
+    let signIn: (AuthProvider) -> Void
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            laughTrack.colors.canvas
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+                Spacer(minLength: theme.spacing.xl)
+
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    Image(systemName: "face.smiling.inverse")
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+                        .padding(.bottom, theme.spacing.sm)
+
+                    Text("Start with LaughTrack")
+                        .font(laughTrack.typography.hero)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+
+                    Text(message ?? "Browse tonight's shows as a guest, or sign in to sync favorites and alerts.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                VStack(spacing: theme.spacing.md) {
+                    LaughTrackButton("Continue as guest", systemImage: "arrow.right") {
+                        continueAsGuest()
+                    }
+                    .accessibilityIdentifier(LaughTrackViewTestID.firstEntryContinueAsGuestButton)
+
+                    ForEach(ContentView.firstEntrySignedOutAuthOptions) { option in
+                        SignedOutAuthOptionButton(option: option, action: signIn)
+                    }
+                }
+
+                Spacer(minLength: theme.spacing.xl)
+            }
+            .padding(.horizontal, theme.spacing.xl)
+            .frame(maxWidth: 520, alignment: .leading)
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.firstEntryAuthChoiceScreen)
     }
 }
