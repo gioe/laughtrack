@@ -1,5 +1,5 @@
--- Onboard Barclays Center (club 2464) from temporary tour_dates discovery to a
--- focused venue-owned comedy category scraper.
+-- Onboard Barclays Center (club 2464) from temporary tour_dates discovery /
+-- disposition state to a focused venue-owned comedy category scraper.
 --
 -- Discovered from tour_dates evidence for Michael Blackson / Nick Cannon
 -- Presents Wild N Out Live No Filter on June 28, 2026.
@@ -11,6 +11,10 @@
 --     https://www.barclayscenter.com/events/detail/nick-cannon-wild-n-out-live-no-filter-2026
 --     and Ticketmaster purchase URL:
 --     https://www.ticketmaster.com/event/3000648FD9FB7F6A.
+--   * Migration 20260515102000_disposition_barclays_center_tour_dates already
+--     disabled source 1472 as unsafe generic Ticketmaster inventory; this
+--     migration intentionally accepts that disposition state and replaces it
+--     with the focused custom source.
 --   * Ticketmaster Discovery venue id KovZ917AtP3 is valid but venue-wide
 --     ingestion is unsafe here: it returned 110 total upcoming venue events,
 --     and a read-only live_nation run transformed 36 shows including Barclays
@@ -45,11 +49,19 @@ BEGIN
           AND c.state = 'NY'
           AND c.visible = TRUE
           AND c.status = 'active'
+          AND ss.id = 1472
           AND ss.platform = 'tour_dates'::"ScrapingPlatform"
           AND ss.scraper_key = 'tour_dates'
-          AND ss.enabled = TRUE
+          AND (
+              ss.enabled = TRUE
+              OR (
+                  ss.enabled = FALSE
+                  AND ss.source_url = 'https://www.barclayscenter.com/events/category/comedy'
+                  AND ss.metadata->>'task_tour_date_onboarding_disposition' = 'needs_focused_carbonhouse_comedy_scraper'
+              )
+          )
     ) THEN
-        RAISE EXCEPTION 'Cannot onboard Barclays Center: expected active tour_dates stub club 2464 is missing or changed';
+        RAISE EXCEPTION 'Cannot onboard Barclays Center: expected tour_dates stub/disposition source 1472 is missing or changed';
     END IF;
 
     IF EXISTS (
@@ -89,6 +101,7 @@ SET enabled = FALSE,
     ),
     updated_at = NOW()
 WHERE club_id = 2464
+  AND id = 1472
   AND platform = 'tour_dates'::"ScrapingPlatform"
   AND scraper_key = 'tour_dates';
 
