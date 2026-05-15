@@ -264,6 +264,8 @@ async def test_enrich_with_prices_merges_cheapest_price_per_show():
     async def _route(url, *args, **kwargs):
         if url == _ENRICH_LISTING_URL:
             return _listing_html(["/shows/100", "/shows/200"])
+        if url == f"{_ENRICH_BASE}/calendar":
+            return ""
         return detail_responses.get(url, "")
 
     scraper.fetch_html = AsyncMock(side_effect=_route)
@@ -273,8 +275,8 @@ async def test_enrich_with_prices_merges_cheapest_price_per_show():
     by_url = {s["show_url"]: s for s in page_data.event_list}
     assert by_url[f"{_ENRICH_BASE}/shows/100"]["price"] == 35.0
     assert by_url[f"{_ENRICH_BASE}/shows/200"]["price"] == 45.0
-    # Listing fetch + one fetch per show URL
-    assert scraper.fetch_html.await_count == 3
+    # Listing fetch + calendar probe + one fetch per show URL
+    assert scraper.fetch_html.await_count == 4
 
 
 @pytest.mark.asyncio
@@ -334,6 +336,8 @@ async def test_enrich_with_prices_skips_shows_without_show_url():
     async def _route(url, *args, **kwargs):
         if url == _ENRICH_LISTING_URL:
             return soldout_listing
+        if url == f"{_ENRICH_BASE}/calendar":
+            return ""
         raise AssertionError(f"unexpected detail fetch: {url}")
 
     scraper.fetch_html = AsyncMock(side_effect=_route)
@@ -341,5 +345,5 @@ async def test_enrich_with_prices_skips_shows_without_show_url():
     page_data = await scraper.get_data(_ENRICH_LISTING_URL)
     assert page_data.event_list[0].get("show_url") is None
     assert "price" not in page_data.event_list[0]
-    # Only the listing fetch — no per-show detail fetches
-    assert scraper.fetch_html.await_count == 1
+    # Listing fetch + calendar probe — no per-show detail fetches
+    assert scraper.fetch_html.await_count == 2

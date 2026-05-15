@@ -54,6 +54,32 @@ def _classic_html(
     """
 
 
+def _calendar_json_ld() -> str:
+    return """
+    <html><body>
+    <script type="application/ld+json">
+    {
+      "@type": "Place",
+      "Events": [
+        {
+          "@type": "Event",
+          "name": "Comedy Night",
+          "startDate": "2026-03-26T23:30:00Z",
+          "url": "https://newbrunswick.stressfactory.com/shows/363997"
+        },
+        {
+          "@type": "Event",
+          "name": "Late Show",
+          "startDate": "2026-03-27T02:00:00Z",
+          "url": "https://newbrunswick.stressfactory.com/shows/363998"
+        }
+      ]
+    }
+    </script>
+    </body></html>
+    """
+
+
 # ---------------------------------------------------------------------------
 # collect_scraping_targets()
 # ---------------------------------------------------------------------------
@@ -77,6 +103,7 @@ async def test_get_data_returns_page_data_with_events():
     """get_data() wraps extracted shows in SeatEngineClassicPageData."""
     scraper = SeatEngineClassicScraper(_club())
     scraper.fetch_html = AsyncMock(return_value=_classic_html())
+    scraper._enrich_with_prices = AsyncMock()
 
     result = await scraper.get_data(SCRAPING_URL)
 
@@ -91,6 +118,7 @@ async def test_get_data_returns_empty_page_data_when_no_html():
     """get_data() returns empty SeatEngineClassicPageData when fetch_html returns None."""
     scraper = SeatEngineClassicScraper(_club())
     scraper.fetch_html = AsyncMock(return_value=None)
+    scraper._enrich_with_prices = AsyncMock()
 
     result = await scraper.get_data(SCRAPING_URL)
 
@@ -109,6 +137,7 @@ async def test_transform_data_extracts_show_name_and_ticket():
     """transform_data() produces Show objects with name and ticket from extracted HTML."""
     scraper = SeatEngineClassicScraper(_club())
     scraper.fetch_html = AsyncMock(return_value=_classic_html())
+    scraper._enrich_with_prices = AsyncMock()
 
     page_data = await scraper.get_data(SCRAPING_URL)
     shows = scraper.transform_data(page_data, source_url=SCRAPING_URL)
@@ -126,11 +155,52 @@ async def test_transform_data_returns_empty_for_empty_page_data():
     """transform_data() returns [] when page_data has no events."""
     scraper = SeatEngineClassicScraper(_club())
     scraper.fetch_html = AsyncMock(return_value=None)
+    scraper._enrich_with_prices = AsyncMock()
 
     page_data = await scraper.get_data(SCRAPING_URL)
     shows = scraper.transform_data(page_data, source_url=SCRAPING_URL)
 
     assert shows == []
+
+
+@pytest.mark.asyncio
+async def test_get_data_merges_additional_calendar_json_ld_shows():
+    """get_data() augments /events with sibling /calendar JSON-LD shows."""
+    scraper = SeatEngineClassicScraper(_club())
+    scraper.fetch_html = AsyncMock(
+        side_effect=[_classic_html(), _calendar_json_ld()]
+    )
+    scraper._enrich_with_prices = AsyncMock()
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, SeatEngineClassicPageData)
+    assert len(result.event_list) == 2
+    assert [show["name"] for show in result.event_list] == [
+        "Comedy Night",
+        "Late Show",
+    ]
+    assert scraper.fetch_html.await_args_list[1].args[0] == (
+        "https://newbrunswick.stressfactory.com/calendar"
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_data_does_not_merge_calendar_when_location_filter_is_set():
+    """Location-filtered sources cannot safely use unlabelled calendar JSON-LD."""
+    club = _club()
+    club.active_scraping_source.source_url = (
+        f"{SCRAPING_URL}#location=Bridgeport"
+    )
+    scraper = SeatEngineClassicScraper(club)
+    scraper.fetch_html = AsyncMock(return_value=_classic_html())
+    scraper._enrich_with_prices = AsyncMock()
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, SeatEngineClassicPageData)
+    assert result.event_list == []
+    scraper.fetch_html.assert_awaited_once_with(SCRAPING_URL)
 
 
 # ---------------------------------------------------------------------------

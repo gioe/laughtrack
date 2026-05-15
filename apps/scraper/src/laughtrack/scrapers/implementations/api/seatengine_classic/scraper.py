@@ -86,6 +86,8 @@ class SeatEngineClassicScraper(BaseScraper):
 
         base_url = URLUtils.get_base_domain_with_protocol(url)
         shows = SeatEngineClassicExtractor.extract_shows(html, base_url)
+        if not self._location_filter:
+            shows = await self._merge_calendar_shows(url, base_url, shows)
         Logger.info(
             f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
             self.logger_context,
@@ -107,6 +109,74 @@ class SeatEngineClassicScraper(BaseScraper):
         await self._enrich_with_prices(shows)
 
         return SeatEngineClassicPageData(event_list=shows)
+
+    async def _merge_calendar_shows(
+        self,
+        url: str,
+        base_url: str,
+        shows: List[JSONDict],
+    ) -> List[JSONDict]:
+        """Merge sibling /calendar JSON-LD shows that are absent from /events."""
+        calendar_url = self._calendar_url_for(url)
+        if not calendar_url or calendar_url == url:
+            return shows
+
+        try:
+            await self.rate_limiter.await_if_needed(calendar_url)
+            calendar_html = await self.fetch_html(calendar_url)
+        except Exception as e:
+            Logger.warn(
+                f"{self._log_prefix}: calendar fetch failed for {calendar_url}: {e}",
+                self.logger_context,
+            )
+            return shows
+
+        if not calendar_html:
+            return shows
+
+        calendar_shows = SeatEngineClassicExtractor.extract_shows(
+            calendar_html,
+            base_url,
+        )
+        if not calendar_shows:
+            return shows
+
+        seen = {self._show_identity(show) for show in shows}
+        additions = []
+        for show in calendar_shows:
+            identity = self._show_identity(show)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            additions.append(show)
+        if additions:
+            Logger.info(
+                f"{self._log_prefix}: merged {len(additions)} additional shows "
+                f"from {calendar_url}",
+                self.logger_context,
+            )
+        return shows + additions
+
+    @staticmethod
+    def _calendar_url_for(url: str) -> Optional[str]:
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            return None
+        path = parsed.path.rstrip("/")
+        if path == "/calendar":
+            return None
+        return urlunparse(parsed._replace(path="/calendar", query="", fragment=""))
+
+    @staticmethod
+    def _show_identity(show: JSONDict) -> tuple:
+        show_url = show.get("show_url")
+        if show_url:
+            return ("url", show_url)
+        return (
+            "fallback",
+            show.get("name"),
+            show.get("date_str"),
+        )
 
     def transform_data(self, raw_data: EventListContainer, source_url: str) -> List[Show]:
         return super().transform_data(raw_data, source_url)
