@@ -35,13 +35,14 @@ struct SignedOutAuthOptionButton: View {
                     .frame(width: 24)
 
                 Text(option.title)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.86)
             }
             .foregroundStyle(option.provider == .apple ? laughTrack.colors.textInverse : laughTrack.colors.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 50)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, theme.spacing.md)
+            .contentShape(Rectangle())
             .background(buttonBackground)
             .overlay(buttonBorder)
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))

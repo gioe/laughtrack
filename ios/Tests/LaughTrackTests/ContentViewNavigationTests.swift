@@ -97,6 +97,13 @@ struct ContentViewNavigationTests {
         #expect(ContentView.firstEntrySignedOutAuthOptions.map(\.provider) == [.apple, .google, .email])
     }
 
+    @Test("first-entry auth option buttons have stable selectable identifiers")
+    func firstEntryAuthOptionButtonsHaveStableSelectableIdentifiers() {
+        #expect(LaughTrackViewTestID.firstEntryAuthOptionButton(.apple) == "laughtrack.auth-choice.option.apple")
+        #expect(LaughTrackViewTestID.firstEntryAuthOptionButton(.google) == "laughtrack.auth-choice.option.google")
+        #expect(LaughTrackViewTestID.firstEntryAuthOptionButton(.email) == "laughtrack.auth-choice.option.email")
+    }
+
     @Test("content view routes authenticated users into the app shell")
     func contentViewRendersShell() async throws {
         #expect(AppRoute.nearMe.shellTab == .nearMe)

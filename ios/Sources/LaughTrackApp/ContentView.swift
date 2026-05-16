@@ -65,6 +65,10 @@ enum LaughTrackViewTestID {
     static let firstEntryAuthChoiceScreen = "laughtrack.auth-choice.screen"
     static let firstEntryContinueAsGuestButton = "laughtrack.auth-choice.continue-as-guest"
 
+    static func firstEntryAuthOptionButton(_ provider: AuthProvider) -> String {
+        "laughtrack.auth-choice.option.\(provider.rawValue)"
+    }
+
     static func showsSearchResultButton(_ id: Int) -> String {
         "laughtrack.shows-search.result-\(id)"
     }
@@ -244,20 +248,25 @@ struct ContentView: View {
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
+    @Namespace private var authLogoNamespace
 
     var body: some View {
+        let surface = Self.rootSurface(
+            authState: authManager.state,
+            hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
+            currentUser: authManager.currentUser,
+            hasChosenGuestBrowsing: firstEntryAuthChoiceStore.hasChosenGuestBrowsing
+        )
+
         Group {
-            switch Self.rootSurface(
-                authState: authManager.state,
-                hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
-                currentUser: authManager.currentUser,
-                hasChosenGuestBrowsing: firstEntryAuthChoiceStore.hasChosenGuestBrowsing
-            ) {
+            switch surface {
             case .loading:
-                AuthLoadingView()
+                AuthLoadingView(logoNamespace: authLogoNamespace)
+                    .transition(.opacity)
             case .authChoiceGate(let message):
                 FirstEntryAuthChoiceView(
                     message: message,
+                    logoNamespace: authLogoNamespace,
                     continueAsGuest: firstEntryAuthChoiceStore.continueAsGuest,
                     signIn: { provider in
                         Task {
@@ -265,8 +274,10 @@ struct ContentView: View {
                         }
                     }
                 )
+                .transition(.opacity.combined(with: .scale(scale: 0.985, anchor: .center)))
             case .signedOutShell(let message):
                 appShell(signedOutMessage: message)
+                    .transition(.opacity)
             case .comedianOnboarding:
                 ComedianOnboardingView(
                     apiClient: apiClient,
@@ -275,11 +286,14 @@ struct ContentView: View {
                     notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self)
                 )
                 .environmentObject(favorites)
+                .transition(.opacity)
             case .authenticatedShell:
                 appShell(signedOutMessage: nil)
+                    .transition(.opacity)
             }
         }
         .tint(theme.colors.primary)
+        .animation(.easeInOut(duration: 0.42), value: surface)
         .task {
             await authManager.restoreSessionIfNeeded()
         }
@@ -420,8 +434,10 @@ private struct FirstEntryAuthChoiceView: View {
     @Environment(\.appTheme) private var theme
 
     let message: String?
+    let logoNamespace: Namespace.ID
     let continueAsGuest: () -> Void
     let signIn: (AuthProvider) -> Void
+    @State private var hasAppeared = false
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -430,41 +446,86 @@ private struct FirstEntryAuthChoiceView: View {
             laughTrack.colors.canvas
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
                 Spacer(minLength: theme.spacing.xl)
 
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    Image(systemName: "face.smiling.inverse")
-                        .font(.system(size: 44, weight: .bold))
-                        .foregroundStyle(laughTrack.colors.accentStrong)
-                        .padding(.bottom, theme.spacing.sm)
+                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                    Image("LaunchLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 144, height: 144)
+                        .matchedGeometryEffect(id: "launch-logo", in: logoNamespace)
+                        .padding(.bottom, theme.spacing.xs)
 
-                    Text("Start with LaughTrack")
-                        .font(laughTrack.typography.hero)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                        Text("Pick up where you left off")
+                            .font(laughTrack.typography.screenTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                    Text(message ?? "Browse tonight's shows as a guest, or sign in to sync favorites and alerts.")
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        Text(message ?? "Browse tonight's shows as a guest, or sign in to sync favorites and alerts.")
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+                .opacity(hasAppeared ? 1 : 0)
+                .offset(y: hasAppeared ? 0 : 10)
 
-                VStack(spacing: theme.spacing.md) {
-                    LaughTrackButton("Continue as guest", systemImage: "arrow.right") {
+                VStack(spacing: theme.spacing.sm) {
+                    FirstEntryGuestButton {
                         continueAsGuest()
                     }
                     .accessibilityIdentifier(LaughTrackViewTestID.firstEntryContinueAsGuestButton)
 
                     ForEach(ContentView.firstEntrySignedOutAuthOptions) { option in
                         SignedOutAuthOptionButton(option: option, action: signIn)
+                            .accessibilityIdentifier(LaughTrackViewTestID.firstEntryAuthOptionButton(option.provider))
                     }
                 }
+                .opacity(hasAppeared ? 1 : 0)
+                .offset(y: hasAppeared ? 0 : 16)
 
                 Spacer(minLength: theme.spacing.xl)
             }
             .padding(.horizontal, theme.spacing.xl)
             .frame(maxWidth: 520, alignment: .leading)
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.firstEntryAuthChoiceScreen)
+        .onAppear {
+            withAnimation(.spring(response: 0.48, dampingFraction: 0.86).delay(0.08)) {
+                hasAppeared = true
+            }
+        }
+    }
+}
+
+private struct FirstEntryGuestButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let action: () -> Void
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button(action: action) {
+            HStack(spacing: theme.spacing.sm) {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 21, weight: .semibold))
+                    .frame(width: 24)
+
+                Text("Continue as guest")
+                    .font(laughTrack.typography.action)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
+            }
+            .foregroundStyle(laughTrack.colors.textInverse)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, theme.spacing.md)
+            .contentShape(Rectangle())
+            .background(laughTrack.colors.accent)
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Continue as guest")
     }
 }

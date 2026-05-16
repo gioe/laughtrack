@@ -63,6 +63,7 @@ _GET_EPISODES_SQL = """
         pe.title,
         pe.description,
         pe.episode_url,
+        pe.source_payload,
         COALESCE(
             array_remove(array_agg(cp.comedian_id ORDER BY cp.comedian_id), NULL),
             ARRAY[]::int[]
@@ -86,7 +87,7 @@ _GET_EPISODES_SQL = """
       )
       {extra_filter}
     GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title,
-        pe.title, pe.description, pe.episode_url
+        pe.title, pe.description, pe.episode_url, pe.source_payload
     ORDER BY pe.release_date DESC NULLS LAST, pe.id DESC
 """
 
@@ -159,6 +160,7 @@ class PodcastEpisodeCandidateInput:
     title: str
     description: str
     episode_url: str
+    source_payload: dict[str, Any]
     host_comedian_ids: list[int]
     host_association_types: list[str]
 
@@ -219,10 +221,11 @@ def _compile_term_pattern(variant: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![a-z0-9]){body}(?![a-z0-9])", re.IGNORECASE)
 
 
-def build_match_terms(comedian: MatchComedian) -> list[MatchTerm]:
+def build_match_terms(comedian: MatchComedian, *, include_aliases: bool = True) -> list[MatchTerm]:
     terms: list[MatchTerm] = []
     seen: set[str] = set()
-    for raw in [comedian.name, *comedian.aliases]:
+    raw_terms = [comedian.name, *comedian.aliases] if include_aliases else [comedian.name]
+    for raw in raw_terms:
         cleaned = str(raw or "").strip()
         if not cleaned:
             continue
@@ -278,15 +281,99 @@ def _confidence(source_field: str, role: str, term: MatchTerm) -> float:
     return max(0.05, min(round(score, 2), 0.99))
 
 
+def _person_entries(source_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    persons = source_payload.get("persons") if isinstance(source_payload, dict) else None
+    if not isinstance(persons, list):
+        return []
+    return [person for person in persons if isinstance(person, dict)]
+
+
+def _person_role_is_guest(role: str) -> bool:
+    normalized = normalize_match_text(role)
+    return bool(normalized) and "guest" in normalized.split()
+
+
+def _person_match_candidate(
+    *,
+    comedian: MatchComedian,
+    episode: PodcastEpisodeCandidateInput,
+    person: dict[str, Any],
+    auto_accept: bool,
+) -> Optional[EpisodeAppearanceCandidate]:
+    role = str(person.get("role") or "")
+    if not _person_role_is_guest(role):
+        return None
+    person_name = str(person.get("name") or "").strip()
+    if not person_name:
+        return None
+    if normalize_match_text(person_name) != normalize_match_text(comedian.name):
+        return None
+    status = "accepted" if auto_accept else "pending"
+    evidence = {
+        "matched_name": comedian.name,
+        "normalized_match": normalize_match_text(comedian.name),
+        "source_field": "persons",
+        "match_source": "podcast_index_person",
+        "role_guess": "guest",
+        "evidence_text": person_name,
+        "podcast_title": episode.podcast_title,
+        "episode_title": episode.title,
+        "episode_url": episode.episode_url,
+        "host_comedian_ids": episode.host_comedian_ids,
+        "host_association_types": episode.host_association_types,
+        "podcast_index_person_id": person.get("id"),
+        "podcast_index_person_name": person_name,
+        "podcast_index_person_role": role,
+        "podcast_index_person_href": person.get("href"),
+        "podcast_index_person_img": person.get("img"),
+        "podcast_index_person_group": person.get("group"),
+        "detected_by": "detect_podcast_episode_appearances",
+    }
+    return EpisodeAppearanceCandidate(
+        comedian_id=comedian.comedian_id,
+        episode_id=episode.episode_id,
+        source=episode.source,
+        source_episode_id=episode.source_episode_id,
+        matched_name=comedian.name,
+        source_field="persons",
+        role_guess="guest",
+        confidence=0.99,
+        evidence_text=person_name,
+        evidence=evidence,
+        status=status,
+    )
+
+
 def detect_episode_candidates(
     comedians: list[MatchComedian],
     episodes: list[PodcastEpisodeCandidateInput],
+    *,
+    include_aliases: bool = True,
+    auto_accept: bool = True,
 ) -> list[EpisodeAppearanceCandidate]:
     candidates: list[EpisodeAppearanceCandidate] = []
+    terms_by_comedian_id = {
+        comedian.comedian_id: build_match_terms(comedian, include_aliases=include_aliases)
+        for comedian in comedians
+    }
     for episode in episodes:
         for comedian in comedians:
+            if comedian.comedian_id in episode.host_comedian_ids:
+                continue
             best: Optional[EpisodeAppearanceCandidate] = None
-            for term in build_match_terms(comedian):
+            for person in _person_entries(episode.source_payload):
+                person_candidate = _person_match_candidate(
+                    comedian=comedian,
+                    episode=episode,
+                    person=person,
+                    auto_accept=auto_accept,
+                )
+                if person_candidate is not None:
+                    best = person_candidate
+                    break
+            for term in terms_by_comedian_id[comedian.comedian_id]:
+                if best is not None and best.source_field == "persons":
+                    break
                 match = _best_field_match(term, episode)
                 if match is None:
                     continue
@@ -298,7 +385,11 @@ def detect_episode_candidates(
                     evidence_text=evidence_text,
                 )
                 confidence = _confidence(source_field, role, term)
-                status = "accepted" if role == "guest" and confidence >= _AUTO_ACCEPT_CONFIDENCE else "pending"
+                status = (
+                    "accepted"
+                    if auto_accept and role == "guest" and confidence >= _AUTO_ACCEPT_CONFIDENCE
+                    else "pending"
+                )
                 evidence = {
                     "matched_name": term.raw,
                     "normalized_match": term.normalized,
@@ -384,8 +475,9 @@ def load_episode_inputs(
                     title=str(row[5] or ""),
                     description=str(row[6] or ""),
                     episode_url=str(row[7] or ""),
-                    host_comedian_ids=[int(v) for v in (row[8] or [])],
-                    host_association_types=[str(v) for v in (row[9] or [])],
+                    source_payload=dict(row[8] or {}),
+                    host_comedian_ids=[int(v) for v in (row[9] or [])],
+                    host_association_types=[str(v) for v in (row[10] or [])],
                 )
                 for row in cur.fetchall()
             ]
@@ -446,11 +538,23 @@ def detect_podcast_episode_appearances(
     comedian_ids: Optional[list[int]],
     comedian_names: Optional[list[str]],
     episode_ids: Optional[list[int]],
-    limit: Optional[int],
+    episode_limit: Optional[int],
+    comedian_limit: Optional[int],
+    include_aliases: bool,
+    auto_accept: bool,
 ) -> DetectSummary:
-    comedians = load_match_comedians(comedian_ids=comedian_ids, comedian_names=comedian_names)
-    episodes = load_episode_inputs(episode_ids=episode_ids, limit=limit)
-    candidates = detect_episode_candidates(comedians, episodes)
+    comedians = load_match_comedians(
+        comedian_ids=comedian_ids,
+        comedian_names=comedian_names,
+        limit=comedian_limit,
+    )
+    episodes = load_episode_inputs(episode_ids=episode_ids, limit=episode_limit)
+    candidates = detect_episode_candidates(
+        comedians,
+        episodes,
+        include_aliases=include_aliases,
+        auto_accept=auto_accept,
+    )
     return persist_candidates(candidates, dry_run=dry_run)
 
 
@@ -460,7 +564,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--comedian-id", dest="comedian_ids", action="append", type=int, default=None)
     parser.add_argument("--comedian-name", dest="comedian_names", action="append", default=None)
     parser.add_argument("--episode-id", dest="episode_ids", action="append", type=int, default=None)
-    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--episode-limit", type=int, default=None)
+    parser.add_argument("--limit", dest="episode_limit", type=int, default=None, help=argparse.SUPPRESS)
+    parser.add_argument("--comedian-limit", type=int, default=None)
+    parser.add_argument("--no-aliases", action="store_true")
+    parser.add_argument(
+        "--review-only",
+        action="store_true",
+        help="Keep all detections pending in episode_appearance_reviews; do not auto-materialize appearances",
+    )
     return parser
 
 
@@ -471,7 +583,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         comedian_ids=args.comedian_ids,
         comedian_names=args.comedian_names,
         episode_ids=args.episode_ids,
-        limit=args.limit,
+        episode_limit=args.episode_limit,
+        comedian_limit=args.comedian_limit,
+        include_aliases=not args.no_aliases,
+        auto_accept=not args.review_only,
     )
     print(
         {

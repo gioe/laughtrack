@@ -80,6 +80,7 @@ def _episode(
     description: str = "",
     host_ids: list[int] | None = None,
     host_types: list[str] | None = None,
+    source_payload: dict[str, Any] | None = None,
 ) -> mod.PodcastEpisodeCandidateInput:
     return mod.PodcastEpisodeCandidateInput(
         episode_id=episode_id,
@@ -92,6 +93,7 @@ def _episode(
         episode_url=f"https://podcast.example/{episode_id}",
         host_comedian_ids=host_ids or [],
         host_association_types=host_types or [],
+        source_payload=source_payload or {},
     )
 
 
@@ -126,12 +128,33 @@ def test_normalization_handles_entities_unicode_punctuation_variants_and_initial
     assert not any(term.pattern.search("Dance Party Tonight") for term in terms)
 
 
+def test_build_match_terms_can_exclude_aliases():
+    comedian = mod.MatchComedian(12, "J.R. De Guzman", ["JR DeGuzman"])
+    terms = mod.build_match_terms(comedian, include_aliases=False)
+
+    assert any(term.pattern.search("Episode with J R De-Guzman") for term in terms)
+    assert not any(term.pattern.search("Episode with JR DeGuzman") for term in terms)
+
+
 def test_host_relationship_does_not_create_appearance_without_episode_evidence():
     comedian = mod.MatchComedian(12, "Ari Shaffir", [])
     episode = _episode(
         episode_id=1,
         title="Solo episode about travel",
         description="No guest names here",
+        host_ids=[12],
+        host_types=["host"],
+    )
+
+    assert mod.detect_episode_candidates([comedian], [episode]) == []
+
+
+def test_owner_relationship_does_not_create_appearance_even_with_episode_evidence():
+    comedian = mod.MatchComedian(12, "Ari Shaffir", [])
+    episode = _episode(
+        episode_id=3,
+        title="Ari Shaffir previews the tour",
+        description="Hosted by Ari Shaffir.",
         host_ids=[12],
         host_types=["host"],
     )
@@ -167,7 +190,6 @@ def test_episode_matching_scores_roles_and_materializes_only_auto_accepted(monke
     assert [(c.episode_id, c.role_guess, c.status) for c in rows] == [
         (1, "guest", "accepted"),
         (2, "mention", "pending"),
-        (3, "host", "pending"),
     ]
     assert rows[0].source_field == "title"
     assert rows[0].confidence >= mod._AUTO_ACCEPT_CONFIDENCE
@@ -179,10 +201,10 @@ def test_episode_matching_scores_roles_and_materializes_only_auto_accepted(monke
 
     summary = mod.persist_candidates(rows, dry_run=False)
 
-    assert summary.candidates == 3
+    assert summary.candidates == 2
     assert summary.auto_accepted == 1
-    assert summary.pending == 2
-    assert len(conn.review_writes) == 3
+    assert summary.pending == 1
+    assert len(conn.review_writes) == 2
     assert len(conn.appearance_writes) == 1
     review_params = conn.review_writes[0]
     evidence = json.loads(review_params[7])
@@ -191,6 +213,80 @@ def test_episode_matching_scores_roles_and_materializes_only_auto_accepted(monke
     assert evidence["source_field"] == "title"
     assert evidence["role_guess"] == "guest"
     assert evidence["evidence_text"]
+
+
+def test_review_only_detection_keeps_auto_matches_pending(monkeypatch):
+    comedian = mod.MatchComedian(12, "Ari Shaffir", [])
+    rows = mod.detect_episode_candidates(
+        [comedian],
+        [_episode(episode_id=1, title="Ari Shaffir on the road")],
+        auto_accept=False,
+    )
+
+    assert [(c.episode_id, c.role_guess, c.status) for c in rows] == [(1, "guest", "pending")]
+
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    summary = mod.persist_candidates(rows, dry_run=False)
+
+    assert summary.auto_accepted == 0
+    assert summary.pending == 1
+    assert len(conn.review_writes) == 1
+    assert len(conn.appearance_writes) == 0
+
+
+def test_person_guest_metadata_creates_high_confidence_candidate_before_title_matching():
+    comedian = mod.MatchComedian(12, "Ron Pearson", [])
+    rows = mod.detect_episode_candidates(
+        [comedian],
+        [
+            _episode(
+                episode_id=9,
+                title="Juggling Comedy, Chaos, and Faith",
+                source_payload={
+                    "persons": [
+                        {
+                            "id": 73151611,
+                            "name": "Ron Pearson",
+                            "role": "guest",
+                            "href": "http://www.ronpearsoncomedy.com",
+                            "img": "https://example.test/ron.jpg",
+                        }
+                    ]
+                },
+            )
+        ],
+        auto_accept=False,
+    )
+
+    assert [(c.comedian_id, c.role_guess, c.confidence, c.status) for c in rows] == [
+        (12, "guest", 0.99, "pending")
+    ]
+    assert rows[0].source_field == "persons"
+    assert rows[0].evidence_text == "Ron Pearson"
+    assert rows[0].evidence["match_source"] == "podcast_index_person"
+    assert rows[0].evidence["podcast_index_person_id"] == 73151611
+    assert rows[0].evidence["podcast_index_person_role"] == "guest"
+    assert rows[0].evidence["podcast_index_person_href"] == "http://www.ronpearsoncomedy.com"
+    assert rows[0].evidence["podcast_index_person_img"] == "https://example.test/ron.jpg"
+
+
+def test_person_host_metadata_is_not_a_guest_candidate():
+    comedian = mod.MatchComedian(12, "Ron Pearson", [])
+    rows = mod.detect_episode_candidates(
+        [comedian],
+        [
+            _episode(
+                episode_id=9,
+                title="Juggling Comedy, Chaos, and Faith",
+                source_payload={"persons": [{"id": 1, "name": "Ron Pearson", "role": "host"}]},
+            )
+        ],
+        auto_accept=False,
+    )
+
+    assert rows == []
 
 
 def test_load_functions_parse_database_rows(monkeypatch):
@@ -206,6 +302,7 @@ def test_load_functions_parse_database_rows(monkeypatch):
                 "Ari Shaffir appears",
                 "Episode description",
                 "https://podcast.example/4",
+                {"persons": [{"name": "Ari Shaffir", "role": "guest"}]},
                 [12],
                 ["host"],
             )
@@ -219,4 +316,43 @@ def test_load_functions_parse_database_rows(monkeypatch):
     assert comedians == [mod.MatchComedian(12, "Ari Shaffir", ["Ari"])]
     assert episodes[0].host_comedian_ids == [12]
     assert episodes[0].host_association_types == ["host"]
+    assert episodes[0].source_payload == {"persons": [{"name": "Ari Shaffir", "role": "guest"}]}
     assert "LIMIT %s" in conn.executed[0][0]
+
+
+def test_detect_passes_comedian_limit_and_matching_options(monkeypatch):
+    calls: dict[str, Any] = {}
+
+    def fake_load_comedians(**kwargs: Any) -> list[mod.MatchComedian]:
+        calls["comedians"] = kwargs
+        return [mod.MatchComedian(12, "Ari Shaffir", ["Ari"])]
+
+    def fake_load_episodes(**kwargs: Any) -> list[mod.PodcastEpisodeCandidateInput]:
+        calls["episodes"] = kwargs
+        return [_episode(episode_id=1, title="Ari Shaffir on the road")]
+
+    def fake_persist(candidates: list[mod.EpisodeAppearanceCandidate], dry_run: bool) -> mod.DetectSummary:
+        calls["candidates"] = candidates
+        calls["dry_run"] = dry_run
+        return mod.DetectSummary(candidates=len(candidates), pending=len(candidates), written=len(candidates))
+
+    monkeypatch.setattr(mod, "load_match_comedians", fake_load_comedians)
+    monkeypatch.setattr(mod, "load_episode_inputs", fake_load_episodes)
+    monkeypatch.setattr(mod, "persist_candidates", fake_persist)
+
+    summary = mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=None,
+        comedian_limit=1000,
+        include_aliases=False,
+        auto_accept=False,
+    )
+
+    assert summary.candidates == 1
+    assert calls["comedians"] == {"comedian_ids": None, "comedian_names": None, "limit": 1000}
+    assert calls["episodes"] == {"episode_ids": None, "limit": None}
+    assert calls["candidates"][0].matched_name == "Ari Shaffir"
+    assert calls["candidates"][0].status == "pending"

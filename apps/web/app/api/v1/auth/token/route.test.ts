@@ -55,6 +55,13 @@ function makeRequest(): NextRequest {
     });
 }
 
+function makeRequestWithOrigin(origin: string): NextRequest {
+    return new NextRequest("http://localhost/api/v1/auth/token", {
+        method: "POST",
+        headers: { origin },
+    });
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
 });
@@ -103,5 +110,29 @@ describe("POST /api/v1/auth/token", () => {
             expiresIn: 900,
         });
         expect(mockIssueRefresh).toHaveBeenCalledWith("user-123");
+    });
+
+    it("allows same-origin server-side native callback exchanges", async () => {
+        mockAuth.mockResolvedValue({
+            user: { email: "user@example.com" },
+        } as never);
+        mockFindUser.mockResolvedValue({ id: "user-123" } as never);
+
+        const res = await POST(makeRequestWithOrigin("http://localhost"));
+
+        expect(res.status).toBe(200);
+    });
+
+    it("rejects foreign browser origins", async () => {
+        mockAuth.mockResolvedValue({
+            user: { email: "user@example.com" },
+        } as never);
+        mockFindUser.mockResolvedValue({ id: "user-123" } as never);
+
+        const res = await POST(
+            makeRequestWithOrigin("https://attacker.example"),
+        );
+
+        expect(res.status).toBe(403);
     });
 });

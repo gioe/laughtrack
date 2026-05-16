@@ -35,7 +35,11 @@ export async function POST(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl);
 
     const origin = req.headers.get("origin");
-    if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    if (
+        origin &&
+        origin !== req.nextUrl.origin &&
+        !ALLOWED_ORIGINS.includes(origin)
+    ) {
         return new NextResponse(null, { status: 403 });
     }
 

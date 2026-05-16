@@ -1,1 +1,744 @@
-2026-05-02 08:27:49,513 | DEBUG | pid=67909 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www-lbshakespeare-org.seatengine.com/events (12821 chars)
+2026-05-13 06:25:52,969 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www.russellpeters.com/pages/upcoming-shows-tour-dates (279155 chars)
+2026-05-13 06:25:53,666 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www.bobbylee.live/tour (491474 chars)
+2026-05-13 06:25:56,836 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://deraydavis.com/shows (288631 chars)
+2026-05-13 06:25:58,106 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://masoodboomgaardtour.com (19552 chars)
+2026-05-13 06:25:59,065 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://thepeteherenowtour.com (30069 chars)
+2026-05-13 06:26:00,445 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://peteholmes.com (59150 chars)
+2026-05-13 06:26:00,816 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://blaucomedy.com (186216 chars)
+2026-05-13 06:26:02,551 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www.edbassmaster.org (137883 chars)
+2026-05-13 06:26:07,330 | DEBUG | pid=75209 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www.edbassmaster.com/tour (106763 chars)
+2026-05-13 06:26:24,459 | DEBUG | pid=75446 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://masoodboomgaardtour.com (19552 chars)
+2026-05-13 06:26:39,347 | DEBUG | pid=75549 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://www.russellpeters.com/pages/upcoming-shows-tour-dates (279155 chars)
+2026-05-13 06:26:39,602 | DEBUG | pid=75549 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | [PlaywrightBrowser] Fetched https://blaucomedy.com (186216 chars)
+2026-05-13 06:29:25,004 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-13 06:29:25,343 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:25,365 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-13 06:29:25,365 | DEBUG | pid=78518 | asyncio | club_id=- club=- scraper=- | Using selector: KqueueSelector
+2026-05-13 06:29:25,478 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:25,891 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,064 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,306 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,454 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,681 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,826 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:26,978 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:27,206 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:27,366 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:27,519 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:27,755 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:27,911 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:28,072 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:28,309 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:28,467 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:28,615 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:28,852 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:29,008 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:29,162 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:29,406 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:29,568 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:29,731 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,014 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,181 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,426 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,593 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,752 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:30,982 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:31,144 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:31,291 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:31,660 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:31,815 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,051 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,214 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,449 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,599 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,751 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:32,993 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:33,157 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:33,321 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:33,571 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:33,728 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:33,894 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:34,128 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:34,286 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:34,445 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:34,682 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:34,730 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Akaash Singh — 22 venues via tour_listing from https://akaashsinghtour.com/
+2026-05-13 06:29:35,238 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:35,397 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:35,840 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:35,990 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:36,231 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:36,383 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:36,535 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:36,766 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:36,942 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:37,195 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:37,359 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:37,511 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:37,744 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:37,889 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:38,054 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:38,292 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:38,505 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:38,740 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:38,902 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:39,051 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:39,290 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:39,443 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:39,593 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:39,836 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:40,006 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:40,174 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:40,418 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:40,622 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:40,876 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:41,037 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:41,201 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:41,434 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:42,133 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:42,298 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:42,531 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:42,577 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Bobby Lee — 15 venues via text_tour_list from https://www.bobbylee.live/tour
+2026-05-13 06:29:43,182 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:43,333 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:43,565 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:43,616 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Stress Factory Comedy Club - Bridgeport •' (venue.id=Stress Factory Comedy Club - Bridgeport •) fuzzy-matched to existing club 2465 'The Stress Factory comedy club, Bridgeport' in (Bridgeport, CT); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:29:43,722 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:43,885 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:44,130 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:44,176 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Stress Factory Comedy Club - Bridgeport •' (venue.id=Stress Factory Comedy Club - Bridgeport •) fuzzy-matched to existing club 2465 'The Stress Factory comedy club, Bridgeport' in (Bridgeport, CT); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:29:44,293 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:44,538 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:44,691 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:44,738 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Stress Factory Comedy Club - Bridgeport •' (venue.id=Stress Factory Comedy Club - Bridgeport •) fuzzy-matched to existing club 2465 'The Stress Factory comedy club, Bridgeport' in (Bridgeport, CT); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:29:44,845 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,084 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,243 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,395 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,639 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,795 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:45,949 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:46,237 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:46,394 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:46,629 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:46,789 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:46,940 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:47,183 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:47,336 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:47,511 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:47,751 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:47,909 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:48,071 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:48,295 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:48,446 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:48,602 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:48,843 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,006 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,226 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,399 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,559 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,808 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:49,963 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:50,119 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:50,361 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:50,515 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:50,670 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:50,898 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:51,053 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:51,204 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:51,448 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:51,901 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:52,050 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:52,204 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:52,442 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:52,603 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:52,764 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,000 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,159 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,318 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,566 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,729 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:53,970 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:54,143 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:54,302 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:54,543 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:54,698 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:54,861 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:55,093 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:55,265 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:55,421 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:55,667 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:55,816 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,068 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,224 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,428 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,662 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,820 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:56,974 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:57,223 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:57,387 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:57,615 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:29:57,662 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Justin Silva — 38 venues via text_tour_list from https://www.vividseats.com/justin-silva-tickets--theater-comedy/performer/169406
+2026-05-13 06:30:00,405 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:00,625 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:00,864 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:01,020 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:01,194 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:01,467 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:01,864 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,018 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,174 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,403 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,551 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,706 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:02,950 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:03,097 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:03,257 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:03,485 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:03,639 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:03,795 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,031 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,193 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,430 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,593 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,750 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:04,797 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'The Comedy Zone' (venue.id=The Comedy Zone) fuzzy-matched to existing club 73 'The Comedy Zone Greenville' in (Greenville, SC); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:30:04,977 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:05,144 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:05,312 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:05,578 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:05,767 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:06,061 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:06,243 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:06,403 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:06,653 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:06,830 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:07,076 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:07,259 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:07,444 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:07,692 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:07,862 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:08,101 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:08,273 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:08,431 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:08,684 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:08,841 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:09,011 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:09,266 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:09,431 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:09,673 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:09,839 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:10,040 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:10,353 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:10,412 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Funny Bone' (venue.id=Funny Bone) fuzzy-matched to existing club 2552 'Funny Bone - Cleveland' in (Cleveland, OH); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:30:10,520 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:10,845 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:11,109 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:11,361 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:11,546 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:11,902 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:12,077 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:12,333 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:12,499 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:12,554 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Comedy Zone' (venue.id=Comedy Zone) fuzzy-matched to existing club 2879 'The Comedy Zone' in (Charlotte, NC); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:30:12,656 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:12,887 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,041 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,198 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,436 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,594 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,743 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:13,868 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: DeRay Davis — 33 venues via text_tour_list from https://deraydavis.com/shows/
+2026-05-13 06:30:14,234 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:14,284 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Tour date venue 'Helium Comedy Club - Atlanta,' (venue.id=Helium Comedy Club - Atlanta,) fuzzy-matched to existing club 134 'Helium Comedy Club - Atlanta' in (Alpharetta, GA); reusing existing row instead of inserting a duplicate.
+2026-05-13 06:30:14,473 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:14,632 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:14,782 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:14,917 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Masood Boomgaard — 1 venues via text_tour_list from https://masoodboomgaardtour.com/
+2026-05-13 06:30:15,752 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,045 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,201 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,358 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,587 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,739 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:16,901 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:17,139 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:17,300 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:17,537 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:17,690 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:17,844 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,090 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,244 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,412 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,650 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,806 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:18,965 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:19,205 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:19,365 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:19,517 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:19,760 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:19,912 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:20,064 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:20,306 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:20,460 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:20,683 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:20,838 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,006 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,251 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,417 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,579 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,877 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:21,966 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Pete Holmes — 15 venues via text_tour_list from https://peteholmes.com/
+2026-05-13 06:30:22,600 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Deon Cole — widget detected: songkick_id=2312955
+2026-05-13 06:30:22,805 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,006 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,155 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,391 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,537 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,687 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:23,923 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:24,081 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:24,230 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:24,476 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:24,628 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:24,787 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,058 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,222 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,457 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,612 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,758 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:25,997 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:26,046 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=0 club=Comedian Websites scraper=comedian_websites | ComedianWebsiteScraper [Comedian Websites]: Deon Cole — 7 venues via text_tour_list from https://www.songkick.com/artists/2312955-deon-cole/calendar
+2026-05-13 06:30:26,357 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:26,601 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:27,850 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:28,094 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-13 06:30:28,251 | INFO | pid=78518 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:23:20,878 | INFO | pid=69408 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 16:23:21,258 | INFO | pid=69408 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:23:21,540 | INFO | pid=69408 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:23:35,535 | INFO | pid=69529 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 16:23:37,147 | INFO | pid=69529 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:23:37,250 | INFO | pid=69529 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:23:37,888 | INFO | pid=69529 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:30:37,834 | INFO | pid=69529 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:30:56,176 | INFO | pid=72617 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 16:30:56,669 | INFO | pid=72617 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:30:57,054 | INFO | pid=72617 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:38:48,582 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 16:38:50,052 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:38:50,948 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:38:51,604 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:38:51,868 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:38:52,163 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:38:52,549 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:41:52,618 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:42:21,800 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:42:22,146 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:42:24,793 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:45:43,428 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 16:45:43,922 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:45:43,958 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:45:51,502 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:45:52,662 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:45:55,703 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:45:57,157 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:45:59,819 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:46:26,896 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:46:38,138 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:46:38,538 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:46:38,909 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:46:40,814 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:46:43,651 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:46:46,991 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:47:36,939 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:49:37,248 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:49:37,577 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:49:38,513 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:49:58,966 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:50:14,616 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:50:24,585 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:50:25,087 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:50:25,691 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:50:37,654 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:50:38,222 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:50:47,043 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:50:50,099 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:51:42,692 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:51:43,445 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:52:24,966 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:52:45,917 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:53:00,571 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:53:00,889 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:53:21,038 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:53:42,085 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:53:54,756 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:53:55,051 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:54:04,000 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:54:22,604 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:54:24,926 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:54:39,599 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:54:39,971 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:54:47,976 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:54:49,161 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:54:49,619 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:54:58,469 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:55:22,289 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:55:45,789 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:55:46,418 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:55:56,234 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:56:17,125 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:56:42,036 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:56:42,475 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:56:43,830 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 16:57:05,076 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 16:58:30,234 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:00:09,995 | INFO | pid=78214 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:00:38,548 | INFO | pid=82783 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:00:39,410 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:00:39,686 | INFO | pid=82783 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:00:39,843 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:00:42,332 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:05:38,626 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:05:54,513 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:05:54,831 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:05:55,434 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:18:09,799 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:18:14,400 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:18:14,620 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:18:14,897 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:06,563 | INFO | pid=86416 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:20:06,763 | INFO | pid=86416 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:06,782 | INFO | pid=86416 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:28,626 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:20:28,745 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:29,043 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:29,184 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:29,281 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:29,492 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:29,609 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:41,096 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:44,187 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:44,292 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:44,411 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:55,200 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:59,108 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:20:59,210 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:20:59,411 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:10,406 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:13,903 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:14,088 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:14,216 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:24,856 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:29,010 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:29,113 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:29,311 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:40,323 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:44,087 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:44,188 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:44,298 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:55,662 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:59,427 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:21:59,521 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:21:59,709 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:11,446 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:14,732 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:14,924 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:15,061 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:18,940 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:24,309 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:24,480 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:24,627 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:26,934 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:30,252 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:30,365 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:30,583 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:41,393 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:44,616 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:44,804 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:44,937 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:55,500 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:59,640 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:22:59,751 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:22:59,957 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:10,005 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:13,694 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:13,809 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:13,925 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:26,795 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:30,024 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:30,129 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:30,248 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:41,198 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:44,358 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:44,542 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:44,661 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:54,896 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:57,885 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:23:57,991 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:23:58,189 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:08,522 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:12,127 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:12,312 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:12,425 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:22,563 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:25,415 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:25,520 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:25,634 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:35,656 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:40,304 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:40,442 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:40,775 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:50,807 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:55,094 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:24:55,295 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:24:55,755 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:06,296 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:11,631 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:11,798 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:12,169 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:22,761 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:27,625 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:27,762 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:28,197 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:38,973 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:46,450 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:46,662 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:25:46,950 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:25:57,656 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:03,217 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:03,390 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:03,642 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:09,497 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:14,019 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:16,873 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:17,056 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:17,620 | INFO | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:18,893 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:19,175 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:19,602 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:30,178 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:33,734 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:33,958 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:34,074 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:44,434 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:48,204 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:48,308 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:26:48,427 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:26:59,145 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:02,471 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:02,564 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:02,770 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:12,823 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:16,894 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:16,992 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:17,099 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:27,506 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:30,873 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:31,064 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:31,180 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:41,320 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:44,163 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:44,260 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:44,369 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:55,111 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:58,550 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:27:58,643 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:27:58,848 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:28:10,057 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:28:11,787 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:28:11,881 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:28:11,986 | INFO | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:30:05,068 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 1 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 1s
+2026-05-15 17:30:06,079 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 2 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 2s
+2026-05-15 17:30:08,090 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 3 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 4s
+2026-05-15 17:30:12,101 | ERROR | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Failed to create database connection: could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+
+2026-05-15 17:30:14,113 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 1 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 1s
+2026-05-15 17:30:15,118 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 2 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 2s
+2026-05-15 17:30:17,127 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 3 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 4s
+2026-05-15 17:30:21,134 | ERROR | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Failed to create database connection: could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+
+2026-05-15 17:30:25,136 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 1 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 1s
+2026-05-15 17:30:26,148 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 2 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 2s
+2026-05-15 17:30:28,159 | WARNING | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 3 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 4s
+2026-05-15 17:30:32,167 | ERROR | pid=86517 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Failed to create database connection: could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+
+2026-05-15 17:32:11,319 | WARNING | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 1 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 1s
+2026-05-15 17:32:12,326 | WARNING | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 2 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 2s
+2026-05-15 17:32:14,334 | WARNING | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | DB connection attempt 3 failed (could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+); retrying in 4s
+2026-05-15 17:32:18,342 | ERROR | pid=75207 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Failed to create database connection: could not translate host name "ep-noisy-dew-amxl1zup.c-5.us-east-1.aws.neon.tech" to address: nodename nor servname provided, or not known
+
+2026-05-15 17:35:47,752 | INFO | pid=90597 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:35:47,894 | INFO | pid=90597 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:35:47,912 | INFO | pid=90597 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:08,319 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:36:08,432 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:08,618 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:08,719 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:08,781 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:08,885 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:08,998 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:18,593 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:21,193 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:21,307 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:21,420 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:49,408 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:51,941 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:36:52,052 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:36:52,166 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:01,564 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:37:05,067 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:05,533 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:37:05,918 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:15,227 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:37:17,965 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:18,076 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:37:18,194 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:27,588 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:37:30,072 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:37:30,181 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:23,947 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:41:33,676 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:36,534 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:41:36,645 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:36,766 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:41:46,209 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:49,060 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:41:49,157 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:49,262 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:41:58,424 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:41:59,991 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:00,093 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:00,197 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:08,575 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:10,556 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:10,660 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:10,777 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:19,253 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:21,356 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:21,467 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:21,588 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:29,716 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:31,832 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:31,939 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:32,060 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:40,672 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:42,978 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:43,075 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:43,180 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:51,586 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:53,724 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:42:53,829 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:42:53,930 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:01,982 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:03,924 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:04,023 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:04,131 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:11,963 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:13,343 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:13,447 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:13,559 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:21,217 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:22,278 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:22,394 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:22,512 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:29,914 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:31,123 | INFO | pid=90691 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:41,240 | INFO | pid=92869 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:43:41,350 | INFO | pid=92869 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:41,438 | INFO | pid=92869 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 17:43:56,715 | INFO | pid=92947 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:43:56,823 | INFO | pid=92947 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:43:56,925 | INFO | pid=92947 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Transaction committed successfully
+2026-05-15 17:44:00,869 | INFO | pid=92966 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 17:44:00,998 | INFO | pid=92966 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 17:44:01,268 | INFO | pid=92966 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:09:21,632 | INFO | pid=95033 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 18:09:21,832 | INFO | pid=95033 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:09:21,906 | INFO | pid=95033 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:35,620 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 18:55:35,763 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:35,812 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:35,994 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:36,083 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:36,198 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:36,521 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:36,626 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:36,874 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:37,075 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:37,096 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:37,207 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:37,418 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:37,615 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:37,649 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:37,759 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:37,794 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:37,896 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:37,925 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:38,118 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:38,152 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:38,272 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:38,305 | INFO | pid=2198 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:55:54,073 | INFO | pid=2289 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 18:55:54,186 | INFO | pid=2289 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:55:54,203 | INFO | pid=2289 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 18:56:09,408 | INFO | pid=2359 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 18:56:09,610 | INFO | pid=2359 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 18:56:10,866 | INFO | pid=2359 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:41:31,246 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:41:31,643 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:41:31,897 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:41:32,104 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:41:32,177 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:41:32,288 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:41:32,456 | INFO | pid=5492 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:41:58,504 | INFO | pid=5621 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:41:58,624 | INFO | pid=5621 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:41:58,641 | INFO | pid=5621 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:42:14,300 | INFO | pid=5695 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:42:14,421 | INFO | pid=5695 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:42:15,039 | INFO | pid=5695 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:42:25,037 | INFO | pid=5747 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:42:25,150 | INFO | pid=5747 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:42:25,547 | INFO | pid=5747 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:43:00,662 | INFO | pid=5909 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:43:00,783 | INFO | pid=5909 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:43:01,182 | INFO | pid=5909 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:19,736 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:52:19,968 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:20,206 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:20,317 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:20,337 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:20,450 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:20,703 | INFO | pid=7448 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:56,557 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 19:52:56,730 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:56,971 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:57,120 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:57,141 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:57,248 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:57,643 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 19:52:57,781 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 19:52:57,808 | INFO | pid=7625 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 20:17:49,878 | INFO | pid=9121 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 20:17:50,167 | INFO | pid=9121 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 20:17:50,657 | INFO | pid=9121 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 20:19:17,044 | INFO | pid=10451 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 20:19:17,472 | INFO | pid=10451 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 20:19:17,533 | INFO | pid=10451 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-15 20:23:02,504 | INFO | pid=11797 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-15 20:23:02,710 | INFO | pid=11797 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-15 20:23:02,905 | INFO | pid=11797 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed

@@ -44,7 +44,7 @@ In the Neon dashboard, find both URLs under **Connection Details**:
 | `AUTH_GOOGLE_ID` | Yes | Google OAuth client ID. Create credentials at [console.cloud.google.com](https://console.cloud.google.com). |
 | `AUTH_GOOGLE_SECRET` | Yes | Google OAuth client secret. |
 | `AUTH_APPLE_ID` | No | Apple Sign In service ID. Added post-TASK-91. See setup instructions below. Both `AUTH_APPLE_ID` and `AUTH_APPLE_SECRET` must be set together — the Apple provider is always registered in `auth.ts` and will fail at sign-in if either var is missing. |
-| `AUTH_APPLE_SECRET` | No | Apple Sign In private key (.p8 file contents). Added post-TASK-91. |
+| `AUTH_APPLE_SECRET` | No | Apple Sign In generated client-secret JWT. Added post-TASK-91. |
 
 #### Generating AUTH_SECRET
 
@@ -63,11 +63,11 @@ To enable Apple Sign In:
 1. Go to [developer.apple.com](https://developer.apple.com) → Certificates, Identifiers & Profiles
 2. Create a **Services ID** (this becomes `AUTH_APPLE_ID`)
 3. Create a **Key** with Sign In with Apple enabled, download the `.p8` file
-4. `AUTH_APPLE_SECRET` must be the full contents of the `.p8` file with newlines replaced by literal `\n`:
+4. Generate the Apple client-secret JWT and store that value in `AUTH_APPLE_SECRET`:
+   ```bash
+   npx auth add apple
    ```
-   -----BEGIN PRIVATE KEY-----\nMIGT...\n-----END PRIVATE KEY-----
-   ```
-   > **Warning:** Some hosting provider UIs (including certain Vercel flows) will double-escape the backslash, breaking Apple Sign In silently. Verify the stored value contains single `\n` sequences, not `\\n`. Test Apple auth end-to-end in staging before relying on it in production.
+   > **Warning:** Do not store the raw `.p8` private key in `AUTH_APPLE_SECRET`. Auth.js expects the generated client-secret JWT. Test Apple auth end-to-end in staging before relying on it in production.
 5. Add the OAuth redirect URL `https://your-domain.com/api/auth/callback/apple` to the Services ID configuration
 
 ### Email / Magic-Link Sign-In (Required in Production)

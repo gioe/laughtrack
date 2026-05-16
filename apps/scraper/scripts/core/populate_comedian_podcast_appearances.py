@@ -104,6 +104,11 @@ _GET_COMEDIANS_SQL = """
     FROM comedians
     WHERE parent_comedian_id IS NULL
       AND NULLIF(BTRIM(name), '') IS NOT NULL
+      AND NOT EXISTS (
+          SELECT 1
+          FROM comedian_deny_list d
+          WHERE LOWER(BTRIM(d.name)) = LOWER(BTRIM(comedians.name))
+      )
       {extra_filter}
     ORDER BY popularity DESC NULLS LAST, total_shows DESC NULLS LAST, id
 """

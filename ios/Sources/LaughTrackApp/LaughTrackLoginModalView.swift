@@ -20,18 +20,14 @@ struct LaughTrackLoginModalView: View {
 
             VStack(spacing: laughTrack.spacing.sectionGap) {
                 VStack(spacing: laughTrack.spacing.itemGap) {
-                    ZStack {
-                        Circle()
-                            .fill(laughTrack.colors.accentStrong.opacity(0.14))
-                            .frame(width: 72, height: 72)
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundStyle(laughTrack.colors.accentStrong)
-                    }
+                    Image("LaunchLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
 
                     VStack(spacing: laughTrack.spacing.tight) {
-                        Text("Save your favorites")
-                            .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        Text("Pick up where you left off")
+                            .font(laughTrack.typography.screenTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)

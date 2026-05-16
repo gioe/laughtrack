@@ -1,3 +1,18 @@
+## Project Conventions — Query the Tusk Conventions DB
+
+Detailed, cross-cutting project conventions live in the tusk conventions database,
+not only in this file. Before touching an unfamiliar area, query relevant rules:
+
+```bash
+./.claude/bin/tusk conventions inject <path>      # path-based convention hints
+./.claude/bin/tusk conventions search <term>      # semantic search, best for domain rules
+./.claude/bin/tusk conventions list --topic <tag> # exact topic filter
+```
+
+Do not rely only on path injection for domain invariants. If a task involves a
+concept like comedian identity, deny-listing, Prisma migrations, scraper config,
+or frontend middleware, search those terms directly before editing.
+
 ## Scraper Fetchability — Test with the Scraper's Own HTTP Stack
 
 When checking whether a URL is scrapable, do NOT use plain `requests` or `urllib`

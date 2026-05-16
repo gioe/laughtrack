@@ -6,6 +6,10 @@ import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import Nodemailer from "next-auth/providers/nodemailer";
 import { db, prisma } from "./lib/db";
+import {
+    appleProviderConfig,
+    googleProviderConfig,
+} from "@/lib/auth/providerConfig";
 
 // Define session types
 interface UserProfile {
@@ -37,8 +41,8 @@ const adapter = PrismaAdapter(prisma);
 const _nextAuth = NextAuth({
     adapter,
     providers: [
-        Google,
-        Apple,
+        Google(googleProviderConfig()),
+        Apple(appleProviderConfig()),
         Nodemailer({
             id: "email",
             server: {

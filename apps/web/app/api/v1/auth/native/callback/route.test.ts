@@ -278,5 +278,4 @@ describe("GET /api/v1/auth/native/callback", () => {
             "laughtrack://auth/callback?provider=google&accessToken=access-jwt&refreshToken=opaque-refresh&expiresIn=900",
         );
     });
-
 });
