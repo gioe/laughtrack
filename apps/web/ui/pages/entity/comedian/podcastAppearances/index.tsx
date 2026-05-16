@@ -22,10 +22,48 @@ function formatReleaseDate(date: Date | string | null): string {
     return DATE_FORMATTER.format(date instanceof Date ? date : new Date(date));
 }
 
+function formatDuration(durationSeconds: number | null): string | null {
+    if (!durationSeconds) return null;
+
+    const totalMinutes = Math.floor(durationSeconds / 60);
+    if (totalMinutes < 1) return null;
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const parts = [];
+
+    if (hours > 0) parts.push(`${hours} hr`);
+    if (minutes > 0) parts.push(`${minutes} min`);
+
+    return parts.join(" ");
+}
+
+function formatAppearanceRole(role: string): string | null {
+    const normalized = role.trim();
+    if (!normalized) return null;
+
+    return normalized
+        .split(/[-_\s]+/)
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+type PlayablePodcastAppearance = ComedianPodcastAppearanceDTO & {
+    audioUrl: string;
+};
+
+function isPlayableAppearance(
+    appearance: ComedianPodcastAppearanceDTO,
+): appearance is PlayablePodcastAppearance {
+    return Boolean(appearance.audioUrl);
+}
+
 const PodcastAppearancesSection = ({
     appearances,
 }: PodcastAppearancesSectionProps) => {
-    if (appearances.length === 0) return null;
+    const playableAppearances = appearances.filter(isPlayableAppearance);
+
+    if (playableAppearances.length === 0) return null;
 
     return (
         <section
@@ -45,33 +83,41 @@ const PodcastAppearancesSection = ({
                 role="list"
                 className="divide-y divide-gray-200 border-y border-gray-200"
             >
-                {appearances.map((appearance) => (
-                    <li
-                        key={appearance.id}
-                        className="flex items-start justify-between gap-4 py-4 transition-colors hover:bg-coconut-cream/40"
-                    >
-                        <a
-                            href={appearance.episodeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex min-w-0 flex-1 items-start justify-between gap-4"
+                {playableAppearances.map((appearance) => {
+                    const duration = formatDuration(appearance.durationSeconds);
+                    const role = formatAppearanceRole(appearance.appearanceRole);
+                    const details = [
+                        appearance.podcastName,
+                        formatReleaseDate(appearance.releaseDate),
+                        duration,
+                        role,
+                    ].filter(Boolean);
+
+                    return (
+                        <li
+                            key={appearance.id}
+                            className="flex items-start justify-between gap-4 py-4 transition-colors hover:bg-coconut-cream/40"
                         >
-                            <span className="min-w-0">
-                                <span className="block font-gilroy-bold text-base font-bold text-foreground group-hover:text-copper">
-                                    {appearance.episodeTitle}
+                            <a
+                                href={appearance.episodeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex min-w-0 flex-1 items-start justify-between gap-4"
+                            >
+                                <span className="min-w-0">
+                                    <span className="block font-gilroy-bold text-base font-bold text-foreground group-hover:text-copper">
+                                        {appearance.episodeTitle}
+                                    </span>
+                                    <span className="mt-1 block font-dmSans text-sm text-gray-600">
+                                        {details.join(" · ")}
+                                    </span>
                                 </span>
-                                <span className="mt-1 block font-dmSans text-sm text-gray-600">
-                                    {appearance.podcastName} ·{" "}
-                                    {formatReleaseDate(appearance.releaseDate)}
-                                </span>
-                            </span>
-                            <ExternalLink
-                                size={18}
-                                className="mt-1 flex-shrink-0 text-gray-400 group-hover:text-copper"
-                                aria-hidden="true"
-                            />
-                        </a>
-                        {appearance.audioUrl ? (
+                                <ExternalLink
+                                    size={18}
+                                    className="mt-1 flex-shrink-0 text-gray-400 group-hover:text-copper"
+                                    aria-hidden="true"
+                                />
+                            </a>
                             <button
                                 type="button"
                                 onClick={() =>
@@ -80,7 +126,7 @@ const PodcastAppearancesSection = ({
                                         podcastName: appearance.podcastName,
                                         episodeTitle: appearance.episodeTitle,
                                         episodeUrl: appearance.episodeUrl,
-                                        audioUrl: appearance.audioUrl!,
+                                        audioUrl: appearance.audioUrl,
                                     })
                                 }
                                 className="inline-flex flex-none items-center gap-2 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
@@ -91,9 +137,9 @@ const PodcastAppearancesSection = ({
                                     Play {appearance.episodeTitle}
                                 </span>
                             </button>
-                        ) : null}
-                    </li>
-                ))}
+                        </li>
+                    );
+                })}
             </ul>
         </section>
     );

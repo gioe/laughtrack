@@ -38,7 +38,22 @@ describe("PodcastAppearancesSection", () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it("renders one outbound row per podcast appearance", () => {
+    it("renders nothing when the comedian has no playable podcast appearances", () => {
+        const { container } = render(
+            <PodcastAppearancesSection
+                appearances={[
+                    makeAppearance({
+                        episodeTitle: "Link Only Episode",
+                        audioUrl: null,
+                    }),
+                ]}
+            />,
+        );
+
+        expect(container.firstChild).toBeNull();
+    });
+
+    it("renders one playable row per accepted podcast appearance", () => {
         const appearances = [
             makeAppearance({
                 id: 10,
@@ -46,6 +61,9 @@ describe("PodcastAppearancesSection", () => {
                 episodeTitle: "Working It Out",
                 releaseDate: new Date("2026-04-02T00:00:00Z"),
                 episodeUrl: "https://example.com/working-it-out",
+                audioUrl: "https://cdn.example.com/working-it-out.mp3",
+                durationSeconds: 5420,
+                appearanceRole: "guest",
             }),
             makeAppearance({
                 id: 11,
@@ -53,6 +71,7 @@ describe("PodcastAppearancesSection", () => {
                 episodeTitle: "Long Form Talk",
                 releaseDate: new Date("2026-03-01T00:00:00Z"),
                 episodeUrl: "https://example.com/long-form-talk",
+                audioUrl: null,
             }),
         ];
 
@@ -65,7 +84,9 @@ describe("PodcastAppearancesSection", () => {
         ).not.toBeNull();
         expect(getByText("Working It Out")).not.toBeNull();
         expect(getByText(/Comedy Pod · Apr 2, 2026/)).not.toBeNull();
-        expect(getByText("Long Form Talk")).not.toBeNull();
+        expect(getByText(/1 hr 30 min/)).not.toBeNull();
+        expect(getByText(/Guest/)).not.toBeNull();
+        expect(() => getByText("Long Form Talk")).toThrow();
 
         const link = getByRole("link", { name: /Working It Out/i });
         expect(link.getAttribute("href")).toBe(
@@ -145,23 +166,23 @@ describe("PodcastAppearancesSection", () => {
         expect(usePodcastPlayer.getState().isPlaying).toBe(true);
     });
 
-    it("keeps the episode page link when no audio URL exists", () => {
+    it("keeps the episode page link as a fallback on playable rows", () => {
         const appearances = [
             makeAppearance({
-                episodeTitle: "Link Only Episode",
-                episodeUrl: "https://example.com/link-only",
-                audioUrl: null,
+                episodeTitle: "Playable Episode",
+                episodeUrl: "https://example.com/playable",
+                audioUrl: "https://cdn.example.com/playable.mp3",
             }),
         ];
 
-        const { getByRole, queryByRole } = render(
+        const { getByRole } = render(
             <PodcastAppearancesSection appearances={appearances} />,
         );
 
         expect(
-            queryByRole("button", { name: /play Link Only Episode/i }),
-        ).toBeNull();
-        const link = getByRole("link", { name: /Link Only Episode/i });
-        expect(link.getAttribute("href")).toBe("https://example.com/link-only");
+            getByRole("button", { name: /play Playable Episode/i }),
+        ).not.toBeNull();
+        const link = getByRole("link", { name: /Playable Episode/i });
+        expect(link.getAttribute("href")).toBe("https://example.com/playable");
     });
 });
