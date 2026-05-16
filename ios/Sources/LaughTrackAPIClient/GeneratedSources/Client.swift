@@ -1700,10 +1700,21 @@ public struct Client: APIProtocol {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
@@ -1716,21 +1727,46 @@ public struct Client: APIProtocol {
                     ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(headers: headers, body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 case 500:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
@@ -2636,6 +2672,8 @@ public struct Client: APIProtocol {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
+    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
     public func getShowsDensity(_ input: Operations.GetShowsDensity.Input) async throws -> Operations.GetShowsDensity.Output {
@@ -2710,10 +2748,21 @@ public struct Client: APIProtocol {
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShowsDensity.Output.Ok.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ShowDensityResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ShowDensityResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
@@ -2721,10 +2770,21 @@ public struct Client: APIProtocol {
                 case 400:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShowsDensity.Output.BadRequest.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
@@ -2737,21 +2797,46 @@ public struct Client: APIProtocol {
                     ))
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShowsDensity.Output.TooManyRequests.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
-                    return .tooManyRequests(.init(headers: headers, body: body))
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
                 case 500:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.GetShowsDensity.Output.InternalServerError.Body
-                    let chosenContentType = try converter.bestContentType(received: contentType, options: ["application/json"])
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
                     switch chosenContentType {
                     case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(Components.Schemas.ErrorResponse.self, from: responseBody, transforming: { value in .json(value) })
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
                     default:
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }

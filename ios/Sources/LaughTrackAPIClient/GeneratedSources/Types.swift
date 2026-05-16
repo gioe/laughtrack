@@ -118,6 +118,8 @@ public protocol APIProtocol: Sendable {
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
     ///
+    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
+    ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
     func getShowsDensity(_ input: Operations.GetShowsDensity.Input) async throws -> Operations.GetShowsDensity.Output
@@ -379,6 +381,8 @@ extension APIProtocol {
     /// Per-day show counts for a date range
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
@@ -1320,10 +1324,10 @@ public enum Components {
             public init(additionalProperties: [String: Swift.Int] = .init()) {
                 self.additionalProperties = additionalProperties
             }
-            public init(from decoder: any Decoder) throws {
+            public init(from decoder: any Swift.Decoder) throws {
                 additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
             }
-            public func encode(to encoder: any Encoder) throws {
+            public func encode(to encoder: any Swift.Encoder) throws {
                 try encoder.encodeAdditionalProperties(additionalProperties)
             }
         }
@@ -1364,10 +1368,21 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/UpcomingRun`.
         public struct UpcomingRun: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubID`.
             public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubName`.
             public var clubName: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubImageUrl`.
             public var clubImageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/shows`.
             public var shows: [Components.Schemas.Show]
+            /// Creates a new `UpcomingRun`.
+            ///
+            /// - Parameters:
+            ///   - clubID:
+            ///   - clubName:
+            ///   - clubImageUrl:
+            ///   - shows:
             public init(
                 clubID: Swift.Int,
                 clubName: Swift.String,
@@ -1388,7 +1403,12 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/UpcomingRunResponse`.
         public struct UpcomingRunResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingRunResponse/data`.
             public var data: [Components.Schemas.UpcomingRun]
+            /// Creates a new `UpcomingRunResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
             public init(data: [Components.Schemas.UpcomingRun]) {
                 self.data = data
             }
@@ -1891,6 +1911,8 @@ public enum Components {
             public var imageUrl: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/social_data`.
             public var socialData: Components.Schemas.SocialData
+            /// - Remark: Generated from `#/components/schemas/ComedianDetail/podcastAppearances`.
+            public var podcastAppearances: [Components.Schemas.PodcastAppearance]
             /// Creates a new `ComedianDetail`.
             ///
             /// - Parameters:
@@ -1899,18 +1921,21 @@ public enum Components {
             ///   - name:
             ///   - imageUrl:
             ///   - socialData:
+            ///   - podcastAppearances:
             public init(
                 id: Swift.Int,
                 uuid: Swift.String,
                 name: Swift.String,
                 imageUrl: Swift.String,
-                socialData: Components.Schemas.SocialData
+                socialData: Components.Schemas.SocialData,
+                podcastAppearances: [Components.Schemas.PodcastAppearance]
             ) {
                 self.id = id
                 self.uuid = uuid
                 self.name = name
                 self.imageUrl = imageUrl
                 self.socialData = socialData
+                self.podcastAppearances = podcastAppearances
             }
             public enum CodingKeys: String, CodingKey {
                 case id
@@ -1918,6 +1943,219 @@ public enum Components {
                 case name
                 case imageUrl
                 case socialData = "social_data"
+                case podcastAppearances
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastAppearance`.
+        public struct PodcastAppearance: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastAppearance/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastAppearance/role`.
+            public var role: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastAppearance/podcast`.
+            public var podcast: Components.Schemas.Podcast
+            /// - Remark: Generated from `#/components/schemas/PodcastAppearance/episode`.
+            public var episode: Components.Schemas.PodcastEpisode
+            /// Creates a new `PodcastAppearance`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - role:
+            ///   - podcast:
+            ///   - episode:
+            public init(
+                id: Swift.Int,
+                role: Swift.String,
+                podcast: Components.Schemas.Podcast,
+                episode: Components.Schemas.PodcastEpisode
+            ) {
+                self.id = id
+                self.role = role
+                self.podcast = podcast
+                self.episode = episode
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case role
+                case podcast
+                case episode
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/Podcast`.
+        public struct Podcast: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/Podcast/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/Podcast/source`.
+            public var source: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Podcast/sourcePodcastId`.
+            public var sourcePodcastId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Podcast/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Podcast/imageUrl`.
+            public var imageUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Podcast/websiteUrl`.
+            public var websiteUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Podcast/feedUrl`.
+            public var feedUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/Podcast/authorName`.
+            public var authorName: Swift.String?
+            /// Creates a new `Podcast`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - source:
+            ///   - sourcePodcastId:
+            ///   - title:
+            ///   - imageUrl:
+            ///   - websiteUrl:
+            ///   - feedUrl:
+            ///   - authorName:
+            public init(
+                id: Swift.Int,
+                source: Swift.String,
+                sourcePodcastId: Swift.String,
+                title: Swift.String,
+                imageUrl: Swift.String? = nil,
+                websiteUrl: Swift.String? = nil,
+                feedUrl: Swift.String? = nil,
+                authorName: Swift.String? = nil
+            ) {
+                self.id = id
+                self.source = source
+                self.sourcePodcastId = sourcePodcastId
+                self.title = title
+                self.imageUrl = imageUrl
+                self.websiteUrl = websiteUrl
+                self.feedUrl = feedUrl
+                self.authorName = authorName
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case source
+                case sourcePodcastId
+                case title
+                case imageUrl
+                case websiteUrl
+                case feedUrl
+                case authorName
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastEpisode`.
+        public struct PodcastEpisode: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/source`.
+            public var source: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/sourceEpisodeId`.
+            public var sourceEpisodeId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/audioUrl`.
+            public var audioUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/episodeUrl`.
+            public var episodeUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/releaseDate`.
+            public var releaseDate: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/durationSeconds`.
+            public var durationSeconds: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/hosts`.
+            public var hosts: [Components.Schemas.PodcastEpisodeLineup]
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisode/guests`.
+            public var guests: [Components.Schemas.PodcastEpisodeLineup]
+            /// Creates a new `PodcastEpisode`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - source:
+            ///   - sourceEpisodeId:
+            ///   - title:
+            ///   - audioUrl:
+            ///   - episodeUrl:
+            ///   - releaseDate:
+            ///   - durationSeconds:
+            ///   - hosts:
+            ///   - guests:
+            public init(
+                id: Swift.Int,
+                source: Swift.String,
+                sourceEpisodeId: Swift.String,
+                title: Swift.String,
+                audioUrl: Swift.String,
+                episodeUrl: Swift.String? = nil,
+                releaseDate: Swift.String? = nil,
+                durationSeconds: Swift.Int? = nil,
+                hosts: [Components.Schemas.PodcastEpisodeLineup],
+                guests: [Components.Schemas.PodcastEpisodeLineup]
+            ) {
+                self.id = id
+                self.source = source
+                self.sourceEpisodeId = sourceEpisodeId
+                self.title = title
+                self.audioUrl = audioUrl
+                self.episodeUrl = episodeUrl
+                self.releaseDate = releaseDate
+                self.durationSeconds = durationSeconds
+                self.hosts = hosts
+                self.guests = guests
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case source
+                case sourceEpisodeId
+                case title
+                case audioUrl
+                case episodeUrl
+                case releaseDate
+                case durationSeconds
+                case hosts
+                case guests
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup`.
+        public struct PodcastEpisodeLineup: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/uuid`.
+            public var uuid: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/imageUrl`.
+            public var imageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/hasImage`.
+            public var hasImage: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/PodcastEpisodeLineup/role`.
+            public var role: Swift.String
+            /// Creates a new `PodcastEpisodeLineup`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - uuid:
+            ///   - name:
+            ///   - imageUrl:
+            ///   - hasImage:
+            ///   - role:
+            public init(
+                id: Swift.Int,
+                uuid: Swift.String,
+                name: Swift.String,
+                imageUrl: Swift.String,
+                hasImage: Swift.Bool,
+                role: Swift.String
+            ) {
+                self.id = id
+                self.uuid = uuid
+                self.name = name
+                self.imageUrl = imageUrl
+                self.hasImage = hasImage
+                self.role = role
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case uuid
+                case name
+                case imageUrl
+                case hasImage
+                case role
             }
         }
         /// - Remark: Generated from `#/components/schemas/ComedianSearchItem`.
@@ -5510,32 +5748,82 @@ public enum Operations {
     public enum GetComedianUpcomingRuns {
         public static let id: Swift.String = "getComedianUpcomingRuns"
         public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/path`.
             public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/path/id`.
                 public var id: Swift.Int
-                public init(id: Swift.Int) { self.id = id }
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
             }
             public var path: Operations.GetComedianUpcomingRuns.Input.Path
+            /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/query`.
             public struct Query: Sendable, Hashable {
+                /// Optional club-name filter
+                ///
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/query/club`.
                 public var club: Swift.String?
+                /// Optional venue location filter
+                ///
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/query/location`.
                 public var location: Swift.String?
+                /// Optional show date in YYYY-MM-DD format
+                ///
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/query/date`.
                 public var date: Swift.String?
-                public init(club: Swift.String? = nil, location: Swift.String? = nil, date: Swift.String? = nil) {
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - club: Optional club-name filter
+                ///   - location: Optional venue location filter
+                ///   - date: Optional show date in YYYY-MM-DD format
+                public init(
+                    club: Swift.String? = nil,
+                    location: Swift.String? = nil,
+                    date: Swift.String? = nil
+                ) {
                     self.club = club
                     self.location = location
                     self.date = date
                 }
             }
             public var query: Operations.GetComedianUpcomingRuns.Input.Query
+            /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/header`.
             public struct Headers: Sendable, Hashable {
+                /// IANA timezone identifier (defaults to UTC)
+                ///
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/header/X-Timezone`.
                 public var xTimezone: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianUpcomingRuns.AcceptableContentType>]
-                public init(xTimezone: Swift.String? = nil, accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianUpcomingRuns.AcceptableContentType>] = .defaultValues()) {
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - xTimezone: IANA timezone identifier (defaults to UTC)
+                ///   - accept:
+                public init(
+                    xTimezone: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianUpcomingRuns.AcceptableContentType>] = .defaultValues()
+                ) {
                     self.xTimezone = xTimezone
                     self.accept = accept
                 }
             }
             public var headers: Operations.GetComedianUpcomingRuns.Input.Headers
-            public init(path: Operations.GetComedianUpcomingRuns.Input.Path, query: Operations.GetComedianUpcomingRuns.Input.Query = .init(), headers: Operations.GetComedianUpcomingRuns.Input.Headers = .init()) {
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.GetComedianUpcomingRuns.Input.Path,
+                query: Operations.GetComedianUpcomingRuns.Input.Query = .init(),
+                headers: Operations.GetComedianUpcomingRuns.Input.Headers = .init()
+            ) {
                 self.path = path
                 self.query = query
                 self.headers = headers
@@ -5543,65 +5831,259 @@ public enum Operations {
         }
         @frozen public enum Output: Sendable, Hashable {
             public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/200/content`.
                 @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/200/content/application\/json`.
                     case json(Components.Schemas.UpcomingRunResponse)
-                    public var json: Components.Schemas.UpcomingRunResponse { get throws { switch self { case let .json(body): return body } } }
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.UpcomingRunResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
                 }
+                /// Received HTTP response body
                 public var body: Operations.GetComedianUpcomingRuns.Output.Ok.Body
-                public init(body: Operations.GetComedianUpcomingRuns.Output.Ok.Body) { self.body = body }
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.Ok.Body) {
+                    self.body = body
+                }
             }
+            /// Upcoming runs for the comedian
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
             case ok(Operations.GetComedianUpcomingRuns.Output.Ok)
-            public var ok: Operations.GetComedianUpcomingRuns.Output.Ok { get throws { switch self { case let .ok(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "ok", response: self) } } }
-            public struct BadRequest: Sendable, Hashable {
-                @frozen public enum Body: Sendable, Hashable {
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetComedianUpcomingRuns.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
                 }
-                public var body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body
-                public init(body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body) { self.body = body }
             }
-            case badRequest(Operations.GetComedianUpcomingRuns.Output.BadRequest)
-            public var badRequest: Operations.GetComedianUpcomingRuns.Output.BadRequest { get throws { switch self { case let .badRequest(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "badRequest", response: self) } } }
-            public struct TooManyRequests: Sendable, Hashable {
-                public struct Headers: Sendable, Hashable {
-                    public var retryAfter: Swift.Int?
-                    public init(retryAfter: Swift.Int? = nil) { self.retryAfter = retryAfter }
-                }
-                public var headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/400/content`.
                 @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/400/content/application\/json`.
                     case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
                 }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid id, date, or X-Timezone
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetComedianUpcomingRuns.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetComedianUpcomingRuns.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
                 public var body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body
-                public init(headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers = .init(), body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body) {
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetComedianUpcomingRuns.Output.TooManyRequests.Body
+                ) {
                     self.headers = headers
                     self.body = body
                 }
             }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
             case tooManyRequests(Operations.GetComedianUpcomingRuns.Output.TooManyRequests)
-            public var tooManyRequests: Operations.GetComedianUpcomingRuns.Output.TooManyRequests { get throws { switch self { case let .tooManyRequests(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "tooManyRequests", response: self) } } }
-            public struct InternalServerError: Sendable, Hashable {
-                @frozen public enum Body: Sendable, Hashable {
-                    case json(Components.Schemas.ErrorResponse)
-                    public var json: Components.Schemas.ErrorResponse { get throws { switch self { case let .json(body): return body } } }
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetComedianUpcomingRuns.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
                 }
-                public var body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body
-                public init(body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body) { self.body = body }
             }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/{id}/upcoming-runs/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianUpcomingRuns.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//comedians/{id}/upcoming-runs/get(getComedianUpcomingRuns)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
             case internalServerError(Operations.GetComedianUpcomingRuns.Output.InternalServerError)
-            public var internalServerError: Operations.GetComedianUpcomingRuns.Output.InternalServerError { get throws { switch self { case let .internalServerError(response): return response; default: try throwUnexpectedResponseStatus(expectedStatus: "internalServerError", response: self) } } }
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetComedianUpcomingRuns.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
         @frozen public enum AcceptableContentType: AcceptableProtocol {
             case json
             case other(Swift.String)
             public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() { case "application/json": self = .json; default: self = .other(rawValue) }
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
             }
             public var rawValue: Swift.String {
-                switch self { case let .other(string): return string; case .json: return "application/json" }
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
             }
-            public static var allCases: [Self] { [.json] }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
         }
     }
     /// List comedians who have recently shared bills with a comedian
@@ -7362,6 +7844,8 @@ public enum Operations {
     /// Per-day show counts for a date range
     ///
     /// Returns a map of ISO date string (YYYY-MM-DD) to the number of shows scheduled on that day. Used to render density dots on the date-picker calendar. Range is capped at 90 days; if `to` exceeds the cap, it is silently clamped server-side.
+    ///
+    /// Optional `comedian` and `club` filters scope the result to dates where the named entity appears in the show lineup (comedian) or hosts the show (club). The two are mutually exclusive — supplying both returns 400. Either may be combined with `zip` + `distance` for an additional geographic narrow.
     ///
     /// - Remark: HTTP `GET /shows/density`.
     /// - Remark: Generated from `#/paths//shows/density/get(getShowsDensity)`.
