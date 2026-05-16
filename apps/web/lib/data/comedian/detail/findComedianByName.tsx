@@ -49,15 +49,42 @@ function buildComedianSelect() {
                 },
             },
         },
-        podcastAppearances: {
+        episodeAppearances: {
             select: {
                 id: true,
-                podcastName: true,
-                episodeTitle: true,
-                releaseDate: true,
-                episodeUrl: true,
+                episode: {
+                    select: {
+                        title: true,
+                        releaseDate: true,
+                        episodeUrl: true,
+                        podcast: {
+                            select: {
+                                title: true,
+                            },
+                        },
+                    },
+                },
             },
-            orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
+            where: {
+                reviewStatus: "accepted",
+                AND: [
+                    {
+                        episode: {
+                            audioUrl: {
+                                not: null,
+                            },
+                        },
+                    },
+                    {
+                        episode: {
+                            audioUrl: {
+                                not: "",
+                            },
+                        },
+                    },
+                ],
+            },
+            orderBy: [{ episode: { releaseDate: "desc" } }, { id: "desc" }],
         },
     } satisfies Prisma.ComedianSelect;
 }
@@ -77,6 +104,30 @@ function sortPodcastAppearances(
             new Date(a.releaseDate).getTime()
         );
     });
+}
+
+type AcceptedEpisodeAppearance = {
+    id: number;
+    episode: {
+        title: string;
+        releaseDate: Date | null;
+        episodeUrl: string | null;
+        podcast: {
+            title: string;
+        };
+    };
+};
+
+function mapEpisodeAppearances(
+    appearances: AcceptedEpisodeAppearance[],
+): ComedianPodcastAppearanceDTO[] {
+    return appearances.map((appearance) => ({
+        id: appearance.id,
+        podcastName: appearance.episode.podcast.title,
+        episodeTitle: appearance.episode.title,
+        releaseDate: appearance.episode.releaseDate,
+        episodeUrl: appearance.episode.episodeUrl ?? "",
+    }));
 }
 
 export async function findComedianByName(
@@ -154,7 +205,7 @@ export async function findComedianByName(
                 popularity: comedianData.popularity,
             },
             podcastAppearances: sortPodcastAppearances(
-                comedianData.podcastAppearances,
+                mapEpisodeAppearances(comedianData.episodeAppearances),
             ),
         };
     } catch (error) {

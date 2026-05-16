@@ -81,6 +81,17 @@ function makeComedianRow(
             releaseDate: Date | null;
             episodeUrl: string;
         }[];
+        episodeAppearances: {
+            id: number;
+            episode: {
+                title: string;
+                releaseDate: Date | null;
+                episodeUrl: string | null;
+                podcast: {
+                    title: string;
+                };
+            };
+        }[];
         favoriteComedians: { id: number }[];
     }> = {},
 ) {
@@ -157,6 +168,7 @@ function makeComedianRow(
             },
         ],
         podcastAppearances: [],
+        episodeAppearances: [],
         favoriteComedians: [],
         ...overrides,
     };
@@ -314,29 +326,35 @@ describe("findComedianByName", () => {
     });
 
     describe("podcastAppearances", () => {
-        it("maps recent podcast appearance fields most-recent first", async () => {
+        it("maps accepted episode appearance fields most-recent first", async () => {
             const row = makeComedianRow({
-                podcastAppearances: [
+                episodeAppearances: [
                     {
                         id: 1,
-                        podcastName: "Older Pod",
-                        episodeTitle: "Older Episode",
-                        releaseDate: new Date("2024-01-01T00:00:00.000Z"),
-                        episodeUrl: "https://example.com/older",
+                        episode: {
+                            podcast: { title: "Older Pod" },
+                            title: "Older Episode",
+                            releaseDate: new Date("2024-01-01T00:00:00.000Z"),
+                            episodeUrl: "https://example.com/older",
+                        },
                     },
                     {
                         id: 2,
-                        podcastName: "Newer Pod",
-                        episodeTitle: "Newer Episode",
-                        releaseDate: new Date("2025-01-01T00:00:00.000Z"),
-                        episodeUrl: "https://example.com/newer",
+                        episode: {
+                            podcast: { title: "Newer Pod" },
+                            title: "Newer Episode",
+                            releaseDate: new Date("2025-01-01T00:00:00.000Z"),
+                            episodeUrl: "https://example.com/newer",
+                        },
                     },
                     {
                         id: 3,
-                        podcastName: "Undated Pod",
-                        episodeTitle: "Undated Episode",
-                        releaseDate: null,
-                        episodeUrl: "https://example.com/undated",
+                        episode: {
+                            podcast: { title: "Undated Pod" },
+                            title: "Undated Episode",
+                            releaseDate: null,
+                            episodeUrl: "https://example.com/undated",
+                        },
                     },
                 ],
             });
@@ -369,7 +387,7 @@ describe("findComedianByName", () => {
             ]);
         });
 
-        it("requests podcast appearances from Prisma in release-date order", async () => {
+        it("requests only accepted episode appearances with playable audio from Prisma", async () => {
             const row = makeComedianRow();
             mockFindFirst.mockResolvedValue(row);
 
@@ -378,8 +396,30 @@ describe("findComedianByName", () => {
             expect(mockFindFirst).toHaveBeenCalledWith(
                 expect.objectContaining({
                     select: expect.objectContaining({
-                        podcastAppearances: expect.objectContaining({
-                            orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
+                        episodeAppearances: expect.objectContaining({
+                            where: {
+                                reviewStatus: "accepted",
+                                AND: [
+                                    {
+                                        episode: {
+                                            audioUrl: {
+                                                not: null,
+                                            },
+                                        },
+                                    },
+                                    {
+                                        episode: {
+                                            audioUrl: {
+                                                not: "",
+                                            },
+                                        },
+                                    },
+                                ],
+                            },
+                            orderBy: [
+                                { episode: { releaseDate: "desc" } },
+                                { id: "desc" },
+                            ],
                         }),
                     }),
                 }),
