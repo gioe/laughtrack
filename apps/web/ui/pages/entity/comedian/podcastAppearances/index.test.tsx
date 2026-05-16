@@ -14,6 +14,9 @@ function makeAppearance(
     return {
         id: 1,
         podcastName: "Good Podcast",
+        podcastImageUrl: null,
+        podcastAuthorName: null,
+        podcastWebsiteUrl: null,
         episodeTitle: "A Good Episode",
         releaseDate: new Date("2026-04-02T00:00:00Z"),
         episodeUrl: "https://example.com/episode",

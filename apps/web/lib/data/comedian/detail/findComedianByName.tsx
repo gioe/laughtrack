@@ -63,6 +63,9 @@ function buildComedianSelect() {
                         podcast: {
                             select: {
                                 title: true,
+                                imageUrl: true,
+                                authorName: true,
+                                websiteUrl: true,
                             },
                         },
                     },
@@ -120,6 +123,9 @@ type AcceptedEpisodeAppearance = {
         durationSeconds: number | null;
         podcast: {
             title: string;
+            imageUrl: string | null;
+            authorName: string | null;
+            websiteUrl: string | null;
         };
     };
 };
@@ -130,6 +136,9 @@ function mapEpisodeAppearances(
     return appearances.map((appearance) => ({
         id: appearance.id,
         podcastName: appearance.episode.podcast.title,
+        podcastImageUrl: appearance.episode.podcast.imageUrl,
+        podcastAuthorName: appearance.episode.podcast.authorName,
+        podcastWebsiteUrl: appearance.episode.podcast.websiteUrl,
         episodeTitle: appearance.episode.title,
         releaseDate: appearance.episode.releaseDate,
         episodeUrl: appearance.episode.episodeUrl ?? "",

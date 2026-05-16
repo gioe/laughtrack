@@ -77,6 +77,9 @@ function makeComedianRow(
         podcastAppearances: {
             id: number;
             podcastName: string;
+            podcastImageUrl: string | null;
+            podcastAuthorName: string | null;
+            podcastWebsiteUrl: string | null;
             episodeTitle: string;
             releaseDate: Date | null;
             episodeUrl: string;
@@ -92,6 +95,9 @@ function makeComedianRow(
                 durationSeconds: number | null;
                 podcast: {
                     title: string;
+                    imageUrl: string | null;
+                    authorName: string | null;
+                    websiteUrl: string | null;
                 };
             };
         }[];
@@ -336,7 +342,12 @@ describe("findComedianByName", () => {
                         id: 1,
                         appearanceRole: "guest",
                         episode: {
-                            podcast: { title: "Older Pod" },
+                            podcast: {
+                                title: "Older Pod",
+                                imageUrl: "https://cdn.example.com/older.jpg",
+                                authorName: "Older Network",
+                                websiteUrl: "https://older.example.com",
+                            },
                             title: "Older Episode",
                             releaseDate: new Date("2024-01-01T00:00:00.000Z"),
                             episodeUrl: "https://example.com/older",
@@ -348,7 +359,12 @@ describe("findComedianByName", () => {
                         id: 2,
                         appearanceRole: "host",
                         episode: {
-                            podcast: { title: "Newer Pod" },
+                            podcast: {
+                                title: "Newer Pod",
+                                imageUrl: "https://cdn.example.com/newer.jpg",
+                                authorName: "Newer Network",
+                                websiteUrl: "https://newer.example.com",
+                            },
                             title: "Newer Episode",
                             releaseDate: new Date("2025-01-01T00:00:00.000Z"),
                             episodeUrl: "https://example.com/newer",
@@ -360,7 +376,12 @@ describe("findComedianByName", () => {
                         id: 3,
                         appearanceRole: "guest",
                         episode: {
-                            podcast: { title: "Undated Pod" },
+                            podcast: {
+                                title: "Undated Pod",
+                                imageUrl: null,
+                                authorName: null,
+                                websiteUrl: null,
+                            },
                             title: "Undated Episode",
                             releaseDate: null,
                             episodeUrl: "https://example.com/undated",
@@ -378,6 +399,9 @@ describe("findComedianByName", () => {
                 {
                     id: 2,
                     podcastName: "Newer Pod",
+                    podcastImageUrl: "https://cdn.example.com/newer.jpg",
+                    podcastAuthorName: "Newer Network",
+                    podcastWebsiteUrl: "https://newer.example.com",
                     episodeTitle: "Newer Episode",
                     releaseDate: new Date("2025-01-01T00:00:00.000Z"),
                     episodeUrl: "https://example.com/newer",
@@ -388,6 +412,9 @@ describe("findComedianByName", () => {
                 {
                     id: 1,
                     podcastName: "Older Pod",
+                    podcastImageUrl: "https://cdn.example.com/older.jpg",
+                    podcastAuthorName: "Older Network",
+                    podcastWebsiteUrl: "https://older.example.com",
                     episodeTitle: "Older Episode",
                     releaseDate: new Date("2024-01-01T00:00:00.000Z"),
                     episodeUrl: "https://example.com/older",
@@ -398,6 +425,9 @@ describe("findComedianByName", () => {
                 {
                     id: 3,
                     podcastName: "Undated Pod",
+                    podcastImageUrl: null,
+                    podcastAuthorName: null,
+                    podcastWebsiteUrl: null,
                     episodeTitle: "Undated Episode",
                     releaseDate: null,
                     episodeUrl: "https://example.com/undated",
@@ -424,6 +454,13 @@ describe("findComedianByName", () => {
                                     select: expect.objectContaining({
                                         audioUrl: true,
                                         durationSeconds: true,
+                                        podcast: expect.objectContaining({
+                                            select: expect.objectContaining({
+                                                imageUrl: true,
+                                                authorName: true,
+                                                websiteUrl: true,
+                                            }),
+                                        }),
                                     }),
                                 }),
                             }),
