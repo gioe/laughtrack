@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Play } from "lucide-react";
 import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { startPodcastEpisode } from "@/hooks/usePodcastPlayer";
 
 interface PodcastAppearancesSectionProps {
     appearances: ComedianPodcastAppearanceDTO[];
@@ -43,12 +46,15 @@ const PodcastAppearancesSection = ({
                 className="divide-y divide-gray-200 border-y border-gray-200"
             >
                 {appearances.map((appearance) => (
-                    <li key={appearance.id}>
+                    <li
+                        key={appearance.id}
+                        className="flex items-start justify-between gap-4 py-4 transition-colors hover:bg-coconut-cream/40"
+                    >
                         <a
                             href={appearance.episodeUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="group flex items-start justify-between gap-4 py-4 transition-colors hover:bg-coconut-cream/40"
+                            className="group flex min-w-0 flex-1 items-start justify-between gap-4"
                         >
                             <span className="min-w-0">
                                 <span className="block font-gilroy-bold text-base font-bold text-foreground group-hover:text-copper">
@@ -65,6 +71,27 @@ const PodcastAppearancesSection = ({
                                 aria-hidden="true"
                             />
                         </a>
+                        {appearance.audioUrl ? (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    startPodcastEpisode({
+                                        id: appearance.id,
+                                        podcastName: appearance.podcastName,
+                                        episodeTitle: appearance.episodeTitle,
+                                        episodeUrl: appearance.episodeUrl,
+                                        audioUrl: appearance.audioUrl!,
+                                    })
+                                }
+                                className="inline-flex flex-none items-center gap-2 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper focus:outline-none focus:ring-2 focus:ring-copper"
+                            >
+                                <Play size={16} aria-hidden="true" />
+                                <span aria-hidden="true">Play</span>
+                                <span className="sr-only">
+                                    Play {appearance.episodeTitle}
+                                </span>
+                            </button>
+                        ) : null}
                     </li>
                 ))}
             </ul>

@@ -22,6 +22,7 @@ import { StyleContextKey } from "@/objects/enum";
 import { TimezoneProvider } from "@/contexts/TimezoneProvider";
 import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
 import ErrorBoundary from "@/ui/components/errorBoundary";
+import PodcastMiniPlayer from "@/ui/components/podcastMiniPlayer";
 
 const outfit = Outfit({
     weight: "400",
@@ -164,6 +165,7 @@ export default async function RootLayout({
                         >
                             <ClientTimezone />
                             <ErrorBoundary>{children}</ErrorBoundary>
+                            <PodcastMiniPlayer />
                         </StyleContextProvider>
                     </TimezoneProvider>
                     <Analytics />

@@ -3,9 +3,10 @@
  */
 import React from "react";
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import PodcastAppearancesSection from "./index";
 import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { usePodcastPlayer } from "@/hooks/usePodcastPlayer";
 
 function makeAppearance(
     over: Partial<ComedianPodcastAppearanceDTO> = {},
@@ -24,7 +25,10 @@ function makeAppearance(
 }
 
 describe("PodcastAppearancesSection", () => {
-    afterEach(() => cleanup());
+    afterEach(() => {
+        cleanup();
+        usePodcastPlayer.getState().reset();
+    });
 
     it("renders nothing when the comedian has no podcast appearances", () => {
         const { container } = render(
@@ -112,5 +116,52 @@ describe("PodcastAppearancesSection", () => {
         expect(
             getByText(/Good Podcast · Release date unavailable/),
         ).not.toBeNull();
+    });
+
+    it("starts a playable podcast episode from the row without navigating away", () => {
+        const appearances = [
+            makeAppearance({
+                episodeTitle: "Playable Episode",
+                podcastName: "Playable Pod",
+                episodeUrl: "https://example.com/playable",
+                audioUrl: "https://cdn.example.com/playable.mp3",
+            }),
+        ];
+
+        const { getByRole } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        fireEvent.click(
+            getByRole("button", { name: /play Playable Episode/i }),
+        );
+
+        expect(usePodcastPlayer.getState().currentEpisode).toMatchObject({
+            episodeTitle: "Playable Episode",
+            podcastName: "Playable Pod",
+            episodeUrl: "https://example.com/playable",
+            audioUrl: "https://cdn.example.com/playable.mp3",
+        });
+        expect(usePodcastPlayer.getState().isPlaying).toBe(true);
+    });
+
+    it("keeps the episode page link when no audio URL exists", () => {
+        const appearances = [
+            makeAppearance({
+                episodeTitle: "Link Only Episode",
+                episodeUrl: "https://example.com/link-only",
+                audioUrl: null,
+            }),
+        ];
+
+        const { getByRole, queryByRole } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        expect(
+            queryByRole("button", { name: /play Link Only Episode/i }),
+        ).toBeNull();
+        const link = getByRole("link", { name: /Link Only Episode/i });
+        expect(link.getAttribute("href")).toBe("https://example.com/link-only");
     });
 });
