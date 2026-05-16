@@ -255,7 +255,7 @@ class ShowValidator:
             # Basic ticket validation
             if not hasattr(ticket, "price"):
                 errors.append(f"Ticket {i+1} must have a price attribute")
-            elif not isinstance(ticket.price, (int, float)) or ticket.price < 0:
+            elif ticket.price is not None and (not isinstance(ticket.price, (int, float)) or ticket.price < 0):
                 errors.append(f"Ticket {i+1} price must be a non-negative number")
 
             if not hasattr(ticket, "purchase_url"):

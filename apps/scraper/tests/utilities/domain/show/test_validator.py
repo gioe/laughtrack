@@ -68,3 +68,14 @@ def test_ticket_invalid_purchase_url_logs_and_errors(caplog):
     assert any("purchase URL must be a valid URL format" in e for e in errors)
     messages = "\n".join(r.message for r in caplog.records)
     assert "Validation failed for tickets" in messages
+
+
+def test_ticket_none_price_is_valid_fallback(caplog):
+    caplog.clear()
+    fallback_ticket = Ticket(price=None, purchase_url="https://example.com/show/123", type="General Admission")
+    show = make_valid_show(tickets=[fallback_ticket])
+
+    valid, errors = ShowValidator.validate_shows([show])
+
+    assert valid == [show]
+    assert errors == []
