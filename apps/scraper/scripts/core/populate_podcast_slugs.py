@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 import unicodedata
@@ -34,12 +35,13 @@ _METADATA_KEY = "task_2259_slug"
 class PodcastSlugCandidate:
     id: int
     title: str
+    source: str
     source_podcast_id: str
     current_slug: str | None
 
 
-def build_podcast_slug(title: str, source_podcast_id: str) -> str:
-    raw = f"{title or 'podcast'} {source_podcast_id or ''}"
+def build_podcast_slug(title: str, source: str, source_podcast_id: str) -> str:
+    raw = f"{title or 'podcast'} {source or ''} {source_podcast_id or ''}"
     normalized = unicodedata.normalize("NFKD", html.unescape(raw))
     ascii_text = normalized.encode("ascii", "ignore").decode("ascii").lower()
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_text).strip("-")
@@ -50,7 +52,11 @@ def _dedupe_slugs(candidates: list[PodcastSlugCandidate]) -> dict[int, str]:
     seen: dict[str, int] = {}
     result: dict[int, str] = {}
     for candidate in sorted(candidates, key=lambda row: row.id):
-        base = build_podcast_slug(candidate.title, candidate.source_podcast_id)
+        base = build_podcast_slug(
+            candidate.title,
+            candidate.source,
+            candidate.source_podcast_id,
+        )
         count = seen.get(base, 0) + 1
         seen[base] = count
         result[candidate.id] = base if count == 1 else f"{base}-{count}"
@@ -61,7 +67,7 @@ def _load_candidates(conn) -> list[PodcastSlugCandidate]:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id, title, source_podcast_id, slug
+            SELECT id, title, source, source_podcast_id, slug
             FROM podcasts
             WHERE slug IS NULL OR BTRIM(slug) = ''
             ORDER BY id
@@ -71,8 +77,9 @@ def _load_candidates(conn) -> list[PodcastSlugCandidate]:
             PodcastSlugCandidate(
                 id=int(row[0]),
                 title=str(row[1] or ""),
-                source_podcast_id=str(row[2] or ""),
-                current_slug=row[3],
+                source=str(row[2] or ""),
+                source_podcast_id=str(row[3] or ""),
+                current_slug=row[4],
             )
             for row in cur.fetchall()
         ]
@@ -88,6 +95,7 @@ def populate_podcast_slugs(dry_run: bool) -> int:
         for candidate in candidates[:10]:
             print(
                 f"  [{candidate.id}] title={candidate.title!r} "
+                f"source={candidate.source!r} "
                 f"source_podcast_id={candidate.source_podcast_id!r} "
                 f"slug={candidate.current_slug!r}"
             )
@@ -114,10 +122,9 @@ def populate_podcast_slugs(dry_run: bool) -> int:
                     """,
                     (
                         planned_slugs[candidate.id],
-                        (
-                            '{"'
-                            + _METADATA_KEY
-                            + '":{"source":"populate_podcast_slugs.py"}}'
+                        json.dumps(
+                            {_METADATA_KEY: {"source": "populate_podcast_slugs.py"}},
+                            sort_keys=True,
                         ),
                         candidate.id,
                     ),

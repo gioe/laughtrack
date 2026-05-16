@@ -187,7 +187,7 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     assert podcast_params[:7] == (
         mod._SOURCE,
         "101",
-        "steve-o-s-wild-ride-101",
+        "steve-o-s-wild-ride-podcast-index-101",
         "https://feeds.example.com/show.xml",
         "Steve-O's Wild Ride",
         "Steve-O",

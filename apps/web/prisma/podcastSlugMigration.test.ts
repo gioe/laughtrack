@@ -69,8 +69,8 @@ describe("podcast slug migration", () => {
             "SELECT slug FROM podcasts ORDER BY id",
         );
         expect(rows.rows.map((row) => row.slug)).toEqual([
-            "the-pod-feed-1",
-            "the-pod-feed-2",
+            "the-pod-podcast-index-feed-1",
+            "the-pod-podcast-index-feed-2",
         ]);
 
         await expect(
@@ -80,7 +80,7 @@ describe("podcast slug migration", () => {
         ).rejects.toThrow();
         await expect(
             db.query(
-                "INSERT INTO podcasts (source, source_podcast_id, title, slug) VALUES ('podcast_index', 'feed-4', 'Other Pod', 'the-pod-feed-1')",
+                "INSERT INTO podcasts (source, source_podcast_id, title, slug) VALUES ('podcast_index', 'feed-4', 'Other Pod', 'the-pod-podcast-index-feed-1')",
             ),
         ).rejects.toThrow();
     });

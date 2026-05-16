@@ -191,8 +191,8 @@ def normalize_match_text(value: str) -> str:
     return re.sub(r"\s+", " ", normalized).strip().lower()
 
 
-def build_podcast_slug(title: str, source_podcast_id: str) -> str:
-    raw = f"{title or 'podcast'} {source_podcast_id or ''}"
+def build_podcast_slug(title: str, source: str, source_podcast_id: str) -> str:
+    raw = f"{title or 'podcast'} {source or ''} {source_podcast_id or ''}"
     normalized = unicodedata.normalize("NFKD", html.unescape(raw))
     ascii_text = normalized.encode("ascii", "ignore").decode("ascii").lower()
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_text).strip("-")
@@ -393,7 +393,11 @@ def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int
                     (
                         candidate.source,
                         candidate.source_podcast_id,
-                        build_podcast_slug(candidate.title, candidate.source_podcast_id),
+                        build_podcast_slug(
+                            candidate.title,
+                            candidate.source,
+                            candidate.source_podcast_id,
+                        ),
                         candidate.feed_url,
                         candidate.title,
                         candidate.author_name,

@@ -5,7 +5,7 @@ WITH normalized AS (
         id,
         LOWER(
             REGEXP_REPLACE(
-                REGEXP_REPLACE(CONCAT_WS('-', title, source_podcast_id), '[^[:alnum:]]+', '-', 'g'),
+                REGEXP_REPLACE(CONCAT_WS('-', title, source, source_podcast_id), '[^[:alnum:]]+', '-', 'g'),
                 '(^-+|-+$)',
                 '',
                 'g'

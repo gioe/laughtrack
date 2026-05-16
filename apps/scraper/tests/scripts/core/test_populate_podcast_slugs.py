@@ -27,7 +27,7 @@ class _FakeCursor:
     def execute(self, sql: str, params: Any = None) -> None:
         self._conn.executed.append((sql, params))
         normalized = " ".join(sql.split())
-        if normalized.startswith("SELECT id, title, source_podcast_id, slug"):
+        if normalized.startswith("SELECT id, title, source, source_podcast_id, slug"):
             self._last_result = self._conn.rows
         elif normalized.startswith("UPDATE podcasts"):
             self._conn.updates.append(params)
@@ -61,12 +61,15 @@ class _FakeConn:
 
 
 def test_build_podcast_slug_uses_title_and_source_id():
-    assert mod.build_podcast_slug("Steve-O's Wild Ride!", "101") == "steve-o-s-wild-ride-101"
-    assert mod.build_podcast_slug("!!!", "") == "podcast"
+    assert (
+        mod.build_podcast_slug("Steve-O's Wild Ride!", "podcast_index", "101")
+        == "steve-o-s-wild-ride-podcast-index-101"
+    )
+    assert mod.build_podcast_slug("!!!", "", "") == "podcast"
 
 
 def test_populate_podcast_slugs_dry_run_does_not_write(monkeypatch):
-    conn = _FakeConn([(1, "The Pod", "feed-1", None)])
+    conn = _FakeConn([(1, "The Pod", "podcast_index", "feed-1", None)])
     monkeypatch.setattr(mod, "get_transaction", lambda: conn)
 
     planned = mod.populate_podcast_slugs(dry_run=True)
@@ -76,12 +79,12 @@ def test_populate_podcast_slugs_dry_run_does_not_write(monkeypatch):
 
 
 def test_populate_podcast_slugs_writes_slug_and_task_metadata(monkeypatch):
-    conn = _FakeConn([(1, "The Pod", "feed-1", None)])
+    conn = _FakeConn([(1, "The Pod", "podcast_index", "feed-1", None)])
     monkeypatch.setattr(mod, "get_transaction", lambda: conn)
 
     written = mod.populate_podcast_slugs(dry_run=False)
 
     assert written == 1
     assert len(conn.updates) == 1
-    assert conn.updates[0][0] == "the-pod-feed-1"
+    assert conn.updates[0][0] == "the-pod-podcast-index-feed-1"
     assert "task_2259_slug" in conn.updates[0][1]
