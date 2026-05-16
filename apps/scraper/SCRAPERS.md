@@ -8,7 +8,8 @@ A developer onboarding a new comedy club should be able to pick the right scrape
 
 ```
 Is there a Ticketmaster widget or ticketmaster.com buy link?
-  └── YES → platform: Ticketmaster → scraper: live_nation
+  └── YES → platform: Ticketmaster → scraper: live_nation for comedy-first venues
+                                      scraper: ticketmaster_comedy for multi-purpose venues
               DB: ticketmaster_id = Discovery API venue ID (e.g. KovZpZAJalFA)
 
 Is there an Eventbrite widget or eventbrite.com buy link?
@@ -116,6 +117,8 @@ curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=<KEY>&keyw
 
 **Diagnosis — 0 events returned:**
 When a Ticketmaster-backed scraper returns 0 events, first verify the stored `ticketmaster_id` is the correct **Discovery API venue ID** (alphanumeric, e.g. `KovZ917ARvk`) — NOT a numeric ID from another system. Query without any classification filter first to confirm events exist for the venue ID at all; only investigate `classificationName` filters *after* confirming the ID works.
+
+**Multi-purpose venues:** Use `scraper_key='ticketmaster_comedy'` when the Ticketmaster venue hosts concerts, sports, talks, tours, VIP add-ons, or other non-comedy events. This focused scraper calls the same Discovery API with `classificationName=Comedy`, then keeps the existing comedy transformer guard. Keep `live_nation` for comedy-first venues where uncategorized Arts & Theatre events should remain eligible.
 
 **DB setup:**
 ```sql

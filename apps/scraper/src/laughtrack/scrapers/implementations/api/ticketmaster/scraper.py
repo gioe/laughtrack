@@ -125,6 +125,77 @@ class TicketmasterScraper(BaseScraper):
         await super().close()
 
 
+class FocusedTicketmasterComedyScraper(TicketmasterScraper):
+    """Ticketmaster scraper for multi-purpose venues that need comedy-only fetches."""
+
+    key = "ticketmaster_comedy"
+    classification_name = "Comedy"
+    _ADD_ON_NAME_MARKERS = (
+        "add-on",
+        "add on",
+        "addon",
+        "vip club access",
+        "vip package",
+        "parking",
+        "premium parking",
+        "fast lane",
+    )
+
+    async def discover_urls(self) -> List[str]:
+        api_endpoint = (
+            "https://app.ticketmaster.com/discovery/v2/events.json"
+            f"?venueId={self.venue_id}&classificationName={self.classification_name}"
+        )
+        return [api_endpoint]
+
+    async def get_data(self, url: str) -> Optional[EventListContainer]:
+        try:
+            if not self.ticketmaster_client:
+                self.ticketmaster_client = TicketmasterClient(self.club, proxy_pool=self.proxy_pool)
+
+            Logger.info(
+                f"{self._log_prefix}: Fetching {self.classification_name} events for venue "
+                f"{self.venue_id} via Ticketmaster API",
+                self.logger_context,
+            )
+
+            events = await self.ticketmaster_client.fetch_events(
+                self.venue_id,
+                size=200,
+                sort="date,asc",
+                classificationName=self.classification_name,
+            )
+            focused_events = [event for event in events if self._is_focused_comedy_event(event)]
+
+            Logger.info(
+                f"{self._log_prefix}: Kept {len(focused_events)} of {len(events)} "
+                f"Ticketmaster {self.classification_name} events",
+                self.logger_context,
+            )
+
+            return TicketmasterExtractor.to_page_data(focused_events)
+
+        except Exception as e:
+            Logger.error(f"{self._log_prefix}: Error extracting focused Ticketmaster data: {e}", self.logger_context)
+            return None
+
+    @classmethod
+    def _is_focused_comedy_event(cls, event: dict) -> bool:
+        return TicketmasterEventTransformer._is_comedy_event(event) and not cls._is_add_on_event(event)
+
+    @classmethod
+    def _is_add_on_event(cls, event: dict) -> bool:
+        name = str(event.get("name") or "").lower()
+        if any(marker in name for marker in cls._ADD_ON_NAME_MARKERS):
+            return True
+
+        event_type = str(event.get("type") or "").lower()
+        if "add-on" in event_type or "addon" in event_type:
+            return True
+
+        return False
+
+
 # Factory function for creating Ticketmaster scrapers
 def create_ticketmaster_scraper(club: Club) -> TicketmasterScraper:
     """
