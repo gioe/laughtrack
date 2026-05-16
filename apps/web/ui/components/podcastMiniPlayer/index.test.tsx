@@ -91,7 +91,7 @@ describe("PodcastMiniPlayer", () => {
     });
 
     it("shows the episode page fallback when audio loading fails", async () => {
-        const { container, getByRole, getByText } = render(
+        const { container, getByRole, getByText, queryByText } = render(
             <PodcastMiniPlayer />,
         );
 
@@ -106,11 +106,29 @@ describe("PodcastMiniPlayer", () => {
 
         expect(getByText(/audio unavailable/i)).not.toBeNull();
         const fallback = getByRole("link", {
-            name: /open episode page for Working It Out/i,
+            name: /open episode page: Working It Out/i,
         });
         expect(fallback.getAttribute("href")).toBe(
             "https://example.com/working-it-out",
         );
         expect(fallback.getAttribute("target")).toBe("_blank");
+        expect(queryByText(/open episode page for/i)).toBeNull();
+    });
+
+    it("dismisses the active episode from the mini-player", async () => {
+        const { getByRole, queryByText } = render(<PodcastMiniPlayer />);
+
+        startPodcastEpisode(EPISODE);
+
+        await waitFor(() => {
+            expect(queryByText("Working It Out")).not.toBeNull();
+        });
+
+        fireEvent.click(
+            getByRole("button", { name: /dismiss podcast player/i }),
+        );
+
+        expect(queryByText("Working It Out")).toBeNull();
+        expect(usePodcastPlayer.getState().currentEpisode).toBeNull();
     });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { ExternalLink, Pause, Play } from "lucide-react";
+import { ExternalLink, Pause, Play, X } from "lucide-react";
 import { usePodcastPlayer } from "@/hooks/usePodcastPlayer";
 
 const PodcastMiniPlayer = () => {
@@ -12,6 +12,7 @@ const PodcastMiniPlayer = () => {
     const play = usePodcastPlayer((state) => state.play);
     const pause = usePodcastPlayer((state) => state.pause);
     const fail = usePodcastPlayer((state) => state.fail);
+    const reset = usePodcastPlayer((state) => state.reset);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -40,14 +41,14 @@ const PodcastMiniPlayer = () => {
 
     return (
         <aside
-            className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-coconut-cream/95 px-4 py-3 text-white shadow-2xl backdrop-blur"
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-copper/30 bg-foreground/95 px-4 py-3 text-coconut-cream shadow-2xl backdrop-blur"
             aria-label="Podcast mini-player"
         >
             <div className="mx-auto flex max-w-7xl items-center gap-3">
                 <button
                     type="button"
                     onClick={togglePlayback}
-                    className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-copper text-white transition-colors hover:bg-copper-bright focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-coconut-cream"
+                    className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-copper text-white transition-colors hover:bg-copper-bright focus:outline-none focus:ring-2 focus:ring-coconut-cream focus:ring-offset-2 focus:ring-offset-foreground"
                 >
                     {isPlaying ? (
                         <Pause size={20} aria-hidden="true" />
@@ -60,10 +61,10 @@ const PodcastMiniPlayer = () => {
                 </button>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-gilroy-bold text-sm font-bold text-white">
+                    <p className="truncate font-gilroy-bold text-sm font-bold text-coconut-cream">
                         {currentEpisode.episodeTitle}
                     </p>
-                    <p className="truncate font-dmSans text-caption text-white/75">
+                    <p className="truncate font-dmSans text-caption text-coconut-cream/75">
                         {currentEpisode.podcastName}
                     </p>
                     {loadError ? (
@@ -78,15 +79,21 @@ const PodcastMiniPlayer = () => {
                         href={currentEpisode.episodeUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex flex-none items-center gap-2 rounded-md border border-white/20 px-3 py-2 font-dmSans text-caption font-semibold text-white transition-colors hover:border-copper hover:text-champagne focus:outline-none focus:ring-2 focus:ring-white"
+                        aria-label={`Open episode page: ${currentEpisode.episodeTitle}`}
+                        className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full border border-coconut-cream/25 text-coconut-cream transition-colors hover:border-copper hover:text-champagne focus:outline-none focus:ring-2 focus:ring-coconut-cream"
                     >
                         <ExternalLink size={16} aria-hidden="true" />
-                        <span>
-                            Open episode page for{" "}
-                            {currentEpisode.episodeTitle}
-                        </span>
                     </a>
                 ) : null}
+
+                <button
+                    type="button"
+                    onClick={reset}
+                    className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-full border border-coconut-cream/25 text-coconut-cream transition-colors hover:border-copper hover:text-champagne focus:outline-none focus:ring-2 focus:ring-coconut-cream"
+                    aria-label="Dismiss podcast player"
+                >
+                    <X size={18} aria-hidden="true" />
+                </button>
 
                 <audio
                     ref={audioRef}
