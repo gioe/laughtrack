@@ -548,6 +548,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     let id: Int
     let episodeTitle: String
     let podcastName: String
+    let displayRole: String
     let audioURL: URL?
     let episodeURL: URL?
     let failedAudioURL: URL?
@@ -561,6 +562,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
             id: id,
             episodeTitle: episodeTitle,
             podcastName: podcastName,
+            displayRole: displayRole,
             audioURL: nil,
             episodeURL: episodeURL,
             failedAudioURL: audioURL ?? failedAudioURL
@@ -578,6 +580,7 @@ enum ComedianPodcastPresentation {
             id: appearance.id,
             episodeTitle: appearance.episode.title,
             podcastName: appearance.podcast.title,
+            displayRole: displayRole(for: appearance.role),
             audioURL: audioURL,
             episodeURL: episodeURL,
             failedAudioURL: nil
@@ -586,6 +589,17 @@ enum ComedianPodcastPresentation {
 
     static func playbackItems(for appearances: [Components.Schemas.PodcastAppearance]) -> [PodcastPlaybackItem] {
         appearances.compactMap(playbackItem(for:))
+    }
+
+    private static func displayRole(for role: String) -> String {
+        switch role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "host":
+            return "Host"
+        case "cohost":
+            return "Cohost"
+        default:
+            return "Guest"
+        }
     }
 }
 
@@ -730,10 +744,14 @@ private struct PodcastAppearanceRow: View {
                         .font(laughTrack.typography.body.weight(.semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
                         .lineLimit(2)
-                    Text(item.podcastName)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text(item.podcastName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+
+                        PodcastAppearanceRoleBadge(title: item.displayRole)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -752,6 +770,29 @@ private struct PodcastAppearanceRow: View {
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName)")
+        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName), \(item.displayRole)")
+    }
+}
+
+private struct PodcastAppearanceRoleBadge: View {
+    let title: String
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Text(title)
+            .font(laughTrack.typography.metadata.weight(.semibold))
+            .foregroundStyle(laughTrack.colors.accentStrong)
+            .lineLimit(1)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(laughTrack.colors.accentMuted.opacity(0.24))
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(laughTrack.colors.accentMuted.opacity(0.45), lineWidth: 1)
+            )
+            .clipShape(Capsule(style: .continuous))
     }
 }

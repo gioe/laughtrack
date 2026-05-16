@@ -196,6 +196,23 @@ struct ComedianDetailViewTests {
         #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/cellar")
     }
 
+    @Test("podcast appearances expose display role for row badges")
+    func podcastAppearancesExposeDisplayRoleForRowBadges() throws {
+        let host = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "host")
+        ))
+        let cohost = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "cohost")
+        ))
+        let guest = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "guest")
+        ))
+
+        #expect(host.displayRole == "Host")
+        #expect(cohost.displayRole == "Cohost")
+        #expect(guest.displayRole == "Guest")
+    }
+
     @Test("comedian detail includes a podcasts section tab")
     func comedianDetailIncludesPodcastsSectionTab() {
         #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Past", "Related", "Podcasts"])
@@ -603,6 +620,7 @@ struct ComedianDetailViewTests {
 
     private func makePodcastAppearance(
         id: Int = 401,
+        role: String = "guest",
         episodeTitle: String = "Podcast Episode",
         podcastTitle: String = "Comedy Podcast",
         audioURL: String = "https://cdn.example.com/episode.mp3",
@@ -610,7 +628,7 @@ struct ComedianDetailViewTests {
     ) -> Components.Schemas.PodcastAppearance {
         .init(
             id: id,
-            role: "guest",
+            role: role,
             podcast: .init(
                 id: 301,
                 source: "podchaser",
