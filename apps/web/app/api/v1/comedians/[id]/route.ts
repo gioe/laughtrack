@@ -3,6 +3,93 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
+const HOST_ROLES = new Set(["host", "cohost"]);
+
+type PodcastEpisodeAppearance = {
+    id: number;
+    appearanceRole: string;
+    episode: {
+        id: number;
+        source: string;
+        sourceEpisodeId: string;
+        title: string;
+        releaseDate: Date | null;
+        durationSeconds: number | null;
+        episodeUrl: string | null;
+        audioUrl: string | null;
+        podcast: {
+            id: number;
+            source: string;
+            sourcePodcastId: string;
+            title: string;
+            imageUrl: string | null;
+            websiteUrl: string | null;
+            feedUrl: string | null;
+            authorName: string | null;
+        };
+        appearances: {
+            id: number;
+            appearanceRole: string;
+            comedian: {
+                id: number;
+                uuid: string;
+                name: string;
+                hasImage: boolean | null;
+            };
+        }[];
+    };
+};
+
+function mapPodcastAppearances(appearances: PodcastEpisodeAppearance[]) {
+    return appearances.map((appearance) => {
+        const lineup = appearance.episode.appearances.map((lineupItem) => ({
+            id: lineupItem.comedian.id,
+            uuid: lineupItem.comedian.uuid,
+            name: lineupItem.comedian.name,
+            imageUrl: buildComedianImageUrl(
+                lineupItem.comedian.name,
+                Boolean(lineupItem.comedian.hasImage),
+            ),
+            hasImage: Boolean(lineupItem.comedian.hasImage),
+            role: lineupItem.appearanceRole,
+        }));
+
+        return {
+            id: appearance.id,
+            role: appearance.appearanceRole,
+            podcast: {
+                id: appearance.episode.podcast.id,
+                source: appearance.episode.podcast.source,
+                sourcePodcastId: appearance.episode.podcast.sourcePodcastId,
+                title: appearance.episode.podcast.title,
+                imageUrl: appearance.episode.podcast.imageUrl,
+                websiteUrl: appearance.episode.podcast.websiteUrl,
+                feedUrl: appearance.episode.podcast.feedUrl,
+                authorName: appearance.episode.podcast.authorName,
+            },
+            episode: {
+                id: appearance.episode.id,
+                source: appearance.episode.source,
+                sourceEpisodeId: appearance.episode.sourceEpisodeId,
+                title: appearance.episode.title,
+                audioUrl: appearance.episode.audioUrl ?? "",
+                episodeUrl:
+                    appearance.episode.episodeUrl ??
+                    appearance.episode.audioUrl,
+                releaseDate:
+                    appearance.episode.releaseDate?.toISOString() ?? null,
+                durationSeconds: appearance.episode.durationSeconds,
+                hosts: lineup.filter((lineupItem) =>
+                    HOST_ROLES.has(lineupItem.role),
+                ),
+                guests: lineup.filter(
+                    (lineupItem) => !HOST_ROLES.has(lineupItem.role),
+                ),
+            },
+        };
+    });
+}
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
@@ -37,6 +124,80 @@ export async function GET(
                 website: true,
                 popularity: true,
                 hasImage: true,
+                episodeAppearances: {
+                    select: {
+                        id: true,
+                        appearanceRole: true,
+                        episode: {
+                            select: {
+                                id: true,
+                                source: true,
+                                sourceEpisodeId: true,
+                                title: true,
+                                releaseDate: true,
+                                durationSeconds: true,
+                                episodeUrl: true,
+                                audioUrl: true,
+                                podcast: {
+                                    select: {
+                                        id: true,
+                                        source: true,
+                                        sourcePodcastId: true,
+                                        title: true,
+                                        imageUrl: true,
+                                        websiteUrl: true,
+                                        feedUrl: true,
+                                        authorName: true,
+                                    },
+                                },
+                                appearances: {
+                                    select: {
+                                        id: true,
+                                        appearanceRole: true,
+                                        comedian: {
+                                            select: {
+                                                id: true,
+                                                uuid: true,
+                                                name: true,
+                                                hasImage: true,
+                                            },
+                                        },
+                                    },
+                                    where: {
+                                        reviewStatus: "accepted",
+                                    },
+                                    orderBy: [
+                                        { appearanceRole: "asc" },
+                                        { id: "asc" },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    where: {
+                        reviewStatus: "accepted",
+                        AND: [
+                            {
+                                episode: {
+                                    audioUrl: {
+                                        not: null,
+                                    },
+                                },
+                            },
+                            {
+                                episode: {
+                                    audioUrl: {
+                                        not: "",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                    orderBy: [
+                        { episode: { releaseDate: "desc" } },
+                        { id: "desc" },
+                    ],
+                },
             },
         });
 
@@ -70,6 +231,9 @@ export async function GET(
                         website: comedian.website,
                         popularity: comedian.popularity,
                     },
+                    podcastAppearances: mapPodcastAppearances(
+                        comedian.episodeAppearances,
+                    ),
                 },
             },
             { headers: rateLimitHeaders(rl) },

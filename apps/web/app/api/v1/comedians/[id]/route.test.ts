@@ -78,7 +78,8 @@ describe("GET /api/v1/comedians/[id]", () => {
             bio: null,
             parentComedianId: null,
             tourSourceReviewEvidence: null,
-        });
+            episodeAppearances: [],
+        } as never);
 
         const res = await GET(makeRequest(), {
             params: Promise.resolve({ id: "226475" }),
@@ -92,6 +93,127 @@ describe("GET /api/v1/comedians/[id]", () => {
             website: "https://marcusdwiley.com/",
             popularity: 0.6,
         });
+    });
+
+    it("returns podcast appearance episode DTOs for the iOS OpenAPI contract", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 226475,
+            uuid: "comedian-uuid",
+            name: "Marcus D. Wiley",
+            linktree: null,
+            instagramAccount: null,
+            instagramFollowers: null,
+            tiktokAccount: null,
+            tiktokFollowers: null,
+            youtubeAccount: null,
+            youtubeFollowers: null,
+            website: "https://marcusdwiley.com/",
+            popularity: 0.6,
+            hasImage: true,
+            episodeAppearances: [
+                {
+                    id: 91,
+                    appearanceRole: "guest",
+                    episode: {
+                        id: 17,
+                        source: "podcast_index",
+                        sourceEpisodeId: "episode-17",
+                        title: "Road Stories",
+                        releaseDate: new Date("2026-05-01T12:00:00.000Z"),
+                        durationSeconds: 1840,
+                        episodeUrl: "https://pod.example.com/episodes/17",
+                        audioUrl: "https://cdn.example.com/episodes/17.mp3",
+                        podcast: {
+                            id: 6,
+                            source: "podcast_index",
+                            sourcePodcastId: "feed-6",
+                            title: "The Green Room",
+                            imageUrl: "https://cdn.example.com/podcast.jpg",
+                            websiteUrl: "https://pod.example.com",
+                            feedUrl: "https://pod.example.com/feed.xml",
+                            authorName: "Green Room Network",
+                        },
+                        appearances: [
+                            {
+                                id: 90,
+                                appearanceRole: "host",
+                                comedian: {
+                                    id: 7,
+                                    uuid: "host-uuid",
+                                    name: "Host Comic",
+                                    hasImage: false,
+                                },
+                            },
+                            {
+                                id: 91,
+                                appearanceRole: "guest",
+                                comedian: {
+                                    id: 226475,
+                                    uuid: "comedian-uuid",
+                                    name: "Marcus D. Wiley",
+                                    hasImage: true,
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expectOpenApiResponse("/comedians/{id}", 200, body);
+        expect(body.data.podcastAppearances).toEqual([
+            {
+                id: 91,
+                role: "guest",
+                podcast: {
+                    id: 6,
+                    source: "podcast_index",
+                    sourcePodcastId: "feed-6",
+                    title: "The Green Room",
+                    imageUrl: "https://cdn.example.com/podcast.jpg",
+                    websiteUrl: "https://pod.example.com",
+                    feedUrl: "https://pod.example.com/feed.xml",
+                    authorName: "Green Room Network",
+                },
+                episode: {
+                    id: 17,
+                    source: "podcast_index",
+                    sourceEpisodeId: "episode-17",
+                    title: "Road Stories",
+                    audioUrl: "https://cdn.example.com/episodes/17.mp3",
+                    episodeUrl: "https://pod.example.com/episodes/17",
+                    releaseDate: "2026-05-01T12:00:00.000Z",
+                    durationSeconds: 1840,
+                    hosts: [
+                        {
+                            id: 7,
+                            uuid: "host-uuid",
+                            name: "Host Comic",
+                            imageUrl: "https://cdn.example.com/Host Comic.jpg",
+                            hasImage: false,
+                            role: "host",
+                        },
+                    ],
+                    guests: [
+                        {
+                            id: 226475,
+                            uuid: "comedian-uuid",
+                            name: "Marcus D. Wiley",
+                            imageUrl:
+                                "https://cdn.example.com/Marcus D. Wiley.jpg",
+                            hasImage: true,
+                            role: "guest",
+                        },
+                    ],
+                },
+            },
+        ]);
     });
 
     it("fails the OpenAPI contract when required social data id is omitted", async () => {

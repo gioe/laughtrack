@@ -2100,13 +2100,86 @@
       },
       "ComedianDetail": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "social_data"],
+        "required": ["id", "uuid", "name", "imageUrl", "social_data", "podcastAppearances"],
         "properties": {
           "id": { "type": "integer" },
           "uuid": { "type": "string" },
           "name": { "type": "string" },
           "imageUrl": { "type": "string" },
-          "social_data": { "$ref": "#/components/schemas/SocialData" }
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "podcastAppearances": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastAppearance" }
+          }
+        }
+      },
+      "PodcastAppearance": {
+        "type": "object",
+        "required": ["id", "role", "podcast", "episode"],
+        "properties": {
+          "id": { "type": "integer" },
+          "role": { "type": "string" },
+          "podcast": { "$ref": "#/components/schemas/Podcast" },
+          "episode": { "$ref": "#/components/schemas/PodcastEpisode" }
+        }
+      },
+      "Podcast": {
+        "type": "object",
+        "required": ["id", "source", "sourcePodcastId", "title"],
+        "properties": {
+          "id": { "type": "integer" },
+          "source": { "type": "string" },
+          "sourcePodcastId": { "type": "string" },
+          "title": { "type": "string" },
+          "imageUrl": { "type": ["string", "null"] },
+          "websiteUrl": { "type": ["string", "null"] },
+          "feedUrl": { "type": ["string", "null"] },
+          "authorName": { "type": ["string", "null"] }
+        }
+      },
+      "PodcastEpisode": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "sourceEpisodeId",
+          "title",
+          "audioUrl",
+          "episodeUrl",
+          "releaseDate",
+          "durationSeconds",
+          "hosts",
+          "guests"
+        ],
+        "properties": {
+          "id": { "type": "integer" },
+          "source": { "type": "string" },
+          "sourceEpisodeId": { "type": "string" },
+          "title": { "type": "string" },
+          "audioUrl": { "type": "string" },
+          "episodeUrl": { "type": ["string", "null"] },
+          "releaseDate": { "type": ["string", "null"] },
+          "durationSeconds": { "type": ["integer", "null"] },
+          "hosts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastEpisodeLineup" }
+          },
+          "guests": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastEpisodeLineup" }
+          }
+        }
+      },
+      "PodcastEpisodeLineup": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl", "hasImage", "role"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "hasImage": { "type": "boolean" },
+          "role": { "type": "string" }
         }
       },
       "ComedianSearchItem": {
