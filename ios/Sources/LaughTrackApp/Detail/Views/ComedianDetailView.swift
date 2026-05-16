@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -11,6 +12,7 @@ struct ComedianDetailView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
@@ -121,6 +123,14 @@ struct ComedianDetailView: View {
                                             onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
                                         )
                                         .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .related))
+                                    }
+
+                                    if activatedTabs.contains(.podcasts) {
+                                        ComedianPodcastPanel(
+                                            appearances: comedian.podcastAppearances,
+                                            podcastPlayer: podcastPlayer
+                                        )
+                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .podcasts))
                                     }
                                 }
                             }
@@ -403,6 +413,7 @@ enum ComedianDetailTab: String, CaseIterable, Identifiable {
     case upcoming
     case past
     case related
+    case podcasts
 
     var id: String { rawValue }
 
@@ -411,6 +422,7 @@ enum ComedianDetailTab: String, CaseIterable, Identifiable {
         case .upcoming: return "Upcoming"
         case .past: return "Past"
         case .related: return "Related"
+        case .podcasts: return "Podcasts"
         }
     }
 }
@@ -529,5 +541,217 @@ struct ComedianRelatedPanel: View {
                 }
             }
         }
+    }
+}
+
+struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
+    let id: Int
+    let episodeTitle: String
+    let podcastName: String
+    let audioURL: URL?
+    let episodeURL: URL?
+    let failedAudioURL: URL?
+
+    var requiresExternalFallback: Bool {
+        audioURL == nil || failedAudioURL != nil
+    }
+
+    func markingAudioFailed() -> PodcastPlaybackItem {
+        .init(
+            id: id,
+            episodeTitle: episodeTitle,
+            podcastName: podcastName,
+            audioURL: nil,
+            episodeURL: episodeURL,
+            failedAudioURL: audioURL ?? failedAudioURL
+        )
+    }
+}
+
+enum ComedianPodcastPresentation {
+    static func playbackItem(for appearance: Components.Schemas.PodcastAppearance) -> PodcastPlaybackItem? {
+        let audioURL = URL.normalizedExternalURL(appearance.episode.audioUrl)
+        let episodeURL = URL.normalizedExternalURL(appearance.episode.episodeUrl)
+        guard audioURL != nil || episodeURL != nil else { return nil }
+
+        return .init(
+            id: appearance.id,
+            episodeTitle: appearance.episode.title,
+            podcastName: appearance.podcast.title,
+            audioURL: audioURL,
+            episodeURL: episodeURL,
+            failedAudioURL: nil
+        )
+    }
+
+    static func playbackItems(for appearances: [Components.Schemas.PodcastAppearance]) -> [PodcastPlaybackItem] {
+        appearances.compactMap(playbackItem(for:))
+    }
+}
+
+protocol PodcastAudioEngine: AnyObject {
+    func load(url: URL, onFailure: @escaping @MainActor () -> Void)
+    func play()
+    func pause()
+    func stop()
+}
+
+final class AVPodcastAudioEngine: PodcastAudioEngine {
+    private var player: AVPlayer?
+    private var statusObservation: NSKeyValueObservation?
+
+    func load(url: URL, onFailure: @escaping @MainActor () -> Void) {
+        let item = AVPlayerItem(url: url)
+        statusObservation = item.observe(\.status, options: [.new]) { item, _ in
+            guard item.status == .failed else { return }
+            Task { @MainActor in onFailure() }
+        }
+        player = AVPlayer(playerItem: item)
+    }
+
+    func play() {
+        player?.play()
+    }
+
+    func pause() {
+        player?.pause()
+    }
+
+    func stop() {
+        player?.pause()
+        player = nil
+        statusObservation = nil
+    }
+}
+
+@MainActor
+final class PodcastPlaybackController: ObservableObject {
+    @Published private(set) var currentItem: PodcastPlaybackItem?
+    @Published private(set) var isPlaying = false
+
+    private let audioEngine: PodcastAudioEngine
+
+    init(audioEngine: PodcastAudioEngine = AVPodcastAudioEngine()) {
+        self.audioEngine = audioEngine
+    }
+
+    func start(_ item: PodcastPlaybackItem) {
+        currentItem = item
+        guard let audioURL = item.audioURL else {
+            audioEngine.stop()
+            isPlaying = false
+            return
+        }
+
+        audioEngine.load(url: audioURL) { [weak self] in
+            self?.markCurrentItemFailed()
+        }
+        audioEngine.play()
+        isPlaying = true
+    }
+
+    func pause() {
+        audioEngine.pause()
+        isPlaying = false
+    }
+
+    func resume() {
+        guard let item = currentItem, item.audioURL != nil else { return }
+        audioEngine.play()
+        isPlaying = true
+    }
+
+    func dismiss() {
+        audioEngine.stop()
+        currentItem = nil
+        isPlaying = false
+    }
+
+    func markCurrentItemFailed() {
+        guard let currentItem else { return }
+        audioEngine.stop()
+        self.currentItem = currentItem.markingAudioFailed()
+        isPlaying = false
+    }
+}
+
+struct ComedianPodcastPanel: View {
+    let appearances: [Components.Schemas.PodcastAppearance]
+    @ObservedObject var podcastPlayer: PodcastPlaybackController
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let items = ComedianPodcastPresentation.playbackItems(for: appearances)
+
+        LaughTrackCard(tone: .muted, density: .tight) {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: "Podcast Appearances")
+
+                if items.isEmpty {
+                    EmptyCard(
+                        title: "No playable podcast episodes yet",
+                        message: "LaughTrack has not matched this comedian with playable podcast appearances yet."
+                    )
+                } else {
+                    ForEach(items) { item in
+                        PodcastAppearanceRow(
+                            item: item,
+                            isCurrent: podcastPlayer.currentItem?.id == item.id
+                        ) {
+                            podcastPlayer.start(item)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct PodcastAppearanceRow: View {
+    let item: PodcastPlaybackItem
+    let isCurrent: Bool
+    let onSelect: () -> Void
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                Image(systemName: item.audioURL == nil ? "arrow.up.right.square" : "play.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.episodeTitle)
+                        .font(laughTrack.typography.body.weight(.semibold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(2)
+                    Text(item.podcastName)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                if isCurrent {
+                    Image(systemName: "waveform")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accent)
+                        .accessibilityLabel("Now playing")
+                }
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(laughTrack.colors.surfaceElevated.opacity(isCurrent ? 1 : 0.62))
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName)")
     }
 }

@@ -178,6 +178,92 @@ struct ComedianDetailViewTests {
         #expect(stats.isEmpty)
     }
 
+    @Test("podcast appearances expose playable episode metadata")
+    func podcastAppearancesExposePlayableEpisodeMetadata() throws {
+        let appearance = makePodcastAppearance(
+            episodeTitle: "Comedy Cellar Stories",
+            podcastTitle: "The Laugh Track Pod",
+            audioURL: "https://cdn.example.com/episodes/cellar.mp3",
+            episodeURL: "https://podcasts.example.com/cellar"
+        )
+
+        let item = try #require(ComedianPodcastPresentation.playbackItem(for: appearance))
+
+        #expect(item.id == appearance.id)
+        #expect(item.episodeTitle == "Comedy Cellar Stories")
+        #expect(item.podcastName == "The Laugh Track Pod")
+        #expect(item.audioURL?.absoluteString == "https://cdn.example.com/episodes/cellar.mp3")
+        #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/cellar")
+    }
+
+    @Test("comedian detail includes a podcasts section tab")
+    func comedianDetailIncludesPodcastsSectionTab() {
+        #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Past", "Related", "Podcasts"])
+    }
+
+    @Test("podcast appearances fall back to external episodes when audio is unavailable")
+    func podcastAppearancesFallbackToExternalEpisodeWhenAudioIsUnavailable() throws {
+        let appearance = makePodcastAppearance(
+            audioURL: "not a url",
+            episodeURL: "https://podcasts.example.com/fallback"
+        )
+
+        let item = try #require(ComedianPodcastPresentation.playbackItem(for: appearance))
+
+        #expect(item.audioURL == nil)
+        #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/fallback")
+        #expect(item.requiresExternalFallback == true)
+    }
+
+    @Test("podcast player keeps current episode across view navigation and supports controls")
+    func podcastPlayerKeepsEpisodeAcrossNavigationAndSupportsControls() throws {
+        let player = PodcastPlaybackController(audioEngine: RecordingPodcastAudioEngine())
+        let firstItem = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(id: 501, episodeTitle: "First", audioURL: "https://cdn.example.com/first.mp3")
+        ))
+        let secondItem = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(id: 502, episodeTitle: "Second", audioURL: "https://cdn.example.com/second.mp3")
+        ))
+
+        player.start(firstItem)
+        #expect(player.currentItem == firstItem)
+        #expect(player.isPlaying == true)
+
+        player.pause()
+        #expect(player.currentItem == firstItem)
+        #expect(player.isPlaying == false)
+
+        player.resume()
+        #expect(player.currentItem == firstItem)
+        #expect(player.isPlaying == true)
+
+        player.start(secondItem)
+        #expect(player.currentItem == secondItem)
+        #expect(player.isPlaying == true)
+
+        player.dismiss()
+        #expect(player.currentItem == nil)
+        #expect(player.isPlaying == false)
+    }
+
+    @Test("podcast player records failed audio URLs and exposes the external fallback")
+    func podcastPlayerRecordsFailedAudioURLsAndExposesExternalFallback() throws {
+        let player = PodcastPlaybackController(audioEngine: RecordingPodcastAudioEngine())
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(
+                audioURL: "https://cdn.example.com/broken.mp3",
+                episodeURL: "https://podcasts.example.com/broken"
+            )
+        ))
+
+        player.start(item)
+        player.markCurrentItemFailed()
+
+        #expect(player.currentItem?.id == item.id)
+        #expect(player.isPlaying == false)
+        #expect(player.currentItem?.requiresExternalFallback == true)
+    }
+
     @Test("loadPastShowsIfNeeded surfaces the first page on success")
     func loadPastShowsIfNeededReturnsFirstPage() async throws {
         let model = ComedianDetailModel(comedianID: 101)
@@ -513,6 +599,57 @@ struct ComedianDetailViewTests {
                 )
             }
         )
+    }
+
+    private func makePodcastAppearance(
+        id: Int = 401,
+        episodeTitle: String = "Podcast Episode",
+        podcastTitle: String = "Comedy Podcast",
+        audioURL: String = "https://cdn.example.com/episode.mp3",
+        episodeURL: String? = "https://podcasts.example.com/episode"
+    ) -> Components.Schemas.PodcastAppearance {
+        .init(
+            id: id,
+            role: "guest",
+            podcast: .init(
+                id: 301,
+                source: "podchaser",
+                sourcePodcastId: "podcast-\(id)",
+                title: podcastTitle
+            ),
+            episode: .init(
+                id: 701,
+                source: "podchaser",
+                sourceEpisodeId: "episode-\(id)",
+                title: episodeTitle,
+                audioUrl: audioURL,
+                episodeUrl: episodeURL,
+                hosts: [],
+                guests: []
+            )
+        )
+    }
+}
+
+private final class RecordingPodcastAudioEngine: PodcastAudioEngine {
+    private(set) var loadedURL: URL?
+    private(set) var playCount = 0
+    private(set) var pauseCount = 0
+
+    func load(url: URL, onFailure: @escaping @MainActor () -> Void) {
+        loadedURL = url
+    }
+
+    func play() {
+        playCount += 1
+    }
+
+    func pause() {
+        pauseCount += 1
+    }
+
+    func stop() {
+        loadedURL = nil
     }
 }
 

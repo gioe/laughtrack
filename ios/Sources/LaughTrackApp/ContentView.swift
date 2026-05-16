@@ -50,6 +50,7 @@ enum LaughTrackViewTestID {
     static let showDetailScreen = "laughtrack.show-detail.screen"
     static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
     static let comedianDetailTabPicker = "laughtrack.comedian-detail.tab-picker"
+    static let podcastMiniPlayer = "laughtrack.podcast-mini-player"
     static let clubDetailScreen = "laughtrack.club-detail.screen"
     static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
     static let settingsNearbySavedState = "laughtrack.settings.nearby.saved-state"
@@ -248,6 +249,7 @@ struct ContentView: View {
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
+    @StateObject private var podcastPlayer = PodcastPlaybackController()
     @Namespace private var authLogoNamespace
 
     var body: some View {
@@ -401,10 +403,100 @@ struct ContentView: View {
             )
         }
         .environmentObject(favorites)
+        .environmentObject(podcastPlayer)
+        .safeAreaInset(edge: .bottom) {
+            PodcastMiniPlayerView(player: podcastPlayer)
+                .padding(.horizontal, theme.spacing.md)
+                .padding(.bottom, theme.spacing.sm)
+        }
     }
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
+    }
+}
+
+private struct PodcastMiniPlayerView: View {
+    @ObservedObject var player: PodcastPlaybackController
+
+    @Environment(\.appTheme) private var theme
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        if let item = player.currentItem {
+            let laughTrack = theme.laughTrackTokens
+
+            HStack(spacing: 12) {
+                Image(systemName: item.requiresExternalFallback ? "exclamationmark.triangle.fill" : "waveform")
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(item.requiresExternalFallback ? laughTrack.colors.warning : laughTrack.colors.accentStrong)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.episodeTitle)
+                        .font(laughTrack.typography.body.weight(.semibold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(1)
+
+                    Text(item.podcastName)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                if item.requiresExternalFallback {
+                    if let episodeURL = item.episodeURL {
+                        Button {
+                            openURL(episodeURL)
+                        } label: {
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                                .frame(width: 38, height: 38)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Open episode")
+                    }
+                } else {
+                    Button {
+                        player.isPlaying ? player.pause() : player.resume()
+                    } label: {
+                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: theme.iconSizes.md, weight: .bold))
+                            .foregroundStyle(laughTrack.colors.textInverse)
+                            .frame(width: 38, height: 38)
+                            .background(laughTrack.colors.accentStrong)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(player.isPlaying ? "Pause podcast" : "Play podcast")
+                }
+
+                Button {
+                    player.dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .frame(width: 36, height: 36)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss podcast player")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(laughTrack.colors.surfaceElevated)
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .shadowStyle(laughTrack.shadows.floating)
+            .accessibilityIdentifier(LaughTrackViewTestID.podcastMiniPlayer)
+        }
     }
 }
 
