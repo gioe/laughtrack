@@ -16,6 +16,9 @@ function makeAppearance(
         episodeTitle: "A Good Episode",
         releaseDate: new Date("2026-04-02T00:00:00Z"),
         episodeUrl: "https://example.com/episode",
+        audioUrl: "https://cdn.example.com/episode.mp3",
+        durationSeconds: 3600,
+        appearanceRole: "guest",
         ...over,
     };
 }

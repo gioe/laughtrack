@@ -52,11 +52,14 @@ function buildComedianSelect() {
         episodeAppearances: {
             select: {
                 id: true,
+                appearanceRole: true,
                 episode: {
                     select: {
                         title: true,
                         releaseDate: true,
                         episodeUrl: true,
+                        audioUrl: true,
+                        durationSeconds: true,
                         podcast: {
                             select: {
                                 title: true,
@@ -108,10 +111,13 @@ function sortPodcastAppearances(
 
 type AcceptedEpisodeAppearance = {
     id: number;
+    appearanceRole: string;
     episode: {
         title: string;
         releaseDate: Date | null;
         episodeUrl: string | null;
+        audioUrl: string | null;
+        durationSeconds: number | null;
         podcast: {
             title: string;
         };
@@ -127,6 +133,9 @@ function mapEpisodeAppearances(
         episodeTitle: appearance.episode.title,
         releaseDate: appearance.episode.releaseDate,
         episodeUrl: appearance.episode.episodeUrl ?? "",
+        audioUrl: appearance.episode.audioUrl,
+        durationSeconds: appearance.episode.durationSeconds,
+        appearanceRole: appearance.appearanceRole,
     }));
 }
 

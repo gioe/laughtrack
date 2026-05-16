@@ -83,10 +83,13 @@ function makeComedianRow(
         }[];
         episodeAppearances: {
             id: number;
+            appearanceRole: string;
             episode: {
                 title: string;
                 releaseDate: Date | null;
                 episodeUrl: string | null;
+                audioUrl: string | null;
+                durationSeconds: number | null;
                 podcast: {
                     title: string;
                 };
@@ -331,29 +334,38 @@ describe("findComedianByName", () => {
                 episodeAppearances: [
                     {
                         id: 1,
+                        appearanceRole: "guest",
                         episode: {
                             podcast: { title: "Older Pod" },
                             title: "Older Episode",
                             releaseDate: new Date("2024-01-01T00:00:00.000Z"),
                             episodeUrl: "https://example.com/older",
+                            audioUrl: "https://cdn.example.com/older.mp3",
+                            durationSeconds: 3600,
                         },
                     },
                     {
                         id: 2,
+                        appearanceRole: "host",
                         episode: {
                             podcast: { title: "Newer Pod" },
                             title: "Newer Episode",
                             releaseDate: new Date("2025-01-01T00:00:00.000Z"),
                             episodeUrl: "https://example.com/newer",
+                            audioUrl: "https://cdn.example.com/newer.mp3",
+                            durationSeconds: 4200,
                         },
                     },
                     {
                         id: 3,
+                        appearanceRole: "guest",
                         episode: {
                             podcast: { title: "Undated Pod" },
                             title: "Undated Episode",
                             releaseDate: null,
                             episodeUrl: "https://example.com/undated",
+                            audioUrl: "https://cdn.example.com/undated.mp3",
+                            durationSeconds: null,
                         },
                     },
                 ],
@@ -369,6 +381,9 @@ describe("findComedianByName", () => {
                     episodeTitle: "Newer Episode",
                     releaseDate: new Date("2025-01-01T00:00:00.000Z"),
                     episodeUrl: "https://example.com/newer",
+                    audioUrl: "https://cdn.example.com/newer.mp3",
+                    durationSeconds: 4200,
+                    appearanceRole: "host",
                 },
                 {
                     id: 1,
@@ -376,6 +391,9 @@ describe("findComedianByName", () => {
                     episodeTitle: "Older Episode",
                     releaseDate: new Date("2024-01-01T00:00:00.000Z"),
                     episodeUrl: "https://example.com/older",
+                    audioUrl: "https://cdn.example.com/older.mp3",
+                    durationSeconds: 3600,
+                    appearanceRole: "guest",
                 },
                 {
                     id: 3,
@@ -383,6 +401,9 @@ describe("findComedianByName", () => {
                     episodeTitle: "Undated Episode",
                     releaseDate: null,
                     episodeUrl: "https://example.com/undated",
+                    audioUrl: "https://cdn.example.com/undated.mp3",
+                    durationSeconds: null,
+                    appearanceRole: "guest",
                 },
             ]);
         });
@@ -397,6 +418,15 @@ describe("findComedianByName", () => {
                 expect.objectContaining({
                     select: expect.objectContaining({
                         episodeAppearances: expect.objectContaining({
+                            select: expect.objectContaining({
+                                appearanceRole: true,
+                                episode: expect.objectContaining({
+                                    select: expect.objectContaining({
+                                        audioUrl: true,
+                                        durationSeconds: true,
+                                    }),
+                                }),
+                            }),
                             where: {
                                 reviewStatus: "accepted",
                                 AND: [
