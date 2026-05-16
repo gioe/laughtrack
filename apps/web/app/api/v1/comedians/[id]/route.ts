@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-
-const HOST_ROLES = new Set(["host", "cohost"]);
+import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 
 type PodcastEpisodeAppearance = {
     id: number;
@@ -51,12 +50,13 @@ function mapPodcastAppearances(appearances: PodcastEpisodeAppearance[]) {
                 Boolean(lineupItem.comedian.hasImage),
             ),
             hasImage: Boolean(lineupItem.comedian.hasImage),
-            role: lineupItem.appearanceRole,
+            role: normalizePodcastAppearanceRole(lineupItem.appearanceRole),
         }));
+        const role = normalizePodcastAppearanceRole(appearance.appearanceRole);
 
         return {
             id: appearance.id,
-            role: appearance.appearanceRole,
+            role,
             podcast: {
                 id: appearance.episode.podcast.id,
                 source: appearance.episode.podcast.source,
@@ -79,11 +79,11 @@ function mapPodcastAppearances(appearances: PodcastEpisodeAppearance[]) {
                 releaseDate:
                     appearance.episode.releaseDate?.toISOString() ?? null,
                 durationSeconds: appearance.episode.durationSeconds,
-                hosts: lineup.filter((lineupItem) =>
-                    HOST_ROLES.has(lineupItem.role),
+                hosts: lineup.filter(
+                    (lineupItem) => lineupItem.role !== "guest",
                 ),
                 guests: lineup.filter(
-                    (lineupItem) => !HOST_ROLES.has(lineupItem.role),
+                    (lineupItem) => lineupItem.role === "guest",
                 ),
             },
         };
