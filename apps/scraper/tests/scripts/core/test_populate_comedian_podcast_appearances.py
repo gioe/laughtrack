@@ -20,6 +20,7 @@ class _FakeResponse:
     status_code: int
     payload: dict[str, Any]
     headers: dict[str, str] | None = None
+    text: str = ""
 
     def json(self) -> dict[str, Any]:
         return self.payload
@@ -28,87 +29,107 @@ class _FakeResponse:
 class _FakeSession:
     def __init__(self, responses: list[_FakeResponse]):
         self.responses = responses
-        self.posts: list[dict[str, Any]] = []
+        self.gets: list[dict[str, Any]] = []
 
-    async def post(self, url: str, **kwargs: Any) -> _FakeResponse:
-        self.posts.append({"url": url, **kwargs})
+    async def get(self, url: str, **kwargs: Any) -> _FakeResponse:
+        self.gets.append({"url": url, **kwargs})
         if not self.responses:
-            raise AssertionError("unexpected extra Podchaser request")
+            raise AssertionError("unexpected extra Podcast Index request")
         return self.responses.pop(0)
 
 
-def _episode_payload() -> dict[str, Any]:
+def _podcast_index_payload() -> dict[str, Any]:
     return {
-        "data": {
-            "episodes": {
-                "data": [
-                    {
-                        "id": "ep-1",
-                        "title": "Ari Shaffir Returns",
-                        "airDate": "2024-01-03T10:00:00Z",
-                        "url": "https://www.podchaser.com/podcasts/example/episodes/ari-shaffir-returns-1",
-                        "webUrl": "https://feeds.example/ari-shaffir-returns",
-                        "podcast": {"title": "Comedy Talk"},
-                    },
-                    {
-                        "id": "ep-2",
-                        "title": "Unrelated Episode",
-                        "airDate": None,
-                        "url": "https://www.podchaser.com/podcasts/example/episodes/unrelated-2",
-                        "webUrl": None,
-                        "podcast": {"title": "Comedy Talk"},
-                    },
-                    {
-                        "id": None,
-                        "title": "Missing ID Is Ignored",
-                        "airDate": "2024-02-01T00:00:00Z",
-                        "url": "https://example.invalid/missing-id",
-                        "podcast": {"title": "Comedy Talk"},
-                    },
-                ]
-            }
-        }
+        "status": True,
+        "items": [
+            {
+                "id": 101,
+                "feedId": 2001,
+                "feedTitle": "Comedy Talk",
+                "title": "Ari Shaffir Returns",
+                "datePublished": 1704276000,
+                "link": "https://podcast.example/ari-shaffir-returns",
+            },
+            {
+                "id": 102,
+                "feedId": 2001,
+                "feedTitle": "Comedy Talk",
+                "title": "Unrelated Episode",
+                "datePublished": None,
+                "link": "https://podcast.example/unrelated",
+            },
+            {
+                "id": None,
+                "feedTitle": "Comedy Talk",
+                "title": "Missing ID Is Ignored",
+            },
+        ],
     }
 
 
-def test_build_episode_search_payload_requests_minimal_episode_fields():
-    payload = mod._build_episode_search_payload("Ari Shaffir", first=25)
+def test_build_person_search_params_requests_expected_episode_count():
+    params = mod._build_person_search_params("Ari Shaffir", max_episodes=25)
 
-    assert payload["variables"] == {"searchTerm": "Ari Shaffir", "first": 25}
-    query = payload["query"]
-    assert "episodes(searchTerm: $searchTerm" in query
-    assert "id" in query
-    assert "title" in query
-    assert "airDate" in query
-    assert "url" in query
-    assert "webUrl" in query
-    assert "podcast" in query
+    assert params == {"q": "Ari Shaffir", "max": 25, "fulltext": ""}
 
 
-def test_parse_episode_rows_skips_incomplete_episodes_and_prefers_podchaser_url():
-    rows = mod._parse_episode_rows(comedian_id=12, payload=_episode_payload())
+def test_parse_candidate_rows_skips_incomplete_episodes_and_records_podcast_index_evidence():
+    rows = mod._parse_candidate_rows(
+        comedian_id=12,
+        comedian_name="Ari Shaffir",
+        payload=_podcast_index_payload(),
+        rss_by_feed_url={},
+    )
 
     assert rows == [
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-1",
+            source="podcast_index",
+            source_episode_id="101",
             podcast_name="Comedy Talk",
             episode_title="Ari Shaffir Returns",
-            release_date="2024-01-03T10:00:00Z",
-            episode_url="https://www.podchaser.com/podcasts/example/episodes/ari-shaffir-returns-1",
+            release_date="2024-01-03T10:00:00+00:00",
+            episode_url="https://podcast.example/ari-shaffir-returns",
+            match_confidence=1.0,
+            match_evidence={
+                "search_term": "Ari Shaffir",
+                "matched_terms": ["ari", "shaffir"],
+                "episode_title": "Ari Shaffir Returns",
+                "podcast_name": "Comedy Talk",
+                "podcast_index_episode_id": 101,
+                "podcast_index_guid": None,
+                "source_feed_id": "2001",
+                "source_feed_url": None,
+                "feed_url": None,
+                "metadata_source": "podcast_index",
+            },
         ),
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-2",
+            source="podcast_index",
+            source_episode_id="102",
             podcast_name="Comedy Talk",
             episode_title="Unrelated Episode",
             release_date=None,
-            episode_url="https://www.podchaser.com/podcasts/example/episodes/unrelated-2",
+            episode_url="https://podcast.example/unrelated",
+            match_confidence=0.0,
+            match_evidence={
+                "search_term": "Ari Shaffir",
+                "matched_terms": [],
+                "episode_title": "Unrelated Episode",
+                "podcast_name": "Comedy Talk",
+                "podcast_index_episode_id": 102,
+                "podcast_index_guid": None,
+                "source_feed_id": "2001",
+                "source_feed_url": None,
+                "feed_url": None,
+                "metadata_source": "podcast_index",
+            },
         ),
     ]
 
 
-def test_fetch_podchaser_episodes_retries_429_retry_after(monkeypatch):
+def test_fetch_podcast_index_episode_result_retries_429_retry_after(monkeypatch):
     sleeps: list[float] = []
 
     async def fake_sleep(seconds: float) -> None:
@@ -119,48 +140,44 @@ def test_fetch_podchaser_episodes_retries_429_retry_after(monkeypatch):
             _FakeResponse(429, {"errors": [{"message": "rate limited"}]}, {"Retry-After": "7"}),
             _FakeResponse(
                 200,
-                _episode_payload(),
-                {
-                    "X-Podchaser-Points-Remaining": "1000",
-                    "X-Podchaser-Query-Cost": "12",
-                },
+                _podcast_index_payload(),
             ),
         ]
     )
     monkeypatch.setattr(mod.asyncio, "sleep", fake_sleep)
 
-    rows = asyncio.run(
-        mod._fetch_podchaser_episodes(
-            session,
+    result = asyncio.run(
+        mod._fetch_podcast_index_episode_result(
+            session=session,
             comedian_id=12,
             comedian_name="Ari Shaffir",
-            token="token",
-            first=25,
+            credentials=mod.PodcastIndexCredentials(api_key="key", api_secret="secret"),
+            max_episodes=25,
         )
     )
 
     assert sleeps == [7.0]
-    assert len(rows) == 2
-    assert len(session.posts) == 2
-    assert session.posts[0]["headers"]["Authorization"] == "Bearer token"
+    assert result.succeeded is True
+    assert len(result.rows) == 2
+    assert len(session.gets) == 2
+    assert session.gets[0]["params"] == {"q": "Ari Shaffir", "max": 25, "fulltext": ""}
+    assert session.gets[0]["headers"]["X-Auth-Key"] == "key"
 
 
-def test_fetch_podchaser_episodes_returns_empty_on_graphql_errors():
-    session = _FakeSession(
-        [_FakeResponse(200, {"errors": [{"message": "no permission"}]}, {})]
-    )
+def test_fetch_podcast_index_episode_result_returns_empty_on_unsuccessful_response():
+    session = _FakeSession([_FakeResponse(200, {"status": False, "description": "no permission"}, {})])
 
-    rows = asyncio.run(
-        mod._fetch_podchaser_episodes(
-            session,
+    result = asyncio.run(
+        mod._fetch_podcast_index_episode_result(
+            session=session,
             comedian_id=12,
             comedian_name="Ari Shaffir",
-            token="token",
-            first=25,
+            credentials=mod.PodcastIndexCredentials(api_key="key", api_secret="secret"),
+            max_episodes=25,
         )
     )
 
-    assert rows == []
+    assert result == mod.PodcastAppearanceFetchResult(succeeded=False, rows=[])
 
 
 def test_load_target_comedians_excludes_deny_listed_names(monkeypatch):
@@ -210,7 +227,7 @@ def test_populate_continues_after_transient_failure(monkeypatch):
             _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
             _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
             _FakeResponse(503, {"errors": [{"message": "temporarily unavailable"}]}, {}),
-            _FakeResponse(200, _episode_payload(), {}),
+            _FakeResponse(200, _podcast_index_payload(), {}),
         ]
     )
 
@@ -233,15 +250,19 @@ def test_populate_continues_after_transient_failure(monkeypatch):
     summary = asyncio.run(
         mod._populate(
             comedians=[(12, "Ari Shaffir"), (13, "Maria Bamford")],
-            token="token",
-            first=25,
+            credentials=mod.PodcastIndexCredentials(api_key="key", api_secret="secret"),
+            max_episodes=25,
             dry_run=True,
+            batch_size=10,
+            request_delay=0,
+            audit_path=Path("tmp/audit.jsonl"),
+            min_confidence=0.75,
         )
     )
 
     assert summary["processed"] == 2
     assert summary["matched_episodes"] == 2
-    assert len(session.posts) == 4
+    assert len(session.gets) == 4
 
 
 def test_populate_preserves_existing_rows_for_failed_lookups(monkeypatch):
@@ -289,9 +310,13 @@ def test_populate_preserves_existing_rows_for_failed_lookups(monkeypatch):
     summary = asyncio.run(
         mod._populate(
             comedians=[(12, "Ari Shaffir")],
-            token="token",
-            first=25,
+            credentials=mod.PodcastIndexCredentials(api_key="key", api_secret="secret"),
+            max_episodes=25,
             dry_run=False,
+            batch_size=10,
+            request_delay=0,
+            audit_path=Path("tmp/audit.jsonl"),
+            min_confidence=0.75,
         )
     )
 
@@ -327,11 +352,14 @@ def test_write_rows_replaces_only_processed_comedians(monkeypatch):
     rows = [
         mod.PodcastAppearanceRow(
             comedian_id=12,
-            podchaser_episode_id="ep-1",
+            source="podcast_index",
+            source_episode_id="ep-1",
             podcast_name="Comedy Talk",
             episode_title="Ari Shaffir Returns",
             release_date="2024-01-03T10:00:00Z",
             episode_url="https://podchaser.example/ep-1",
+            match_confidence=0.95,
+            match_evidence={"metadata_source": "podcast_index"},
         )
     ]
 
@@ -339,14 +367,17 @@ def test_write_rows_replaces_only_processed_comedians(monkeypatch):
 
     assert written == 1
     assert calls[0][0].strip().startswith("DELETE FROM comedian_podcast_appearances")
-    assert calls[0][1] == ([12, 13],)
+    assert calls[0][1] == ([12, 13], "podcast_index")
     assert values_calls[0][1] == [
         (
             12,
+            "podcast_index",
             "ep-1",
             "Comedy Talk",
             "Ari Shaffir Returns",
             "2024-01-03T10:00:00Z",
             "https://podchaser.example/ep-1",
+            0.95,
+            '{"metadata_source": "podcast_index"}',
         )
     ]
