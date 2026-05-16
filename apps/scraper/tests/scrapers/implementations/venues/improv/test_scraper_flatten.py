@@ -181,3 +181,64 @@ def test_improv_scraper_url_fallback_rejects_other_club_ticketweb_urls():
 
     assert scraper._event_matches_current_club(matching) is True
     assert scraper._event_matches_current_club(cross_venue) is False
+
+
+@pytest.mark.asyncio
+async def test_improv_scraper_probes_calendar_page_from_homepage(monkeypatch):
+    club = Club(id=30, name='Brea Improv', address='123 St', website='https://example.com', popularity=0, zip_code='00000', phone_number='000-0000', visible=True, timezone='UTC', rate_limit=1.0, max_retries=1, timeout=5)
+    club.active_scraping_source = ScrapingSource(id=1, club_id=club.id, platform='improv', scraper_key='improv', source_url='https://improv.com/brea/', external_id=None)
+    club.scraping_sources = [club.active_scraping_source]
+    scraper = ImprovScraper(club)
+
+    fetched_urls = []
+
+    async def fake_fetch_html(self, url: str):
+        fetched_urls.append(url)
+        return "<html></html>"
+
+    def fake_get_next(html, anchor_id, base_url=None):
+        if base_url == "https://improv.com/calendar/brea/":
+            return "https://improv.com/calendar/brea/?start=2026-10-08"
+        return None
+
+    def fake_extract_ticket_links(html, base_url, ctx):
+        return [f"https://www.ticketweb.com/event/brea-improv-tickets/{len(fetched_urls)}?pl=breaimprov"]
+
+    class OneEventPerTicketBatchScraper:
+        def __init__(self, logger_context, config=None):
+            self.logger_context = logger_context
+            self.config = config
+
+        async def process_batch(self, items, processor, description=None):
+            return [
+                [
+                    ImprovEvent(
+                        name=f"Brea Event {index}",
+                        start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
+                        url=item,
+                        description="desc",
+                        location_name="Brea Improv",
+                    )
+                ]
+                for index, item in enumerate(items, start=1)
+            ]
+
+    monkeypatch.setattr(ImprovScraper, "fetch_html", fake_fetch_html, raising=False)
+    monkeypatch.setattr(improv_scraper_module.HtmlScraper, "get_link_url_by_id", fake_get_next, raising=False)
+    monkeypatch.setattr(
+        improv_scraper_module.ImprovExtractor,
+        "extract_ticket_links",
+        fake_extract_ticket_links,
+        raising=False,
+    )
+    monkeypatch.setattr(improv_scraper_module, "BatchScraper", OneEventPerTicketBatchScraper, raising=True)
+
+    result = await scraper.get_data(club.scraping_url)
+
+    assert isinstance(result, ImprovPageData)
+    assert len(result.event_list) == 3
+    assert fetched_urls == [
+        "https://improv.com/brea",
+        "https://improv.com/calendar/brea/",
+        "https://improv.com/calendar/brea/?start=2026-10-08",
+    ]

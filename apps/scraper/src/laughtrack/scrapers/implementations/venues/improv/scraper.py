@@ -6,7 +6,7 @@ Follows the standardized 5-component architecture pattern.
 """
 
 from typing import List, Optional
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.improv import ImprovEvent
@@ -55,6 +55,18 @@ class ImprovScraper(BaseScraper):
         parsed = urlparse(url)
         parts = [part for part in parsed.path.split("/") if part]
         return parts[0].lower() if parts else ""
+
+    @staticmethod
+    def _calendar_url_for_homepage(url: str) -> Optional[str]:
+        parsed = urlparse(url)
+        path_parts = [part for part in parsed.path.split("/") if part]
+        if parsed.netloc.lower().removeprefix("www.") != "improv.com":
+            return None
+        if len(path_parts) != 1 or path_parts[0].lower() == "calendar":
+            return None
+
+        calendar_path = f"/calendar/{path_parts[0]}/"
+        return urlunparse((parsed.scheme, parsed.netloc, calendar_path, "", "", ""))
 
     def _url_matches_current_club(self, url: str) -> bool:
         if not url:
@@ -145,6 +157,8 @@ class ImprovScraper(BaseScraper):
 
                 # Use only the explicit anchor id used by Improv sites
                 next_url = HtmlScraper.get_link_url_by_id(html_content, anchor_id="moreshowsbtn", base_url=current_url)
+                if not next_url and page_count == 0:
+                    next_url = self._calendar_url_for_homepage(start_url)
                 if not next_url or next_url in visited_urls:
                     break
 
