@@ -1,9 +1,12 @@
 "use client";
 
 import React from "react";
-import { ExternalLink, Play } from "lucide-react";
+import { AudioWaveform, ExternalLink, Play } from "lucide-react";
 import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
-import { startPodcastEpisode } from "@/hooks/usePodcastPlayer";
+import {
+    startPodcastEpisode,
+    usePodcastPlayer,
+} from "@/hooks/usePodcastPlayer";
 
 interface PodcastAppearancesSectionProps {
     appearances: ComedianPodcastAppearanceDTO[];
@@ -61,6 +64,8 @@ function isPlayableAppearance(
 const PodcastAppearancesSection = ({
     appearances,
 }: PodcastAppearancesSectionProps) => {
+    const currentEpisode = usePodcastPlayer((state) => state.currentEpisode);
+    const isPlaying = usePodcastPlayer((state) => state.isPlaying);
     const playableAppearances = appearances.filter(isPlayableAppearance);
 
     if (playableAppearances.length === 0) return null;
@@ -92,6 +97,8 @@ const PodcastAppearancesSection = ({
                         duration,
                         role,
                     ].filter(Boolean);
+                    const isCurrent =
+                        isPlaying && currentEpisode?.id === appearance.id;
 
                     return (
                         <li
@@ -118,6 +125,17 @@ const PodcastAppearancesSection = ({
                                     aria-hidden="true"
                                 />
                             </a>
+                            {isCurrent ? (
+                                <span
+                                    className="mt-2 inline-flex flex-none items-center text-copper motion-safe:animate-pulse"
+                                    aria-label="Now playing"
+                                >
+                                    <AudioWaveform
+                                        size={18}
+                                        aria-hidden="true"
+                                    />
+                                </span>
+                            ) : null}
                             <button
                                 type="button"
                                 onClick={() =>

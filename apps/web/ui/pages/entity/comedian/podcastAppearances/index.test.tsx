@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import PodcastAppearancesSection from "./index";
 import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { usePodcastPlayer } from "@/hooks/usePodcastPlayer";
@@ -164,6 +164,51 @@ describe("PodcastAppearancesSection", () => {
             audioUrl: "https://cdn.example.com/playable.mp3",
         });
         expect(usePodcastPlayer.getState().isPlaying).toBe(true);
+    });
+
+    it("marks the currently playing row and clears the indicator when playback stops", async () => {
+        const appearances = [
+            makeAppearance({ id: 101, episodeTitle: "First Episode" }),
+            makeAppearance({ id: 102, episodeTitle: "Second Episode" }),
+        ];
+
+        const { getByRole, getByText, queryByLabelText } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        expect(queryByLabelText("Now playing")).toBeNull();
+
+        fireEvent.click(getByRole("button", { name: /play First Episode/i }));
+
+        expect(
+            getByText("First Episode")
+                .closest("li")
+                ?.querySelector('[aria-label="Now playing"]'),
+        ).not.toBeNull();
+        expect(
+            getByText("Second Episode")
+                .closest("li")
+                ?.querySelector('[aria-label="Now playing"]'),
+        ).toBeNull();
+
+        usePodcastPlayer.getState().pause();
+        await waitFor(() => expect(queryByLabelText("Now playing")).toBeNull());
+
+        fireEvent.click(getByRole("button", { name: /play Second Episode/i }));
+
+        expect(
+            getByText("First Episode")
+                .closest("li")
+                ?.querySelector('[aria-label="Now playing"]'),
+        ).toBeNull();
+        expect(
+            getByText("Second Episode")
+                .closest("li")
+                ?.querySelector('[aria-label="Now playing"]'),
+        ).not.toBeNull();
+
+        usePodcastPlayer.getState().reset();
+        await waitFor(() => expect(queryByLabelText("Now playing")).toBeNull());
     });
 
     it("keeps the episode page link as a fallback on playable rows", () => {
