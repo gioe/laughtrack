@@ -41,14 +41,15 @@ function formatDuration(durationSeconds: number | null): string | null {
     return parts.join(" ");
 }
 
-function formatAppearanceRole(role: string): string | null {
-    const normalized = role.trim();
-    if (!normalized) return null;
-
-    return normalized
-        .split(/[-_\s]+/)
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+function formatAppearanceRole(role: string): "Host" | "Cohost" | "Guest" {
+    switch (role.trim().toLowerCase()) {
+        case "host":
+            return "Host";
+        case "cohost":
+            return "Cohost";
+        default:
+            return "Guest";
+    }
 }
 
 type PlayablePodcastAppearance = ComedianPodcastAppearanceDTO & {
@@ -95,7 +96,6 @@ const PodcastAppearancesSection = ({
                         appearance.podcastName,
                         formatReleaseDate(appearance.releaseDate),
                         duration,
-                        role,
                     ].filter(Boolean);
                     const isCurrent =
                         isPlaying && currentEpisode?.id === appearance.id;
@@ -115,8 +115,13 @@ const PodcastAppearancesSection = ({
                                     <span className="block font-gilroy-bold text-base font-bold text-foreground group-hover:text-copper">
                                         {appearance.episodeTitle}
                                     </span>
-                                    <span className="mt-1 block font-dmSans text-sm text-gray-600">
-                                        {details.join(" · ")}
+                                    <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-dmSans text-sm text-gray-600">
+                                        <span>{details.join(" · ")}</span>
+                                        {role ? (
+                                            <span className="inline-flex items-center rounded-full bg-copper/10 px-2 py-0.5 font-dmSans text-caption font-semibold text-copper">
+                                                {role}
+                                            </span>
+                                        ) : null}
                                     </span>
                                 </span>
                                 <ExternalLink

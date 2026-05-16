@@ -99,6 +99,24 @@ describe("PodcastAppearancesSection", () => {
         expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     });
 
+    it("renders the appearance role as a separate badge", () => {
+        const appearances = [
+            makeAppearance({
+                podcastName: "Hosted Pod",
+                appearanceRole: "host",
+            }),
+        ];
+
+        const { getByText } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        const roleBadge = getByText("Host");
+        expect(roleBadge.className).toContain("bg-copper/10");
+        expect(roleBadge.className).toContain("text-copper");
+        expect(getByText(/Hosted Pod · Apr 2, 2026 · 1 hr/)).not.toBeNull();
+    });
+
     it("renders rows in the order passed by the data layer", () => {
         const appearances = [
             makeAppearance({ id: 1, episodeTitle: "Most Recent" }),
@@ -110,7 +128,7 @@ describe("PodcastAppearancesSection", () => {
         );
 
         const titles = Array.from(
-            container.querySelectorAll("a span span:first-child"),
+            container.querySelectorAll("a > span > span:first-child"),
         ).map((title) => title.textContent);
         expect(titles).toEqual(["Most Recent", "Older"]);
     });
