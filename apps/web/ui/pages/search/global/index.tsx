@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Building2, CalendarDays, Mic2, Podcast, Search } from "lucide-react";
 import EntityCard from "@/ui/components/cards/entity";
 
@@ -132,6 +132,7 @@ export default function GlobalSearchClient() {
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState<SearchFilter>("all");
     const [results, setResults] = useState<GlobalSearchResult[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [totals, setTotals] = useState<GlobalSearchResponse["totals"]>({
         all: 0,
         show: 0,
@@ -140,7 +141,6 @@ export default function GlobalSearchClient() {
         podcast: 0,
     });
     const [error, setError] = useState<string | null>(null);
-    const [isPending, startTransition] = useTransition();
 
     const trimmedQuery = query.trim();
     const requestPath = useMemo(() => {
@@ -155,30 +155,36 @@ export default function GlobalSearchClient() {
     useEffect(() => {
         if (!requestPath) {
             setResults([]);
+            setTotals({ all: 0, show: 0, comedian: 0, club: 0, podcast: 0 });
             setError(null);
+            setIsLoading(false);
             return;
         }
 
         const controller = new AbortController();
-        startTransition(() => {
-            void fetch(requestPath, { signal: controller.signal })
-                .then((response) => {
-                    if (!response.ok) throw new Error(`${response.status}`);
-                    return response.json() as Promise<GlobalSearchResponse>;
-                })
-                .then((payload) => {
-                    setResults(payload.data);
-                    setTotals(payload.totals);
-                    setError(null);
-                })
-                .catch((err) => {
-                    if (err instanceof Error && err.name === "AbortError") {
-                        return;
-                    }
-                    setError("Search failed");
-                    setResults([]);
-                });
-        });
+        setIsLoading(true);
+        void fetch(requestPath, { signal: controller.signal })
+            .then((response) => {
+                if (!response.ok) throw new Error(`${response.status}`);
+                return response.json() as Promise<GlobalSearchResponse>;
+            })
+            .then((payload) => {
+                setResults(payload.data);
+                setTotals(payload.totals);
+                setError(null);
+            })
+            .catch((err) => {
+                if (err instanceof Error && err.name === "AbortError") {
+                    return;
+                }
+                setError("Search failed");
+                setResults([]);
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
+            });
 
         return () => controller.abort();
     }, [requestPath]);
@@ -245,7 +251,7 @@ export default function GlobalSearchClient() {
                 ) : null}
 
                 <div className="space-y-3" aria-live="polite">
-                    {isPending && trimmedQuery ? (
+                    {isLoading && trimmedQuery ? (
                         <p className="font-dmSans text-sm text-copper/70">
                             Searching...
                         </p>
@@ -255,7 +261,7 @@ export default function GlobalSearchClient() {
                             Start typing to search across LaughTrack.
                         </p>
                     ) : null}
-                    {trimmedQuery && results.length === 0 && !isPending ? (
+                    {trimmedQuery && results.length === 0 && !isLoading ? (
                         <p className="font-dmSans text-sm text-copper/70">
                             No results found.
                         </p>
