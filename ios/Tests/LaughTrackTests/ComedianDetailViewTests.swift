@@ -237,9 +237,9 @@ struct ComedianDetailViewTests {
         #expect(segments.comedianPodcast.isEmpty)
     }
 
-    @Test("comedian detail includes a podcasts section tab")
-    func comedianDetailIncludesPodcastsSectionTab() {
-        #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Past", "Related", "Podcasts"])
+    @Test("comedian detail hides past shows from user-facing tabs")
+    func comedianDetailHidesPastShowsFromUserFacingTabs() {
+        #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Related", "Podcasts"])
     }
 
     @Test("podcast appearances fall back to external episodes when audio is unavailable")

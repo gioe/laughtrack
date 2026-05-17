@@ -19,6 +19,12 @@ struct DetailHeroLayoutTests {
         #expect(DetailHeroLayout.contentSpacingWithActions <= 8)
     }
 
+    @Test("detail hero protects overlay text against variable headshot brightness")
+    func detailHeroProtectsOverlayTextContrast() {
+        #expect(DetailHeroLayout.bottomScrimOpacity >= 0.9)
+        #expect(DetailHeroLayout.heroTextShadowOpacity >= 0.7)
+    }
+
     @Test("show detail replaces lone lineup performer titles with venue title")
     func showDetailReplacesLoneLineupPerformerTitle() {
         var show = Self.showDetail()

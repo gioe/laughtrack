@@ -37,14 +37,14 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
 
     const isSubmitting = form.formState.isSubmitting;
     const isLoading = isSocialLoading || isSubmitting;
-    const nativeEmailCallbackUrl = getNativeEmailCallbackUrl(searchParams);
+    const nativeCallbackUrl = getNativeCallbackUrl(searchParams);
 
     const handleEmailSubmit = async (values: LoginFormValues) => {
         try {
             const result = await signIn("email", {
                 email: values.email,
                 redirect: false,
-                callbackUrl: nativeEmailCallbackUrl,
+                callbackUrl: nativeCallbackUrl,
             });
             if (!result || !result.ok || result.error) {
                 toast.error("Failed to send sign-in link. Please try again.");
@@ -60,7 +60,12 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const googleSignIn = async () => {
         try {
             setIsSocialLoading(true);
-            await signIn("google");
+            await signIn(
+                "google",
+                nativeCallbackUrl
+                    ? { callbackUrl: nativeCallbackUrl }
+                    : undefined,
+            );
         } catch {
             toast.error("Failed to sign in with Google");
         } finally {
@@ -71,7 +76,12 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const appleSignIn = async () => {
         try {
             setIsSocialLoading(true);
-            await signIn("apple");
+            await signIn(
+                "apple",
+                nativeCallbackUrl
+                    ? { callbackUrl: nativeCallbackUrl }
+                    : undefined,
+            );
         } catch {
             toast.error("Failed to sign in with Apple");
         } finally {
@@ -153,7 +163,9 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     );
 }
 
-function getNativeEmailCallbackUrl(searchParams: {
+const NATIVE_AUTH_PROVIDERS = new Set(["apple", "google", "email"]);
+
+function getNativeCallbackUrl(searchParams: {
     get(name: string): string | null;
 }): string | undefined {
     const callbackUrl = searchParams.get("callbackUrl");
@@ -164,7 +176,9 @@ function getNativeEmailCallbackUrl(searchParams: {
         if (
             parsed.origin !== window.location.origin ||
             parsed.pathname !== "/api/v1/auth/native/callback" ||
-            parsed.searchParams.get("provider") !== "email"
+            !NATIVE_AUTH_PROVIDERS.has(
+                parsed.searchParams.get("provider") ?? "",
+            )
         ) {
             return undefined;
         }

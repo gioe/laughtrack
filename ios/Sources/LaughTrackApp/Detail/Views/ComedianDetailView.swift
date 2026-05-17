@@ -102,17 +102,6 @@ struct ComedianDetailView: View {
                                     .id(Self.upcomingShowsAnchor)
                                     .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .upcoming))
 
-                                    if activatedTabs.contains(.past) {
-                                        ComedianPastShowsPanel(
-                                            model: model,
-                                            apiClient: apiClient,
-                                            comedianName: comedian.name,
-                                            onOpenShow: { showID in coordinator.open(.show(showID)) },
-                                            onSignIn: { coordinator.push(.profile) }
-                                        )
-                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .past))
-                                    }
-
                                     if activatedTabs.contains(.related) {
                                         ComedianRelatedPanel(
                                             relatedComedians: content.relatedComedians,
@@ -411,7 +400,6 @@ private struct ComedianDetailTabPanelVisibility: ViewModifier {
 
 enum ComedianDetailTab: String, CaseIterable, Identifiable {
     case upcoming
-    case past
     case related
     case podcasts
 
@@ -420,85 +408,8 @@ enum ComedianDetailTab: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .upcoming: return "Upcoming"
-        case .past: return "Past"
         case .related: return "Related"
         case .podcasts: return "Podcasts"
-        }
-    }
-}
-
-struct ComedianPastShowsPanel: View {
-    @ObservedObject var model: ComedianDetailModel
-    let apiClient: Client
-    let comedianName: String
-    let onOpenShow: (Int) -> Void
-    let onSignIn: () -> Void
-
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        LaughTrackCard(density: .compact) {
-            VStack(alignment: .leading, spacing: theme.spacing.md) {
-                LaughTrackSectionHeader(title: "Past Shows")
-
-                switch model.pastShowsPhase {
-                case .idle, .loading:
-                    ShowsListSkeleton()
-                case .failure(let failure):
-                    FailureCard(
-                        failure: failure,
-                        retry: {
-                            await model.reloadPastShows(
-                                apiClient: apiClient,
-                                comedianName: comedianName
-                            )
-                        },
-                        signIn: onSignIn
-                    )
-                case .success(let page):
-                    if page.shows.isEmpty {
-                        EmptyCard(
-                            title: "No past shows yet",
-                            message: "LaughTrack hasn't recorded a show for \(comedianName) yet."
-                        )
-                    } else {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            SearchResultsSummary(count: page.shows.count, total: page.total)
-
-                            ForEach(page.shows, id: \.id) { show in
-                                Button {
-                                    onOpenShow(show.id)
-                                } label: {
-                                    ShowRow(show: show)
-                                }
-                                .buttonStyle(.plain)
-                            }
-
-                            if let paginationFailure = model.pastShowsPaginationFailure {
-                                InlineStatusMessage(message: paginationFailure.message)
-                            }
-
-                            if page.canLoadMore {
-                                LoadMoreButton(
-                                    title: "Load more past shows",
-                                    isLoading: model.isLoadingMorePastShows
-                                ) {
-                                    await model.loadMorePastShows(
-                                        apiClient: apiClient,
-                                        comedianName: comedianName
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        .task {
-            await model.loadPastShowsIfNeeded(
-                apiClient: apiClient,
-                comedianName: comedianName
-            )
         }
     }
 }

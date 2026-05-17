@@ -387,14 +387,22 @@ private struct HomeShowsTonightCarousel: View {
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
+    @State private var selectedShowID: Int?
 
     var body: some View {
         #if os(iOS)
-        TabView {
-            carouselButtons
+        VStack(spacing: theme.spacing.xs) {
+            TabView(selection: selectedShowIDBinding) {
+                carouselButtons
+            }
+            .frame(height: 292)
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+
+            HomeShowsTonightPageIndicator(
+                count: shows.count,
+                selectedIndex: selectedShowIndex
+            )
         }
-        .frame(height: 292)
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: shows.count > 1 ? .automatic : .never))
         #else
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: theme.spacing.sm) {
@@ -415,7 +423,49 @@ private struct HomeShowsTonightCarousel: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
             .padding(.horizontal, 1)
+            .tag(show.id)
         }
+    }
+
+    private var selectedShowIDBinding: Binding<Int> {
+        Binding(
+            get: { selectedShowID ?? shows.first?.id ?? 0 },
+            set: { selectedShowID = $0 }
+        )
+    }
+
+    private var selectedShowIndex: Int {
+        guard let selectedID = selectedShowID ?? shows.first?.id,
+              let index = shows.firstIndex(where: { $0.id == selectedID })
+        else {
+            return 0
+        }
+
+        return index
+    }
+}
+
+private struct HomeShowsTonightPageIndicator: View {
+    let count: Int
+    let selectedIndex: Int
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<count, id: \.self) { index in
+                Circle()
+                    .fill(
+                        index == selectedIndex
+                            ? theme.laughTrackTokens.colors.textPrimary
+                            : theme.laughTrackTokens.colors.textSecondary.opacity(0.45)
+                    )
+                    .frame(width: 7, height: 7)
+            }
+        }
+        .frame(height: count > 1 ? 12 : 0)
+        .opacity(count > 1 ? 1 : 0)
+        .accessibilityHidden(true)
     }
 }
 

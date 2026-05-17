@@ -29,6 +29,8 @@ enum DetailHeroLayout {
     static let favoriteOverlayDiameter: CGFloat = 44
     static let favoriteOverlayTopPadding: CGFloat = 60
     static let favoriteOverlayTrailingPadding: CGFloat = 16
+    static let bottomScrimOpacity = 0.94
+    static let heroTextShadowOpacity = 0.78
 
     static func mediaHeight(forWidth width: CGFloat) -> CGFloat {
         min(width / imageAspectRatio, maximumMediaHeight)
@@ -99,9 +101,10 @@ struct DetailHero: View {
 
             if hasOverlayContent {
                 LinearGradient(
-                    colors: [
-                        laughTrack.colors.heroStart.opacity(0),
-                        laughTrack.colors.heroStart.opacity(0.88)
+                    stops: [
+                        .init(color: laughTrack.colors.heroStart.opacity(0.10), location: 0.0),
+                        .init(color: laughTrack.colors.heroStart.opacity(0.42), location: 0.46),
+                        .init(color: laughTrack.colors.heroStart.opacity(DetailHeroLayout.bottomScrimOpacity), location: 1.0)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
@@ -111,16 +114,28 @@ struct DetailHero: View {
                     if let subtitle, !subtitle.isEmpty {
                         Text(subtitle)
                             .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
+                            .foregroundStyle(Color.white.opacity(0.78))
                             .textCase(.uppercase)
+                            .shadow(
+                                color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
+                                radius: 4,
+                                x: 0,
+                                y: 2
+                            )
                     }
                     if let title, !title.isEmpty {
                         Text(title)
                             .font(laughTrack.typography.hero)
-                            .foregroundStyle(laughTrack.colors.textInverse)
+                            .foregroundStyle(Color.white)
                             .lineLimit(2)
                             .minimumScaleFactor(0.82)
                             .fixedSize(horizontal: false, vertical: true)
+                            .shadow(
+                                color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
+                                radius: 6,
+                                x: 0,
+                                y: 3
+                            )
                     }
 
                     if let openURL {
@@ -146,7 +161,13 @@ struct DetailHero: View {
 
                                                 Text(action.title)
                                                     .font(laughTrack.typography.metadata)
-                                                    .foregroundStyle(laughTrack.colors.textInverse)
+                                                    .foregroundStyle(Color.white)
+                                                    .shadow(
+                                                        color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
+                                                        radius: 3,
+                                                        x: 0,
+                                                        y: 2
+                                                    )
                                             }
                                         }
                                         .buttonStyle(.plain)

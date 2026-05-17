@@ -109,6 +109,23 @@ describe("LoginModal", () => {
         expect(mockToastError).not.toHaveBeenCalled();
     });
 
+    it("opens the modal for a native Google OAuth request", () => {
+        mockSearchParamsGet = (key) => {
+            if (key === "nativeAuthProvider") return "google";
+            if (key === "callbackUrl") {
+                return "https://laugh-track.com/api/v1/auth/native/callback?provider=google";
+            }
+            return null;
+        };
+
+        act(() => {
+            render(<LoginModal />);
+        });
+
+        expect(mockOnOpen).toHaveBeenCalledTimes(1);
+        expect(mockToastError).not.toHaveBeenCalled();
+    });
+
     it("ignores non-native callback URLs when deciding whether to open", () => {
         mockSearchParamsGet = (key) => {
             if (key === "nativeAuthProvider") return "email";

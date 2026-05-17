@@ -21,28 +21,13 @@ public enum AuthRouteConfiguration {
     }
 
     public static func signInURL(for provider: AuthProvider) -> URL {
-        if provider == .email {
-            var components = URLComponents(
-                url: websiteBaseURL,
-                resolvingAgainstBaseURL: false
-            )!
-            components.queryItems = [
-                URLQueryItem(name: "callbackUrl", value: nativeCallbackURL(for: provider).absoluteString),
-                URLQueryItem(name: "nativeAuthProvider", value: provider.rawValue)
-            ]
-            return components.url!
-        }
-
         var components = URLComponents(
-            url: websiteBaseURL
-                .appendingPathComponent("api")
-                .appendingPathComponent("auth")
-                .appendingPathComponent("signin")
-                .appendingPathComponent(provider.rawValue),
+            url: websiteBaseURL,
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [
-            URLQueryItem(name: "callbackUrl", value: nativeCallbackURL(for: provider).absoluteString)
+            URLQueryItem(name: "callbackUrl", value: nativeCallbackURL(for: provider).absoluteString),
+            URLQueryItem(name: "nativeAuthProvider", value: provider.rawValue)
         ]
         return components.url!
     }
