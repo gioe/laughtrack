@@ -1,6 +1,10 @@
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
+import type {
+    PodcastDTO,
+    PodcastEpisodeDTO,
+} from "@/lib/data/podcast/interface";
 
 const BASE_URL =
     process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://www.laugh-track.com";
@@ -221,6 +225,73 @@ export function buildShowJsonLd(show: ShowDTO): object {
     }
 
     return jsonLd;
+}
+
+export function buildPodcastJsonLd(
+    podcast: PodcastDTO,
+    episodes: PodcastEpisodeDTO[],
+): object {
+    const jsonLd: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": "PodcastSeries",
+        name: podcast.title,
+        url: `${BASE_URL}/podcast/${encodeURIComponent(podcast.slug)}`,
+        image: ensureAbsoluteUrl(podcast.imageUrl),
+        description: podcast.description ?? undefined,
+    };
+
+    if (podcast.authorName) {
+        jsonLd.author = {
+            "@type": "Person",
+            name: podcast.authorName,
+        };
+    }
+
+    if (podcast.websiteUrl) {
+        jsonLd.sameAs = [ensureAbsoluteUrl(podcast.websiteUrl)];
+    }
+
+    const episodeJsonLd = episodes.slice(0, 20).map((episode) => ({
+        "@type": "PodcastEpisode",
+        name: episode.title,
+        url: ensureAbsoluteUrl(episode.episodeUrl),
+        datePublished: episode.releaseDate
+            ? new Date(episode.releaseDate).toISOString()
+            : undefined,
+        duration: episode.durationSeconds
+            ? `PT${Math.floor(episode.durationSeconds / 60)}M`
+            : undefined,
+        associatedMedia: episode.audioUrl
+            ? {
+                  "@type": "MediaObject",
+                  contentUrl: ensureAbsoluteUrl(episode.audioUrl),
+              }
+            : undefined,
+    }));
+
+    if (episodeJsonLd.length > 0) {
+        jsonLd.hasPart = episodeJsonLd;
+    }
+
+    return jsonLd;
+}
+
+export function buildPodcastCollectionJsonLd(podcasts: PodcastDTO[]): object {
+    return {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Comedy Podcasts",
+        url: `${BASE_URL}/podcasts`,
+        mainEntity: {
+            "@type": "ItemList",
+            itemListElement: podcasts.map((podcast, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                url: `${BASE_URL}/podcast/${encodeURIComponent(podcast.slug)}`,
+                name: podcast.title,
+            })),
+        },
+    };
 }
 
 export function buildWebSiteJsonLd(): object {

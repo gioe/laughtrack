@@ -6,8 +6,9 @@ const SITE_URL = "https://www.laugh-track.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     let clubs: { name: string }[] = [];
     let comedians: { name: string }[] = [];
+    let podcasts: { slug: string }[] = [];
     try {
-        [clubs, comedians] = await Promise.all([
+        [clubs, comedians, podcasts] = await Promise.all([
             db.club.findMany({
                 where: { visible: true },
                 select: { name: true },
@@ -17,6 +18,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 where: { totalShows: { gt: 0 } },
                 select: { name: true },
                 orderBy: { popularity: "desc" },
+            }),
+            db.podcast.findMany({
+                select: { slug: true },
+                orderBy: { title: "asc" },
             }),
         ]);
     } catch (err) {
@@ -44,6 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             url: `${SITE_URL}/comedian/search`,
             changeFrequency: "weekly",
             priority: 0.8,
+        },
+        {
+            url: `${SITE_URL}/podcasts`,
+            changeFrequency: "weekly",
+            priority: 0.7,
         },
         {
             url: `${SITE_URL}/about`,
@@ -79,5 +89,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
     }));
 
-    return [...staticPages, ...clubPages, ...comedianPages];
+    const podcastPages: MetadataRoute.Sitemap = podcasts.map((podcast) => ({
+        url: `${SITE_URL}/podcast/${encodeURIComponent(podcast.slug)}`,
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+    }));
+
+    return [...staticPages, ...clubPages, ...comedianPages, ...podcastPages];
 }

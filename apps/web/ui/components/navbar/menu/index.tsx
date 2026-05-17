@@ -5,6 +5,7 @@ import {
     BuildingStorefrontIcon,
     FaceSmileIcon,
     MapPinIcon,
+    MusicalNoteIcon,
 } from "@heroicons/react/24/outline";
 
 // Navigation menu items
@@ -31,6 +32,14 @@ const MENU_ITEMS = {
             description: "Search for shows in your area",
             href: "/show/search",
             icon: MapPinIcon,
+        },
+    ],
+    podcast: [
+        {
+            name: "Search",
+            description: "Search for comedy podcasts",
+            href: "/podcasts",
+            icon: MusicalNoteIcon,
         },
     ],
 };
@@ -64,6 +73,11 @@ export default function NavigationMenu({ pathname }: { pathname: string }) {
                     title="Comedians"
                     items={MENU_ITEMS.comedian}
                     isHighlighted={pathname.includes("/comedian")}
+                />
+                <NavigationDropdown
+                    title="Podcasts"
+                    items={MENU_ITEMS.podcast}
+                    isHighlighted={pathname.includes("/podcast")}
                 />
             </PopoverGroup>
         </div>
