@@ -183,6 +183,7 @@ struct ComedianDetailViewTests {
         let appearance = makePodcastAppearance(
             episodeTitle: "Comedy Cellar Stories",
             podcastTitle: "The Laugh Track Pod",
+            podcastImageURL: "https://cdn.example.com/podcasts/laugh-track.jpg",
             audioURL: "https://cdn.example.com/episodes/cellar.mp3",
             episodeURL: "https://podcasts.example.com/cellar"
         )
@@ -192,6 +193,7 @@ struct ComedianDetailViewTests {
         #expect(item.id == appearance.id)
         #expect(item.episodeTitle == "Comedy Cellar Stories")
         #expect(item.podcastName == "The Laugh Track Pod")
+        #expect(item.podcastImageURL == "https://cdn.example.com/podcasts/laugh-track.jpg")
         #expect(item.audioURL?.absoluteString == "https://cdn.example.com/episodes/cellar.mp3")
         #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/cellar")
     }
@@ -623,6 +625,7 @@ struct ComedianDetailViewTests {
         role: String = "guest",
         episodeTitle: String = "Podcast Episode",
         podcastTitle: String = "Comedy Podcast",
+        podcastImageURL: String? = nil,
         audioURL: String = "https://cdn.example.com/episode.mp3",
         episodeURL: String? = "https://podcasts.example.com/episode"
     ) -> Components.Schemas.PodcastAppearance {
@@ -633,7 +636,8 @@ struct ComedianDetailViewTests {
                 id: 301,
                 source: "podchaser",
                 sourcePodcastId: "podcast-\(id)",
-                title: podcastTitle
+                title: podcastTitle,
+                imageUrl: podcastImageURL
             ),
             episode: .init(
                 id: 701,
