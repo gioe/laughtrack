@@ -394,7 +394,7 @@ struct ContentView: View {
             case .clubDetail(let id):
                 ClubDetailView(clubID: id, apiClient: apiClient)
             case .podcastDetail(let id):
-                PodcastDetailPlaceholderView(podcastID: id)
+                PodcastDetailView(podcastID: id)
             }
         } root: {
             AppShellView(
@@ -415,31 +415,6 @@ struct ContentView: View {
 
     private var nearbyLocationController: NearbyLocationController {
         serviceContainer.resolve(NearbyLocationController.self)
-    }
-}
-
-private struct PodcastDetailPlaceholderView: View {
-    let podcastID: Int
-
-    @Environment(\.appTheme) private var theme
-
-    var body: some View {
-        let tokens = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            Text("Podcast")
-                .font(tokens.typography.sectionTitle)
-                .foregroundStyle(tokens.colors.textPrimary)
-
-            Text("Podcast detail is preparing for podcast \(podcastID).")
-                .font(tokens.typography.body)
-                .foregroundStyle(tokens.colors.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(theme.spacing.lg)
-        .background(tokens.colors.canvas.ignoresSafeArea())
-        .navigationTitle("Podcast")
-        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
     }
 }
 

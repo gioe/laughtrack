@@ -546,6 +546,7 @@ struct ComedianRelatedPanel: View {
 
 struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     let id: Int
+    let podcastID: Int?
     let episodeTitle: String
     let podcastName: String
     let podcastImageURL: String?
@@ -558,9 +559,32 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
         audioURL == nil || failedAudioURL != nil
     }
 
+    init(
+        id: Int,
+        podcastID: Int? = nil,
+        episodeTitle: String,
+        podcastName: String,
+        podcastImageURL: String?,
+        displayRole: String,
+        audioURL: URL?,
+        episodeURL: URL?,
+        failedAudioURL: URL?
+    ) {
+        self.id = id
+        self.podcastID = podcastID
+        self.episodeTitle = episodeTitle
+        self.podcastName = podcastName
+        self.podcastImageURL = podcastImageURL
+        self.displayRole = displayRole
+        self.audioURL = audioURL
+        self.episodeURL = episodeURL
+        self.failedAudioURL = failedAudioURL
+    }
+
     func markingAudioFailed() -> PodcastPlaybackItem {
         .init(
             id: id,
+            podcastID: podcastID,
             episodeTitle: episodeTitle,
             podcastName: podcastName,
             podcastImageURL: podcastImageURL,
@@ -585,6 +609,7 @@ enum ComedianPodcastPresentation {
 
         return .init(
             id: appearance.id,
+            podcastID: appearance.podcast.id,
             episodeTitle: appearance.episode.title,
             podcastName: appearance.podcast.title,
             podcastImageURL: appearance.podcast.imageUrl,
@@ -728,6 +753,7 @@ struct ComedianPodcastPanel: View {
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
         let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: appearances)
@@ -768,6 +794,10 @@ struct ComedianPodcastPanel: View {
                         isCurrent: podcastPlayer.currentItem?.id == item.id
                     ) {
                         podcastPlayer.start(item)
+                    } onOpenPodcast: {
+                        if let podcastID = item.podcastID {
+                            coordinator.open(.podcast(podcastID))
+                        }
                     }
                 }
             }
@@ -779,52 +809,78 @@ struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
     let isCurrent: Bool
     let onSelect: () -> Void
+    var onOpenPodcast: (() -> Void)?
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        Button(action: onSelect) {
-            HStack(alignment: .top, spacing: theme.spacing.md) {
+        HStack(alignment: .top, spacing: theme.spacing.md) {
+            Button(action: onSelect) {
                 artwork
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                            .offset(x: 5, y: 5)
+                    }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(item.audioURL == nil ? "Open episode" : "Play episode")
 
-                VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 4) {
+                Button(action: onSelect) {
                     Text(item.episodeTitle)
                         .font(laughTrack.typography.body.weight(.semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
+                        .multilineTextAlignment(.leading)
                         .lineLimit(2)
-                    HStack(spacing: 8) {
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+
+                HStack(spacing: 8) {
+                    if let onOpenPodcast {
+                        Button(action: onOpenPodcast) {
+                            Text(item.podcastName)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.accentStrong)
+                                .lineLimit(1)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Open \(item.podcastName)")
+                    } else {
                         Text(item.podcastName)
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(laughTrack.colors.textSecondary)
                             .lineLimit(1)
-
-                        PodcastAppearanceRoleBadge(title: item.displayRole)
                     }
-                }
 
-                Spacer(minLength: 0)
-
-                if isCurrent {
-                    Image(systemName: "waveform")
-                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accent)
-                        .accessibilityLabel("Now playing")
+                    PodcastAppearanceRoleBadge(title: item.displayRole)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
-            .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
-            .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
-            .background(laughTrack.colors.surfaceElevated)
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .shadowStyle(laughTrack.shadows.card)
+
+            Spacer(minLength: 0)
+
+            if isCurrent {
+                Image(systemName: "waveform")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accent)
+                    .accessibilityLabel("Now playing")
+            }
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
         .accessibilityLabel("\(item.episodeTitle), \(item.podcastName), \(item.displayRole)")
     }
 
@@ -899,6 +955,7 @@ private struct PodcastAppearanceRoleBadge: View {
             PodcastAppearanceRow(
                 item: PodcastPlaybackItem(
                     id: 1,
+                    podcastID: 42,
                     episodeTitle: "Comedy Cellar Stories",
                     podcastName: "The Laugh Track Pod",
                     podcastImageURL: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=240&q=80",

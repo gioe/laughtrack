@@ -5,6 +5,7 @@ enum DetailNavigationChrome {
     enum Entity {
         case club
         case comedian
+        case podcast
         case show
     }
 
@@ -16,6 +17,8 @@ enum DetailNavigationChrome {
             return "Club"
         case .comedian:
             return "Comedian"
+        case .podcast:
+            return "Podcast"
         case .show:
             return "Show"
         }

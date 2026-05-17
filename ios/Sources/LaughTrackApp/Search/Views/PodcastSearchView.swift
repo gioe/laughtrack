@@ -75,6 +75,7 @@ private extension PodcastSearchResult {
     var playbackItem: PodcastPlaybackItem {
         PodcastPlaybackItem(
             id: numericID ?? 0,
+            podcastID: numericID,
             episodeTitle: title,
             podcastName: subtitle?.nonEmpty ?? "Podcast",
             podcastImageURL: imageUrl,

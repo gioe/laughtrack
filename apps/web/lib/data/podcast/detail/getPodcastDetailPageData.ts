@@ -36,11 +36,11 @@ function mapEpisode(episode: {
     };
 }
 
-export async function getPodcastDetailPageData(
-    slug: string,
+async function getPodcastDetailPageDataByWhere(
+    where: { slug: string } | { id: number },
 ): Promise<PodcastDetailResponse> {
     const podcast = await db.podcast.findUnique({
-        where: { slug },
+        where,
         select: {
             id: true,
             slug: true,
@@ -155,4 +155,16 @@ export async function getPodcastDetailPageData(
         episodes: podcast.episodes.map(mapEpisode),
         relatedComedians,
     };
+}
+
+export async function getPodcastDetailPageData(
+    slug: string,
+): Promise<PodcastDetailResponse> {
+    return getPodcastDetailPageDataByWhere({ slug });
+}
+
+export async function getPodcastDetailPageDataById(
+    id: number,
+): Promise<PodcastDetailResponse> {
+    return getPodcastDetailPageDataByWhere({ id });
 }
