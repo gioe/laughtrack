@@ -8,6 +8,7 @@ enum EntityNavigationTarget: Hashable {
     case show(Int)
     case comedian(Int)
     case club(Int)
+    case podcast(Int)
 
     var route: AppRoute {
         switch self {
@@ -17,6 +18,8 @@ enum EntityNavigationTarget: Hashable {
             return .comedianDetail(id)
         case .club(let id):
             return .clubDetail(id)
+        case .podcast(let id):
+            return .podcastDetail(id)
         }
     }
 }

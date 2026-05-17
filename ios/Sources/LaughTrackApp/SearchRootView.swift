@@ -16,6 +16,7 @@ struct SearchRootView: View {
     @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel = ClubsDiscoveryModel()
+    @StateObject private var podcastsModel = PodcastSearchModel()
 
     init(
         apiClient: Client,
@@ -117,6 +118,13 @@ struct SearchRootView: View {
                 displaysSearchInput: false,
                 isActive: isActive
             )
+        case .podcasts:
+            PodcastSearchView(
+                model: podcastsModel,
+                unifiedSearchText: $model.query,
+                unifiedSearchPrompt: model.activePivot.queryPrompt,
+                isActive: isActive
+            )
         }
     }
 
@@ -125,7 +133,8 @@ struct SearchRootView: View {
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
-            clubsModel: clubsModel
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
         )
     }
 }
@@ -143,7 +152,7 @@ private struct SearchHeader: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
 
-            Text("Find shows, comedians, and clubs across LaughTrack.")
+            Text("Find shows, comedians, clubs, and podcasts across LaughTrack.")
                 .font(tokens.typography.body)
                 .foregroundStyle(tokens.colors.textSecondary)
                 .lineLimit(2)

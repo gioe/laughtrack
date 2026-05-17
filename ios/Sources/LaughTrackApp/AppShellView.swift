@@ -20,6 +20,10 @@ final class AppShellState: ObservableObject {
         selectedTab == .nearMe
     }
 
+    var visiblePrimitiveFilters: [SearchRootModel.Pivot] {
+        selectedTab == .search ? SearchRootModel.Pivot.allCases : SearchRootModel.Pivot.geoScopedCases
+    }
+
     func selectTab(_ tab: AppTab) {
         switch tab {
         case .search:
@@ -284,7 +288,7 @@ struct AppShellView: View {
 
     private var primitiveFilterRow: some View {
         HStack(spacing: theme.spacing.xs) {
-            ForEach(SearchRootModel.Pivot.allCases) { primitive in
+            ForEach(shellState.visiblePrimitiveFilters) { primitive in
                 Button {
                     shellState.selectPrimitive(primitive)
                 } label: {

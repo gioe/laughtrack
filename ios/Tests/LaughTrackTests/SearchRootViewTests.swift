@@ -23,25 +23,74 @@ struct SearchRootViewTests {
         )
         let comediansModel = ComediansDiscoveryModel()
         let clubsModel = ClubsDiscoveryModel()
+        let podcastsModel = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
 
         #expect(model.activePivot == .shows)
         #expect(model.query == "")
         #expect(model.selectedShortcut == "Near Me")
+        #expect(SearchRootModel.Pivot.allCases == [.shows, .comedians, .clubs, .podcasts])
         #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
+        #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Search podcast titles")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
         #expect(!showsModel.dateRange.isActive)
 
         model.query = "Comedy Cellar"
-        model.activePivot = .clubs
+        model.activePivot = .podcasts
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
-            clubsModel: clubsModel
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
         )
 
-        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(podcastsModel.searchText == "Comedy Cellar")
+        #expect(clubsModel.searchText == "")
         #expect(comediansModel.searchText == "")
         #expect(showsModel.comedianSearchText == "")
+    }
+
+    @Test("podcast search model queries the global search endpoint as podcast-only")
+    func podcastSearchModelQueriesPodcastOnlyGlobalSearch() async throws {
+        let fetcher = RecordingPodcastSearchFetcher(
+            result: .success(.init(
+                items: [
+                    PodcastSearchResult(
+                        id: "podcast-42",
+                        title: "Comedy Bang Bang",
+                        subtitle: "Earwolf",
+                        href: "/podcast/comedy-bang-bang",
+                        imageUrl: "https://example.com/cbb.jpg"
+                    )
+                ],
+                total: 1
+            ))
+        )
+        let model = PodcastSearchModel(fetcher: fetcher)
+
+        model.searchText = "Comedy"
+        await model.reload()
+
+        #expect(fetcher.requests == [PodcastSearchRequest(query: "Comedy", limit: 20)])
+        guard case .success(let page) = model.phase else {
+            Issue.record("Expected podcast search to load successfully")
+            return
+        }
+        #expect(page.items.map(\.title) == ["Comedy Bang Bang"])
+        #expect(page.total == 1)
+    }
+
+    @Test("podcast search results resolve to podcast detail navigation")
+    func podcastSearchResultResolvesPodcastDetailNavigation() throws {
+        let result = PodcastSearchResult(
+            id: "podcast-42",
+            title: "Comedy Bang Bang",
+            subtitle: "Earwolf",
+            href: "/podcast/comedy-bang-bang",
+            imageUrl: nil
+        )
+
+        #expect(result.navigationTarget == .podcast(42))
+        #expect(result.navigationTarget?.route == .podcastDetail(42))
     }
 
     @Test("shows search reload debounces typed root queries before issuing transport calls")
@@ -109,6 +158,8 @@ struct SearchRootModelTests {
     func shellStateKeepsHomePrimitivesOnNearMe() async throws {
         let state = AppShellState()
 
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
+
         state.selectPrimitive(.shows)
         #expect(state.selectedTab == .nearMe)
         #expect(state.selectedPrimitive == .shows)
@@ -120,6 +171,18 @@ struct SearchRootModelTests {
         state.selectPrimitive(.clubs)
         #expect(state.selectedTab == .nearMe)
         #expect(state.selectedPrimitive == .clubs)
+    }
+
+    @Test("shell state shows podcasts only on the search tab")
+    func shellStateShowsPodcastsOnlyOnSearchTab() async throws {
+        let state = AppShellState()
+
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
+
+        state.selectTab(.search)
+
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs, .podcasts])
     }
 
     @Test("shell state keeps primitive filters on the favorites tab")
@@ -399,15 +462,18 @@ struct SearchRootModelTests {
         )
         let clubsModel = ClubsDiscoveryModel()
         let comediansModel = ComediansDiscoveryModel()
+        let podcastsModel = PodcastSearchModel(fetcher: RecordingPodcastSearchFetcher())
 
         model.query = "Comedy Cellar"
         model.activePivot = .clubs
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
-            clubsModel: clubsModel
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
         )
         #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(podcastsModel.searchText == "")
         #expect(comediansModel.searchText == "")
         #expect(showsModel.comedianSearchText == "")
 
@@ -416,10 +482,12 @@ struct SearchRootModelTests {
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
-            clubsModel: clubsModel
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
         )
         #expect(comediansModel.searchText == "Atsuko")
         #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(podcastsModel.searchText == "")
         #expect(showsModel.comedianSearchText == "")
 
         model.query = "Mark Normand"
@@ -427,10 +495,22 @@ struct SearchRootModelTests {
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,
-            clubsModel: clubsModel
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
         )
         #expect(showsModel.comedianSearchText == "Mark Normand")
         #expect(showsModel.clubSearchText == "")
+
+        model.query = "WTF"
+        model.activePivot = .podcasts
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel,
+            podcastsModel: podcastsModel
+        )
+        #expect(podcastsModel.searchText == "WTF")
+        #expect(showsModel.comedianSearchText == "Mark Normand")
     }
 
     @Test("shows root query maps to comedian search for now")
@@ -485,4 +565,19 @@ private final class MockSearchNearbyLocationResolver: NearbyLocationResolving {
 private func searchRootQueryValue(_ name: String, from path: String?) -> String? {
     guard let path, let components = URLComponents(string: "https://test.example.com\(path)") else { return nil }
     return components.queryItems?.first(where: { $0.name == name })?.value
+}
+
+@MainActor
+private final class RecordingPodcastSearchFetcher: PodcastSearchFetching {
+    private(set) var requests: [PodcastSearchRequest] = []
+    var result: Result<PodcastSearchResponse, LoadFailure>
+
+    init(result: Result<PodcastSearchResponse, LoadFailure> = .success(.init(items: [], total: 0))) {
+        self.result = result
+    }
+
+    func searchPodcasts(_ request: PodcastSearchRequest) async -> Result<PodcastSearchResponse, LoadFailure> {
+        requests.append(request)
+        return result
+    }
 }

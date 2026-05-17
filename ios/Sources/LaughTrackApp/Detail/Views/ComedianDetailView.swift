@@ -775,7 +775,7 @@ struct ComedianPodcastPanel: View {
     }
 }
 
-private struct PodcastAppearanceRow: View {
+struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
     let isCurrent: Bool
     let onSelect: () -> Void

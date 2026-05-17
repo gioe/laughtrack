@@ -12,9 +12,12 @@ final class SearchRootModel: ObservableObject {
         case shows
         case comedians
         case clubs
+        case podcasts
 
         var id: String { rawValue }
         var title: String { rawValue.capitalized }
+
+        static let geoScopedCases: [Pivot] = [.shows, .comedians, .clubs]
 
         var queryPrompt: String {
             switch self {
@@ -24,6 +27,8 @@ final class SearchRootModel: ObservableObject {
                 return "Search comedian names"
             case .clubs:
                 return "Search club names"
+            case .podcasts:
+                return "Search podcast titles"
             }
         }
 
@@ -35,6 +40,8 @@ final class SearchRootModel: ObservableObject {
                 return "Follow a comic's trail across upcoming dates and saved favorites."
             case .clubs:
                 return "Jump straight into venue pages and upcoming lineups."
+            case .podcasts:
+                return "Find comedy podcasts by title or host without changing your local show filters."
             }
         }
     }
@@ -131,7 +138,8 @@ final class SearchRootModel: ObservableObject {
     func applyQuery(
         showsModel: ShowsListModel,
         comediansModel: ComediansDiscoveryModel,
-        clubsModel: ClubsDiscoveryModel
+        clubsModel: ClubsDiscoveryModel,
+        podcastsModel: PodcastSearchModel
     ) {
         switch activePivot {
         case .shows:
@@ -140,6 +148,8 @@ final class SearchRootModel: ObservableObject {
             applyQuery(to: comediansModel)
         case .clubs:
             applyQuery(to: clubsModel)
+        case .podcasts:
+            applyQuery(to: podcastsModel)
         }
     }
 }
