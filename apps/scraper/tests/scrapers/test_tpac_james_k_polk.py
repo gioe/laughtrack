@@ -112,3 +112,34 @@ def test_extracts_first_showing_time_when_sidebar_start_is_absent():
     assert enriched.date_str == "June 20, 2026"
     assert enriched.time_str == "3:00 PM"
     assert enriched.description == "Sketch comedy from JK Studios."
+
+
+def test_expands_multiple_detail_showings():
+    event = TpacJamesKPolkExtractor.extract_category_events(
+        _category_json_payload(),
+        CATEGORY_URL,
+    )[1]
+    html = """
+    <html>
+      <body>
+        <div class="event_heading"><h1 class="title">JK LIVE!</h1></div>
+        <ul class="eventDetailList">
+          <li class="item sidebar_event_date">
+            <span><span class="m-date__month">June </span><span class="m-date__day">20</span><span class="m-date__year">, 2026</span></span>
+          </li>
+          <li class="item sidebar_event_venue"><span>Polk Theater</span></li>
+        </ul>
+        <div class="showings_wrapper">
+          <span class="time cell">3:00 PM</span>
+        </div>
+        <div class="showings_wrapper">
+          <span class="time cell">7:00 PM</span>
+        </div>
+      </body>
+    </html>
+    """
+
+    enriched_events = TpacJamesKPolkExtractor.enrich_events_from_detail_page(event, html)
+
+    assert [event.time_str for event in enriched_events] == ["3:00 PM", "7:00 PM"]
+    assert {event.date_str for event in enriched_events} == {"June 20, 2026"}

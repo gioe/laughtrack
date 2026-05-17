@@ -45,30 +45,43 @@ class TpacJamesKPolkExtractor:
         html: str,
     ) -> TpacJamesKPolkEvent:
         """Return ``event`` enriched with detail-page fields."""
+        return TpacJamesKPolkExtractor.enrich_events_from_detail_page(event, html)[0]
+
+    @staticmethod
+    def enrich_events_from_detail_page(
+        event: TpacJamesKPolkEvent,
+        html: str,
+    ) -> List[TpacJamesKPolkEvent]:
+        """Return enriched events, expanding multi-showing detail pages."""
         if not html:
-            return event
+            return [event]
 
         soup = BeautifulSoup(html, "html.parser")
         title = TpacJamesKPolkExtractor._text_from(soup, ".event_heading h1.title") or event.title
         date_str = TpacJamesKPolkExtractor._text_from(soup, ".sidebar_event_date span") or event.date_str
-        time_str = (
-            TpacJamesKPolkExtractor._text_from(soup, ".sidebar_event_starts span")
-            or TpacJamesKPolkExtractor._text_from(soup, ".showings_wrapper .time")
-            or event.time_str
-        )
+        time_values = TpacJamesKPolkExtractor._extract_showing_times(soup)
+        if not time_values:
+            time_values = [
+                TpacJamesKPolkExtractor._text_from(soup, ".sidebar_event_starts span")
+                or event.time_str
+            ]
         venue = TpacJamesKPolkExtractor._text_from(soup, ".sidebar_event_venue span") or event.venue
         ticket_url = TpacJamesKPolkExtractor._extract_ticket_url(soup, event.detail_url) or event.ticket_url
         description = TpacJamesKPolkExtractor._extract_description(soup) or event.description
 
-        return replace(
-            event,
-            title=title,
-            date_str=date_str,
-            time_str=time_str,
-            venue=venue,
-            ticket_url=ticket_url,
-            description=description,
-        )
+        return [
+            replace(
+                event,
+                title=title,
+                date_str=date_str,
+                time_str=time_str,
+                venue=venue,
+                ticket_url=ticket_url,
+                description=description,
+            )
+            for time_str in time_values
+            if time_str
+        ] or [event]
 
     @staticmethod
     def _coerce_html(payload: str) -> str:
@@ -132,6 +145,17 @@ class TpacJamesKPolkExtractor:
         if ticket_el is None:
             return ""
         return urljoin(base_url, ticket_el.get("href", "").strip())
+
+    @staticmethod
+    def _extract_showing_times(soup: BeautifulSoup) -> list[str]:
+        times = []
+        seen: set[str] = set()
+        for time_el in soup.select(".showings_wrapper .time"):
+            value = TpacJamesKPolkExtractor._clean(time_el.get_text(" ", strip=True))
+            if value and value not in seen:
+                seen.add(value)
+                times.append(value)
+        return times
 
     @staticmethod
     def _extract_description(soup: BeautifulSoup) -> str:

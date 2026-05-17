@@ -53,17 +53,18 @@ class TpacJamesKPolkScraper(BaseScraper):
                         continue
                     seen.add(event.detail_url)
                     detail_html = await self.fetch_html(event.detail_url, scraper_key=self.key)
-                    enriched = TpacJamesKPolkExtractor.enrich_event_from_detail_page(
+                    enriched_events = TpacJamesKPolkExtractor.enrich_events_from_detail_page(
                         event,
                         detail_html or "",
                     )
-                    if enriched.date_str and enriched.time_str:
-                        events.append(enriched)
-                    else:
-                        Logger.warn(
-                            f"{self._log_prefix}: skipped event without detail date/time: {event.detail_url}",
-                            self.logger_context,
-                        )
+                    for enriched in enriched_events:
+                        if enriched.date_str and enriched.time_str:
+                            events.append(enriched)
+                        else:
+                            Logger.warn(
+                                f"{self._log_prefix}: skipped event without detail date/time: {event.detail_url}",
+                                self.logger_context,
+                            )
 
             if not events:
                 Logger.info(
