@@ -9,7 +9,6 @@ import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import ComedianDetailTabs from "@/ui/pages/entity/comedian/tabs";
 import RoomHistorySection from "@/ui/pages/entity/comedian/roomHistory";
-import PodcastAppearancesSection from "@/ui/pages/entity/comedian/podcastAppearances";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
@@ -145,13 +144,13 @@ export default async function ComedianDetailsPage(props: {
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} heroPalette={heroPalette} />
             <RoomHistorySection comedianName={data.name} rooms={roomHistory} />
-            <PodcastAppearancesSection appearances={podcastAppearances} />
             <ComedianDetailTabs
                 shows={shows}
                 total={total}
                 filters={filters}
                 comedianName={data.name}
                 relatedComedians={relatedComedians}
+                podcastAppearances={podcastAppearances}
             />
         </>
     );

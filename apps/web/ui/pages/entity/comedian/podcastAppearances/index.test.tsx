@@ -139,6 +139,63 @@ describe("PodcastAppearancesSection", () => {
         expect(getByText(/Apr 2, 2026 · 1 hr/)).not.toBeNull();
     });
 
+    it("segments guest appearances from hosted podcast episodes", () => {
+        const appearances = [
+            makeAppearance({
+                id: 10,
+                podcastName: "Guest Pod",
+                episodeTitle: "Guest Spot",
+                appearanceRole: "guest",
+            }),
+            makeAppearance({
+                id: 11,
+                podcastName: "Hosted Pod",
+                episodeTitle: "Host Chair",
+                appearanceRole: "host",
+            }),
+            makeAppearance({
+                id: 12,
+                podcastName: "Cohosted Pod",
+                episodeTitle: "Cohost Chair",
+                appearanceRole: "cohost",
+            }),
+        ];
+
+        const { getByRole, getByText, queryByText } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        expect(
+            getByRole("button", {
+                name: /^podcast appearances$/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("true");
+        expect(
+            getByRole("button", {
+                name: /comedian's podcasts/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("false");
+        expect(getByText("Guest Spot")).not.toBeNull();
+        expect(queryByText("Host Chair")).toBeNull();
+        expect(queryByText("Cohost Chair")).toBeNull();
+
+        fireEvent.click(getByRole("button", { name: /comedian's podcasts/i }));
+
+        expect(
+            getByRole("button", {
+                name: /^podcast appearances$/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("false");
+        expect(
+            getByRole("button", {
+                name: /comedian's podcasts/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("true");
+        expect(queryByText("Guest Spot")).toBeNull();
+        expect(getByText("Host Chair")).not.toBeNull();
+        expect(getByText("Cohost Chair")).not.toBeNull();
+    });
+
     it("renders rows in the order passed by the data layer", () => {
         const appearances = [
             makeAppearance({ id: 1, episodeTitle: "Most Recent" }),

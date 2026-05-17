@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
 import type { FilterDTO } from "@/objects/interface";
 import { SearchVariant } from "@/objects/enum/searchVariant";
@@ -9,8 +10,9 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import PastShowsSection from "@/ui/pages/entity/comedian/pastShows";
 import RelatedComediansSection from "@/ui/pages/entity/comedian/related";
+import PodcastAppearancesSection from "@/ui/pages/entity/comedian/podcastAppearances";
 
-type ComedianDetailTab = "upcoming" | "past" | "related";
+type ComedianDetailTab = "upcoming" | "past" | "related" | "podcasts";
 
 interface ComedianDetailTabsProps {
     shows: ShowDTO[];
@@ -18,12 +20,14 @@ interface ComedianDetailTabsProps {
     filters: FilterDTO[];
     comedianName: string;
     relatedComedians: ComedianDTO[];
+    podcastAppearances: ComedianPodcastAppearanceDTO[];
 }
 
 const tabs: Array<{ id: ComedianDetailTab; label: string }> = [
     { id: "upcoming", label: "Upcoming" },
     { id: "past", label: "Past" },
     { id: "related", label: "Related" },
+    { id: "podcasts", label: "Podcasts" },
 ];
 
 const panelClasses = "max-w-7xl mx-auto pt-6";
@@ -34,6 +38,7 @@ const ComedianDetailTabs = ({
     filters,
     comedianName,
     relatedComedians,
+    podcastAppearances,
 }: ComedianDetailTabsProps) => {
     const [activeTab, setActiveTab] = useState<ComedianDetailTab>("upcoming");
     const [activatedTabs, setActivatedTabs] = useState<
@@ -42,6 +47,7 @@ const ComedianDetailTabs = ({
         upcoming: true,
         past: false,
         related: false,
+        podcasts: false,
     });
 
     const activateTab = (tab: ComedianDetailTab) => {
@@ -124,6 +130,20 @@ const ComedianDetailTabs = ({
                     <RelatedComediansSection
                         comedians={relatedComedians}
                         subjectName={comedianName}
+                    />
+                </div>
+            )}
+
+            {activatedTabs.podcasts && (
+                <div
+                    id="comedian-detail-panel-podcasts"
+                    role="tabpanel"
+                    aria-labelledby="comedian-detail-tab-podcasts"
+                    hidden={activeTab !== "podcasts"}
+                    className={panelClasses}
+                >
+                    <PodcastAppearancesSection
+                        appearances={podcastAppearances}
                     />
                 </div>
             )}

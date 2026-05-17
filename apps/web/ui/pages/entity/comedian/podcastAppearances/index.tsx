@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { AudioWaveform, Play, Podcast } from "lucide-react";
 import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 import {
     startPodcastEpisode,
     usePodcastPlayer,
@@ -13,6 +14,13 @@ import EntityCard from "@/ui/components/cards/entity";
 interface PodcastAppearancesSectionProps {
     appearances: ComedianPodcastAppearanceDTO[];
 }
+
+type PodcastSegment = "guest" | "host";
+
+const segmentTabs: Array<{ id: PodcastSegment; label: string }> = [
+    { id: "guest", label: "Podcast appearances" },
+    { id: "host", label: "Comedian's podcasts" },
+];
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -44,7 +52,7 @@ function formatDuration(durationSeconds: number | null): string | null {
 }
 
 function formatAppearanceRole(role: string): "Host" | "Cohost" | "Guest" {
-    switch (role.trim().toLowerCase()) {
+    switch (normalizePodcastAppearanceRole(role)) {
         case "host":
             return "Host";
         case "cohost":
@@ -69,26 +77,72 @@ const PodcastAppearancesSection = ({
 }: PodcastAppearancesSectionProps) => {
     const currentEpisode = usePodcastPlayer((state) => state.currentEpisode);
     const isPlaying = usePodcastPlayer((state) => state.isPlaying);
+    const [activeSegment, setActiveSegment] =
+        React.useState<PodcastSegment>("guest");
     const playableAppearances = appearances.filter(isPlayableAppearance);
+    const guestAppearances = playableAppearances.filter(
+        (appearance) =>
+            normalizePodcastAppearanceRole(appearance.appearanceRole) ===
+            "guest",
+    );
+    const hostAppearances = playableAppearances.filter((appearance) => {
+        const role = normalizePodcastAppearanceRole(appearance.appearanceRole);
+        return role === "host" || role === "cohost";
+    });
+    const selectedSegment =
+        activeSegment === "host" && hostAppearances.length > 0
+            ? "host"
+            : guestAppearances.length > 0
+              ? "guest"
+              : "host";
+    const selectedAppearances =
+        selectedSegment === "guest" ? guestAppearances : hostAppearances;
+    const showSegments =
+        guestAppearances.length > 0 && hostAppearances.length > 0;
 
     if (playableAppearances.length === 0) return null;
 
     return (
         <section
             aria-labelledby="recent-podcast-appearances-heading"
-            className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-2"
+            className="px-4 sm:px-6 md:px-8 pb-2"
         >
-            <header className="mb-4">
+            <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <h2
                     id="recent-podcast-appearances-heading"
                     className="font-gilroy-bold text-h2 font-bold text-foreground"
                 >
                     Recent podcast appearances
                 </h2>
+                {showSegments ? (
+                    <div
+                        className="inline-flex w-fit rounded-md border border-gray-200 bg-white p-1"
+                        aria-label="Podcast segment"
+                    >
+                        {segmentTabs.map((tab) => {
+                            const selected = selectedSegment === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    onClick={() => setActiveSegment(tab.id)}
+                                    className={`rounded px-3 py-1.5 font-dmSans text-caption font-semibold transition-colors ${
+                                        selected
+                                            ? "bg-copper text-white"
+                                            : "text-gray-600 hover:text-foreground"
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                ) : null}
             </header>
 
             <ul role="list" className="space-y-3">
-                {playableAppearances.map((appearance) => {
+                {selectedAppearances.map((appearance) => {
                     const duration = formatDuration(appearance.durationSeconds);
                     const role = formatAppearanceRole(
                         appearance.appearanceRole,
