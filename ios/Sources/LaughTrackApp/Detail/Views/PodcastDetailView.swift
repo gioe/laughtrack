@@ -255,23 +255,25 @@ private struct PodcastEpisodeListSection: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
+        let playableItems = episodes.compactMap { episode in
+            PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode)
+        }
+
         VStack(alignment: .leading, spacing: 12) {
             LaughTrackSectionHeader(title: "Episodes")
 
-            if episodes.isEmpty {
+            if playableItems.isEmpty {
                 EmptyCard(
                     title: "No playable episodes yet",
                     message: "LaughTrack has not matched this podcast with playable episodes yet."
                 )
             } else {
-                ForEach(episodes) { episode in
-                    if let item = PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode) {
-                        PodcastAppearanceRow(
-                            item: item,
-                            isCurrent: podcastPlayer.currentItem?.id == item.id
-                        ) {
-                            podcastPlayer.start(item)
-                        }
+                ForEach(playableItems) { item in
+                    PodcastAppearanceRow(
+                        item: item,
+                        isCurrent: podcastPlayer.currentItem?.id == item.id
+                    ) {
+                        podcastPlayer.start(item)
                     }
                 }
             }
