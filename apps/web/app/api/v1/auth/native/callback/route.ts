@@ -5,6 +5,7 @@ import {
     RATE_LIMITS,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
 
 // The redirect base is hard-coded — `deep_link` / `callbackUrl` query params
 // are ignored entirely so an attacker cannot smuggle a foreign host, extra
@@ -26,6 +27,13 @@ function buildCallbackURL(params: Record<string, string | null | undefined>) {
     });
 
     return url;
+}
+
+function logNativeAuthCallbackError(details: Record<string, unknown>) {
+    console.error(
+        "Native auth callback error",
+        JSON.stringify(sanitizeAuthError(details)),
+    );
 }
 
 /**
@@ -78,6 +86,13 @@ export async function GET(req: NextRequest) {
         );
 
         if (!response.ok) {
+            const responseBody = await readDiagnosticResponseBody(response);
+            logNativeAuthCallbackError({
+                provider,
+                stage: "token_exchange_response",
+                status: response.status,
+                responseBody,
+            });
             return NextResponse.redirect(
                 buildCallbackURL({
                     provider,
@@ -92,6 +107,11 @@ export async function GET(req: NextRequest) {
             expiresIn?: number;
         };
         if (!body.accessToken || !body.refreshToken) {
+            logNativeAuthCallbackError({
+                provider,
+                stage: "token_exchange_missing_token",
+                responseKeys: Object.keys(body),
+            });
             return NextResponse.redirect(
                 buildCallbackURL({
                     provider,
@@ -108,12 +128,32 @@ export async function GET(req: NextRequest) {
                 expiresIn: body.expiresIn?.toString(),
             }),
         );
-    } catch {
+    } catch (error) {
+        logNativeAuthCallbackError({
+            provider,
+            stage: "token_exchange_exception",
+            error,
+        });
         return NextResponse.redirect(
             buildCallbackURL({
                 provider,
                 error: "token_exchange_failed",
             }),
         );
+    }
+}
+
+async function readDiagnosticResponseBody(response: Response) {
+    const contentType = response.headers.get("content-type") ?? "";
+    try {
+        if (contentType.includes("application/json")) {
+            return await response.json();
+        }
+        const text = await response.text();
+        return text ? { text } : null;
+    } catch (error) {
+        return {
+            readError: sanitizeAuthError(error),
+        };
     }
 }

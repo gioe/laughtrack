@@ -139,6 +139,9 @@ describe("GET /api/v1/auth/native/callback", () => {
     });
 
     it("returns a token exchange error when the session exchange fails", async () => {
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
         vi.spyOn(global, "fetch").mockResolvedValue(
             new Response(JSON.stringify({ message: "Unauthorized" }), {
                 status: 401,
@@ -156,6 +159,91 @@ describe("GET /api/v1/auth/native/callback", () => {
         expect(response.status).toBe(307);
         expect(response.headers.get("location")).toBe(
             "laughtrack://auth/callback?provider=google&error=token_exchange_failed_401",
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "Native auth callback error",
+            JSON.stringify({
+                provider: "google",
+                stage: "token_exchange_response",
+                status: 401,
+                responseBody: { message: "Unauthorized" },
+            }),
+        );
+    });
+
+    it("logs missing token responses without exposing token material", async () => {
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+        vi.spyOn(global, "fetch").mockResolvedValue(
+            new Response(JSON.stringify({ accessToken: "access-jwt" }), {
+                status: 200,
+                headers: { "content-type": "application/json" },
+            }),
+        );
+
+        const { GET } = await import("./route");
+        const response = await GET(
+            new NextRequest(
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+            "laughtrack://auth/callback?provider=google&error=missing_token",
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "Native auth callback error",
+            JSON.stringify({
+                provider: "google",
+                stage: "token_exchange_missing_token",
+                responseKeys: ["accessToken"],
+            }),
+        );
+        expect(consoleErrorSpy.mock.calls[0]?.[1]).not.toContain("access-jwt");
+    });
+
+    it("logs token exchange exceptions without exposing request cookies", async () => {
+        const consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => undefined);
+        vi.spyOn(global, "fetch").mockRejectedValue(
+            Object.assign(new Error("network down"), {
+                cookie: "next-auth.session-token=session-cookie",
+            }),
+        );
+
+        const { GET } = await import("./route");
+        const response = await GET(
+            new NextRequest(
+                "https://laughtrack.app/api/v1/auth/native/callback?provider=google",
+                {
+                    headers: {
+                        cookie: "next-auth.session-token=session-cookie",
+                    },
+                },
+            ),
+        );
+
+        expect(response.status).toBe(307);
+        expect(response.headers.get("location")).toBe(
+            "laughtrack://auth/callback?provider=google&error=token_exchange_failed",
+        );
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            "Native auth callback error",
+            JSON.stringify({
+                provider: "google",
+                stage: "token_exchange_exception",
+                error: {
+                    name: "Error",
+                    message: "network down",
+                    cookie: "[redacted]",
+                },
+            }),
+        );
+        expect(consoleErrorSpy.mock.calls[0]?.[1]).not.toContain(
+            "session-cookie",
         );
     });
 
