@@ -4,11 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import re
 import sys
-import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -19,9 +17,15 @@ for _path in (_root / "src", _root):
         sys.path.insert(0, str(_path))
 
 from laughtrack.adapters.db import get_connection
+from laughtrack.core.podcast_appearance_auto_acceptance import (
+    AutoAcceptanceCandidate,
+    apply_auto_acceptance_rules,
+    normalize_match_text,
+)
 
 _SOURCE = "podcast_index"
-_AUTO_ACCEPT_CONFIDENCE = 0.9
+_AUTO_ACCEPT_TITLE_CONFIDENCE = 0.95
+_HOST_ASSOCIATION_TYPES = frozenset({"host", "cohost"})
 
 _GUEST_TITLE_RE = re.compile(
     r"\b(with|ft\.?|feat\.?|featuring|guest|welcomes?|interviews?|in conversation with)\b",
@@ -60,6 +64,7 @@ _GET_EPISODES_SQL = """
         pe.source,
         pe.source_episode_id,
         p.title AS podcast_title,
+        p.author_name AS podcast_author,
         pe.title,
         pe.description,
         pe.episode_url,
@@ -86,7 +91,7 @@ _GET_EPISODES_SQL = """
             AND accepted_cp.review_status = 'accepted'
       )
       {extra_filter}
-    GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title,
+    GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title, p.author_name,
         pe.title, pe.description, pe.episode_url, pe.source_payload
     ORDER BY pe.release_date DESC NULLS LAST, pe.id DESC
 """
@@ -157,6 +162,7 @@ class PodcastEpisodeCandidateInput:
     source: str
     source_episode_id: str
     podcast_title: str
+    podcast_author: str
     title: str
     description: str
     episode_url: str
@@ -185,17 +191,8 @@ class DetectSummary:
     candidates: int = 0
     auto_accepted: int = 0
     pending: int = 0
+    ignored: int = 0
     written: int = 0
-
-
-def normalize_match_text(value: str) -> str:
-    unescaped = html.unescape(value or "")
-    normalized = unicodedata.normalize("NFKD", unescaped)
-    normalized = normalized.replace("\u2019", "'").replace("\u2018", "'")
-    normalized = normalized.replace("\u2013", "-").replace("\u2014", "-")
-    normalized = re.sub(r"(?i)\b([a-z0-9]+)'s\b", r"\1", normalized)
-    normalized = re.sub(r"[^a-zA-Z0-9]+", " ", normalized)
-    return re.sub(r"\s+", " ", normalized).strip().lower()
 
 
 def _term_variants(term: str) -> list[str]:
@@ -308,7 +305,6 @@ def _person_match_candidate(
         return None
     if normalize_match_text(person_name) != normalize_match_text(comedian.name):
         return None
-    status = "accepted" if auto_accept else "pending"
     evidence = {
         "matched_name": comedian.name,
         "normalized_match": normalize_match_text(comedian.name),
@@ -329,6 +325,24 @@ def _person_match_candidate(
         "podcast_index_person_group": person.get("group"),
         "detected_by": "detect_podcast_episode_appearances",
     }
+    status, evidence = _apply_rules(
+        auto_accept=auto_accept,
+        candidate=AutoAcceptanceCandidate(
+            candidate_id=0,
+            comedian_id=comedian.comedian_id,
+            comedian_name=comedian.name,
+            podcast_title=episode.podcast_title,
+            podcast_author=episode.podcast_author,
+            episode_title=episode.title,
+            role_guess="guest",
+            confidence=0.99,
+            source=episode.source,
+            source_field="persons",
+            evidence_text=person_name,
+            evidence=evidence,
+            host_association_types=episode.host_association_types,
+        ),
+    )
     return EpisodeAppearanceCandidate(
         comedian_id=comedian.comedian_id,
         episode_id=episode.episode_id,
@@ -342,6 +356,85 @@ def _person_match_candidate(
         evidence=evidence,
         status=status,
     )
+
+
+def _comedian_host_association_types(
+    comedian: MatchComedian,
+    episode: PodcastEpisodeCandidateInput,
+) -> list[str]:
+    return [
+        association_type
+        for host_id, association_type in zip(episode.host_comedian_ids, episode.host_association_types)
+        if host_id == comedian.comedian_id
+    ]
+
+
+def _host_relationship_candidate(
+    *,
+    comedian: MatchComedian,
+    episode: PodcastEpisodeCandidateInput,
+    association_types: list[str],
+    auto_accept: bool,
+) -> Optional[EpisodeAppearanceCandidate]:
+    relationship_types = [normalize_match_text(value) for value in association_types]
+    role = next((value for value in relationship_types if value in _HOST_ASSOCIATION_TYPES), None)
+    if role is None:
+        return None
+    evidence = {
+        "matched_name": comedian.name,
+        "normalized_match": normalize_match_text(comedian.name),
+        "source_field": "podcast_relationship",
+        "role_guess": role,
+        "evidence_text": comedian.name,
+        "podcast_title": episode.podcast_title,
+        "episode_title": episode.title,
+        "episode_url": episode.episode_url,
+        "host_comedian_ids": episode.host_comedian_ids,
+        "host_association_types": episode.host_association_types,
+        "detected_by": "detect_podcast_episode_appearances",
+    }
+    status, evidence = _apply_rules(
+        auto_accept=auto_accept,
+        candidate=AutoAcceptanceCandidate(
+            candidate_id=0,
+            comedian_id=comedian.comedian_id,
+            comedian_name=comedian.name,
+            podcast_title=episode.podcast_title,
+            podcast_author=episode.podcast_author,
+            episode_title=episode.title,
+            role_guess=role,
+            confidence=0.99,
+            source=episode.source,
+            source_field="podcast_relationship",
+            evidence_text=comedian.name,
+            evidence=evidence,
+            host_association_types=relationship_types,
+        ),
+    )
+    return EpisodeAppearanceCandidate(
+        comedian_id=comedian.comedian_id,
+        episode_id=episode.episode_id,
+        source=episode.source,
+        source_episode_id=episode.source_episode_id,
+        matched_name=comedian.name,
+        source_field="podcast_relationship",
+        role_guess=role,
+        confidence=0.99,
+        evidence_text=comedian.name,
+        evidence=evidence,
+        status=status,
+    )
+
+
+def _apply_rules(
+    *,
+    auto_accept: bool,
+    candidate: AutoAcceptanceCandidate,
+) -> tuple[str, dict[str, Any]]:
+    if not auto_accept:
+        return "pending", dict(candidate.evidence)
+    result = apply_auto_acceptance_rules(candidate)
+    return result.status, result.evidence
 
 
 def detect_episode_candidates(
@@ -358,6 +451,17 @@ def detect_episode_candidates(
     }
     for episode in episodes:
         for comedian in comedians:
+            host_association_types = _comedian_host_association_types(comedian, episode)
+            if host_association_types:
+                host_candidate = _host_relationship_candidate(
+                    comedian=comedian,
+                    episode=episode,
+                    association_types=host_association_types,
+                    auto_accept=auto_accept,
+                )
+                if host_candidate is not None:
+                    candidates.append(host_candidate)
+                continue
             if comedian.comedian_id in episode.host_comedian_ids:
                 continue
             best: Optional[EpisodeAppearanceCandidate] = None
@@ -385,11 +489,6 @@ def detect_episode_candidates(
                     evidence_text=evidence_text,
                 )
                 confidence = _confidence(source_field, role, term)
-                status = (
-                    "accepted"
-                    if auto_accept and role == "guest" and confidence >= _AUTO_ACCEPT_CONFIDENCE
-                    else "pending"
-                )
                 evidence = {
                     "matched_name": term.raw,
                     "normalized_match": term.normalized,
@@ -403,6 +502,24 @@ def detect_episode_candidates(
                     "host_association_types": episode.host_association_types,
                     "detected_by": "detect_podcast_episode_appearances",
                 }
+                status, evidence = _apply_rules(
+                    auto_accept=auto_accept,
+                    candidate=AutoAcceptanceCandidate(
+                        candidate_id=0,
+                        comedian_id=comedian.comedian_id,
+                        comedian_name=comedian.name,
+                        podcast_title=episode.podcast_title,
+                        podcast_author=episode.podcast_author,
+                        episode_title=episode.title,
+                        role_guess=role,
+                        confidence=confidence,
+                        source=episode.source,
+                        source_field=source_field,
+                        evidence_text=evidence_text,
+                        evidence=evidence,
+                        host_association_types=episode.host_association_types,
+                    ),
+                )
                 candidate = EpisodeAppearanceCandidate(
                     comedian_id=comedian.comedian_id,
                     episode_id=episode.episode_id,
@@ -472,12 +589,13 @@ def load_episode_inputs(
                     source=str(row[2]),
                     source_episode_id=str(row[3]),
                     podcast_title=str(row[4] or ""),
-                    title=str(row[5] or ""),
-                    description=str(row[6] or ""),
-                    episode_url=str(row[7] or ""),
-                    source_payload=dict(row[8] or {}),
-                    host_comedian_ids=[int(v) for v in (row[9] or [])],
-                    host_association_types=[str(v) for v in (row[10] or [])],
+                    podcast_author=str(row[5] or ""),
+                    title=str(row[6] or ""),
+                    description=str(row[7] or ""),
+                    episode_url=str(row[8] or ""),
+                    source_payload=dict(row[9] or {}),
+                    host_comedian_ids=[int(v) for v in (row[10] or [])],
+                    host_association_types=[str(v) for v in (row[11] or [])],
                 )
                 for row in cur.fetchall()
             ]
@@ -487,6 +605,7 @@ def persist_candidates(candidates: list[EpisodeAppearanceCandidate], dry_run: bo
     summary = DetectSummary(candidates=len(candidates))
     summary.auto_accepted = sum(1 for c in candidates if c.status == "accepted")
     summary.pending = sum(1 for c in candidates if c.status == "pending")
+    summary.ignored = sum(1 for c in candidates if c.status == "ignored")
     if dry_run:
         for candidate in candidates:
             print(
@@ -593,6 +712,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             "candidates": summary.candidates,
             "auto_accepted": summary.auto_accepted,
             "pending": summary.pending,
+            "ignored": summary.ignored,
             "written": summary.written,
         }
     )
