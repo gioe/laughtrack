@@ -10,6 +10,7 @@ import {
     appleProviderConfig,
     googleProviderConfig,
 } from "@/lib/auth/providerConfig";
+import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
 
 // Define session types
 interface UserProfile {
@@ -40,6 +41,14 @@ const adapter = PrismaAdapter(prisma);
 
 const _nextAuth = NextAuth({
     adapter,
+    logger: {
+        error(error) {
+            console.error(
+                "Auth.js error",
+                JSON.stringify(sanitizeAuthError(error)),
+            );
+        },
+    },
     providers: [
         Google(googleProviderConfig()),
         Apple(appleProviderConfig()),
