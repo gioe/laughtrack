@@ -67,6 +67,20 @@ def test_podcast_index_guid_match_is_high_trust_source_rule():
     assert result.rule_id == "podcast_index_guid_match"
 
 
+def test_podcast_index_person_guest_metadata_is_high_trust_source_rule():
+    result = apply_auto_acceptance_rules(
+        _candidate(
+            episode_title="Juggling Comedy, Chaos, and Faith",
+            source_field="persons",
+            evidence_text="Ari Shaffir",
+            evidence={"match_source": "podcast_index_person"},
+        )
+    )
+
+    assert result.status == "accepted"
+    assert result.rule_id == "podcast_index_person_guest"
+
+
 def test_low_signal_mentions_are_ignored_to_keep_manual_queue_focused():
     result = apply_auto_acceptance_rules(
         _candidate(

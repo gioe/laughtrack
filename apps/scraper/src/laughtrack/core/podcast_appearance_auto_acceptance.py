@@ -95,6 +95,18 @@ def apply_auto_acceptance_rules(candidate: AutoAcceptanceCandidate) -> AutoAccep
             reason="Podcast Index candidate evidence matched an episode GUID.",
         )
 
+    if (
+        candidate.source in _HIGH_TRUST_SOURCES
+        and candidate.role_guess == "guest"
+        and candidate.evidence.get("match_source") == "podcast_index_person"
+    ):
+        return _with_rule_evidence(
+            candidate,
+            status="accepted",
+            rule_id="podcast_index_person_guest",
+            reason="Podcast Index person metadata identified the comedian as an episode guest.",
+        )
+
     if candidate.role_guess in _HOST_ASSOCIATION_TYPES and _has_host_relationship(candidate):
         return _with_rule_evidence(
             candidate,
