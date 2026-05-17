@@ -5,12 +5,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import Nodemailer from "next-auth/providers/nodemailer";
+import { createTransport } from "nodemailer";
 import { db, prisma } from "./lib/db";
 import {
     appleProviderConfig,
     googleProviderConfig,
 } from "@/lib/auth/providerConfig";
 import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
+import { buildMagicLinkEmail } from "@/lib/auth/emailTemplate";
 
 // Define session types
 interface UserProfile {
@@ -64,6 +66,26 @@ const _nextAuth = NextAuth({
                 },
             },
             from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
+            async sendVerificationRequest({ identifier, url, provider }) {
+                const transport = createTransport(provider.server);
+                const email = buildMagicLinkEmail({ url });
+                const result = await transport.sendMail({
+                    to: identifier,
+                    from: provider.from,
+                    subject: email.subject,
+                    text: email.text,
+                    html: email.html,
+                });
+                const failed = [
+                    ...(result.rejected || []),
+                    ...(result.pending || []),
+                ].filter(Boolean);
+                if (failed.length) {
+                    throw new Error(
+                        `Email (${failed.join(", ")}) could not be sent`,
+                    );
+                }
+            },
         }),
     ],
     session: {
