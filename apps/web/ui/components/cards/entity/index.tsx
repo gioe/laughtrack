@@ -18,6 +18,7 @@ interface EntityCardProps {
     as?: "div" | "article";
     chrome?: EntityCardChrome;
     className?: string;
+    ariaLabel?: string;
     children: React.ReactNode;
     animateEntryY?: number;
     alreadySeen?: boolean;
@@ -28,6 +29,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
     as = "div",
     chrome = "warm",
     className,
+    ariaLabel,
     children,
     animateEntryY,
     alreadySeen,
@@ -54,7 +56,12 @@ const EntityCard: React.FC<EntityCardProps> = ({
 
     if (as === "article") {
         return (
-            <motion.article className={classes} {...hoverProps} {...entryProps}>
+            <motion.article
+                aria-label={ariaLabel}
+                className={classes}
+                {...hoverProps}
+                {...entryProps}
+            >
                 {children}
             </motion.article>
         );

@@ -43,6 +43,11 @@ export default function NavigationMenu({ pathname }: { pathname: string }) {
                 href="/"
                 title="Near Me"
             />
+            <HeaderItem
+                highlighted={pathname === "/search"}
+                href="/search"
+                title="Search"
+            />
 
             <PopoverGroup className="flex items-center space-x-12">
                 <NavigationDropdown
