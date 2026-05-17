@@ -7,9 +7,12 @@ import argparse
 import json
 import re
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
+
+from psycopg2.extras import execute_values
 
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 for _path in (_root / "src", _root):
@@ -117,6 +120,27 @@ _UPSERT_REVIEW_SQL = """
         updated_at = NOW()
 """
 
+_UPSERT_REVIEW_BULK_SQL = """
+    INSERT INTO episode_appearance_reviews (
+        comedian_id,
+        episode_id,
+        source,
+        source_episode_id,
+        candidate_status,
+        appearance_role,
+        confidence,
+        evidence
+    )
+    VALUES %s
+    ON CONFLICT (comedian_id, source, source_episode_id) DO UPDATE SET
+        episode_id = EXCLUDED.episode_id,
+        candidate_status = EXCLUDED.candidate_status,
+        appearance_role = EXCLUDED.appearance_role,
+        confidence = EXCLUDED.confidence,
+        evidence = EXCLUDED.evidence,
+        updated_at = NOW()
+"""
+
 _UPSERT_APPEARANCE_SQL = """
     INSERT INTO episode_appearances (
         comedian_id,
@@ -130,6 +154,29 @@ _UPSERT_APPEARANCE_SQL = """
         evidence
     )
     VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), %s::jsonb)
+    ON CONFLICT (comedian_id, episode_id, source) DO UPDATE SET
+        appearance_role = EXCLUDED.appearance_role,
+        review_status = EXCLUDED.review_status,
+        confidence = EXCLUDED.confidence,
+        reviewed_by = EXCLUDED.reviewed_by,
+        reviewed_at = EXCLUDED.reviewed_at,
+        evidence = EXCLUDED.evidence,
+        updated_at = NOW()
+"""
+
+_UPSERT_APPEARANCE_BULK_SQL = """
+    INSERT INTO episode_appearances (
+        comedian_id,
+        episode_id,
+        source,
+        appearance_role,
+        review_status,
+        confidence,
+        reviewed_by,
+        reviewed_at,
+        evidence
+    )
+    VALUES %s
     ON CONFLICT (comedian_id, episode_id, source) DO UPDATE SET
         appearance_role = EXCLUDED.appearance_role,
         review_status = EXCLUDED.review_status,
@@ -437,6 +484,31 @@ def _apply_rules(
     return result.status, result.evidence
 
 
+def _normalized_text_matches(
+    text: str,
+    terms_by_normalized: dict[str, list[tuple[MatchComedian, MatchTerm]]],
+    max_term_words: int,
+) -> list[tuple[MatchComedian, MatchTerm]]:
+    words = normalize_match_text(text).split()
+    if not words:
+        return []
+    matches: list[tuple[MatchComedian, MatchTerm]] = []
+    seen: set[tuple[int, str]] = set()
+    for start in range(len(words)):
+        for size in range(1, max_term_words + 1):
+            end = start + size
+            if end > len(words):
+                break
+            normalized = " ".join(words[start:end])
+            for comedian, term in terms_by_normalized.get(normalized, []):
+                key = (comedian.comedian_id, term.normalized)
+                if key in seen:
+                    continue
+                seen.add(key)
+                matches.append((comedian, term))
+    return matches
+
+
 def detect_episode_candidates(
     comedians: list[MatchComedian],
     episodes: list[PodcastEpisodeCandidateInput],
@@ -449,8 +521,42 @@ def detect_episode_candidates(
         comedian.comedian_id: build_match_terms(comedian, include_aliases=include_aliases)
         for comedian in comedians
     }
+    comedians_by_id = {comedian.comedian_id: comedian for comedian in comedians}
+    comedians_by_normalized_name: dict[str, list[MatchComedian]] = defaultdict(list)
+    terms_by_normalized: dict[str, list[tuple[MatchComedian, MatchTerm]]] = defaultdict(list)
+    max_term_words = 1
+    for comedian in comedians:
+        normalized_name = normalize_match_text(comedian.name)
+        if normalized_name:
+            comedians_by_normalized_name[normalized_name].append(comedian)
+        for term in terms_by_comedian_id[comedian.comedian_id]:
+            terms_by_normalized[term.normalized].append((comedian, term))
+            max_term_words = max(max_term_words, len(term.normalized.split()))
+
     for episode in episodes:
-        for comedian in comedians:
+        text_matches_by_comedian_id: dict[int, list[tuple[str, str, MatchTerm]]] = defaultdict(list)
+        for source_field, text in (("title", episode.title), ("description", episode.description or "")):
+            for comedian, term in _normalized_text_matches(text, terms_by_normalized, max_term_words):
+                text_matches_by_comedian_id[comedian.comedian_id].append((source_field, term.raw, term))
+
+        person_matches_by_comedian_id: dict[int, dict[str, Any]] = {}
+        for person in _person_entries(episode.source_payload):
+            if not _person_role_is_guest(str(person.get("role") or "")):
+                continue
+            person_name = str(person.get("name") or "").strip()
+            if not person_name:
+                continue
+            for comedian in comedians_by_normalized_name.get(normalize_match_text(person_name), []):
+                person_matches_by_comedian_id[comedian.comedian_id] = person
+
+        episode_comedian_ids = set(text_matches_by_comedian_id)
+        episode_comedian_ids.update(person_matches_by_comedian_id)
+        episode_comedian_ids.update(episode.host_comedian_ids)
+
+        for comedian_id in episode_comedian_ids:
+            comedian = comedians_by_id.get(comedian_id)
+            if comedian is None:
+                continue
             host_association_types = _comedian_host_association_types(comedian, episode)
             if host_association_types:
                 host_candidate = _host_relationship_candidate(
@@ -465,7 +571,8 @@ def detect_episode_candidates(
             if comedian.comedian_id in episode.host_comedian_ids:
                 continue
             best: Optional[EpisodeAppearanceCandidate] = None
-            for person in _person_entries(episode.source_payload):
+            person = person_matches_by_comedian_id.get(comedian.comedian_id)
+            if person is not None:
                 person_candidate = _person_match_candidate(
                     comedian=comedian,
                     episode=episode,
@@ -474,14 +581,12 @@ def detect_episode_candidates(
                 )
                 if person_candidate is not None:
                     best = person_candidate
-                    break
-            for term in terms_by_comedian_id[comedian.comedian_id]:
+            for source_field, evidence_text, term in text_matches_by_comedian_id.get(
+                comedian.comedian_id,
+                [],
+            ):
                 if best is not None and best.source_field == "persons":
                     break
-                match = _best_field_match(term, episode)
-                if match is None:
-                    continue
-                source_field, evidence_text = match
                 role = _guess_role(
                     comedian=comedian,
                     episode=episode,
@@ -547,6 +652,22 @@ def load_match_comedians(
     comedian_names: Optional[list[str]] = None,
     limit: Optional[int] = None,
 ) -> list[MatchComedian]:
+    with get_connection() as conn:
+        return load_match_comedians_from_conn(
+            conn,
+            comedian_ids=comedian_ids,
+            comedian_names=comedian_names,
+            limit=limit,
+        )
+
+
+def load_match_comedians_from_conn(
+    conn: Any,
+    *,
+    comedian_ids: Optional[list[int]],
+    comedian_names: Optional[list[str]] = None,
+    limit: Optional[int] = None,
+) -> list[MatchComedian]:
     filters: list[str] = []
     params: list[Any] = []
     if comedian_ids:
@@ -559,13 +680,22 @@ def load_match_comedians(
     if limit:
         query += "\n    LIMIT %s"
         params.append(int(limit))
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, tuple(params) if params else None)
-            return [MatchComedian(int(row[0]), str(row[1]), list(row[2] or [])) for row in cur.fetchall()]
+    with conn.cursor() as cur:
+        cur.execute(query, tuple(params) if params else None)
+        return [MatchComedian(int(row[0]), str(row[1]), list(row[2] or [])) for row in cur.fetchall()]
 
 
 def load_episode_inputs(
+    *,
+    episode_ids: Optional[list[int]] = None,
+    limit: Optional[int] = None,
+) -> list[PodcastEpisodeCandidateInput]:
+    with get_connection() as conn:
+        return load_episode_inputs_from_conn(conn, episode_ids=episode_ids, limit=limit)
+
+
+def load_episode_inputs_from_conn(
+    conn: Any,
     *,
     episode_ids: Optional[list[int]] = None,
     limit: Optional[int] = None,
@@ -579,26 +709,25 @@ def load_episode_inputs(
     if limit:
         query += "\n    LIMIT %s"
         params.append(int(limit))
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, tuple(params))
-            return [
-                PodcastEpisodeCandidateInput(
-                    episode_id=int(row[0]),
-                    podcast_id=int(row[1]),
-                    source=str(row[2]),
-                    source_episode_id=str(row[3]),
-                    podcast_title=str(row[4] or ""),
-                    podcast_author=str(row[5] or ""),
-                    title=str(row[6] or ""),
-                    description=str(row[7] or ""),
-                    episode_url=str(row[8] or ""),
-                    source_payload=dict(row[9] or {}),
-                    host_comedian_ids=[int(v) for v in (row[10] or [])],
-                    host_association_types=[str(v) for v in (row[11] or [])],
-                )
-                for row in cur.fetchall()
-            ]
+    with conn.cursor() as cur:
+        cur.execute(query, tuple(params))
+        return [
+            PodcastEpisodeCandidateInput(
+                episode_id=int(row[0]),
+                podcast_id=int(row[1]),
+                source=str(row[2]),
+                source_episode_id=str(row[3]),
+                podcast_title=str(row[4] or ""),
+                podcast_author=str(row[5] or ""),
+                title=str(row[6] or ""),
+                description=str(row[7] or ""),
+                episode_url=str(row[8] or ""),
+                source_payload=dict(row[9] or {}),
+                host_comedian_ids=[int(v) for v in (row[10] or [])],
+                host_association_types=[str(v) for v in (row[11] or [])],
+            )
+            for row in cur.fetchall()
+        ]
 
 
 def persist_candidates(candidates: list[EpisodeAppearanceCandidate], dry_run: bool) -> DetectSummary:
@@ -616,37 +745,70 @@ def persist_candidates(candidates: list[EpisodeAppearanceCandidate], dry_run: bo
         return summary
 
     with get_connection() as conn:
-        with conn.cursor() as cur:
-            for candidate in candidates:
-                evidence_json = json.dumps(candidate.evidence, sort_keys=True)
-                cur.execute(
-                    _UPSERT_REVIEW_SQL,
-                    (
-                        candidate.comedian_id,
-                        candidate.episode_id,
-                        candidate.source,
-                        candidate.source_episode_id,
-                        candidate.status,
-                        candidate.role_guess,
-                        candidate.confidence,
-                        evidence_json,
-                    ),
-                )
-                if candidate.status == "accepted":
-                    cur.execute(
-                        _UPSERT_APPEARANCE_SQL,
-                        (
-                            candidate.comedian_id,
-                            candidate.episode_id,
-                            candidate.source,
-                            candidate.role_guess,
-                            "accepted",
-                            candidate.confidence,
-                            "auto:detect_podcast_episode_appearances",
-                            evidence_json,
-                        ),
-                    )
+        summary = persist_candidates_with_conn(conn, candidates, dry_run=False)
         conn.commit()
+    return summary
+
+
+def persist_candidates_with_conn(
+    conn: Any,
+    candidates: list[EpisodeAppearanceCandidate],
+    dry_run: bool,
+) -> DetectSummary:
+    summary = DetectSummary(candidates=len(candidates))
+    summary.auto_accepted = sum(1 for c in candidates if c.status == "accepted")
+    summary.pending = sum(1 for c in candidates if c.status == "pending")
+    summary.ignored = sum(1 for c in candidates if c.status == "ignored")
+    if dry_run:
+        return summary
+
+    review_rows: list[tuple[Any, ...]] = []
+    appearance_rows: list[tuple[Any, ...]] = []
+    for candidate in candidates:
+        evidence_json = json.dumps(candidate.evidence, sort_keys=True)
+        review_rows.append(
+            (
+                candidate.comedian_id,
+                candidate.episode_id,
+                candidate.source,
+                candidate.source_episode_id,
+                candidate.status,
+                candidate.role_guess,
+                candidate.confidence,
+                evidence_json,
+            )
+        )
+        if candidate.status == "accepted":
+            appearance_rows.append(
+                (
+                    candidate.comedian_id,
+                    candidate.episode_id,
+                    candidate.source,
+                    candidate.role_guess,
+                    "accepted",
+                    candidate.confidence,
+                    "auto:detect_podcast_episode_appearances",
+                    evidence_json,
+                )
+            )
+
+    with conn.cursor() as cur:
+        if review_rows:
+            execute_values(
+                cur,
+                _UPSERT_REVIEW_BULK_SQL,
+                review_rows,
+                template="(%s, %s, %s, %s, %s, %s, %s, %s::jsonb)",
+                page_size=1000,
+            )
+        if appearance_rows:
+            execute_values(
+                cur,
+                _UPSERT_APPEARANCE_BULK_SQL,
+                appearance_rows,
+                template="(%s, %s, %s, %s, %s, %s, %s, NOW(), %s::jsonb)",
+                page_size=1000,
+            )
     summary.written = len(candidates)
     return summary
 

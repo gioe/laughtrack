@@ -99,6 +99,17 @@ def _episode(
     )
 
 
+def _capture_execute_values(monkeypatch):
+    def fake_execute_values(cur: _FakeCursor, sql: str, rows: list[tuple[Any, ...]], **_kwargs: Any) -> None:
+        normalized = " ".join(sql.split())
+        if normalized.startswith("INSERT INTO episode_appearance_reviews"):
+            cur._conn.review_writes.extend(rows)
+        elif normalized.startswith("INSERT INTO episode_appearances"):
+            cur._conn.appearance_writes.extend(rows)
+
+    monkeypatch.setattr(mod, "execute_values", fake_execute_values)
+
+
 def test_comedian_query_uses_canonical_non_denied_comedians_and_aliases():
     query = mod._GET_MATCH_COMEDIANS_SQL
 
@@ -206,6 +217,7 @@ def test_episode_matching_scores_roles_and_materializes_only_auto_accepted(monke
 
     conn = _FakeConn()
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
+    _capture_execute_values(monkeypatch)
 
     summary = mod.persist_candidates(rows, dry_run=False)
 
@@ -250,6 +262,7 @@ def test_review_only_detection_keeps_auto_matches_pending(monkeypatch):
 
     conn = _FakeConn()
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
+    _capture_execute_values(monkeypatch)
 
     summary = mod.persist_candidates(rows, dry_run=False)
 
