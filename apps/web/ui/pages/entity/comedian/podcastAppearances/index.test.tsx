@@ -2,11 +2,31 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import PodcastAppearancesSection from "./index";
 import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { usePodcastPlayer } from "@/hooks/usePodcastPlayer";
+
+vi.mock("next/image", () => ({
+    default: ({
+        alt,
+        src,
+        className,
+    }: {
+        alt: string;
+        src: string;
+        className?: string;
+    }) => <img alt={alt} src={src} className={className} />,
+}));
+
+vi.mock("@/hooks", () => ({
+    useMotionProps: () => ({
+        mv: (value: unknown) => value,
+        mp: (value: unknown) => value,
+        prefersReducedMotion: true,
+    }),
+}));
 
 function makeAppearance(
     over: Partial<ComedianPodcastAppearanceDTO> = {},
@@ -86,7 +106,8 @@ describe("PodcastAppearancesSection", () => {
             getByRole("heading", { name: "Recent podcast appearances" }),
         ).not.toBeNull();
         expect(getByText("Working It Out")).not.toBeNull();
-        expect(getByText(/Comedy Pod · Apr 2, 2026/)).not.toBeNull();
+        expect(getByText("Comedy Pod")).not.toBeNull();
+        expect(getByText(/Apr 2, 2026/)).not.toBeNull();
         expect(getByText(/1 hr 30 min/)).not.toBeNull();
         expect(getByText(/Guest/)).not.toBeNull();
         expect(() => getByText("Long Form Talk")).toThrow();
@@ -114,7 +135,8 @@ describe("PodcastAppearancesSection", () => {
         const roleBadge = getByText("Host");
         expect(roleBadge.className).toContain("bg-copper/10");
         expect(roleBadge.className).toContain("text-copper");
-        expect(getByText(/Hosted Pod · Apr 2, 2026 · 1 hr/)).not.toBeNull();
+        expect(getByText("Hosted Pod")).not.toBeNull();
+        expect(getByText(/Apr 2, 2026 · 1 hr/)).not.toBeNull();
     });
 
     it("renders rows in the order passed by the data layer", () => {
@@ -128,7 +150,9 @@ describe("PodcastAppearancesSection", () => {
         );
 
         const titles = Array.from(
-            container.querySelectorAll("a > span > span:first-child"),
+            container.querySelectorAll(
+                '[data-testid="podcast-appearance-title"]',
+            ),
         ).map((title) => title.textContent);
         expect(titles).toEqual(["Most Recent", "Older"]);
     });
@@ -145,7 +169,8 @@ describe("PodcastAppearancesSection", () => {
             <PodcastAppearancesSection appearances={appearances} />,
         );
 
-        expect(getByText(/Good Podcast · May 3, 2026/)).not.toBeNull();
+        expect(getByText("Good Podcast")).not.toBeNull();
+        expect(getByText(/May 3, 2026/)).not.toBeNull();
     });
 
     it("keeps undated appearances visible with a fallback label", () => {
@@ -155,9 +180,41 @@ describe("PodcastAppearancesSection", () => {
             <PodcastAppearancesSection appearances={appearances} />,
         );
 
-        expect(
-            getByText(/Good Podcast · Release date unavailable/),
-        ).not.toBeNull();
+        expect(getByText("Good Podcast")).not.toBeNull();
+        expect(getByText(/Release date unavailable/)).not.toBeNull();
+    });
+
+    it("renders podcast artwork when an image URL is available", () => {
+        const appearances = [
+            makeAppearance({
+                podcastName: "Artwork Pod",
+                podcastImageUrl: "https://cdn.example.com/artwork.jpg",
+            }),
+        ];
+
+        const { getByRole } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        const artwork = getByRole("img", { name: "Artwork Pod" });
+        expect(artwork.getAttribute("src")).toBe(
+            "https://cdn.example.com/artwork.jpg",
+        );
+        expect(artwork.className).toContain("object-cover");
+    });
+
+    it("uses EntityCard chrome and a muted podcast glyph when artwork is missing", () => {
+        const appearances = [makeAppearance({ podcastImageUrl: null })];
+
+        const { container, queryByRole } = render(
+            <PodcastAppearancesSection appearances={appearances} />,
+        );
+
+        expect(queryByRole("img", { name: "Good Podcast" })).toBeNull();
+        const rowCard = container.querySelector("article");
+        expect(rowCard?.className).toContain("rounded-xl");
+        expect(rowCard?.className).toContain("shadow-md");
+        expect(rowCard?.querySelector(".bg-muted svg")).not.toBeNull();
     });
 
     it("starts a playable podcast episode from the row without navigating away", () => {
