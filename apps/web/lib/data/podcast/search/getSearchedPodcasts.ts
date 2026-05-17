@@ -8,6 +8,15 @@ function safePodcastImageUrl(url: string | null): string | null {
     return url?.startsWith("https://") ? url : null;
 }
 
+function plainText(value: string | null): string | null {
+    if (!value) return null;
+    const text = value
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    return text || null;
+}
+
 function containsQuery(query: string) {
     return { contains: query, mode: "insensitive" as const };
 }
@@ -77,7 +86,7 @@ export async function getSearchedPodcasts(params: {
             websiteUrl: podcast.websiteUrl,
             feedUrl: podcast.feedUrl,
             imageUrl: safePodcastImageUrl(podcast.imageUrl),
-            description: podcast.description,
+            description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
         })),
     };

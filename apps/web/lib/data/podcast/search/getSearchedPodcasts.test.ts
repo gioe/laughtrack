@@ -58,7 +58,7 @@ describe("getSearchedPodcasts", () => {
                 websiteUrl: "https://example.com",
                 feedUrl: "https://example.com/feed.xml",
                 imageUrl: "https://cdn.example.com/good-one.jpg",
-                description: "Comedy interviews",
+                description: "<p>Comedy interviews</p>",
                 _count: { episodes: 42 },
             },
         ]);

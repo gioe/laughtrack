@@ -7,6 +7,15 @@ function safePodcastImageUrl(url: string | null): string | null {
     return url?.startsWith("https://") ? url : null;
 }
 
+function plainText(value: string | null): string | null {
+    if (!value) return null;
+    const text = value
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    return text || null;
+}
+
 function mapEpisode(episode: {
     id: number;
     title: string;
@@ -19,7 +28,7 @@ function mapEpisode(episode: {
     return {
         id: episode.id,
         title: episode.title,
-        description: episode.description,
+        description: plainText(episode.description),
         releaseDate: episode.releaseDate,
         durationSeconds: episode.durationSeconds,
         episodeUrl: episode.episodeUrl,
@@ -140,7 +149,7 @@ export async function getPodcastDetailPageData(
             websiteUrl: podcast.websiteUrl,
             feedUrl: podcast.feedUrl,
             imageUrl: safePodcastImageUrl(podcast.imageUrl),
-            description: podcast.description,
+            description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
         },
         episodes: podcast.episodes.map(mapEpisode),
