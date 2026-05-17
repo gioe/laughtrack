@@ -30,9 +30,21 @@ function sanitizeValue(value: unknown, depth: number): Jsonish {
             name: value.name,
             message: value.message,
         };
+        if ("cause" in value) {
+            result.cause = sanitizeEntry(
+                "cause",
+                (value as Error & { cause?: unknown }).cause,
+                depth + 1,
+            );
+        }
         Object.entries(value as Error & Record<string, unknown>).forEach(
             ([key, entry]) => {
-                if (key === "name" || key === "message" || key === "stack") {
+                if (
+                    key === "name" ||
+                    key === "message" ||
+                    key === "stack" ||
+                    key === "cause"
+                ) {
                     return;
                 }
                 result[key] = sanitizeEntry(key, entry, depth + 1);

@@ -48,4 +48,55 @@ describe("sanitizeAuthError", () => {
             clientSecret: "[redacted]",
         });
     });
+
+    it("captures non-enumerable Error.cause details used by Auth.js wrapper errors", () => {
+        const rootCause = Object.assign(new Error("invalid_client"), {
+            name: "OperationProcessingError",
+            response: {
+                status: 400,
+                body: {
+                    error: "invalid_client",
+                    error_description: "client authentication failed",
+                    id_token: "id-token",
+                },
+            },
+        });
+        const error = new Error(
+            "Read more at https://errors.authjs.dev#callbackrouteerror",
+            {
+                cause: {
+                    err: rootCause,
+                    provider: "apple",
+                },
+            },
+        );
+        error.name = "CallbackRouteError";
+        Object.assign(error, {
+            type: "CallbackRouteError",
+            kind: "error",
+        });
+
+        expect(sanitizeAuthError(error)).toEqual({
+            name: "CallbackRouteError",
+            message:
+                "Read more at https://errors.authjs.dev#callbackrouteerror",
+            cause: {
+                err: {
+                    name: "OperationProcessingError",
+                    message: "invalid_client",
+                    response: {
+                        status: 400,
+                        body: {
+                            error: "invalid_client",
+                            error_description: "client authentication failed",
+                            id_token: "[redacted]",
+                        },
+                    },
+                },
+                provider: "apple",
+            },
+            type: "CallbackRouteError",
+            kind: "error",
+        });
+    });
 });
