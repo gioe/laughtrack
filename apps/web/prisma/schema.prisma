@@ -291,6 +291,7 @@ model ComedianPodcastIdentityLink {
 
 model Podcast {
   id               Int                      @id @default(autoincrement())
+  slug             String                   @unique
   source           String
   sourcePodcastId  String                   @map("source_podcast_id")
   feedUrl          String?                  @map("feed_url")

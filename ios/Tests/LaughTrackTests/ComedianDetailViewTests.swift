@@ -183,6 +183,7 @@ struct ComedianDetailViewTests {
         let appearance = makePodcastAppearance(
             episodeTitle: "Comedy Cellar Stories",
             podcastTitle: "The Laugh Track Pod",
+            podcastImageURL: "https://cdn.example.com/podcasts/laugh-track.jpg",
             audioURL: "https://cdn.example.com/episodes/cellar.mp3",
             episodeURL: "https://podcasts.example.com/cellar"
         )
@@ -192,8 +193,26 @@ struct ComedianDetailViewTests {
         #expect(item.id == appearance.id)
         #expect(item.episodeTitle == "Comedy Cellar Stories")
         #expect(item.podcastName == "The Laugh Track Pod")
+        #expect(item.podcastImageURL == "https://cdn.example.com/podcasts/laugh-track.jpg")
         #expect(item.audioURL?.absoluteString == "https://cdn.example.com/episodes/cellar.mp3")
         #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/cellar")
+    }
+
+    @Test("podcast appearances expose display role for row badges")
+    func podcastAppearancesExposeDisplayRoleForRowBadges() throws {
+        let host = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "host")
+        ))
+        let cohost = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "cohost")
+        ))
+        let guest = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(role: "guest")
+        ))
+
+        #expect(host.displayRole == "Host")
+        #expect(cohost.displayRole == "Cohost")
+        #expect(guest.displayRole == "Guest")
     }
 
     @Test("comedian detail includes a podcasts section tab")
@@ -603,19 +622,22 @@ struct ComedianDetailViewTests {
 
     private func makePodcastAppearance(
         id: Int = 401,
+        role: String = "guest",
         episodeTitle: String = "Podcast Episode",
         podcastTitle: String = "Comedy Podcast",
+        podcastImageURL: String? = nil,
         audioURL: String = "https://cdn.example.com/episode.mp3",
         episodeURL: String? = "https://podcasts.example.com/episode"
     ) -> Components.Schemas.PodcastAppearance {
         .init(
             id: id,
-            role: "guest",
+            role: role,
             podcast: .init(
                 id: 301,
                 source: "podchaser",
                 sourcePodcastId: "podcast-\(id)",
-                title: podcastTitle
+                title: podcastTitle,
+                imageUrl: podcastImageURL
             ),
             episode: .init(
                 id: 701,

@@ -5,6 +5,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 
 function buildComedianSelect() {
     return {
@@ -144,7 +145,9 @@ function mapEpisodeAppearances(
         episodeUrl: appearance.episode.episodeUrl ?? "",
         audioUrl: appearance.episode.audioUrl,
         durationSeconds: appearance.episode.durationSeconds,
-        appearanceRole: appearance.appearanceRole,
+        appearanceRole: normalizePodcastAppearanceRole(
+            appearance.appearanceRole,
+        ),
     }));
 }
 

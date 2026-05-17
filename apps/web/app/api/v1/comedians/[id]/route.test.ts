@@ -136,11 +136,21 @@ describe("GET /api/v1/comedians/[id]", () => {
                         appearances: [
                             {
                                 id: 90,
-                                appearanceRole: "host",
+                                appearanceRole: "co-host",
                                 comedian: {
                                     id: 7,
                                     uuid: "host-uuid",
                                     name: "Host Comic",
+                                    hasImage: false,
+                                },
+                            },
+                            {
+                                id: 89,
+                                appearanceRole: "mention",
+                                comedian: {
+                                    id: 8,
+                                    uuid: "mentioned-uuid",
+                                    name: "Mentioned Comic",
                                     hasImage: false,
                                 },
                             },
@@ -197,10 +207,19 @@ describe("GET /api/v1/comedians/[id]", () => {
                             name: "Host Comic",
                             imageUrl: "https://cdn.example.com/Host Comic.jpg",
                             hasImage: false,
-                            role: "host",
+                            role: "cohost",
                         },
                     ],
                     guests: [
+                        {
+                            id: 8,
+                            uuid: "mentioned-uuid",
+                            name: "Mentioned Comic",
+                            imageUrl:
+                                "https://cdn.example.com/Mentioned Comic.jpg",
+                            hasImage: false,
+                            role: "guest",
+                        },
                         {
                             id: 226475,
                             uuid: "comedian-uuid",

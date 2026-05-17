@@ -184,9 +184,10 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     review_query, review_params = conn.cursor_obj.executed[1]
     assert "INSERT INTO podcasts" in podcast_query
     assert "ON CONFLICT (source, source_podcast_id)" in podcast_query
-    assert podcast_params[:6] == (
+    assert podcast_params[:7] == (
         mod._SOURCE,
         "101",
+        "steve-o-s-wild-ride-podcast-index-101",
         "https://feeds.example.com/show.xml",
         "Steve-O's Wild Ride",
         "Steve-O",

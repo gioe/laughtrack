@@ -548,6 +548,8 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     let id: Int
     let episodeTitle: String
     let podcastName: String
+    let podcastImageURL: String?
+    let displayRole: String
     let audioURL: URL?
     let episodeURL: URL?
     let failedAudioURL: URL?
@@ -561,6 +563,8 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
             id: id,
             episodeTitle: episodeTitle,
             podcastName: podcastName,
+            podcastImageURL: podcastImageURL,
+            displayRole: displayRole,
             audioURL: nil,
             episodeURL: episodeURL,
             failedAudioURL: audioURL ?? failedAudioURL
@@ -578,6 +582,8 @@ enum ComedianPodcastPresentation {
             id: appearance.id,
             episodeTitle: appearance.episode.title,
             podcastName: appearance.podcast.title,
+            podcastImageURL: appearance.podcast.imageUrl,
+            displayRole: displayRole(for: appearance.role),
             audioURL: audioURL,
             episodeURL: episodeURL,
             failedAudioURL: nil
@@ -586,6 +592,17 @@ enum ComedianPodcastPresentation {
 
     static func playbackItems(for appearances: [Components.Schemas.PodcastAppearance]) -> [PodcastPlaybackItem] {
         appearances.compactMap(playbackItem(for:))
+    }
+
+    private static func displayRole(for role: String) -> String {
+        switch role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "host":
+            return "Host"
+        case "cohost":
+            return "Cohost"
+        default:
+            return "Guest"
+        }
     }
 }
 
@@ -684,23 +701,21 @@ struct ComedianPodcastPanel: View {
     var body: some View {
         let items = ComedianPodcastPresentation.playbackItems(for: appearances)
 
-        LaughTrackCard(tone: .muted, density: .tight) {
-            VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: "Podcast Appearances")
+        VStack(alignment: .leading, spacing: 12) {
+            LaughTrackSectionHeader(title: "Podcast Appearances")
 
-                if items.isEmpty {
-                    EmptyCard(
-                        title: "No playable podcast episodes yet",
-                        message: "LaughTrack has not matched this comedian with playable podcast appearances yet."
-                    )
-                } else {
-                    ForEach(items) { item in
-                        PodcastAppearanceRow(
-                            item: item,
-                            isCurrent: podcastPlayer.currentItem?.id == item.id
-                        ) {
-                            podcastPlayer.start(item)
-                        }
+            if items.isEmpty {
+                EmptyCard(
+                    title: "No playable podcast episodes yet",
+                    message: "LaughTrack has not matched this comedian with playable podcast appearances yet."
+                )
+            } else {
+                ForEach(items) { item in
+                    PodcastAppearanceRow(
+                        item: item,
+                        isCurrent: podcastPlayer.currentItem?.id == item.id
+                    ) {
+                        podcastPlayer.start(item)
                     }
                 }
             }
@@ -719,21 +734,22 @@ private struct PodcastAppearanceRow: View {
         let laughTrack = theme.laughTrackTokens
 
         Button(action: onSelect) {
-            HStack(spacing: 12) {
-                Image(systemName: item.audioURL == nil ? "arrow.up.right.square" : "play.circle.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-                    .frame(width: 30)
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                artwork
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.episodeTitle)
                         .font(laughTrack.typography.body.weight(.semibold))
                         .foregroundStyle(laughTrack.colors.textPrimary)
                         .lineLimit(2)
-                    Text(item.podcastName)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text(item.podcastName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+
+                        PodcastAppearanceRoleBadge(title: item.displayRole)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -745,13 +761,136 @@ private struct PodcastAppearanceRow: View {
                         .accessibilityLabel("Now playing")
                 }
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(laughTrack.colors.surfaceElevated.opacity(isCurrent ? 1 : 0.62))
+            .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
+            .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+            .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
+            .background(laughTrack.colors.surfaceElevated)
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+            )
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .shadowStyle(laughTrack.shadows.card)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName)")
+        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName), \(item.displayRole)")
     }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+        let rawImageURL = item.podcastImageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let url = URL.normalizedExternalURL(rawImageURL) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                artworkBackground
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
+            }
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            fallbackArtwork
+        }
+    }
+
+    private var artworkBackground: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(theme.laughTrackTokens.colors.surfaceMuted)
+            .frame(width: 56, height: 56)
+    }
+
+    private var fallbackArtwork: some View {
+        artworkBackground
+            .overlay {
+                Image(systemName: "music.mic")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
+    }
+}
+
+private struct PodcastAppearanceRoleBadge: View {
+    let title: String
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Text(title)
+            .font(laughTrack.typography.metadata.weight(.semibold))
+            .foregroundStyle(laughTrack.colors.accentStrong)
+            .lineLimit(1)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(laughTrack.colors.accentMuted.opacity(0.24))
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(laughTrack.colors.accentMuted.opacity(0.45), lineWidth: 1)
+            )
+            .clipShape(Capsule(style: .continuous))
+    }
+}
+
+#Preview("Podcast row beside show row") {
+    ScrollView {
+        VStack(alignment: .leading, spacing: 12) {
+            PodcastAppearanceRow(
+                item: PodcastPlaybackItem(
+                    id: 1,
+                    episodeTitle: "Comedy Cellar Stories",
+                    podcastName: "The Laugh Track Pod",
+                    podcastImageURL: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=240&q=80",
+                    displayRole: "Guest",
+                    audioURL: URL(string: "https://cdn.example.com/episodes/cellar.mp3"),
+                    episodeURL: URL(string: "https://podcasts.example.com/cellar"),
+                    failedAudioURL: nil
+                ),
+                isCurrent: true,
+                onSelect: {}
+            )
+
+            ShowRow(
+                show: Components.Schemas.Show(
+                    id: 301,
+                    clubID: 201,
+                    clubName: "Comedy Cellar",
+                    date: Date().addingTimeInterval(60 * 60 * 24),
+                    tickets: [.init(price: 30, purchaseUrl: "https://laughtrack.app/demo/tickets/301", soldOut: false, _type: "General admission")],
+                    name: "Mark Normand and Friends",
+                    socialData: nil,
+                    lineup: [
+                        .init(
+                            name: "Mark Normand",
+                            imageUrl: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=240&q=80",
+                            uuid: "demo-comedian-101",
+                            id: 101,
+                            userId: nil,
+                            socialData: nil,
+                            isFavorite: false,
+                            showCount: 12
+                        )
+                    ],
+                    description: "A demo lineup used for preview comparison.",
+                    address: "117 MacDougal St, New York, NY",
+                    room: "Main Room",
+                    imageUrl: "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=1200&q=80",
+                    soldOut: false,
+                    distanceMiles: 2.1
+                )
+            )
+        }
+        .padding()
+    }
+    .background(LaughTrackTheme().laughTrackTokens.colors.canvas)
+    .environment(\.appTheme, LaughTrackTheme())
 }

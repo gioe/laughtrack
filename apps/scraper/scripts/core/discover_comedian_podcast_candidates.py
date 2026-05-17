@@ -95,6 +95,7 @@ _UPSERT_PODCAST_SQL = """
     INSERT INTO podcasts (
         source,
         source_podcast_id,
+        slug,
         feed_url,
         title,
         author_name,
@@ -105,7 +106,7 @@ _UPSERT_PODCAST_SQL = """
         source_payload,
         last_synced_at
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, NOW())
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, NOW())
     ON CONFLICT (source, source_podcast_id) DO UPDATE SET
         feed_url = EXCLUDED.feed_url,
         title = EXCLUDED.title,
@@ -188,6 +189,14 @@ def normalize_match_text(value: str) -> str:
     normalized = re.sub(r"(?i)\b([a-z0-9]+)'s\b", r"\1", normalized)
     normalized = re.sub(r"[^a-zA-Z0-9]+", " ", normalized)
     return re.sub(r"\s+", " ", normalized).strip().lower()
+
+
+def build_podcast_slug(title: str, source: str, source_podcast_id: str) -> str:
+    raw = f"{title or 'podcast'} {source or ''} {source_podcast_id or ''}"
+    normalized = unicodedata.normalize("NFKD", html.unescape(raw))
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii").lower()
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_text).strip("-")
+    return slug or "podcast"
 
 
 def build_search_terms(comedian: PodcastDiscoveryComedian) -> list[str]:
@@ -384,6 +393,11 @@ def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int
                     (
                         candidate.source,
                         candidate.source_podcast_id,
+                        build_podcast_slug(
+                            candidate.title,
+                            candidate.source,
+                            candidate.source_podcast_id,
+                        ),
                         candidate.feed_url,
                         candidate.title,
                         candidate.author_name,
