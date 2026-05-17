@@ -572,6 +572,11 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     }
 }
 
+struct ComedianPodcastPlaybackSegments: Equatable {
+    let appearances: [PodcastPlaybackItem]
+    let comedianPodcast: [PodcastPlaybackItem]
+}
+
 enum ComedianPodcastPresentation {
     static func playbackItem(for appearance: Components.Schemas.PodcastAppearance) -> PodcastPlaybackItem? {
         let audioURL = URL.normalizedExternalURL(appearance.episode.audioUrl)
@@ -594,6 +599,23 @@ enum ComedianPodcastPresentation {
         appearances.compactMap(playbackItem(for:))
     }
 
+    static func segmentedPlaybackItems(for appearances: [Components.Schemas.PodcastAppearance]) -> ComedianPodcastPlaybackSegments {
+        var guestItems: [PodcastPlaybackItem] = []
+        var hostItems: [PodcastPlaybackItem] = []
+
+        for appearance in appearances {
+            guard let item = playbackItem(for: appearance) else { continue }
+
+            if isHostedRole(appearance.role) {
+                hostItems.append(item)
+            } else {
+                guestItems.append(item)
+            }
+        }
+
+        return .init(appearances: guestItems, comedianPodcast: hostItems)
+    }
+
     private static func displayRole(for role: String) -> String {
         switch role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
         case "host":
@@ -602,6 +624,15 @@ enum ComedianPodcastPresentation {
             return "Cohost"
         default:
             return "Guest"
+        }
+    }
+
+    private static func isHostedRole(_ role: String) -> Bool {
+        switch role.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "host", "cohost":
+            return true
+        default:
+            return false
         }
     }
 }
@@ -699,16 +730,37 @@ struct ComedianPodcastPanel: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        let items = ComedianPodcastPresentation.playbackItems(for: appearances)
+        let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: appearances)
 
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            podcastSubsection(
+                title: "Podcast Appearances",
+                emptyTitle: "No playable podcast appearances yet",
+                emptyMessage: "LaughTrack has not matched this comedian with playable guest podcast appearances yet.",
+                items: segments.appearances
+            )
+
+            podcastSubsection(
+                title: "Comedian's Podcast",
+                emptyTitle: "No hosted podcast episodes yet",
+                emptyMessage: "LaughTrack has not matched this comedian with playable host or cohost podcast episodes yet.",
+                items: segments.comedianPodcast
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func podcastSubsection(
+        title: String,
+        emptyTitle: String,
+        emptyMessage: String,
+        items: [PodcastPlaybackItem]
+    ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            LaughTrackSectionHeader(title: "Podcast Appearances")
+            LaughTrackSectionHeader(title: title)
 
             if items.isEmpty {
-                EmptyCard(
-                    title: "No playable podcast episodes yet",
-                    message: "LaughTrack has not matched this comedian with playable podcast appearances yet."
-                )
+                EmptyCard(title: emptyTitle, message: emptyMessage)
             } else {
                 ForEach(items) { item in
                     PodcastAppearanceRow(

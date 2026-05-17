@@ -215,6 +215,28 @@ struct ComedianDetailViewTests {
         #expect(guest.displayRole == "Guest")
     }
 
+    @Test("podcast appearances split guest and hosted episodes")
+    func podcastAppearancesSplitGuestAndHostedEpisodes() {
+        let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: [
+            makePodcastAppearance(id: 501, role: "guest", episodeTitle: "Guest Spot"),
+            makePodcastAppearance(id: 502, role: "host", episodeTitle: "Hosted Episode"),
+            makePodcastAppearance(id: 503, role: "cohost", episodeTitle: "Cohost Episode"),
+        ])
+
+        #expect(segments.appearances.map(\.episodeTitle) == ["Guest Spot"])
+        #expect(segments.comedianPodcast.map(\.episodeTitle) == ["Hosted Episode", "Cohost Episode"])
+    }
+
+    @Test("guest-only podcast appearances leave hosted segment empty")
+    func guestOnlyPodcastAppearancesLeaveHostedSegmentEmpty() {
+        let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: [
+            makePodcastAppearance(id: 501, role: "guest", episodeTitle: "Guest Spot"),
+        ])
+
+        #expect(segments.appearances.map(\.episodeTitle) == ["Guest Spot"])
+        #expect(segments.comedianPodcast.isEmpty)
+    }
+
     @Test("comedian detail includes a podcasts section tab")
     func comedianDetailIncludesPodcastsSectionTab() {
         #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Past", "Related", "Podcasts"])
