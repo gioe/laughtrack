@@ -99,6 +99,7 @@
   ".claude/hooks/setup-path.sh",
   ".claude/hooks/version-bump-check.sh",
   ".claude/skills/address-issue/SKILL.md",
+  ".claude/skills/audit-free-ticket-prices/SKILL.md",
   ".claude/skills/chain/AGENT-PROMPT.md",
   ".claude/skills/chain/POST-CHAIN-RETRO.md",
   ".claude/skills/chain/SKILL.md",
