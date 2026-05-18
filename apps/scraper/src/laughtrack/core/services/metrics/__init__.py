@@ -25,6 +25,7 @@ from laughtrack.core.dashboard import generate_html_dashboard  # type: ignore
 from .repository import MetricsRepository
 from .reporter import MetricsReporter
 from .aggregator import MetricsAggregator
+from .postgres_repository import PostgresMetricsRepository
 
 
 class MetricsService:
@@ -35,6 +36,7 @@ class MetricsService:
         self._repo = MetricsRepository()
         self._reporter = MetricsReporter()
         self._aggregator = MetricsAggregator()
+        self._postgres_repo = PostgresMetricsRepository()
 
     # Compatibility no-op (retained for callers that still invoke it)
     def start_session(self) -> None:  # pragma: no cover - intentional no-op
@@ -54,11 +56,14 @@ class MetricsService:
             Logger.error(f"Error processing session metrics for email: {e}")
             return False
 
-    def _generate_and_save_dashboard(self, session: ScrapingSessionResult, db_operations: DatabaseOperationResult) -> None:
+    def _generate_and_save_dashboard(
+        self, session: ScrapingSessionResult, db_operations: DatabaseOperationResult
+    ) -> None:
         try:
             snapshot = ScrapingMetricsSnapshot.from_session(session, db_operations, dt=_dt.now())
             self._render_and_save_dashboard(snapshot)
             self._persist_snapshot_json(snapshot)
+            self._persist_snapshot_postgres(snapshot)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to generate dashboard: {e}")
 
@@ -75,14 +80,18 @@ class MetricsService:
         try:
             metrics_dir = ProjectPaths.get_metrics_dir()
             metrics_dir.mkdir(parents=True, exist_ok=True)
-            ts = _dt.now().strftime('%Y%m%d_%H%M%S')
+            ts = _dt.now().strftime("%Y%m%d_%H%M%S")
             json_path = metrics_dir / f"metrics_{ts}.json"
             import json as _json
+
             with open(json_path, "w", encoding="utf-8") as jf:
                 _json.dump(snapshot.to_full_json(), jf, indent=2)
             Logger.info(f"Metrics snapshot JSON written to {json_path}")
         except Exception as write_err:  # pragma: no cover - defensive
             Logger.warn(f"Failed to write snapshot JSON: {write_err}")
+
+    def _persist_snapshot_postgres(self, snapshot: ScrapingMetricsSnapshot) -> bool:
+        return self._postgres_repo.persist_snapshot(snapshot)
 
     def _get_latest_snapshot(self) -> Optional[ScrapingMetricsSnapshot]:
         snaps = self._load_metrics_snapshots(count=1)
@@ -99,11 +108,13 @@ class MetricsService:
             generate_html_dashboard(metrics, str(output_path))
             if open_in_browser:
                 import webbrowser as _wb  # local import
+
                 _wb.open_new_tab(f"file://{output_path}")
             Logger.info(f"Opened dashboard: file://{output_path}")
             return True
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to generate/open dashboard: {e}")
             return False
+
 
 __all__ = ["MetricsService"]
