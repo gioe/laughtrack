@@ -61,6 +61,9 @@ NextAuth user record (email, name, image).
 ### UserProfile
 Extended user profile (role, zip code, notification preferences, favorite comedians).
 
+### AdminActionAudit
+Durable audit trail for admin mutations. Each row records the actor profile when available, action name, entity type/id, optional reason, before/after JSON snapshots, and creation timestamp. Actor deletion preserves audit rows by nulling the actor reference.
+
 ### Account
 OAuth account linked to a User (provider, tokens).
 
