@@ -4,6 +4,7 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { computeDistanceMiles } from "@/util/distanceUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
+import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
 
@@ -188,9 +189,7 @@ export async function findShowsWithCount(
                 clubCity: show.club.city,
                 clubState: show.club.state,
                 imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
-                soldOut:
-                    show.tickets.length > 0 &&
-                    show.tickets.every((t) => t.soldOut === true),
+                soldOut: computeShowSoldOut(show.name, show.tickets),
                 lineup: filterAndMapLineupItems(
                     show.lineupItems,
                     helper.getUserId(),

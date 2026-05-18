@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { buildClubJsonLd, buildOpeningHoursSpecification } from "./jsonLd";
+import {
+    buildClubJsonLd,
+    buildOpeningHoursSpecification,
+    buildShowJsonLd,
+} from "./jsonLd";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import type { ShowDTO } from "@/objects/class/show/show.interface";
 
 function baseClub(overrides: Partial<ClubDTO> = {}): ClubDTO {
     return {
@@ -220,5 +225,37 @@ describe("buildClubJsonLd", () => {
                 closes: "17:00",
             },
         ]);
+    });
+});
+
+describe("buildShowJsonLd", () => {
+    it("marks ticket offers as sold out when show.soldOut is true", () => {
+        const show: ShowDTO = {
+            id: 1,
+            clubID: 2,
+            name: "Ronny Chieng: I Love New York City Tour (SOLD OUT)",
+            date: new Date("2026-06-20T18:00:00Z"),
+            clubName: "Gotham Comedy Club",
+            address: "208 W 23rd St",
+            imageUrl: "https://cdn.example.com/show.jpg",
+            lineup: [],
+            tickets: [
+                {
+                    price: 30,
+                    purchaseUrl: "https://tickets.example.com",
+                    type: "General Admission",
+                    soldOut: false,
+                },
+            ],
+            soldOut: true,
+        };
+
+        const jsonLd = buildShowJsonLd(show) as {
+            offers: Array<{ availability: string }>;
+        };
+
+        expect(jsonLd.offers[0].availability).toBe(
+            "https://schema.org/SoldOut",
+        );
     });
 });

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
+import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
 import { ShowDetailDTO } from "./interface";
@@ -106,9 +107,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
             clubID: row.club.id,
             clubName,
             imageUrl: buildClubImageUrl(clubName, row.club.hasImage),
-            soldOut:
-                row.tickets.length > 0 &&
-                row.tickets.every((t) => t.soldOut === true),
+            soldOut: computeShowSoldOut(row.name, row.tickets),
             lineup: filterAndMapLineupItems(row.lineupItems),
             tickets: mapTickets(row.tickets),
             distanceMiles: null,

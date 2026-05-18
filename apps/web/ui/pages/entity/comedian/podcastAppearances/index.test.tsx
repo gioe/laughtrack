@@ -167,33 +167,35 @@ describe("PodcastAppearancesSection", () => {
 
         expect(
             getByRole("button", {
-                name: /^podcast appearances$/i,
+                name: /comedian's podcasts/i,
             }).getAttribute("aria-pressed"),
         ).toBe("true");
+        expect(
+            getByRole("button", {
+                name: /^podcast appearances$/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("false");
+        expect(getByText("Host Chair")).not.toBeNull();
+        expect(getByText("Cohost Chair")).not.toBeNull();
+        expect(queryByText("Guest Spot")).toBeNull();
+
+        fireEvent.click(
+            getByRole("button", { name: /^podcast appearances$/i }),
+        );
+
         expect(
             getByRole("button", {
                 name: /comedian's podcasts/i,
             }).getAttribute("aria-pressed"),
         ).toBe("false");
+        expect(
+            getByRole("button", {
+                name: /^podcast appearances$/i,
+            }).getAttribute("aria-pressed"),
+        ).toBe("true");
         expect(getByText("Guest Spot")).not.toBeNull();
         expect(queryByText("Host Chair")).toBeNull();
         expect(queryByText("Cohost Chair")).toBeNull();
-
-        fireEvent.click(getByRole("button", { name: /comedian's podcasts/i }));
-
-        expect(
-            getByRole("button", {
-                name: /^podcast appearances$/i,
-            }).getAttribute("aria-pressed"),
-        ).toBe("false");
-        expect(
-            getByRole("button", {
-                name: /comedian's podcasts/i,
-            }).getAttribute("aria-pressed"),
-        ).toBe("true");
-        expect(queryByText("Guest Spot")).toBeNull();
-        expect(getByText("Host Chair")).not.toBeNull();
-        expect(getByText("Cohost Chair")).not.toBeNull();
     });
 
     it("renders rows in the order passed by the data layer", () => {

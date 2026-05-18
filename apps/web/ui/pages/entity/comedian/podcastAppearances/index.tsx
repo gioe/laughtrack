@@ -18,9 +18,11 @@ interface PodcastAppearancesSectionProps {
 type PodcastSegment = "guest" | "host";
 
 const segmentTabs: Array<{ id: PodcastSegment; label: string }> = [
-    { id: "guest", label: "Podcast appearances" },
     { id: "host", label: "Comedian's podcasts" },
+    { id: "guest", label: "Podcast appearances" },
 ];
+
+const APPEARANCES_PAGE_SIZE = 5;
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -78,7 +80,8 @@ const PodcastAppearancesSection = ({
     const currentEpisode = usePodcastPlayer((state) => state.currentEpisode);
     const isPlaying = usePodcastPlayer((state) => state.isPlaying);
     const [activeSegment, setActiveSegment] =
-        React.useState<PodcastSegment>("guest");
+        React.useState<PodcastSegment>("host");
+    const [guestPage, setGuestPage] = React.useState(0);
     const playableAppearances = appearances.filter(isPlayableAppearance);
     const guestAppearances = playableAppearances.filter(
         (appearance) =>
@@ -95,10 +98,24 @@ const PodcastAppearancesSection = ({
             : guestAppearances.length > 0
               ? "guest"
               : "host";
+    const guestPageCount = Math.max(
+        1,
+        Math.ceil(guestAppearances.length / APPEARANCES_PAGE_SIZE),
+    );
+    const safeGuestPage = Math.min(Math.max(guestPage, 0), guestPageCount - 1);
+    const pagedGuestAppearances =
+        selectedSegment === "guest"
+            ? guestAppearances.slice(
+                  safeGuestPage * APPEARANCES_PAGE_SIZE,
+                  (safeGuestPage + 1) * APPEARANCES_PAGE_SIZE,
+              )
+            : guestAppearances;
     const selectedAppearances =
-        selectedSegment === "guest" ? guestAppearances : hostAppearances;
+        selectedSegment === "guest" ? pagedGuestAppearances : hostAppearances;
     const showSegments =
         guestAppearances.length > 0 && hostAppearances.length > 0;
+    const showGuestPagination =
+        selectedSegment === "guest" && guestPageCount > 1;
 
     if (playableAppearances.length === 0) return null;
 
@@ -242,6 +259,41 @@ const PodcastAppearancesSection = ({
                     );
                 })}
             </ul>
+
+            {showGuestPagination ? (
+                <nav
+                    aria-label="Podcast appearances pagination"
+                    className="mt-4 flex items-center justify-between gap-3"
+                >
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setGuestPage((page) => Math.max(0, page - 1))
+                        }
+                        disabled={safeGuestPage === 0}
+                        className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-foreground"
+                    >
+                        Previous
+                    </button>
+
+                    <span className="font-dmSans text-caption text-gray-600">
+                        Page {safeGuestPage + 1} of {guestPageCount}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setGuestPage((page) =>
+                                Math.min(guestPageCount - 1, page + 1),
+                            )
+                        }
+                        disabled={safeGuestPage === guestPageCount - 1}
+                        className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 font-dmSans text-caption font-semibold text-foreground transition-colors hover:border-copper hover:text-copper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-300 disabled:hover:text-foreground"
+                    >
+                        Next
+                    </button>
+                </nav>
+            ) : null}
         </section>
     );
 };

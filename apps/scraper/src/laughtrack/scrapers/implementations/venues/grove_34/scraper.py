@@ -130,6 +130,16 @@ class Grove34Scraper(BaseScraper):
                 Logger.warning(f"{self._log_prefix}: No event extracted from {url}", self.logger_context)
                 return None
 
+            if event.ticket_url and event.ticket_url.startswith("https://ti.to/"):
+                try:
+                    tito_json = await self.fetch_html_bare(f"{event.ticket_url}.json")
+                    event.ticket_price = Grove34EventExtractor.extract_tito_release_price(tito_json)
+                except Exception as price_err:
+                    Logger.warning(
+                        f"{self._log_prefix}: Could not extract Tito price for '{event.title}' at {event.ticket_url}: {price_err}",
+                        self.logger_context,
+                    )
+
             # Skip events whose start_date has already passed — the listing page
             # retains links to past shows, which either 404 or contain stale data.
             try:

@@ -137,8 +137,8 @@ struct ComedianDetailViewTests {
         ])
     }
 
-    @Test("comedian stats summarize upcoming shows by city and combined social followers")
-    func comedianStatsAggregateUpcomingAndFollowers() {
+    @Test("comedian stats summarize upcoming shows by city")
+    func comedianStatsAggregateUpcoming() {
         let comedian = DemoContent.primaryComedian
         let runs: [Components.Schemas.UpcomingRun] = [
             // Two NY clubs in the same city collapse to one city.
@@ -151,8 +151,6 @@ struct ComedianDetailViewTests {
         let labels = stats.map(ComedianStatsPresentation.label(for:))
 
         #expect(labels.contains("4 upcoming shows in 2 cities"))
-        // primaryComedian follower totals = 370k + 210k + 128k = 708,000 → "708K"
-        #expect(labels.contains("708K social followers"))
     }
 
     @Test("comedian stats omit city count when no city is available")
@@ -239,7 +237,7 @@ struct ComedianDetailViewTests {
 
     @Test("comedian detail hides past shows from user-facing tabs")
     func comedianDetailHidesPastShowsFromUserFacingTabs() {
-        #expect(ComedianDetailTab.allCases.map(\.title) == ["Upcoming", "Related", "Podcasts"])
+        #expect(ComedianDetailTab.allCases.map(\.title) == ["Shows", "Podcasts"])
     }
 
     @Test("podcast appearances fall back to external episodes when audio is unavailable")

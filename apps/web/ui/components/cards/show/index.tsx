@@ -57,7 +57,9 @@ const ShowCard: React.FC<ShowCardProps> = ({
     const distanceMiles = show.distanceMiles ?? null;
     const parsedShow = new Show(show);
     const isPast = variant === "past";
+    const isSoldOut = parsedShow.soldOut === true;
     const stillOnSale =
+        !isSoldOut &&
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
     // Read before useEffect so first render always animates, remounts skip it
     const alreadySeen = seenShowIds.has(show.id);

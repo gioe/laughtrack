@@ -49,8 +49,8 @@ struct SearchRootViewTests {
         #expect(showsModel.comedianSearchText == "")
     }
 
-    @Test("podcast search model queries the global search endpoint as podcast-only")
-    func podcastSearchModelQueriesPodcastOnlyGlobalSearch() async throws {
+    @Test("podcast search model requests podcast results")
+    func podcastSearchModelRequestsPodcastResults() async throws {
         let fetcher = RecordingPodcastSearchFetcher(
             result: .success(.init(
                 items: [
@@ -77,6 +77,58 @@ struct SearchRootViewTests {
         }
         #expect(page.items.map(\.title) == ["Comedy Bang Bang"])
         #expect(page.total == 1)
+    }
+
+    @Test("podcast URLSession fetcher uses dedicated podcast search endpoint")
+    func podcastURLSessionFetcherUsesDedicatedPodcastSearchEndpoint() async throws {
+        let session = URLSession.stubbed(json: """
+        {
+            "data": [
+                {
+                    "id": 42,
+                    "slug": "comedy-bang-bang",
+                    "title": "Comedy Bang Bang",
+                    "authorName": "Earwolf",
+                    "websiteUrl": null,
+                    "feedUrl": "https://example.com/feed.xml",
+                    "imageUrl": "https://example.com/cbb.jpg",
+                    "description": "A comedy podcast.",
+                    "episodeCount": 12
+                }
+            ],
+            "total": 1
+        }
+        """) { request in
+            #expect(request.url?.path == "/api/v1/podcasts/search")
+            let url = try #require(request.url)
+            let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
+            #expect(components.queryItems?.first(where: { $0.name == "q" })?.value == "")
+            #expect(components.queryItems?.first(where: { $0.name == "page" })?.value == "0")
+            #expect(components.queryItems?.first(where: { $0.name == "size" })?.value == "20")
+            #expect(components.queryItems?.first(where: { $0.name == "type" }) == nil)
+            #expect(components.queryItems?.first(where: { $0.name == "limit" }) == nil)
+        }
+        let fetcher = URLSessionPodcastSearchFetcher(
+            baseURL: URL(string: "https://example.test")!,
+            urlSession: session
+        )
+
+        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20))
+
+        guard case .success(let response) = result else {
+            Issue.record("Expected podcast search fetcher to decode successfully")
+            return
+        }
+        #expect(response.total == 1)
+        #expect(response.items == [
+            PodcastSearchResult(
+                id: "podcast-42",
+                title: "Comedy Bang Bang",
+                subtitle: "Earwolf",
+                href: "https://example.com/feed.xml",
+                imageUrl: "https://example.com/cbb.jpg"
+            )
+        ])
     }
 
     @Test("podcast search results resolve to podcast detail navigation")
@@ -580,4 +632,57 @@ private final class RecordingPodcastSearchFetcher: PodcastSearchFetching {
         requests.append(request)
         return result
     }
+}
+
+private extension URLSession {
+    static func stubbed(
+        json: String,
+        requestAssertions: @escaping @Sendable (URLRequest) throws -> Void
+    ) -> URLSession {
+        StubURLProtocol.handler = { request in
+            try requestAssertions(request)
+            let url = try #require(request.url)
+            let response = try #require(HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: ["Content-Type": "application/json"]
+            ))
+            return (response, Data(json.utf8))
+        }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [StubURLProtocol.self]
+        return URLSession(configuration: configuration)
+    }
+}
+
+private final class StubURLProtocol: URLProtocol {
+    nonisolated(unsafe) static var handler: (@Sendable (URLRequest) throws -> (HTTPURLResponse, Data))?
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        guard let handler = Self.handler else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+            return
+        }
+
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
 }

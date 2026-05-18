@@ -25,6 +25,15 @@ function containsQuery(query: string) {
     return { contains: query, mode: "insensitive" as const };
 }
 
+const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
+    comedianPodcasts: {
+        some: {
+            reviewStatus: "accepted",
+            associationType: { in: ["host", "owner"] },
+        },
+    },
+};
+
 function profileHref(kind: "comedian" | "club", name: string) {
     return `/${kind}/${encodeURIComponent(name)}`;
 }
@@ -34,9 +43,14 @@ async function searchPodcasts(
     limit: number,
 ): Promise<{ data: GlobalSearchResult[]; total: number }> {
     const where = {
-        OR: [
-            { title: containsQuery(query) },
-            { authorName: containsQuery(query) },
+        AND: [
+            PUBLIC_PODCAST_OWNERSHIP_WHERE,
+            {
+                OR: [
+                    { title: containsQuery(query) },
+                    { authorName: containsQuery(query) },
+                ],
+            },
         ],
     };
 

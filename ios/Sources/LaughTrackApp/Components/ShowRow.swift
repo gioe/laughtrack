@@ -60,10 +60,10 @@ struct ShowRow: View {
         .frame(maxWidth: .infinity, minHeight: isOpenMic ? 56 : 86, alignment: .leading)
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, isOpenMic ? theme.spacing.sm : laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
+        .background(laughTrack.colors.surfaceMuted)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)

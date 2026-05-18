@@ -13,6 +13,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 # ---------------------------------------------------------------------------
 
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
+from laughtrack.scrapers.implementations.api.sellingticket.scraper import GenericSellingTicketScraper
 from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngineScraper
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
@@ -102,6 +103,7 @@ PIPELINE_SCRAPERS = [
     (EventbriteScraper, {"eventbrite_id": "EB123"}),
     (SeatEngineScraper, {"seatengine_id": "123"}),
     (TicketmasterScraper, {"ticketmaster_id": "TM123"}),
+    (GenericSellingTicketScraper, {"scraper": "sellingticket", "scraping_url": "https://secure.sellingticket.com/design22/clients/list/index_byUserListAll.aspx?OrganizationID=64"}),
     # JSON-LD generic scraper
     (JsonLdScraper, {}),
     # Platform scrapers (consolidated)

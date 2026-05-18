@@ -19,6 +19,7 @@ class Grove34Event:
     timezone_id: str = "America/New_York"
     description: Optional[str] = None
     ticket_url: Optional[str] = None
+    ticket_price: Optional[float] = None
     sold_out: bool = False
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
@@ -37,6 +38,7 @@ class Grove34Event:
                 tickets = [
                     ShowFactoryUtils.create_fallback_ticket(
                         self.ticket_url,
+                        price=self.ticket_price or 0.0,
                         sold_out=self.sold_out,
                     )
                 ]

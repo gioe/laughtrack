@@ -426,10 +426,10 @@ struct LaughTrackEntityRow: View {
         }
         .frame(maxWidth: .infinity, minHeight: design.minHeight, alignment: .leading)
         .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
+        .background(laughTrack.colors.surfaceMuted)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
@@ -580,10 +580,12 @@ struct LaughTrackInlineStateCard: View {
                             .font(laughTrack.typography.cardTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
 
-                        Text(message)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if !message.isEmpty {
+                            Text(message)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
 

@@ -71,9 +71,19 @@ final class PodcastSearchModel: EntitySearchModel<String, PodcastSearchResult>, 
 }
 
 @MainActor
-private final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
+final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
+    fileprivate struct APIPodcast: Decodable {
+        let id: Int
+        let slug: String
+        let title: String
+        let authorName: String?
+        let websiteUrl: String?
+        let feedUrl: String?
+        let imageUrl: String?
+    }
+
     private struct APIResponse: Decodable {
-        let data: [PodcastSearchResult]
+        let data: [APIPodcast]
         let total: Int
     }
 
@@ -89,14 +99,14 @@ private final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
     }
 
     func searchPodcasts(_ request: PodcastSearchRequest) async -> Result<PodcastSearchResponse, LoadFailure> {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/search"), resolvingAgainstBaseURL: false) else {
+        guard var components = URLComponents(url: baseURL.appendingPathComponent("api/v1/podcasts/search"), resolvingAgainstBaseURL: false) else {
             return .failure(.unexpected(status: 0, message: "LaughTrack could not build the podcast search URL."))
         }
 
         components.queryItems = [
             URLQueryItem(name: "q", value: request.query),
-            URLQueryItem(name: "type", value: "podcast"),
-            URLQueryItem(name: "limit", value: String(request.limit)),
+            URLQueryItem(name: "page", value: "0"),
+            URLQueryItem(name: "size", value: String(request.limit)),
         ]
 
         guard let url = components.url else {
@@ -109,7 +119,10 @@ private final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
             switch status {
             case 200:
                 let decoded = try JSONDecoder().decode(APIResponse.self, from: data)
-                return .success(.init(items: decoded.data, total: decoded.total))
+                return .success(.init(
+                    items: decoded.data.map(PodcastSearchResult.init(apiPodcast:)),
+                    total: decoded.total
+                ))
             case 400:
                 return .failure(.badParams("LaughTrack could not apply that podcast search."))
             case 401:
@@ -126,5 +139,17 @@ private final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
         } catch {
             return .failure(.network("LaughTrack couldn't reach the podcast search service. Check your connection and try again."))
         }
+    }
+}
+
+private extension PodcastSearchResult {
+    init(apiPodcast: URLSessionPodcastSearchFetcher.APIPodcast) {
+        self.init(
+            id: "podcast-\(apiPodcast.id)",
+            title: apiPodcast.title,
+            subtitle: apiPodcast.authorName,
+            href: apiPodcast.websiteUrl ?? apiPodcast.feedUrl ?? "/podcast/\(apiPodcast.slug)",
+            imageUrl: apiPodcast.imageUrl
+        )
     }
 }

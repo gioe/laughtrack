@@ -20,6 +20,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 orderBy: { popularity: "desc" },
             }),
             db.podcast.findMany({
+                where: {
+                    comedianPodcasts: {
+                        some: {
+                            reviewStatus: "accepted",
+                        },
+                    },
+                },
                 select: { slug: true },
                 orderBy: { title: "asc" },
             }),

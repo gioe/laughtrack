@@ -23,24 +23,63 @@ beforeEach(() => {
 });
 
 describe("getSearchedPodcasts", () => {
+    it("only counts and returns podcasts with an accepted comedian ownership relationship", async () => {
+        await getSearchedPodcasts({});
+
+        const publicOwnershipWhere = {
+            comedianPodcasts: {
+                some: {
+                    reviewStatus: "accepted",
+                    associationType: { in: ["host", "owner"] },
+                },
+            },
+        };
+
+        expect(mockCount).toHaveBeenCalledWith({
+            where: publicOwnershipWhere,
+        });
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: publicOwnershipWhere,
+            }),
+        );
+    });
+
     it("searches title, author, and description", async () => {
         await getSearchedPodcasts({ q: "standup" });
 
         expect(mockCount).toHaveBeenCalledWith({
             where: {
-                OR: [
-                    { title: { contains: "standup", mode: "insensitive" } },
+                AND: [
                     {
-                        authorName: {
-                            contains: "standup",
-                            mode: "insensitive",
+                        comedianPodcasts: {
+                            some: {
+                                reviewStatus: "accepted",
+                                associationType: { in: ["host", "owner"] },
+                            },
                         },
                     },
                     {
-                        description: {
-                            contains: "standup",
-                            mode: "insensitive",
-                        },
+                        OR: [
+                            {
+                                title: {
+                                    contains: "standup",
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                authorName: {
+                                    contains: "standup",
+                                    mode: "insensitive",
+                                },
+                            },
+                            {
+                                description: {
+                                    contains: "standup",
+                                    mode: "insensitive",
+                                },
+                            },
+                        ],
                     },
                 ],
             },

@@ -296,6 +296,22 @@ def test_grove34_event_to_show_includes_ticket_when_url_present():
     assert show.tickets[0].purchase_url == "https://ti.to/grove34/improv-night-may10"
 
 
+def test_grove34_event_to_show_uses_tito_release_price():
+    club = _make_club()
+    event = Grove34Event(
+        title="Monday Improv Jam",
+        start_date="2026-05-19T01:00:00.000Z",
+        show_page_url="https://grove34.com/shows/monday-improv-jam-may18",
+        ticket_url="https://ti.to/grove34/improv-jam-may18",
+        ticket_price=5.44375,
+    )
+    show = event.to_show(club)
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].price == 5.44375
+
+
 def test_grove34_event_to_show_without_milliseconds():
     """to_show() succeeds with a date that already ends in Z (no milliseconds)."""
     club = _make_club()
@@ -444,6 +460,40 @@ async def test_get_data_returns_grove34_page_data(monkeypatch, grove34_club):
     assert isinstance(result, Grove34PageData)
     assert len(result.event_list) == 1
     assert result.event_list[0].title == "Comedy Thursday"
+
+
+async def test_get_data_populates_tito_release_price(monkeypatch, grove34_club):
+    from laughtrack.scrapers.implementations.venues.grove_34.scraper import Grove34Scraper
+
+    detail_html = _make_detail_html(
+        name="Monday Improv Jam",
+        start_date="2099-05-19T01:00:00.000Z",
+        extra_body='<tito-widget event="grove34/improv-jam-may18"></tito-widget>',
+    )
+    tito_json = json.dumps({
+        "event": {
+            "releases": [
+                {
+                    "title": "General Admission",
+                    "price": "5.44375",
+                    "state": "on_sale",
+                }
+            ]
+        }
+    })
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        if url == "https://ti.to/grove34/improv-jam-may18.json":
+            return tito_json
+        return detail_html
+
+    scraper = Grove34Scraper(grove34_club)
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_html_bare)
+
+    result = await scraper.get_data("https://grove34.com/shows/monday-improv-jam-may18")
+
+    assert result is not None
+    assert result.event_list[0].ticket_price == 5.44375
 
 
 async def test_get_data_returns_none_when_no_event(monkeypatch, grove34_club):

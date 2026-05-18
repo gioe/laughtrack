@@ -19,10 +19,8 @@ struct ComedianDetailView: View {
 
     @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
-    @State private var activeTab: ComedianDetailTab = .upcoming
-    @State private var activatedTabs: Set<ComedianDetailTab> = [.upcoming]
-
-    fileprivate static let upcomingShowsAnchor = "comedian-upcoming-shows"
+    @State private var activeTab: ComedianDetailTab = .shows
+    @State private var activatedTabs: Set<ComedianDetailTab> = [.shows]
 
     init(comedianID: Int, apiClient: Client) {
         self.comedianID = comedianID
@@ -48,84 +46,72 @@ struct ComedianDetailView: View {
                 let isFavorite = favorites.value(for: comedian.uuid)
                 let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
-                    ScrollViewReader { proxy in
-                        VStack(alignment: .leading, spacing: 0) {
-                            DetailHero(
-                                title: comedian.name,
-                                subtitle: nil,
-                                imageURL: comedian.imageUrl,
-                                badges: [],
-                                actions: comedianHeroActions(socialData: comedian.socialData),
-                                openURL: { url in openURL(url) },
-                                favoriteState: DetailHeroFavoriteState(
-                                    isFavorite: isFavorite,
-                                    isPending: favorites.isPending(comedian.uuid),
-                                    action: {
-                                        await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
-                                    }
-                                )
+                    VStack(alignment: .leading, spacing: 0) {
+                        DetailHero(
+                            title: comedian.name,
+                            subtitle: nil,
+                            imageURL: comedian.imageUrl,
+                            badges: [],
+                            actions: comedianHeroActions(socialData: comedian.socialData),
+                            openURL: { url in openURL(url) },
+                            favoriteState: DetailHeroFavoriteState(
+                                isFavorite: isFavorite,
+                                isPending: favorites.isPending(comedian.uuid),
+                                action: {
+                                    await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+                                }
                             )
-                            .ignoresSafeArea(.container, edges: .top)
+                        )
+                        .ignoresSafeArea(.container, edges: .top)
 
-                            VStack(alignment: .leading, spacing: 20) {
-                                if !stats.isEmpty {
-                                    ComedianStatsBar(
-                                        stats: stats,
-                                        hasUpcomingShows: !content.upcomingRuns.isEmpty,
-                                        onSeeNextShow: {
-                                            activate(.upcoming)
-                                            withAnimation {
-                                                proxy.scrollTo(Self.upcomingShowsAnchor, anchor: .top)
-                                            }
-                                        }
-                                    )
+                        VStack(alignment: .leading, spacing: 20) {
+                            if !stats.isEmpty {
+                                ComedianStatsBar(stats: stats)
+                            }
+
+                            if let relatedContentMessage = content.relatedContentMessage {
+                                InlineStatusMessage(message: relatedContentMessage)
+                            }
+
+                            Picker("Section", selection: tabSelectionBinding) {
+                                ForEach(ComedianDetailTab.allCases) { tab in
+                                    Text(tab.title).tag(tab)
                                 }
+                            }
+                            .pickerStyle(.segmented)
+                            .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
 
-                                if let relatedContentMessage = content.relatedContentMessage {
-                                    InlineStatusMessage(message: relatedContentMessage)
-                                }
-
-                                Picker("Section", selection: tabSelectionBinding) {
-                                    ForEach(ComedianDetailTab.allCases) { tab in
-                                        Text(tab.title).tag(tab)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                                .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailTabPicker)
-
-                                ZStack(alignment: .top) {
+                            ZStack(alignment: .top) {
+                                VStack(alignment: .leading, spacing: 20) {
                                     PinnedShowsList(
                                         apiClient: apiClient,
                                         nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self),
                                         pinnedComedianName: comedian.name
                                     )
-                                    .id(Self.upcomingShowsAnchor)
-                                    .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .upcoming))
 
-                                    if activatedTabs.contains(.related) {
-                                        ComedianRelatedPanel(
-                                            relatedComedians: content.relatedComedians,
-                                            upcomingRuns: content.upcomingRuns,
-                                            currentComedianUUID: comedian.uuid,
-                                            apiClient: apiClient,
-                                            feedbackMessage: $feedbackMessage,
-                                            onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
-                                        )
-                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .related))
-                                    }
+                                    ComedianRelatedPanel(
+                                        relatedComedians: content.relatedComedians,
+                                        upcomingRuns: content.upcomingRuns,
+                                        currentComedianUUID: comedian.uuid,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        onOpenComedian: { comedianID in coordinator.open(.comedian(comedianID)) }
+                                    )
+                                }
+                                .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .shows))
 
-                                    if activatedTabs.contains(.podcasts) {
-                                        ComedianPodcastPanel(
-                                            appearances: comedian.podcastAppearances,
-                                            podcastPlayer: podcastPlayer
-                                        )
-                                        .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .podcasts))
-                                    }
+                                if activatedTabs.contains(.podcasts) {
+                                    ComedianPodcastPanel(
+                                        appearances: comedian.podcastAppearances,
+                                        comedianName: comedian.name,
+                                        podcastPlayer: podcastPlayer
+                                    )
+                                    .modifier(ComedianDetailTabPanelVisibility(isActive: activeTab == .podcasts))
                                 }
                             }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, theme.spacing.lg)
                         }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, theme.spacing.lg)
                     }
                 }
             }
@@ -250,7 +236,6 @@ enum ComedianRelatedPresentation {
 enum ComedianStatsPresentation {
     enum Stat: Hashable {
         case upcoming(showCount: Int, cityCount: Int)
-        case followers(total: Int)
     }
 
     static func stats(
@@ -265,14 +250,6 @@ enum ComedianStatsPresentation {
             result.append(.upcoming(showCount: showCount, cityCount: cityCount))
         }
 
-        let social = comedian.socialData
-        let total = (social.instagramFollowers ?? 0)
-            + (social.tiktokFollowers ?? 0)
-            + (social.youtubeFollowers ?? 0)
-        if total > 0 {
-            result.append(.followers(total: total))
-        }
-
         return result
     }
 
@@ -284,8 +261,6 @@ enum ComedianStatsPresentation {
             guard cityCount > 0 else { return base }
             let cityWord = cityCount == 1 ? "city" : "cities"
             return "\(base) in \(cityCount.formatted()) \(cityWord)"
-        case let .followers(total):
-            return "\(compactFollowers(total)) social followers"
         }
     }
 
@@ -307,33 +282,12 @@ enum ComedianStatsPresentation {
     static func systemImage(for stat: Stat) -> String {
         switch stat {
         case .upcoming: return "calendar"
-        case .followers: return "person.2.fill"
-        }
-    }
-
-    private static func compactFollowers(_ value: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.usesGroupingSeparator = false
-        formatter.maximumFractionDigits = 1
-
-        switch value {
-        case 1_000_000...:
-            let scaled = Double(value) / 1_000_000
-            return "\(formatter.string(from: NSNumber(value: scaled)) ?? "\(scaled)")M"
-        case 1_000...:
-            let scaled = Double(value) / 1_000
-            return "\(formatter.string(from: NSNumber(value: scaled)) ?? "\(scaled)")K"
-        default:
-            return value.formatted()
         }
     }
 }
 
 struct ComedianStatsBar: View {
     let stats: [ComedianStatsPresentation.Stat]
-    let hasUpcomingShows: Bool
-    let onSeeNextShow: () -> Void
 
     @Environment(\.appTheme) private var theme
 
@@ -352,29 +306,6 @@ struct ComedianStatsBar: View {
                             .font(laughTrack.typography.body)
                             .foregroundStyle(laughTrack.colors.textPrimary)
                     }
-                }
-
-                if hasUpcomingShows {
-                    Button(action: onSeeNextShow) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                            Text("See next show")
-                                .font(laughTrack.typography.body.weight(.semibold))
-                            Spacer(minLength: 0)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(laughTrack.colors.textInverse.opacity(0.7))
-                        }
-                        .foregroundStyle(laughTrack.colors.textInverse)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
-                        .background(laughTrack.colors.accentStrong)
-                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Scrolls to the upcoming shows list")
                 }
             }
         }
@@ -399,16 +330,14 @@ private struct ComedianDetailTabPanelVisibility: ViewModifier {
 }
 
 enum ComedianDetailTab: String, CaseIterable, Identifiable {
-    case upcoming
-    case related
+    case shows
     case podcasts
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .upcoming: return "Upcoming"
-        case .related: return "Related"
+        case .shows: return "Shows"
         case .podcasts: return "Podcasts"
         }
     }
@@ -465,6 +394,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
     let audioURL: URL?
     let episodeURL: URL?
     let failedAudioURL: URL?
+    let releaseDate: String?
 
     var requiresExternalFallback: Bool {
         audioURL == nil || failedAudioURL != nil
@@ -479,7 +409,8 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
         displayRole: String,
         audioURL: URL?,
         episodeURL: URL?,
-        failedAudioURL: URL?
+        failedAudioURL: URL?,
+        releaseDate: String? = nil
     ) {
         self.id = id
         self.podcastID = podcastID
@@ -490,6 +421,7 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
         self.audioURL = audioURL
         self.episodeURL = episodeURL
         self.failedAudioURL = failedAudioURL
+        self.releaseDate = releaseDate
     }
 
     func markingAudioFailed() -> PodcastPlaybackItem {
@@ -502,7 +434,8 @@ struct PodcastPlaybackItem: Identifiable, Equatable, Hashable {
             displayRole: displayRole,
             audioURL: nil,
             episodeURL: episodeURL,
-            failedAudioURL: audioURL ?? failedAudioURL
+            failedAudioURL: audioURL ?? failedAudioURL,
+            releaseDate: releaseDate
         )
     }
 }
@@ -513,6 +446,14 @@ struct ComedianPodcastPlaybackSegments: Equatable {
 }
 
 enum ComedianPodcastPresentation {
+    struct PodcastGroup: Identifiable {
+        let id: String
+        let podcastID: Int?
+        let podcastName: String
+        let podcastImageURL: String?
+        let episodes: [PodcastPlaybackItem]
+    }
+
     static func playbackItem(for appearance: Components.Schemas.PodcastAppearance) -> PodcastPlaybackItem? {
         let audioURL = URL.normalizedExternalURL(appearance.episode.audioUrl)
         let episodeURL = URL.normalizedExternalURL(appearance.episode.episodeUrl)
@@ -527,9 +468,55 @@ enum ComedianPodcastPresentation {
             displayRole: displayRole(for: appearance.role),
             audioURL: audioURL,
             episodeURL: episodeURL,
-            failedAudioURL: nil
+            failedAudioURL: nil,
+            releaseDate: appearance.episode.releaseDate
         )
     }
+
+    static func groupedByPodcast(_ items: [PodcastPlaybackItem]) -> [PodcastGroup] {
+        var keyOrder: [String] = []
+        var episodesByKey: [String: [PodcastPlaybackItem]] = [:]
+        var metaByKey: [String: (id: Int?, name: String, image: String?)] = [:]
+
+        for item in items {
+            let key = item.podcastID.map { "id:\($0)" } ?? "name:\(item.podcastName)"
+            if episodesByKey[key] == nil {
+                keyOrder.append(key)
+                metaByKey[key] = (item.podcastID, item.podcastName, item.podcastImageURL)
+            }
+            episodesByKey[key, default: []].append(item)
+        }
+
+        return keyOrder.compactMap { key in
+            guard let meta = metaByKey[key], let episodes = episodesByKey[key] else { return nil }
+            return PodcastGroup(
+                id: key,
+                podcastID: meta.id,
+                podcastName: meta.name,
+                podcastImageURL: meta.image,
+                episodes: episodes
+            )
+        }
+    }
+
+    static func formattedReleaseDate(_ value: String?) -> String? {
+        guard let value, !value.isEmpty else { return nil }
+
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
+        guard let date else { return nil }
+
+        return releaseDateFormatter.string(from: date)
+    }
+
+    private static let releaseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter
+    }()
 
     static func playbackItems(for appearances: [Components.Schemas.PodcastAppearance]) -> [PodcastPlaybackItem] {
         appearances.compactMap(playbackItem(for:))
@@ -660,29 +647,28 @@ final class PodcastPlaybackController: ObservableObject {
 }
 
 struct ComedianPodcastPanel: View {
+    static let appearancesPageSize = 5
+
     let appearances: [Components.Schemas.PodcastAppearance]
+    let comedianName: String
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @State private var appearancesPage: Int = 0
 
     var body: some View {
         let segments = ComedianPodcastPresentation.segmentedPlaybackItems(for: appearances)
 
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
             podcastSubsection(
-                title: "Podcast Appearances",
-                emptyTitle: "No playable podcast appearances yet",
-                emptyMessage: "LaughTrack has not matched this comedian with playable guest podcast appearances yet.",
-                items: segments.appearances
-            )
-
-            podcastSubsection(
                 title: "Comedian's Podcast",
-                emptyTitle: "No hosted podcast episodes yet",
-                emptyMessage: "LaughTrack has not matched this comedian with playable host or cohost podcast episodes yet.",
+                emptyTitle: "No hosted podcasts found for \(comedianName)",
+                emptyMessage: "",
                 items: segments.comedianPodcast
             )
+
+            appearancesSubsection(items: segments.appearances)
         }
     }
 
@@ -713,6 +699,205 @@ struct ComedianPodcastPanel: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func appearancesSubsection(items: [PodcastPlaybackItem]) -> some View {
+        let groups = ComedianPodcastPresentation.groupedByPodcast(items)
+        let pageSize = Self.appearancesPageSize
+        let pageCount = max(1, Int((Double(groups.count) / Double(pageSize)).rounded(.up)))
+        let safePage = min(max(appearancesPage, 0), pageCount - 1)
+        let start = safePage * pageSize
+        let end = min(start + pageSize, groups.count)
+        let pageGroups = groups.isEmpty ? [] : Array(groups[start..<end])
+
+        VStack(alignment: .leading, spacing: 12) {
+            LaughTrackSectionHeader(title: "Podcast Appearances")
+
+            if groups.isEmpty {
+                EmptyCard(
+                    title: "No playable podcast appearances yet",
+                    message: "LaughTrack has not matched this comedian with playable guest podcast appearances yet."
+                )
+            } else {
+                ForEach(pageGroups) { group in
+                    podcastGroupRow(group: group)
+                }
+
+                if pageCount > 1 {
+                    appearancesPagination(pageCount: pageCount, currentPage: safePage)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func podcastGroupRow(group: ComedianPodcastPresentation.PodcastGroup) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                ForEach(group.episodes) { episode in
+                    appearanceEpisodeRow(item: episode)
+                }
+            }
+            .padding(.top, theme.spacing.sm)
+        } label: {
+            HStack(spacing: theme.spacing.md) {
+                podcastGroupArtwork(imageURL: group.podcastImageURL)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(group.podcastName)
+                        .font(laughTrack.typography.body.weight(.semibold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    Text(episodeCountLabel(for: group.episodes.count))
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+            }
+        }
+        .tint(laughTrack.colors.textSecondary)
+        .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
+        .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceMuted)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func appearanceEpisodeRow(item: PodcastPlaybackItem) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let isCurrent = podcastPlayer.currentItem?.id == item.id
+        let releaseLabel = ComedianPodcastPresentation.formattedReleaseDate(item.releaseDate)
+
+        Button {
+            podcastPlayer.start(item)
+        } label: {
+            HStack(alignment: .top, spacing: theme.spacing.sm) {
+                Image(systemName: item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.episodeTitle)
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+
+                    if let releaseLabel {
+                        Text(releaseLabel)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
+                }
+
+                Spacer(minLength: 0)
+
+                if isCurrent {
+                    Image(systemName: "waveform")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accent)
+                        .accessibilityLabel("Now playing")
+                }
+            }
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(
+            [item.episodeTitle, releaseLabel].compactMap { $0 }.joined(separator: ", ")
+        )
+    }
+
+    @ViewBuilder
+    private func podcastGroupArtwork(imageURL: String?) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = imageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        let fallback = RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(laughTrack.colors.surfaceElevated)
+            .overlay {
+                Image(systemName: "music.mic")
+                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+
+        Group {
+            if let url = URL.normalizedExternalURL(normalized) {
+                CachedAsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    fallback
+                } error: { _ in
+                    fallback
+                }
+            } else {
+                fallback
+            }
+        }
+        .frame(width: 44, height: 44)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func episodeCountLabel(for count: Int) -> String {
+        count == 1 ? "1 episode" : "\(count) episodes"
+    }
+
+    @ViewBuilder
+    private func appearancesPagination(pageCount: Int, currentPage: Int) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: 12) {
+            Button {
+                appearancesPage = max(0, currentPage - 1)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(laughTrack.colors.surfaceElevated)
+                    .foregroundStyle(currentPage == 0 ? laughTrack.colors.textSecondary : laughTrack.colors.textPrimary)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(currentPage == 0)
+            .accessibilityLabel("Previous page")
+
+            Spacer(minLength: 0)
+
+            Text("Page \(currentPage + 1) of \(pageCount)")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+
+            Spacer(minLength: 0)
+
+            Button {
+                appearancesPage = min(pageCount - 1, currentPage + 1)
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(laughTrack.colors.surfaceElevated)
+                    .foregroundStyle(currentPage == pageCount - 1 ? laughTrack.colors.textSecondary : laughTrack.colors.textPrimary)
+                    .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(currentPage == pageCount - 1)
+            .accessibilityLabel("Next page")
+        }
+        .padding(.top, 4)
     }
 }
 
@@ -785,10 +970,10 @@ struct PodcastAppearanceRow: View {
         .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceElevated)
+        .background(laughTrack.colors.surfaceMuted)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)

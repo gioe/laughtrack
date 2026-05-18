@@ -2,6 +2,15 @@ import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
 import type { PodcastDetailResponse, PodcastEpisodeDTO } from "../interface";
 import type { SocialDataDTO } from "@/objects/class/socialData/socialData.interface";
+import type { Prisma } from "@prisma/client";
+
+const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
+    comedianPodcasts: {
+        some: {
+            reviewStatus: "accepted",
+        },
+    },
+} satisfies Prisma.PodcastWhereInput;
 
 function safePodcastImageUrl(url: string | null): string | null {
     return url?.startsWith("https://") ? url : null;
@@ -39,8 +48,11 @@ function mapEpisode(episode: {
 async function getPodcastDetailPageDataByWhere(
     where: { slug: string } | { id: number },
 ): Promise<PodcastDetailResponse> {
-    const podcast = await db.podcast.findUnique({
-        where,
+    const podcast = await db.podcast.findFirst({
+        where: {
+            ...where,
+            ...PUBLIC_PODCAST_OWNERSHIP_WHERE,
+        },
         select: {
             id: true,
             slug: true,

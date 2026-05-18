@@ -24,7 +24,8 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
     const liveTickets = tickets.filter((t) => !t.soldOut);
     const priceLabel = formatTicketString(liveTickets);
     const explicitlySoldOut =
-        tickets.length > 0 && tickets.every((t) => t.soldOut);
+        show.soldOut === true ||
+        (tickets.length > 0 && tickets.every((t) => t.soldOut));
 
     if (isPast) {
         return (

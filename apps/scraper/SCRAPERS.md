@@ -86,6 +86,11 @@ Is there a ShowSlinger widget or app.showslinger.com buy link?
               DB: scraping_url = full combo_widget URL with id, secure_code, and origin_url
               (see ShowSlinger section — origin_url is REQUIRED to bypass Cloudflare)
 
+Is there a secure.sellingticket.com/design22/clients/list page?
+  └── YES → platform: SellingTicket → scraper: sellingticket (generic)
+              DB: scraping_url = full index_byUserListAll.aspx URL with OrganizationID
+              (see SellingTicket section — configure include_title_patterns for multi-use venues)
+
 None of the above → custom HTML scraper required
   (StageTime: self.__next_f.push RSC segments at {slug}.stageti.me — see StageTime section)
   (OpenDate: server-rendered confirm-card divs at app.opendate.io — see OpenDate section)
@@ -1383,6 +1388,45 @@ needed to avoid mis-attributing them.
 
 ---
 
+### SellingTicket
+
+| | |
+|---|---|
+| **Scraper key** | `sellingticket` |
+| **DB field** | `scraping_url` / `scraping_sources.source_url` |
+| **Value format** | Full list URL, e.g. `https://secure.sellingticket.com/design22/clients/list/index_byUserListAll.aspx?OrganizationID=64` |
+| **Generic?** | ✅ DB-only onboarding — no Python changes needed |
+
+**Detection signals:**
+- Venue website links "Purchase Tickets" to `secure.sellingticket.com`
+- The list URL contains `/design22/clients/list/index_byUserListAll.aspx?OrganizationID=<id>`
+- The page is a server-rendered table with title, address, date/time, and buy links
+
+**Multi-use venues:** SellingTicket feeds often include films, recitals, concerts, and comedy on one page.
+Always configure `metadata.include_title_patterns` for theatres that are not comedy-only:
+
+```sql
+INSERT INTO scraping_sources (
+    club_id, platform, scraper_key, source_url, priority, enabled, metadata
+) VALUES (
+    <club_id>,
+    'custom'::"ScrapingPlatform",
+    'sellingticket',
+    'https://secure.sellingticket.com/design22/clients/list/index_byUserListAll.aspx?OrganizationID=<id>',
+    0,
+    TRUE,
+    jsonb_build_object(
+        'include_title_patterns',
+        jsonb_build_array('comedy', 'comedian', 'comic', '<known comedian name>')
+    )
+);
+```
+
+Use only patterns that are broad enough to catch verified comedy rows but narrow
+enough to avoid importing every event from a mixed theatre calendar.
+
+---
+
 ### Square Online (Weebly)
 
 | | |
@@ -1669,6 +1713,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | OpenDate | venue-specific | **Yes** — ref: `sports_drink` | `scraping_url` |
 | Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
 | TicketLeap | `ticketleap` | No | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
+| SellingTicket | `sellingticket` | No | `scraping_url` (list URL with OrganizationID) |
 
 ---
 

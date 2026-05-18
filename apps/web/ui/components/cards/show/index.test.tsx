@@ -103,4 +103,28 @@ describe("ShowCard", () => {
             "https://cdn.example.com/copper-room.jpg",
         );
     });
+
+    it("shows sold out when show.soldOut is true even if a ticket row looks available", () => {
+        render(
+            <ShowCard
+                show={{
+                    ...baseShow,
+                    soldOut: true,
+                    tickets: [
+                        {
+                            price: 30,
+                            purchaseUrl: "https://tickets.example.com",
+                            type: "General Admission",
+                            soldOut: false,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByRole("button", { name: /is sold out/i }).textContent,
+        ).toBe("Sold Out");
+        expect(screen.queryByRole("link", { name: /get tickets/i })).toBeNull();
+    });
 });

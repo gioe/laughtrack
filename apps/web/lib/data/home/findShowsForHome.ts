@@ -6,6 +6,7 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { computeDistanceMiles } from "@/util/distanceUtil";
+import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 
 interface HomeShowQueryOptions {
     zipCode?: string;
@@ -122,9 +123,7 @@ export async function findShowsForHome(
                 imageUrl:
                     getBestLineupImageUrl(lineup) ??
                     buildClubImageUrl(show.club.name, show.club.hasImage),
-                soldOut:
-                    show.tickets.length > 0 &&
-                    show.tickets.every((t) => t.soldOut === true),
+                soldOut: computeShowSoldOut(show.name, show.tickets),
                 lineup,
                 tickets: mapTickets(show.tickets),
                 room: show.room ?? undefined,

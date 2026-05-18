@@ -57,9 +57,10 @@ export async function GET(
         const relatedShows = await findRelatedShowsForShow(numericId, clubId);
         const ctaUrl = pickCtaUrl(show.tickets, show.showPageUrl);
         const explicitlySoldOut =
-            show.tickets !== undefined &&
-            show.tickets.length > 0 &&
-            show.tickets.every((ticket) => ticket.soldOut);
+            show.soldOut === true ||
+            (show.tickets !== undefined &&
+                show.tickets.length > 0 &&
+                show.tickets.every((ticket) => ticket.soldOut));
 
         return NextResponse.json(
             {

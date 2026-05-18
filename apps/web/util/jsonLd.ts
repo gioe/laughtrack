@@ -212,9 +212,10 @@ export function buildShowJsonLd(show: ShowDTO): object {
             const offer: Record<string, unknown> = {
                 "@type": "Offer",
                 url: t.purchaseUrl,
-                availability: t.soldOut
-                    ? "https://schema.org/SoldOut"
-                    : "https://schema.org/InStock",
+                availability:
+                    show.soldOut || t.soldOut
+                        ? "https://schema.org/SoldOut"
+                        : "https://schema.org/InStock",
             };
             if (t.price != null && t.price > 0) {
                 offer.price = String(t.price);

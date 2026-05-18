@@ -295,6 +295,19 @@ describe("findShowsWithCount", () => {
 
             expect(result.shows[0].soldOut).toBe(false);
         });
+
+        it("sets soldOut to true when the title says sold out even if tickets are available", async () => {
+            const show = makeShow({
+                name: "SOLD OUT Ronny Chieng: I Love New York City Tour",
+                tickets: [{ soldOut: false }],
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as never);
+
+            expect(result.shows[0].soldOut).toBe(true);
+        });
     });
 
     describe("favoriteComedians select", () => {

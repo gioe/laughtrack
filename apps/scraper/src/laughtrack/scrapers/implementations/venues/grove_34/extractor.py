@@ -118,6 +118,33 @@ class Grove34EventExtractor:
             return None
 
     @staticmethod
+    def extract_tito_release_price(json_content: str) -> Optional[float]:
+        """Extract the lowest usable release price from Tito event JSON."""
+        try:
+            data = json.loads(json_content)
+            event_data = data.get("event") if isinstance(data.get("event"), dict) else {}
+            releases = data.get("releases") or event_data.get("releases") or []
+            prices = []
+            for release in releases:
+                if not isinstance(release, dict):
+                    continue
+                if str(release.get("state") or "").lower() in {"sold_out", "archived"}:
+                    continue
+                price = release.get("price")
+                if price in (None, ""):
+                    continue
+                try:
+                    prices.append(float(price))
+                except (TypeError, ValueError):
+                    continue
+            if not prices:
+                return None
+            return min(prices)
+        except Exception as e:
+            Logger.warning(f"Error extracting Grove34 Tito release price: {e}")
+            return None
+
+    @staticmethod
     def _extract_sold_out(data: dict) -> bool:
         offers = data.get("offers") or []
         if isinstance(offers, dict):

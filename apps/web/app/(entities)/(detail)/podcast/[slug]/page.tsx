@@ -15,8 +15,15 @@ export async function generateMetadata(props: {
     const { slug } = await props.params;
     const getPodcastMeta = unstable_cache(
         () =>
-            db.podcast.findUnique({
-                where: { slug },
+            db.podcast.findFirst({
+                where: {
+                    slug,
+                    comedianPodcasts: {
+                        some: {
+                            reviewStatus: "accepted",
+                        },
+                    },
+                },
                 select: {
                     title: true,
                     authorName: true,

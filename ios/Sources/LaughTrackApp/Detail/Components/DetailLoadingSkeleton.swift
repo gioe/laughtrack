@@ -37,100 +37,137 @@ extension View {
 }
 
 struct CalendarDetailSkeleton: View {
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-        let block = laughTrack.colors.surfaceMuted
-
-        VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(block)
-                .frame(height: 240)
-                .clipped()
-                .ignoresSafeArea(.container, edges: .top)
-
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 10) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(block)
-                        .frame(width: 170, height: 22)
-                    HStack(spacing: 8) {
-                        ForEach(0..<6, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(block)
-                                .frame(width: 44, height: 64)
-                        }
-                    }
-                }
-
-                VStack(spacing: 10) {
-                    ForEach(0..<4, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: laughTrack.radius.card)
-                            .fill(block)
-                            .frame(height: 62)
-                    }
-                }
-            }
-            .padding(.horizontal, theme.spacing.lg * 2)
-            .padding(.vertical, theme.spacing.lg)
-
-            Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .detailSkeletonShimmer()
-        .accessibilityLabel("Loading")
-        .accessibilityAddTraits(.isImage)
+        DetailHeroContentSkeleton(kind: .calendar)
     }
 }
 
 struct ShowDetailSkeleton: View {
+    var body: some View {
+        DetailHeroContentSkeleton(kind: .show)
+    }
+}
+
+private enum DetailSkeletonKind {
+    case calendar
+    case show
+}
+
+private struct DetailHeroContentSkeleton: View {
     @Environment(\.appTheme) private var theme
+
+    let kind: DetailSkeletonKind
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
         let block = laughTrack.colors.surfaceMuted
 
         VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(block)
-                .frame(height: 200)
-                .clipped()
-                .ignoresSafeArea(.container, edges: .top)
+            ZStack(alignment: .bottomLeading) {
+                Rectangle()
+                    .fill(block)
+
+                LinearGradient(
+                    stops: [
+                        .init(color: laughTrack.colors.heroStart.opacity(0.10), location: 0.0),
+                        .init(color: laughTrack.colors.heroStart.opacity(0.42), location: 0.46),
+                        .init(color: laughTrack.colors.heroStart.opacity(0.94), location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                VStack(alignment: .leading, spacing: 10) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(block)
+                        .frame(width: 120, height: 14)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(block)
+                        .frame(width: 260, height: 34)
+
+                    if kind == .calendar {
+                        HStack(spacing: theme.spacing.md) {
+                            ForEach(0..<2, id: \.self) { _ in
+                                VStack(spacing: 3) {
+                                    Circle()
+                                        .fill(block)
+                                        .frame(width: 40, height: 40)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(block)
+                                        .frame(width: 44, height: 10)
+                                }
+                            }
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(block)
+                            .frame(width: 84, height: 24)
+                    }
+                }
+                .padding(laughTrack.spacing.heroPadding)
+            }
+            .frame(height: DetailHeroLayout.maximumMediaHeight)
+            .clipped()
+            .ignoresSafeArea(.container, edges: .top)
 
             VStack(alignment: .leading, spacing: 20) {
-                VStack(spacing: 12) {
-                    ForEach(0..<3, id: \.self) { _ in
-                        HStack(spacing: 14) {
-                            Circle().fill(block).frame(width: 36, height: 36)
-                            VStack(alignment: .leading, spacing: 6) {
-                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 60, height: 10)
-                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 160, height: 14)
-                            }
+                if kind == .calendar {
+                    RoundedRectangle(cornerRadius: laughTrack.radius.card)
+                        .fill(block)
+                        .frame(height: 72)
+                }
+
+                VStack(spacing: 0) {
+                    ForEach(0..<4, id: \.self) { index in
+                        HStack(spacing: theme.spacing.sm) {
+                            RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 74, height: 11)
+                            RoundedRectangle(cornerRadius: 4).fill(block).frame(width: index == 0 ? 170 : 130, height: 15)
                             Spacer(minLength: 0)
+                            RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 18, height: 18)
+                        }
+                        .padding(.vertical, theme.spacing.sm)
+
+                        if index < 3 {
+                            Rectangle()
+                                .fill(laughTrack.colors.borderSubtle)
+                                .frame(height: 1)
                         }
                     }
                 }
-                .padding(theme.spacing.md)
+                .padding(.horizontal, theme.spacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: laughTrack.radius.card)
+                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
                         .fill(laughTrack.colors.surfaceElevated)
                         .overlay(
-                            RoundedRectangle(cornerRadius: laughTrack.radius.card)
+                            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
                                 .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
                         )
                 )
 
                 VStack(alignment: .leading, spacing: 10) {
-                    RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 90, height: 22)
-                    ForEach(0..<2, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: laughTrack.radius.card)
-                            .fill(block)
-                            .frame(height: 56)
+                    RoundedRectangle(cornerRadius: 4).fill(block).frame(width: kind == .show ? 90 : 150, height: 22)
+                    ForEach(0..<3, id: \.self) { _ in
+                        HStack(spacing: theme.spacing.md) {
+                            Circle().fill(block).frame(width: 44, height: 44)
+                            VStack(alignment: .leading, spacing: 6) {
+                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 160, height: 14)
+                                RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 112, height: 12)
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(theme.spacing.sm)
+                        .background(
+                            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                                .fill(laughTrack.colors.surfaceElevated)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                                )
+                        )
                     }
                 }
             }
-            .padding(.horizontal, theme.spacing.lg * 2)
+            .padding(.horizontal, 8)
             .padding(.vertical, theme.spacing.lg)
 
             Spacer(minLength: 0)

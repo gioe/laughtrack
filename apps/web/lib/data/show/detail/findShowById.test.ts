@@ -192,6 +192,25 @@ describe("findShowById", () => {
             expect(result.show.soldOut).toBe(false);
         });
 
+        it("computes soldOut=true when the title says sold out even if a ticket is available", async () => {
+            const row = makeShowRow({
+                name: "Ronny Chieng: I Love New York City Tour (SOLD OUT)",
+                tickets: [
+                    {
+                        price: 30,
+                        soldOut: false,
+                        purchaseUrl: "https://tix.example.com",
+                        type: "General Admission",
+                    },
+                ],
+            });
+            mockFindUnique.mockResolvedValue(row as never);
+
+            const result = await findShowById(1);
+
+            expect(result.show.soldOut).toBe(true);
+        });
+
         it("computes soldOut=false when there are no tickets", async () => {
             const row = makeShowRow({ tickets: [] });
             mockFindUnique.mockResolvedValue(row as never);

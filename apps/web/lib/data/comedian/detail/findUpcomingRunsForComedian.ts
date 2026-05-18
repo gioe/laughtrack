@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
+import { computeShowSoldOut } from "@/util/show/soldOutUtil";
 import { Prisma } from "@prisma/client";
 import { fromZonedTime } from "date-fns-tz";
 
@@ -226,9 +227,7 @@ function mapUpcomingRunShow(
         clubCity: show.club.city,
         clubState: show.club.state,
         imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
-        soldOut:
-            show.tickets.length > 0 &&
-            show.tickets.every((ticket) => ticket.soldOut === true),
+        soldOut: computeShowSoldOut(show.name, show.tickets),
         lineup: filterAndMapLineupItems(show.lineupItems, userId),
         tickets: mapTickets(show.tickets),
         distanceMiles: null,

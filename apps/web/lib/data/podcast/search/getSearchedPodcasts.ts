@@ -3,6 +3,14 @@ import type { Prisma } from "@prisma/client";
 import type { PodcastSearchResponse } from "../interface";
 
 const DEFAULT_PAGE_SIZE = 25;
+const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
+    comedianPodcasts: {
+        some: {
+            reviewStatus: "accepted",
+            associationType: { in: ["host", "owner"] },
+        },
+    },
+} satisfies Prisma.PodcastWhereInput;
 
 function safePodcastImageUrl(url: string | null): string | null {
     return url?.startsWith("https://") ? url : null;
@@ -43,13 +51,18 @@ export async function getSearchedPodcasts(params: {
     const size = normalizeSize(params.size);
     const where: Prisma.PodcastWhereInput = query
         ? {
-              OR: [
-                  { title: containsQuery(query) },
-                  { authorName: containsQuery(query) },
-                  { description: containsQuery(query) },
+              AND: [
+                  PUBLIC_PODCAST_OWNERSHIP_WHERE,
+                  {
+                      OR: [
+                          { title: containsQuery(query) },
+                          { authorName: containsQuery(query) },
+                          { description: containsQuery(query) },
+                      ],
+                  },
               ],
           }
-        : {};
+        : PUBLIC_PODCAST_OWNERSHIP_WHERE;
 
     const [total, podcasts] = await Promise.all([
         db.podcast.count({ where }),

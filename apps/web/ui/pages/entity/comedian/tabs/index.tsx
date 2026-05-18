@@ -12,7 +12,7 @@ import PastShowsSection from "@/ui/pages/entity/comedian/pastShows";
 import RelatedComediansSection from "@/ui/pages/entity/comedian/related";
 import PodcastAppearancesSection from "@/ui/pages/entity/comedian/podcastAppearances";
 
-type ComedianDetailTab = "upcoming" | "past" | "related" | "podcasts";
+type ComedianDetailTab = "shows" | "podcasts";
 
 interface ComedianDetailTabsProps {
     shows: ShowDTO[];
@@ -24,9 +24,7 @@ interface ComedianDetailTabsProps {
 }
 
 const tabs: Array<{ id: ComedianDetailTab; label: string }> = [
-    { id: "upcoming", label: "Upcoming" },
-    { id: "past", label: "Past" },
-    { id: "related", label: "Related" },
+    { id: "shows", label: "Shows" },
     { id: "podcasts", label: "Podcasts" },
 ];
 
@@ -40,13 +38,11 @@ const ComedianDetailTabs = ({
     relatedComedians,
     podcastAppearances,
 }: ComedianDetailTabsProps) => {
-    const [activeTab, setActiveTab] = useState<ComedianDetailTab>("upcoming");
+    const [activeTab, setActiveTab] = useState<ComedianDetailTab>("shows");
     const [activatedTabs, setActivatedTabs] = useState<
         Record<ComedianDetailTab, boolean>
     >({
-        upcoming: true,
-        past: false,
-        related: false,
+        shows: true,
         podcasts: false,
     });
 
@@ -88,10 +84,10 @@ const ComedianDetailTabs = ({
             </div>
 
             <div
-                id="comedian-detail-panel-upcoming"
+                id="comedian-detail-panel-shows"
                 role="tabpanel"
-                aria-labelledby="comedian-detail-tab-upcoming"
-                hidden={activeTab !== "upcoming"}
+                aria-labelledby="comedian-detail-tab-shows"
+                hidden={activeTab !== "shows"}
                 className={panelClasses}
             >
                 <div id="comedian-upcoming-shows">
@@ -102,37 +98,21 @@ const ComedianDetailTabs = ({
                     />
                     <ShowTable shows={shows} cardContext="comedian-detail" />
                 </div>
-            </div>
 
-            {activatedTabs.past && (
-                <div
-                    id="comedian-detail-panel-past"
-                    role="tabpanel"
-                    aria-labelledby="comedian-detail-tab-past"
-                    hidden={activeTab !== "past"}
-                    className={panelClasses}
-                >
+                <div className="mt-10">
                     <PastShowsSection
                         comedianName={comedianName}
                         showCardContext="comedian-detail"
                     />
                 </div>
-            )}
 
-            {activatedTabs.related && (
-                <div
-                    id="comedian-detail-panel-related"
-                    role="tabpanel"
-                    aria-labelledby="comedian-detail-tab-related"
-                    hidden={activeTab !== "related"}
-                    className={panelClasses}
-                >
+                <div className="mt-10">
                     <RelatedComediansSection
                         comedians={relatedComedians}
                         subjectName={comedianName}
                     />
                 </div>
-            )}
+            </div>
 
             {activatedTabs.podcasts && (
                 <div

@@ -91,11 +91,24 @@ describe("GET /api/v1/search", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(mockDb.podcast.findMany).toHaveBeenCalledWith(
-            expect.objectContaining({
-                where: {
+        const expectedPodcastWhere = {
+            AND: [
+                {
+                    comedianPodcasts: {
+                        some: {
+                            reviewStatus: "accepted",
+                            associationType: { in: ["host", "owner"] },
+                        },
+                    },
+                },
+                {
                     OR: [
-                        { title: { contains: "good", mode: "insensitive" } },
+                        {
+                            title: {
+                                contains: "good",
+                                mode: "insensitive",
+                            },
+                        },
                         {
                             authorName: {
                                 contains: "good",
@@ -104,6 +117,14 @@ describe("GET /api/v1/search", () => {
                         },
                     ],
                 },
+            ],
+        };
+        expect(mockDb.podcast.count).toHaveBeenCalledWith({
+            where: expectedPodcastWhere,
+        });
+        expect(mockDb.podcast.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expectedPodcastWhere,
             }),
         );
         expect(body).toEqual({
