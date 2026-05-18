@@ -102,6 +102,22 @@ def test_status_ready_for_specific_platform_marker():
     assert r.status == mod.STATUS_READY
 
 
+def test_detects_newly_documented_platform_markers():
+    etix_platform, etix_marker = mod._detect_platform_from_html(
+        '<a href="https://www.etix.com/ticket/p/123">Tickets</a>'
+    )
+    assert (etix_platform, etix_marker) == ("etix", "etix.com")
+
+    sellingticket_platform, sellingticket_marker = mod._detect_platform_from_html(
+        '<a href="https://secure.sellingticket.com/design22/clients/list/'
+        'index_byUserListAll.aspx?OrganizationID=64">'
+    )
+    assert (sellingticket_platform, sellingticket_marker) == (
+        "sellingticket",
+        "sellingticket.com",
+    )
+
+
 def test_status_review_for_generic_json_ld_marker():
     r = _result(platform="json_ld", matched_marker='"@type":"Event"')
     assert r.status == mod.STATUS_REVIEW
@@ -339,6 +355,7 @@ _SCRAPERS_MD_PATH = _repo_root / "SCRAPERS.md"
 _PLATFORM_SECTION_MARKER_KEY: dict[str, str] = {
     "Ticketmaster": "ticketmaster",
     "Eventbrite": "eventbrite",
+    "Etix / Rockhouse Partners": "etix",
     "SeatEngine v1": "seatengine",
     "SeatEngine Classic (Legacy)": "seatengine",
     "SeatEngine v3": "seatengine",
@@ -361,6 +378,7 @@ _PLATFORM_SECTION_MARKER_KEY: dict[str, str] = {
     "OvationTix": "ovationtix",
     "OpenDate": "opendate",
     "SimpleTix": "simpletix",
+    "SellingTicket": "sellingticket",
 }
 
 # Headings under "## Platform Sections" that introduce a group of variants

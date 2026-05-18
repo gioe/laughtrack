@@ -99,6 +99,12 @@ _HTML_PLATFORM_MARKERS: list[tuple[str, str]] = [
     ("ticketsource.co.uk", "ticketsource"),
     # SimpleTix
     ("simpletix.com", "simpletix"),
+    # Etix / Rockhouse Partners
+    ("etix.com", "etix"),
+    ("rhp-event__", "etix"),
+    ("ROCKHOUSE PARTNERS", "etix"),
+    # SellingTicket
+    ("sellingticket.com", "sellingticket"),
     # JSON-LD events (generic)
     ('"@type":"Event"', "json_ld"),
     ('"@type": "Event"', "json_ld"),
@@ -113,6 +119,8 @@ _WEBSITE_DOMAIN_PLATFORMS: dict[str, str] = {
     "squarespace.com": "squarespace",
     "wixsite.com": "wix",
     "tockify.com": "tockify",
+    "etix.com": "etix",
+    "sellingticket.com": "sellingticket",
 }
 
 # Platforms that should be classified as "review" (operator must verify) rather
