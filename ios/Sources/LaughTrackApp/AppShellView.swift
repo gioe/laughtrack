@@ -247,7 +247,7 @@ struct AppShellView: View {
 
     private var locationHeaderButton: some View {
         shellHeaderIconButton(
-            systemImage: "location.fill",
+            systemImage: "mappin.and.ellipse",
             accessibilityLabel: "Location",
             accessibilityIdentifier: LaughTrackViewTestID.locationHeaderButton
         ) {
