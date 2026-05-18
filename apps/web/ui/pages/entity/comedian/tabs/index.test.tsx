@@ -93,7 +93,7 @@ describe("ComedianDetailTabs", () => {
         cleanup();
     });
 
-    it("renders only upcoming show markup on first paint", () => {
+    it("renders show markup on first paint without podcast markup", () => {
         const { container } = renderTabs();
 
         expect(
@@ -104,26 +104,25 @@ describe("ComedianDetailTabs", () => {
         ).not.toBeNull();
         expect(
             container.querySelector('[data-testid="past-shows"]'),
-        ).toBeNull();
+        ).not.toBeNull();
         expect(
             container.querySelector('[data-testid="related-comedians"]'),
-        ).toBeNull();
+        ).not.toBeNull();
         expect(
             container.querySelector('[data-testid="podcast-appearances"]'),
         ).toBeNull();
     });
 
-    it("keeps the past tab mounted after first activation", () => {
-        const { getByRole, container } = renderTabs();
+    it("keeps the shows tab mounted while switching tabs", () => {
+        const { getByRole, container } = renderTabs([makeAppearance()]);
 
-        fireEvent.click(getByRole("tab", { name: /past/i }));
         expect(
             container.querySelector('[data-testid="past-shows"]'),
         ).not.toBeNull();
         expect(pastMountCount).toBe(1);
 
-        fireEvent.click(getByRole("tab", { name: /related/i }));
-        fireEvent.click(getByRole("tab", { name: /past/i }));
+        fireEvent.click(getByRole("tab", { name: /podcasts/i }));
+        fireEvent.click(getByRole("tab", { name: /shows/i }));
 
         expect(pastMountCount).toBe(1);
     });
@@ -141,7 +140,7 @@ describe("ComedianDetailTabs", () => {
         expect(container.textContent).toContain("Podcast appearances: 2");
         expect(podcastMountCount).toBe(1);
 
-        fireEvent.click(getByRole("tab", { name: /related/i }));
+        fireEvent.click(getByRole("tab", { name: /shows/i }));
         fireEvent.click(getByRole("tab", { name: /podcasts/i }));
 
         expect(podcastMountCount).toBe(1);
