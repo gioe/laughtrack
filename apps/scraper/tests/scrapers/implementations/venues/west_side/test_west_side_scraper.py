@@ -133,6 +133,31 @@ async def test_get_data_successful_extraction_returns_page_data(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_enriches_tixologi_ticket_types(monkeypatch):
+    scraper = WestSideScraper(_club())
+
+    async def fake_fetch_html_bare(self, url: str):
+        return _build_show_html()
+
+    async def fake_fetch_event_ticket_types(event_id: str):
+        assert event_id == "1"
+        return [{"name": "General Admission", "initial_price": 600, "sold_out": False}]
+
+    monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(
+        scraper.tixologi_client,
+        "fetch_event_ticket_types",
+        fake_fetch_event_ticket_types,
+    )
+
+    result = await scraper.get_data("westsidecomedyclub.com/calendar")
+    assert isinstance(result, WestSidePageData)
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price == 600.0
+
+
+@pytest.mark.asyncio
 async def test_get_data_fetch_exception_returns_none(monkeypatch):
     scraper = WestSideScraper(_club())
 

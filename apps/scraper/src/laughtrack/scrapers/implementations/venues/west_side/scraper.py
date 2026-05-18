@@ -9,8 +9,10 @@ This scraper fetches the calendar page, parses the Punchup/Next.js hydration dat
 and extracts upcoming shows with lineup and ticket info.
 """
 
+import asyncio
 from typing import List, Optional
 
+from laughtrack.core.clients.tixologi import TixologiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -34,6 +36,7 @@ class WestSideScraper(BaseScraper):
 
     def __init__(self, club, **kwargs):
         super().__init__(club, **kwargs)
+        self.tixologi_client = TixologiClient(club)
         self.transformation_pipeline.register_transformer(WestSideEventTransformer(club))
 
     async def get_data(self, url: str) -> Optional[WestSidePageData]:
@@ -62,9 +65,23 @@ class WestSideScraper(BaseScraper):
                 )
                 return None
 
+            shows = await self._enrich_tixologi_tickets(shows)
+
             Logger.info(f"{self._log_prefix}: extracted {len(shows)} shows from {url}", self.logger_context)
             return WestSidePageData(event_list=shows)
 
         except Exception as e:
             Logger.error(f"{self._log_prefix}: error fetching data from {url}: {e}", self.logger_context)
             return None
+
+    async def _enrich_tixologi_tickets(self, shows):
+        """Attach Tixologi ticket type payloads to Punchup shows before transformation."""
+        async def enrich(show):
+            if not show.tixologi_event_id:
+                return show
+            ticket_types = await self.tixologi_client.fetch_event_ticket_types(show.tixologi_event_id)
+            if not ticket_types:
+                return show
+            return show.with_tixologi_ticket_types(ticket_types)
+
+        return await asyncio.gather(*(enrich(show) for show in shows))

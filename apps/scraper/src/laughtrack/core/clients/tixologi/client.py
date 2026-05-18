@@ -19,7 +19,7 @@ API reference (no auth required):
   → returns partner metadata: name "Laugh Factory - Long Beach", punchup_id UUID
 """
 
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
@@ -36,6 +36,7 @@ class TixologiClient(BaseApiClient):
 
     # Tixologi partner ID for Laugh Factory Reno
     PARTNER_ID = 690
+    EVENT_API_BASE_URL = "https://api-v2.tixologi.com/public/ticketing/events"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -57,3 +58,31 @@ class TixologiClient(BaseApiClient):
                 {"club": self.club.name},
             )
         return html
+
+    @classmethod
+    def event_api_endpoint(cls, event_id: str | int) -> str:
+        """Return Tixologi's public ticketing event endpoint."""
+        return f"{cls.EVENT_API_BASE_URL}/{event_id}?active=true"
+
+    async def fetch_event_ticket_types(self, event_id: str | int) -> List[Dict[str, Any]]:
+        """Fetch public ticket type data for a Tixologi event."""
+        event_id_str = str(event_id).strip()
+        if not event_id_str:
+            return []
+
+        payload = await self.fetch_json(
+            self.event_api_endpoint(event_id_str),
+            logger_context={"club": self.club.name, "tixologi_event_id": event_id_str},
+        )
+        if not isinstance(payload, dict):
+            return []
+
+        ticket_types = payload.get("ticket_types")
+        if not isinstance(ticket_types, list):
+            return []
+
+        return [
+            ticket_type
+            for ticket_type in ticket_types
+            if isinstance(ticket_type, dict)
+        ]

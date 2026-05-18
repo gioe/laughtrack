@@ -225,6 +225,30 @@ class TestWestSideShowToShow:
         assert show.tickets[0].purchase_url == "https://event.tixologi.com/event/9572/tickets"
         assert show.tickets[0].sold_out is False
 
+    def test_tixologi_initial_price_becomes_ticket_price(self):
+        show_obj = WestSideShow(
+            id="show-uuid-amanda",
+            title="4 Day Women in Stand-Up: A Rare In-Person Intensive with Amanda Baker",
+            datetime_str="2026-05-18T12:00:00",
+            ticket_link="https://event.tixologi.com/event/8931/tickets",
+            tixologi_event_id="8931",
+            is_sold_out=False,
+            metadata_text=None,
+            show_comedians=[],
+            tixologi_ticket_types=[
+                {
+                    "name": "General Admission ",
+                    "sold_out": False,
+                    "initial_price": 600,
+                }
+            ],
+        )
+        show = show_obj.to_show(_club())
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == 600.0
+        assert show.tickets[0].type == "General Admission"
+
     def test_sold_out_ticket(self):
         show_obj = WestSideShow(
             id="show-uuid-2",
