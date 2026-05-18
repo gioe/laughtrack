@@ -1,7 +1,5 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { isAdminSession } from "@/lib/auth/requireAdmin";
 import { Button } from "@/ui/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +9,6 @@ const PAGE_SIZE = 50;
 export default async function AdminClubsPage(props: {
     searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-    if (!(await isAdminSession())) notFound();
-
     const { q = "", page: pageRaw } = await props.searchParams;
     const page = Math.max(0, Number(pageRaw) || 0);
     const query = q.trim();
@@ -42,8 +38,10 @@ export default async function AdminClubsPage(props: {
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-4">Admin · Clubs</h1>
+        <div className="mx-auto max-w-5xl">
+            <h1 className="mb-4 font-chivo text-h1 text-cedar">
+                Admin · Clubs
+            </h1>
             <form method="get" className="flex gap-2 mb-6">
                 <input
                     type="text"

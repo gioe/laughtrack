@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { isAdminSession } from "@/lib/auth/requireAdmin";
 import AdminClubEditor from "@/ui/pages/admin/clubs/AdminClubEditor";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +8,6 @@ export const dynamic = "force-dynamic";
 export default async function AdminClubEditPage(props: {
     params: Promise<{ id: string }>;
 }) {
-    if (!(await isAdminSession())) notFound();
-
     const { id: idParam } = await props.params;
     const id = Number(idParam);
     if (!Number.isInteger(id) || id <= 0) notFound();
@@ -37,7 +34,7 @@ export default async function AdminClubEditPage(props: {
             : null;
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="mx-auto max-w-3xl">
             <div className="mb-4 text-sm">
                 <Link
                     href="/admin/clubs"
