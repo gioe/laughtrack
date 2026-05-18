@@ -53,7 +53,9 @@ struct PodcastSearchView: View {
                                 PodcastAppearanceRow(
                                     item: podcast.playbackItem,
                                     isCurrent: false,
-                                    showsRoleBadge: false
+                                    showsRoleBadge: false,
+                                    showsArtworkActionIcon: false,
+                                    showsDisclosureIndicator: true
                                 ) {
                                     if let target = podcast.navigationTarget {
                                         coordinator.open(target)

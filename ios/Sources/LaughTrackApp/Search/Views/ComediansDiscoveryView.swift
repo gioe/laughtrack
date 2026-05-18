@@ -195,7 +195,8 @@ struct ComedianRow: View {
                     title: comedian.name,
                     subtitle: Self.upcomingShowsText(for: comedian.showCount),
                     systemImage: "music.mic",
-                    imageURL: comedian.imageUrl
+                    imageURL: comedian.imageUrl,
+                    showsDisclosureIndicator: true
                 )
             }
             .buttonStyle(.plain)

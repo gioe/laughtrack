@@ -905,6 +905,8 @@ struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
     let isCurrent: Bool
     var showsRoleBadge = true
+    var showsArtworkActionIcon = true
+    var showsDisclosureIndicator = false
     let onSelect: () -> Void
     var onOpenPodcast: (() -> Void)?
 
@@ -917,15 +919,17 @@ struct PodcastAppearanceRow: View {
             Button(action: onSelect) {
                 artwork
                     .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
-                            .offset(x: 5, y: 5)
+                        if showsArtworkActionIcon {
+                            Image(systemName: artworkActionIconSystemName)
+                                .font(.system(size: 18, weight: .semibold))
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                                .offset(x: 5, y: 5)
+                        }
                     }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(item.audioURL == nil ? "Open episode" : "Play episode")
+            .accessibilityLabel(selectionAccessibilityLabel)
 
             VStack(alignment: .leading, spacing: 4) {
                 Button(action: onSelect) {
@@ -968,6 +972,10 @@ struct PodcastAppearanceRow: View {
                     .font(.system(size: theme.iconSizes.sm, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.accent)
                     .accessibilityLabel("Now playing")
+            } else if showsDisclosureIndicator {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
@@ -989,6 +997,18 @@ struct PodcastAppearanceRow: View {
         }
 
         return "\(item.episodeTitle), \(item.podcastName)"
+    }
+
+    private var artworkActionIconSystemName: String {
+        item.audioURL == nil ? "arrow.up.right.circle.fill" : "play.circle.fill"
+    }
+
+    private var selectionAccessibilityLabel: String {
+        if showsDisclosureIndicator && !showsArtworkActionIcon {
+            return "Open podcast"
+        }
+
+        return item.audioURL == nil ? "Open episode" : "Play episode"
     }
 
     @ViewBuilder
