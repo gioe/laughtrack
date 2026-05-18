@@ -164,3 +164,17 @@ def test_extract_ticket_data_no_price_ranges_produces_price_none(client):
     tickets = client._extract_ticket_data_from_api(event_data)
     assert len(tickets) == 1
     assert tickets[0].price is None, f"Expected price=None, got price={tickets[0].price}"
+
+
+def test_extract_ticket_data_null_price_ranges_produces_price_none(client):
+    """Ticketmaster priceRanges=null must remain Ticket(price=None), not price=0.0."""
+    event_data = {
+        "url": "https://ticketmaster.com/event/456",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        "priceRanges": None,
+    }
+
+    tickets = client._extract_ticket_data_from_api(event_data)
+
+    assert len(tickets) == 1
+    assert tickets[0].price is None, f"Expected price=None, got price={tickets[0].price}"

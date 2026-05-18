@@ -42,6 +42,7 @@ _LAUGH_PATRIOT_PLACE_FALLBACK_MONTHS = 6
 # identical Rockhouse Partners event widget.
 _FUNNY_BONE_FALLBACKS: dict[str, str] = {
     "28453": "https://desmoines.funnybone.com/shows/",
+    "31603": "https://cleveland.funnybone.com/shows/",
     "31600": "https://tampa.funnybone.com/shows/",
     "31602": "https://vb.funnybone.com/shows/",
 }
@@ -58,6 +59,7 @@ _FB_SHOW_TIME_RE = re.compile(
     r"Show:\s*(\d{1,2}(?::\d{2})?)\s*([ap]m)", re.IGNORECASE
 )
 _FB_MONTH_YEAR_RE = re.compile(r"([A-Za-z]+)\s+(\d{4})")
+_FB_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
 _TITLE_YEAR_PREFIX_RE = re.compile(r"^\s*(\d{4})\s+(.+)$")
 _MAX_PAGES = 10
 
@@ -610,6 +612,7 @@ class EtixScraper(BaseScraper):
         ticket_url = ticket_a.get("href", "")
         date_text = date_el.get_text(" ", strip=True)
         time_text = time_el.get_text(" ", strip=True) if time_el else ""
+        ticket_price = self._funny_bone_ticket_price(wrapper)
         iso_dt = self._funny_bone_iso_datetime(date_text, time_text, year)
         if iso_dt is None:
             return None
@@ -625,6 +628,7 @@ class EtixScraper(BaseScraper):
             time_str=time_text,
             ticket_url=ticket_url,
             event_url=event_url,
+            ticket_price=ticket_price,
         )
 
     def _funny_bone_series_events(
@@ -639,6 +643,7 @@ class EtixScraper(BaseScraper):
         if not title:
             return []
 
+        ticket_price = self._funny_bone_ticket_price(wrapper)
         results: List[EtixEvent] = []
         for li in wrapper.select("li.rhp-event-series-individual"):
             date_el = li.select_one(".rhp-event-series-date")
@@ -663,9 +668,29 @@ class EtixScraper(BaseScraper):
                     time_str=time_text,
                     ticket_url=ticket_url,
                     event_url=event_url,
+                    ticket_price=ticket_price,
                 )
             )
         return results
+
+    @staticmethod
+    def _funny_bone_ticket_price(wrapper) -> Optional[float]:
+        price_el = wrapper.select_one(
+            ".rhp-event__cost-text--list, "
+            ".rhp-event__cost-text--grid, "
+            ".rhp-event-price"
+        )
+        if price_el is None:
+            return None
+
+        match = _FB_PRICE_RE.search(price_el.get_text(" ", strip=True))
+        if not match:
+            return None
+
+        try:
+            return float(match.group(1))
+        except ValueError:
+            return None
 
     @staticmethod
     def _funny_bone_iso_datetime(
