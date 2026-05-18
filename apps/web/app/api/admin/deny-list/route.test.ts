@@ -9,6 +9,9 @@ vi.mock("@/lib/db", () => ({
     db: {
         $queryRaw: vi.fn(),
         $transaction: vi.fn(),
+        userProfile: {
+            findFirst: vi.fn(),
+        },
     },
 }));
 
@@ -28,6 +31,7 @@ import { db } from "@/lib/db";
 const mockAuth = vi.mocked(auth);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockTransaction = vi.mocked(db.$transaction);
+const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 
 const adminSession = {
     profile: {
@@ -57,6 +61,11 @@ function makeGetRequest(query?: string) {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockFindUserProfile.mockResolvedValue({
+        id: "profile-1",
+        userid: "user-1",
+        role: "admin",
+    } as never);
     mockTransaction.mockImplementation(async (callback) =>
         callback({
             $queryRaw: vi.fn(),
@@ -87,6 +96,11 @@ describe("GET /api/admin/deny-list", () => {
     it("returns 403 when profile.role is not admin", async () => {
         mockAuth.mockResolvedValue({
             profile: { id: "profile-2", userid: "user-2", role: "user" },
+        } as never);
+        mockFindUserProfile.mockResolvedValue({
+            id: "profile-2",
+            userid: "user-2",
+            role: "user",
         } as never);
 
         const res = await GET(makeGetRequest());
@@ -199,6 +213,11 @@ describe("DELETE /api/admin/deny-list", () => {
     it("requires admin access", async () => {
         mockAuth.mockResolvedValue({
             profile: { id: "profile-2", userid: "user-2", role: "user" },
+        } as never);
+        mockFindUserProfile.mockResolvedValue({
+            id: "profile-2",
+            userid: "user-2",
+            role: "user",
         } as never);
 
         const res = await DELETE(

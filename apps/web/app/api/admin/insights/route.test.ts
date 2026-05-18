@@ -8,6 +8,9 @@ vi.mock("@/auth", () => ({
 vi.mock("@/lib/db", () => ({
     db: {
         $queryRaw: vi.fn(),
+        userProfile: {
+            findFirst: vi.fn(),
+        },
     },
 }));
 
@@ -26,6 +29,7 @@ import { db } from "@/lib/db";
 
 const mockAuth = vi.mocked(auth);
 const mockQueryRaw = vi.mocked(db.$queryRaw);
+const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 
 const adminSession = {
     profile: {
@@ -46,6 +50,11 @@ function makePostRequest(body: unknown) {
 beforeEach(() => {
     vi.clearAllMocks();
     mockAuth.mockResolvedValue(adminSession as never);
+    mockFindUserProfile.mockResolvedValue({
+        id: "profile-1",
+        userid: "user-1",
+        role: "admin",
+    } as never);
 });
 
 describe("GET /api/admin/insights", () => {

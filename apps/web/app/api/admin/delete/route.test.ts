@@ -8,6 +8,9 @@ vi.mock("@/auth", () => ({
 vi.mock("@/lib/db", () => ({
     db: {
         $transaction: vi.fn(),
+        userProfile: {
+            findFirst: vi.fn(),
+        },
     },
 }));
 
@@ -22,6 +25,7 @@ import { revalidateTag } from "next/cache";
 
 const mockAuth = vi.mocked(auth);
 const mockTransaction = vi.mocked(db.$transaction);
+const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockRevalidateTag = vi.mocked(revalidateTag);
 
 const adminSession = {
@@ -156,6 +160,11 @@ function buildTx(overrides: Record<string, unknown> = {}) {
 beforeEach(() => {
     vi.clearAllMocks();
     mockAuth.mockResolvedValue(adminSession as never);
+    mockFindUserProfile.mockResolvedValue({
+        id: "profile-1",
+        userid: "user-1",
+        role: "admin",
+    } as never);
     mockTransaction.mockImplementation(async (callback) =>
         callback(buildTx() as never),
     );
@@ -185,6 +194,11 @@ describe("POST /api/admin/delete", () => {
     it("returns 403 when profile.role is not admin", async () => {
         mockAuth.mockResolvedValue({
             profile: { id: "profile-1", userid: "user-1", role: "user" },
+        } as never);
+        mockFindUserProfile.mockResolvedValue({
+            id: "profile-1",
+            userid: "user-1",
+            role: "user",
         } as never);
 
         const res = await POST(

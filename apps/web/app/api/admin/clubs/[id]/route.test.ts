@@ -7,6 +7,9 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/lib/db", () => ({
     db: {
+        userProfile: {
+            findFirst: vi.fn(),
+        },
         $transaction: vi.fn(async (callback) =>
             callback({
                 club: {
@@ -40,6 +43,7 @@ import { revalidateTag } from "next/cache";
 const mockAuth = vi.mocked(auth);
 const mockUpdate = vi.mocked(db.club.update);
 const mockTransaction = vi.mocked(db.$transaction);
+const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockRevalidateTag = vi.mocked(revalidateTag);
 
 const CLUB_ID = 42;
@@ -66,6 +70,11 @@ const adminSession = {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockFindUserProfile.mockResolvedValue({
+        id: "profile-1",
+        userid: "user-1",
+        role: "admin",
+    } as never);
     mockTransaction.mockImplementation(async (callback) =>
         callback({
             club: {
@@ -106,6 +115,11 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("returns 403 when profile.role !== 'admin'", async () => {
         mockAuth.mockResolvedValue({
             profile: { id: "p", userid: "u", role: "user" },
+        } as never);
+        mockFindUserProfile.mockResolvedValue({
+            id: "p",
+            userid: "u",
+            role: "user",
         } as never);
 
         const [req, ctx] = makeRequest();
