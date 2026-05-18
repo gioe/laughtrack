@@ -42,6 +42,7 @@ def _raw_event(
     status="active",
     start="2026-04-09T18:30:00+00:00",
     ticket_link="https://stager.co/events/best-of-stand-up",
+    event_ticket_prices=None,
     artists=None,
 ) -> dict:
     return {
@@ -55,6 +56,7 @@ def _raw_event(
         "eventProgramStart": start,
         "eventProgramEnd": "2026-04-09T20:30:00+00:00",
         "eventTicketLink": ticket_link,
+        "eventTicketPrices": event_ticket_prices or [],
         "artists": artists or [{"title": "Comedian A"}],
         "eventCategories": [],
     }
@@ -209,6 +211,35 @@ async def test_get_data_extracts_performers_from_artists(monkeypatch):
     result = await scraper.get_data(SHOWS_URL)
     assert result is not None
     assert result.event_list[0].performers == ["Theo Maassen", "Hans Teeuwen"]
+
+
+@pytest.mark.asyncio
+async def test_get_data_preserves_ticket_prices(monkeypatch):
+    """get_data() maps eventTicketPrices onto the event model."""
+    scraper = ComedyClubHaugScraper(_club())
+
+    ticket_prices = [
+        {"name": "Early Bird", "price": 1500, "soldOut": True, "remaining": 0},
+        {"name": "General Admission", "price": 2200, "soldOut": False, "remaining": 24},
+    ]
+
+    monkeypatch.setattr(
+        ComedyClubHaugExtractor,
+        "extract_shows",
+        staticmethod(lambda html: [
+            _raw_event(event_ticket_prices=ticket_prices),
+        ]),
+    )
+
+    async def fake_fetch(self, url):
+        return "<html>fake</html>"
+
+    monkeypatch.setattr(ComedyClubHaugScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(SHOWS_URL)
+
+    assert result is not None
+    assert result.event_list[0].event_ticket_prices == ticket_prices
 
 
 # ---------------------------------------------------------------------------

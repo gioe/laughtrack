@@ -113,6 +113,7 @@ class ComedyClubHaugScraper(BaseScraper):
                         ticket_url=ticket_url,
                         show_page_url=show_page_url,
                         performers=performers,
+                        event_ticket_prices=raw.get("eventTicketPrices", []),
                     )
                 )
 

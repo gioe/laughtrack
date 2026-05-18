@@ -130,6 +130,32 @@ class TestToShowTickets:
         assert len(show.tickets) == 1
         assert "stager.co" in show.tickets[0].purchase_url
 
+    def test_ticket_from_available_event_ticket_price(self):
+        show = _event(
+            event_ticket_prices=[
+                {"name": "Early Bird", "price": 1800, "soldOut": False, "remaining": 2},
+                {"name": "General Admission", "price": 2200, "soldOut": False, "remaining": 40},
+            ],
+        ).to_show(_club())
+
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == 18.0
+        assert show.tickets[0].type == "Early Bird"
+
+    def test_ignores_sold_out_ticket_prices(self):
+        show = _event(
+            event_ticket_prices=[
+                {"name": "Early Bird", "price": 1200, "soldOut": True, "remaining": 0},
+                {"name": "General Admission", "price": 2500, "soldOut": False, "remaining": 8},
+            ],
+        ).to_show(_club())
+
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].price == 25.0
+        assert show.tickets[0].type == "General Admission"
+
     def test_fallback_to_show_page_url_when_no_ticket_url(self):
         show = _event(
             ticket_url="",
