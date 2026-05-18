@@ -132,3 +132,31 @@ def test_funny_bone_registry_contains_des_moines():
     from laughtrack.scrapers.implementations.api.etix.scraper import _FUNNY_BONE_FALLBACKS
 
     assert _FUNNY_BONE_FALLBACKS["28453"] == "https://desmoines.funnybone.com/shows/"
+
+
+@pytest.mark.asyncio
+async def test_des_moines_funny_bone_fallback_does_not_mark_unknown_prices_free(monkeypatch):
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    scraper = EtixScraper(_club())
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        if url == ETIX_URL:
+            return "<html><title>DataDome</title></html>"
+        raise AssertionError(f"unexpected fetch_html: {url}")
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        if url == SHOWS_URL:
+            return _shows_html()
+        raise AssertionError(f"unexpected fetch_html_bare: {url}")
+
+    monkeypatch.setattr(EtixScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(EtixScraper, "fetch_html_bare", fake_fetch_html_bare)
+
+    result = await scraper.get_data(ETIX_URL)
+
+    assert result is not None
+    show = result.event_list[0].to_show(_club())
+    assert show is not None
+    assert show.tickets[0].price is None
+    assert show.tickets[0].price_tag is None

@@ -241,7 +241,7 @@ class ShowEnhancement:
         if show.tickets:
             valid_tickets = []
             for ticket in show.tickets:
-                if ticket.price >= 0:
+                if ticket.price is None or ticket.price >= 0:
                     valid_tickets.append(ticket)
                 else:
                     warnings.append(f"Removed ticket with invalid price: {ticket.price}")

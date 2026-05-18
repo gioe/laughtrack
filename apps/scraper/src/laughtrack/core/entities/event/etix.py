@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 
 
@@ -30,6 +31,10 @@ class EtixEvent(ShowConvertible):
     time_str: str       # e.g. "Doors at 7:00 PM, Show at 8:00 PM"
     ticket_url: str     # e.g. "https://www.etix.com/ticket/p/99601250/..."
     event_url: Optional[str] = None  # public venue event page, when available
+    # None means the listing/fallback source exposed no exact price. Etix purchase
+    # pages are DataDome-blocked without a CAPTCHA-capable path, so unknown must
+    # remain null rather than becoming an explicit Free/0.00 ticket.
+    ticket_price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -44,7 +49,14 @@ class EtixEvent(ShowConvertible):
 
         ticket_url = self.ticket_url
         show_page_url = url or self.event_url or ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [
+            Ticket(
+                price=self.ticket_price,
+                purchase_url=ticket_url,
+                sold_out=False,
+                type="General Admission",
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self._clean_title(),
