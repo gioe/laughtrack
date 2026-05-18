@@ -26,6 +26,12 @@ def _page_html(title: str = "Test Show", date_str: str = "Sat | March 21, 2026 -
 </body></html>"""
 
 
+def _parde_checkout_html() -> str:
+    return """<html><body>
+<script>self.__next_f.push([1,"8:[\\"$\\",\\"$L1d\\",null,{\\"event\\":{\\"minTicketPrice\\":35,\\"tickets\\":{\\"general\\":[{\\"availableCount\\":141,\\"name\\":\\"General Admission\\",\\"price\\":\\"35.00\\",\\"type\\":\\"general\\"},{\\"availableCount\\":8,\\"name\\":\\"VIP\\",\\"price\\":\\"45.00\\",\\"type\\":\\"general\\"}]},\\"title\\":\\"JACKIE THE JOKE MAN MARTLING HEADLINES !\\"},\\"id\\":\\"a4dc2298\\"}]\\n"])</script>
+</body></html>"""
+
+
 # ---------------------------------------------------------------------------
 # _parse_show_date
 # ---------------------------------------------------------------------------
@@ -106,6 +112,14 @@ class TestExtractEventFromHtmlPage:
         html = _page_html(ticket_url=" https://parde.app/attending/events/abc123")
         events = RodneyEventExtractor._extract_event_from_html_page(html, SOURCE_URL)
         assert events[0].ticket_info == {"purchase_url": "https://parde.app/attending/events/abc123"}
+
+    def test_extracts_parde_ticket_prices_from_checkout_payload(self):
+        tiers = RodneyEventExtractor.extract_parde_ticket_tiers(_parde_checkout_html())
+
+        assert tiers == [
+            {"name": "General Admission", "price": "35.00", "available_count": 141},
+            {"name": "VIP", "price": "45.00", "available_count": 8},
+        ]
 
     def test_missing_title_returns_empty(self):
         html = """<html><body>

@@ -111,6 +111,32 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
         # Handle different ticket info structures based on source type
         if event.source_type == "html":
             purchase_url = ticket_info.get("purchase_url", source_url)
+            tier_tickets = ticket_info.get("tickets") or []
+            for tier in tier_tickets:
+                if not isinstance(tier, dict):
+                    continue
+                price = tier.get("price")
+                if price in (None, ""):
+                    continue
+                try:
+                    price_value = float(str(price).replace("$", "").replace(",", ""))
+                except (ValueError, TypeError):
+                    continue
+
+                available_count = tier.get("available_count")
+                sold_out = available_count == 0 if available_count is not None else False
+                tickets.append(
+                    Ticket(
+                        price=price_value,
+                        type=tier.get("name") or "General Admission",
+                        purchase_url=purchase_url,
+                        sold_out=sold_out,
+                    )
+                )
+
+            if tickets:
+                return tickets
+
             price = ticket_info.get("price")
             sold_out = ticket_info.get("availability", "").lower() == "soldout"
             if price:

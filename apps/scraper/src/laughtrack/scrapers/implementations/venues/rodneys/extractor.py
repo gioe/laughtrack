@@ -1,8 +1,9 @@
 """Rodney's Comedy Club data extraction utilities."""
 
+import json
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -151,6 +152,76 @@ class RodneyEventExtractor:
         except Exception as e:
             Logger.error(f"Failed to parse show page HTML from {source_url}: {e}")
             return []
+
+    @staticmethod
+    def extract_parde_ticket_tiers(html_content: str) -> List[dict]:
+        """Extract Parde ticket tiers from the checkout page's embedded Next.js payload."""
+        tiers: List[dict] = []
+        for event_payload in RodneyEventExtractor._iter_parde_event_payloads(html_content):
+            tickets = event_payload.get("tickets")
+            if not isinstance(tickets, dict):
+                continue
+
+            for raw_tier in tickets.get("general", []):
+                if not isinstance(raw_tier, dict):
+                    continue
+                price = raw_tier.get("price")
+                if price in (None, ""):
+                    continue
+
+                tiers.append(
+                    {
+                        "name": raw_tier.get("name") or "General Admission",
+                        "price": price,
+                        "available_count": raw_tier.get("availableCount"),
+                    }
+                )
+
+        return tiers
+
+    @staticmethod
+    def _iter_parde_event_payloads(html_content: str) -> List[dict]:
+        events: List[dict] = []
+        for match in re.finditer(r"self\.__next_f\.push\((\[.*?\])\)</script>", html_content, re.DOTALL):
+            try:
+                pushed = json.loads(match.group(1))
+            except json.JSONDecodeError:
+                continue
+
+            for item in pushed:
+                if not isinstance(item, str):
+                    continue
+                payload_start = item.find("[")
+                if payload_start < 0:
+                    continue
+
+                try:
+                    decoded = json.loads(item[payload_start:])
+                except json.JSONDecodeError:
+                    continue
+
+                events.extend(RodneyEventExtractor._find_parde_event_dicts(decoded))
+
+        return events
+
+    @staticmethod
+    def _find_parde_event_dicts(value: Any) -> List[dict]:
+        if isinstance(value, dict):
+            found = []
+            event = value.get("event")
+            if isinstance(event, dict) and isinstance(event.get("tickets"), dict):
+                found.append(event)
+            for child in value.values():
+                found.extend(RodneyEventExtractor._find_parde_event_dicts(child))
+            return found
+
+        if isinstance(value, list):
+            found = []
+            for child in value:
+                found.extend(RodneyEventExtractor._find_parde_event_dicts(child))
+            return found
+
+        return []
 
     @staticmethod
     def _parse_show_date(date_str: str) -> Optional[datetime]:

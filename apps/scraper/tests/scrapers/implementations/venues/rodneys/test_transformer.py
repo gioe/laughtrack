@@ -74,6 +74,42 @@ def test_transform_to_show_returns_show_with_tickets():
     assert ticket.purchase_url == "https://buy.example.com/t"
 
 
+def test_transform_to_show_returns_parde_tier_prices():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="html",
+            ticket_info={
+                "purchase_url": "https://parde.app/attending/events/a4dc2298",
+                "tickets": [
+                    {"name": "General Admission", "price": "35.00", "available_count": 141},
+                    {"name": "VIP", "price": "45.00", "available_count": 8},
+                ],
+            },
+        )
+    )
+
+    assert show is not None
+    assert [(ticket.type, ticket.price, ticket.purchase_url, ticket.sold_out) for ticket in show.tickets] == [
+        ("General Admission", 35.0, "https://parde.app/attending/events/a4dc2298", False),
+        ("VIP", 45.0, "https://parde.app/attending/events/a4dc2298", False),
+    ]
+
+
+def test_transform_to_show_keeps_url_only_fallback_when_price_unknown():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="html",
+            ticket_info={"purchase_url": "https://parde.app/attending/events/no-price"},
+        )
+    )
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].price == 0.0
+    assert show.tickets[0].type == "General Admission"
+    assert show.tickets[0].purchase_url == "https://parde.app/attending/events/no-price"
+
+
 def test_transform_to_show_club_id_and_timezone_set():
     show = _transformer().transform_to_show(_event())
     assert show is not None
@@ -124,4 +160,3 @@ def test_can_transform_returns_false_when_date_time_is_none():
 
 def test_can_transform_returns_false_when_title_is_empty():
     assert _transformer().can_transform(_event(title="")) is False
-

@@ -140,9 +140,31 @@ class RodneysComedyClubScraper(BaseScraper):
             html_content = await self.fetch_html(normalized_url)
 
             event_list = RodneyEventExtractor.extract_events_from_html(html_content, url)
+            await self._enrich_parde_ticket_tiers(event_list)
 
             return RodneyPageData(event_list=event_list)
 
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {e}", self.logger_context)
             return None
+
+    async def _enrich_parde_ticket_tiers(self, event_list: List[RodneyEvent]) -> None:
+        """Fetch Parde checkout pages and attach tier prices when Rodney only exposes a checkout URL."""
+        for event in event_list:
+            ticket_info = event.ticket_info
+            if not ticket_info:
+                continue
+
+            purchase_url = ticket_info.get("purchase_url")
+            if not isinstance(purchase_url, str) or not purchase_url.startswith("https://parde.app"):
+                continue
+
+            try:
+                checkout_html = await self.fetch_html(purchase_url)
+                tiers = RodneyEventExtractor.extract_parde_ticket_tiers(checkout_html or "")
+            except Exception as e:
+                Logger.warn(f"{self._log_prefix}: Failed to fetch Parde ticket tiers for {purchase_url}: {e}")
+                continue
+
+            if tiers:
+                ticket_info["tickets"] = tiers
