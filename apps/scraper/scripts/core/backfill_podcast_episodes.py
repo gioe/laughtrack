@@ -68,6 +68,13 @@ class PodcastEpisodeRow:
     source_payload: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class EpisodeUpsertResult:
+    episode_id: Optional[int]
+    inserted: bool
+    changed: bool
+
+
 @dataclass
 class BackfillSummary:
     feeds_scanned: int = 0
@@ -129,7 +136,18 @@ _UPSERT_EPISODE_SQL = """
         evidence = EXCLUDED.evidence,
         source_payload = EXCLUDED.source_payload,
         updated_at = NOW()
-    RETURNING (xmax = 0) AS inserted
+    WHERE podcast_episodes.podcast_id IS DISTINCT FROM EXCLUDED.podcast_id
+       OR podcast_episodes.guid IS DISTINCT FROM COALESCE(EXCLUDED.guid, podcast_episodes.guid)
+       OR podcast_episodes.title IS DISTINCT FROM EXCLUDED.title
+       OR podcast_episodes.description IS DISTINCT FROM EXCLUDED.description
+       OR podcast_episodes.release_date IS DISTINCT FROM EXCLUDED.release_date
+       OR podcast_episodes.duration_seconds IS DISTINCT FROM EXCLUDED.duration_seconds
+       OR podcast_episodes.episode_url IS DISTINCT FROM EXCLUDED.episode_url
+       OR podcast_episodes.audio_url IS DISTINCT FROM EXCLUDED.audio_url
+       OR podcast_episodes.external_ids IS DISTINCT FROM EXCLUDED.external_ids
+       OR podcast_episodes.evidence IS DISTINCT FROM EXCLUDED.evidence
+       OR podcast_episodes.source_payload IS DISTINCT FROM EXCLUDED.source_payload
+    RETURNING id, (xmax = 0) AS inserted
 """
 
 
@@ -431,7 +449,7 @@ def episode_from_payload(
     )
 
 
-def _upsert_episode(conn: Any, episode: PodcastEpisodeRow) -> bool:
+def upsert_episode_with_result(conn: Any, episode: PodcastEpisodeRow) -> EpisodeUpsertResult:
     with conn.cursor() as cur:
         cur.execute(
             _UPSERT_EPISODE_SQL,
@@ -452,7 +470,15 @@ def _upsert_episode(conn: Any, episode: PodcastEpisodeRow) -> bool:
             ),
         )
         row = cur.fetchone()
-        return bool(row and row[0])
+        if not row:
+            return EpisodeUpsertResult(episode_id=None, inserted=False, changed=False)
+        if len(row) == 1:
+            return EpisodeUpsertResult(episode_id=None, inserted=bool(row[0]), changed=True)
+        return EpisodeUpsertResult(episode_id=int(row[0]), inserted=bool(row[1]), changed=True)
+
+
+def _upsert_episode(conn: Any, episode: PodcastEpisodeRow) -> bool:
+    return upsert_episode_with_result(conn, episode).inserted
 
 
 def backfill_podcast_episodes(
