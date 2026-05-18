@@ -22,7 +22,7 @@ type Props = {
 };
 
 function formatAddedAt(iso: string) {
-    return iso.replace("T", " ").replace(".000Z", " UTC");
+    return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 export default function AdminDenyListManager({ entries }: Props) {
