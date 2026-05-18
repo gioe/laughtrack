@@ -5,6 +5,7 @@ import re
 from datetime import datetime
 from typing import Any, List, Optional
 
+from laughtrack.core.clients.rsc.extractor import extract_push_payloads
 from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
@@ -182,25 +183,17 @@ class RodneyEventExtractor:
     @staticmethod
     def _iter_parde_event_payloads(html_content: str) -> List[dict]:
         events: List[dict] = []
-        for match in re.finditer(r"self\.__next_f\.push\((\[.*?\])\)</script>", html_content, re.DOTALL):
+        for payload in extract_push_payloads(html_content):
+            payload_start = payload.find("[")
+            if payload_start < 0:
+                continue
+
             try:
-                pushed = json.loads(match.group(1))
+                decoded = json.loads(payload[payload_start:])
             except json.JSONDecodeError:
                 continue
 
-            for item in pushed:
-                if not isinstance(item, str):
-                    continue
-                payload_start = item.find("[")
-                if payload_start < 0:
-                    continue
-
-                try:
-                    decoded = json.loads(item[payload_start:])
-                except json.JSONDecodeError:
-                    continue
-
-                events.extend(RodneyEventExtractor._find_parde_event_dicts(decoded))
+            events.extend(RodneyEventExtractor._find_parde_event_dicts(decoded))
 
         return events
 
