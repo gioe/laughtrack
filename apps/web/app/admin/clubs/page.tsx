@@ -39,9 +39,17 @@ export default async function AdminClubsPage(props: {
 
     return (
         <div className="mx-auto max-w-5xl">
-            <h1 className="mb-4 font-chivo text-h1 text-cedar">
-                Admin · Clubs
-            </h1>
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h1 className="font-chivo text-h1 text-cedar">
+                    Admin · Clubs
+                </h1>
+                <Link
+                    href="/admin/deny-list"
+                    className="text-sm font-medium text-copper hover:underline"
+                >
+                    Deny list
+                </Link>
+            </div>
             <form method="get" className="flex gap-2 mb-6">
                 <input
                     type="text"
