@@ -6,6 +6,7 @@ import { SortOptionInterface } from "@/objects/interface";
 import { cn } from "@/util/tailwindUtil";
 import { Menu as MenuIcon } from "lucide-react";
 import { useSortParams } from "./hooks/useSortParams";
+import { searchFilterChipClassName } from "../search/filterChipStyles";
 
 interface SortComponentProps {
     sortOptions: SortOptionInterface[];
@@ -36,8 +37,10 @@ export function SortParamComponent({
             <div>
                 <MenuButton
                     id={BUTTON_ID}
-                    className="group flex items-center justify-between rounded-lg
-                             text-copper font-dmSans text-body hover:bg-gray-50"
+                    className={cn(
+                        searchFilterChipClassName,
+                        "min-w-[8.5rem] justify-between",
+                    )}
                 >
                     <div className="flex items-center gap-2">
                         <MenuIcon size={20} />
@@ -49,7 +52,7 @@ export function SortParamComponent({
                         </span>
                         <ChevronDownIcon
                             aria-hidden="true"
-                            className="h-5 w-5 flex-none text-copper"
+                            className="h-5 w-5 flex-none text-white/70"
                         />
                     </div>
                 </MenuButton>

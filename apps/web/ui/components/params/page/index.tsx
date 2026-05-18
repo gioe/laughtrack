@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageParams } from "./hooks/usePageParams";
+import { searchFilterChipClassName } from "../search/filterChipStyles";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -28,9 +29,7 @@ export function PageParamComponent({
                     <select
                         value={pageSize}
                         onChange={(e) => updatePageSize(Number(e.target.value))}
-                        className="appearance-none bg-copper/10 rounded-full pl-3 pr-8 py-1.5 
-                                 text-copper cursor-pointer focus:outline-none focus:ring-1 
-                                 focus:ring-copper hover:bg-copper/20 transition-colors"
+                        className={`${searchFilterChipClassName} appearance-none cursor-pointer pr-8`}
                         style={{
                             WebkitAppearance: "none",
                             MozAppearance: "none",
@@ -40,7 +39,7 @@ export function PageParamComponent({
                             <option
                                 key={size}
                                 value={size}
-                                className="bg-white text-copper"
+                                className="bg-card text-foreground"
                             >
                                 {size}
                             </option>

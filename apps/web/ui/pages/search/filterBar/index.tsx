@@ -16,6 +16,10 @@ import { FilterDTO } from "@/objects/interface";
 import { ChainFilterDTO } from "@/lib/data/filters/getChainFilters";
 import { X } from "lucide-react";
 import { useMemo } from "react";
+import {
+    searchFilterChipClassName,
+    searchFilterChipCompactClassName,
+} from "@/ui/components/params/search/filterChipStyles";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -145,14 +149,20 @@ const FilterBar = ({
                                                 e.target.value,
                                             )
                                         }
-                                        className="text-sm text-copper bg-transparent border border-copper/20 rounded-md px-2 py-1 font-dmSans cursor-pointer focus:outline-none focus:ring-1 focus:ring-copper/40"
+                                        className={`${searchFilterChipClassName} cursor-pointer`}
                                         aria-label="Filter by chain"
                                     >
-                                        <option value="">All chains</option>
+                                        <option
+                                            value=""
+                                            className="bg-card text-foreground"
+                                        >
+                                            All chains
+                                        </option>
                                         {chainFilters.map((chain) => (
                                             <option
                                                 key={chain.slug}
                                                 value={chain.slug}
+                                                className="bg-card text-foreground"
                                             >
                                                 {chain.name} ({chain.clubCount})
                                             </option>
@@ -204,8 +214,7 @@ const FilterBar = ({
                         {activeChain && (
                             <button
                                 onClick={() => setTypedParam("chain", "")}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold font-dmSans
-                                    bg-copper text-white hover:bg-copper/80 transition-colors duration-150"
+                                className={searchFilterChipCompactClassName}
                             >
                                 {activeChain.name}
                                 <X size={12} />
@@ -215,8 +224,7 @@ const FilterBar = ({
                             <button
                                 key={filter.slug}
                                 onClick={() => removeFilter(filter.slug)}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold font-dmSans
-                                    bg-copper text-white hover:bg-copper/80 transition-colors duration-150"
+                                className={searchFilterChipCompactClassName}
                             >
                                 {filter.name}
                                 <X size={12} />

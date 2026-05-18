@@ -3,6 +3,7 @@ import { useFilterModal } from "@/hooks";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Filter } from "lucide-react";
 import { useCallback } from "react";
+import { searchFilterChipClassName } from "../search/filterChipStyles";
 
 interface FilterModalButtonProps {
     filterCount?: number;
@@ -17,15 +18,15 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
 
     return (
         <button
-            className="relative flex gap-2 items-center text-copper font-dmSans"
+            className={`relative ${searchFilterChipClassName}`}
             type="button"
             onClick={openModal}
         >
             <Filter size={20} />
-            <span className="font-dmSans text-body">Filter</span>
+            <span>Filter</span>
             <ChevronDownIcon
                 aria-hidden="true"
-                className="h-5 w-5 flex-none text-copper"
+                className="h-5 w-5 flex-none text-white/70"
             />
             {filterCount != null && filterCount > 0 && (
                 <span
