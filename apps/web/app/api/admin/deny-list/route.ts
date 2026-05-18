@@ -57,11 +57,11 @@ async function findEntry(
     return rows[0] ?? null;
 }
 
-export async function GET(req?: NextRequest) {
+export async function GET(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
-    const query = req?.nextUrl.searchParams.get("q")?.trim() ?? "";
+    const query = req.nextUrl.searchParams.get("q")?.trim() ?? "";
     const rows = query
         ? await db.$queryRaw<DenyListRow[]>`
             SELECT name, reason, added_by, deleted_at

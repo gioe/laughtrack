@@ -1,9 +1,13 @@
 import { Prisma } from "@prisma/client";
 
-export const ADMIN_DELETE_ENTITY_TYPES = ["club", "show", "comedian"] as const;
+export const ADMIN_DELETE_ENTITY_TYPES = [
+    "club",
+    "show",
+    "comedian",
+    "podcast",
+] as const;
 
-export type AdminDeleteEntityType =
-    (typeof ADMIN_DELETE_ENTITY_TYPES)[number];
+export type AdminDeleteEntityType = (typeof ADMIN_DELETE_ENTITY_TYPES)[number];
 
 export type AdminDeleteDependency = {
     key: string;
@@ -96,10 +100,18 @@ async function previewClub(
             dependency("tickets", "Tickets", tickets),
             dependency("lineupItems", "Lineup items", lineupItems),
             dependency("taggedShows", "Show tags", taggedShows),
-            dependency("showNotifications", "Sent notifications", showNotifications),
+            dependency(
+                "showNotifications",
+                "Sent notifications",
+                showNotifications,
+            ),
             dependency("scrapingSources", "Scraping sources", scrapingSources),
             dependency("taggedClubs", "Club tags", taggedClubs),
-            dependency("emailSubscriptions", "Email subscriptions", emailSubscriptions),
+            dependency(
+                "emailSubscriptions",
+                "Email subscriptions",
+                emailSubscriptions,
+            ),
             dependency("processedEmails", "Processed emails", processedEmails),
             dependency(
                 "productionCompanyVenues",
@@ -135,7 +147,8 @@ async function previewShow(
             tx.taggedShow.count({ where: { showId: entityId } }),
             tx.sentNotification.count({ where: { showId: entityId } }),
         ]);
-    const label = show.name ?? `${show.club.name} on ${show.date.toISOString()}`;
+    const label =
+        show.name ?? `${show.club.name} on ${show.date.toISOString()}`;
 
     return {
         entityType: "show",
@@ -153,7 +166,11 @@ async function previewShow(
             dependency("tickets", "Tickets", tickets),
             dependency("lineupItems", "Lineup items", lineupItems),
             dependency("taggedShows", "Show tags", taggedShows),
-            dependency("sentNotifications", "Sent notifications", sentNotifications),
+            dependency(
+                "sentNotifications",
+                "Sent notifications",
+                sentNotifications,
+            ),
         ]),
     };
 }
@@ -211,11 +228,19 @@ async function previewComedian(
         label: comedian.name,
         before: comedian,
         dependencies: compactDependencies([
-            dependency("alternativeNames", "Alternative names", alternativeNames),
+            dependency(
+                "alternativeNames",
+                "Alternative names",
+                alternativeNames,
+            ),
             dependency("favoriteComedians", "Favorites", favoriteComedians),
             dependency("lineupItems", "Lineup items", lineupItems),
             dependency("taggedComedians", "Comedian tags", taggedComedians),
-            dependency("sentNotifications", "Sent notifications", sentNotifications),
+            dependency(
+                "sentNotifications",
+                "Sent notifications",
+                sentNotifications,
+            ),
             dependency(
                 "podcastAppearances",
                 "Legacy podcast appearances",
@@ -232,11 +257,94 @@ async function previewComedian(
                 "Podcast candidate reviews",
                 podcastCandidateReviews,
             ),
-            dependency("episodeAppearances", "Episode appearances", episodeAppearances),
+            dependency(
+                "episodeAppearances",
+                "Episode appearances",
+                episodeAppearances,
+            ),
             dependency(
                 "episodeAppearanceReviews",
                 "Episode appearance reviews",
                 episodeAppearanceReviews,
+            ),
+        ]),
+    };
+}
+
+async function previewPodcast(
+    tx: Prisma.TransactionClient,
+    entityId: number,
+): Promise<AdminDeletePreview | null> {
+    const podcast = await tx.podcast.findUnique({
+        where: { id: entityId },
+        select: {
+            id: true,
+            slug: true,
+            source: true,
+            sourcePodcastId: true,
+            title: true,
+            authorName: true,
+            websiteUrl: true,
+            feedUrl: true,
+            lastSyncedAt: true,
+        },
+    });
+    if (!podcast) return null;
+
+    const [
+        episodes,
+        episodeAppearances,
+        episodeAppearanceReviews,
+        comedianPodcasts,
+        candidateReviews,
+    ] = await Promise.all([
+        tx.podcastEpisode.count({ where: { podcastId: entityId } }),
+        tx.episodeAppearance.count({
+            where: { episode: { podcastId: entityId } },
+        }),
+        tx.episodeAppearanceReview.count({
+            where: { episode: { podcastId: entityId } },
+        }),
+        tx.comedianPodcast.count({ where: { podcastId: entityId } }),
+        tx.podcastCandidateReview.count({ where: { podcastId: entityId } }),
+    ]);
+
+    return {
+        entityType: "podcast",
+        entityId,
+        label: podcast.title,
+        before: {
+            id: podcast.id,
+            slug: podcast.slug,
+            source: podcast.source,
+            sourcePodcastId: podcast.sourcePodcastId,
+            title: podcast.title,
+            authorName: podcast.authorName,
+            websiteUrl: podcast.websiteUrl,
+            feedUrl: podcast.feedUrl,
+            lastSyncedAt: podcast.lastSyncedAt?.toISOString() ?? null,
+        },
+        dependencies: compactDependencies([
+            dependency("episodes", "Episodes", episodes),
+            dependency(
+                "episodeAppearances",
+                "Episode appearances",
+                episodeAppearances,
+            ),
+            dependency(
+                "episodeAppearanceReviews",
+                "Episode appearance reviews",
+                episodeAppearanceReviews,
+            ),
+            dependency(
+                "comedianPodcasts",
+                "Comedian podcast links",
+                comedianPodcasts,
+            ),
+            dependency(
+                "candidateReviews",
+                "Podcast candidate reviews retained with podcast cleared",
+                candidateReviews,
             ),
         ]),
     };
@@ -272,6 +380,17 @@ export const adminDeleteWorkflows: Record<
         revalidationTags: (preview) => [
             "comedian-detail-data",
             "comedian-metadata",
+            preview.label,
+        ],
+    },
+    podcast: {
+        preview: previewPodcast,
+        delete: async (tx, entityId) => {
+            await tx.podcast.delete({ where: { id: entityId } });
+        },
+        revalidationTags: (preview) => [
+            "podcast-detail-data",
+            "podcast-metadata",
             preview.label,
         ],
     },

@@ -48,6 +48,13 @@ function makeRequest(method: string, body?: unknown) {
     });
 }
 
+function makeGetRequest(query?: string) {
+    return new NextRequest(
+        `http://localhost/api/admin/deny-list${query ? `?q=${query}` : ""}`,
+        { method: "GET" },
+    );
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     mockTransaction.mockImplementation(async (callback) =>
@@ -64,7 +71,7 @@ describe("GET /api/admin/deny-list", () => {
     it("returns 401 when auth() returns null", async () => {
         mockAuth.mockResolvedValue(null as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(401);
     });
@@ -72,7 +79,7 @@ describe("GET /api/admin/deny-list", () => {
     it("returns 422 when session has no profile", async () => {
         mockAuth.mockResolvedValue({ user: {} } as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(422);
     });
@@ -82,7 +89,7 @@ describe("GET /api/admin/deny-list", () => {
             profile: { id: "profile-2", userid: "user-2", role: "user" },
         } as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
 
         expect(res.status).toBe(403);
     });
@@ -98,7 +105,7 @@ describe("GET /api/admin/deny-list", () => {
             },
         ] as never);
 
-        const res = await GET();
+        const res = await GET(makeGetRequest());
         const body = await res.json();
 
         expect(res.status).toBe(200);

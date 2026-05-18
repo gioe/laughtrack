@@ -58,6 +58,49 @@ const clubConfirmation = {
     dependencies: clubDependencies,
 };
 
+const podcast = {
+    id: 77,
+    slug: "good-one",
+    source: "spotify",
+    sourcePodcastId: "spotify-123",
+    title: "Good One",
+    authorName: "Vulture",
+    websiteUrl: "https://example.com/good-one",
+    feedUrl: "https://example.com/good-one.xml",
+    lastSyncedAt: new Date("2026-05-01T12:00:00.000Z"),
+};
+
+const podcastDependencies = [
+    { key: "episodes", label: "Episodes", count: 8 },
+    {
+        key: "episodeAppearances",
+        label: "Episode appearances",
+        count: 9,
+    },
+    {
+        key: "episodeAppearanceReviews",
+        label: "Episode appearance reviews",
+        count: 10,
+    },
+    {
+        key: "comedianPodcasts",
+        label: "Comedian podcast links",
+        count: 11,
+    },
+    {
+        key: "candidateReviews",
+        label: "Podcast candidate reviews retained with podcast cleared",
+        count: 12,
+    },
+];
+
+const podcastConfirmation = {
+    entityType: "podcast",
+    entityId: 77,
+    label: "Good One",
+    dependencies: podcastDependencies,
+};
+
 function makeRequest(method: "POST" | "DELETE", body: unknown) {
     return new NextRequest("http://localhost/api/admin/delete", {
         method,
@@ -98,6 +141,11 @@ function buildTx(overrides: Record<string, unknown> = {}) {
         comedianPodcastIdentityLink: { count: vi.fn().mockResolvedValue(0) },
         comedianPodcast: { count: vi.fn().mockResolvedValue(0) },
         podcastCandidateReview: { count: vi.fn().mockResolvedValue(0) },
+        podcast: {
+            findUnique: vi.fn().mockResolvedValue(podcast),
+            delete: vi.fn().mockResolvedValue(podcast),
+        },
+        podcastEpisode: { count: vi.fn().mockResolvedValue(8) },
         episodeAppearance: { count: vi.fn().mockResolvedValue(0) },
         episodeAppearanceReview: { count: vi.fn().mockResolvedValue(0) },
         adminActionAudit: { create: vi.fn().mockResolvedValue({ id: 123 }) },
@@ -172,6 +220,46 @@ describe("POST /api/admin/delete", () => {
             confirmation: clubConfirmation,
         });
         expect(body.preview.dependencies).toEqual(clubDependencies);
+    });
+
+    it("returns podcast dependency counts and confirmation payloads", async () => {
+        const tx = buildTx({
+            episodeAppearance: { count: vi.fn().mockResolvedValue(9) },
+            episodeAppearanceReview: { count: vi.fn().mockResolvedValue(10) },
+            comedianPodcast: { count: vi.fn().mockResolvedValue(11) },
+            podcastCandidateReview: { count: vi.fn().mockResolvedValue(12) },
+        });
+        mockTransaction.mockImplementation(async (callback) =>
+            callback(tx as never),
+        );
+
+        const res = await POST(
+            makeRequest("POST", { entityType: "podcast", entityId: 77 }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.preview).toMatchObject({
+            entityType: "podcast",
+            entityId: 77,
+            label: "Good One",
+            confirmation: podcastConfirmation,
+        });
+        expect(body.preview.dependencies).toEqual(podcastDependencies);
+        expect(tx.podcast.findUnique).toHaveBeenCalledWith({
+            where: { id: 77 },
+            select: {
+                id: true,
+                slug: true,
+                source: true,
+                sourcePodcastId: true,
+                title: true,
+                authorName: true,
+                websiteUrl: true,
+                feedUrl: true,
+                lastSyncedAt: true,
+            },
+        });
     });
 });
 
@@ -256,9 +344,7 @@ describe("DELETE /api/admin/delete", () => {
                 reason: "duplicate venue cleanup",
                 confirmation: {
                     ...clubConfirmation,
-                    dependencies: [
-                        { key: "shows", label: "Shows", count: 1 },
-                    ],
+                    dependencies: [{ key: "shows", label: "Shows", count: 1 }],
                 },
             }),
         );
@@ -331,5 +417,72 @@ describe("DELETE /api/admin/delete", () => {
         expect(mockRevalidateTag).toHaveBeenCalledWith("club-detail-data");
         expect(mockRevalidateTag).toHaveBeenCalledWith("club-metadata");
         expect(mockRevalidateTag).toHaveBeenCalledWith("Gotham Comedy Club");
+    });
+
+    it("writes podcast delete audit context and deletes through the podcast workflow", async () => {
+        const events: string[] = [];
+        const tx = buildTx({
+            episodeAppearance: { count: vi.fn().mockResolvedValue(9) },
+            episodeAppearanceReview: { count: vi.fn().mockResolvedValue(10) },
+            comedianPodcast: { count: vi.fn().mockResolvedValue(11) },
+            podcastCandidateReview: { count: vi.fn().mockResolvedValue(12) },
+            adminActionAudit: {
+                create: vi.fn().mockImplementation(async () => {
+                    events.push("audit");
+                    return { id: 456 };
+                }),
+            },
+            podcast: {
+                findUnique: vi.fn().mockResolvedValue(podcast),
+                delete: vi.fn().mockImplementation(async () => {
+                    events.push("delete");
+                    return podcast;
+                }),
+            },
+        });
+        mockTransaction.mockImplementation(async (callback) =>
+            callback(tx as never),
+        );
+
+        const res = await DELETE(
+            makeRequest("DELETE", {
+                entityType: "podcast",
+                entityId: 77,
+                reason: "duplicate podcast cleanup",
+                confirmation: podcastConfirmation,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.deleted).toMatchObject({
+            entityType: "podcast",
+            entityId: 77,
+            label: "Good One",
+        });
+        expect(events).toEqual(["audit", "delete"]);
+        expect(tx.adminActionAudit.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                actorProfileId: "profile-1",
+                action: "podcast.delete",
+                entityType: "podcast",
+                entityId: "77",
+                reason: "duplicate podcast cleanup",
+                before: expect.objectContaining({
+                    entity: expect.objectContaining({
+                        id: 77,
+                        slug: "good-one",
+                        title: "Good One",
+                        lastSyncedAt: "2026-05-01T12:00:00.000Z",
+                    }),
+                    dependencies: podcastDependencies,
+                }),
+                after: { deleted: true },
+            }),
+        });
+        expect(tx.podcast.delete).toHaveBeenCalledWith({ where: { id: 77 } });
+        expect(mockRevalidateTag).toHaveBeenCalledWith("podcast-detail-data");
+        expect(mockRevalidateTag).toHaveBeenCalledWith("podcast-metadata");
+        expect(mockRevalidateTag).toHaveBeenCalledWith("Good One");
     });
 });
