@@ -16,6 +16,12 @@ Is there an Eventbrite widget or eventbrite.com buy link?
   └── YES → platform: Eventbrite → scraper: eventbrite
               DB: eventbrite_id = organizer ID (11 digits) or venue ID (8-9 digits)
 
+Is there an Etix venue page or a venue-owned Rockhouse Partners event listing
+with etix.com/ticket/p/ buy links?
+  └── YES → platform: Etix → scraper: etix
+              DB: source_url = Etix venue URL if reachable, otherwise the
+                  venue-owned Rockhouse public listing URL
+
 Is there a SeatEngine buy link?
   └── Check the subdomain in the link:
       v-{uuid}.seatengine.net → scraper: seatengine_v3
@@ -174,6 +180,37 @@ The `calendar=` parameter **is the Eventbrite organizer ID** — use `scraper='e
 **DB setup:**
 ```sql
 UPDATE clubs SET scraper = 'eventbrite', eventbrite_id = '30460267696' WHERE name = 'My Club';
+```
+
+---
+
+### Etix / Rockhouse Partners
+
+| | |
+|---|---|
+| **Scraper key** | `etix` |
+| **Platform** | `etix` |
+| **DB field** | `source_url` |
+| **Value format** | Prefer `https://www.etix.com/ticket/v/{venue_id}/{slug}`. If that endpoint is DataDome-blocked but the venue site exposes the Rockhouse event widget, use the venue-owned public listing URL. |
+| **Generic?** | ✅ Generic for Etix venue pages and Rockhouse public listings with Etix ticket links |
+
+**Detection signals:**
+- Buy links point to `www.etix.com/ticket/p/...`
+- Venue link points to `www.etix.com/ticket/v/{venue_id}/...`
+- Footer says "Powered by ROCKHOUSE PARTNERS an ETIX company"
+- Event list markup contains Rockhouse classes such as `rhp-event__single-event--list`, `rhp-event__title--list`, or `rhp-events-list-separator-month`
+
+**DB setup:**
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled)
+VALUES (<club_id>, 'etix'::"ScrapingPlatform", 'etix', 'https://www.etix.com/ticket/v/<venue_id>/<slug>', 0, TRUE);
+```
+
+If the Etix venue API is DataDome-blocked and the venue-owned page has the Rockhouse widget, set `source_url` to the venue public listing instead:
+
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled)
+VALUES (<club_id>, 'etix'::"ScrapingPlatform", 'etix', 'https://venue.example.com/', 0, TRUE);
 ```
 
 ---

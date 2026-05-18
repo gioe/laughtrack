@@ -75,7 +75,7 @@ class EtixScraper(BaseScraper):
     def _extract_venue_id(self) -> str:
         """Extract the Etix venue ID from scraping_url."""
         url = self.club.scraping_url or ""
-        if self._is_funny_bone_public_url(url):
+        if self._is_rockhouse_public_url(url):
             return ""
         # Try venue_id query param
         m = re.search(r"venue_id=(\d+)", url)
@@ -97,7 +97,7 @@ class EtixScraper(BaseScraper):
         Fetches page 1 first to discover the total page count, then
         returns URLs for all pages.
         """
-        if self._uses_funny_bone_public_source():
+        if self._uses_rockhouse_public_source():
             return [self.club.scraping_url]
 
         if not self._venue_id:
@@ -126,8 +126,8 @@ class EtixScraper(BaseScraper):
     async def get_data(self, url: str) -> Optional[EtixPageData]:
         """Fetch a single page and extract event cards."""
         try:
-            if self._is_funny_bone_public_url(url):
-                return await self._get_funny_bone_public_data(url)
+            if self._is_rockhouse_public_url(url):
+                return await self._get_rockhouse_public_data(url)
 
             html = await self._fetch_etix_html(url)
             if not html:
@@ -307,14 +307,16 @@ class EtixScraper(BaseScraper):
             and "etix.com/ticket/mvc/online/upcomingEvents/venue" in url
         )
 
-    def _uses_funny_bone_public_source(self) -> bool:
-        return self._is_funny_bone_public_url(self.club.scraping_url)
+    def _uses_rockhouse_public_source(self) -> bool:
+        return self._is_rockhouse_public_url(self.club.scraping_url)
 
-    def _is_funny_bone_public_url(self, url: str) -> bool:
+    def _is_rockhouse_public_url(self, url: str) -> bool:
         if not url:
             return False
-        host = urlparse(url).netloc.lower()
-        return host.endswith(".funnybone.com") or host == "funnybone.com"
+        host = (urlparse(url).hostname or "").lower()
+        if not host:
+            return False
+        return host not in {"www.etix.com", "etix.com", "event.etix.com"}
 
     def _uses_zanies_nashville_fallback(self, url: str) -> bool:
         return (
@@ -513,20 +515,20 @@ class EtixScraper(BaseScraper):
         )
         return None
 
-    async def _get_funny_bone_public_data(self, shows_url: str) -> Optional[EtixPageData]:
-        """Parse a Funny Bone public page configured directly as source_url."""
+    async def _get_rockhouse_public_data(self, shows_url: str) -> Optional[EtixPageData]:
+        """Parse a venue-owned Rockhouse public page configured directly as source_url."""
         try:
             html = await self.fetch_html_bare(shows_url)
         except Exception as e:
             Logger.warn(
-                f"{self._log_prefix}: Funny Bone public source fetch failed for {shows_url}: {e}",
+                f"{self._log_prefix}: Rockhouse public source fetch failed for {shows_url}: {e}",
                 self.logger_context,
             )
             return None
 
         if not html:
             Logger.warn(
-                f"{self._log_prefix}: Funny Bone public source returned no HTML for {shows_url}",
+                f"{self._log_prefix}: Rockhouse public source returned no HTML for {shows_url}",
                 self.logger_context,
             )
             return None
@@ -534,19 +536,19 @@ class EtixScraper(BaseScraper):
         events = self._extract_funny_bone_events(html)
         if events:
             Logger.info(
-                f"{self._log_prefix}: Funny Bone public source extracted {len(events)} events from {shows_url}",
+                f"{self._log_prefix}: Rockhouse public source extracted {len(events)} events from {shows_url}",
                 self.logger_context,
             )
             return EtixPageData(event_list=events)
 
         Logger.warn(
-            f"{self._log_prefix}: Funny Bone public source found no usable events at {shows_url}",
+            f"{self._log_prefix}: Rockhouse public source found no usable events at {shows_url}",
             self.logger_context,
         )
         return None
 
     def _extract_funny_bone_events(self, html: str) -> List[EtixEvent]:
-        """Parse the Rockhouse Partners /shows/ widget shared across Funny Bone venues."""
+        """Parse the Rockhouse Partners event list widget used by Etix venues."""
         try:
             from bs4 import BeautifulSoup
         except Exception as e:

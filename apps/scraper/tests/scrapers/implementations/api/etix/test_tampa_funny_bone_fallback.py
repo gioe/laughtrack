@@ -234,3 +234,49 @@ async def test_funny_bone_public_source_is_scrape_target(monkeypatch):
     assert isinstance(result, EtixPageData)
     assert fetch_bare_calls == ["https://kc.funnybone.com/"]
     assert len(result.event_list) == 3
+
+
+@pytest.mark.asyncio
+async def test_rockhouse_public_source_is_scrape_target_for_non_funny_bone(monkeypatch):
+    from laughtrack.core.entities.club.model import Club, ScrapingSource
+    from laughtrack.scrapers.implementations.api.etix.data import EtixPageData
+    from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
+
+    club = Club(
+        id=2575,
+        name="Pueblo Memorial Hall",
+        address="1 City Hall Place",
+        website="https://pueblomemorialhall.com",
+        popularity=0,
+        zip_code="81003",
+        phone_number="",
+        visible=True,
+        timezone="America/Denver",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=1584,
+        club_id=club.id,
+        platform="etix",
+        scraper_key="etix",
+        source_url="https://pueblomemorialhall.com/",
+        external_id=None,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    scraper = EtixScraper(club)
+    fetch_bare_calls: list[str] = []
+
+    async def fake_fetch_html_bare(self, url: str) -> str:
+        fetch_bare_calls.append(url)
+        if url == "https://pueblomemorialhall.com/":
+            return _shows_html()
+        raise AssertionError(f"unexpected fetch_html_bare: {url}")
+
+    monkeypatch.setattr(EtixScraper, "fetch_html_bare", fake_fetch_html_bare)
+
+    targets = await scraper.collect_scraping_targets()
+    result = await scraper.get_data(targets[0])
+
+    assert targets == ["https://pueblomemorialhall.com/"]
+    assert isinstance(result, EtixPageData)
+    assert fetch_bare_calls == ["https://pueblomemorialhall.com/"]
+    assert len(result.event_list) == 3
