@@ -255,16 +255,25 @@ export async function getAdminOverviewData(): Promise<AdminOverviewData> {
             SELECT c.id AS club_id, c.name AS club_name, ss.platform::text AS platform,
                    ss.scraper_key, ss.source_url,
                    CASE
-                       WHEN ss.source_url IS NULL OR BTRIM(ss.source_url) = '' THEN 'missing source URL'
                        WHEN ss.scraper_key IS NULL OR BTRIM(ss.scraper_key) = '' THEN 'missing scraper key'
+                       WHEN ss.source_url IS NULL OR BTRIM(ss.source_url) = '' THEN 'missing source locator'
                        ELSE 'configuration needs review'
                    END AS issue
             FROM scraping_sources ss
             JOIN clubs c ON c.id = ss.club_id
             WHERE ss.enabled = TRUE
               AND (
-                  ss.source_url IS NULL OR BTRIM(ss.source_url) = ''
-                  OR ss.scraper_key IS NULL OR BTRIM(ss.scraper_key) = ''
+                  ss.scraper_key IS NULL OR BTRIM(ss.scraper_key) = ''
+                  OR (
+                      (ss.source_url IS NULL OR BTRIM(ss.source_url) = '')
+                      AND ss.seatengine_id IS NULL
+                      AND (ss.eventbrite_id IS NULL OR BTRIM(ss.eventbrite_id) = '')
+                      AND (ss.ticketmaster_id IS NULL OR BTRIM(ss.ticketmaster_id) = '')
+                      AND (ss.wix_event_id IS NULL OR BTRIM(ss.wix_event_id) = '')
+                      AND (ss.ovationtix_id IS NULL OR BTRIM(ss.ovationtix_id) = '')
+                      AND (ss.squadup_id IS NULL OR BTRIM(ss.squadup_id) = '')
+                      AND (ss.seatengine_v3_id IS NULL OR BTRIM(ss.seatengine_v3_id) = '')
+                  )
               )
             ORDER BY c.name ASC, ss.priority ASC
             LIMIT 8

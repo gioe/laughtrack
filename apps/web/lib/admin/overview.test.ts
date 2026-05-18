@@ -64,7 +64,7 @@ describe("getAdminOverviewData", () => {
                     platform: "custom",
                     scraper_key: "",
                     source_url: null,
-                    issue: "missing source URL",
+                    issue: "missing source locator",
                 },
             ] as never)
             .mockResolvedValueOnce([
