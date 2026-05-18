@@ -52,6 +52,16 @@ class TestBuildPunchupShow:
         assert result.metadata_text == "Some description"
         assert len(result.show_comedians) == 1
 
+    def test_tixologi_event_id_inferred_from_ticket_link(self):
+        result = PunchupExtractor._build_punchup_show(
+            _valid_data(
+                ticket_link="https://event.tixologi.com/event/8931/tickets",
+                tixologi_event_id=None,
+            )
+        )
+        assert result is not None
+        assert result.tixologi_event_id == "8931"
+
     def test_missing_title_returns_none(self):
         result = PunchupExtractor._build_punchup_show(_valid_data(title=""))
         assert result is None

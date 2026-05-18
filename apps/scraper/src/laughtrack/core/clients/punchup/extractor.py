@@ -15,13 +15,14 @@ query data, which contains the full event listing with lineup and ticket info.
 
 import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
+from laughtrack.core.clients.tixologi.extractor import TixologiExtractor
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
@@ -39,6 +40,7 @@ class PunchupShow:
     is_sold_out: bool
     metadata_text: Optional[str]
     show_comedians: List[Dict[str, Any]] = field(default_factory=list)
+    tixologi_ticket_types: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_show(
         self,
@@ -63,12 +65,7 @@ class PunchupShow:
 
             tickets: List[Ticket] = []
             if self.ticket_link:
-                tickets.append(
-                    ShowFactoryUtils.create_fallback_ticket(
-                        purchase_url=self.ticket_link,
-                        sold_out=self.is_sold_out,
-                    )
-                )
+                tickets = self._build_tickets()
 
             sorted_comedians = sorted(
                 self.show_comedians,
@@ -95,6 +92,49 @@ class PunchupShow:
         except Exception as e:
             Logger.error(f"Punchup ({club.name}): failed to convert show '{self.title}': {e}")
             return None
+
+    def _build_tickets(self) -> List[Ticket]:
+        """Build Tixologi-priced tickets when API data is available."""
+        tickets: List[Ticket] = []
+        for ticket_type in self.tixologi_ticket_types:
+            if not isinstance(ticket_type, dict):
+                continue
+
+            raw_price = ticket_type.get("initial_price")
+            try:
+                price = float(raw_price)
+            except (TypeError, ValueError):
+                continue
+
+            ticket_name = (ticket_type.get("name") or "General Admission").strip()
+            tickets.append(
+                ShowFactoryUtils.create_fallback_ticket(
+                    purchase_url=self.ticket_link,
+                    price=price,
+                    ticket_type=ticket_name or "General Admission",
+                    sold_out=self.is_sold_out or bool(ticket_type.get("sold_out", False)),
+                )
+            )
+
+        if not tickets:
+            tickets.append(
+                ShowFactoryUtils.create_fallback_ticket(
+                    purchase_url=self.ticket_link,
+                    sold_out=self.is_sold_out,
+                )
+            )
+        return tickets
+
+    def with_tixologi_ticket_types(self, ticket_types: List[Dict[str, Any]]) -> "PunchupShow":
+        """Return a copy carrying Tixologi ticket data for later sync conversion."""
+        return replace(
+            self,
+            tixologi_ticket_types=[
+                ticket_type
+                for ticket_type in ticket_types
+                if isinstance(ticket_type, dict)
+            ],
+        )
 
 
 class PunchupExtractor:
@@ -273,12 +313,17 @@ class PunchupExtractor:
         datetime_str = (data.get("datetime") or "").strip()
         if not title or not datetime_str:
             return None
+        ticket_link = data.get("ticket_link", "")
+        ticket_reference = TixologiExtractor.normalize_ticket_reference(
+            ticket_link,
+            data.get("tixologi_event_id"),
+        )
         return PunchupShow(
             id=data.get("id", ""),
             title=title,
             datetime_str=datetime_str,
-            ticket_link=data.get("ticket_link", ""),
-            tixologi_event_id=data.get("tixologi_event_id"),
+            ticket_link=ticket_reference.ticket_url or ticket_link,
+            tixologi_event_id=ticket_reference.event_id,
             is_sold_out=bool(data.get("is_sold_out", False)),
             metadata_text=data.get("metadata_text") or None,
             show_comedians=data.get("show_comedians") or [],
