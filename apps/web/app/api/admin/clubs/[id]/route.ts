@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
@@ -35,6 +36,7 @@ export async function PATCH(
 ) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
+    const { profileId } = gate.context;
 
     const { id: idParam } = await ctx.params;
     const id = Number(idParam);
@@ -78,13 +80,51 @@ export async function PATCH(
             : null;
 
     try {
-        const updated = await db.club.update({
-            where: { id },
-            data: {
-                description: normalizedDescription,
-                hours: hoursToWrite ?? Prisma.DbNull,
-            },
-            select: { id: true, name: true },
+        const updated = await db.$transaction(async (tx) => {
+            const before = await tx.club.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    hours: true,
+                },
+            });
+            if (!before) {
+                throw new Prisma.PrismaClientKnownRequestError(
+                    "Club not found",
+                    {
+                        code: "P2025",
+                        clientVersion: Prisma.prismaVersion.client,
+                    },
+                );
+            }
+
+            const after = await tx.club.update({
+                where: { id },
+                data: {
+                    description: normalizedDescription,
+                    hours: hoursToWrite ?? Prisma.DbNull,
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    hours: true,
+                },
+            });
+
+            await writeAdminActionAudit(tx, {
+                actorProfileId: profileId,
+                action: "club.update",
+                entityType: "club",
+                entityId: id,
+                reason: null,
+                before,
+                after,
+            });
+
+            return after;
         });
 
         revalidateTag("club-detail-data");
