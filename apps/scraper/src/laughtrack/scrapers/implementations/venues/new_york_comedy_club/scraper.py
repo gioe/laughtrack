@@ -80,6 +80,8 @@ class NewYorkComedyClubScraper(BaseScraper):
             if not filtered:
                 return None
 
+            await self._enrich_missing_prices_from_event_pages(filtered)
+
             return NewYorkComedyClubPageData(event_list=filtered)
 
         except Exception as e:
@@ -88,6 +90,28 @@ class NewYorkComedyClubScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _enrich_missing_prices_from_event_pages(self, events: list[JsonLdEvent]) -> None:
+        page_html_by_url: dict[str, str] = {}
+        for event in events:
+            if not _event_has_missing_or_zero_price(event) or not event.url:
+                continue
+
+            event_url = URLUtils.normalize_url(event.url)
+            if event_url not in page_html_by_url:
+                page_html_by_url[event_url] = await self.fetch_html(event_url)
+
+            offer = _cheapest_normal_offer_from_event_page(page_html_by_url[event_url], event_url)
+            if offer is None:
+                continue
+
+            if event.offers:
+                event.offers[0].price = offer.price
+                event.offers[0].price_currency = offer.price_currency or event.offers[0].price_currency
+                event.offers[0].availability = offer.availability or event.offers[0].availability
+                event.offers[0].name = offer.name or event.offers[0].name
+            else:
+                event.offers = [offer]
 
 
 def _normalize_street(address: str) -> str:
@@ -197,6 +221,63 @@ def _is_missing_or_zero_price(price: str) -> bool:
         return float(str(price).replace("$", "").strip()) == 0.0
     except ValueError:
         return False
+
+
+def _cheapest_normal_offer_from_event_page(html_content: str, event_url: str) -> Optional[Offer]:
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html_content or "", "html.parser")
+    offers = []
+    for row in soup.select(".ticket-info-row"):
+        name_node = row.select_one(".ticket-name-price")
+        if not name_node:
+            continue
+
+        name = _ticket_name_from_row(name_node)
+        if _is_special_offer_ticket(name):
+            continue
+
+        price_node = row.select_one(".breakdown-base-original") or row.select_one(".ticket-price.original")
+        price = _parse_price_text(price_node.get_text(" ", strip=True) if price_node else "")
+        if price is None or price == 0.0:
+            continue
+
+        offers.append(
+            Offer(
+                url=event_url,
+                price_currency="USD",
+                price=f"{price:.2f}",
+                availability="https://schema.org/InStock",
+                name=name or "General Admission",
+            )
+        )
+
+    return min(offers, key=lambda offer: float(offer.price)) if offers else None
+
+
+def _ticket_name_from_row(name_node) -> str:
+    for nested in name_node.select(".ticket-price-wrapper"):
+        nested.decompose()
+    return _normalize_ticket_name(name_node.get_text(" ", strip=True))
+
+
+def _normalize_ticket_name(name: str) -> str:
+    normalized = " ".join((name or "").split())
+    if normalized.isupper():
+        return normalized.title()
+    return normalized
+
+
+def _is_special_offer_ticket(name: str) -> bool:
+    normalized = name.lower()
+    return "special offer" in normalized or "comp" in normalized or "free" in normalized
+
+
+def _parse_price_text(text: str) -> Optional[float]:
+    match = re.search(r"\$?\s*(\d+(?:\.\d{1,2})?)", text or "")
+    if not match:
+        return None
+    return float(match.group(1))
 
 
 def _extract_rendered_calendar_events(html_content: str, timezone: str) -> list[JsonLdEvent]:
