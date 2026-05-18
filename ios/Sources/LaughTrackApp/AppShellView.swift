@@ -292,26 +292,70 @@ struct AppShellView: View {
                 Button {
                     shellState.selectPrimitive(primitive)
                 } label: {
-                    Text(primitive.title)
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundStyle(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.textInverse : theme.laughTrackTokens.colors.textPrimary)
-                        .padding(.horizontal, 12)
-                        .frame(height: 34)
-                        .background {
-                            Capsule()
-                                .fill(primitive == shellState.selectedPrimitive ? theme.laughTrackTokens.colors.accentStrong : theme.laughTrackTokens.colors.surfaceElevated.opacity(0.94))
-                                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 5)
-                        }
-                        .overlay {
-                            Capsule()
-                                .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
-                        }
+                    primitiveFilterLabel(for: primitive)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(primitive.title)
                 .accessibilityIdentifier(LaughTrackViewTestID.primitiveFilterButton(primitive.rawValue))
             }
         }
+    }
+
+    // Search pills act as a mode switcher (one is always active) → bold solid
+    // capsule with accent-orange selected state. Home/Favorites pills act as
+    // optional filters on top of the rails already on screen → outlined
+    // chip-style so they don't read as the same control as Search's pills.
+    private func primitiveFilterLabel(for primitive: SearchRootModel.Pivot) -> some View {
+        let tokens = theme.laughTrackTokens
+        let isSearchMode = shellState.selectedTab == .search
+        let isSelected = primitive == shellState.selectedPrimitive
+
+        return Text(primitive.title)
+            .font(tokens.typography.metadata)
+            .foregroundStyle(primitiveFilterForeground(isSearchMode: isSearchMode, isSelected: isSelected))
+            .padding(.horizontal, 12)
+            .frame(height: 34)
+            .background {
+                Capsule()
+                    .fill(primitiveFilterFill(isSearchMode: isSearchMode, isSelected: isSelected))
+                    .shadow(
+                        color: .black.opacity(isSearchMode ? 0.08 : 0),
+                        radius: isSearchMode ? 10 : 0,
+                        x: 0,
+                        y: isSearchMode ? 5 : 0
+                    )
+            }
+            .overlay {
+                Capsule()
+                    .stroke(
+                        primitiveFilterBorder(isSearchMode: isSearchMode, isSelected: isSelected),
+                        lineWidth: isSearchMode ? 1 : (isSelected ? 1.5 : 1)
+                    )
+            }
+    }
+
+    private func primitiveFilterForeground(isSearchMode: Bool, isSelected: Bool) -> Color {
+        let tokens = theme.laughTrackTokens
+        if isSearchMode {
+            return isSelected ? tokens.colors.textInverse : tokens.colors.textPrimary
+        }
+        return isSelected ? tokens.colors.accentStrong : tokens.colors.textSecondary
+    }
+
+    private func primitiveFilterFill(isSearchMode: Bool, isSelected: Bool) -> Color {
+        let tokens = theme.laughTrackTokens
+        if isSearchMode {
+            return isSelected ? tokens.colors.accentStrong : tokens.colors.surfaceElevated.opacity(0.94)
+        }
+        return .clear
+    }
+
+    private func primitiveFilterBorder(isSearchMode: Bool, isSelected: Bool) -> Color {
+        let tokens = theme.laughTrackTokens
+        if isSearchMode {
+            return tokens.colors.borderSubtle
+        }
+        return isSelected ? tokens.colors.accentStrong : tokens.colors.borderSubtle
     }
 
     private var primitiveFilterScroller: some View {
