@@ -904,6 +904,7 @@ struct ComedianPodcastPanel: View {
 struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
     let isCurrent: Bool
+    var showsRoleBadge = true
     let onSelect: () -> Void
     var onOpenPodcast: (() -> Void)?
 
@@ -954,7 +955,9 @@ struct PodcastAppearanceRow: View {
                             .lineLimit(1)
                     }
 
-                    PodcastAppearanceRoleBadge(title: item.displayRole)
+                    if showsRoleBadge {
+                        PodcastAppearanceRoleBadge(title: item.displayRole)
+                    }
                 }
             }
 
@@ -977,7 +980,15 @@ struct PodcastAppearanceRow: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
-        .accessibilityLabel("\(item.episodeTitle), \(item.podcastName), \(item.displayRole)")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        if showsRoleBadge {
+            return "\(item.episodeTitle), \(item.podcastName), \(item.displayRole)"
+        }
+
+        return "\(item.episodeTitle), \(item.podcastName)"
     }
 
     @ViewBuilder
