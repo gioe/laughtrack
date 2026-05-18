@@ -145,20 +145,12 @@ private struct SearchHeader: View {
     var body: some View {
         let tokens = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            Text("Search")
-                .font(tokens.typography.sectionTitle)
-                .foregroundStyle(tokens.colors.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-
-            Text("Find shows, comedians, clubs, and podcasts across LaughTrack.")
-                .font(tokens.typography.body)
-                .foregroundStyle(tokens.colors.textSecondary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(LaughTrackViewTestID.searchHeader)
+        Text("Search")
+            .font(tokens.typography.sectionTitle)
+            .foregroundStyle(tokens.colors.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier(LaughTrackViewTestID.searchHeader)
     }
 }
