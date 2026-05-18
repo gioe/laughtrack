@@ -467,10 +467,30 @@ model UserProfile {
   zipCode                     String?            @map("zip_code")
   nearbyDistanceMiles         Int?               @map("nearby_distance_miles")
   userid                      String             @unique @map("user_id")
+  adminActionAudits           AdminActionAudit[]
   favoriteComedians           FavoriteComedian[]
   user                        User               @relation(fields: [userid], references: [id])
 
   @@map("user_profiles")
+}
+
+model AdminActionAudit {
+  id             Int          @id @default(autoincrement())
+  actorProfileId String?      @map("actor_profile_id")
+  action         String
+  entityType     String       @map("entity_type")
+  entityId       String       @map("entity_id")
+  reason         String?
+  before         Json         @default("{}") @map("before_json")
+  after          Json         @default("{}") @map("after_json")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  actorProfile   UserProfile? @relation(fields: [actorProfileId], references: [id], onDelete: SetNull)
+
+  @@index([actorProfileId])
+  @@index([entityType, entityId, createdAt])
+  @@index([action, createdAt])
+  @@index([createdAt])
+  @@map("admin_action_audits")
 }
 
 model Account {
