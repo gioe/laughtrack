@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
     auth: vi.fn(),
+    findFirstUserProfile: vi.fn(),
     notFound: vi.fn(() => {
         throw new Error("NEXT_NOT_FOUND");
     }),
@@ -11,6 +12,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/auth", () => ({
     auth: mocks.auth,
+}));
+
+vi.mock("@/lib/db", () => ({
+    db: {
+        userProfile: {
+            findFirst: mocks.findFirstUserProfile,
+        },
+    },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -37,6 +46,11 @@ async function renderAdminLayout() {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mocks.findFirstUserProfile.mockResolvedValue({
+        id: "profile-1",
+        userid: "user-1",
+        role: "admin",
+    });
 });
 
 describe("AdminLayout", () => {
@@ -56,9 +70,37 @@ describe("AdminLayout", () => {
         mocks.auth.mockResolvedValue({
             profile: { id: "profile-1", userid: "user-1", role: "user" },
         });
+        mocks.findFirstUserProfile.mockResolvedValue({
+            id: "profile-1",
+            userid: "user-1",
+            role: "user",
+        });
 
         await expect(renderAdminLayout()).rejects.toThrow("NEXT_NOT_FOUND");
 
+        expect(mocks.notFound).toHaveBeenCalledOnce();
+    });
+
+    it("rejects stale admin sessions after the database profile was demoted", async () => {
+        mocks.auth.mockResolvedValue(adminSession);
+        mocks.findFirstUserProfile.mockResolvedValue({
+            id: "profile-1",
+            userid: "user-1",
+            role: "user",
+        });
+
+        await expect(renderAdminLayout()).rejects.toThrow("NEXT_NOT_FOUND");
+
+        expect(mocks.findFirstUserProfile).toHaveBeenCalledWith({
+            where: {
+                OR: [{ id: "profile-1" }, { userid: "user-1" }],
+            },
+            select: {
+                id: true,
+                userid: true,
+                role: true,
+            },
+        });
         expect(mocks.notFound).toHaveBeenCalledOnce();
     });
 

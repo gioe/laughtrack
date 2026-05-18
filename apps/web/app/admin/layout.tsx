@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { isAdminSession } from "@/lib/auth/requireAdmin";
 import { Button } from "@/ui/components/ui/button";
 import {
     BadgeCheck,
@@ -32,8 +32,7 @@ export default async function AdminLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const session = await auth();
-    if (session?.profile?.role !== "admin") notFound();
+    if (!(await isAdminSession())) notFound();
 
     return (
         <div className="min-h-screen bg-ecru-white text-cedar">
