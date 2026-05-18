@@ -127,6 +127,20 @@ describe("POST /api/admin/insights", () => {
         expect(mockQueryRaw).not.toHaveBeenCalled();
     });
 
+    it("rejects object prototype keys as unknown insight names", async () => {
+        const res = await POST(
+            makePostRequest({
+                insight: "__proto__",
+                params: { limit: 10 },
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.error).toBe("Unknown insight");
+        expect(mockQueryRaw).not.toHaveBeenCalled();
+    });
+
     it("rejects invalid parameters before running a query", async () => {
         const res = await POST(
             makePostRequest({

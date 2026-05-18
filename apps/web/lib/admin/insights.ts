@@ -381,5 +381,9 @@ export function listAdminInsights() {
 }
 
 export function getAdminInsight(name: string) {
-    return adminInsightRegistry[name as AdminInsightName] ?? null;
+    if (!Object.hasOwn(adminInsightRegistry, name)) {
+        return null;
+    }
+
+    return adminInsightRegistry[name as AdminInsightName];
 }
