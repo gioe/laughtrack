@@ -13,8 +13,8 @@ import { notFound } from "next/navigation";
 const ADMIN_NAV_ITEMS = [
     {
         label: "Overview",
-        href: "/admin",
-        description: "Portal home",
+        href: "/admin/overview",
+        description: "Run health",
         icon: LayoutDashboard,
     },
     {
@@ -94,13 +94,19 @@ export default async function AdminLayout({
                     })}
                 </nav>
             </header>
-            <main id="main-content" className="mx-auto max-w-7xl px-4 py-8 md:px-8">
+            <main
+                id="main-content"
+                className="mx-auto max-w-7xl px-4 py-8 md:px-8"
+            >
                 {children}
             </main>
             <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-soft-charcoal md:px-8">
                 <span>LaughTrack operations</span>
                 <ChevronRight className="h-4 w-4 text-copper" />
-                <Link href="/" className="font-semibold text-copper hover:underline">
+                <Link
+                    href="/"
+                    className="font-semibold text-copper hover:underline"
+                >
                     Back to public site
                 </Link>
             </footer>
