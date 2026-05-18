@@ -7,6 +7,17 @@ vi.mock("@/auth", () => ({
 
 vi.mock("@/lib/db", () => ({
     db: {
+        $transaction: vi.fn(async (callback) =>
+            callback({
+                club: {
+                    findUnique: vi.fn(),
+                    update: vi.fn(),
+                },
+                adminActionAudit: {
+                    create: vi.fn(),
+                },
+            }),
+        ),
         club: {
             update: vi.fn(),
         },
@@ -28,6 +39,7 @@ import { revalidateTag } from "next/cache";
 
 const mockAuth = vi.mocked(auth);
 const mockUpdate = vi.mocked(db.club.update);
+const mockTransaction = vi.mocked(db.$transaction);
 const mockRevalidateTag = vi.mocked(revalidateTag);
 
 const CLUB_ID = 42;
@@ -54,6 +66,22 @@ const adminSession = {
 
 beforeEach(() => {
     vi.clearAllMocks();
+    mockTransaction.mockImplementation(async (callback) =>
+        callback({
+            club: {
+                findUnique: vi.fn().mockResolvedValue({
+                    id: CLUB_ID,
+                    name: "Comedy Cellar",
+                    description: "Old description",
+                    hours: null,
+                }),
+                update: mockUpdate,
+            },
+            adminActionAudit: {
+                create: vi.fn(),
+            },
+        } as never),
+    );
 });
 
 describe("PATCH /api/admin/clubs/[id]", () => {
@@ -171,8 +199,14 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 description: "Great club",
                 hours: { monday: "Closed", tuesday: "7 PM - 11 PM" },
             }),
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                hours: true,
+            },
         });
+        expect(mockTransaction).toHaveBeenCalledTimes(1);
 
         const calledTags = mockRevalidateTag.mock.calls.map((c) => c[0]);
         expect(calledTags).toEqual(
@@ -201,7 +235,85 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 description: null,
                 hours: Symbol.for("Prisma.DbNull"),
             }),
-            select: { id: true, name: true },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                hours: true,
+            },
+        });
+    });
+
+    it("writes the club update audit row in the same transaction", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        const auditCreate = vi.fn();
+        const findUnique = vi.fn().mockResolvedValue({
+            id: CLUB_ID,
+            name: "Gotham",
+            description: "Old",
+            hours: { monday: "Closed" },
+        });
+        const update = vi.fn().mockResolvedValue({
+            id: CLUB_ID,
+            name: "Gotham",
+            description: "New",
+            hours: { monday: "7 PM - 11 PM" },
+        });
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                club: { findUnique, update },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const [req, ctx] = makeRequest({
+            description: "New",
+            hours: {
+                monday: "7 PM - 11 PM",
+                tuesday: "",
+                wednesday: "",
+                thursday: "",
+                friday: "",
+                saturday: "",
+                sunday: "",
+            },
+        });
+        const res = await PATCH(req, ctx);
+
+        expect(res.status).toBe(200);
+        expect(findUnique).toHaveBeenCalledWith({
+            where: { id: CLUB_ID },
+            select: { id: true, name: true, description: true, hours: true },
+        });
+        expect(update).toHaveBeenCalledWith({
+            where: { id: CLUB_ID },
+            data: expect.objectContaining({
+                description: "New",
+                hours: { monday: "7 PM - 11 PM" },
+            }),
+            select: { id: true, name: true, description: true, hours: true },
+        });
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: {
+                actorProfileId: "profile-1",
+                action: "club.update",
+                entityType: "club",
+                entityId: String(CLUB_ID),
+                reason: null,
+                before: {
+                    id: CLUB_ID,
+                    name: "Gotham",
+                    description: "Old",
+                    hours: { monday: "Closed" },
+                },
+                after: {
+                    id: CLUB_ID,
+                    name: "Gotham",
+                    description: "New",
+                    hours: { monday: "7 PM - 11 PM" },
+                },
+            },
         });
     });
 });
