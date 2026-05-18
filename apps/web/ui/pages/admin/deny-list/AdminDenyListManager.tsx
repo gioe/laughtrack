@@ -21,6 +21,10 @@ type Props = {
     entries: AdminDenyListEntry[];
 };
 
+function formatAddedAt(iso: string) {
+    return iso.replace("T", " ").replace(".000Z", " UTC");
+}
+
 export default function AdminDenyListManager({ entries }: Props) {
     const router = useRouter();
     const [name, setName] = useState("");
@@ -171,7 +175,9 @@ export default function AdminDenyListManager({ entries }: Props) {
                             </div>
                             <div className="mt-2 text-xs text-gray-600">
                                 {entry.addedBy} ·{" "}
-                                {new Date(entry.addedAt).toLocaleString()}
+                                <time dateTime={entry.addedAt}>
+                                    {formatAddedAt(entry.addedAt)}
+                                </time>
                             </div>
                         </div>
                         <div className="flex items-end gap-2">
