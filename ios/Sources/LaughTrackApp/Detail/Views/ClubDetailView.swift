@@ -50,7 +50,8 @@ struct ClubDetailView: View {
                         actions: clubHeroActions(club: club),
                         openURL: { url in
                             openURL(url)
-                        }
+                        },
+                        fallbackSystemImage: "building.2.fill"
                     )
                     .ignoresSafeArea(.container, edges: .top)
 
