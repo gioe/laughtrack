@@ -1,6 +1,7 @@
 """HTML extraction for Troy Savings Bank Music Hall's official events pages."""
 
 from dataclasses import replace
+from datetime import datetime
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
@@ -101,9 +102,14 @@ class TroySavingsBankMusicHallExtractor:
         if ticket_el:
             ticket_url = urljoin(base_url, ticket_el.get("href", ""))
 
+        detail_date_str, detail_time_str = (
+            TroySavingsBankMusicHallExtractor._extract_start_datetime(soup)
+        )
         description = TroySavingsBankMusicHallExtractor._extract_description(soup)
         return replace(
             event,
+            date_str=detail_date_str or event.date_str,
+            time_str=detail_time_str or event.time_str,
             ticket_url=ticket_url or event.ticket_url,
             description=description or event.description,
         )
@@ -122,6 +128,21 @@ class TroySavingsBankMusicHallExtractor:
                 meta.get("content", "") if meta else ""
             )
         return TroySavingsBankMusicHallExtractor._clean(editor.get_text(" ", strip=True))
+
+    @staticmethod
+    def _extract_start_datetime(soup: BeautifulSoup) -> tuple[str, str]:
+        start_el = soup.select_one('[itemprop="startDate"][content]')
+        if start_el is None:
+            return "", ""
+
+        try:
+            start_dt = datetime.fromisoformat(start_el.get("content", ""))
+        except ValueError:
+            return "", ""
+
+        date_str = f"{start_dt:%b} {start_dt.day} {start_dt.year}"
+        time_str = start_dt.strftime("%I:%M%p").lstrip("0")
+        return date_str, time_str
 
     @staticmethod
     def _clean(value: str) -> str:

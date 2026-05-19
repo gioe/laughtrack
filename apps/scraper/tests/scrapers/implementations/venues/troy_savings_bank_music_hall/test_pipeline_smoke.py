@@ -181,8 +181,27 @@ def test_detail_enrichment_adds_description_and_ticket_url():
     )
 
     assert enriched.ticket_url == LESLIE_TICKET_URL
+    assert enriched.date_str == "Oct 10 2026"
+    assert enriched.time_str == "8:00PM"
     assert "three-time Primetime Emmy Award nominee" in enriched.description
     assert "comedian Lenny Marcus" in enriched.description
+
+
+def test_detail_enrichment_uses_detail_year_when_list_year_is_stale():
+    event = TroySavingsBankMusicHallExtractor.extract_listing_events(
+        _listing_html(),
+        LIST_URL,
+        year=2027,
+    )[3]
+
+    enriched = TroySavingsBankMusicHallExtractor.enrich_event_from_detail_page(
+        event,
+        _detail_html(),
+    )
+
+    assert event.date_str == "Oct 10 2027"
+    assert enriched.date_str == "Oct 10 2026"
+    assert enriched.time_str == "8:00PM"
 
 
 @pytest.mark.asyncio
