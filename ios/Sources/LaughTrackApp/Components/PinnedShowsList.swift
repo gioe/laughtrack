@@ -11,7 +11,8 @@ import LaughTrackCore
 ///
 /// The pinned name pre-fills the corresponding filter, hides the matching
 /// search field in the toolbar, and is locked in for the lifetime of the
-/// view. Distance/sort/date/filter pills still work as on the search tab.
+/// view. The compact rail keeps location/date controls without the full
+/// search-tab sort/filter chrome.
 struct PinnedShowsList: View {
     let apiClient: Client
     @StateObject private var model: ShowsListModel
@@ -35,6 +36,6 @@ struct PinnedShowsList: View {
     }
 
     var body: some View {
-        ShowsListView(apiClient: apiClient, model: model)
+        ShowsListView(apiClient: apiClient, model: model, compactMode: true)
     }
 }

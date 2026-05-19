@@ -12,6 +12,7 @@ struct ShowsListView: View {
     var unifiedSearchText: Binding<String>?
     var unifiedSearchPrompt: String?
     var displaysSearchFields = true
+    var compactMode = false
     var isActive = true
 
     @Environment(\.appTheme) private var theme
@@ -28,28 +29,30 @@ struct ShowsListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if let unifiedSearchText {
-                    SearchField(
-                        title: "Search",
-                        prompt: unifiedSearchPrompt ?? "Search shows",
-                        text: unifiedSearchText,
-                        showsTitle: false
-                    )
-                } else if displaysSearchFields {
-                    if !model.isComedianPinned {
+                if !compactMode {
+                    if let unifiedSearchText {
                         SearchField(
-                            title: "Comedian",
-                            prompt: "Mark Normand, Atsuko Okatsuka…",
-                            text: $model.comedianSearchText
+                            title: "Search",
+                            prompt: unifiedSearchPrompt ?? "Search shows",
+                            text: unifiedSearchText,
+                            showsTitle: false
                         )
-                    }
+                    } else if displaysSearchFields {
+                        if !model.isComedianPinned {
+                            SearchField(
+                                title: "Comedian",
+                                prompt: "Mark Normand, Atsuko Okatsuka…",
+                                text: $model.comedianSearchText
+                            )
+                        }
 
-                    if !model.isClubPinned {
-                        SearchField(
-                            title: "Club",
-                            prompt: "Comedy Cellar, The Stand…",
-                            text: $model.clubSearchText
-                        )
+                        if !model.isClubPinned {
+                            SearchField(
+                                title: "Club",
+                                prompt: "Comedy Cellar, The Stand…",
+                                text: $model.clubSearchText
+                            )
+                        }
                     }
                 }
 
@@ -60,7 +63,8 @@ struct ShowsListView: View {
                     isZipEditorPresented: $isZipEditorPresented,
                     isFilterEditorPresented: $isFilterEditorPresented,
                     isDateEditorPresented: $isDateEditorPresented,
-                    openDropdownID: $openDropdownID
+                    openDropdownID: $openDropdownID,
+                    compactMode: compactMode
                 )
 
                 if let message = nationwideComedianSearchMessage {
@@ -202,6 +206,7 @@ private struct ShowFiltersPanel: View {
     @Binding var isFilterEditorPresented: Bool
     @Binding var isDateEditorPresented: Bool
     @Binding var openDropdownID: String?
+    let compactMode: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
@@ -216,13 +221,15 @@ private struct ShowFiltersPanel: View {
                     )
                 }
 
-                PillDropdownTrigger(
-                    id: "shows-sort",
-                    selected: model.sort,
-                    triggerLabel: { $0.title },
-                    accessibilityLabel: { "Sort \($0.title)" },
-                    openDropdownID: $openDropdownID
-                )
+                if !compactMode {
+                    PillDropdownTrigger(
+                        id: "shows-sort",
+                        selected: model.sort,
+                        triggerLabel: { $0.title },
+                        accessibilityLabel: { "Sort \($0.title)" },
+                        openDropdownID: $openDropdownID
+                    )
+                }
 
                 if model.allowsLocationFiltering {
                     PillSheetTrigger(
@@ -244,13 +251,15 @@ private struct ShowFiltersPanel: View {
                     isDateEditorPresented = true
                 }
 
-                PillSheetTrigger(
-                    title: activeFilterCount > 0 ? filterCountTitle : "Filters",
-                    systemImage: "line.3.horizontal.decrease",
-                    isActive: activeFilterCount > 0,
-                    accessibilityLabel: "Filter results"
-                ) {
-                    isFilterEditorPresented = true
+                if !compactMode {
+                    PillSheetTrigger(
+                        title: activeFilterCount > 0 ? filterCountTitle : "Filters",
+                        systemImage: "line.3.horizontal.decrease",
+                        isActive: activeFilterCount > 0,
+                        accessibilityLabel: "Filter results"
+                    ) {
+                        isFilterEditorPresented = true
+                    }
                 }
             }
 

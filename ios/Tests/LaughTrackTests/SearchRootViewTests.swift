@@ -178,6 +178,34 @@ struct SearchRootViewTests {
         #expect(request.operationID == "searchShows")
         #expect(searchRootQueryValue("comedian", from: request.path) == "Atsuko")
     }
+
+    #if canImport(UIKit)
+    @Test("shows list compact mode hides full search and filter chrome")
+    func showsListCompactModeHidesFullSearchAndFilterChrome() async throws {
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shows-list-compact-mode")
+        let nearbyLocationController = container.resolve(NearbyLocationController.self)
+        let model = ShowsListModel(nearbyLocationController: nearbyLocationController)
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let host = HostedView(
+            ShowsListView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                model: model,
+                compactMode: true,
+                isActive: false
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
+            .navigationCoordinator(coordinator)
+        )
+
+        let dump = host.dumpAccessibilityTree()
+        #expect(!dump.contains("Comedian"))
+        #expect(!dump.contains("Club"))
+        #expect(!dump.contains("Sort Earliest"))
+        #expect(!dump.contains("Filter results"))
+        #expect(dump.contains("Today"))
+    }
+    #endif
 }
 
 @Suite("Search root model")
