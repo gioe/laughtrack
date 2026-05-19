@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
+import Link from "next/link";
 
 export default function GlobalError({
     error,
@@ -27,18 +28,20 @@ export default function GlobalError({
                         gap: "24px",
                         padding: "16px",
                         textAlign: "center",
+                        background: "#fafaf0",
+                        color: "#361E14",
                     }}
                 >
                     <h1
                         style={{
                             fontSize: "2rem",
                             fontWeight: "bold",
-                            color: "#1f2937",
+                            color: "#361E14",
                         }}
                     >
                         Something went wrong
                     </h1>
-                    <p style={{ color: "#6b7280", maxWidth: "28rem" }}>
+                    <p style={{ color: "#4A4A4A", maxWidth: "28rem" }}>
                         An unexpected error occurred. You can try again or head
                         back to the home page.
                     </p>
@@ -47,7 +50,7 @@ export default function GlobalError({
                             onClick={reset}
                             style={{
                                 padding: "8px 20px",
-                                background: "#3b82f6",
+                                background: "#7A3F16",
                                 color: "#fff",
                                 borderRadius: "6px",
                                 border: "none",
@@ -56,19 +59,19 @@ export default function GlobalError({
                         >
                             Try again
                         </button>
-                        <a
+                        <Link
                             href="/"
                             style={{
                                 padding: "8px 20px",
                                 background: "transparent",
-                                color: "#374151",
+                                color: "#7A3F16",
                                 borderRadius: "6px",
-                                border: "1px solid #d1d5db",
+                                border: "2px solid #7A3F16",
                                 textDecoration: "none",
                             }}
                         >
                             Go home
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </body>

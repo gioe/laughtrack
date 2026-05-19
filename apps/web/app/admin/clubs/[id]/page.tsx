@@ -38,7 +38,7 @@ export default async function AdminClubEditPage(props: {
             <div className="mb-4 text-sm">
                 <Link
                     href="/admin/clubs"
-                    className="text-copper hover:underline"
+                    className="text-copper-dark hover:underline"
                 >
                     ← All clubs
                 </Link>

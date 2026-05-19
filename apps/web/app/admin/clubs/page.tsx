@@ -40,12 +40,10 @@ export default async function AdminClubsPage(props: {
     return (
         <div className="mx-auto max-w-5xl">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h1 className="font-chivo text-h1 text-cedar">
-                    Admin · Clubs
-                </h1>
+                <h1 className="font-chivo text-h1 text-cedar">Admin · Clubs</h1>
                 <Link
                     href="/admin/deny-list"
-                    className="text-sm font-medium text-copper hover:underline"
+                    className="text-sm font-medium text-copper-dark hover:underline"
                 >
                     Deny list
                 </Link>

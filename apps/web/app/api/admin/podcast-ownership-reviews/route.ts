@@ -9,8 +9,8 @@ import { z } from "zod";
 
 const decisionSchema = z
     .object({
-        candidateId: z.number().int().positive(),
-        action: z.enum(["accept", "reject"]),
+        podcastId: z.number().int().positive(),
+        ownerComedianId: z.number().int().positive().nullable(),
         reason: z.string().trim().max(1000).optional(),
     })
     .strict();
@@ -55,6 +55,35 @@ function candidateSnapshot(candidate: {
     };
 }
 
+function ownershipSnapshot(ownership: {
+    id: number;
+    comedianId: number;
+    podcastId: number;
+    associationType: string;
+    source: string;
+    reviewStatus: string;
+    confidence: number;
+    evidence?: Prisma.JsonValue;
+    reviewedAt: Date | null;
+    reviewedBy: string | null;
+}) {
+    return {
+        id: ownership.id,
+        comedianId: ownership.comedianId,
+        podcastId: ownership.podcastId,
+        associationType: ownership.associationType,
+        source: ownership.source,
+        reviewStatus: ownership.reviewStatus,
+        confidence: ownership.confidence,
+        evidence:
+            "evidence" in ownership
+                ? jsonForWrite(ownership.evidence ?? {})
+                : undefined,
+        reviewedAt: ownership.reviewedAt?.toISOString() ?? null,
+        reviewedBy: ownership.reviewedBy,
+    };
+}
+
 function jsonForWrite(value: Prisma.JsonValue): Prisma.InputJsonValue {
     return value === null ? {} : value;
 }
@@ -89,13 +118,36 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const { candidateId, action } = parsed.data;
+    const { podcastId, ownerComedianId } = parsed.data;
     const reason = parsed.data.reason?.trim() || null;
 
     try {
         const result = await db.$transaction(async (tx) => {
-            const before = await tx.podcastCandidateReview.findUnique({
-                where: { id: candidateId },
+            const podcast = await tx.podcast.findUnique({
+                where: { id: podcastId },
+                select: {
+                    id: true,
+                    slug: true,
+                    title: true,
+                },
+            });
+            if (!podcast) return null;
+
+            const owner = ownerComedianId
+                ? await tx.comedian.findUnique({
+                      where: { id: ownerComedianId },
+                      select: { id: true, name: true, uuid: true },
+                  })
+                : null;
+            if (ownerComedianId && !owner) {
+                return { missingOwner: true, podcast };
+            }
+
+            const beforeCandidates = await tx.podcastCandidateReview.findMany({
+                where: {
+                    podcastId,
+                    candidateStatus: "pending",
+                },
                 select: {
                     id: true,
                     comedianId: true,
@@ -123,128 +175,177 @@ export async function POST(req: NextRequest) {
                         },
                     },
                 },
+                orderBy: [{ confidence: "desc" }, { id: "asc" }],
             });
 
-            if (!before) return null;
-            if (before.candidateStatus !== "pending") {
-                return { conflict: true, candidate: before };
-            }
-            if (action === "accept" && !before.podcastId) {
-                return { missingPodcast: true, candidate: before };
-            }
+            const beforeOwnerships = await tx.comedianPodcast.findMany({
+                where: { podcastId },
+                select: {
+                    id: true,
+                    comedianId: true,
+                    podcastId: true,
+                    source: true,
+                    associationType: true,
+                    reviewStatus: true,
+                    confidence: true,
+                    evidence: true,
+                    reviewedAt: true,
+                    reviewedBy: true,
+                },
+            });
 
             const reviewedAt = new Date();
-            const associationType = before.associationType ?? "host";
-            const after = await tx.podcastCandidateReview.update({
-                where: { id: candidateId },
-                data: {
-                    candidateStatus:
-                        action === "accept" ? "accepted" : "rejected",
-                    associationType,
-                    reviewedAt,
-                    reviewedBy: profileId,
-                },
-                select: {
-                    id: true,
-                    comedianId: true,
-                    podcastId: true,
-                    source: true,
-                    sourcePodcastId: true,
-                    candidateStatus: true,
-                    associationType: true,
-                    confidence: true,
-                    evidence: true,
-                    reviewedAt: true,
-                    reviewedBy: true,
-                    comedian: {
-                        select: {
-                            id: true,
-                            name: true,
-                            uuid: true,
-                        },
-                    },
-                    podcast: {
-                        select: {
-                            id: true,
-                            slug: true,
-                            title: true,
-                        },
-                    },
-                },
-            });
+            const ownerCandidate = ownerComedianId
+                ? (beforeCandidates.find(
+                      (candidate) => candidate.comedianId === ownerComedianId,
+                  ) ?? null)
+                : null;
+            const associationType = ownerCandidate?.associationType ?? "host";
+            const ownerSource = ownerCandidate?.source ?? "manual";
+            const ownerConfidence = ownerCandidate?.confidence ?? 1;
+            const ownerEvidence = ownerCandidate
+                ? jsonForWrite(ownerCandidate.evidence)
+                : {
+                      adminAdded: true,
+                      reason,
+                  };
 
-            const ownership =
-                action === "accept" && before.podcastId
-                    ? await tx.comedianPodcast.upsert({
-                          where: {
-                              comedianId_podcastId_associationType_source: {
-                                  comedianId: before.comedianId,
-                                  podcastId: before.podcastId,
-                                  associationType,
-                                  source: before.source,
-                              },
-                          },
-                          create: {
-                              comedianId: before.comedianId,
-                              podcastId: before.podcastId,
+            if (ownerComedianId) {
+                await tx.podcastCandidateReview.updateMany({
+                    where: {
+                        podcastId,
+                        candidateStatus: "pending",
+                        comedianId: ownerComedianId,
+                    },
+                    data: {
+                        candidateStatus: "accepted",
+                        associationType,
+                        reviewedAt,
+                        reviewedBy: profileId,
+                    },
+                });
+                await tx.podcastCandidateReview.updateMany({
+                    where: {
+                        podcastId,
+                        candidateStatus: "pending",
+                        comedianId: { not: ownerComedianId },
+                    },
+                    data: {
+                        candidateStatus: "rejected",
+                        reviewedAt,
+                        reviewedBy: profileId,
+                    },
+                });
+                await tx.comedianPodcast.updateMany({
+                    where: {
+                        podcastId,
+                        reviewStatus: "accepted",
+                        comedianId: { not: ownerComedianId },
+                    },
+                    data: {
+                        reviewStatus: "rejected",
+                        reviewedAt,
+                        reviewedBy: profileId,
+                    },
+                });
+            } else {
+                await tx.podcastCandidateReview.updateMany({
+                    where: {
+                        podcastId,
+                        candidateStatus: "pending",
+                    },
+                    data: {
+                        candidateStatus: "rejected",
+                        reviewedAt,
+                        reviewedBy: profileId,
+                    },
+                });
+                await tx.comedianPodcast.updateMany({
+                    where: {
+                        podcastId,
+                        reviewStatus: "accepted",
+                    },
+                    data: {
+                        reviewStatus: "rejected",
+                        reviewedAt,
+                        reviewedBy: profileId,
+                    },
+                });
+            }
+
+            const ownership = ownerComedianId
+                ? await tx.comedianPodcast.upsert({
+                      where: {
+                          comedianId_podcastId_associationType_source: {
+                              comedianId: ownerComedianId,
+                              podcastId,
                               associationType,
-                              source: before.source,
-                              reviewStatus: "accepted",
-                              confidence: before.confidence,
-                              evidence: jsonForWrite(before.evidence),
-                              reviewedAt,
-                              reviewedBy: profileId,
+                              source: ownerSource,
                           },
-                          update: {
-                              reviewStatus: "accepted",
-                              confidence: before.confidence,
-                              evidence: jsonForWrite(before.evidence),
-                              reviewedAt,
-                              reviewedBy: profileId,
-                          },
-                      })
-                    : null;
+                      },
+                      create: {
+                          comedianId: ownerComedianId,
+                          podcastId,
+                          associationType,
+                          source: ownerSource,
+                          reviewStatus: "accepted",
+                          confidence: ownerConfidence,
+                          evidence: ownerEvidence,
+                          reviewedAt,
+                          reviewedBy: profileId,
+                      },
+                      update: {
+                          reviewStatus: "accepted",
+                          confidence: ownerConfidence,
+                          evidence: ownerEvidence,
+                          reviewedAt,
+                          reviewedBy: profileId,
+                      },
+                  })
+                : null;
 
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
-                action: `podcast_candidate_review.${action}`,
-                entityType: "podcast_candidate_review",
-                entityId: candidateId,
+                action: ownerComedianId
+                    ? "podcast_ownership_review.approve"
+                    : "podcast_ownership_review.block",
+                entityType: "podcast",
+                entityId: podcastId,
                 reason,
-                before: candidateSnapshot(before),
+                before: {
+                    podcast,
+                    candidates: beforeCandidates.map(candidateSnapshot),
+                    ownerships: beforeOwnerships.map(ownershipSnapshot),
+                },
                 after: {
-                    candidate: candidateSnapshot(after),
-                    ownership,
+                    podcast,
+                    owner,
+                    ownership: ownership ? ownershipSnapshot(ownership) : null,
                 },
             });
 
-            return { candidate: after, ownership };
+            return { podcast, owner, ownership };
         });
 
         if (!result) {
             return NextResponse.json(
-                { error: "Candidate not found" },
+                { error: "Podcast not found" },
                 { status: 404 },
             );
         }
-        if ("conflict" in result) {
+        if ("missingOwner" in result) {
             return NextResponse.json(
-                { error: "Candidate has already been reviewed" },
-                { status: 409 },
-            );
-        }
-        if ("missingPodcast" in result) {
-            return NextResponse.json(
-                { error: "Candidate is not linked to a podcast" },
+                { error: "Owner comedian not found" },
                 { status: 422 },
             );
         }
 
-        revalidatePodcastReviewSurfaces(result.candidate.podcast?.slug);
+        revalidatePodcastReviewSurfaces(result.podcast.slug);
 
         return NextResponse.json({
             ok: true,
-            candidate: candidateSnapshot(result.candidate),
+            podcast: result.podcast,
+            owner: result.owner,
             ownership: result.ownership,
         });
     } catch (error) {

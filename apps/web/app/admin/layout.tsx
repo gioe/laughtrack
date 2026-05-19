@@ -67,7 +67,7 @@ export default async function AdminLayout({
                         </div>
                     </Link>
                     <div className="flex items-center gap-2 rounded-md border border-copper/25 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
-                        <BadgeCheck className="h-4 w-4 text-copper" />
+                        <BadgeCheck className="h-4 w-4 text-copper-dark" />
                         Admin access
                     </div>
                 </div>
@@ -108,10 +108,10 @@ export default async function AdminLayout({
             </main>
             <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-soft-charcoal md:px-8">
                 <span>LaughTrack operations</span>
-                <ChevronRight className="h-4 w-4 text-copper" />
+                <ChevronRight className="h-4 w-4 text-copper-dark" />
                 <Link
                     href="/"
-                    className="font-semibold text-copper hover:underline"
+                    className="font-semibold text-copper-dark hover:underline"
                 >
                     Back to public site
                 </Link>

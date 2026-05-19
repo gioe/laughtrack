@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ExternalLink, X } from "lucide-react";
+import { ExternalLink, Plus, Save, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
@@ -8,11 +8,32 @@ import type { AdminPodcastOwnershipReviewCandidate } from "@/lib/admin/podcastOw
 
 export type { AdminPodcastOwnershipReviewCandidate };
 
-type Decision = "accept" | "reject";
-
 type Status = {
     kind: "idle" | "ok" | "error";
     message?: string;
+};
+
+type OwnerOption = {
+    id: number;
+    uuid: string;
+    name: string;
+    confidence?: number;
+    source?: string;
+    associationType?: string | null;
+};
+
+type PodcastReviewGroup = {
+    key: string;
+    podcast: NonNullable<AdminPodcastOwnershipReviewCandidate["podcast"]>;
+    candidates: AdminPodcastOwnershipReviewCandidate[];
+    ownerOptions: OwnerOption[];
+    initialOwner: OwnerOption | null;
+};
+
+type SearchResult = {
+    id: number;
+    uuid: string;
+    name: string;
 };
 
 type Props = {
@@ -32,31 +53,133 @@ function evidencePreview(evidence: unknown) {
     return JSON.stringify(evidence, null, 2);
 }
 
+function groupCandidates(
+    candidates: AdminPodcastOwnershipReviewCandidate[],
+): PodcastReviewGroup[] {
+    const byPodcast = new Map<number, AdminPodcastOwnershipReviewCandidate[]>();
+    for (const candidate of candidates) {
+        if (!candidate.podcast) continue;
+        const rows = byPodcast.get(candidate.podcast.id) ?? [];
+        rows.push(candidate);
+        byPodcast.set(candidate.podcast.id, rows);
+    }
+
+    return Array.from(byPodcast.entries()).map(([podcastId, rows]) => {
+        const podcast = rows[0].podcast!;
+        const ownershipOptions = rows.flatMap((candidate) =>
+            candidate.existingOwnerships.map((ownership) => ({
+                id: ownership.comedian.id,
+                uuid: ownership.comedian.uuid,
+                name: ownership.comedian.name,
+                confidence: ownership.confidence,
+                source: ownership.source,
+                associationType: ownership.associationType,
+                reviewStatus: ownership.reviewStatus,
+            })),
+        );
+        const candidateOptions = rows.map((candidate) => ({
+            id: candidate.comedian.id,
+            uuid: candidate.comedian.uuid,
+            name: candidate.comedian.name,
+            confidence: candidate.confidence,
+            source: candidate.source,
+            associationType: candidate.associationType,
+        }));
+        const uniqueOptions = new Map<number, OwnerOption>();
+        for (const option of [...ownershipOptions, ...candidateOptions]) {
+            if (!uniqueOptions.has(option.id))
+                uniqueOptions.set(option.id, option);
+        }
+        const acceptedOwner = ownershipOptions.find(
+            (option) => option.reviewStatus === "accepted",
+        );
+
+        return {
+            key: String(podcastId),
+            podcast,
+            candidates: rows,
+            ownerOptions: Array.from(uniqueOptions.values()),
+            initialOwner: acceptedOwner ?? candidateOptions[0] ?? null,
+        };
+    });
+}
+
+function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
+    return Object.fromEntries(
+        groups.map((group) => [group.key, group.initialOwner]),
+    ) as Record<string, OwnerOption | null>;
+}
+
 export default function AdminPodcastOwnershipReviewManager({
     candidates,
 }: Props) {
     const router = useRouter();
-    const [notes, setNotes] = useState<Record<number, string>>({});
-    const [pendingCandidateId, setPendingCandidateId] = useState<number | null>(
-        null,
-    );
+    const groups = groupCandidates(candidates);
+    const [selectedOwners, setSelectedOwners] = useState<
+        Record<string, OwnerOption | null>
+    >(() => selectedOwnerDefaults(groups));
+    const [notes, setNotes] = useState<Record<string, string>>({});
+    const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
+    const [searchResults, setSearchResults] = useState<
+        Record<string, SearchResult[]>
+    >({});
+    const [searchingKey, setSearchingKey] = useState<string | null>(null);
+    const [pendingKey, setPendingKey] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
 
-    async function decide(candidateId: number, action: Decision) {
-        const reason = notes[candidateId]?.trim() ?? "";
+    async function searchComedians(groupKey: string) {
+        const term = searchTerms[groupKey]?.trim();
+        if (!term) {
+            setSearchResults((prev) => ({ ...prev, [groupKey]: [] }));
+            return;
+        }
+
+        setSearchingKey(groupKey);
         setStatus({ kind: "idle" });
-        setPendingCandidateId(candidateId);
+        try {
+            const params = new URLSearchParams({
+                comedian: term,
+                includeEmpty: "true",
+                size: "6",
+            });
+            const res = await fetch(`/api/v1/comedians/search?${params}`);
+            if (!res.ok) throw new Error(`Search failed (${res.status})`);
+            const body = (await res.json()) as { data?: SearchResult[] };
+            setSearchResults((prev) => ({
+                ...prev,
+                [groupKey]: body.data ?? [],
+            }));
+        } catch (error) {
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Search failed",
+            });
+        } finally {
+            setSearchingKey(null);
+        }
+    }
+
+    async function save(group: PodcastReviewGroup) {
+        const reason = notes[group.key]?.trim() ?? "";
+        const owner = selectedOwners[group.key] ?? null;
+        setStatus({ kind: "idle" });
+        setPendingKey(group.key);
 
         let res: Response;
         try {
             res = await fetch("/api/admin/podcast-ownership-reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ candidateId, action, reason }),
+                body: JSON.stringify({
+                    podcastId: group.podcast.id,
+                    ownerComedianId: owner?.id ?? null,
+                    reason,
+                }),
             });
         } catch (error) {
-            setPendingCandidateId(null);
+            setPendingKey(null);
             setStatus({
                 kind: "error",
                 message:
@@ -65,7 +188,7 @@ export default function AdminPodcastOwnershipReviewManager({
             return;
         }
 
-        setPendingCandidateId(null);
+        setPendingKey(null);
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
             setStatus({
@@ -78,17 +201,17 @@ export default function AdminPodcastOwnershipReviewManager({
         setStatus({
             kind: "ok",
             message:
-                action === "accept"
-                    ? "Candidate accepted."
-                    : "Candidate rejected.",
+                owner === null
+                    ? `${group.podcast.title} blocked.`
+                    : `${group.podcast.title} approved with ${owner.name} as owner.`,
         });
         startTransition(() => router.refresh());
     }
 
-    if (candidates.length === 0) {
+    if (groups.length === 0) {
         return (
             <div className="rounded-md border border-copper/25 bg-white p-6 font-dmSans text-body text-soft-charcoal">
-                No pending podcast ownership candidates.
+                No pending podcast ownership reviews.
             </div>
         );
     }
@@ -106,152 +229,261 @@ export default function AdminPodcastOwnershipReviewManager({
                 </p>
             )}
             <ul className="divide-y divide-gray-300 rounded-md border border-gray-300 bg-white">
-                {candidates.map((candidate) => {
-                    const noteId = `podcast-review-note-${candidate.id}`;
-                    const isCurrent = pendingCandidateId === candidate.id;
-                    const disabled =
-                        isPending || pendingCandidateId !== null || isCurrent;
+                {groups.map((group) => {
+                    const noteId = `podcast-review-note-${group.key}`;
+                    const searchId = `podcast-owner-search-${group.key}`;
+                    const selectedOwner = selectedOwners[group.key] ?? null;
+                    const disabled = isPending || pendingKey !== null;
+                    const resultRows = searchResults[group.key] ?? [];
                     return (
-                        <li key={candidate.id} className="grid gap-4 p-4">
+                        <li key={group.key} className="grid gap-4 p-4">
                             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <h2 className="font-gilroy-bold text-h3 leading-tight text-cedar">
-                                            {candidate.comedian.name}
+                                            {group.podcast.title}
                                         </h2>
-                                        <span className="rounded-md bg-coconut-cream px-2 py-1 font-dmSans text-caption text-soft-charcoal">
-                                            {formatPercent(
-                                                candidate.confidence,
-                                            )}
+                                        <span
+                                            className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
+                                                selectedOwner
+                                                    ? "bg-green-50 text-green-800"
+                                                    : "bg-red-50 text-red-800"
+                                            }`}
+                                        >
+                                            {selectedOwner
+                                                ? "Approved"
+                                                : "Blocked"}
                                         </span>
-                                        {candidate.associationType && (
-                                            <span className="rounded-md bg-american-silver/60 px-2 py-1 font-dmSans text-caption text-cedar">
-                                                {candidate.associationType}
+                                    </div>
+                                    <div className="mt-2 font-dmSans text-body text-soft-charcoal">
+                                        {group.podcast.authorName && (
+                                            <span>
+                                                by {group.podcast.authorName}
                                             </span>
                                         )}
                                     </div>
-                                    <div className="mt-2 font-dmSans text-body text-soft-charcoal">
-                                        {candidate.podcast ? (
-                                            <>
-                                                <span className="font-semibold text-cedar">
-                                                    {candidate.podcast.title}
-                                                </span>
-                                                {candidate.podcast
-                                                    .authorName && (
-                                                    <span>
-                                                        {" "}
-                                                        by{" "}
-                                                        {
-                                                            candidate.podcast
-                                                                .authorName
-                                                        }
-                                                    </span>
-                                                )}
-                                            </>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {selectedOwner ? (
+                                            <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
+                                                Owner: {selectedOwner.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedOwners(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [group.key]:
+                                                                    null,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="rounded-full p-0.5 text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-700"
+                                                    aria-label={`Remove ${selectedOwner.name} as owner`}
+                                                >
+                                                    <X
+                                                        className="h-3.5 w-3.5"
+                                                        aria-hidden="true"
+                                                    />
+                                                </button>
+                                            </span>
                                         ) : (
-                                            <span>No podcast row linked</span>
+                                            <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
+                                                No owner
+                                            </span>
                                         )}
                                     </div>
                                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-caption text-soft-charcoal">
-                                        <span>{candidate.source}</span>
-                                        <span>{candidate.sourcePodcastId}</span>
-                                        <time dateTime={candidate.createdAt}>
-                                            {formatDate(candidate.createdAt)}
+                                        <span>
+                                            {group.candidates.length} candidate
+                                            {group.candidates.length === 1
+                                                ? ""
+                                                : "s"}
+                                        </span>
+                                        <span>
+                                            {group.podcast.feedUrl ??
+                                                group.candidates[0]
+                                                    .sourcePodcastId}
+                                        </span>
+                                        <time
+                                            dateTime={
+                                                group.candidates[0].createdAt
+                                            }
+                                        >
+                                            {formatDate(
+                                                group.candidates[0].createdAt,
+                                            )}
                                         </time>
                                     </div>
-                                    {candidate.podcast && (
-                                        <div className="mt-3 flex flex-wrap gap-3 font-dmSans text-caption">
+                                    <div className="mt-3 flex flex-wrap gap-3 font-dmSans text-caption">
+                                        <a
+                                            href={`/podcast/${group.podcast.slug}`}
+                                            className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                        >
+                                            Public page
+                                            <ExternalLink
+                                                className="h-3.5 w-3.5"
+                                                aria-hidden="true"
+                                            />
+                                        </a>
+                                        {group.podcast.websiteUrl && (
                                             <a
-                                                href={`/podcast/${candidate.podcast.slug}`}
-                                                className="inline-flex items-center gap-1 text-copper hover:underline"
+                                                href={group.podcast.websiteUrl}
+                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
                                             >
-                                                Public page
+                                                Website
                                                 <ExternalLink
                                                     className="h-3.5 w-3.5"
                                                     aria-hidden="true"
                                                 />
                                             </a>
-                                            {candidate.podcast.websiteUrl && (
-                                                <a
-                                                    href={
-                                                        candidate.podcast
-                                                            .websiteUrl
-                                                    }
-                                                    className="inline-flex items-center gap-1 text-copper hover:underline"
-                                                >
-                                                    Website
-                                                    <ExternalLink
-                                                        className="h-3.5 w-3.5"
-                                                        aria-hidden="true"
-                                                    />
-                                                </a>
-                                            )}
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="grid gap-3">
+                                    <div className="grid gap-2">
+                                        <p className="font-dmSans text-sm font-semibold text-cedar">
+                                            Owner candidates
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {group.ownerOptions.map(
+                                                (option) => (
+                                                    <button
+                                                        key={option.id}
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setSelectedOwners(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    [group.key]:
+                                                                        option,
+                                                                }),
+                                                            )
+                                                        }
+                                                        className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-dmSans text-sm font-semibold ${
+                                                            selectedOwner?.id ===
+                                                            option.id
+                                                                ? "border-green-500 bg-green-50 text-green-900"
+                                                                : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                        }`}
+                                                    >
+                                                        <Plus
+                                                            className="h-3.5 w-3.5"
+                                                            aria-hidden="true"
+                                                        />
+                                                        {option.name}
+                                                        {option.confidence !==
+                                                            undefined && (
+                                                            <span className="font-normal text-soft-charcoal">
+                                                                {formatPercent(
+                                                                    option.confidence,
+                                                                )}
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-1">
+                                        <label
+                                            htmlFor={searchId}
+                                            className="font-dmSans text-sm font-semibold text-cedar"
+                                        >
+                                            Add owner
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                id={searchId}
+                                                value={
+                                                    searchTerms[group.key] ?? ""
+                                                }
+                                                onChange={(event) =>
+                                                    setSearchTerms((prev) => ({
+                                                        ...prev,
+                                                        [group.key]:
+                                                            event.target.value,
+                                                    }))
+                                                }
+                                                className="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2"
+                                                onClick={() =>
+                                                    void searchComedians(
+                                                        group.key,
+                                                    )
+                                                }
+                                                disabled={
+                                                    disabled ||
+                                                    searchingKey === group.key
+                                                }
+                                            >
+                                                <Search
+                                                    className="h-4 w-4"
+                                                    aria-hidden="true"
+                                                />
+                                                Search
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    {resultRows.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {resultRows.map((result) => (
+                                                <button
+                                                    key={result.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedOwners(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                [group.key]:
+                                                                    result,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="rounded-md border border-gray-300 bg-white px-3 py-1.5 font-dmSans text-sm font-semibold text-cedar hover:border-copper-dark"
+                                                >
+                                                    {result.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                     <label
                                         htmlFor={noteId}
                                         className="grid gap-1 font-dmSans text-sm font-semibold text-cedar"
                                     >
-                                        Review note for{" "}
-                                        {candidate.comedian.name}
+                                        Review note
                                         <textarea
                                             id={noteId}
-                                            value={notes[candidate.id] ?? ""}
+                                            value={notes[group.key] ?? ""}
                                             onChange={(event) =>
                                                 setNotes((prev) => ({
                                                     ...prev,
-                                                    [candidate.id]:
+                                                    [group.key]:
                                                         event.target.value,
                                                 }))
                                             }
-                                            className="min-h-20 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper"
+                                            className="min-h-20 rounded-md border border-gray-300 px-3 py-2 font-dmSans text-body font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
                                             maxLength={1000}
                                         />
                                     </label>
-                                    <div className="flex gap-2">
+                                    <div>
                                         <Button
                                             type="button"
                                             className="gap-2"
                                             variant="roundedShimmer"
-                                            onClick={() =>
-                                                void decide(
-                                                    candidate.id,
-                                                    "accept",
-                                                )
-                                            }
-                                            disabled={
-                                                disabled ||
-                                                candidate.podcast === null
-                                            }
-                                            aria-label={`Accept ${candidate.comedian.name}`}
-                                        >
-                                            <Check
-                                                className="h-4 w-4"
-                                                aria-hidden="true"
-                                            />
-                                            Accept
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            className="gap-2"
-                                            variant="outline"
-                                            onClick={() =>
-                                                void decide(
-                                                    candidate.id,
-                                                    "reject",
-                                                )
-                                            }
+                                            onClick={() => void save(group)}
                                             disabled={disabled}
-                                            aria-label={`Reject ${candidate.comedian.name}`}
+                                            aria-label={`Save ${group.podcast.title}`}
                                         >
-                                            <X
+                                            <Save
                                                 className="h-4 w-4"
                                                 aria-hidden="true"
                                             />
-                                            Reject
+                                            Save
                                         </Button>
                                     </div>
                                 </div>
@@ -259,27 +491,40 @@ export default function AdminPodcastOwnershipReviewManager({
 
                             <details className="rounded-md bg-ecru-white p-3">
                                 <summary className="cursor-pointer font-dmSans text-sm font-semibold text-cedar">
-                                    Evidence and ownership context
+                                    Evidence
                                 </summary>
-                                <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-soft-charcoal">
-                                    {evidencePreview(candidate.evidence)}
-                                </pre>
-                                {candidate.existingOwnerships.length > 0 && (
-                                    <ul className="mt-3 grid gap-2 font-dmSans text-caption text-soft-charcoal">
-                                        {candidate.existingOwnerships.map(
-                                            (ownership) => (
-                                                <li key={ownership.id}>
-                                                    {ownership.associationType}{" "}
-                                                    · {ownership.source} ·{" "}
-                                                    {ownership.reviewStatus} ·{" "}
+                                <div className="mt-3 grid gap-3">
+                                    {group.candidates.map((candidate) => (
+                                        <section
+                                            key={candidate.id}
+                                            className="rounded-md bg-white p-3"
+                                        >
+                                            <div className="flex flex-wrap items-center gap-2 font-dmSans text-caption text-soft-charcoal">
+                                                <span className="font-semibold text-cedar">
+                                                    {candidate.comedian.name}
+                                                </span>
+                                                <span>
                                                     {formatPercent(
-                                                        ownership.confidence,
+                                                        candidate.confidence,
                                                     )}
-                                                </li>
-                                            ),
-                                        )}
-                                    </ul>
-                                )}
+                                                </span>
+                                                {candidate.associationType && (
+                                                    <span>
+                                                        {
+                                                            candidate.associationType
+                                                        }
+                                                    </span>
+                                                )}
+                                                <span>{candidate.source}</span>
+                                            </div>
+                                            <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-soft-charcoal">
+                                                {evidencePreview(
+                                                    candidate.evidence,
+                                                )}
+                                            </pre>
+                                        </section>
+                                    ))}
+                                </div>
                             </details>
                         </li>
                     );

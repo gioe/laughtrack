@@ -12,7 +12,7 @@ export default async function AdminPodcastOwnershipReviewPage() {
             <div className="mb-4 text-sm">
                 <Link
                     href="/admin/overview"
-                    className="text-copper hover:underline"
+                    className="text-copper-dark hover:underline"
                 >
                     Admin overview
                 </Link>

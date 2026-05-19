@@ -40,6 +40,11 @@ type OwnershipRow = {
     confidence: number;
     reviewedAt: Date | null;
     reviewedBy: string | null;
+    comedian: {
+        id: number;
+        uuid: string;
+        name: string;
+    };
 };
 
 export type AdminPodcastOwnershipReviewCandidate = {
@@ -74,6 +79,11 @@ export type AdminPodcastOwnershipReviewCandidate = {
         confidence: number;
         reviewedAt: string | null;
         reviewedBy: string | null;
+        comedian: {
+            id: number;
+            uuid: string;
+            name: string;
+        };
     }>;
 };
 
@@ -105,6 +115,7 @@ function serializeCandidate(
             confidence: ownership.confidence,
             reviewedAt: toIso(ownership.reviewedAt),
             reviewedBy: ownership.reviewedBy,
+            comedian: ownership.comedian,
         })),
     };
 }
@@ -151,15 +162,14 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
 
     const pairs = candidates
         .filter((candidate) => candidate.podcastId !== null)
-        .map((candidate) => ({
-            comedianId: candidate.comedianId,
-            podcastId: candidate.podcastId as number,
-        }));
+        .map((candidate) => candidate.podcastId as number);
 
-    const ownerships = pairs.length
+    const podcastIds = [...new Set(pairs)];
+
+    const ownerships = podcastIds.length
         ? await db.comedianPodcast.findMany({
               where: {
-                  OR: pairs,
+                  podcastId: { in: podcastIds },
               },
               select: {
                   id: true,
@@ -171,6 +181,13 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
                   confidence: true,
                   reviewedAt: true,
                   reviewedBy: true,
+                  comedian: {
+                      select: {
+                          id: true,
+                          uuid: true,
+                          name: true,
+                      },
+                  },
               },
               orderBy: [{ reviewStatus: "asc" }, { id: "asc" }],
           })
@@ -180,9 +197,7 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
         serializeCandidate(
             candidate,
             ownerships.filter(
-                (ownership) =>
-                    ownership.comedianId === candidate.comedianId &&
-                    ownership.podcastId === candidate.podcastId,
+                (ownership) => ownership.podcastId === candidate.podcastId,
             ),
         ),
     );

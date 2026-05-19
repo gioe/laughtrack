@@ -59,14 +59,14 @@ function QueueShell({
         <section className="rounded-lg border border-copper/15 bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-copper/10 text-copper">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-copper/10 text-copper-dark">
                         <Icon className="h-5 w-5" />
                     </div>
                     <h2 className="font-gilroy-bold text-body text-cedar">
                         {title}
                     </h2>
                 </div>
-                <span className="rounded-md bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper">
+                <span className="rounded-md bg-ecru-white px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
                     {count}
                 </span>
             </div>
@@ -89,7 +89,7 @@ function ClubLink({
     return (
         <Link
             href={`/admin/clubs/${clubId}`}
-            className="inline-flex items-center gap-1 font-semibold text-copper hover:underline"
+            className="inline-flex items-center gap-1 font-semibold text-copper-dark hover:underline"
         >
             {children}
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -106,7 +106,7 @@ export default async function AdminOverviewPage() {
         <div className="space-y-8">
             <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
                 <div className="space-y-4">
-                    <p className="font-dmSans text-caption font-semibold uppercase text-copper">
+                    <p className="font-dmSans text-caption font-semibold uppercase text-copper-dark">
                         Overview
                     </p>
                     <h1 className="font-chivo text-h1 leading-tight text-cedar">
@@ -120,7 +120,7 @@ export default async function AdminOverviewPage() {
                 </div>
                 <div className="rounded-lg border border-copper/20 bg-coconut-cream p-5 shadow-sm">
                     <div className="mb-3 flex items-center gap-3">
-                        <DatabaseZap className="h-5 w-5 text-copper" />
+                        <DatabaseZap className="h-5 w-5 text-copper-dark" />
                         <h2 className="font-gilroy-bold text-h3 text-cedar">
                             Scraper health
                         </h2>
@@ -182,7 +182,7 @@ export default async function AdminOverviewPage() {
             <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
                 <div className="rounded-lg border border-copper/15 bg-white p-5 shadow-sm">
                     <div className="mb-4 flex items-center gap-3">
-                        <Clock3 className="h-5 w-5 text-copper" />
+                        <Clock3 className="h-5 w-5 text-copper-dark" />
                         <h2 className="font-gilroy-bold text-h3 text-cedar">
                             Recent failure trend
                         </h2>
@@ -204,7 +204,7 @@ export default async function AdminOverviewPage() {
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-gilroy-bold text-h3 text-copper">
+                                        <p className="font-gilroy-bold text-h3 text-copper-dark">
                                             {run.clubsFailed}
                                         </p>
                                         <p className="font-dmSans text-caption text-soft-charcoal">
@@ -221,7 +221,7 @@ export default async function AdminOverviewPage() {
 
                 <div className="rounded-lg border border-copper/15 bg-white p-5 shadow-sm">
                     <div className="mb-4 flex items-center gap-3">
-                        <Bot className="h-5 w-5 text-copper" />
+                        <Bot className="h-5 w-5 text-copper-dark" />
                         <h2 className="font-gilroy-bold text-h3 text-cedar">
                             Latest failed club runs
                         </h2>
@@ -244,7 +244,7 @@ export default async function AdminOverviewPage() {
                                             </p>
                                         </div>
                                         {club.botBlockDetected && (
-                                            <span className="inline-flex w-fit items-center gap-1 rounded-md bg-copper/10 px-2 py-1 font-dmSans text-caption font-semibold text-copper">
+                                            <span className="inline-flex w-fit items-center gap-1 rounded-md bg-copper/10 px-2 py-1 font-dmSans text-caption font-semibold text-copper-dark">
                                                 <Bot className="h-3.5 w-3.5" />
                                                 Bot block
                                             </span>
@@ -348,7 +348,7 @@ export default async function AdminOverviewPage() {
                                 <li key={row.showId}>
                                     <Link
                                         href={`/show/${row.showId}`}
-                                        className="font-semibold text-copper hover:underline"
+                                        className="font-semibold text-copper-dark hover:underline"
                                     >
                                         {row.showName ?? "Untitled show"}
                                     </Link>
@@ -443,7 +443,7 @@ function MetricBand({
                 <p className="font-dmSans text-caption font-semibold uppercase text-soft-charcoal">
                     {label}
                 </p>
-                <Icon className="h-4 w-4 text-copper" />
+                <Icon className="h-4 w-4 text-copper-dark" />
             </div>
             <p className="font-gilroy-bold text-h2 text-cedar">{value}</p>
         </div>

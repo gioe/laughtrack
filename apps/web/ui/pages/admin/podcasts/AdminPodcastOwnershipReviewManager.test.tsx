@@ -64,20 +64,21 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     it("renders candidate context and evidence", () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
-        expect(screen.getByText("Jane Comic")).toBeTruthy();
+        expect(screen.getAllByText("Jane Comic").length).toBeGreaterThan(0);
         expect(screen.getByText("The Jane Show")).toBeTruthy();
-        expect(screen.getByText("91%")).toBeTruthy();
+        expect(screen.getByText("Owner: Jane Comic")).toBeTruthy();
+        expect(screen.getAllByText("91%").length).toBeGreaterThan(0);
         expect(screen.getByText(/matched_name/)).toBeTruthy();
     });
 
-    it("accepts a candidate with a reason", async () => {
+    it("saves a selected podcast owner with a reason", async () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
-        fireEvent.change(screen.getByLabelText("Review note for Jane Comic"), {
+        fireEvent.change(screen.getByLabelText("Review note"), {
             target: { value: "Verified host credit" },
         });
         fireEvent.click(
-            screen.getByRole("button", { name: "Accept Jane Comic" }),
+            screen.getByRole("button", { name: "Save The Jane Show" }),
         );
 
         await waitFor(() => {
@@ -86,8 +87,8 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
-                        candidateId: 12,
-                        action: "accept",
+                        podcastId: 99,
+                        ownerComedianId: 42,
                         reason: "Verified host credit",
                     }),
                 }),
@@ -96,14 +97,17 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(mocks.refresh).toHaveBeenCalled();
     });
 
-    it("rejects a candidate", async () => {
+    it("blocks a podcast when the owner tag is removed", async () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
-        fireEvent.change(screen.getByLabelText("Review note for Jane Comic"), {
+        fireEvent.click(
+            screen.getByRole("button", { name: "Remove Jane Comic as owner" }),
+        );
+        fireEvent.change(screen.getByLabelText("Review note"), {
             target: { value: "Wrong Jane" },
         });
         fireEvent.click(
-            screen.getByRole("button", { name: "Reject Jane Comic" }),
+            screen.getByRole("button", { name: "Save The Jane Show" }),
         );
 
         await waitFor(() => {
@@ -112,9 +116,50 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
-                        candidateId: 12,
-                        action: "reject",
+                        podcastId: 99,
+                        ownerComedianId: null,
                         reason: "Wrong Jane",
+                    }),
+                }),
+            );
+        });
+    });
+
+    it("can search for and add a different owner", async () => {
+        vi.mocked(global.fetch)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    data: [{ id: 77, uuid: "uuid-77", name: "Right Owner" }],
+                }),
+            } as never)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ ok: true }),
+            } as never);
+        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+
+        fireEvent.change(
+            screen.getByLabelText("Add owner", { selector: "input" }),
+            {
+                target: { value: "Right Owner" },
+            },
+        );
+        fireEvent.click(screen.getByRole("button", { name: "Search" }));
+        await screen.findByText("Right Owner");
+        fireEvent.click(screen.getByRole("button", { name: "Right Owner" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Save The Jane Show" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/podcast-ownership-reviews",
+                expect.objectContaining({
+                    body: JSON.stringify({
+                        podcastId: 99,
+                        ownerComedianId: 77,
+                        reason: "",
                     }),
                 }),
             );

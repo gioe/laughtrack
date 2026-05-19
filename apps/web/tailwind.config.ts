@@ -37,6 +37,7 @@ const brandColors = {
     "american-silver": "#ced9cb",
     "midnight-blue": "#003366",
     copper: "#B87333",
+    "copper-dark": "#7A3F16",
     "copper-bright": "#CD6837",
     "cedar-dark": "#2D1810",
     "soft-charcoal": "#4A4A4A",

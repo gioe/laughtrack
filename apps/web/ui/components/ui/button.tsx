@@ -23,7 +23,7 @@ const buttonVariants = cva(
                 roundedShimmer: [
                     "relative overflow-hidden",
                     "rounded-lg text-white font-bold font-dmSans",
-                    "bg-copper shadow-sm",
+                    "bg-copper-dark shadow-sm",
                     "transform transition-all duration-200 ease-in-out",
                     "hover:shadow-md hover:-translate-y-[1px] hover:scale-[1.02]",
                     "active:translate-y-[1px] active:scale-[0.98]",
@@ -33,11 +33,11 @@ const buttonVariants = cva(
                     "before:transition-transform before:duration-500",
                 ].join(" "),
                 roundedShimmerOutline: [
-                    "rounded-lg border-2 border-copper bg-transparent",
-                    "text-copper font-bold font-dmSans",
+                    "rounded-lg border-2 border-copper-dark bg-transparent",
+                    "text-copper-dark font-bold font-dmSans",
                     "transition-colors",
-                    "hover:bg-copper hover:text-white",
-                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper focus-visible:ring-0",
+                    "hover:bg-copper-dark hover:text-white",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0",
                 ].join(" "),
             },
             size: {

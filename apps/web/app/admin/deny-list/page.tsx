@@ -60,7 +60,7 @@ export default async function AdminDenyListPage(props: {
             <div className="mb-4 text-sm">
                 <Link
                     href="/admin/clubs"
-                    className="text-copper hover:underline"
+                    className="text-copper-dark hover:underline"
                 >
                     ← Admin clubs
                 </Link>
