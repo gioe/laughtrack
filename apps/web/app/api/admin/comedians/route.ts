@@ -16,6 +16,19 @@ type ComedianSnapshot = {
     totalShows: number;
     parentComedianId: number | null;
     parentComedian: { id: number; name: string } | null;
+    comedianPodcasts: Array<{
+        associationType: string;
+        source: string;
+        reviewStatus: string;
+        confidence: number;
+        podcast: {
+            id: number;
+            slug: string;
+            title: string;
+            feedUrl: string | null;
+            websiteUrl: string | null;
+        };
+    }>;
     _count: { alternativeNames: number };
 };
 
@@ -119,6 +132,17 @@ function serializeComedian(
         blockReason: denyListEntry?.reason ?? null,
         blockAddedBy: denyListEntry?.added_by ?? null,
         blockAddedAt: serializeDate(denyListEntry?.deleted_at),
+        attributedPodcasts: comedian.comedianPodcasts.map((link) => ({
+            id: link.podcast.id,
+            slug: link.podcast.slug,
+            title: link.podcast.title,
+            feedUrl: link.podcast.feedUrl,
+            websiteUrl: link.podcast.websiteUrl,
+            associationType: link.associationType,
+            source: link.source,
+            reviewStatus: link.reviewStatus,
+            confidence: link.confidence,
+        })),
     };
 }
 
@@ -148,6 +172,28 @@ async function findComedianSnapshot(
                     id: true,
                     name: true,
                 },
+            },
+            comedianPodcasts: {
+                select: {
+                    associationType: true,
+                    source: true,
+                    reviewStatus: true,
+                    confidence: true,
+                    podcast: {
+                        select: {
+                            id: true,
+                            slug: true,
+                            title: true,
+                            feedUrl: true,
+                            websiteUrl: true,
+                        },
+                    },
+                },
+                orderBy: [
+                    { reviewStatus: "asc" },
+                    { confidence: "desc" },
+                    { podcast: { title: "asc" } },
+                ],
             },
             _count: {
                 select: {

@@ -421,4 +421,52 @@ describe("PATCH /api/admin/clubs/[id]", () => {
             }),
         });
     });
+
+    it("updates a club name and revalidates the old and new names", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        const auditCreate = vi.fn();
+        const findUnique = vi.fn().mockResolvedValue(clubRow());
+        const update = vi.fn().mockResolvedValue(
+            clubRow({
+                name: "Comedy Cellar Village Underground",
+            }),
+        );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                club: { findUnique, update },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const [req, ctx] = makeRequest({
+            name: " Comedy   Cellar Village Underground ",
+        });
+        const res = await PATCH(req, ctx);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.club.name).toBe("Comedy Cellar Village Underground");
+        expect(update).toHaveBeenCalledWith({
+            where: { id: CLUB_ID },
+            data: expect.objectContaining({
+                name: "Comedy Cellar Village Underground",
+            }),
+            select: expect.any(Object),
+        });
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "club.update",
+                entityType: "club",
+                entityId: String(CLUB_ID),
+            }),
+        });
+        const calledTags = mockRevalidateTag.mock.calls.map((c) => c[0]);
+        expect(calledTags).toEqual(
+            expect.arrayContaining([
+                "Comedy Cellar",
+                "Comedy Cellar Village Underground",
+            ]),
+        );
+    });
 });

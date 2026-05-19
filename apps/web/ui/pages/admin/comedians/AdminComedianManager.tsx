@@ -9,7 +9,15 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
-import { Ban, Save, ShieldCheck, X } from "lucide-react";
+import {
+    Ban,
+    ChevronDown,
+    ChevronRight,
+    ExternalLink,
+    Save,
+    ShieldCheck,
+    X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
@@ -63,6 +71,9 @@ export default function AdminComedianManager({ comedians }: Props) {
         {},
     );
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
+    const [openPodcastRows, setOpenPodcastRows] = useState<Set<number>>(
+        new Set(),
+    );
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
@@ -114,6 +125,15 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     function isNameDirty(row: AdminComedianListItem) {
         return normalizedAdminName(nameValue(row)) !== row.name;
+    }
+
+    function togglePodcastRow(rowId: number) {
+        setOpenPodcastRows((current) => {
+            const next = new Set(current);
+            if (next.has(rowId)) next.delete(rowId);
+            else next.add(rowId);
+            return next;
+        });
     }
 
     function parentCandidates(row: AdminComedianListItem) {
@@ -390,11 +410,12 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const parent = parentValue(row);
                         const candidates = parentCandidates(row);
                         const disabled = pendingId !== null || isPending;
+                        const podcastsOpen = openPodcastRows.has(row.id);
 
                         return (
                             <li
                                 key={row.id}
-                                className="grid min-w-[1120px] items-start gap-6 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
+                                className="grid min-w-[1120px] items-start gap-x-6 gap-y-4 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
                             >
                                 <div className="min-w-0 space-y-4">
                                     <div className="space-y-2">
@@ -427,6 +448,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         <span>
                                             {row.childCount.toLocaleString()}{" "}
                                             children
+                                        </span>
+                                        <span>
+                                            {row.attributedPodcasts.length.toLocaleString()}{" "}
+                                            podcasts
                                         </span>
                                     </div>
                                     <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
@@ -468,6 +493,20 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </Button>
                                         </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        aria-expanded={podcastsOpen}
+                                        aria-controls={`comedian-podcasts-${row.id}`}
+                                        onClick={() => togglePodcastRow(row.id)}
+                                        className="inline-flex w-fit items-center gap-2 rounded-md border border-copper/30 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
+                                    >
+                                        {podcastsOpen ? (
+                                            <ChevronDown className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronRight className="h-4 w-4" />
+                                        )}
+                                        Podcasts attributed
+                                    </button>
                                 </div>
 
                                 <div className="space-y-4">
@@ -638,6 +677,140 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </Button>
                                         </>
                                     )}
+                                </div>
+
+                                <div
+                                    id={`comedian-podcasts-${row.id}`}
+                                    hidden={!podcastsOpen}
+                                    className={`lg:col-span-3 ${
+                                        podcastsOpen ? "" : "hidden"
+                                    }`}
+                                >
+                                    <div className="rounded-md border border-copper/20 bg-coconut-cream/25 p-4">
+                                        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                                            <h3 className="font-gilroy-bold text-h3 text-cedar">
+                                                Podcasts attributed
+                                            </h3>
+                                            <span className="font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                {row.attributedPodcasts.length.toLocaleString()}{" "}
+                                                total
+                                            </span>
+                                        </div>
+                                        {row.attributedPodcasts.length === 0 ? (
+                                            <p className="font-dmSans text-body text-soft-charcoal">
+                                                No podcasts are attributed to
+                                                this comedian.
+                                            </p>
+                                        ) : (
+                                            <div className="overflow-x-auto rounded-md border border-copper/15 bg-white">
+                                                <table className="min-w-full divide-y divide-copper/15 text-left font-dmSans text-body">
+                                                    <thead className="bg-cedar text-caption uppercase tracking-wide text-coconut-cream">
+                                                        <tr>
+                                                            <th className="px-3 py-2">
+                                                                Podcast
+                                                            </th>
+                                                            <th className="px-3 py-2">
+                                                                Attribution
+                                                            </th>
+                                                            <th className="px-3 py-2">
+                                                                Review
+                                                            </th>
+                                                            <th className="px-3 py-2">
+                                                                Links
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-copper/10">
+                                                        {row.attributedPodcasts.map(
+                                                            (podcast) => (
+                                                                <tr
+                                                                    key={`${podcast.id}-${podcast.associationType}-${podcast.source}`}
+                                                                >
+                                                                    <td className="px-3 py-3 align-top">
+                                                                        <div className="font-semibold text-cedar">
+                                                                            {
+                                                                                podcast.title
+                                                                            }
+                                                                        </div>
+                                                                        <div className="text-caption text-soft-charcoal">
+                                                                            ID{" "}
+                                                                            {
+                                                                                podcast.id
+                                                                            }
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-3 py-3 align-top text-soft-charcoal">
+                                                                        <div className="font-semibold text-cedar">
+                                                                            {
+                                                                                podcast.associationType
+                                                                            }
+                                                                        </div>
+                                                                        <div className="text-caption">
+                                                                            {
+                                                                                podcast.source
+                                                                            }{" "}
+                                                                            ·{" "}
+                                                                            {Math.round(
+                                                                                podcast.confidence *
+                                                                                    100,
+                                                                            )}
+                                                                            %
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-3 py-3 align-top">
+                                                                        <span className="rounded-full border border-green-700/30 bg-green-50 px-2 py-1 text-caption font-semibold text-green-900">
+                                                                            {
+                                                                                podcast.reviewStatus
+                                                                            }
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-3 py-3 align-top">
+                                                                        <div className="flex flex-wrap gap-3 text-caption font-semibold">
+                                                                            <a
+                                                                                href={`/podcast/${podcast.slug}`}
+                                                                                target="_blank"
+                                                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                            >
+                                                                                Public
+                                                                                page
+                                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                            {podcast.feedUrl && (
+                                                                                <a
+                                                                                    href={
+                                                                                        podcast.feedUrl
+                                                                                    }
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                                >
+                                                                                    RSS
+                                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                                </a>
+                                                                            )}
+                                                                            {podcast.websiteUrl && (
+                                                                                <a
+                                                                                    href={
+                                                                                        podcast.websiteUrl
+                                                                                    }
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                                >
+                                                                                    Website
+                                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                                </a>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ),
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </li>
                         );

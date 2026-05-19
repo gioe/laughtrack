@@ -43,6 +43,7 @@ describe("AdminComediansPage", () => {
                     blockReason: null,
                     blockAddedBy: null,
                     blockAddedAt: null,
+                    attributedPodcasts: [],
                 },
                 {
                     id: 2,
@@ -56,6 +57,7 @@ describe("AdminComediansPage", () => {
                     blockReason: "Not a comedian",
                     blockAddedBy: "profile-1",
                     blockAddedAt: "2026-05-19T12:00:00.000Z",
+                    attributedPodcasts: [],
                 },
             ],
             denyListCount: 8,

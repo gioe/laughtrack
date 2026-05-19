@@ -36,6 +36,19 @@ const comedians: AdminComedianListItem[] = [
         blockReason: null,
         blockAddedBy: null,
         blockAddedAt: null,
+        attributedPodcasts: [
+            {
+                id: 10,
+                slug: "parent-podcast",
+                title: "Parent Podcast",
+                feedUrl: "https://example.com/parent.xml",
+                websiteUrl: "https://example.com/parent",
+                associationType: "owner",
+                source: "manual",
+                reviewStatus: "approved",
+                confidence: 0.96,
+            },
+        ],
     },
     {
         id: 2,
@@ -49,6 +62,7 @@ const comedians: AdminComedianListItem[] = [
         blockReason: null,
         blockAddedBy: null,
         blockAddedAt: null,
+        attributedPodcasts: [],
     },
 ];
 
@@ -159,6 +173,28 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+    });
+
+    it("starts podcast attribution dropdowns closed and expands them", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+
+        const toggle = screen.getAllByRole("button", {
+            name: "Podcasts attributed",
+        })[1];
+        const panelId = toggle.getAttribute("aria-controls");
+        expect(panelId).toBeTruthy();
+        const panel = document.getElementById(panelId!);
+        expect(panel).toBeTruthy();
+        expect(toggle.getAttribute("aria-expanded")).toBe("false");
+        expect(panel!.hidden).toBe(true);
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute("aria-expanded")).toBe("true");
+        expect(panel!.hidden).toBe(false);
+        expect(screen.getByText("Parent Podcast")).toBeTruthy();
+        expect(screen.getByRole("link", { name: /RSS/ }).getAttribute("href"))
+            .toBe("https://example.com/parent.xml");
     });
 
     it("adds a comedian to the blocklist", async () => {

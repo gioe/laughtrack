@@ -131,7 +131,7 @@ describe("AdminClubManager", () => {
         expect(screen.queryByText("Funny Bone Albany")).toBeNull();
     });
 
-    it("collapses and reopens chain groups", () => {
+    it("starts chain groups closed and reopens them", () => {
         render(<AdminClubManager groups={groups} />);
 
         const toggle = screen.getByRole("button", { name: /Funny Bone/ });
@@ -139,9 +139,6 @@ describe("AdminClubManager", () => {
         expect(groupId).toBeTruthy();
         const groupList = document.getElementById(groupId!);
         expect(groupList).toBeTruthy();
-
-        fireEvent.click(toggle);
-
         expect(toggle.getAttribute("aria-expanded")).toBe("false");
         expect(groupList!.hidden).toBe(true);
 
@@ -154,6 +151,8 @@ describe("AdminClubManager", () => {
 
     it("saves status overrides", async () => {
         render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
 
         const statusSelects = screen.getAllByLabelText("Status");
         fireEvent.change(statusSelects[0], { target: { value: "closed" } });
@@ -189,5 +188,39 @@ describe("AdminClubManager", () => {
         expect(
             await screen.findByText("Funny Bone Albany saved."),
         ).toBeTruthy();
+    });
+
+    it("saves an inline club name edit", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                club: {
+                    ...groups[0].clubs[0],
+                    name: "Funny Bone Albany Downtown",
+                },
+            }),
+        } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.change(screen.getAllByLabelText("Club name")[0], {
+            target: { value: "Funny Bone Albany Downtown" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Save name" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/clubs/10",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        name: "Funny Bone Albany Downtown",
+                    }),
+                }),
+            );
+        });
     });
 });

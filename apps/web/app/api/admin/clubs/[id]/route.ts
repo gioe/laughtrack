@@ -35,6 +35,7 @@ const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"] as const;
 
 const statusOverrideSchema = z
     .object({
+        name: z.string().trim().min(1).max(255).optional(),
         status: z.enum(CLUB_STATUS_OPTIONS).optional(),
         visible: z.boolean().optional(),
         clubType: z.enum(CLUB_TYPE_OPTIONS).optional(),
@@ -46,7 +47,8 @@ const statusOverrideSchema = z
             value.status === undefined &&
             value.visible === undefined &&
             value.clubType === undefined &&
-            value.closedAt === undefined
+            value.closedAt === undefined &&
+            value.name === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -61,6 +63,7 @@ function isStatusOverride(
     value: z.infer<typeof mutationSchema>,
 ): value is z.infer<typeof statusOverrideSchema> {
     return (
+        "name" in value ||
         "status" in value ||
         "visible" in value ||
         "clubType" in value ||
@@ -189,7 +192,7 @@ export async function PATCH(
     }
 
     try {
-        const updated = await db.$transaction(async (tx) => {
+        const result = await db.$transaction(async (tx) => {
             const before = await tx.club.findUnique({
                 where: { id },
                 select: {
@@ -232,7 +235,17 @@ export async function PATCH(
             let action = "club.update";
 
             if (isStatusOverride(parsed.data)) {
-                action = "club.status_override";
+                action =
+                    parsed.data.name !== undefined &&
+                    parsed.data.status === undefined &&
+                    parsed.data.visible === undefined &&
+                    parsed.data.clubType === undefined &&
+                    parsed.data.closedAt === undefined
+                        ? "club.update"
+                        : "club.status_override";
+                if (parsed.data.name !== undefined) {
+                    data.name = parsed.data.name.trim().replace(/\s+/g, " ");
+                }
                 if (parsed.data.status !== undefined) {
                     data.status = parsed.data.status;
                 }
@@ -284,16 +297,19 @@ export async function PATCH(
                 after,
             });
 
-            return after;
+            return { beforeName: before.name, club: after };
         });
 
         revalidateTag("club-detail-data");
         revalidateTag("club-metadata");
-        revalidateTag(updated.name);
+        if (result.beforeName !== result.club.name) {
+            revalidateTag(result.beforeName);
+        }
+        revalidateTag(result.club.name);
 
         return NextResponse.json({
             ok: true,
-            club: serializeClubForAdmin(updated),
+            club: serializeClubForAdmin(result.club),
         });
     } catch (error) {
         const code = (error as { code?: string })?.code;

@@ -22,6 +22,17 @@ export type AdminComedianListItem = {
     blockReason: string | null;
     blockAddedBy: string | null;
     blockAddedAt: string | null;
+    attributedPodcasts: Array<{
+        id: number;
+        slug: string;
+        title: string;
+        feedUrl: string | null;
+        websiteUrl: string | null;
+        associationType: string;
+        source: string;
+        reviewStatus: string;
+        confidence: number;
+    }>;
 };
 
 export type AdminComedianListResult = {
@@ -54,6 +65,28 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                         id: true,
                         name: true,
                     },
+                },
+                comedianPodcasts: {
+                    select: {
+                        associationType: true,
+                        source: true,
+                        reviewStatus: true,
+                        confidence: true,
+                        podcast: {
+                            select: {
+                                id: true,
+                                slug: true,
+                                title: true,
+                                feedUrl: true,
+                                websiteUrl: true,
+                            },
+                        },
+                    },
+                    orderBy: [
+                        { reviewStatus: "asc" },
+                        { confidence: "desc" },
+                        { podcast: { title: "asc" } },
+                    ],
                 },
                 _count: {
                     select: {
@@ -90,6 +123,17 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 blockReason: denyListEntry?.reason ?? null,
                 blockAddedBy: denyListEntry?.added_by ?? null,
                 blockAddedAt: serializeDate(denyListEntry?.deleted_at),
+                attributedPodcasts: comedian.comedianPodcasts.map((link) => ({
+                    id: link.podcast.id,
+                    slug: link.podcast.slug,
+                    title: link.podcast.title,
+                    feedUrl: link.podcast.feedUrl,
+                    websiteUrl: link.podcast.websiteUrl,
+                    associationType: link.associationType,
+                    source: link.source,
+                    reviewStatus: link.reviewStatus,
+                    confidence: link.confidence,
+                })),
             };
         }),
         denyListCount: denyListRows.length,

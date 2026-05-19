@@ -75,17 +75,22 @@ function statusBadgeClass(club: AdminClubListItem) {
     return "border-green-700/30 bg-green-50 text-green-900";
 }
 
+function initialCollapsedGroups(groups: AdminClubGroup[]) {
+    return Object.fromEntries(groups.map((group) => [group.key, true]));
+}
+
 export default function AdminClubManager({ groups }: Props) {
     const [rows, setRows] = useState(groups);
     const [query, setQuery] = useState("");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
     const [drafts, setDrafts] = useState<Record<number, Draft>>({});
+    const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [collapsedGroups, setCollapsedGroups] = useState<
         Record<string, boolean>
-    >({});
+    >(() => initialCollapsedGroups(groups));
 
     const filteredGroups = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -146,6 +151,20 @@ export default function AdminClubManager({ groups }: Props) {
 
     function draftFor(club: AdminClubListItem) {
         return drafts[club.id] ?? initialDraft(club);
+    }
+
+    function clubNameValue(club: AdminClubListItem) {
+        return Object.hasOwn(nameEdits, club.id)
+            ? nameEdits[club.id]
+            : club.name;
+    }
+
+    function normalizedClubName(name: string) {
+        return name.trim().replace(/\s+/g, " ");
+    }
+
+    function isNameDirty(club: AdminClubListItem) {
+        return normalizedClubName(clubNameValue(club)) !== club.name;
     }
 
     function updateDraft(club: AdminClubListItem, patch: Partial<Draft>) {
@@ -238,6 +257,50 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "ok", message: `${club.name} saved.` });
     }
 
+    async function saveClubName(club: AdminClubListItem) {
+        const name = normalizedClubName(clubNameValue(club));
+        if (!name || name === club.name) return;
+
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+
+        let res: Response;
+        try {
+            res = await fetch(`/api/admin/clubs/${club.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const body = (await res.json()) as { club: AdminClubListItem };
+        replaceClub(body.club);
+        setNameEdits((current) => {
+            const next = { ...current };
+            delete next[club.id];
+            return next;
+        });
+        setStatus({ kind: "ok", message: `${club.name} renamed.` });
+    }
+
     return (
         <div className="space-y-5">
             <AdminToolbar>
@@ -314,11 +377,6 @@ export default function AdminClubManager({ groups }: Props) {
                                     </span>
                                 </button>
                                 <div className="flex items-center gap-3 pl-10 md:pl-0">
-                                    <span className="font-dmSans text-caption font-semibold text-white/75">
-                                        {collapsedGroups[group.key]
-                                            ? "Closed"
-                                            : "Open"}
-                                    </span>
                                     {group.chain?.website && (
                                         <a
                                             href={group.chain.website}
@@ -395,6 +453,58 @@ export default function AdminClubManager({ groups }: Props) {
                                                 >
                                                     Public page
                                                 </Link>
+                                            </div>
+                                            <div className="mt-3 rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                                <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Display name
+                                                </label>
+                                                <div className="mt-1 flex items-center gap-2">
+                                                    <input
+                                                        aria-label="Club name"
+                                                        type="text"
+                                                        value={clubNameValue(
+                                                            club,
+                                                        )}
+                                                        onChange={(event) =>
+                                                            setNameEdits(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    [club.id]:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        className="min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                        disabled={
+                                                            disabled ||
+                                                            pendingId ===
+                                                                club.id ||
+                                                            !isNameDirty(
+                                                                club,
+                                                            ) ||
+                                                            !normalizedClubName(
+                                                                clubNameValue(
+                                                                    club,
+                                                                ),
+                                                            )
+                                                        }
+                                                        onClick={() =>
+                                                            void saveClubName(
+                                                                club,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Save className="h-4 w-4" />
+                                                        Save name
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
 
