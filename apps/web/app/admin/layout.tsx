@@ -6,6 +6,7 @@ import {
     ChevronRight,
     LayoutDashboard,
     Podcast,
+    UsersRound,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,6 +24,12 @@ const ADMIN_NAV_ITEMS = [
         href: "/admin/clubs",
         description: "Club operations",
         icon: Building2,
+    },
+    {
+        label: "Comedians",
+        href: "/admin/comedians",
+        description: "Aliases and blocks",
+        icon: UsersRound,
     },
     {
         label: "Podcasts",

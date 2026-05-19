@@ -61,7 +61,9 @@ describe("AdminLayout", () => {
 
         expect(markup).toContain("LaughTrack Admin");
         expect(markup).toContain("Club operations");
+        expect(markup).toContain("Aliases and blocks");
         expect(markup).toContain('href="/admin/clubs"');
+        expect(markup).toContain('href="/admin/comedians"');
         expect(markup).toContain('data-testid="admin-clubs-child"');
         expect(mocks.notFound).not.toHaveBeenCalled();
     });
