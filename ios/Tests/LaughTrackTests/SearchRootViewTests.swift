@@ -270,16 +270,20 @@ struct SearchRootModelTests {
         #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
     }
 
-    @Test("selectPrimitive(.podcasts) on Discover routes to the Search tab")
-    func selectingPodcastsOnDiscoverRoutesToSearch() async throws {
+    @Test("selectPrimitive(.podcasts) on Discover stays on Discover and surfaces the podcasts rail")
+    func selectingPodcastsOnDiscoverStaysOnDiscover() async throws {
         let state = AppShellState()
 
         #expect(state.selectedTab == .nearMe)
 
         state.selectPrimitive(.podcasts)
 
-        #expect(state.selectedTab == .search)
+        #expect(state.selectedTab == .nearMe)
         #expect(state.selectedPrimitive == .podcasts)
+
+        state.selectPrimitive(.podcasts)
+        #expect(state.selectedTab == .nearMe)
+        #expect(state.selectedPrimitive == nil)
     }
 
     @Test("shell state keeps primitive filters on the favorites tab")

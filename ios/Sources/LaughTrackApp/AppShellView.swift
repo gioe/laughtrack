@@ -43,13 +43,6 @@ final class AppShellState: ObservableObject {
     }
 
     func selectPrimitive(_ primitive: SearchRootModel.Pivot) {
-        if selectedTab == .nearMe && primitive == .podcasts {
-            cachedSearchPrimitive = primitive
-            updateSelectedPrimitive(primitive)
-            selectedTab = .search
-            return
-        }
-
         if selectedTab == .nearMe || selectedTab == .favorites {
             updateSelectedPrimitive(selectedPrimitive == primitive ? nil : primitive)
             return
