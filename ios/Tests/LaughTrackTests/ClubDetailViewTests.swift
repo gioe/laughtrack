@@ -40,7 +40,6 @@ struct ClubDetailViewTests {
         #expect(actions.map(\.title) == ["Website", "Maps"])
         #expect(actions.map(\.systemImage) == ["arrow.up.right", "map.fill"])
         #expect(actions.allSatisfy { $0.url != nil })
-        #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 8, zipCode: "10012") == nil)
     }
 
     @Test("club detail surfaces API failures explicitly")

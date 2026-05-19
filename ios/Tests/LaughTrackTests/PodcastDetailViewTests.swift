@@ -70,8 +70,10 @@ struct PodcastDetailViewTests {
         let podcast = PodcastDetailViewTests.makeResponse().podcast
         let actions = PodcastDetailPresentation.heroActions(for: podcast)
 
-        #expect(PodcastDetailPresentation.subtitle(for: podcast) == "Hosted by Laugh Track Network")
-        #expect(PodcastDetailPresentation.heroBadges(for: podcast).map(\.title) == ["12 episodes"])
+        #expect(
+            PodcastDetailPresentation.heroBadges(for: podcast).map(\.title)
+                == ["Hosted by Laugh Track Network", "12 episodes"]
+        )
         #expect(actions.map(\.title) == ["Website", "RSS"])
         #expect(actions.compactMap(\.url).map(\.absoluteString) == [
             "https://podcasts.example.com",

@@ -49,7 +49,6 @@ struct ComedianDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         DetailHero(
                             title: comedian.name,
-                            subtitle: nil,
                             imageURL: comedian.imageUrl,
                             badges: [],
                             actions: comedianHeroActions(socialData: comedian.socialData),

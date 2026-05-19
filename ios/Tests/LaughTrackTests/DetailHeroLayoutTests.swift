@@ -49,12 +49,6 @@ struct DetailHeroLayoutTests {
         #expect(ShowTitlePresentation.title(for: show) == "Comedy Show at The Broadway Comedy Club")
     }
 
-    @Test("club detail hero omits subtitle copy")
-    func clubDetailHeroOmitsSubtitleCopy() {
-        #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 8, zipCode: "10012") == nil)
-        #expect(ClubDetailHeroPresentation.subtitle(upcomingShowCount: 0, zipCode: "10012") == nil)
-    }
-
     @Test("show detail hero renders a countdown badge")
     func showHeroBadgeIncludesCountdown() {
         let show = Self.showDetail()

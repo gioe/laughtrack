@@ -42,7 +42,6 @@ struct DetailHero: View {
     @State private var imageLoadFailed = false
 
     let title: String?
-    let subtitle: String?
     let imageURL: String
     let badges: [DetailHeroBadge]
     var actions: [DetailHeroAction] = []
@@ -52,10 +51,9 @@ struct DetailHero: View {
 
     private var hasOverlayContent: Bool {
         let titleVisible = !(title?.isEmpty ?? true)
-        let subtitleVisible = !(subtitle?.isEmpty ?? true)
         let actionsVisible = openURL != nil && actions.contains { $0.url != nil }
         let badgesVisible = !badges.isEmpty
-        return titleVisible || subtitleVisible || actionsVisible || badgesVisible
+        return titleVisible || actionsVisible || badgesVisible
     }
 
     private var resolvedImageURL: URL? {
@@ -115,18 +113,6 @@ struct DetailHero: View {
                 )
 
                 VStack(alignment: .leading, spacing: actions.isEmpty ? 12 : DetailHeroLayout.contentSpacingWithActions) {
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(Color.white.opacity(0.78))
-                            .textCase(.uppercase)
-                            .shadow(
-                                color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
-                                radius: 4,
-                                x: 0,
-                                y: 2
-                            )
-                    }
                     if let title, !title.isEmpty {
                         Text(title)
                             .font(laughTrack.typography.hero)

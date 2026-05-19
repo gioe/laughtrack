@@ -56,7 +56,6 @@ struct ShowDetailView: View {
                         TimelineView(.periodic(from: .now, by: 60)) { context in
                             DetailHero(
                                 title: nil,
-                                subtitle: nil,
                                 imageURL: show.imageUrl,
                                 badges: ShowDetailPresentation.heroBadges(for: show, now: context.date),
                                 fallbackSystemImage: "ticket.fill"

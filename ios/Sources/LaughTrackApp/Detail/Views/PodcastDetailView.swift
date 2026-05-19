@@ -120,7 +120,6 @@ struct PodcastDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         DetailHero(
                             title: response.podcast.title,
-                            subtitle: PodcastDetailPresentation.subtitle(for: response.podcast),
                             imageURL: response.podcast.imageUrl ?? "",
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
@@ -198,18 +197,25 @@ struct PodcastDetailView: View {
 }
 
 enum PodcastDetailPresentation {
-    static func subtitle(for podcast: PodcastDetail) -> String? {
-        podcast.authorName.map { "Hosted by \($0)" }
-    }
-
     static func heroBadges(for podcast: PodcastDetail) -> [DetailHeroBadge] {
-        [
+        var badges: [DetailHeroBadge] = []
+        if let authorName = podcast.authorName, !authorName.isEmpty {
+            badges.append(
+                DetailHeroBadge(
+                    title: "Hosted by \(authorName)",
+                    systemImage: "person.fill",
+                    tone: .neutral
+                )
+            )
+        }
+        badges.append(
             DetailHeroBadge(
                 title: "\(podcast.episodeCount) episodes",
                 systemImage: "headphones",
                 tone: .accent
             )
-        ]
+        )
+        return badges
     }
 
     static func heroActions(for podcast: PodcastDetail) -> [DetailHeroAction] {

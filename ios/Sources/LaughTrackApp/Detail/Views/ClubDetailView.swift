@@ -41,10 +41,6 @@ struct ClubDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
                         title: club.name,
-                        subtitle: ClubDetailHeroPresentation.subtitle(
-                            upcomingShowCount: content.upcomingShows.count,
-                            zipCode: club.zipCode
-                        ),
                         imageURL: club.imageUrl,
                         badges: [],
                         actions: clubHeroActions(club: club),
@@ -97,10 +93,6 @@ struct ClubDetailView: View {
 }
 
 enum ClubDetailHeroPresentation {
-    static func subtitle(upcomingShowCount: Int, zipCode: String?) -> String? {
-        nil
-    }
-
     static func actions(for club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         [
             DetailHeroAction(
