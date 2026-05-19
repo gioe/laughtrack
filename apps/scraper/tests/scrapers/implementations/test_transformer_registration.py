@@ -19,6 +19,7 @@ from laughtrack.scrapers.implementations.api.ticketmaster.scraper import Ticketm
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.scrapers.implementations.venues.broadway_comedy_club.scraper import BroadwayComedyClubScraper
 from laughtrack.scrapers.implementations.api.ovationtix.scraper import OvationTixScraper
+from laughtrack.scrapers.implementations.api.patchogue_theatre.scraper import PatchogueTheatreScraper
 from laughtrack.scrapers.implementations.api.wix_events.scraper import WixEventsScraper
 from laughtrack.scrapers.implementations.api.squadup.scraper import SquadUpScraper
 from laughtrack.scrapers.implementations.venues.barclays_center.scraper import BarclaysCenterScraper
@@ -108,6 +109,7 @@ PIPELINE_SCRAPERS = [
     (JsonLdScraper, {}),
     # Platform scrapers (consolidated)
     (OvationTixScraper, {"ovationtix_client_id": "12345"}),
+    (PatchogueTheatreScraper, {"ovationtix_client_id": "34780", "scraping_url": "https://www.bowerypresents.com/venues/patchogue-theatre"}),
     (WixEventsScraper, {"wix_comp_id": "comp-test"}),
     (SquadUpScraper, {"squadup_user_id": "99999"}),
     # Venue-specific scrapers
