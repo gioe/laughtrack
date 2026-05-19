@@ -25,6 +25,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
@@ -70,15 +71,14 @@ class PatchogueTheatreScraper(BaseScraper):
             )
         self._client_id = str(client_id)
 
-        source_url = club.scraping_url
-        if not source_url:
+    async def discover_urls(self) -> List[str]:
+        if not self.club.scraping_url:
             raise ValueError(
                 f"PatchogueTheatreScraper requires source_url on the active "
-                f"scraping_sources row for club id={club.id} name='{club.name}'"
+                f"scraping_sources row for club id={self.club.id} "
+                f"name='{self.club.name}'"
             )
-
-    async def discover_urls(self) -> List[str]:
-        return [self.club.scraping_url]
+        return [URLUtils.normalize_url(self.club.scraping_url)]
 
     async def get_data(self, url: str) -> Optional[OvationTixPageData]:
         try:

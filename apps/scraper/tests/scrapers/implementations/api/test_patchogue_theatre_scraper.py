@@ -335,3 +335,20 @@ def test_scraper_raises_without_required_source_config():
     club.scraping_sources = [club.active_scraping_source]
     with pytest.raises(ValueError, match="ovationtix_id"):
         PatchogueTheatreScraper(club)
+
+
+@pytest.mark.asyncio
+async def test_discover_urls_raises_when_source_url_is_empty():
+    club = _club()
+    club.active_scraping_source = ScrapingSource(
+        id=9001,
+        club_id=club.id,
+        platform="ovationtix",
+        scraper_key="patchogue_theatre",
+        source_url="",
+        ovationtix_id=CLIENT_ID,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    scraper = PatchogueTheatreScraper(club)
+    with pytest.raises(ValueError, match="source_url"):
+        await scraper.discover_urls()
