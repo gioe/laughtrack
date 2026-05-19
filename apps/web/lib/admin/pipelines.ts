@@ -152,6 +152,9 @@ function canonicalPipelineKey(key: string): string {
     if (key === "github_actions_ios_pbxproj_sync") {
         return "github_actions_ios_xcode_project_sync_guard";
     }
+    if (key === "github_actions_cdn_image_audit") {
+        return "github_actions_comedian_cdn_image_flag_sync";
+    }
     return key;
 }
 
@@ -172,6 +175,12 @@ function pipelineName(key: string): string {
         "github_actions_ios_xcode_project_sync_guard"
     ) {
         return "iOS Xcode project sync guard";
+    }
+    if (
+        canonicalPipelineKey(key) ===
+        "github_actions_comedian_cdn_image_flag_sync"
+    ) {
+        return "Comedian CDN image flag sync";
     }
     return key
         .split(/[-_\s]+/)
