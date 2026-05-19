@@ -213,7 +213,6 @@ private func homeFeed(showID: Int) -> Components.Schemas.HomeFeed {
         showsTonight: [homeShow(id: showID)],
         moreNearYou: [],
         trendingThisWeek: [],
-        trendingPodcasts: [],
         popularClubs: []
     )
 }
