@@ -11,10 +11,10 @@ export default async function AdminPodcastOwnershipReviewPage() {
         <div className="mx-auto max-w-6xl px-4 py-8">
             <div className="mb-4 text-sm">
                 <Link
-                    href="/admin/overview"
+                    href="/admin/users"
                     className="text-copper-dark hover:underline"
                 >
-                    Admin overview
+                    Admin users
                 </Link>
             </div>
             <div className="mb-6">

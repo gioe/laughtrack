@@ -4,8 +4,8 @@ import {
     BadgeCheck,
     Building2,
     ChevronRight,
-    LayoutDashboard,
     Podcast,
+    UserRound,
     UsersRound,
 } from "lucide-react";
 import Image from "next/image";
@@ -14,10 +14,10 @@ import { notFound } from "next/navigation";
 
 const ADMIN_NAV_ITEMS = [
     {
-        label: "Overview",
-        href: "/admin/overview",
-        description: "Run health",
-        icon: LayoutDashboard,
+        label: "Users",
+        href: "/admin/users",
+        description: "Accounts and favorites",
+        icon: UserRound,
     },
     {
         label: "Clubs",
