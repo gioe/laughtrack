@@ -124,20 +124,22 @@ def _resolve_primary_repo_root(repo_root: str) -> str | None:
     return os.path.realpath(os.path.join(git_common_dir, ".."))
 
 
-def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str | None:
-    primary_repo_root = _resolve_primary_repo_root(repo_root)
-    if not primary_repo_root:
+def _link_primary_resource(
+    primary_repo_root: str,
+    workspace_path: str,
+    relative_path: str,
+    *,
+    resource_label: str,
+) -> str | None:
+    source = os.path.join(primary_repo_root, relative_path)
+    if not os.path.exists(source):
         return None
 
-    source = os.path.join(primary_repo_root, "apps", "scraper", ".venv")
-    if not os.path.isdir(source):
+    target_parent = os.path.dirname(os.path.join(workspace_path, relative_path))
+    if not os.path.isdir(target_parent):
         return None
 
-    scraper_dir = os.path.join(workspace_path, "apps", "scraper")
-    if not os.path.isdir(scraper_dir):
-        return None
-
-    target = os.path.join(scraper_dir, ".venv")
+    target = os.path.join(workspace_path, relative_path)
     if os.path.lexists(target):
         if os.path.islink(target) and not os.path.exists(target):
             os.unlink(target)
@@ -147,7 +149,42 @@ def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str |
     try:
         os.symlink(source, target)
     except OSError as exc:
-        return f"Warning: could not link scraper venv into task workspace: {exc}"
+        return f"Warning: could not link {resource_label} into task workspace: {exc}"
+    return None
+
+
+def _ensure_workspace_resources_available(
+    repo_root: str, workspace_path: str
+) -> list[str]:
+    primary_repo_root = _resolve_primary_repo_root(repo_root)
+    if not primary_repo_root:
+        return []
+
+    resources = [
+        ("apps/scraper/.venv", "scraper venv"),
+        ("apps/scraper/.env", "scraper env"),
+        ("apps/web/node_modules", "web node_modules"),
+        ("apps/web/.env.local", "web env"),
+    ]
+    warnings = []
+    for relative_path, label in resources:
+        warning = _link_primary_resource(
+            primary_repo_root,
+            workspace_path,
+            relative_path,
+            resource_label=label,
+        )
+        if warning:
+            warnings.append(warning)
+    return warnings
+
+
+def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str | None:
+    """Backward-compatible wrapper for tests and older importers."""
+    source_warnings = _ensure_workspace_resources_available(repo_root, workspace_path)
+    for warning in source_warnings:
+        if "scraper venv" in warning:
+            return warning
     return None
 
 
@@ -268,11 +305,11 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             (task_id, branch),
         ).fetchone()
         if existing:
-            setup_warning = _ensure_scraper_venv_available(
+            setup_warnings = _ensure_workspace_resources_available(
                 repo_root,
                 existing["workspace_path"],
             )
-            if setup_warning:
+            for setup_warning in setup_warnings:
                 print(setup_warning, file=sys.stderr)
             print(dumps(_workspace_payload(existing, created=False)))
             return 0
@@ -300,8 +337,8 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             print(f"Error: git worktree add failed:\n{err}", file=sys.stderr)
             return 2
 
-        setup_warning = _ensure_scraper_venv_available(repo_root, workspace_path)
-        if setup_warning:
+        setup_warnings = _ensure_workspace_resources_available(repo_root, workspace_path)
+        for setup_warning in setup_warnings:
             print(setup_warning, file=sys.stderr)
 
         cur = conn.execute(

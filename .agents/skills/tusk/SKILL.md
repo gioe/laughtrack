@@ -86,6 +86,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    For LaughTrack scraper work, `task-worktree create` also links `apps/scraper/.venv` from the primary checkout into the task workspace when the primary checkout has that venv. This makes acceptance commands such as `cd apps/scraper && .venv/bin/python3 -m pytest ...` work in task-owned worktrees without manual setup. If the primary checkout has no scraper venv, create it there first with `cd apps/scraper && make setup-venv`.
 
+   For LaughTrack web work, `task-worktree create` links ignored local resources from the primary checkout when they exist: `apps/web/node_modules`, `apps/web/.env.local`, and `apps/scraper/.env`. This makes `cd apps/web && npm run type-check` and `npm run dev` work in task-owned worktrees without manual symlink setup, while leaving any existing local files in the task workspace untouched.
+
    If you need to inspect recorded workspaces before deciding where to continue, run:
    ```bash
    tusk task-worktree list --format json
