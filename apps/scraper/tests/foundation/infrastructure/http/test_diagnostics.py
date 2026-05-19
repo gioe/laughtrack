@@ -204,8 +204,14 @@ class TestScrapeDiagnosticsFetchJson:
         diagnostics = ScrapeDiagnostics()
         token = bind_diagnostics(diagnostics)
         try:
-            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
-                result = await HttpClient.fetch_json(session, "https://example.com/api")
+            # 403 triggers _fetch_with_fallback's Playwright path. The session-
+            # wide PLAYWRIGHT_FALLBACK=0 default already short-circuits this,
+            # but pin _get_js_browser to None at the function level too so the
+            # test stays deterministic if a future conftest change re-enables
+            # the env var and Playwright is installed in the venv.
+            with _NO_FALLBACK:
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                    result = await HttpClient.fetch_json(session, "https://example.com/api")
         finally:
             reset_diagnostics(token)
 

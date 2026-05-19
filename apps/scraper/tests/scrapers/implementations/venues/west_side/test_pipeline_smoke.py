@@ -73,6 +73,18 @@ async def test_collect_scraping_targets_returns_url(monkeypatch):
     assert any(SCRAPING_URL in u for u in urls), f"Expected scraping URL in targets, got: {urls}"
 
 
+async def _passthrough_enrich(self, shows):
+    """Skip the real Tixologi API call during pipeline smoke tests.
+
+    The fixture's ``tixologi_event_id`` is synthetic, so the real
+    ``_enrich_tixologi_tickets`` would issue an unmocked GET against
+    ``api-v2.tixologi.com``. A 4xx from that endpoint trips
+    ``HttpClient._fetch_with_fallback`` into the Playwright path, which can
+    launch a real headless Chromium and blow past the 30 s pytest-timeout.
+    """
+    return shows
+
+
 @pytest.mark.asyncio
 async def test_get_data_returns_events_from_punchup_html(monkeypatch):
     """get_data() extracts at least one show from Punchup hydration HTML."""
@@ -82,6 +94,7 @@ async def test_get_data_returns_events_from_punchup_html(monkeypatch):
         return _punchup_html()
 
     monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(WestSideScraper, "_enrich_tixologi_tickets", _passthrough_enrich)
 
     result = await scraper.get_data(f"https://{SCRAPING_URL}")
 
@@ -99,6 +112,7 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
         return _punchup_html()
 
     monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
+    monkeypatch.setattr(WestSideScraper, "_enrich_tixologi_tickets", _passthrough_enrich)
 
     urls = await scraper.collect_scraping_targets()
     assert len(urls) > 0, "collect_scraping_targets() returned 0 URLs"
