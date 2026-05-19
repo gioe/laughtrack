@@ -2428,6 +2428,71 @@ public enum Components {
                 case shows
             }
         }
+        /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast`.
+        public struct HomeFeedPodcast: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/authorName`.
+            public var authorName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/websiteUrl`.
+            public var websiteUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/feedUrl`.
+            public var feedUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/imageUrl`.
+            public var imageUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/HomeFeedPodcast/episodeCount`.
+            public var episodeCount: Swift.Int
+            /// Creates a new `HomeFeedPodcast`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - slug:
+            ///   - title:
+            ///   - authorName:
+            ///   - websiteUrl:
+            ///   - feedUrl:
+            ///   - imageUrl:
+            ///   - description:
+            ///   - episodeCount:
+            public init(
+                id: Swift.Int,
+                slug: Swift.String,
+                title: Swift.String,
+                authorName: Swift.String? = nil,
+                websiteUrl: Swift.String? = nil,
+                feedUrl: Swift.String? = nil,
+                imageUrl: Swift.String? = nil,
+                description: Swift.String? = nil,
+                episodeCount: Swift.Int
+            ) {
+                self.id = id
+                self.slug = slug
+                self.title = title
+                self.authorName = authorName
+                self.websiteUrl = websiteUrl
+                self.feedUrl = feedUrl
+                self.imageUrl = imageUrl
+                self.description = description
+                self.episodeCount = episodeCount
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case slug
+                case title
+                case authorName
+                case websiteUrl
+                case feedUrl
+                case imageUrl
+                case description
+                case episodeCount
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/HomeFeed`.
         public struct HomeFeed: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/HomeFeed/hero`.
@@ -2446,6 +2511,10 @@ public enum Components {
             public var moreNearYou: [Components.Schemas.Show]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingThisWeek`.
             public var trendingThisWeek: [Components.Schemas.Show]
+            /// Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
+            ///
+            /// - Remark: Generated from `#/components/schemas/HomeFeed/trendingPodcasts`.
+            public var trendingPodcasts: [Components.Schemas.HomeFeedPodcast]
             /// - Remark: Generated from `#/components/schemas/HomeFeed/popularClubs`.
             public var popularClubs: [Components.Schemas.ClubListItem]
             /// Creates a new `HomeFeed`.
@@ -2457,6 +2526,7 @@ public enum Components {
             ///   - showsTonight:
             ///   - moreNearYou: Shows near the hero zip beyond the first 3 surfaced in hero.shows.
             ///   - trendingThisWeek:
+            ///   - trendingPodcasts: Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.
             ///   - popularClubs:
             public init(
                 hero: Components.Schemas.HomeFeedHero,
@@ -2465,6 +2535,7 @@ public enum Components {
                 showsTonight: [Components.Schemas.Show],
                 moreNearYou: [Components.Schemas.Show],
                 trendingThisWeek: [Components.Schemas.Show],
+                trendingPodcasts: [Components.Schemas.HomeFeedPodcast],
                 popularClubs: [Components.Schemas.ClubListItem]
             ) {
                 self.hero = hero
@@ -2473,6 +2544,7 @@ public enum Components {
                 self.showsTonight = showsTonight
                 self.moreNearYou = moreNearYou
                 self.trendingThisWeek = trendingThisWeek
+                self.trendingPodcasts = trendingPodcasts
                 self.popularClubs = popularClubs
             }
             public enum CodingKeys: String, CodingKey {
@@ -2482,6 +2554,7 @@ public enum Components {
                 case showsTonight
                 case moreNearYou
                 case trendingThisWeek
+                case trendingPodcasts
                 case popularClubs
             }
         }

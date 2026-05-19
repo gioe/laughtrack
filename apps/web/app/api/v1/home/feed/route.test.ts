@@ -36,6 +36,9 @@ vi.mock("@/lib/data/home/getShowsNearZip", () => ({
 vi.mock("@/lib/data/home/getTrendingShowsThisWeek", () => ({
     getTrendingShowsThisWeek: vi.fn(),
 }));
+vi.mock("@/lib/data/home/getTrendingPodcasts", () => ({
+    getTrendingPodcasts: vi.fn(),
+}));
 
 import { GET } from "./route";
 import { auth } from "@/auth";
@@ -47,6 +50,7 @@ import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
+import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import {
     RATE_LIMIT_SENTINEL_HEADER,
     RATE_LIMIT_SENTINEL_HEADERS,
@@ -63,6 +67,7 @@ const mockGetComediansByZip = vi.mocked(getComediansByZip);
 const mockGetShowsTonight = vi.mocked(getShowsTonight);
 const mockGetShowsNearZip = vi.mocked(getShowsNearZip);
 const mockGetTrendingShowsThisWeek = vi.mocked(getTrendingShowsThisWeek);
+const mockGetTrendingPodcasts = vi.mocked(getTrendingPodcasts);
 
 function makeRequest(
     params: Record<string, string> = {},
@@ -82,6 +87,7 @@ function primeHappyPath() {
     mockGetShowsTonight.mockResolvedValue([]);
     mockGetShowsNearZip.mockResolvedValue([]);
     mockGetTrendingShowsThisWeek.mockResolvedValue([]);
+    mockGetTrendingPodcasts.mockResolvedValue([]);
 }
 
 beforeEach(() => {
@@ -219,6 +225,43 @@ describe("GET /api/v1/home/feed", () => {
                 body.data.hero.shows.map((s: { id: number }) => s.id),
             ).toEqual([1, 2]);
             expect(body.data.moreNearYou).toEqual([]);
+        });
+    });
+
+    describe("trendingPodcasts", () => {
+        it("returns a shape-correct trendingPodcasts array", async () => {
+            mockGetTrendingPodcasts.mockResolvedValue([
+                {
+                    id: 42,
+                    slug: "good-one",
+                    title: "Good One",
+                    authorName: "Vulture",
+                    websiteUrl: "https://example.com/good-one",
+                    feedUrl: "https://example.com/feed.xml",
+                    imageUrl: "https://cdn.example.com/good-one.jpg",
+                    description: "Comedy interviews",
+                    episodeCount: 12,
+                },
+            ]);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data.trendingPodcasts).toEqual([
+                {
+                    id: 42,
+                    slug: "good-one",
+                    title: "Good One",
+                    authorName: "Vulture",
+                    websiteUrl: "https://example.com/good-one",
+                    feedUrl: "https://example.com/feed.xml",
+                    imageUrl: "https://cdn.example.com/good-one.jpg",
+                    description: "Comedy interviews",
+                    episodeCount: 12,
+                },
+            ]);
+            expect(mockGetTrendingPodcasts).toHaveBeenCalledWith(null);
         });
     });
 

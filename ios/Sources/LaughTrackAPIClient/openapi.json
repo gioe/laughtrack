@@ -2439,6 +2439,21 @@
           }
         }
       },
+      "HomeFeedPodcast": {
+        "type": "object",
+        "required": ["id", "slug", "title", "episodeCount"],
+        "properties": {
+          "id": { "type": "integer" },
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "authorName": { "type": ["string", "null"] },
+          "websiteUrl": { "type": ["string", "null"] },
+          "feedUrl": { "type": ["string", "null"] },
+          "imageUrl": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] },
+          "episodeCount": { "type": "integer" }
+        }
+      },
       "HomeFeed": {
         "type": "object",
         "required": [
@@ -2448,6 +2463,7 @@
           "showsTonight",
           "moreNearYou",
           "trendingThisWeek",
+          "trendingPodcasts",
           "popularClubs"
         ],
         "properties": {
@@ -2473,6 +2489,11 @@
           "trendingThisWeek": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "trendingPodcasts": {
+            "type": "array",
+            "description": "Podcasts featuring local comedians when a hero zip is resolved, otherwise globally popular comedian-owned podcasts.",
+            "items": { "$ref": "#/components/schemas/HomeFeedPodcast" }
           },
           "popularClubs": {
             "type": "array",

@@ -6,6 +6,7 @@ import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
+import { getTrendingPodcasts } from "@/lib/data/home/getTrendingPodcasts";
 import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
@@ -66,6 +67,7 @@ export async function GET(req: NextRequest) {
             showsTonight,
             showsNearZip,
             trendingThisWeek,
+            trendingPodcasts,
         ] = await Promise.all([
             getTrendingComedians().catch(
                 logSectionError("getTrendingComedians"),
@@ -95,6 +97,9 @@ export async function GET(req: NextRequest) {
             getTrendingShowsThisWeek(timezone).catch(
                 logSectionError("getTrendingShowsThisWeek"),
             ),
+            getTrendingPodcasts(zipCode).catch(
+                logSectionError("getTrendingPodcasts"),
+            ),
         ]);
 
         const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
@@ -114,6 +119,7 @@ export async function GET(req: NextRequest) {
                     showsTonight,
                     moreNearYou,
                     trendingThisWeek,
+                    trendingPodcasts,
                     popularClubs,
                 },
             },
