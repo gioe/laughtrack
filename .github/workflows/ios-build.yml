@@ -1,0 +1,31 @@
+name: iOS swift build --build-tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/app/api/v1/**/*.ts"
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
+      - "ios/Sources/LaughTrackAPIClient/GeneratedSources/Types.swift"
+      - "ios/Sources/**"
+      - "ios/Tests/**"
+      - ".github/workflows/ios-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/app/api/v1/**/*.ts"
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
+      - "ios/Sources/LaughTrackAPIClient/GeneratedSources/Types.swift"
+      - "ios/Sources/**"
+      - "ios/Tests/**"
+      - ".github/workflows/ios-build.yml"
+
+jobs:
+  swift-build-tests:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Compile-gate LaughTrackTests against the current API surface
+        run: cd ios && swift build --build-tests
