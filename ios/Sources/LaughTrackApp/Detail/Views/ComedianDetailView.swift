@@ -60,7 +60,8 @@ struct ComedianDetailView: View {
                                 action: {
                                     await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
                                 }
-                            )
+                            ),
+                            fallbackSystemImage: "music.mic"
                         )
                         .ignoresSafeArea(.container, edges: .top)
 

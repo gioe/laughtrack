@@ -48,6 +48,7 @@ struct DetailHero: View {
     var actions: [DetailHeroAction] = []
     var openURL: ((URL) -> Void)?
     var favoriteState: DetailHeroFavoriteState? = nil
+    var fallbackSystemImage: String? = nil
 
     private var hasOverlayContent: Bool {
         let titleVisible = !(title?.isEmpty ?? true)
@@ -71,7 +72,7 @@ struct DetailHero: View {
 
     @ViewBuilder
     var body: some View {
-        if hasOverlayContent || hasUsableImage {
+        if hasOverlayContent || hasUsableImage || fallbackSystemImage != nil {
             heroContent
         } else {
             EmptyView()
@@ -82,22 +83,25 @@ struct DetailHero: View {
         let laughTrack = theme.laughTrackTokens
 
         return ZStack(alignment: .bottomLeading) {
-            CachedAsyncImage(url: resolvedImageURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight, alignment: .top)
-            } placeholder: {
-                Rectangle()
-                    .fill(laughTrack.colors.surfaceElevated)
-                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
-            } error: { _ in
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
-                    .onAppear { imageLoadFailed = true }
+            if let url = resolvedImageURL, !imageLoadFailed {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: resolvedHeight, alignment: .top)
+                } placeholder: {
+                    Rectangle()
+                        .fill(laughTrack.colors.surfaceElevated)
+                        .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+                } error: { _ in
+                    fallbackSurface
+                        .onAppear { imageLoadFailed = true }
+                }
+                .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+                .clipped()
+            } else {
+                fallbackSurface
             }
-            .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
-            .clipped()
 
             if hasOverlayContent {
                 LinearGradient(
@@ -204,6 +208,22 @@ struct DetailHero: View {
                     .padding(.trailing, DetailHeroLayout.favoriteOverlayTrailingPadding)
             }
         }
+    }
+
+    @ViewBuilder
+    private var fallbackSurface: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Rectangle()
+            .fill(laughTrack.colors.surfaceMuted)
+            .frame(maxWidth: .infinity, maxHeight: resolvedHeight)
+            .overlay {
+                if let fallbackSystemImage {
+                    Image(systemName: fallbackSystemImage)
+                        .font(.system(size: 64, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accentStrong)
+                }
+            }
     }
 }
 
