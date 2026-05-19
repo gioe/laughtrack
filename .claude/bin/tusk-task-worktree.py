@@ -181,11 +181,15 @@ def _ensure_workspace_resources_available(
 
 def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str | None:
     """Backward-compatible wrapper for tests and older importers."""
-    source_warnings = _ensure_workspace_resources_available(repo_root, workspace_path)
-    for warning in source_warnings:
-        if "scraper venv" in warning:
-            return warning
-    return None
+    primary_repo_root = _resolve_primary_repo_root(repo_root)
+    if not primary_repo_root:
+        return None
+    return _link_primary_resource(
+        primary_repo_root,
+        workspace_path,
+        "apps/scraper/.venv",
+        resource_label="scraper venv",
+    )
 
 
 def _parse_git_worktrees(repo_root: str) -> dict[str, str]:
