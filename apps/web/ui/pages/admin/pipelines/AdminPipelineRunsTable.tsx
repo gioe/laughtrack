@@ -44,6 +44,14 @@ function DetailItem({ label, value }: { label: string; value: string }) {
     );
 }
 
+function isGithubActionsRun(run: AdminPipelineRun) {
+    return run.source?.startsWith("github_actions") ?? false;
+}
+
+function shortSha(value: string | null) {
+    return value ? value.slice(0, 12) : null;
+}
+
 export default function AdminPipelineRunsTable({
     runs,
 }: {
@@ -92,6 +100,7 @@ export default function AdminPipelineRunsTable({
                         <tbody className="divide-y divide-copper/15">
                             {runs.map((run) => {
                                 const isOpen = openRunIds.has(run.id);
+                                const isGithubRun = isGithubActionsRun(run);
                                 return (
                                     <Fragment key={run.id}>
                                         <tr className="hover:bg-ecru-white/60">
@@ -141,12 +150,14 @@ export default function AdminPipelineRunsTable({
                                                 {formatPercent(run.successRate)}
                                             </td>
                                             <td className="px-4 py-3 text-soft-charcoal">
-                                                {run.clubsSuccessful}/
-                                                {run.clubsProcessed} ok
+                                                {isGithubRun
+                                                    ? "N/A"
+                                                    : `${run.clubsSuccessful}/${run.clubsProcessed} ok`}
                                             </td>
                                             <td className="px-4 py-3 text-soft-charcoal">
-                                                {run.showsSaved.toLocaleString()}{" "}
-                                                saved
+                                                {isGithubRun
+                                                    ? "N/A"
+                                                    : `${run.showsSaved.toLocaleString()} saved`}
                                             </td>
                                             <td className="px-4 py-3 text-soft-charcoal">
                                                 {run.errorsTotal.toLocaleString()}
@@ -180,37 +191,100 @@ export default function AdminPipelineRunsTable({
                                                                 )}
                                                             />
                                                         </dl>
+                                                        {isGithubRun ? (
+                                                            <dl className="grid gap-2">
+                                                                <DetailItem
+                                                                    label="Workflow"
+                                                                    value={
+                                                                        run.workflowName ??
+                                                                        run.pipelineName
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Title"
+                                                                    value={
+                                                                        run.displayTitle ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Event"
+                                                                    value={
+                                                                        run.event ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Actor"
+                                                                    value={
+                                                                        run.actor ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Run number"
+                                                                    value={
+                                                                        run.runNumber ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Attempt"
+                                                                    value={
+                                                                        run.runAttempt ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="Ref"
+                                                                    value={
+                                                                        run.ref ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                                <DetailItem
+                                                                    label="SHA"
+                                                                    value={
+                                                                        shortSha(
+                                                                            run.sha,
+                                                                        ) ??
+                                                                        "Not recorded"
+                                                                    }
+                                                                />
+                                                            </dl>
+                                                        ) : (
+                                                            <dl className="grid gap-2">
+                                                                <DetailItem
+                                                                    label="Shows scraped"
+                                                                    value={run.showsScraped.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Shows inserted"
+                                                                    value={run.showsInserted.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Shows updated"
+                                                                    value={run.showsUpdated.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Shows failed save"
+                                                                    value={run.showsFailedSave.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Skipped duplicates"
+                                                                    value={run.showsSkippedDedup.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Validation failures"
+                                                                    value={run.showsValidationFailed.toLocaleString()}
+                                                                />
+                                                                <DetailItem
+                                                                    label="DB errors"
+                                                                    value={run.showsDbErrors.toLocaleString()}
+                                                                />
+                                                            </dl>
+                                                        )}
                                                         <dl className="grid gap-2">
-                                                            <DetailItem
-                                                                label="Shows scraped"
-                                                                value={run.showsScraped.toLocaleString()}
-                                                            />
-                                                            <DetailItem
-                                                                label="Shows inserted"
-                                                                value={run.showsInserted.toLocaleString()}
-                                                            />
-                                                            <DetailItem
-                                                                label="Shows updated"
-                                                                value={run.showsUpdated.toLocaleString()}
-                                                            />
-                                                            <DetailItem
-                                                                label="Shows failed save"
-                                                                value={run.showsFailedSave.toLocaleString()}
-                                                            />
-                                                        </dl>
-                                                        <dl className="grid gap-2">
-                                                            <DetailItem
-                                                                label="Skipped duplicates"
-                                                                value={run.showsSkippedDedup.toLocaleString()}
-                                                            />
-                                                            <DetailItem
-                                                                label="Validation failures"
-                                                                value={run.showsValidationFailed.toLocaleString()}
-                                                            />
-                                                            <DetailItem
-                                                                label="DB errors"
-                                                                value={run.showsDbErrors.toLocaleString()}
-                                                            />
                                                             {run.runUrl && (
                                                                 <div>
                                                                     <dt className="font-semibold text-cedar">

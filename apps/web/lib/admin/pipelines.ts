@@ -77,6 +77,14 @@ export type AdminPipelineRun = {
     successRate: number;
     runUrl: string | null;
     source: string | null;
+    workflowName: string | null;
+    event: string | null;
+    actor: string | null;
+    ref: string | null;
+    sha: string | null;
+    runAttempt: string | null;
+    runNumber: string | null;
+    displayTitle: string | null;
 };
 
 export type AdminPipelineSummary = {
@@ -178,6 +186,14 @@ function mapRun(row: PipelineRunRow): AdminPipelineRun {
         successRate: row.success_rate,
         runUrl: rawSnapshotValue(row, "run_url"),
         source: rawSnapshotValue(row, "source"),
+        workflowName: rawSnapshotValue(row, "workflow_name"),
+        event: rawSnapshotValue(row, "event"),
+        actor: rawSnapshotValue(row, "actor"),
+        ref: rawSnapshotValue(row, "ref"),
+        sha: rawSnapshotValue(row, "sha"),
+        runAttempt: rawSnapshotValue(row, "run_attempt"),
+        runNumber: rawSnapshotValue(row, "run_number"),
+        displayTitle: rawSnapshotValue(row, "display_title"),
     };
 }
 

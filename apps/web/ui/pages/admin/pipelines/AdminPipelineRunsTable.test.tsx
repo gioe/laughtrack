@@ -31,6 +31,14 @@ const runs: AdminPipelineRun[] = [
         successRate: 83.3,
         runUrl: "https://github.com/example/repo/actions/runs/123",
         source: "github_actions",
+        workflowName: "Scraper Production Run",
+        event: "schedule",
+        actor: "mattgioe",
+        ref: "main",
+        sha: "abc123def4567890",
+        runAttempt: "1",
+        runNumber: "88",
+        displayTitle: "Scraper Production Run",
     },
 ];
 
@@ -39,10 +47,50 @@ afterEach(() => {
 });
 
 describe("AdminPipelineRunsTable", () => {
-    it("expands a run row to show details and links", () => {
+    it("expands a GitHub Actions row to show workflow details and links", () => {
         render(<AdminPipelineRunsTable runs={runs} />);
 
+        expect(screen.queryByText("Workflow")).toBeNull();
         expect(screen.queryByText("Shows inserted")).toBeNull();
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: /Venue scraper scraper:2026-05-19T12:00:00.000Z/,
+            }),
+        );
+
+        expect(screen.getByText("Workflow")).toBeTruthy();
+        expect(
+            screen.getAllByText("Scraper Production Run").length,
+        ).toBeGreaterThan(0);
+        expect(screen.getByText("Event")).toBeTruthy();
+        expect(screen.getByText("schedule")).toBeTruthy();
+        expect(screen.queryByText("Shows inserted")).toBeNull();
+        expect(
+            screen.getByRole("link", { name: /Open run/ }).getAttribute("href"),
+        ).toBe("https://github.com/example/repo/actions/runs/123");
+    });
+
+    it("expands a scraper row to show scraper metrics", () => {
+        render(
+            <AdminPipelineRunsTable
+                runs={[
+                    {
+                        ...runs[0],
+                        source: null,
+                        runUrl: null,
+                        workflowName: null,
+                        event: null,
+                        actor: null,
+                        ref: null,
+                        sha: null,
+                        runAttempt: null,
+                        runNumber: null,
+                        displayTitle: null,
+                    },
+                ]}
+            />,
+        );
 
         fireEvent.click(
             screen.getByRole("button", {
@@ -53,9 +101,7 @@ describe("AdminPipelineRunsTable", () => {
         expect(screen.getByText("Shows inserted")).toBeTruthy();
         expect(screen.getByText("44")).toBeTruthy();
         expect(screen.getByText("Skipped duplicates")).toBeTruthy();
-        expect(
-            screen.getByRole("link", { name: /Open run/ }).getAttribute("href"),
-        ).toBe("https://github.com/example/repo/actions/runs/123");
+        expect(screen.queryByText("Workflow")).toBeNull();
     });
 
     it("renders an empty state", () => {
