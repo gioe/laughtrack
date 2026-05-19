@@ -235,7 +235,7 @@ struct SearchRootModelTests {
         #expect(state.selectedPrimitive == .clubs)
     }
 
-    @Test("shell state keeps geo-scoped primitives on the Discover tab")
+    @Test("shell state surfaces all primitives on the Discover tab")
     func shellStateKeepsHomePrimitivesOnNearMe() async throws {
         let state = AppShellState()
 
