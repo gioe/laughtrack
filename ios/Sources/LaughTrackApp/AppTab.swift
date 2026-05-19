@@ -8,7 +8,7 @@ enum AppTab: Hashable, CaseIterable {
     var title: String {
         switch self {
         case .nearMe:
-            return "Near Me"
+            return "Discover"
         case .search:
             return "Search"
         case .favorites:

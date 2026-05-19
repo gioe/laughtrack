@@ -15,7 +15,7 @@ struct AppShellViewTests {
     @Test("shell renders three top-level tabs and keeps account out of the tab bar")
     func shellRendersTabs() async throws {
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
-        #expect(AppTab.allCases.map(\.title) == ["Near Me", "Search", "Favorites"])
+        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Favorites"])
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppRoute.search.shellTab == .search)
         #expect(AppRoute.library.shellTab == .favorites)
@@ -31,7 +31,7 @@ struct AppShellViewTests {
         #expect(shellState.selectedTab == .search)
         #expect(shellState.resolvedSearchPrimitive == .shows)
         #expect(!shellState.showsLocationHeader)
-        #expect(AppTab.allCases.map(\.title) == ["Near Me", "Search", "Favorites"])
+        #expect(AppTab.allCases.map(\.title) == ["Discover", "Search", "Favorites"])
     }
 
     @Test("near me tab keeps the real home affordances inside shell chrome")
