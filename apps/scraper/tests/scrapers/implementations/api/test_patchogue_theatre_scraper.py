@@ -128,8 +128,32 @@ LITTLE_SHOP_DESC = (
         ("", "", False),
     ],
 )
-def test_is_comedy_relevant(name, desc, expected):
+def test_is_comedy_relevant(monkeypatch, name, desc, expected):
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.patchogue_theatre.extractor._get_known_comedian_names",
+        lambda: (),
+    )
+
     assert is_comedy_relevant(name, desc) is expected
+
+
+def test_is_comedy_relevant_matches_known_comedian_name(monkeypatch):
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.patchogue_theatre.extractor._get_known_comedian_names",
+        lambda: ("Trevor Noah",),
+    )
+
+    assert is_comedy_relevant("Trevor Noah Live in Patchogue", "One night only.") is True
+
+
+def test_is_comedy_relevant_does_not_match_unrelated_known_comedian(monkeypatch):
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.patchogue_theatre.extractor._get_known_comedian_names",
+        lambda: ("Trevor Noah",),
+    )
+
+    assert is_comedy_relevant("Amy Grant: The Me That Remains Tour", "Christian music legend.") is False
+    assert is_comedy_relevant("Little Shop of Horrors", LITTLE_SHOP_DESC) is False
 
 
 # --------------------------------------------------------------------------

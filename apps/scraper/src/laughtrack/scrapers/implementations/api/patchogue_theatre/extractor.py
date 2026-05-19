@@ -26,9 +26,12 @@ from __future__ import annotations
 
 import html as html_unescape
 import re
+from functools import lru_cache
 from typing import List, Optional
 
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.infrastructure.database.connection import get_connection
 from laughtrack.foundation.models.types import JSONDict
 
 
@@ -48,6 +51,59 @@ _COMEDY_MARKERS = (
 )
 
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
+_NAME_WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+_NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
+
+
+@lru_cache(maxsize=1)
+def _get_known_comedian_names() -> tuple[str, ...]:
+    """Return canonical, deny-list-filtered comedian names for title matching."""
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT c.name
+                    FROM comedians c
+                    WHERE c.name IS NOT NULL
+                      AND c.parent_comedian_id IS NULL
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM comedian_deny_list d
+                          WHERE lower(trim(d.name)) = lower(trim(c.name))
+                      )
+                    """
+                )
+                rows = cursor.fetchall()
+    except Exception as e:
+        Logger.warn(f"Patchogue known-comedian lookup failed; falling back to keyword filter: {e}")
+        return ()
+
+    names: list[str] = []
+    for row in rows:
+        name = (row[0] or "").strip()
+        if len(_NAME_WORD_RE.findall(name)) >= 2:
+            names.append(name)
+    return tuple(names)
+
+
+def _normalize_name_match_text(value: str) -> str:
+    return _NON_ALNUM_RE.sub(" ", html_unescape.unescape(value).lower()).strip()
+
+
+def _contains_known_comedian_name(production_name: Optional[str]) -> bool:
+    if not production_name:
+        return False
+
+    normalized_title = f" {_normalize_name_match_text(production_name)} "
+    if not normalized_title.strip():
+        return False
+
+    for comedian_name in _get_known_comedian_names():
+        normalized_name = _normalize_name_match_text(comedian_name)
+        if normalized_name and f" {normalized_name} " in normalized_title:
+            return True
+    return False
 
 
 def extract_performance_ids(html: str, client_id: Optional[str] = None) -> List[str]:
@@ -151,4 +207,7 @@ def is_comedy_relevant(production_name: Optional[str], description: Optional[str
     haystack = " ".join(parts)
     if not haystack.strip():
         return False
-    return any(marker.search(haystack) for marker in _COMEDY_MARKERS)
+    return (
+        any(marker.search(haystack) for marker in _COMEDY_MARKERS)
+        or _contains_known_comedian_name(production_name)
+    )
