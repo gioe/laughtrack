@@ -142,6 +142,6 @@
   "test_command_timeout_sec": 120,
   "baseline_min_sample_size": 10,
   "path_test_commands": {
-    "ios/**": ":"
+    "ios/**": "cd ios && swift build --build-tests"
   }
 }
