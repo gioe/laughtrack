@@ -243,7 +243,7 @@ private struct HomeNearMeHeader: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            Text("Near me")
+            Text("Discover")
                 .font(laughTrack.typography.sectionTitle)
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .lineLimit(1)
@@ -261,7 +261,7 @@ private struct HomeNearMeHeader: View {
 
     private var subtitle: String {
         guard let preference = nearbyPreferenceStore.preference else {
-            return "Comedy picks tuned to your location when you turn nearby on."
+            return "Shows, comedians, clubs, and podcasts handpicked for you."
         }
 
         let source = preference.source == .manual ? "saved ZIP" : "current location"
