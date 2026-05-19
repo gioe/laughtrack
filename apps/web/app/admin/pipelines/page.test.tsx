@@ -16,7 +16,7 @@ const pipelinesData: AdminPipelinesData = {
     summaries: [
         {
             pipelineKey: "scraper",
-            pipelineName: "Venue scraper",
+            pipelineName: "Scraper pipeline run details",
             runCount: 3,
             averageDurationSeconds: 93.4,
             averageSuccessRate: 96.2,
@@ -27,7 +27,7 @@ const pipelinesData: AdminPipelinesData = {
                 id: 7,
                 runKey: "scraper:2026-05-19T12:00:00.000Z",
                 pipelineKey: "scraper",
-                pipelineName: "Venue scraper",
+                pipelineName: "Scraper pipeline run details",
                 status: "degraded",
                 exportedAt: "2026-05-19T12:00:00.000Z",
                 durationSeconds: 102.5,
@@ -54,6 +54,8 @@ const pipelinesData: AdminPipelinesData = {
                 runAttempt: null,
                 runNumber: null,
                 displayTitle: null,
+                workflowStatus: null,
+                failureSummary: null,
             },
         },
     ],
@@ -62,7 +64,7 @@ const pipelinesData: AdminPipelinesData = {
             id: 7,
             runKey: "scraper:2026-05-19T12:00:00.000Z",
             pipelineKey: "scraper",
-            pipelineName: "Venue scraper",
+            pipelineName: "Scraper pipeline run details",
             status: "degraded",
             exportedAt: "2026-05-19T12:00:00.000Z",
             durationSeconds: 102.5,
@@ -89,6 +91,8 @@ const pipelinesData: AdminPipelinesData = {
             runAttempt: "1",
             runNumber: "88",
             displayTitle: "Scraper Production Run",
+            workflowStatus: "success",
+            failureSummary: null,
         },
         {
             id: 8,
@@ -121,6 +125,8 @@ const pipelinesData: AdminPipelinesData = {
             runAttempt: "1",
             runNumber: "89",
             displayTitle: "Social Follower Refresh",
+            workflowStatus: "success",
+            failureSummary: null,
         },
     ],
     latestSlowClubs: [
@@ -175,7 +181,7 @@ describe("AdminPipelinesPage", () => {
         expect(markup).toContain("Admin · Pipelines");
         expect(markup).toContain("Pipeline runs");
         expect(markup).toContain("Recent runs");
-        expect(markup).toContain("Venue scraper");
+        expect(markup).toContain("Scraper pipeline run details");
         expect(markup).toContain("83.3%");
         expect(markup).toContain("Github Actions Social Follower Refresh");
         expect(markup).not.toContain("Slowest latest-run clubs");

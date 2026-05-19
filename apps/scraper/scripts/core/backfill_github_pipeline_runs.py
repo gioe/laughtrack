@@ -111,6 +111,11 @@ def _github_request(url: str, token: str | None) -> tuple[dict[str, Any], str | 
         raise RuntimeError(f"GitHub API request failed {exc.code}: {detail}") from exc
 
 
+def _github_get(url: str, token: str | None) -> dict[str, Any]:
+    body, _next_url = _github_request(url, token)
+    return body
+
+
 def _certifi_ca_file() -> str | None:
     try:
         import certifi
@@ -137,7 +142,53 @@ def iter_workflow_runs(
     return runs[:limit]
 
 
-def _record_from_run(run: dict[str, Any]) -> PipelineRunRecord:
+def _failure_summary(run: dict[str, Any], token: str | None) -> str | None:
+    conclusion = _status(run)
+    if conclusion == "success":
+        return None
+
+    jobs_url = run.get("jobs_url")
+    if not isinstance(jobs_url, str) or not jobs_url:
+        return f"Workflow concluded {conclusion}; job details were not available."
+
+    try:
+        body = _github_get(jobs_url, token)
+    except RuntimeError as exc:
+        return f"Workflow concluded {conclusion}; failed to load job details: {exc}"
+
+    jobs = body.get("jobs", [])
+    if not isinstance(jobs, list):
+        return f"Workflow concluded {conclusion}; job details were not in the expected format."
+
+    failed_jobs: list[str] = []
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        job_conclusion = str(job.get("conclusion") or job.get("status") or "unknown").lower()
+        if job_conclusion not in {"failure", "cancelled", "timed_out", "action_required"}:
+            continue
+
+        job_name = str(job.get("name") or "Unnamed job")
+        failed_steps: list[str] = []
+        steps = job.get("steps", [])
+        if isinstance(steps, list):
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                step_conclusion = str(step.get("conclusion") or step.get("status") or "").lower()
+                if step_conclusion in {"failure", "cancelled", "timed_out", "action_required"}:
+                    failed_steps.append(str(step.get("name") or "Unnamed step"))
+        if failed_steps:
+            failed_jobs.append(f"{job_name}: {', '.join(failed_steps[:3])}")
+        else:
+            failed_jobs.append(f"{job_name}: {job_conclusion}")
+
+    if failed_jobs:
+        return "Failed jobs: " + "; ".join(failed_jobs[:5])
+    return f"Workflow concluded {conclusion}; no failed job details were returned by GitHub."
+
+
+def _record_from_run(run: dict[str, Any], token: str | None) -> PipelineRunRecord:
     workflow_name = str(run.get("name") or run.get("workflow_name") or "GitHub Actions")
     pipeline_key = f"github_actions_{_slug(workflow_name)}"
     run_id = str(run["id"])
@@ -160,6 +211,7 @@ def _record_from_run(run: dict[str, Any]) -> PipelineRunRecord:
         "actor": run.get("actor", {}).get("login"),
         "run_url": html_url if isinstance(html_url, str) else None,
         "display_title": run.get("display_title"),
+        "failure_summary": _failure_summary(run, token),
         "created_at": run.get("created_at"),
         "updated_at": run.get("updated_at"),
         "run_started_at": run.get("run_started_at"),
@@ -210,7 +262,7 @@ def main() -> int:
 
     token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
     runs = iter_workflow_runs(repository=args.repository, token=token, limit=args.limit)
-    records = [_record_from_run(run) for run in runs]
+    records = [_record_from_run(run, token) for run in runs]
 
     counts: dict[str, int] = {}
     for record in records:

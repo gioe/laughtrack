@@ -1,4 +1,4 @@
-name: Scraper Production Run
+name: Scraper pipeline run
 
 on:
   schedule:

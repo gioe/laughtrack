@@ -73,6 +73,7 @@ def main() -> int:
     parser.add_argument("--workflow-name", default=_env("GITHUB_WORKFLOW", "GitHub Actions"))
     parser.add_argument("--status", default="")
     parser.add_argument("--duration-seconds", type=float, default=0.0)
+    parser.add_argument("--failure-summary", default=_env("GITHUB_FAILURE_SUMMARY"))
     args = parser.parse_args()
 
     workflow_name = args.workflow_name
@@ -102,6 +103,7 @@ def main() -> int:
         "sha": _env("GITHUB_SHA"),
         "actor": _env("GITHUB_ACTOR"),
         "run_url": _run_url(repository, run_id),
+        "failure_summary": args.failure_summary or None,
     }
 
     ok = PostgresMetricsRepository().persist_pipeline_run(

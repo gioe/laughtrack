@@ -133,7 +133,6 @@ export default function AdminPipelineRunsTable({
                         <thead className="bg-ecru-white text-caption uppercase text-soft-charcoal">
                             <tr>
                                 <th className="px-4 py-3">Pipeline</th>
-                                <th className="px-4 py-3">Latest status</th>
                                 <th className="px-4 py-3">Latest run</th>
                                 <th className="px-4 py-3">Duration</th>
                                 <th className="px-4 py-3">Success</th>
@@ -179,13 +178,6 @@ export default function AdminPipelineRunsTable({
                                                     </span>
                                                 </button>
                                             </td>
-                                            <td className="px-4 py-3">
-                                                <span
-                                                    className={`rounded-full border px-2 py-1 text-caption font-semibold ${statusClass(latestRun.status)}`}
-                                                >
-                                                    {latestRun.status}
-                                                </span>
-                                            </td>
                                             <td className="px-4 py-3 text-soft-charcoal">
                                                 {formatDateTime(
                                                     latestRun.exportedAt,
@@ -213,7 +205,7 @@ export default function AdminPipelineRunsTable({
                                                 id={`pipeline-group-${group.pipelineKey}`}
                                             >
                                                 <td
-                                                    colSpan={7}
+                                                    colSpan={6}
                                                     className="bg-ecru-white/60 p-0"
                                                 >
                                                     <PipelineRunAttempts
@@ -354,6 +346,16 @@ function PipelineRunDetails({ run }: { run: AdminPipelineRun }) {
                     <DetailItem
                         label="Title"
                         value={run.displayTitle ?? "Not recorded"}
+                    />
+                    <DetailItem
+                        label="GitHub status"
+                        value={run.workflowStatus ?? "Not recorded"}
+                    />
+                    <DetailItem
+                        label="Failure reason"
+                        value={
+                            run.failureSummary ?? "No failure details recorded"
+                        }
                     />
                     <DetailItem
                         label="Event"

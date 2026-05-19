@@ -54,6 +54,11 @@ type PipelineErrorRow = {
     execution_time_seconds: number;
 };
 
+const HIDDEN_PIPELINE_KEYS = new Set([
+    "github_actions_cleanup_refresh_tokens",
+    "github_actions_discover_comedian_websites",
+]);
+
 export type AdminPipelineRun = {
     id: number;
     runKey: string;
@@ -85,6 +90,8 @@ export type AdminPipelineRun = {
     runAttempt: string | null;
     runNumber: string | null;
     displayTitle: string | null;
+    workflowStatus: string | null;
+    failureSummary: string | null;
 };
 
 export type AdminPipelineSummary = {
@@ -137,8 +144,35 @@ function toIso(value: NullableDate): string | null {
         : new Date(value).toISOString();
 }
 
+function canonicalPipelineKey(key: string): string {
+    if (key === "github_actions_web_ci") return "github_actions_web_ci_cd";
+    if (key === "github_actions_scraper_production_run") {
+        return "github_actions_scraper_pipeline_run";
+    }
+    if (key === "github_actions_ios_pbxproj_sync") {
+        return "github_actions_ios_xcode_project_sync_guard";
+    }
+    return key;
+}
+
+function isHiddenPipelineKey(key: string): boolean {
+    return HIDDEN_PIPELINE_KEYS.has(canonicalPipelineKey(key));
+}
+
 function pipelineName(key: string): string {
-    if (key === "scraper") return "Venue scraper";
+    if (key === "scraper") return "Scraper pipeline run details";
+    if (canonicalPipelineKey(key) === "github_actions_scraper_pipeline_run") {
+        return "Scraper pipeline run";
+    }
+    if (canonicalPipelineKey(key) === "github_actions_web_ci_cd") {
+        return "Web CI/CD";
+    }
+    if (
+        canonicalPipelineKey(key) ===
+        "github_actions_ios_xcode_project_sync_guard"
+    ) {
+        return "iOS Xcode project sync guard";
+    }
     return key
         .split(/[-_\s]+/)
         .filter(Boolean)
@@ -163,11 +197,12 @@ function rawSnapshotValue(row: PipelineRunRow, key: string): string | null {
 }
 
 function mapRun(row: PipelineRunRow): AdminPipelineRun {
+    const pipelineKey = canonicalPipelineKey(row.pipeline_key);
     return {
         id: toNumber(row.id),
         runKey: row.run_key,
-        pipelineKey: row.pipeline_key,
-        pipelineName: pipelineName(row.pipeline_key),
+        pipelineKey,
+        pipelineName: pipelineName(pipelineKey),
         status: runStatus(row),
         exportedAt: toIso(row.exported_at) ?? "",
         durationSeconds: row.duration_seconds,
@@ -194,6 +229,8 @@ function mapRun(row: PipelineRunRow): AdminPipelineRun {
         runAttempt: rawSnapshotValue(row, "run_attempt"),
         runNumber: rawSnapshotValue(row, "run_number"),
         displayTitle: rawSnapshotValue(row, "display_title"),
+        workflowStatus: rawSnapshotValue(row, "status"),
+        failureSummary: rawSnapshotValue(row, "failure_summary"),
     };
 }
 
@@ -335,24 +372,35 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
         `,
     ]);
 
-    const latestRuns = latestRunRows.map(mapRun);
+    const latestRuns = latestRunRows
+        .filter((row) => !isHiddenPipelineKey(row.pipeline_key))
+        .map(mapRun);
+    const recentRuns = recentRunRows
+        .filter((row) => !isHiddenPipelineKey(row.pipeline_key))
+        .map(mapRun);
 
     return {
-        summaries: aggregateRows.map((row) => ({
-            pipelineKey: row.pipeline_key,
-            pipelineName: pipelineName(row.pipeline_key),
-            runCount: toNumber(row.run_count),
-            averageDurationSeconds: row.average_duration_seconds ?? 0,
-            averageSuccessRate: row.average_success_rate ?? 0,
-            totalShowsSaved: toNumber(row.total_shows_saved),
-            totalErrors: toNumber(row.total_errors),
-            latestExportedAt: toIso(row.latest_exported_at),
-            latestRun:
-                latestRuns.find(
-                    (run) => run.pipelineKey === row.pipeline_key,
-                ) ?? null,
-        })),
-        recentRuns: recentRunRows.map(mapRun),
+        summaries: aggregateRows
+            .filter((row) => !isHiddenPipelineKey(row.pipeline_key))
+            .map((row) => ({
+                pipelineKey: canonicalPipelineKey(row.pipeline_key),
+                pipelineName: pipelineName(
+                    canonicalPipelineKey(row.pipeline_key),
+                ),
+                runCount: toNumber(row.run_count),
+                averageDurationSeconds: row.average_duration_seconds ?? 0,
+                averageSuccessRate: row.average_success_rate ?? 0,
+                totalShowsSaved: toNumber(row.total_shows_saved),
+                totalErrors: toNumber(row.total_errors),
+                latestExportedAt: toIso(row.latest_exported_at),
+                latestRun:
+                    latestRuns.find(
+                        (run) =>
+                            run.pipelineKey ===
+                            canonicalPipelineKey(row.pipeline_key),
+                    ) ?? null,
+            })),
+        recentRuns,
         latestSlowClubs: slowClubRows.map(mapClub),
         latestFailedClubs: failedClubRows.map(mapClub),
         latestErrors: errorRows.map((row) => ({

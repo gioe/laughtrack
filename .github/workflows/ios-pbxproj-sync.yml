@@ -1,4 +1,4 @@
-name: iOS pbxproj sync
+name: iOS Xcode project sync guard
 
 on:
   push:

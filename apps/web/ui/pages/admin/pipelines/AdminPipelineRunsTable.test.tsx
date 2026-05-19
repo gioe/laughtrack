@@ -12,7 +12,7 @@ const runs: AdminPipelineRun[] = [
         id: 7,
         runKey: "scraper:2026-05-19T12:00:00.000Z",
         pipelineKey: "scraper",
-        pipelineName: "Venue scraper",
+        pipelineName: "Scraper pipeline run details",
         status: "degraded",
         exportedAt: "2026-05-19T12:00:00.000Z",
         durationSeconds: 102.5,
@@ -39,6 +39,8 @@ const runs: AdminPipelineRun[] = [
         runAttempt: "1",
         runNumber: "88",
         displayTitle: "Scraper Production Run",
+        workflowStatus: "failure",
+        failureSummary: "Failed jobs: Build: Build",
     },
 ];
 
@@ -61,7 +63,9 @@ describe("AdminPipelineRunsTable", () => {
             />,
         );
 
-        expect(screen.getAllByText("Venue scraper")).toHaveLength(1);
+        expect(
+            screen.getAllByText("Scraper pipeline run details"),
+        ).toHaveLength(1);
         expect(screen.getAllByText("2").length).toBeGreaterThan(0);
         expect(
             screen.queryByText("scraper:2026-05-18T12:00:00.000Z"),
@@ -76,7 +80,7 @@ describe("AdminPipelineRunsTable", () => {
 
         fireEvent.click(
             screen.getByRole("button", {
-                name: /Venue scraper scraper/,
+                name: /Scraper pipeline run details scraper/,
             }),
         );
         fireEvent.click(
@@ -91,6 +95,8 @@ describe("AdminPipelineRunsTable", () => {
         ).toBeGreaterThan(0);
         expect(screen.getByText("Event")).toBeTruthy();
         expect(screen.getByText("schedule")).toBeTruthy();
+        expect(screen.getByText("Failure reason")).toBeTruthy();
+        expect(screen.getByText("Failed jobs: Build: Build")).toBeTruthy();
         expect(screen.queryByText("Shows inserted")).toBeNull();
         expect(
             screen.getByRole("link", { name: /Open run/ }).getAttribute("href"),
@@ -113,6 +119,8 @@ describe("AdminPipelineRunsTable", () => {
                         runAttempt: null,
                         runNumber: null,
                         displayTitle: null,
+                        workflowStatus: null,
+                        failureSummary: null,
                     },
                 ]}
             />,
@@ -120,7 +128,7 @@ describe("AdminPipelineRunsTable", () => {
 
         fireEvent.click(
             screen.getByRole("button", {
-                name: /Venue scraper scraper/,
+                name: /Scraper pipeline run details scraper/,
             }),
         );
         fireEvent.click(
