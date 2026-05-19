@@ -3,6 +3,7 @@ import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
+import crypto from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -47,7 +48,22 @@ const mutationSchema = z.discriminatedUnion("action", [
             reason: z.string().trim().min(1).max(1000),
         })
         .strict(),
+    z
+        .object({
+            action: z.literal("blocklist-remove"),
+            comedianId: z.number().int().positive(),
+            reason: z.string().trim().max(1000).optional(),
+        })
+        .strict(),
 ]);
+
+const putSchema = z
+    .object({
+        comedianId: z.number().int().positive(),
+        name: z.string().trim().min(1).max(255),
+        reason: z.string().trim().max(1000).optional(),
+    })
+    .strict();
 
 function serializeDate(value: Date | string | null | undefined) {
     if (!value) return null;
@@ -58,6 +74,20 @@ function serializeDate(value: Date | string | null | undefined) {
 
 function normalizeName(name: string) {
     return name.trim().replace(/\s+/g, " ");
+}
+
+function generateComedianUuid(name: string) {
+    const cleanedName = Array.from(name)
+        .filter(
+            (char) =>
+                /[0-9A-Za-z]/.test(char) ||
+                char.toLowerCase() !== char.toUpperCase(),
+        )
+        .join("");
+    return crypto
+        .createHash("md5")
+        .update(cleanedName.toLowerCase())
+        .digest("hex");
 }
 
 function snapshotForAudit(comedian: ComedianSnapshot) {
@@ -135,7 +165,7 @@ async function findDenyListEntry(
     const rows = await tx.$queryRaw<DenyListRow[]>`
         SELECT name, reason, added_by, deleted_at
         FROM comedian_deny_list
-        WHERE lower(name) = lower(${name})
+        WHERE lower(btrim(name)) = lower(btrim(${name}))
         LIMIT 1
     `;
     return rows[0] ?? null;
@@ -260,11 +290,48 @@ export async function PATCH(req: NextRequest) {
                     };
                 }
 
-                const reason = parsed.data.reason.trim();
                 const beforeDenyListEntry = await findDenyListEntry(
                     tx,
                     before.name,
                 );
+
+                if (parsed.data.action === "blocklist-remove") {
+                    if (!beforeDenyListEntry) {
+                        return {
+                            comedian: serializeComedian(before, null),
+                            name: before.name,
+                        };
+                    }
+
+                    const deletedRows = await tx.$queryRaw<DenyListRow[]>`
+                        DELETE FROM comedian_deny_list
+                        WHERE lower(btrim(name)) = lower(btrim(${before.name}))
+                        RETURNING name, reason, added_by, deleted_at
+                    `;
+                    const deletedEntry = deletedRows[0] ?? beforeDenyListEntry;
+
+                    await writeAdminActionAudit(tx, {
+                        actorProfileId: profileId,
+                        action: "comedian_deny_list.delete",
+                        entityType: "comedian_deny_list",
+                        entityId: deletedEntry.name,
+                        reason: parsed.data.reason?.trim() || null,
+                        before: {
+                            name: deletedEntry.name,
+                            reason: deletedEntry.reason,
+                            addedBy: deletedEntry.added_by,
+                            addedAt: serializeDate(deletedEntry.deleted_at),
+                        },
+                        after: {},
+                    });
+
+                    return {
+                        comedian: serializeComedian(before, null),
+                        name: before.name,
+                    };
+                }
+
+                const reason = parsed.data.reason.trim();
                 const name = normalizeName(before.name);
                 const rows = await tx.$queryRaw<DenyListRow[]>`
                 INSERT INTO comedian_deny_list (name, reason, added_by)
@@ -321,6 +388,91 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ ok: true, comedian: result.comedian });
     } catch (error) {
         console.error("Admin comedians PATCH failed:", error);
+        return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    }
+}
+
+export async function PUT(req: NextRequest) {
+    const gate = await requireAdminForApi();
+    if (!gate.ok) return gate.response;
+    const { profileId } = gate.context;
+
+    const parsed = putSchema.safeParse(await readBody(req));
+    if (!parsed.success) {
+        return NextResponse.json(
+            { error: "Invalid payload", issues: parsed.error.issues },
+            { status: 400 },
+        );
+    }
+
+    const name = normalizeName(parsed.data.name);
+    const uuid = generateComedianUuid(name);
+
+    try {
+        const result = await db.$transaction(
+            async (tx: ComedianAdminWriter) => {
+                const before = await findComedianSnapshot(
+                    tx,
+                    parsed.data.comedianId,
+                );
+                if (!before)
+                    return { error: "Comedian not found", status: 404 };
+
+                const conflictingComedian = await tx.comedian.findUnique({
+                    where: { uuid },
+                    select: { id: true, name: true },
+                });
+                if (
+                    conflictingComedian &&
+                    conflictingComedian.id !== before.id
+                ) {
+                    return {
+                        error: `Generated UUID already belongs to ${conflictingComedian.name}`,
+                        status: 409,
+                    };
+                }
+
+                await tx.comedian.update({
+                    where: { id: before.id },
+                    data: { name, uuid },
+                });
+
+                const after = await findComedianSnapshot(tx, before.id);
+                if (!after) {
+                    return { error: "Comedian not found", status: 404 };
+                }
+
+                await writeAdminActionAudit(tx, {
+                    actorProfileId: profileId,
+                    action: "comedian.update",
+                    entityType: "comedian",
+                    entityId: before.id,
+                    reason: parsed.data.reason?.trim() || null,
+                    before: snapshotForAudit(before),
+                    after: snapshotForAudit(after),
+                });
+
+                const denyListEntry = await findDenyListEntry(tx, after.name);
+                return {
+                    comedian: serializeComedian(after, denyListEntry),
+                    previousName: before.name,
+                    name: after.name,
+                };
+            },
+        );
+
+        if ("error" in result) {
+            return NextResponse.json(
+                { error: result.error },
+                { status: result.status },
+            );
+        }
+
+        revalidateComedianSurfaces(result.previousName);
+        revalidateComedianSurfaces(result.name);
+        return NextResponse.json({ ok: true, comedian: result.comedian });
+    } catch (error) {
+        console.error("Admin comedians PUT failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
     }
 }

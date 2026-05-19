@@ -115,6 +115,52 @@ describe("AdminComedianManager", () => {
         expect(mocks.refresh).toHaveBeenCalled();
     });
 
+    it("saves an inline comedian record edit", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[1],
+                    name: "Alias Comic",
+                    uuid: "updated-uuid",
+                },
+            }),
+        } as never);
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        name: "alias comic",
+                    },
+                ]}
+            />,
+        );
+
+        const nameInputs = screen.getAllByLabelText("Comedian name");
+        fireEvent.change(nameInputs[0], {
+            target: { value: "Alias Comic" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Save record" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PUT",
+                    body: JSON.stringify({
+                        comedianId: 2,
+                        name: "Alias Comic",
+                    }),
+                }),
+            );
+        });
+    });
+
     it("adds a comedian to the blocklist", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
@@ -148,6 +194,53 @@ describe("AdminComedianManager", () => {
                         action: "blocklist-add",
                         comedianId: 2,
                         reason: "Venue, not a person",
+                    }),
+                }),
+            );
+        });
+    });
+
+    it("removes a comedian from the blocklist", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[1],
+                    isBlocked: false,
+                    blockReason: null,
+                    blockAddedBy: null,
+                    blockAddedAt: null,
+                },
+            }),
+        } as never);
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        isBlocked: true,
+                        blockReason: "Venue, not a person",
+                        blockAddedBy: "profile-1",
+                        blockAddedAt: "2026-05-19T12:00:00.000Z",
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Remove from blocklist" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        action: "blocklist-remove",
+                        comedianId: 2,
                     }),
                 }),
             );

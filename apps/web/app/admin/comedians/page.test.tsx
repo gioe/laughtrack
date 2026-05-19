@@ -21,45 +21,53 @@ import AdminComediansPage from "./page";
 
 beforeEach(() => {
     vi.clearAllMocks();
-    mocks.listAdminComedians.mockResolvedValue([]);
+    mocks.listAdminComedians.mockResolvedValue({
+        comedians: [],
+        denyListCount: 0,
+    });
 });
 
 describe("AdminComediansPage", () => {
     it("renders counts and the manager", async () => {
-        mocks.listAdminComedians.mockResolvedValue([
-            {
-                id: 1,
-                uuid: "uuid-1",
-                name: "Parent Comic",
-                popularity: 82,
-                totalShows: 9,
-                parent: null,
-                childCount: 1,
-                isBlocked: false,
-                blockReason: null,
-                blockAddedBy: null,
-                blockAddedAt: null,
-            },
-            {
-                id: 2,
-                uuid: "uuid-2",
-                name: "Bad Match",
-                popularity: 1,
-                totalShows: 0,
-                parent: { id: 1, name: "Parent Comic" },
-                childCount: 0,
-                isBlocked: true,
-                blockReason: "Not a comedian",
-                blockAddedBy: "profile-1",
-                blockAddedAt: "2026-05-19T12:00:00.000Z",
-            },
-        ]);
+        mocks.listAdminComedians.mockResolvedValue({
+            comedians: [
+                {
+                    id: 1,
+                    uuid: "uuid-1",
+                    name: "Parent Comic",
+                    popularity: 82,
+                    totalShows: 9,
+                    parent: null,
+                    childCount: 1,
+                    isBlocked: false,
+                    blockReason: null,
+                    blockAddedBy: null,
+                    blockAddedAt: null,
+                },
+                {
+                    id: 2,
+                    uuid: "uuid-2",
+                    name: "Bad Match",
+                    popularity: 1,
+                    totalShows: 0,
+                    parent: { id: 1, name: "Parent Comic" },
+                    childCount: 0,
+                    isBlocked: true,
+                    blockReason: "Not a comedian",
+                    blockAddedBy: "profile-1",
+                    blockAddedAt: "2026-05-19T12:00:00.000Z",
+                },
+            ],
+            denyListCount: 8,
+        });
 
         const element = await AdminComediansPage();
         const markup = renderToStaticMarkup(element);
 
         expect(markup).toContain("Admin · Comedians");
-        expect(markup).toContain("2 comedians · 1 blocked · 1 child profiles");
+        expect(markup).toContain(
+            "2 comedians · 1 blocked records · 8 deny-listed names · 1 child profiles",
+        );
         expect(markup).toContain("admin-comedian-manager");
     });
 });

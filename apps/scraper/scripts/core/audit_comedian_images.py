@@ -51,12 +51,24 @@ def main():
 
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT name, has_image FROM comedians WHERE parent_comedian_id IS NULL ORDER BY name")
+            cur.execute(
+                """
+                SELECT c.name, c.has_image
+                FROM comedians c
+                WHERE c.parent_comedian_id IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM comedian_deny_list d
+                      WHERE LOWER(BTRIM(d.name)) = LOWER(BTRIM(c.name))
+                  )
+                ORDER BY c.name
+                """
+            )
             rows = cur.fetchall()
     names = [r[0] for r in rows]
     current_state = {r[0]: r[1] for r in rows}
 
-    print(f"Checking {len(names)} non-alias comedians against CDN...", file=sys.stderr)
+    print(f"Checking {len(names)} canonical comedians against CDN...", file=sys.stderr)
 
     results: dict[str, bool] = {}
     with ThreadPoolExecutor(max_workers=20) as executor:

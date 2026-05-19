@@ -18,7 +18,7 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
-import { PATCH } from "./route";
+import { PATCH, PUT } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
@@ -176,5 +176,136 @@ describe("PATCH /api/admin/comedians", () => {
                 }),
             }),
         );
+    });
+
+    it("removes the comedian name from the deny list", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const auditCreate = vi.fn();
+        const findUnique = vi.fn().mockResolvedValueOnce(makeComedian());
+        const denyListEntry = {
+            name: "Alias Comic",
+            reason: "Not a comedian",
+            added_by: "profile-1",
+            deleted_at: new Date("2026-05-19T12:00:00Z"),
+        };
+        const txQueryRaw = vi
+            .fn()
+            .mockResolvedValueOnce([denyListEntry])
+            .mockResolvedValueOnce([denyListEntry]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PATCH(
+            makeRequest({
+                action: "blocklist-remove",
+                comedianId: 2,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.comedian.isBlocked).toBe(false);
+        expect(body.comedian.blockReason).toBeNull();
+        expect(auditCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    action: "comedian_deny_list.delete",
+                    entityType: "comedian_deny_list",
+                    entityId: "Alias Comic",
+                }),
+            }),
+        );
+    });
+});
+
+describe("PUT /api/admin/comedians", () => {
+    it("updates a comedian name and regenerates the MD5 uuid", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const auditCreate = vi.fn();
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(
+                makeComedian({
+                    name: "tig notaro",
+                    uuid: "old-uuid",
+                }),
+            )
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    name: "Tig Notaro",
+                    uuid: "08ab8a743efbbf7f64a6bc0b8b0c3eaf",
+                }),
+            );
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: " Tig   Notaro ",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: {
+                name: "Tig Notaro",
+                uuid: "08ab8a743efbbf7f64a6bc0b8b0c3eaf",
+            },
+        });
+        expect(body.comedian.name).toBe("Tig Notaro");
+        expect(body.comedian.uuid).toBe("08ab8a743efbbf7f64a6bc0b8b0c3eaf");
+        expect(auditCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    action: "comedian.update",
+                    entityType: "comedian",
+                    entityId: "2",
+                }),
+            }),
+        );
+    });
+
+    it("rejects updates that would collide with another comedian uuid", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce({ id: 9, name: "Tig Notaro" });
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: vi.fn(),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Tig Notaro",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(409);
+        expect(body.error).toContain("Generated UUID already belongs to");
+        expect(update).not.toHaveBeenCalled();
     });
 });

@@ -5,7 +5,7 @@ import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
 export const dynamic = "force-dynamic";
 
 export default async function AdminComediansPage() {
-    const comedians = await listAdminComedians();
+    const { comedians, denyListCount } = await listAdminComedians();
     const blockedCount = comedians.filter(
         (comedian) => comedian.isBlocked,
     ).length;
@@ -17,7 +17,7 @@ export default async function AdminComediansPage() {
                 eyebrow="Admin · Comedians"
                 title="Comedian identity"
                 description="Review comedian records, parent-child relationships, and blocklist state."
-                summary={`${comedians.length.toLocaleString()} comedians · ${blockedCount.toLocaleString()} blocked · ${childCount.toLocaleString()} child profiles`}
+                summary={`${comedians.length.toLocaleString()} comedians · ${blockedCount.toLocaleString()} blocked records · ${denyListCount.toLocaleString()} deny-listed names · ${childCount.toLocaleString()} child profiles`}
             />
 
             <AdminComedianManager comedians={comedians} />

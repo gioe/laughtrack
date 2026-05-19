@@ -9,7 +9,7 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
-import { Ban, Save, X } from "lucide-react";
+import { Ban, Save, ShieldCheck, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
@@ -62,6 +62,7 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [blockReasons, setBlockReasons] = useState<Record<number, string>>(
         {},
     );
+    const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
@@ -101,6 +102,18 @@ export default function AdminComedianManager({ comedians }: Props) {
     function isParentDirty(row: AdminComedianListItem) {
         if (!Object.hasOwn(selectedParents, row.id)) return false;
         return selectedParents[row.id]?.id !== row.parent?.id;
+    }
+
+    function nameValue(row: AdminComedianListItem) {
+        return Object.hasOwn(nameEdits, row.id) ? nameEdits[row.id] : row.name;
+    }
+
+    function normalizedAdminName(name: string) {
+        return name.trim().replace(/\s+/g, " ");
+    }
+
+    function isNameDirty(row: AdminComedianListItem) {
+        return normalizedAdminName(nameValue(row)) !== row.name;
     }
 
     function parentCandidates(row: AdminComedianListItem) {
@@ -169,6 +182,58 @@ export default function AdminComedianManager({ comedians }: Props) {
         startTransition(() => router.refresh());
     }
 
+    async function saveComedianRecord(row: AdminComedianListItem) {
+        const name = normalizedAdminName(nameValue(row));
+        if (!name || name === row.name) return;
+
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    name,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const body = (await res.json()) as { comedian: AdminComedianListItem };
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.id === row.id ? body.comedian : currentRow,
+            ),
+        );
+        setNameEdits((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
+        setStatus({ kind: "ok", message: `${row.name} record saved.` });
+        startTransition(() => router.refresh());
+    }
+
     async function blockComedian(row: AdminComedianListItem) {
         const reason = blockReasons[row.id]?.trim() ?? "";
         if (!reason) return;
@@ -215,6 +280,53 @@ export default function AdminComedianManager({ comedians }: Props) {
         );
         setBlockReasons((current) => ({ ...current, [row.id]: "" }));
         setStatus({ kind: "ok", message: `${row.name} added to blocklist.` });
+        startTransition(() => router.refresh());
+    }
+
+    async function unblockComedian(row: AdminComedianListItem) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "blocklist-remove",
+                    comedianId: row.id,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const body = (await res.json()) as { comedian: AdminComedianListItem };
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.id === row.id ? body.comedian : currentRow,
+            ),
+        );
+        setStatus({
+            kind: "ok",
+            message: `${row.name} removed from blocklist.`,
+        });
         startTransition(() => router.refresh());
     }
 
@@ -295,10 +407,46 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </span>
                                         )}
                                         {row.parent && (
-                                            <span className="rounded-full border border-copper/30 bg-coconut-cream px-2 py-1 font-dmSans text-caption font-semibold text-cedar">
+                                            <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
                                                 Child
                                             </span>
                                         )}
+                                    </div>
+                                    <div className="mt-3 grid max-w-xl gap-2">
+                                        <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                            Comedian name
+                                            <input
+                                                type="text"
+                                                value={nameValue(row)}
+                                                onChange={(event) =>
+                                                    setNameEdits((current) => ({
+                                                        ...current,
+                                                        [row.id]:
+                                                            event.target.value,
+                                                    }))
+                                                }
+                                                className="mt-1 block w-full rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            />
+                                        </label>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-fit gap-2 border-copper/40 text-cedar disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            disabled={
+                                                disabled ||
+                                                pendingId === row.id ||
+                                                !isNameDirty(row) ||
+                                                !normalizedAdminName(
+                                                    nameValue(row),
+                                                )
+                                            }
+                                            onClick={() =>
+                                                void saveComedianRecord(row)
+                                            }
+                                        >
+                                            <Save className="h-4 w-4" />
+                                            Save record
+                                        </Button>
                                     </div>
                                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-body text-soft-charcoal">
                                         <span>ID {row.id}</span>
@@ -405,16 +553,33 @@ export default function AdminComedianManager({ comedians }: Props) {
 
                                 <div className="space-y-3">
                                     {row.isBlocked ? (
-                                        <div className="rounded-md border border-red-700/25 bg-red-50 p-3 font-dmSans text-body text-red-950">
-                                            <div className="font-semibold">
-                                                {row.blockReason}
+                                        <div className="space-y-3">
+                                            <div className="rounded-md border border-red-700/25 bg-red-50 p-3 font-dmSans text-body text-red-950">
+                                                <div className="font-semibold">
+                                                    {row.blockReason}
+                                                </div>
+                                                <div className="mt-1 text-caption text-red-900">
+                                                    {row.blockAddedBy}
+                                                    {row.blockAddedAt
+                                                        ? ` · ${formatDate(row.blockAddedAt)}`
+                                                        : ""}
+                                                </div>
                                             </div>
-                                            <div className="mt-1 text-caption text-red-900">
-                                                {row.blockAddedBy}
-                                                {row.blockAddedAt
-                                                    ? ` · ${formatDate(row.blockAddedAt)}`
-                                                    : ""}
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-green-800/40 text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === row.id
+                                                }
+                                                onClick={() =>
+                                                    void unblockComedian(row)
+                                                }
+                                            >
+                                                <ShieldCheck className="h-4 w-4" />
+                                                Remove from blocklist
+                                            </Button>
                                         </div>
                                     ) : (
                                         <>

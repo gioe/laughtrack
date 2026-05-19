@@ -24,6 +24,11 @@ export type AdminComedianListItem = {
     blockAddedAt: string | null;
 };
 
+export type AdminComedianListResult = {
+    comedians: AdminComedianListItem[];
+    denyListCount: number;
+};
+
 function serializeDate(value: Date | string | null | undefined) {
     if (!value) return null;
     return value instanceof Date
@@ -31,7 +36,11 @@ function serializeDate(value: Date | string | null | undefined) {
         : new Date(value).toISOString();
 }
 
-export async function listAdminComedians(): Promise<AdminComedianListItem[]> {
+function normalizeDenyListName(name: string) {
+    return name.trim().toLowerCase();
+}
+
+export async function listAdminComedians(): Promise<AdminComedianListResult> {
     const [comedians, denyListRows] = await Promise.all([
         db.comedian.findMany({
             select: {
@@ -61,23 +70,28 @@ export async function listAdminComedians(): Promise<AdminComedianListItem[]> {
     ]);
 
     const denyListByName = new Map(
-        denyListRows.map((row) => [row.name.toLowerCase(), row]),
+        denyListRows.map((row) => [normalizeDenyListName(row.name), row]),
     );
 
-    return comedians.map((comedian) => {
-        const denyListEntry = denyListByName.get(comedian.name.toLowerCase());
-        return {
-            id: comedian.id,
-            uuid: comedian.uuid,
-            name: comedian.name,
-            popularity: comedian.popularity,
-            totalShows: comedian.totalShows,
-            parent: comedian.parentComedian,
-            childCount: comedian._count.alternativeNames,
-            isBlocked: Boolean(denyListEntry),
-            blockReason: denyListEntry?.reason ?? null,
-            blockAddedBy: denyListEntry?.added_by ?? null,
-            blockAddedAt: serializeDate(denyListEntry?.deleted_at),
-        };
-    });
+    return {
+        comedians: comedians.map((comedian) => {
+            const denyListEntry = denyListByName.get(
+                normalizeDenyListName(comedian.name),
+            );
+            return {
+                id: comedian.id,
+                uuid: comedian.uuid,
+                name: comedian.name,
+                popularity: comedian.popularity,
+                totalShows: comedian.totalShows,
+                parent: comedian.parentComedian,
+                childCount: comedian._count.alternativeNames,
+                isBlocked: Boolean(denyListEntry),
+                blockReason: denyListEntry?.reason ?? null,
+                blockAddedBy: denyListEntry?.added_by ?? null,
+                blockAddedAt: serializeDate(denyListEntry?.deleted_at),
+            };
+        }),
+        denyListCount: denyListRows.length,
+    };
 }
