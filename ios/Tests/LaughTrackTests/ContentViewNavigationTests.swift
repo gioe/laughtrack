@@ -112,7 +112,7 @@ struct ContentViewNavigationTests {
         let shellState = AppShellState()
         #expect(shellState.selectedTab == .nearMe)
         #expect(shellState.selectedPrimitive == nil)
-        #expect(shellState.showsLocationHeader)
+        #expect(!shellState.showsLocationHeader)
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [
             .showsTonight,
             .moreNearYou,
