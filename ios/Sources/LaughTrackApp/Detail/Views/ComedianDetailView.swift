@@ -120,7 +120,7 @@ struct ComedianDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
-        .modifier(EntityDetailNavigationChrome(entity: .comedian, title: ""))
+        .modifier(EntityDetailNavigationChrome(entity: .comedian, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
@@ -131,6 +131,13 @@ struct ComedianDetailView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
+    }
+
+    private var navigationTitle: String {
+        if case .success(let content) = model.phase {
+            return content.comedian.name
+        }
+        return ""
     }
 
     private var tabSelectionBinding: Binding<ComedianDetailTab> {
