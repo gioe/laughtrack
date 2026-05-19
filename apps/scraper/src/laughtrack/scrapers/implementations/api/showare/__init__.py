@@ -1,0 +1,1 @@
+"""Generic accesso ShoWare scraper."""

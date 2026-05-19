@@ -33,6 +33,11 @@ Is there a buy link to `{venue}.thundertix.com`?
   └── YES → platform: ThunderTix → generic scraper, configure via scraping_sources
               (see ThunderTix section — set platform=thundertix, scraper_key=thundertix)
 
+Is there a buy link to `{venue}.showare.com` or an accesso ShoWare footer?
+  └── YES → platform: custom → scraper: showare
+              DB: source_url = ShoWare default.asp or venue root URL
+              (see ShoWare section — use metadata title filters for multi-purpose theatres)
+
 Is there a tixr.com buy link?
   └── YES → platform: Tixr → new venue-specific scraper required
               (see Tixr section — short/long URL format matters)
@@ -1751,8 +1756,42 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
 | TicketLeap | `ticketleap` | No | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 | SellingTicket | `sellingticket` | No | `scraping_url` (list URL with OrganizationID) |
+| ShoWare | `showare` | No | `scraping_url` / `source_url` (ShoWare `default.asp` or venue root URL) |
 
 ---
+
+## ShoWare
+
+**Use when:** ticket links point to an accesso ShoWare host such as
+`https://<venue>.showare.com/`, pages include an accesso ShoWare footer, or
+network requests hit `/include/widgets/events/performancelist.asp`.
+
+**DB setup:** use `platform='custom'`, `scraper_key='showare'`, and set
+`source_url` to the ShoWare host's `default.asp` page or root URL. The generic
+scraper derives the JSON endpoint from the host:
+
+```sql
+INSERT INTO scraping_sources (club_id, platform, scraper_key, source_url, priority, enabled, metadata)
+VALUES (
+  <club_id>,
+  'custom',
+  'showare',
+  'https://<venue>.showare.com/default.asp',
+  0,
+  TRUE,
+  jsonb_build_object(
+    'include_title_patterns', jsonb_build_array('Comedy', 'Known Comic Name'),
+    'exclude_title_patterns', jsonb_build_array('screening', 'movie', 'film')
+  )
+);
+```
+
+**Multi-purpose venues:** ShoWare often powers concerts, fundraisers, recitals,
+gift certificates, and live comedy on the same endpoint. Configure
+`metadata.include_title_patterns` for the comedy-relevant titles and
+`metadata.exclude_title_patterns` for film-only or movie screening rows. If the
+official venue calendar also links to Veezi, keep `source_url` on the ShoWare
+host so the live-performance scraper does not ingest movie ticketing pages.
 
 ## Onboarding Walkthrough: Tockify Venue
 
