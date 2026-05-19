@@ -71,7 +71,7 @@ struct ClubDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .modifier(EntityDetailNavigationChrome(entity: .club, title: ""))
+        .modifier(EntityDetailNavigationChrome(entity: .club, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
         }
@@ -86,6 +86,13 @@ struct ClubDetailView: View {
 
     private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         ClubDetailHeroPresentation.actions(for: club)
+    }
+
+    private var navigationTitle: String {
+        if case .success(let content) = model.phase {
+            return content.club.name
+        }
+        return ""
     }
 }
 
