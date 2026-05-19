@@ -131,6 +131,27 @@ describe("AdminClubManager", () => {
         expect(screen.queryByText("Funny Bone Albany")).toBeNull();
     });
 
+    it("collapses and reopens chain groups", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        const toggle = screen.getByRole("button", { name: /Funny Bone/ });
+        const groupId = toggle.getAttribute("aria-controls");
+        expect(groupId).toBeTruthy();
+        const groupList = document.getElementById(groupId!);
+        expect(groupList).toBeTruthy();
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute("aria-expanded")).toBe("false");
+        expect(groupList!.hidden).toBe(true);
+
+        fireEvent.click(toggle);
+
+        expect(screen.getByText("Funny Bone Albany")).toBeTruthy();
+        expect(toggle.getAttribute("aria-expanded")).toBe("true");
+        expect(groupList!.hidden).toBe(false);
+    });
+
     it("saves status overrides", async () => {
         render(<AdminClubManager groups={groups} />);
 

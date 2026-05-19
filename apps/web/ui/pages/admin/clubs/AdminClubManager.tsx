@@ -5,7 +5,13 @@ import type {
     AdminClubListItem,
 } from "@/lib/admin/clubManagement";
 import { Button } from "@/ui/components/ui/button";
-import { ExternalLink, Save, Search } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronRight,
+    ExternalLink,
+    Save,
+    Search,
+} from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -74,6 +80,9 @@ export default function AdminClubManager({ groups }: Props) {
     const [drafts, setDrafts] = useState<Record<number, Draft>>({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
+    const [collapsedGroups, setCollapsedGroups] = useState<
+        Record<string, boolean>
+    >({});
 
     const filteredGroups = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -162,6 +171,13 @@ export default function AdminClubManager({ groups }: Props) {
         );
     }
 
+    function toggleGroup(groupKey: string) {
+        setCollapsedGroups((current) => ({
+            ...current,
+            [groupKey]: !current[groupKey],
+        }));
+    }
+
     async function saveClub(club: AdminClubListItem) {
         const draft = draftFor(club);
         setStatus({ kind: "idle" });
@@ -248,36 +264,65 @@ export default function AdminClubManager({ groups }: Props) {
                         key={group.key}
                         className="overflow-hidden rounded-md border border-copper/25 bg-white"
                     >
-                        <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-coconut-cream">
+                        <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <h2 className="font-gilroy-bold text-h3">
-                                        {group.chain?.name ?? "Unchained"}
-                                    </h2>
-                                    <p className="font-dmSans text-caption text-coconut-cream/80">
-                                        {group.clubs.length} clubs visible in
-                                        this view · {group.totals.visibleCount}{" "}
-                                        visible · {group.totals.activeCount}{" "}
-                                        active ·{" "}
-                                        {group.totals.scrapedShowCount.toLocaleString()}{" "}
-                                        scraped shows
-                                    </p>
+                                <button
+                                    type="button"
+                                    aria-expanded={!collapsedGroups[group.key]}
+                                    aria-controls={`club-chain-${group.key}`}
+                                    onClick={() => toggleGroup(group.key)}
+                                    className="flex min-w-0 items-start gap-3 text-left"
+                                >
+                                    <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/30 bg-white/10">
+                                        {collapsedGroups[group.key] ? (
+                                            <ChevronRight className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4" />
+                                        )}
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="block font-gilroy-bold text-h3 leading-tight">
+                                            {group.chain?.name ?? "Unchained"}
+                                        </span>
+                                        <span className="mt-1 block font-dmSans text-caption text-white/85">
+                                            {group.clubs.length} clubs visible
+                                            in this view ·{" "}
+                                            {group.totals.visibleCount} visible
+                                            · {group.totals.activeCount} active
+                                            ·{" "}
+                                            {group.totals.scrapedShowCount.toLocaleString()}{" "}
+                                            scraped shows
+                                        </span>
+                                    </span>
+                                </button>
+                                <div className="flex items-center gap-3 pl-10 md:pl-0">
+                                    <span className="font-dmSans text-caption font-semibold text-white/75">
+                                        {collapsedGroups[group.key]
+                                            ? "Closed"
+                                            : "Open"}
+                                    </span>
+                                    {group.chain?.website && (
+                                        <a
+                                            href={group.chain.website}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-white hover:underline"
+                                        >
+                                            Chain site
+                                            <ExternalLink className="h-3.5 w-3.5" />
+                                        </a>
+                                    )}
                                 </div>
-                                {group.chain?.website && (
-                                    <a
-                                        href={group.chain.website}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold hover:underline"
-                                    >
-                                        Chain site
-                                        <ExternalLink className="h-3.5 w-3.5" />
-                                    </a>
-                                )}
                             </div>
                         </header>
 
-                        <ul className="divide-y divide-copper/15">
+                        <ul
+                            id={`club-chain-${group.key}`}
+                            hidden={Boolean(collapsedGroups[group.key])}
+                            className={`divide-y divide-copper/15 ${
+                                collapsedGroups[group.key] ? "hidden" : ""
+                            }`}
+                        >
                             {group.clubs.map((club) => {
                                 const draft = draftFor(club);
                                 const dirty = isDirty(club, draft);
