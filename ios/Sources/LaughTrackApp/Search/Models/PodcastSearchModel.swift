@@ -6,12 +6,14 @@ struct PodcastSearchRequest: Equatable, Sendable {
     let page: Int
     let limit: Int
     let sort: String
+    let includeEmpty: Bool
 
-    init(query: String, page: Int = 0, limit: Int, sort: String) {
+    init(query: String, page: Int = 0, limit: Int, sort: String, includeEmpty: Bool = false) {
         self.query = query
         self.page = page
         self.limit = limit
         self.sort = sort
+        self.includeEmpty = includeEmpty
     }
 }
 
@@ -47,6 +49,7 @@ final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSear
 
     @Published var searchText = ""
     @Published var sort: PodcastSortOption = .mostEpisodes
+    @Published var includeEmpty: Bool = false
     private let fetcher: any PodcastSearchFetching
 
     override init() {
@@ -69,7 +72,7 @@ final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSear
     }
 
     private func fetchPage(page: Int, query: PodcastRequestKey) async -> Result<DiscoverySearchResponse<PodcastSearchResult>, LoadFailure> {
-        switch await fetcher.searchPodcasts(.init(query: query.text, page: page, limit: Self.pageSize, sort: query.sort)) {
+        switch await fetcher.searchPodcasts(.init(query: query.text, page: page, limit: Self.pageSize, sort: query.sort, includeEmpty: query.includeEmpty)) {
         case .success(let response):
             return .success(.init(items: response.items, total: response.total))
         case .failure(let failure):
@@ -84,7 +87,8 @@ final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSear
     var requestKey: PodcastRequestKey {
         PodcastRequestKey(
             text: searchText.trimmingCharacters(in: .whitespacesAndNewlines),
-            sort: sort.rawValue
+            sort: sort.rawValue,
+            includeEmpty: includeEmpty
         )
     }
 }
@@ -92,6 +96,7 @@ final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSear
 struct PodcastRequestKey: Hashable, Sendable {
     let text: String
     let sort: String
+    let includeEmpty: Bool
 }
 
 @MainActor
@@ -132,7 +137,8 @@ final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
             URLQueryItem(name: "page", value: String(request.page)),
             URLQueryItem(name: "size", value: String(request.limit)),
             URLQueryItem(name: "sort", value: request.sort),
-        ]
+            request.includeEmpty ? URLQueryItem(name: "includeEmpty", value: "true") : nil,
+        ].compactMap { $0 }
 
         guard let url = components.url else {
             return .failure(.unexpected(status: 0, message: "LaughTrack could not build the podcast search URL."))

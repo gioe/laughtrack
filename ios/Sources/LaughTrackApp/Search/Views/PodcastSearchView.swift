@@ -46,6 +46,18 @@ struct PodcastSearchView: View {
                         accessibilityLabel: { "Sort \($0.title)" },
                         openDropdownID: $openDropdownID
                     )
+
+                    PillSheetTrigger(
+                        title: "Include all",
+                        systemImage: "eye",
+                        isActive: model.includeEmpty,
+                        accessibilityLabel: "Include podcasts with no linked comedians",
+                        accessibilityHint: model.includeEmpty
+                            ? "Currently showing podcasts without linked comedians."
+                            : "Currently hiding podcasts without linked comedians."
+                    ) {
+                        model.includeEmpty.toggle()
+                    }
                 }
 
                 switch model.phase {
@@ -188,4 +200,3 @@ struct PodcastSearchRow: View {
         return value
     }
 }
-

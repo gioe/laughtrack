@@ -103,25 +103,26 @@ export async function getSearchedPodcasts(params: {
     page?: string;
     size?: string;
     sort?: string;
+    includeEmpty?: string;
 }): Promise<PodcastSearchResponse> {
     const query = params.q?.trim() ?? "";
     const page = normalizePage(params.page);
     const size = normalizeSize(params.size);
     const sort = normalizeSort(params.sort);
-    const where: Prisma.PodcastWhereInput = query
+    const includeEmpty = params.includeEmpty === "true";
+    const ownershipWhere = includeEmpty ? {} : PUBLIC_PODCAST_OWNERSHIP_WHERE;
+    const queryWhere: Prisma.PodcastWhereInput | null = query
         ? {
-              AND: [
-                  PUBLIC_PODCAST_OWNERSHIP_WHERE,
-                  {
-                      OR: [
-                          { title: containsQuery(query) },
-                          { authorName: containsQuery(query) },
-                          { description: containsQuery(query) },
-                      ],
-                  },
+              OR: [
+                  { title: containsQuery(query) },
+                  { authorName: containsQuery(query) },
+                  { description: containsQuery(query) },
               ],
           }
-        : PUBLIC_PODCAST_OWNERSHIP_WHERE;
+        : null;
+    const where: Prisma.PodcastWhereInput = queryWhere
+        ? { AND: [ownershipWhere, queryWhere] }
+        : ownershipWhere;
 
     const [total, podcasts] = await Promise.all([
         db.podcast.count({ where }),

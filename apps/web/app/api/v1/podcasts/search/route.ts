@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
             page: sp.get("page") ?? undefined,
             size: sp.get("size") ?? undefined,
             sort: sp.get("sort") ?? undefined,
+            includeEmpty: sp.get("includeEmpty") ?? undefined,
         });
 
         return NextResponse.json(result, { headers: rateLimitHeaders(rl) });

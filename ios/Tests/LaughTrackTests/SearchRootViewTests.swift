@@ -68,9 +68,10 @@ struct SearchRootViewTests {
         let model = PodcastSearchModel(fetcher: fetcher)
 
         model.searchText = "Comedy"
+        model.includeEmpty = true
         await model.reload()
 
-        #expect(fetcher.requests == [PodcastSearchRequest(query: "Comedy", limit: 20, sort: "show_count_desc")])
+        #expect(fetcher.requests == [PodcastSearchRequest(query: "Comedy", limit: 20, sort: "show_count_desc", includeEmpty: true)])
         guard case .success(let page) = model.phase else {
             Issue.record("Expected podcast search to load successfully")
             return
@@ -106,6 +107,7 @@ struct SearchRootViewTests {
             #expect(components.queryItems?.first(where: { $0.name == "page" })?.value == "0")
             #expect(components.queryItems?.first(where: { $0.name == "size" })?.value == "20")
             #expect(components.queryItems?.first(where: { $0.name == "sort" })?.value == "popularity_desc")
+            #expect(components.queryItems?.first(where: { $0.name == "includeEmpty" })?.value == "true")
             #expect(components.queryItems?.first(where: { $0.name == "type" }) == nil)
             #expect(components.queryItems?.first(where: { $0.name == "limit" }) == nil)
         }
@@ -114,7 +116,7 @@ struct SearchRootViewTests {
             urlSession: session
         )
 
-        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20, sort: "popularity_desc"))
+        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20, sort: "popularity_desc", includeEmpty: true))
 
         guard case .success(let response) = result else {
             Issue.record("Expected podcast search fetcher to decode successfully")

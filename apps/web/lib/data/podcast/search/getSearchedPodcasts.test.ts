@@ -46,6 +46,19 @@ describe("getSearchedPodcasts", () => {
         );
     });
 
+    it("includes podcasts without accepted comedian ownership when includeEmpty is true", async () => {
+        await getSearchedPodcasts({ includeEmpty: "true" });
+
+        expect(mockCount).toHaveBeenCalledWith({
+            where: {},
+        });
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {},
+            }),
+        );
+    });
+
     it("searches title, author, and description", async () => {
         await getSearchedPodcasts({ q: "standup" });
 
