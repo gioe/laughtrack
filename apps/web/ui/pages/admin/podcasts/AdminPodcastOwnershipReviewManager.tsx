@@ -410,7 +410,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                className="gap-2"
+                                                className="gap-2 border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper-dark focus-visible:ring-0"
                                                 onClick={() =>
                                                     void searchComedians(
                                                         group.key,
@@ -473,7 +473,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                     <div>
                                         <Button
                                             type="button"
-                                            className="gap-2"
+                                            className="gap-2 !text-white"
                                             variant="roundedShimmer"
                                             onClick={() => void save(group)}
                                             disabled={disabled}
