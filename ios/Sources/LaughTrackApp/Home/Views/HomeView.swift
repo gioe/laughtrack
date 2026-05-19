@@ -10,6 +10,7 @@ enum HomeContentSection: Equatable {
     case favoriteShows
     case comedians
     case clubs
+    case podcasts
 
     static func sections(for primitive: SearchRootModel.Pivot?) -> [HomeContentSection] {
         switch primitive {
@@ -19,6 +20,8 @@ enum HomeContentSection: Equatable {
             return [.comedians]
         case .clubs:
             return [.clubs]
+        case .podcasts:
+            return [.podcasts]
         default:
             return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows, .comedians, .clubs]
         }
@@ -200,6 +203,8 @@ struct HomeView: View {
                 comediansSection
             case .clubs:
                 clubsSection
+            case .podcasts:
+                podcastsSection
             }
         }
     }
@@ -226,6 +231,15 @@ struct HomeView: View {
 
     private var clubsSection: some View {
         HomePopularClubsRail(
+            apiClient: apiClient,
+            nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
+            cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
+            persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
+        )
+    }
+
+    private var podcastsSection: some View {
+        HomeTrendingPodcastsRail(
             apiClient: apiClient,
             nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self),
             cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
@@ -1474,5 +1488,247 @@ private enum HomeFeedRequest {
                 networkMessage: networkMessage
             ))
         }
+    }
+}
+
+struct HomeTrendingPodcastsRail: View {
+    let apiClient: Client
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    let cache: DataCache<LaughTrackCacheKey>
+    let persistentCache: PersistentMainPageCache
+
+    @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @StateObject private var model = HomeTrendingPodcastsModel()
+
+    private var zipCode: String? {
+        nearbyPreferenceStore.preference?.zipCode
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            LaughTrackShelfHeader(
+                eyebrow: "Podcasts worth a listen",
+                title: "Trending comedian podcasts",
+                subtitle: nil
+            )
+            // Anchoring the rail's test identifier on the shelf header — not the
+            // inner VStack — keeps it from propagating to the combined-children
+            // accessibility nodes produced by HomeTrendingPodcastCard under
+            // iOS 26, which would otherwise mask the inner Button identifiers.
+            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingPodcastsRail)
+
+            switch model.phase {
+            case .idle, .loading:
+                PodcastsListSkeleton()
+            case .failure(let failure):
+                FailureCard(
+                    failure: failure,
+                    retry: {
+                        await model.refresh(
+                            apiClient: apiClient,
+                            zipCode: zipCode,
+                            cache: cache,
+                            persistentCache: persistentCache
+                        )
+                    },
+                    signIn: { coordinator.push(.profile) }
+                )
+            case .success(let items):
+                if items.isEmpty {
+                    EmptyCard(message: "No trending podcasts are available right now.")
+                } else {
+                    LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
+                        ForEach(items, id: \.id) { podcast in
+                            Button {
+                                coordinator.open(.podcast(podcast.id))
+                            } label: {
+                                HomeTrendingPodcastCard(podcast: podcast)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier(LaughTrackViewTestID.homeTrendingPodcastButton(podcast.id))
+                        }
+                    }
+                }
+            }
+        }
+        .task(id: model.requestKey(for: zipCode)) {
+            await model.refresh(
+                apiClient: apiClient,
+                zipCode: zipCode,
+                cache: cache,
+                persistentCache: persistentCache
+            )
+        }
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+            GridItem(.flexible(), spacing: theme.spacing.sm),
+        ]
+    }
+}
+
+private struct HomeTrendingPodcastCard: View {
+    let podcast: Components.Schemas.HomeFeedPodcast
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            artwork
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(podcast.title)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                Text(subtitleText)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(theme.spacing.sm)
+        .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
+        .background(laughTrack.colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(podcast.title), \(subtitleText)")
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+        let trimmed = podcast.imageUrl?.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let raw = trimmed, let url = URL.normalizedExternalURL(raw) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+                    .overlay {
+                        ProgressView()
+                            .tint(laughTrack.colors.accent)
+                    }
+            } error: { _ in
+                fallbackArtwork
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 112)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else {
+            fallbackArtwork
+        }
+    }
+
+    private var fallbackArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(laughTrack.colors.surfaceMuted)
+            .overlay {
+                Image(systemName: "headphones")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 112)
+    }
+
+    private var subtitleText: String {
+        if let author = podcast.authorName?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty {
+            return author
+        }
+        let count = podcast.episodeCount
+        return "\(count) episode\(count == 1 ? "" : "s")"
+    }
+}
+
+@MainActor
+final class HomeTrendingPodcastsModel: ObservableObject {
+    @Published private(set) var phase: LoadPhase<[Components.Schemas.HomeFeedPodcast]> = .idle
+
+    private var loadedRequestKey: String?
+    private var loadedAt: Date?
+
+    func requestKey(for zipCode: String?) -> String {
+        zipCode ?? ""
+    }
+
+    func refresh(
+        apiClient: Client,
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>? = nil,
+        cacheTTL: TimeInterval = MainPageCache.defaultTTL,
+        persistentCache: PersistentMainPageCache?
+    ) async {
+        let requestKey = requestKey(for: zipCode)
+        if loadedRequestKey == requestKey, case .success = phase, isLoadedValueFresh(cacheTTL: cacheTTL) {
+            return
+        }
+
+        if let cachedFeed: Components.Schemas.HomeFeed = await MainPageCache.get(
+            .homeFeed(zipCode: zipCode),
+            from: cache,
+            persistentCache: persistentCache
+        ) {
+            apply(feed: cachedFeed, requestKey: requestKey)
+            return
+        }
+
+        phase = .loading
+
+        let result = await HomeFeedRequest.load(
+            apiClient: apiClient,
+            zipCode: zipCode,
+            cache: cache,
+            cacheTTL: cacheTTL,
+            badParamsMessage: "LaughTrack could not load trending podcasts.",
+            rateLimitMessage: "LaughTrack is rate-limiting trending podcasts right now.",
+            undocumentedContext: "trending podcasts",
+            networkContext: "the home feed",
+            networkMessage: "LaughTrack couldn't reach the trending podcasts service. Check your connection and try again.",
+            persistentCache: persistentCache
+        )
+        guard !Task.isCancelled else { return }
+
+        switch result {
+        case .success(let feed):
+            apply(feed: feed, requestKey: requestKey)
+        case .failure(let failure):
+            phase = .failure(failure)
+        }
+    }
+
+    private func apply(feed: Components.Schemas.HomeFeed, requestKey: String) {
+        phase = .success(feed.trendingPodcasts)
+        loadedRequestKey = requestKey
+        loadedAt = Date()
+    }
+
+    private func isLoadedValueFresh(cacheTTL: TimeInterval) -> Bool {
+        guard let loadedAt else { return false }
+        return Date().timeIntervalSince(loadedAt) < cacheTTL
     }
 }

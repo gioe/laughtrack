@@ -192,6 +192,7 @@ private struct MockHomeFavoriteShowsTransport: ClientTransport {
             showsTonight: [],
             moreNearYou: [],
             trendingThisWeek: [],
+            trendingPodcasts: [],
             popularClubs: []
         )
     }

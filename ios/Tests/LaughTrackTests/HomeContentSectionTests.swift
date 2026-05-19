@@ -27,6 +27,7 @@ struct HomeContentSectionTests {
         ])
         #expect(HomeContentSection.sections(for: .comedians) == [.comedians])
         #expect(HomeContentSection.sections(for: .clubs) == [.clubs])
+        #expect(HomeContentSection.sections(for: .podcasts) == [.podcasts])
     }
 
     @Test("home show hero omits footer actions")

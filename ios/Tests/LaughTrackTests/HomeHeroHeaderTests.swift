@@ -152,6 +152,7 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
             showsTonight: Array(feedShows.prefix(4)),
             moreNearYou: [],
             trendingThisWeek: feedShows + Array(feedShows.prefix(1)),
+            trendingPodcasts: [],
             popularClubs: []
         )
     }
