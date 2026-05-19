@@ -63,7 +63,7 @@ private struct FavoritesHeader: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
 
-            Text("Saved comedians and the shows and clubs connected to them.")
+            Text("Saved comedians, podcasts, and the shows and clubs connected to them.")
                 .font(tokens.typography.body)
                 .foregroundStyle(tokens.colors.textSecondary)
                 .lineLimit(2)
@@ -81,6 +81,7 @@ private struct FavoritePrimitiveSections: View {
     let persistentCache: PersistentMainPageCache
 
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @StateObject private var favoriteShowsModel = HomeFavoriteShowsModel()
 
     private var favoriteComedians: [Components.Schemas.ComedianSearchItem] {
@@ -111,6 +112,10 @@ private struct FavoritePrimitiveSections: View {
                     phase: favoriteShowsModel.phase,
                     favoriteListIsEmpty: favoriteListIsEmpty
                 )
+            }
+
+            if includes(.podcasts) {
+                FavoritePodcastsSection(apiClient: apiClient)
             }
         }
         .task(id: requestKey) {
@@ -276,6 +281,99 @@ private struct FavoriteClubsSection: View {
 
 }
 
+private let favoritePodcastsRowDesign = LaughTrackEntityRowDesign(
+    artworkSize: 70,
+    artworkShape: .roundedRectangle(cornerRadius: 12),
+    minHeight: 86,
+    titleLineLimit: 2,
+    subtitleLineLimit: 1,
+    metadataLineLimit: 1
+)
+
+private struct FavoritePodcastsSection: View {
+    let apiClient: Client
+
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        FavoriteSectionCard(
+            identifier: LaughTrackViewTestID.favoritesPodcastsSection,
+            eyebrow: "Podcasts",
+            title: "Saved podcasts",
+            subtitle: "Comedy podcasts you've saved."
+        ) {
+            VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
+                switch podcastFavorites.savedFavoritesPhase {
+                case .idle, .loading:
+                    LaughTrackStateView(
+                        tone: .loading,
+                        title: "Loading saved podcasts",
+                        message: "LaughTrack is fetching your saved podcasts from your account."
+                    )
+                case .empty:
+                    LaughTrackStateView(
+                        tone: .empty,
+                        title: "No saved podcasts yet",
+                        message: "Tap the heart on any podcast and it will appear here for this account."
+                    )
+                case .failure(let failure):
+                    VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
+                        LaughTrackStateView(
+                            tone: .error,
+                            title: "Couldn’t load saved podcasts",
+                            message: failure.message
+                        )
+                        LaughTrackButton(
+                            "Retry podcasts",
+                            systemImage: "arrow.clockwise"
+                        ) {
+                            Task {
+                                await podcastFavorites.loadSavedFavorites(
+                                    apiClient: apiClient,
+                                    authManager: authManager,
+                                    force: true
+                                )
+                            }
+                        }
+                    }
+                case .loaded:
+                    ForEach(podcastFavorites.savedFavoritePodcasts, id: \.id) { podcast in
+                        Button {
+                            coordinator.push(.podcastDetail(podcast.id))
+                        } label: {
+                            LaughTrackEntityRow(
+                                title: podcast.title,
+                                subtitle: rowSubtitle(for: podcast),
+                                systemImage: "headphones",
+                                imageURL: podcast.imageUrl,
+                                showsDisclosureIndicator: true,
+                                design: favoritePodcastsRowDesign
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func rowSubtitle(for podcast: Components.Schemas.FavoritePodcastItem) -> String? {
+        var parts: [String] = []
+        if let author = podcast.authorName?.trimmingCharacters(in: .whitespacesAndNewlines), !author.isEmpty {
+            parts.append(author)
+        }
+        if podcast.episodeCount > 0 {
+            parts.append(podcast.episodeCount == 1 ? "1 episode" : "\(podcast.episodeCount) episodes")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+    }
+}
+
 enum LibraryFavoritesPresentation {
     static func includes(
         _ primitive: SearchRootModel.Pivot,
@@ -327,6 +425,11 @@ private struct GuestFavoritesPreview: View {
         ("Sample Club Two", "2 favorite-comedian shows"),
         ("Sample Club Three", "1 favorite-comedian show"),
     ]
+    private static let samplePodcasts = [
+        ("Sample Podcast One", "Sample Host · 120 episodes"),
+        ("Sample Podcast Two", "Sample Host · 78 episodes"),
+        ("Sample Podcast Three", "Sample Host · 42 episodes"),
+    ]
 
     var body: some View {
         let tokens = theme.laughTrackTokens
@@ -372,6 +475,16 @@ private struct GuestFavoritesPreview: View {
                 subtitle: "Venues where your saved comedians have upcoming shows."
             ) {
                 ForEach(Self.sampleClubs, id: \.0) { name, detail in
+                    TeaserRow(title: name, subtitle: detail)
+                }
+            }
+
+            TeaserSection(
+                eyebrow: "Podcasts",
+                title: "Saved podcasts",
+                subtitle: "Comedy podcasts you've saved."
+            ) {
+                ForEach(Self.samplePodcasts, id: \.0) { name, detail in
                     TeaserRow(title: name, subtitle: detail)
                 }
             }
