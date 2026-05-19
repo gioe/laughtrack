@@ -235,11 +235,11 @@ struct SearchRootModelTests {
         #expect(state.selectedPrimitive == .clubs)
     }
 
-    @Test("shell state keeps all primitives on the near me tab")
+    @Test("shell state keeps geo-scoped primitives on the Discover tab")
     func shellStateKeepsHomePrimitivesOnNearMe() async throws {
         let state = AppShellState()
 
-        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs, .podcasts])
 
         state.selectPrimitive(.shows)
         #expect(state.selectedTab == .nearMe)
@@ -254,16 +254,30 @@ struct SearchRootModelTests {
         #expect(state.selectedPrimitive == .clubs)
     }
 
-    @Test("shell state shows podcasts only on the search tab")
-    func shellStateShowsPodcastsOnlyOnSearchTab() async throws {
+    @Test("shell state surfaces podcasts on Discover and Search, hides it on Favorites")
+    func shellStateSurfacesPodcastsOnDiscoverAndSearch() async throws {
         let state = AppShellState()
 
         #expect(state.selectedTab == .nearMe)
-        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs, .podcasts])
 
         state.selectTab(.search)
-
         #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs, .podcasts])
+
+        state.selectTab(.favorites)
+        #expect(state.visiblePrimitiveFilters == [.shows, .comedians, .clubs])
+    }
+
+    @Test("selectPrimitive(.podcasts) on Discover routes to the Search tab")
+    func selectingPodcastsOnDiscoverRoutesToSearch() async throws {
+        let state = AppShellState()
+
+        #expect(state.selectedTab == .nearMe)
+
+        state.selectPrimitive(.podcasts)
+
+        #expect(state.selectedTab == .search)
+        #expect(state.selectedPrimitive == .podcasts)
     }
 
     @Test("shell state keeps primitive filters on the favorites tab")
