@@ -142,7 +142,7 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
-                HomeNearMeHeader(
+                HomeDiscoverHeader(
                     nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
                 )
 
@@ -248,7 +248,7 @@ struct HomeView: View {
     }
 }
 
-private struct HomeNearMeHeader: View {
+private struct HomeDiscoverHeader: View {
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @Environment(\.appTheme) private var theme
@@ -270,7 +270,7 @@ private struct HomeNearMeHeader: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(LaughTrackViewTestID.homeNearMeHeader)
+        .accessibilityIdentifier(LaughTrackViewTestID.homeDiscoverHeader)
     }
 
     private var subtitle: String {
