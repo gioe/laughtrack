@@ -130,6 +130,7 @@
 		AD5A4B33897A9BDF49530E6F /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 362B635800535696613C37C8 /* APIClient */; };
 		ADFA9E4F6B385378DA3B9C17 /* DetailLoadingSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B02BA69766ED2849455A9 /* DetailLoadingSkeleton.swift */; };
 		B02B4C039B49D16147102DC7 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89AAF6B2F061BEDB66EB34A /* LibraryView.swift */; };
+		B1A9FD37F03954E8214CA934 /* ShowPricePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30EDF3B2DE33F6A57133A3 /* ShowPricePresentation.swift */; };
 		B3519F018193141EFCBCDDB2 /* SavedFavoritesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B705EA400FAD98C582CD61E6 /* SavedFavoritesSection.swift */; };
 		B5FC8176CE8E0E5C21F62C33 /* LaughTrackAPIClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; };
 		B6400391B2D887C2DD9E88EB /* AuthLoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */; };
@@ -438,6 +439,7 @@
 		FABAAA0F26373401F6AE35A0 /* XTimezoneHeaderNormalizationMiddlewareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XTimezoneHeaderNormalizationMiddlewareTests.swift; sourceTree = "<group>"; };
 		FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LaughTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC9E6D2EAD36D7ADE1013D96 /* ClubsDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubsDiscoveryView.swift; sourceTree = "<group>"; };
+		FD30EDF3B2DE33F6A57133A3 /* ShowPricePresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowPricePresentation.swift; sourceTree = "<group>"; };
 		FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTheme.swift; sourceTree = "<group>"; };
 		FFF7EC3716232F6AB430AF80 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -747,6 +749,7 @@
 				324C096B40915E61CCD9B19F /* SafariView.swift */,
 				F1FCFA6135148D9C41CD49A8 /* SearchFieldInputBehavior.swift */,
 				01E967C8A3F78A8A5226D2AA /* ShowFormatting.swift */,
+				FD30EDF3B2DE33F6A57133A3 /* ShowPricePresentation.swift */,
 				9ACD82EBB1E7139CBE01CC82 /* ShowRow.swift */,
 				5DF853E33C8EFE7127FC3FD6 /* SignedOutAuthOptions.swift */,
 				EB66121B33E84052C0C4FE7C /* StateCards.swift */,
@@ -1150,6 +1153,7 @@
 				D122A8C095CAFEAFAF6ECC91 /* SessionBannerCard.swift in Sources */,
 				C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */,
 				97A64E347CF2AF2280EFA9A2 /* ShowFormatting.swift in Sources */,
+				B1A9FD37F03954E8214CA934 /* ShowPricePresentation.swift in Sources */,
 				D2E096BC01B6363AC5C2DCBC /* ShowRow.swift in Sources */,
 				E0FABF42FA76FA5B150C3AFF /* ShowsListModel.swift in Sources */,
 				23903ED5272661EF2B7D9FDE /* ShowsListView.swift in Sources */,
