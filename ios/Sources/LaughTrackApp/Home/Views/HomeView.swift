@@ -23,7 +23,7 @@ enum HomeContentSection: Equatable {
         case .podcasts:
             return [.podcasts]
         default:
-            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows, .comedians, .clubs]
+            return [.showsTonight, .moreNearYou, .trendingThisWeek, .favoriteShows, .comedians, .clubs, .podcasts]
         }
     }
 }
