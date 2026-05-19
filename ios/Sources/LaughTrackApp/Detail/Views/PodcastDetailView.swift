@@ -135,7 +135,8 @@ struct PodcastDetailView: View {
                                         currentValue: isFavorite
                                     )
                                 }
-                            )
+                            ),
+                            fallbackSystemImage: "headphones"
                         )
                         .ignoresSafeArea(.container, edges: .top)
 
