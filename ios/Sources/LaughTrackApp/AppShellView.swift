@@ -21,7 +21,12 @@ final class AppShellState: ObservableObject {
     }
 
     var visiblePrimitiveFilters: [SearchRootModel.Pivot] {
-        selectedTab == .search ? SearchRootModel.Pivot.allCases : SearchRootModel.Pivot.geoScopedCases
+        switch selectedTab {
+        case .search, .nearMe:
+            return SearchRootModel.Pivot.allCases
+        case .favorites:
+            return SearchRootModel.Pivot.geoScopedCases
+        }
     }
 
     func selectTab(_ tab: AppTab) {
