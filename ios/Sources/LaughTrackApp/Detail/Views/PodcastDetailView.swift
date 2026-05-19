@@ -115,7 +115,8 @@ struct PodcastDetailView: View {
                             imageURL: response.podcast.imageUrl ?? "",
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
-                            openURL: { url in openURL(url) }
+                            openURL: { url in openURL(url) },
+                            fallbackSystemImage: "headphones"
                         )
                         .ignoresSafeArea(.container, edges: .top)
 
