@@ -36,7 +36,7 @@ enum LaughTrackViewTestID {
     static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
     static let homeClubsSearchButton = "laughtrack.home.clubs-search-button"
     static let homeComediansSearchButton = "laughtrack.home.comedians-search-button"
-    static let homeNearMeHeader = "laughtrack.home.near-me-header"
+    static let homeDiscoverHeader = "laughtrack.home.discover-header"
     static let homeShowsTonightRail = "laughtrack.home.shows-tonight-rail"
     static let homeShowsTonightHeroButton = "laughtrack.home.shows-tonight-hero-button"
     static let homeShowsTonightSeeMoreButton = "laughtrack.home.shows-tonight-see-more-button"
