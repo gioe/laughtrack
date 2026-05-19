@@ -11,7 +11,7 @@ from laughtrack.core.models.metrics import (
     ShowsBlock,
 )
 from laughtrack.core.services.metrics import MetricsService
-from laughtrack.core.services.metrics.postgres_repository import PostgresMetricsRepository
+from laughtrack.core.services.metrics.postgres_repository import PipelineRunRecord, PostgresMetricsRepository
 from laughtrack.core.models.results import ScrapingSessionResult
 from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 
@@ -123,6 +123,33 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
     assert club_rows[1][7] == "timeout"
     assert len(error_rows) == 1
     assert error_rows[0][2] == "Bad Club"
+
+
+def test_generic_pipeline_run_persistence_upserts_run_and_clears_child_rows():
+    cursor = _Cursor()
+
+    with patch(
+        "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+        return_value=_Transaction(_Connection(cursor)),
+    ):
+        result = PostgresMetricsRepository().persist_pipeline_run(
+            PipelineRunRecord(
+                pipeline_key="github_actions_web_ci",
+                run_id="123",
+                run_attempt="2",
+                status="failure",
+                exported_at=datetime(2026, 5, 19, 12, 30, tzinfo=timezone.utc),
+                raw_snapshot={"workflow_name": "Web CI"},
+            )
+        )
+
+    assert result is True
+    assert "INSERT INTO scraper_runs" in cursor.executed[0][0]
+    assert cursor.executed[0][1][0] == "github_actions_web_ci:123:2"
+    assert cursor.executed[0][1][14] == 1
+    assert cursor.executed[0][1][15] == 0.0
+    assert "DELETE FROM scraper_run_clubs" in cursor.executed[1][0]
+    assert "DELETE FROM scraper_run_errors" in cursor.executed[2][0]
 
 
 def test_metrics_service_keeps_json_and_dashboard_path_when_postgres_persistence_runs():

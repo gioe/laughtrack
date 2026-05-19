@@ -21,6 +21,7 @@ type PipelineRunRow = {
     clubs_failed: number;
     errors_total: number;
     success_rate: number;
+    raw_snapshot: unknown;
 };
 
 type PipelineAggregateRow = {
@@ -74,6 +75,8 @@ export type AdminPipelineRun = {
     clubsFailed: number;
     errorsTotal: number;
     successRate: number;
+    runUrl: string | null;
+    source: string | null;
 };
 
 export type AdminPipelineSummary = {
@@ -142,6 +145,15 @@ function runStatus(row: PipelineRunRow): AdminPipelineRun["status"] {
     return "healthy";
 }
 
+function rawSnapshotValue(row: PipelineRunRow, key: string): string | null {
+    const snapshot = row.raw_snapshot;
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+        return null;
+    }
+    const value = (snapshot as Record<string, unknown>)[key];
+    return typeof value === "string" && value.length > 0 ? value : null;
+}
+
 function mapRun(row: PipelineRunRow): AdminPipelineRun {
     return {
         id: toNumber(row.id),
@@ -164,6 +176,8 @@ function mapRun(row: PipelineRunRow): AdminPipelineRun {
         clubsFailed: row.clubs_failed,
         errorsTotal: row.errors_total,
         successRate: row.success_rate,
+        runUrl: rawSnapshotValue(row, "run_url"),
+        source: rawSnapshotValue(row, "source"),
     };
 }
 
@@ -203,7 +217,7 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
                    shows_failed_save, shows_skipped_dedup,
                    shows_validation_failed, shows_db_errors,
                    clubs_processed, clubs_successful, clubs_failed,
-                   errors_total, success_rate
+                   errors_total, success_rate, raw_snapshot
             FROM normalized
             ORDER BY pipeline_key ASC, exported_at DESC
         `,
@@ -238,7 +252,7 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
                    shows_inserted, shows_updated, shows_failed_save,
                    shows_skipped_dedup, shows_validation_failed,
                    shows_db_errors, clubs_processed, clubs_successful,
-                   clubs_failed, errors_total, success_rate
+                   clubs_failed, errors_total, success_rate, raw_snapshot
             FROM scraper_runs
             ORDER BY exported_at DESC
             LIMIT 12

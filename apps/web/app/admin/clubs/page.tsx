@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { listAdminClubGroups } from "@/lib/admin/clubManagement";
 import AdminClubManager from "@/ui/pages/admin/clubs/AdminClubManager";
+import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -24,25 +24,12 @@ export default async function AdminClubsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="font-chivo text-h1 text-cedar">
-                        Admin · Clubs
-                    </h1>
-                    <p className="mt-2 font-dmSans text-body text-soft-charcoal">
-                        {clubCount.toLocaleString()} clubs ·{" "}
-                        {chainCount.toLocaleString()} chains ·{" "}
-                        {hiddenCount.toLocaleString()} hidden ·{" "}
-                        {closedCount.toLocaleString()} closed
-                    </p>
-                </div>
-                <Link
-                    href="/admin/deny-list"
-                    className="font-dmSans text-body font-semibold text-copper-dark hover:underline"
-                >
-                    Deny list
-                </Link>
-            </div>
+            <AdminPageHeader
+                eyebrow="Admin · Clubs"
+                title="Club operations"
+                description="Review venue identity, chain grouping, scrape coverage, visibility, and operational status."
+                summary={`${clubCount.toLocaleString()} clubs · ${chainCount.toLocaleString()} chains · ${hiddenCount.toLocaleString()} hidden · ${closedCount.toLocaleString()} closed`}
+            />
 
             <AdminClubManager groups={groups} />
         </div>

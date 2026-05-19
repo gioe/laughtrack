@@ -80,3 +80,16 @@ jobs:
             apps/scraper/dashboard.html
             apps/scraper/metrics/
           retention-days: 14
+
+      - name: Record pipeline run
+        if: always()
+        continue-on-error: true
+        env:
+          GITHUB_JOB_STATUS: ${{ job.status }}
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          python -m scripts.core.record_pipeline_run --status "$GITHUB_JOB_STATUS"

@@ -44,6 +44,8 @@ const pipelinesData: AdminPipelinesData = {
                 clubsFailed: 2,
                 errorsTotal: 2,
                 successRate: 83.3,
+                runUrl: null,
+                source: null,
             },
         },
     ],
@@ -69,6 +71,32 @@ const pipelinesData: AdminPipelinesData = {
             clubsFailed: 2,
             errorsTotal: 2,
             successRate: 83.3,
+            runUrl: "https://github.com/example/repo/actions/runs/123",
+            source: "github_actions",
+        },
+        {
+            id: 8,
+            runKey: "github_actions_social_follower_refresh:123:1",
+            pipelineKey: "github_actions_social_follower_refresh",
+            pipelineName: "Github Actions Social Follower Refresh",
+            status: "healthy",
+            exportedAt: "2026-05-18T12:00:00.000Z",
+            durationSeconds: 0,
+            showsScraped: 0,
+            showsSaved: 0,
+            showsInserted: 0,
+            showsUpdated: 0,
+            showsFailedSave: 0,
+            showsSkippedDedup: 0,
+            showsValidationFailed: 0,
+            showsDbErrors: 0,
+            clubsProcessed: 0,
+            clubsSuccessful: 0,
+            clubsFailed: 0,
+            errorsTotal: 0,
+            successRate: 100,
+            runUrl: "https://github.com/example/repo/actions/runs/456",
+            source: "github_actions",
         },
     ],
     latestSlowClubs: [
@@ -116,18 +144,18 @@ beforeEach(() => {
 });
 
 describe("AdminPipelinesPage", () => {
-    it("renders pipeline status, recent runs, and latest failures", async () => {
+    it("renders the pipeline runs table first", async () => {
         const element = await AdminPipelinesPage();
         const markup = renderToStaticMarkup(element);
 
         expect(markup).toContain("Admin · Pipelines");
-        expect(markup).toContain("Pipeline status");
+        expect(markup).toContain("Pipeline runs");
+        expect(markup).toContain("Recent runs");
         expect(markup).toContain("Venue scraper");
         expect(markup).toContain("83.3%");
-        expect(markup).toContain("Recent runs");
-        expect(markup).toContain("Comedy Cellar");
-        expect(markup).toContain("Broken Club");
-        expect(markup).toContain("Bot block");
+        expect(markup).toContain("Github Actions Social Follower Refresh");
+        expect(markup).not.toContain("Slowest latest-run clubs");
+        expect(markup).not.toContain("Latest failures");
     });
 
     it("renders empty states", async () => {
@@ -142,11 +170,6 @@ describe("AdminPipelinesPage", () => {
         const element = await AdminPipelinesPage();
         const markup = renderToStaticMarkup(element);
 
-        expect(markup).toContain(
-            "No pipeline run summaries have been recorded yet.",
-        );
         expect(markup).toContain("No recent runs found.");
-        expect(markup).toContain("No club timing rows found.");
-        expect(markup).toContain("No failures in the latest run.");
     });
 });

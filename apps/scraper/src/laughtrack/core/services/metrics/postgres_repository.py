@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from datetime import datetime, timezone
 from typing import Any, Iterable
 
 from psycopg2.extras import Json, execute_values
@@ -11,6 +12,29 @@ from psycopg2.extras import Json, execute_values
 from laughtrack.core.models.metrics import ErrorDetail, PerClubStat, ScrapingMetricsSnapshot
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.database.connection import get_transaction
+
+
+class PipelineRunRecord:
+    """Generic pipeline run summary for non-scraper operational jobs."""
+
+    def __init__(
+        self,
+        *,
+        pipeline_key: str,
+        run_id: str,
+        run_attempt: str,
+        status: str,
+        exported_at: datetime | None = None,
+        duration_seconds: float = 0,
+        raw_snapshot: dict[str, Any] | None = None,
+    ) -> None:
+        self.pipeline_key = pipeline_key
+        self.run_id = run_id
+        self.run_attempt = run_attempt
+        self.status = status
+        self.exported_at = exported_at or datetime.now(timezone.utc)
+        self.duration_seconds = duration_seconds
+        self.raw_snapshot = raw_snapshot or {}
 
 
 class PostgresMetricsRepository:
@@ -41,6 +65,48 @@ class PostgresMetricsRepository:
             return True
         except Exception as exc:  # pragma: no cover - production resilience
             Logger.warn(f"Failed to persist scraper run summary to Postgres: {exc}")
+            return False
+
+    def persist_pipeline_run(self, record: PipelineRunRecord) -> bool:
+        """Upsert a generic pipeline run without scraper-specific child rows."""
+        run_key = f"{record.pipeline_key}:{record.run_id}:{record.run_attempt}"
+        success = record.status == "success"
+        errors_total = 0 if success else 1
+        success_rate = 100.0 if success else 0.0
+        try:
+            with get_transaction() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        self._UPSERT_RUN_SQL,
+                        (
+                            run_key,
+                            record.exported_at.isoformat(),
+                            record.duration_seconds,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            errors_total,
+                            success_rate,
+                            self._json_payload(record.raw_snapshot),
+                        ),
+                    )
+                    row = cur.fetchone()
+                    run_id = row[0]
+                    cur.execute("DELETE FROM scraper_run_clubs WHERE run_id = %s", (run_id,))
+                    cur.execute("DELETE FROM scraper_run_errors WHERE run_id = %s", (run_id,))
+
+            Logger.info(f"Persisted pipeline run summary to Postgres run_key={run_key}")
+            return True
+        except Exception as exc:  # pragma: no cover - production resilience
+            Logger.warn(f"Failed to persist pipeline run summary to Postgres: {exc}")
             return False
 
     @staticmethod

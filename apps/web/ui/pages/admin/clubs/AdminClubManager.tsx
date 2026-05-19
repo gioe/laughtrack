@@ -6,14 +6,14 @@ import type {
 } from "@/lib/admin/clubManagement";
 import { Button } from "@/ui/components/ui/button";
 import {
-    ChevronDown,
-    ChevronRight,
-    ExternalLink,
-    Save,
-    Search,
-} from "lucide-react";
+    AdminPagination,
+    AdminSearchField,
+    AdminToolbar,
+    clampAdminPage,
+} from "@/ui/pages/admin/shared/AdminControls";
+import { ChevronDown, ChevronRight, ExternalLink, Save } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Props = {
     groups: AdminClubGroup[];
@@ -33,6 +33,7 @@ type Status = {
 
 const CLUB_STATUS_OPTIONS = ["active", "closed", "hiatus"];
 const CLUB_TYPE_OPTIONS = ["club", "festival", "venue"];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function dateInputValue(iso: string | null) {
     return iso ? iso.slice(0, 10) : "";
@@ -77,6 +78,8 @@ function statusBadgeClass(club: AdminClubListItem) {
 export default function AdminClubManager({ groups }: Props) {
     const [rows, setRows] = useState(groups);
     const [query, setQuery] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
     const [drafts, setDrafts] = useState<Record<number, Draft>>({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -130,6 +133,16 @@ export default function AdminClubManager({ groups }: Props) {
         (sum, group) => sum + group.totals.scrapedShowCount,
         0,
     );
+    const totalPages = Math.max(1, Math.ceil(filteredGroups.length / pageSize));
+    const currentPage = clampAdminPage(page, totalPages);
+    const pagedGroups = filteredGroups.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize,
+    );
+
+    useEffect(() => {
+        setPage(1);
+    }, [query, pageSize]);
 
     function draftFor(club: AdminClubListItem) {
         return drafts[club.id] ?? initialDraft(club);
@@ -227,25 +240,18 @@ export default function AdminClubManager({ groups }: Props) {
 
     return (
         <div className="space-y-5">
-            <div className="grid gap-3 rounded-md border border-copper/25 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                    Search clubs
-                    <span className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-soft-charcoal" />
-                        <input
-                            type="search"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            className="w-full rounded-md border border-soft-charcoal/30 bg-white py-2 pl-10 pr-3 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                            placeholder="Name, city, chain, status"
-                        />
-                    </span>
-                </label>
+            <AdminToolbar>
+                <AdminSearchField
+                    label="Search clubs"
+                    value={query}
+                    onChange={setQuery}
+                    placeholder="Name, city, chain, status"
+                />
                 <div className="font-dmSans text-body text-soft-charcoal">
                     {flatClubCount.toLocaleString()} clubs ·{" "}
                     {scrapedShowCount.toLocaleString()} scraped shows
                 </div>
-            </div>
+            </AdminToolbar>
 
             {status.kind === "ok" && (
                 <p className="rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-body text-green-900">
@@ -258,8 +264,20 @@ export default function AdminClubManager({ groups }: Props) {
                 </p>
             )}
 
+            <AdminPagination
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={filteredGroups.length}
+                label="chain groups"
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(nextPage) =>
+                    setPage(clampAdminPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
+
             <div className="space-y-4">
-                {filteredGroups.map((group) => (
+                {pagedGroups.map((group) => (
                     <section
                         key={group.key}
                         className="overflow-hidden rounded-md border border-copper/25 bg-white"
@@ -556,6 +574,17 @@ export default function AdminClubManager({ groups }: Props) {
                     </section>
                 ))}
             </div>
+            <AdminPagination
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={filteredGroups.length}
+                label="chain groups"
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(nextPage) =>
+                    setPage(clampAdminPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
         </div>
     );
 }

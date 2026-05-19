@@ -81,6 +81,8 @@ function groupClubs(clubs: AdminClubListItem[]): AdminClubGroup[] {
         .sort((a, b) => {
             if (!a.chain && b.chain) return 1;
             if (a.chain && !b.chain) return -1;
+            const clubCountDelta = b.totals.clubCount - a.totals.clubCount;
+            if (clubCountDelta !== 0) return clubCountDelta;
             return (a.chain?.name ?? "Unchained").localeCompare(
                 b.chain?.name ?? "Unchained",
                 undefined,

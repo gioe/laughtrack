@@ -2,7 +2,14 @@
 
 import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { Button } from "@/ui/components/ui/button";
-import { Ban, Save, Search, X } from "lucide-react";
+import {
+    AdminPagination,
+    AdminSearchField,
+    AdminSelectField,
+    AdminToolbar,
+    clampAdminPage,
+} from "@/ui/pages/admin/shared/AdminControls";
+import { Ban, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
@@ -16,8 +23,6 @@ type Status = {
     kind: "idle" | "ok" | "error";
     message?: string;
 };
-
-const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
 function formatDate(iso: string | null) {
     if (!iso) return null;
@@ -39,75 +44,6 @@ function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
         }
         return compareByName(a, b);
     });
-}
-
-function clampPage(page: number, totalPages: number) {
-    return Math.min(Math.max(page, 1), Math.max(totalPages, 1));
-}
-
-function PaginationControls({
-    page,
-    pageSize,
-    totalItems,
-    onPageChange,
-    onPageSizeChange,
-}: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    onPageChange: (page: number) => void;
-    onPageSizeChange: (pageSize: number) => void;
-}) {
-    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-    const end = Math.min(page * pageSize, totalItems);
-
-    return (
-        <div className="flex flex-col gap-3 rounded-md border border-copper/25 bg-white px-3 py-2 font-dmSans text-body text-cedar md:flex-row md:items-center md:justify-between">
-            <div className="font-semibold">
-                {start}-{end} of {totalItems} comedians
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-2 font-semibold">
-                    Per page
-                    <select
-                        value={pageSize}
-                        onChange={(event) =>
-                            onPageSizeChange(Number(event.target.value))
-                        }
-                        className="rounded-md border border-soft-charcoal/30 bg-white px-2 py-1 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
-                    >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                    disabled={page <= 1}
-                    onClick={() => onPageChange(page - 1)}
-                >
-                    Previous
-                </Button>
-                <span className="font-semibold">
-                    Page {page} of {totalPages}
-                </span>
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                    disabled={page >= totalPages}
-                    onClick={() => onPageChange(page + 1)}
-                >
-                    Next
-                </Button>
-            </div>
-        </div>
-    );
 }
 
 export default function AdminComedianManager({ comedians }: Props) {
@@ -148,7 +84,7 @@ export default function AdminComedianManager({ comedians }: Props) {
         return sortRows(filtered, sort);
     }, [query, rows, sort]);
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
-    const currentPage = clampPage(page, totalPages);
+    const currentPage = clampAdminPage(page, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
     const pagedRows = visibleRows.slice(pageStart, pageStart + pageSize);
 
@@ -284,40 +220,31 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 rounded-md border border-copper/25 bg-white p-4 md:grid-cols-[minmax(0,1fr)_220px]">
-                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                    Search comedians
-                    <span className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-soft-charcoal" />
-                        <input
-                            type="search"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            className="w-full rounded-md border border-soft-charcoal/30 bg-white py-2 pl-10 pr-3 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                            placeholder="Name, parent, block reason"
-                        />
-                    </span>
-                </label>
-                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                    Sort
-                    <select
-                        value={sort}
-                        onChange={(event) =>
-                            setSort(event.target.value as SortMode)
-                        }
-                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
-                    >
-                        <option value="name-asc">Name A-Z</option>
-                        <option value="name-desc">Name Z-A</option>
-                        <option value="popularity-desc">
-                            Popularity high-low
-                        </option>
-                        <option value="popularity-asc">
-                            Popularity low-high
-                        </option>
-                    </select>
-                </label>
-            </div>
+            <AdminToolbar>
+                <AdminSearchField
+                    label="Search comedians"
+                    value={query}
+                    onChange={setQuery}
+                    placeholder="Name, parent, block reason"
+                />
+                <AdminSelectField
+                    label="Sort"
+                    value={sort}
+                    onChange={setSort}
+                    options={[
+                        { value: "name-asc", label: "Name A-Z" },
+                        { value: "name-desc", label: "Name Z-A" },
+                        {
+                            value: "popularity-desc",
+                            label: "Popularity high-low",
+                        },
+                        {
+                            value: "popularity-asc",
+                            label: "Popularity low-high",
+                        },
+                    ]}
+                />
+            </AdminToolbar>
 
             {status.kind === "ok" && (
                 <p className="rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-body text-green-900">
@@ -330,12 +257,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                 </p>
             )}
 
-            <PaginationControls
+            <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
                 totalItems={visibleRows.length}
+                label="comedians"
                 onPageChange={(nextPage) =>
-                    setPage(clampPage(nextPage, totalPages))
+                    setPage(clampAdminPage(nextPage, totalPages))
                 }
                 onPageSizeChange={setPageSize}
             />
@@ -538,12 +466,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                     })}
                 </ul>
             </div>
-            <PaginationControls
+            <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
                 totalItems={visibleRows.length}
+                label="comedians"
                 onPageChange={(nextPage) =>
-                    setPage(clampPage(nextPage, totalPages))
+                    setPage(clampAdminPage(nextPage, totalPages))
                 }
                 onPageSizeChange={setPageSize}
             />

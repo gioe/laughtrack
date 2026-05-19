@@ -4,6 +4,13 @@ import { ExternalLink, Plus, Save, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
+import {
+    AdminPagination,
+    AdminSegmentedControl,
+    AdminSelectField,
+    AdminToolbar,
+    clampAdminPage,
+} from "@/ui/pages/admin/shared/AdminControls";
 import type { AdminPodcastOwnershipReviewCandidate } from "@/lib/admin/podcastOwnershipReviews";
 
 export type { AdminPodcastOwnershipReviewCandidate };
@@ -57,8 +64,6 @@ type SearchResult = {
 type Props = {
     candidates: AdminPodcastOwnershipReviewCandidate[];
 };
-
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function formatPercent(value: number) {
     return `${Math.round(value * 100)}%`;
@@ -224,77 +229,6 @@ function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
     return Object.fromEntries(
         groups.map((group) => [group.key, group.initialOwner]),
     ) as Record<string, OwnerOption | null>;
-}
-
-function clampPage(page: number, totalPages: number) {
-    return Math.min(Math.max(page, 1), Math.max(totalPages, 1));
-}
-
-function PaginationControls({
-    page,
-    pageSize,
-    totalItems,
-    label,
-    onPageChange,
-    onPageSizeChange,
-}: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    label: string;
-    onPageChange: (page: number) => void;
-    onPageSizeChange: (pageSize: number) => void;
-}) {
-    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-    const end = Math.min(page * pageSize, totalItems);
-
-    return (
-        <div className="flex flex-col gap-3 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-sm text-cedar md:flex-row md:items-center md:justify-between">
-            <div className="font-semibold">
-                {start}-{end} of {totalItems} {label}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-2 font-semibold">
-                    Per page
-                    <select
-                        value={pageSize}
-                        onChange={(event) =>
-                            onPageSizeChange(Number(event.target.value))
-                        }
-                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-cedar outline-none focus:border-copper-dark focus:ring-2 focus:ring-copper-dark/30"
-                    >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                                {option}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-gray-300 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                    onClick={() => onPageChange(page - 1)}
-                    disabled={page <= 1}
-                >
-                    Previous
-                </Button>
-                <span className="font-semibold">
-                    Page {page} of {totalPages}
-                </span>
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="border-copper-dark bg-white text-copper-dark disabled:border-gray-300 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                    onClick={() => onPageChange(page + 1)}
-                    disabled={page >= totalPages}
-                >
-                    Next
-                </Button>
-            </div>
-        </div>
-    );
 }
 
 export default function AdminPodcastOwnershipReviewManager({
@@ -474,7 +408,7 @@ export default function AdminPodcastOwnershipReviewManager({
     const activeGroups =
         activeView === "podcast" ? sortedPodcastGroups : sortedComedianGroups;
     const totalPages = Math.max(1, Math.ceil(activeGroups.length / pageSize));
-    const currentPage = clampPage(page, totalPages);
+    const currentPage = clampAdminPage(page, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
     const pagedPodcastGroups =
         activeView === "podcast"
@@ -497,61 +431,41 @@ export default function AdminPodcastOwnershipReviewManager({
                     {status.message}
                 </p>
             )}
-            <div className="flex flex-col gap-3 rounded-md border border-gray-300 bg-white p-3 md:flex-row md:items-center md:justify-between">
-                <div
-                    className="inline-flex w-fit overflow-hidden rounded-md border border-gray-300"
-                    aria-label="Review view"
-                >
-                    <button
-                        type="button"
-                        onClick={() => setActiveView("podcast")}
-                        className={`px-3 py-2 font-dmSans text-sm font-semibold ${
-                            activeView === "podcast"
-                                ? "bg-copper-dark text-white"
-                                : "bg-white text-cedar hover:bg-ecru-white"
-                        }`}
-                    >
-                        By podcast
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveView("comedian")}
-                        className={`border-l border-gray-300 px-3 py-2 font-dmSans text-sm font-semibold ${
-                            activeView === "comedian"
-                                ? "bg-copper-dark text-white"
-                                : "bg-white text-cedar hover:bg-ecru-white"
-                        }`}
-                    >
-                        By comedian
-                    </button>
-                </div>
-                <label className="flex w-full max-w-sm items-center gap-2 font-dmSans text-sm font-semibold text-cedar md:justify-end">
-                    Sort
-                    <select
-                        value={sort}
-                        onChange={(event) =>
-                            setSort(event.target.value as ReviewSort)
-                        }
-                        className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-sm font-normal text-foreground focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark md:flex-none"
-                    >
-                        <option value="name-asc">Name A-Z</option>
-                        <option value="name-desc">Name Z-A</option>
-                        <option value="popularity-desc">
-                            Popularity high-low
-                        </option>
-                        <option value="popularity-asc">
-                            Popularity low-high
-                        </option>
-                    </select>
-                </label>
-            </div>
-            <PaginationControls
+            <AdminToolbar>
+                <AdminSegmentedControl
+                    label="Review view"
+                    value={activeView}
+                    onChange={setActiveView}
+                    options={[
+                        { value: "podcast", label: "By podcast" },
+                        { value: "comedian", label: "By comedian" },
+                    ]}
+                />
+                <AdminSelectField
+                    label="Sort"
+                    value={sort}
+                    onChange={setSort}
+                    options={[
+                        { value: "name-asc", label: "Name A-Z" },
+                        { value: "name-desc", label: "Name Z-A" },
+                        {
+                            value: "popularity-desc",
+                            label: "Popularity high-low",
+                        },
+                        {
+                            value: "popularity-asc",
+                            label: "Popularity low-high",
+                        },
+                    ]}
+                />
+            </AdminToolbar>
+            <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
                 totalItems={activeGroups.length}
                 label={activeView === "podcast" ? "podcasts" : "comedians"}
                 onPageChange={(nextPage) =>
-                    setPage(clampPage(nextPage, totalPages))
+                    setPage(clampAdminPage(nextPage, totalPages))
                 }
                 onPageSizeChange={setPageSize}
             />
@@ -1112,13 +1026,13 @@ export default function AdminPodcastOwnershipReviewManager({
                           </li>
                       ))}
             </ul>
-            <PaginationControls
+            <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
                 totalItems={activeGroups.length}
                 label={activeView === "podcast" ? "podcasts" : "comedians"}
                 onPageChange={(nextPage) =>
-                    setPage(clampPage(nextPage, totalPages))
+                    setPage(clampAdminPage(nextPage, totalPages))
                 }
                 onPageSizeChange={setPageSize}
             />
