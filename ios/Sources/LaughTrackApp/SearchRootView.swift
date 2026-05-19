@@ -120,6 +120,7 @@ struct SearchRootView: View {
             )
         case .podcasts:
             PodcastSearchView(
+                apiClient: apiClient,
                 model: podcastsModel,
                 unifiedSearchText: $model.query,
                 unifiedSearchPrompt: model.activePivot.queryPrompt,

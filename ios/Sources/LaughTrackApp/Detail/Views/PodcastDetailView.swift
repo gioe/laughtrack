@@ -1,4 +1,5 @@
 import SwiftUI
+import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
@@ -68,18 +69,25 @@ final class PodcastDetailModel: EntityDetailModel<PodcastDetailResponse> {
 
 struct PodcastDetailView: View {
     let podcastID: Int
+    let apiClient: Client
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @StateObject private var model: PodcastDetailModel
+    @State private var feedbackMessage: String?
 
     init(
         podcastID: Int,
+        apiClient: Client,
         fetcher: (any PodcastDetailFetching)? = nil
     ) {
         self.podcastID = podcastID
+        self.apiClient = apiClient
         _model = StateObject(wrappedValue: PodcastDetailModel(
             podcastID: podcastID,
             fetcher: fetcher ?? URLSessionPodcastDetailFetcher()
@@ -107,6 +115,7 @@ struct PodcastDetailView: View {
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let response):
+                let isFavorite = podcastFavorites.value(for: response.podcast.id)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         DetailHero(
@@ -116,7 +125,17 @@ struct PodcastDetailView: View {
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
                             openURL: { url in openURL(url) },
-                            fallbackSystemImage: "headphones"
+                            favoriteState: DetailHeroFavoriteState(
+                                isFavorite: isFavorite,
+                                isPending: podcastFavorites.isPending(response.podcast.id),
+                                action: {
+                                    await toggleFavorite(
+                                        podcastID: response.podcast.id,
+                                        title: response.podcast.title,
+                                        currentValue: isFavorite
+                                    )
+                                }
+                            )
                         )
                         .ignoresSafeArea(.container, edges: .top)
 
@@ -148,6 +167,31 @@ struct PodcastDetailView: View {
         .modifier(EntityDetailNavigationChrome(entity: .podcast, title: navigationTitle))
         .task {
             await model.loadIfNeeded()
+        }
+        .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
+            Button("OK") {
+                feedbackMessage = nil
+            }
+        }, message: {
+            Text(feedbackMessage ?? "")
+        })
+    }
+
+    private func toggleFavorite(podcastID: Int, title: String, currentValue: Bool) async {
+        let result = await podcastFavorites.toggle(
+            podcastID: podcastID,
+            currentValue: currentValue,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+
+        switch result {
+        case .updated(let next):
+            feedbackMessage = FavoriteFeedback.message(for: title, isFavorite: next)
+        case .signInRequired:
+            loginModalPresenter.present()
+        case .failure(let message):
+            feedbackMessage = message
         }
     }
 }
@@ -196,14 +240,14 @@ enum PodcastDetailPresentation {
             episodeTitle: episode.title,
             podcastName: podcast.title,
             podcastImageURL: podcast.imageUrl,
-            displayRole: episodeMetadata(for: episode),
+            displayRole: "",
             audioURL: audioURL,
             episodeURL: episodeURL,
             failedAudioURL: nil
         )
     }
 
-    private static func episodeMetadata(for episode: PodcastDetailEpisode) -> String {
+    static func episodeMetadata(for episode: PodcastDetailEpisode) -> String {
         [
             formattedReleaseDate(episode.releaseDate),
             formattedDuration(episode.durationSeconds)
@@ -256,25 +300,29 @@ private struct PodcastEpisodeListSection: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        let playableItems = episodes.compactMap { episode in
-            PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode)
+        let playableEntries: [(item: PodcastPlaybackItem, metadata: String)] = episodes.compactMap { episode in
+            guard let item = PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode) else {
+                return nil
+            }
+            return (item, PodcastDetailPresentation.episodeMetadata(for: episode))
         }
 
         VStack(alignment: .leading, spacing: 12) {
             LaughTrackSectionHeader(title: "Episodes")
 
-            if playableItems.isEmpty {
+            if playableEntries.isEmpty {
                 EmptyCard(
                     title: "No playable episodes yet",
                     message: "LaughTrack has not matched this podcast with playable episodes yet."
                 )
             } else {
-                ForEach(playableItems) { item in
+                ForEach(playableEntries, id: \.item.id) { entry in
                     PodcastAppearanceRow(
-                        item: item,
-                        isCurrent: podcastPlayer.currentItem?.id == item.id
+                        item: entry.item,
+                        isCurrent: podcastPlayer.currentItem?.id == entry.item.id,
+                        subtitleOverride: entry.metadata
                     ) {
-                        podcastPlayer.start(item)
+                        podcastPlayer.start(entry.item)
                     }
                 }
             }

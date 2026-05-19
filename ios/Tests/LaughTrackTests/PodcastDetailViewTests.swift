@@ -59,7 +59,10 @@ struct PodcastDetailViewTests {
         #expect(item.podcastName == "The Laugh Track Pod")
         #expect(item.audioURL?.absoluteString == "https://cdn.example.com/cellar.mp3")
         #expect(item.episodeURL?.absoluteString == "https://podcasts.example.com/cellar")
-        #expect(item.displayRole == "Mar 1, 2026 • 1 hr 2 min")
+        #expect(
+            PodcastDetailPresentation.episodeMetadata(for: response.episodes[0])
+                == "Mar 1, 2026 • 1 hr 2 min"
+        )
     }
 
     @Test("podcast detail hero exposes website and RSS actions")

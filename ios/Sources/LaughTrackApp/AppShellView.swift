@@ -101,6 +101,7 @@ struct AppShellView: View {
     @Environment(\.serviceContainer) private var serviceContainer
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
     @State private var isHomeLocationEditorPresented = false
 
@@ -171,11 +172,17 @@ struct AppShellView: View {
         .task(id: authManager.currentSession == nil) {
             if authManager.currentSession == nil {
                 favorites.resetSavedFavorites()
+                podcastFavorites.resetSavedFavorites()
             } else {
-                await favorites.loadSavedFavorites(
+                async let comedians: Void = favorites.loadSavedFavorites(
                     apiClient: apiClient,
                     authManager: authManager
                 )
+                async let podcasts: Void = podcastFavorites.loadSavedFavorites(
+                    apiClient: apiClient,
+                    authManager: authManager
+                )
+                _ = await (comedians, podcasts)
             }
         }
         .sheet(isPresented: $shellState.isLocationPermissionPitchPresented) {

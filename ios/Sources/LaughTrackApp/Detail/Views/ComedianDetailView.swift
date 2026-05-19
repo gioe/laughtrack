@@ -908,6 +908,7 @@ struct PodcastAppearanceRow: View {
     var showsRoleBadge = true
     var showsArtworkActionIcon = true
     var showsDisclosureIndicator = false
+    var subtitleOverride: String?
     let onSelect: () -> Void
     var onOpenPodcast: (() -> Void)?
 
@@ -943,25 +944,32 @@ struct PodcastAppearanceRow: View {
                 }
                 .buttonStyle(.plain)
 
-                HStack(spacing: 8) {
-                    if let onOpenPodcast {
-                        Button(action: onOpenPodcast) {
+                if let subtitleOverride {
+                    Text(subtitleOverride)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .lineLimit(1)
+                } else {
+                    HStack(spacing: 8) {
+                        if let onOpenPodcast {
+                            Button(action: onOpenPodcast) {
+                                Text(item.podcastName)
+                                    .font(laughTrack.typography.metadata)
+                                    .foregroundStyle(laughTrack.colors.accentStrong)
+                                    .lineLimit(1)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Open \(item.podcastName)")
+                        } else {
                             Text(item.podcastName)
                                 .font(laughTrack.typography.metadata)
-                                .foregroundStyle(laughTrack.colors.accentStrong)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
                                 .lineLimit(1)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Open \(item.podcastName)")
-                    } else {
-                        Text(item.podcastName)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(1)
-                    }
 
-                    if showsRoleBadge {
-                        PodcastAppearanceRoleBadge(title: item.displayRole)
+                        if showsRoleBadge {
+                            PodcastAppearanceRoleBadge(title: item.displayRole)
+                        }
                     }
                 }
             }
@@ -993,6 +1001,10 @@ struct PodcastAppearanceRow: View {
     }
 
     private var accessibilityLabel: String {
+        if let subtitleOverride {
+            return "\(item.episodeTitle), \(subtitleOverride)"
+        }
+
         if showsRoleBadge {
             return "\(item.episodeTitle), \(item.podcastName), \(item.displayRole)"
         }

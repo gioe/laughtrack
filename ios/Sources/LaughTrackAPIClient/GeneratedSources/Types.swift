@@ -150,6 +150,21 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /favorites/{comedianId}`.
     /// - Remark: Generated from `#/paths//favorites/{comedianId}/delete(removeFavorite)`.
     func removeFavorite(_ input: Operations.RemoveFavorite.Input) async throws -> Operations.RemoveFavorite.Output
+    /// List the signed-in user’s saved favorite podcasts
+    ///
+    /// - Remark: HTTP `GET /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)`.
+    func getFavoritePodcasts(_ input: Operations.GetFavoritePodcasts.Input) async throws -> Operations.GetFavoritePodcasts.Output
+    /// Favorite a podcast
+    ///
+    /// - Remark: HTTP `POST /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)`.
+    func addFavoritePodcast(_ input: Operations.AddFavoritePodcast.Input) async throws -> Operations.AddFavoritePodcast.Output
+    /// Unfavorite a podcast
+    ///
+    /// - Remark: HTTP `DELETE /favorite-podcasts/{podcastId}`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)`.
+    func removeFavoritePodcast(_ input: Operations.RemoveFavoritePodcast.Input) async throws -> Operations.RemoveFavoritePodcast.Output
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -452,6 +467,39 @@ extension APIProtocol {
         headers: Operations.RemoveFavorite.Input.Headers = .init()
     ) async throws -> Operations.RemoveFavorite.Output {
         try await removeFavorite(Operations.RemoveFavorite.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// List the signed-in user’s saved favorite podcasts
+    ///
+    /// - Remark: HTTP `GET /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)`.
+    public func getFavoritePodcasts(headers: Operations.GetFavoritePodcasts.Input.Headers = .init()) async throws -> Operations.GetFavoritePodcasts.Output {
+        try await getFavoritePodcasts(Operations.GetFavoritePodcasts.Input(headers: headers))
+    }
+    /// Favorite a podcast
+    ///
+    /// - Remark: HTTP `POST /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)`.
+    public func addFavoritePodcast(
+        headers: Operations.AddFavoritePodcast.Input.Headers = .init(),
+        body: Operations.AddFavoritePodcast.Input.Body
+    ) async throws -> Operations.AddFavoritePodcast.Output {
+        try await addFavoritePodcast(Operations.AddFavoritePodcast.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Unfavorite a podcast
+    ///
+    /// - Remark: HTTP `DELETE /favorite-podcasts/{podcastId}`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)`.
+    public func removeFavoritePodcast(
+        path: Operations.RemoveFavoritePodcast.Input.Path,
+        headers: Operations.RemoveFavoritePodcast.Input.Headers = .init()
+    ) async throws -> Operations.RemoveFavoritePodcast.Output {
+        try await removeFavoritePodcast(Operations.RemoveFavoritePodcast.Input(
             path: path,
             headers: headers
         ))
@@ -791,6 +839,86 @@ public enum Components {
             /// - Parameters:
             ///   - data:
             public init(data: [Components.Schemas.ComedianSearchItem]) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem`.
+        public struct FavoritePodcastItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/author_name`.
+            public var authorName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/website_url`.
+            public var websiteUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/feed_url`.
+            public var feedUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/image_url`.
+            public var imageUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/episode_count`.
+            public var episodeCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/isFavorite`.
+            public var isFavorite: Swift.Bool
+            /// Creates a new `FavoritePodcastItem`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - title:
+            ///   - authorName:
+            ///   - websiteUrl:
+            ///   - feedUrl:
+            ///   - imageUrl:
+            ///   - description:
+            ///   - episodeCount:
+            ///   - isFavorite:
+            public init(
+                id: Swift.Int,
+                title: Swift.String,
+                authorName: Swift.String? = nil,
+                websiteUrl: Swift.String? = nil,
+                feedUrl: Swift.String? = nil,
+                imageUrl: Swift.String? = nil,
+                description: Swift.String? = nil,
+                episodeCount: Swift.Int,
+                isFavorite: Swift.Bool
+            ) {
+                self.id = id
+                self.title = title
+                self.authorName = authorName
+                self.websiteUrl = websiteUrl
+                self.feedUrl = feedUrl
+                self.imageUrl = imageUrl
+                self.description = description
+                self.episodeCount = episodeCount
+                self.isFavorite = isFavorite
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case authorName = "author_name"
+                case websiteUrl = "website_url"
+                case feedUrl = "feed_url"
+                case imageUrl = "image_url"
+                case description
+                case episodeCount = "episode_count"
+                case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/FavoritePodcastListResponse`.
+        public struct FavoritePodcastListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastListResponse/data`.
+            public var data: [Components.Schemas.FavoritePodcastItem]
+            /// Creates a new `FavoritePodcastListResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: [Components.Schemas.FavoritePodcastItem]) {
                 self.data = data
             }
             public enum CodingKeys: String, CodingKey {
@@ -9840,6 +9968,1047 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.RemoveFavorite.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List the signed-in user’s saved favorite podcasts
+    ///
+    /// - Remark: HTTP `GET /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)`.
+    public enum GetFavoritePodcasts {
+        public static let id: Swift.String = "getFavoritePodcasts"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-podcasts/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoritePodcasts.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoritePodcasts.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetFavoritePodcasts.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetFavoritePodcasts.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoritePodcastListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoritePodcastListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoritePodcasts.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoritePodcasts.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorite podcasts
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetFavoritePodcasts.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetFavoritePodcasts.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoritePodcasts.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoritePodcasts.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetFavoritePodcasts.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetFavoritePodcasts.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoritePodcasts.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoritePodcasts.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetFavoritePodcasts.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetFavoritePodcasts.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoritePodcasts.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoritePodcasts.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/get(getFavoritePodcasts)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetFavoritePodcasts.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetFavoritePodcasts.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Favorite a podcast
+    ///
+    /// - Remark: HTTP `POST /favorite-podcasts`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)`.
+    public enum AddFavoritePodcast {
+        public static let id: Swift.String = "addFavoritePodcast"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-podcasts/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.AddFavoritePodcast.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.AddFavoritePodcast.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.AddFavoritePodcast.Input.Headers
+            /// - Remark: Generated from `#/paths/favorite-podcasts/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/requestBody/json`.
+                public struct JsonPayload: Codable, Hashable, Sendable {
+                    /// Podcast numeric id
+                    ///
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/requestBody/json/podcastId`.
+                    public var podcastId: Swift.Int
+                    /// Creates a new `JsonPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - podcastId: Podcast numeric id
+                    public init(podcastId: Swift.Int) {
+                        self.podcastId = podcastId
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case podcastId
+                    }
+                }
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/requestBody/content/application\/json`.
+                case json(Operations.AddFavoritePodcast.Input.Body.JsonPayload)
+            }
+            public var body: Operations.AddFavoritePodcast.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.AddFavoritePodcast.Input.Headers = .init(),
+                body: Operations.AddFavoritePodcast.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorited successfully
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.AddFavoritePodcast.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.AddFavoritePodcast.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid podcastId
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.AddFavoritePodcast.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.AddFavoritePodcast.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.AddFavoritePodcast.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.AddFavoritePodcast.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Podcast not found
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.AddFavoritePodcast.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.AddFavoritePodcast.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.AddFavoritePodcast.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.AddFavoritePodcast.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/POST/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoritePodcast.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoritePodcast.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/post(addFavoritePodcast)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.AddFavoritePodcast.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.AddFavoritePodcast.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Unfavorite a podcast
+    ///
+    /// - Remark: HTTP `DELETE /favorite-podcasts/{podcastId}`.
+    /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)`.
+    public enum RemoveFavoritePodcast {
+        public static let id: Swift.String = "removeFavoritePodcast"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/path`.
+            public struct Path: Sendable, Hashable {
+                /// Podcast numeric id
+                ///
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/path/podcastId`.
+                public var podcastId: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - podcastId: Podcast numeric id
+                public init(podcastId: Swift.Int) {
+                    self.podcastId = podcastId
+                }
+            }
+            public var path: Operations.RemoveFavoritePodcast.Input.Path
+            /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RemoveFavoritePodcast.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RemoveFavoritePodcast.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RemoveFavoritePodcast.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.RemoveFavoritePodcast.Input.Path,
+                headers: Operations.RemoveFavoritePodcast.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Unfavorited successfully
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.RemoveFavoritePodcast.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.RemoveFavoritePodcast.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing podcastId
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.RemoveFavoritePodcast.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.RemoveFavoritePodcast.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.RemoveFavoritePodcast.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.RemoveFavoritePodcast.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorite not found
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.RemoveFavoritePodcast.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.RemoveFavoritePodcast.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.RemoveFavoritePodcast.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.RemoveFavoritePodcast.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-podcasts/{podcastId}/DELETE/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoritePodcast.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoritePodcast.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.RemoveFavoritePodcast.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.RemoveFavoritePodcast.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

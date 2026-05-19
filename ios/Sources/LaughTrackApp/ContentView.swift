@@ -62,6 +62,7 @@ enum LaughTrackViewTestID {
     static let favoritesComediansSection = "laughtrack.favorites.comedians-section"
     static let favoritesShowsSection = "laughtrack.favorites.shows-section"
     static let favoritesClubsSection = "laughtrack.favorites.clubs-section"
+    static let favoritesPodcastsSection = "laughtrack.favorites.podcasts-section"
     static let libraryFavoritesSection = favoritesComediansSection
     static let firstEntryAuthChoiceScreen = "laughtrack.auth-choice.screen"
     static let firstEntryContinueAsGuestButton = "laughtrack.auth-choice.continue-as-guest"
@@ -247,6 +248,7 @@ struct ContentView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
     @StateObject private var favorites = ComedianFavoriteStore()
+    @StateObject private var podcastFavorites = PodcastFavoriteStore()
     @StateObject private var shellState = AppShellState()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
     @StateObject private var podcastPlayer = PodcastPlaybackController()
@@ -394,7 +396,7 @@ struct ContentView: View {
             case .clubDetail(let id):
                 ClubDetailView(clubID: id, apiClient: apiClient)
             case .podcastDetail(let id):
-                PodcastDetailView(podcastID: id)
+                PodcastDetailView(podcastID: id, apiClient: apiClient)
             }
         } root: {
             AppShellView(
@@ -405,6 +407,7 @@ struct ContentView: View {
             )
         }
         .environmentObject(favorites)
+        .environmentObject(podcastFavorites)
         .environmentObject(podcastPlayer)
         .safeAreaInset(edge: .bottom) {
             PodcastMiniPlayerView(player: podcastPlayer)

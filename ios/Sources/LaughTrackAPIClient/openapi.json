@@ -1596,6 +1596,188 @@
         }
       }
     },
+    "/favorite-podcasts": {
+      "get": {
+        "operationId": "getFavoritePodcasts",
+        "summary": "List the signed-in user’s saved favorite podcasts",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorite podcasts",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoritePodcastListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "addFavoritePodcast",
+        "summary": "Favorite a podcast",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["podcastId"],
+                "properties": {
+                  "podcastId": {
+                    "type": "integer",
+                    "description": "Podcast numeric id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Favorited successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid podcastId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Podcast not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-podcasts/{podcastId}": {
+      "delete": {
+        "operationId": "removeFavoritePodcast",
+        "summary": "Unfavorite a podcast",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "podcastId",
+            "in": "path",
+            "required": true,
+            "description": "Podcast numeric id",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unfavorited successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing podcastId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Favorite not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/zip-lookup": {
       "get": {
         "operationId": "lookupZip",
@@ -1818,6 +2000,31 @@
           "data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+          }
+        }
+      },
+      "FavoritePodcastItem": {
+        "type": "object",
+        "required": ["id", "title", "episode_count", "isFavorite"],
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "author_name": { "type": ["string", "null"] },
+          "website_url": { "type": ["string", "null"] },
+          "feed_url": { "type": ["string", "null"] },
+          "image_url": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] },
+          "episode_count": { "type": "integer" },
+          "isFavorite": { "type": "boolean" }
+        }
+      },
+      "FavoritePodcastListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FavoritePodcastItem" }
           }
         }
       },

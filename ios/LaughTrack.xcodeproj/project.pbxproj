@@ -15,6 +15,7 @@
 		0C145C2A445386A99C1A41E1 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCCCA95DB28A342FFAAEC81 /* OpenAPIURLSession */; };
 		0E0EE5D3C981B00E1290F2FD /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE66AEEC26F743787CDC4EE /* Client.swift */; };
 		0FC8D86160FD6351D3956617 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */; };
+		105A74AEF668E4F7692C3D65 /* PodcastDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864367FC4FA9308A8C738B7C /* PodcastDetailView.swift */; };
 		10C17E3364E441F0ECE602AC /* LoadMoreButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE1705A025843D670B80F480 /* LoadMoreButton.swift */; };
 		10F4B6790860867934B334F8 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 8780AC234414FC21BE50A118 /* OpenAPIRuntime */; };
 		167E5076004F5F0AB43045C0 /* LaughTrackAPIClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -62,6 +63,7 @@
 		4585B8D5EB7FB72C80BBAF06 /* DetailHeroLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EDE38E061B529E52A38C3F /* DetailHeroLayoutTests.swift */; };
 		464D53193F4769A1BD73A7A3 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE877FF9B9D76AAC6FFCBA7 /* Demo.swift */; };
 		497B1B88853BE206736ADEFC /* LibraryFavoritesViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */; };
+		4A80B43FE77D9F072D844DC3 /* PodcastFavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */; };
 		4E555BF23B469378A967859A /* SettingsViewStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECED0A3A8EEF5B333E588DB8 /* SettingsViewStateTests.swift */; };
 		50B7B8939830138B1D3D7FDF /* LibraryViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DCCCE4F2A5D080DC2574451 /* LibraryViewTests.swift */; };
 		511FC6C382C4400C100D1495 /* ClubsDiscoveryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */; };
@@ -78,6 +80,7 @@
 		6EED35E475AD78DA03A3F5C7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4759E6DB08350C5ADD176 /* ContentView.swift */; };
 		6FB4A0E0479B9B7982378032 /* LaughTrackAPIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D2E66D33F5650FDBC687BD /* LaughTrackAPIConfiguration.swift */; };
 		7170F0CD6E2E66D3E13E260D /* HostedViewDumpTreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5984C96F90F11803C896B6D2 /* HostedViewDumpTreeTests.swift */; };
+		71D04A047E2361629E448EC9 /* PodcastSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A7A4F2703ED8DC9253F0B7 /* PodcastSearchModel.swift */; };
 		725123B701491B774F14F4B9 /* LaughTrackAPIClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; };
 		739A95D851F561B8547F9395 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 61CB6BEBA8E2ACC482982705 /* OpenAPIURLSession */; };
 		73B82A20165EC8C3D1174EEC /* DetailNavigationChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7488519FE0E33B0A18BB456 /* DetailNavigationChrome.swift */; };
@@ -110,11 +113,9 @@
 		97A64E347CF2AF2280EFA9A2 /* ShowFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E967C8A3F78A8A5226D2AA /* ShowFormatting.swift */; };
 		9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */; };
 		9DF9E44E3C545330B35C49C1 /* PillSheetTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00935250DBF700278E692D7F /* PillSheetTrigger.swift */; };
+		9E3D740175C97A1CD7B19AE6 /* PodcastSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A43012E1A7CE02D4EAE547 /* PodcastSearchView.swift */; };
 		9ECD9CBBBF4146F96875CF95 /* EntityDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF2B88CE4154BD479271AA7 /* EntityDataFlow.swift */; };
 		9F699E60A40D89F8C4A837CF /* APIVersionPathMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */; };
-		A11111111111111111111111 /* PodcastSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11111111111111111111111 /* PodcastSearchModel.swift */; };
-		A22222222222222222222222 /* PodcastSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B22222222222222222222222 /* PodcastSearchView.swift */; };
-		A33333333333333333333333 /* PodcastDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33333333333333333333333 /* PodcastDetailView.swift */; };
 		A01CEE8E888E8443499CC503 /* LaughTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A24095B90BCF6912A7533AED /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 835B2849E1649BAD8DA6A0F9 /* APIClient */; };
 		A5E71088D6210D447F8955B2 /* DateRangeFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B9224C211F8ECAD8510E1A /* DateRangeFilter.swift */; };
@@ -124,6 +125,7 @@
 		AAC32768797F7C1F1406447A /* ComediansDiscoveryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */; };
 		AB486FE01B540C9BB81E1410 /* PersistentMainPageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */; };
 		ABDEA32E11841DE7E6497603 /* DiscoveryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = C64E7D37B825D2EB605C8EB2 /* DiscoveryCard.swift */; };
+		AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */; };
 		ACB625DE407CD851AAC711F3 /* ComedianRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822BF17F198A98B4106613C1 /* ComedianRowTests.swift */; };
 		AD5A4B33897A9BDF49530E6F /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 362B635800535696613C37C8 /* APIClient */; };
 		ADFA9E4F6B385378DA3B9C17 /* DetailLoadingSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B02BA69766ED2849455A9 /* DetailLoadingSkeleton.swift */; };
@@ -335,6 +337,7 @@
 		412F8D40AC24BC4BCC958FFD /* APIClientConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientConfigurationTests.swift; sourceTree = "<group>"; };
 		41925ABE34C9D35C075C67AA /* SearchOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchOptions.swift; sourceTree = "<group>"; };
 		427388AED0335B0C7AC80040 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		42A7A4F2703ED8DC9253F0B7 /* PodcastSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchModel.swift; sourceTree = "<group>"; };
 		42E7556F23D24DC31A2A1FF1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		43EE3334A9C17B5E93FDB4F4 /* LoadFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadFailure.swift; sourceTree = "<group>"; };
 		498BFB68E6063E822195D27C /* NearbyLocationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyLocationController.swift; sourceTree = "<group>"; };
@@ -354,17 +357,21 @@
 		64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainPageCacheTests.swift; sourceTree = "<group>"; };
 		65D2E66D33F5650FDBC687BD /* LaughTrackAPIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIConfiguration.swift; sourceTree = "<group>"; };
 		7436912FD34C53C36498E5EF /* LibraryFavoritesViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFavoritesViewTests.swift; sourceTree = "<group>"; };
+		74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastFavoriteStore.swift; sourceTree = "<group>"; };
 		77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRouter.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
+		81A43012E1A7CE02D4EAE547 /* PodcastSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchView.swift; sourceTree = "<group>"; };
 		822BF17F198A98B4106613C1 /* ComedianRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianRowTests.swift; sourceTree = "<group>"; };
 		847B300414E0F1BA6011DA7B /* LaughTrackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTests.swift; sourceTree = "<group>"; };
 		84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		8510FB22DBE58FC68078455A /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
+		864367FC4FA9308A8C738B7C /* PodcastDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailView.swift; sourceTree = "<group>"; };
 		8BF2B88CE4154BD479271AA7 /* EntityDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntityDataFlow.swift; sourceTree = "<group>"; };
 		8C77B3479ADE72E172E12CF5 /* ShowRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowRowTests.swift; sourceTree = "<group>"; };
 		8D4BF4FCA9AD4D3056F0DF97 /* LaughTrack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LaughTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E0F869A9A6680470A122B0B /* AuthLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLoadingView.swift; sourceTree = "<group>"; };
 		8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailViewTests.swift; sourceTree = "<group>"; };
 		90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootViewTests.swift; sourceTree = "<group>"; };
 		9170739BCDBB962D8D115F8B /* StubClientTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubClientTransport.swift; sourceTree = "<group>"; };
 		92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthorizedResponseMiddleware.swift; sourceTree = "<group>"; };
@@ -392,9 +399,6 @@
 		B4E1670E2DC2AFEA73AB1A3E /* ShowDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailViewTests.swift; sourceTree = "<group>"; };
 		B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIVersionPathMiddleware.swift; sourceTree = "<group>"; };
 		B567539F4B8C5140CCA80BFC /* SearchField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchField.swift; sourceTree = "<group>"; };
-		B11111111111111111111111 /* PodcastSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchModel.swift; sourceTree = "<group>"; };
-		B22222222222222222222222 /* PodcastSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchView.swift; sourceTree = "<group>"; };
-		B33333333333333333333333 /* PodcastDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastDetailView.swift; sourceTree = "<group>"; };
 		B5E043BF19430E526D649ECA /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
 		B705EA400FAD98C582CD61E6 /* SavedFavoritesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFavoritesSection.swift; sourceTree = "<group>"; };
 		B77565DFAF90D74AC5F8DECF /* TestResolverStubs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestResolverStubs.swift; sourceTree = "<group>"; };
@@ -557,6 +561,7 @@
 				1F7744758B0F2196DFF05F32 /* NearbyPreferenceStoreTests.swift */,
 				008683977BC9D75F1F750482 /* NotificationPreferenceStoreTests.swift */,
 				15A4C4CDF0A65612934098BF /* OnboardingTests.swift */,
+				8F13D45B524D9F3E3A29C75C /* PodcastDetailViewTests.swift */,
 				AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */,
 				90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */,
 				EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */,
@@ -587,7 +592,7 @@
 			children = (
 				FC9E6D2EAD36D7ADE1013D96 /* ClubsDiscoveryView.swift */,
 				253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */,
-				B22222222222222222222222 /* PodcastSearchView.swift */,
+				81A43012E1A7CE02D4EAE547 /* PodcastSearchView.swift */,
 				99CFC334F6079EB0A29BD645 /* SearchFilterModal.swift */,
 				3E5F06E48F96202840FD255A /* ShowsListView.swift */,
 			);
@@ -607,7 +612,7 @@
 			children = (
 				EC44E1E7ADFDC512DB784C72 /* ClubDetailView.swift */,
 				373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */,
-				B33333333333333333333333 /* PodcastDetailView.swift */,
+				864367FC4FA9308A8C738B7C /* PodcastDetailView.swift */,
 				F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */,
 			);
 			path = Views;
@@ -660,6 +665,7 @@
 				92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */,
 				A7010A6134B6DB8A613D78CA /* NotificationPreferenceStore.swift */,
 				039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */,
+				74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */,
 				0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */,
 				1CA1C8E0B073FCE3484E62AB /* XTimezoneHeaderNormalizationMiddleware.swift */,
 				561D473C1C08608F79C5271E /* ZipLocationResolver.swift */,
@@ -837,7 +843,7 @@
 			children = (
 				11D1764946AE444ED9B200C5 /* ClubsDiscoveryModel.swift */,
 				787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */,
-				B11111111111111111111111 /* PodcastSearchModel.swift */,
+				42A7A4F2703ED8DC9253F0B7 /* PodcastSearchModel.swift */,
 				41925ABE34C9D35C075C67AA /* SearchOptions.swift */,
 				F6C46BD00ADB099FBA8460B7 /* ShowsListModel.swift */,
 			);
@@ -1128,9 +1134,9 @@
 				E5D593E32DAFD0B741DE2154 /* PillDropdown.swift in Sources */,
 				9DF9E44E3C545330B35C49C1 /* PillSheetTrigger.swift in Sources */,
 				06881E628183E17F45A7AF89 /* PinnedShowsList.swift in Sources */,
-				A33333333333333333333333 /* PodcastDetailView.swift in Sources */,
-				A11111111111111111111111 /* PodcastSearchModel.swift in Sources */,
-				A22222222222222222222222 /* PodcastSearchView.swift in Sources */,
+				105A74AEF668E4F7692C3D65 /* PodcastDetailView.swift in Sources */,
+				71D04A047E2361629E448EC9 /* PodcastSearchModel.swift in Sources */,
+				9E3D740175C97A1CD7B19AE6 /* PodcastSearchView.swift in Sources */,
 				41F25FA51A32EFBC75B3B7B7 /* ProfileView.swift in Sources */,
 				A8E2681C829D7689D6BA9CB0 /* RemoteImageView.swift in Sources */,
 				2C9F53AFDFF77703C88B1D18 /* SafariView.swift in Sources */,
@@ -1186,6 +1192,7 @@
 				2268FC3D21464E385BD48063 /* NotificationPreferenceStore.swift in Sources */,
 				38D7CA0826C7E00A4113ABA9 /* OAuthSessionRunner.swift in Sources */,
 				AB486FE01B540C9BB81E1410 /* PersistentMainPageCache.swift in Sources */,
+				4A80B43FE77D9F072D844DC3 /* PodcastFavoriteStore.swift in Sources */,
 				F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */,
 				3CEBAA68984331D050F4088C /* UnauthorizedResponseMiddleware.swift in Sources */,
 				3BAF38CEEE908DDC0D8941E9 /* XTimezoneHeaderNormalizationMiddleware.swift in Sources */,
@@ -1240,6 +1247,7 @@
 				EC250092710CB355D3BF3A08 /* NearbyPreferenceStoreTests.swift in Sources */,
 				9B927C16B4B51ABF7EA9ED87 /* NotificationPreferenceStoreTests.swift in Sources */,
 				D3F21EAB1809543C8A52B948 /* OnboardingTests.swift in Sources */,
+				AC32C21C506F3FC4D3F24D7F /* PodcastDetailViewTests.swift in Sources */,
 				6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */,
 				1E02A267A51AA495C1E0D807 /* SearchRootViewTests.swift in Sources */,
 				8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */,

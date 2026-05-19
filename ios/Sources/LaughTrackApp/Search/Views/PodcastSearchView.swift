@@ -1,5 +1,7 @@
 import SwiftUI
+import LaughTrackAPIClient
 import LaughTrackBridge
+import LaughTrackCore
 
 private let podcastSearchRowDesign = LaughTrackEntityRowDesign(
     artworkSize: 70,
@@ -11,6 +13,7 @@ private let podcastSearchRowDesign = LaughTrackEntityRowDesign(
 )
 
 struct PodcastSearchView: View {
+    let apiClient: Client
     @ObservedObject var model: PodcastSearchModel
     var unifiedSearchText: Binding<String>?
     var unifiedSearchPrompt: String?
@@ -18,7 +21,11 @@ struct PodcastSearchView: View {
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @State private var openDropdownID: String?
+    @State private var feedbackMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
@@ -63,21 +70,11 @@ struct PodcastSearchView: View {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
                             ForEach(result.items) { podcast in
-                                Button {
-                                    if let target = podcast.navigationTarget {
-                                        coordinator.open(target)
-                                    }
-                                } label: {
-                                    LaughTrackEntityRow(
-                                        title: podcast.title,
-                                        subtitle: podcast.subtitle?.nonEmpty,
-                                        systemImage: "headphones",
-                                        imageURL: podcast.imageUrl,
-                                        design: podcastSearchRowDesign
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(podcast.navigationTarget == nil)
+                                PodcastSearchRow(
+                                    podcast: podcast,
+                                    apiClient: apiClient,
+                                    feedbackMessage: $feedbackMessage
+                                )
                             }
 
                             if let paginationFailure = model.paginationFailure {
@@ -100,6 +97,13 @@ struct PodcastSearchView: View {
             guard isActive else { return }
             await model.reload()
         }
+        .alert("Favorites", isPresented: .constant(feedbackMessage != nil), actions: {
+            Button("OK") {
+                feedbackMessage = nil
+            }
+        }, message: {
+            Text(feedbackMessage ?? "")
+        })
         .overlayPreferenceValue(PillDropdownAnchorKey.self) { anchors in
             GeometryReader { proxy in
                 PillDropdownOverlay(
@@ -114,6 +118,74 @@ struct PodcastSearchView: View {
                 )
             }
         }
+    }
+}
+
+struct PodcastSearchRow: View {
+    let podcast: PodcastSearchResult
+    let apiClient: Client
+    @Binding var feedbackMessage: String?
+
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let numericID = Self.numericID(for: podcast)
+        let isFavorite = numericID.map { podcastFavorites.value(for: $0) } ?? false
+
+        HStack(spacing: theme.spacing.md) {
+            Button {
+                if let target = podcast.navigationTarget {
+                    coordinator.open(target)
+                }
+            } label: {
+                LaughTrackEntityRow(
+                    title: podcast.title,
+                    subtitle: podcast.subtitle?.nonEmpty,
+                    systemImage: "headphones",
+                    imageURL: podcast.imageUrl,
+                    design: podcastSearchRowDesign
+                )
+            }
+            .buttonStyle(.plain)
+            .disabled(podcast.navigationTarget == nil)
+
+            if let numericID {
+                FavoriteButton(
+                    isFavorite: isFavorite,
+                    isPending: podcastFavorites.isPending(numericID)
+                ) {
+                    await toggle(podcastID: numericID, currentValue: isFavorite)
+                }
+            }
+        }
+    }
+
+    private func toggle(podcastID: Int, currentValue: Bool) async {
+        let result = await podcastFavorites.toggle(
+            podcastID: podcastID,
+            currentValue: currentValue,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+        switch result {
+        case .updated(let next):
+            feedbackMessage = FavoriteFeedback.message(for: podcast.title, isFavorite: next)
+        case .signInRequired:
+            loginModalPresenter.present()
+        case .failure(let message):
+            feedbackMessage = message
+        }
+    }
+
+    static func numericID(for podcast: PodcastSearchResult) -> Int? {
+        guard podcast.id.hasPrefix("podcast-"),
+              let value = Int(podcast.id.dropFirst("podcast-".count))
+        else { return nil }
+        return value
     }
 }
 
