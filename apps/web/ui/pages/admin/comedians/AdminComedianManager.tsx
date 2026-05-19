@@ -380,7 +380,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                 onPageSizeChange={setPageSize}
             />
             <div className="overflow-x-auto rounded-md border border-copper/25 bg-white">
-                <div className="grid min-w-[980px] grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)] gap-4 border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
+                <div className="grid min-w-[1120px] grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)] gap-6 border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
                     <div>Comedian</div>
                     <div>Parent relationship</div>
                     <div>Blocklist</div>
@@ -394,61 +394,27 @@ export default function AdminComedianManager({ comedians }: Props) {
                         return (
                             <li
                                 key={row.id}
-                                className="grid min-w-[980px] gap-4 px-4 py-4 lg:grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)]"
+                                className="grid min-w-[1120px] items-start gap-6 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
                             >
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h2 className="font-gilroy-bold text-h3 text-cedar">
+                                <div className="min-w-0 space-y-4">
+                                    <div className="space-y-2">
+                                        <h2 className="break-words font-gilroy-bold text-h3 text-cedar">
                                             {row.name}
                                         </h2>
-                                        {row.isBlocked && (
-                                            <span className="rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
-                                                Blocked
-                                            </span>
-                                        )}
-                                        {row.parent && (
-                                            <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
-                                                Child
-                                            </span>
-                                        )}
+                                        <div className="flex flex-wrap gap-2">
+                                            {row.isBlocked && (
+                                                <span className="rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                                    Blocked
+                                                </span>
+                                            )}
+                                            {row.parent && (
+                                                <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
+                                                    Child
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="mt-3 grid max-w-xl gap-2">
-                                        <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                            Comedian name
-                                            <input
-                                                type="text"
-                                                value={nameValue(row)}
-                                                onChange={(event) =>
-                                                    setNameEdits((current) => ({
-                                                        ...current,
-                                                        [row.id]:
-                                                            event.target.value,
-                                                    }))
-                                                }
-                                                className="mt-1 block w-full rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                            />
-                                        </label>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="w-fit gap-2 border-copper/40 text-cedar disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                            disabled={
-                                                disabled ||
-                                                pendingId === row.id ||
-                                                !isNameDirty(row) ||
-                                                !normalizedAdminName(
-                                                    nameValue(row),
-                                                )
-                                            }
-                                            onClick={() =>
-                                                void saveComedianRecord(row)
-                                            }
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            Save record
-                                        </Button>
-                                    </div>
-                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-body text-soft-charcoal">
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-dmSans text-body text-soft-charcoal">
                                         <span>ID {row.id}</span>
                                         <span>
                                             Popularity{" "}
@@ -463,35 +429,79 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             children
                                         </span>
                                     </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {parent ? (
-                                        <div className="flex w-fit max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
-                                            <span className="min-w-0 truncate">
-                                                Parent: {parent.name}
-                                            </span>
-                                            <button
+                                    <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                        <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                            Display name
+                                        </label>
+                                        <div className="mt-1 flex items-center gap-2">
+                                            <input
+                                                aria-label="Comedian name"
+                                                type="text"
+                                                value={nameValue(row)}
+                                                onChange={(event) =>
+                                                    setNameEdits((current) => ({
+                                                        ...current,
+                                                        [row.id]:
+                                                            event.target.value,
+                                                    }))
+                                                }
+                                                className="min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            />
+                                            <Button
                                                 type="button"
-                                                onClick={() =>
-                                                    setSelectedParents(
-                                                        (current) => ({
-                                                            ...current,
-                                                            [row.id]: null,
-                                                        }),
+                                                variant="outline"
+                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === row.id ||
+                                                    !isNameDirty(row) ||
+                                                    !normalizedAdminName(
+                                                        nameValue(row),
                                                     )
                                                 }
-                                                className="rounded-sm p-1 text-green-950 hover:bg-green-100"
-                                                aria-label={`Clear parent for ${row.name}`}
+                                                onClick={() =>
+                                                    void saveComedianRecord(row)
+                                                }
                                             >
-                                                <X className="h-4 w-4" />
-                                            </button>
+                                                <Save className="h-4 w-4" />
+                                                Save record
+                                            </Button>
                                         </div>
-                                    ) : (
-                                        <div className="font-dmSans text-body text-soft-charcoal">
-                                            No parent assigned
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                            Current parent
                                         </div>
-                                    )}
+                                        {parent ? (
+                                            <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
+                                                <span className="min-w-0 truncate">
+                                                    {parent.name}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedParents(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [row.id]: null,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
+                                                    aria-label={`Clear parent for ${row.name}`}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                                No parent assigned
+                                            </div>
+                                        )}
+                                    </div>
 
                                     <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
                                         Find parent
@@ -538,7 +548,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="gap-2 border-copper/40 text-cedar disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                         disabled={
                                             disabled ||
                                             !isParentDirty(row) ||
@@ -551,7 +561,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     </Button>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-4">
+                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                        Blocklist state
+                                    </div>
                                     {row.isBlocked ? (
                                         <div className="space-y-3">
                                             <div className="rounded-md border border-red-700/25 bg-red-50 p-3 font-dmSans text-body text-red-950">
@@ -568,7 +581,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                className="gap-2 border-green-800/40 text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                 disabled={
                                                     disabled ||
                                                     pendingId === row.id
@@ -608,7 +621,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                className="gap-2 border-red-800/40 text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                 disabled={
                                                     disabled ||
                                                     pendingId === row.id ||
