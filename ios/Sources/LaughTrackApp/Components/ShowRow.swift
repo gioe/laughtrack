@@ -216,40 +216,16 @@ struct ShowRow: View {
     }
 
     static func priceLabel(for show: Components.Schemas.Show) -> String? {
-        priceRangeLabel(from: show.tickets, includeSoldOut: false)
+        ShowPricePresentation.rowPriceLabel(for: show)
     }
 
     static func previousPriceLabel(for show: Components.Schemas.Show) -> String? {
-        priceRangeLabel(from: show.tickets, includeSoldOut: true)
+        ShowPricePresentation.rowPreviousPriceLabel(for: show)
     }
 
     static func roomLabel(for show: Components.Schemas.Show) -> String? {
         let room = show.room?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return room.isEmpty ? nil : room
-    }
-
-    private static func priceRangeLabel(
-        from tickets: [Components.Schemas.Ticket]?,
-        includeSoldOut: Bool
-    ) -> String? {
-        let prices = (tickets ?? [])
-            .filter { includeSoldOut || $0.soldOut != true }
-            .compactMap(\.price)
-            .sorted()
-
-        guard let lowestPrice = prices.first else {
-            return nil
-        }
-
-        guard let highestPrice = prices.last, highestPrice != lowestPrice else {
-            return formatPrice(lowestPrice)
-        }
-
-        if lowestPrice == 0 {
-            return "Free - \(formatPrice(highestPrice))"
-        }
-
-        return "\(formatPrice(lowestPrice)) - \(formatPrice(highestPrice))"
     }
 
     static func isOpenMic(_ show: Components.Schemas.Show) -> Bool {
@@ -287,17 +263,6 @@ struct ShowRow: View {
         comedian.parentComedian ?? comedian
     }
 
-    private static func formatPrice(_ price: Double) -> String {
-        if price == 0 {
-            return "Free"
-        }
-
-        if price.rounded() == price {
-            return "$\(Int(price))"
-        }
-
-        return price.formatted(.currency(code: "USD"))
-    }
 }
 
 enum ShowTitlePresentation {

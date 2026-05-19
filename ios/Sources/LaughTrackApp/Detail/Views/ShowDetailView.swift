@@ -157,7 +157,7 @@ enum ShowDetailPresentation {
             ),
             ShowDetailFact(label: "Venue", value: show.club.name),
             optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
-            ShowDetailFact(label: "Tickets", value: ticketSummary(for: show))
+            ShowDetailFact(label: "Tickets", value: ShowPricePresentation.detailTicketSummary(for: show))
         ]
         .compactMap { $0 }
     }
@@ -187,30 +187,6 @@ enum ShowDetailPresentation {
         return ShowDetailFact(label: label, value: value)
     }
 
-    private static func ticketSummary(for show: Components.Schemas.ShowDetail) -> String {
-        if show.cta.isSoldOut || show.soldOut == true {
-            return "Sold out"
-        }
-
-        let prices = (show.tickets ?? []).compactMap(\.price)
-        guard let lowest = prices.min() else {
-            return "Unavailable"
-        }
-
-        if lowest <= 0 {
-            return "Free"
-        }
-
-        return currencyFormatter.string(from: NSNumber(value: lowest)) ?? "$\(lowest)"
-    }
-
-    private static let currencyFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.currencyCode = "USD"
-        return formatter
-    }()
 }
 
 private struct ShowSummarySection: View {
