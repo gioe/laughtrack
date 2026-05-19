@@ -101,6 +101,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                     id: 42,
                     name: "Jane Comic",
                     uuid: "comedian-uuid",
+                    popularity: 74,
                 },
                 podcast: {
                     id: 99,
@@ -128,6 +129,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                     id: 42,
                     name: "Jane Comic",
                     uuid: "comedian-uuid",
+                    popularity: 74,
                 },
             },
         ] as never);
@@ -143,6 +145,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                     id: 42,
                     name: "Jane Comic",
                     uuid: "comedian-uuid",
+                    popularity: 74,
                 },
                 podcast: expect.objectContaining({
                     id: 99,
@@ -159,6 +162,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                             id: 42,
                             name: "Jane Comic",
                             uuid: "comedian-uuid",
+                            popularity: 74,
                         },
                     }),
                 ],
@@ -178,7 +182,12 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
 
     it("approves a podcast owner, rejects competing candidates, audits, and revalidates", async () => {
         const podcast = { id: 99, slug: "jane-show", title: "The Jane Show" };
-        const owner = { id: 42, name: "Jane Comic", uuid: "comedian-uuid" };
+        const owner = {
+            id: 42,
+            name: "Jane Comic",
+            uuid: "comedian-uuid",
+            popularity: 74,
+        };
         const candidate = {
             id: 12,
             comedianId: 42,
@@ -191,7 +200,12 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             evidence: { matched_name: "Jane Comic" },
             reviewedAt: null,
             reviewedBy: null,
-            comedian: { id: 42, name: "Jane Comic", uuid: "comedian-uuid" },
+            comedian: {
+                id: 42,
+                name: "Jane Comic",
+                uuid: "comedian-uuid",
+                popularity: 74,
+            },
             podcast,
         };
         const upsertedOwnership = {
@@ -331,7 +345,12 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             evidence: {},
             reviewedAt: null,
             reviewedBy: null,
-            comedian: { id: 42, name: "Jane Comic", uuid: "comedian-uuid" },
+            comedian: {
+                id: 42,
+                name: "Jane Comic",
+                uuid: "comedian-uuid",
+                popularity: 74,
+            },
             podcast,
         };
         const auditCreate = vi.fn();

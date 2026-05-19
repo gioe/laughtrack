@@ -18,6 +18,7 @@ type CandidateRow = {
         id: number;
         uuid: string;
         name: string;
+        popularity: number;
     };
     podcast: {
         id: number;
@@ -44,6 +45,7 @@ type OwnershipRow = {
         id: number;
         uuid: string;
         name: string;
+        popularity: number;
     };
 };
 
@@ -61,6 +63,7 @@ export type AdminPodcastOwnershipReviewCandidate = {
         id: number;
         uuid: string;
         name: string;
+        popularity: number;
     };
     podcast: {
         id: number;
@@ -83,6 +86,7 @@ export type AdminPodcastOwnershipReviewCandidate = {
             id: number;
             uuid: string;
             name: string;
+            popularity: number;
         };
     }>;
 };
@@ -142,6 +146,7 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
                     id: true,
                     uuid: true,
                     name: true,
+                    popularity: true,
                 },
             },
             podcast: {
@@ -186,6 +191,7 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
                           id: true,
                           uuid: true,
                           name: true,
+                          popularity: true,
                       },
                   },
               },

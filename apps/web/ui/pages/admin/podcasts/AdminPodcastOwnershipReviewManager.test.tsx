@@ -34,7 +34,7 @@ const candidate: AdminPodcastOwnershipReviewCandidate = {
     evidence: { matched_name: "Jane Comic" },
     createdAt: "2026-05-17T12:00:00.000Z",
     updatedAt: "2026-05-17T12:00:00.000Z",
-    comedian: { id: 42, uuid: "uuid-42", name: "Jane Comic" },
+    comedian: { id: 42, uuid: "uuid-42", name: "Jane Comic", popularity: 74 },
     podcast: {
         id: 99,
         slug: "jane-show",
@@ -69,6 +69,39 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(screen.getByText("Owner: Jane Comic")).toBeTruthy();
         expect(screen.getAllByText("91%").length).toBeGreaterThan(0);
         expect(screen.getByText(/matched_name/)).toBeTruthy();
+    });
+
+    it("switches to comedian view and sorts by popularity", () => {
+        const lowerPopularityCandidate: AdminPodcastOwnershipReviewCandidate = {
+            ...candidate,
+            id: 13,
+            comedian: {
+                id: 77,
+                uuid: "uuid-77",
+                name: "Lower Pop",
+                popularity: 12,
+            },
+            podcast: {
+                ...candidate.podcast!,
+                id: 100,
+                slug: "lower-pop-show",
+                title: "Lower Pop Show",
+            },
+        };
+        render(
+            <AdminPodcastOwnershipReviewManager
+                candidates={[lowerPopularityCandidate, candidate]}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "popularity-desc" },
+        });
+
+        const headings = screen.getAllByRole("heading", { level: 2 });
+        expect(headings[0].textContent).toBe("Jane Comic");
+        expect(screen.getByText(/Popularity 74.0/)).toBeTruthy();
     });
 
     it("saves a selected podcast owner with a reason", async () => {

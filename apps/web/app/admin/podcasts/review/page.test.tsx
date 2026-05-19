@@ -48,7 +48,12 @@ describe("AdminPodcastOwnershipReviewPage", () => {
                 evidence: {},
                 createdAt: new Date("2026-05-17T12:00:00Z"),
                 updatedAt: new Date("2026-05-17T12:00:00Z"),
-                comedian: { id: 42, name: "Jane Comic", uuid: "uuid-42" },
+                comedian: {
+                    id: 42,
+                    name: "Jane Comic",
+                    uuid: "uuid-42",
+                    popularity: 74,
+                },
                 podcast: {
                     id: 99,
                     slug: "jane-show",
