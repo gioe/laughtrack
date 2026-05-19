@@ -34,12 +34,14 @@ const ShowSearchClient = ({
 
     const {
         data,
+        total,
         isLoading,
         isError,
         errorMessage,
         hasMore,
         zipCapTriggered,
         sentinelRef,
+        loadMore,
         retry,
     } = useInfiniteSearch<ShowDTO>({
         endpoint: "/api/v1/shows/search",
@@ -83,6 +85,8 @@ const ShowSearchClient = ({
                 errorMessage={errorMessage}
                 hasMore={hasMore}
                 dataLength={data.length}
+                total={total}
+                loadMore={loadMore}
                 retry={retry}
                 sentinelRef={sentinelRef}
             >

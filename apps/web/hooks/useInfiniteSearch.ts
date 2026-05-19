@@ -29,6 +29,8 @@ interface UseInfiniteSearchResult<T> {
     zipCapTriggered: boolean;
     /** Attach this ref to the sentinel div at the bottom of the list. */
     sentinelRef: (el: Element | null) => void;
+    /** Loads the next page when more results are available. */
+    loadMore: () => void;
     /** Re-triggers loadMore from the current page after an error. */
     retry: () => void;
 }
@@ -199,6 +201,7 @@ export function useInfiniteSearch<T>({
         hasMore,
         zipCapTriggered,
         sentinelRef,
+        loadMore,
         retry: loadMore,
     };
 }

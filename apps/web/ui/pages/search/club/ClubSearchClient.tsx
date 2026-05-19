@@ -27,11 +27,13 @@ const ClubSearchClient = ({
 
     const {
         data,
+        total,
         isLoading,
         isError,
         errorMessage,
         hasMore,
         sentinelRef,
+        loadMore,
         retry,
     } = useInfiniteSearch<ClubDTO>({
         endpoint: "/api/v1/clubs/search",
@@ -48,6 +50,8 @@ const ClubSearchClient = ({
             errorMessage={errorMessage}
             hasMore={hasMore}
             dataLength={data.length}
+            total={total}
+            loadMore={loadMore}
             retry={retry}
             sentinelRef={sentinelRef}
         >

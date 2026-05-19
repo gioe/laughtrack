@@ -21,11 +21,13 @@ export default function PodcastSearchClient({
     };
     const {
         data,
+        total,
         isLoading,
         isError,
         errorMessage,
         hasMore,
         sentinelRef,
+        loadMore,
         retry,
     } = useInfiniteSearch<PodcastDTO>({
         endpoint: "/api/v1/podcasts/search",
@@ -42,6 +44,8 @@ export default function PodcastSearchClient({
             errorMessage={errorMessage}
             hasMore={hasMore}
             dataLength={data.length}
+            total={total}
+            loadMore={loadMore}
             retry={retry}
             sentinelRef={sentinelRef}
         >

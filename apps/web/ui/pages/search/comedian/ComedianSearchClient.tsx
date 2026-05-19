@@ -26,11 +26,13 @@ const ComedianSearchClient = ({
 
     const {
         data,
+        total,
         isLoading,
         isError,
         errorMessage,
         hasMore,
         sentinelRef,
+        loadMore,
         retry,
     } = useInfiniteSearch<ComedianDTO>({
         endpoint: "/api/v1/comedians/search",
@@ -47,6 +49,8 @@ const ComedianSearchClient = ({
             errorMessage={errorMessage}
             hasMore={hasMore}
             dataLength={data.length}
+            total={total}
+            loadMore={loadMore}
             retry={retry}
             sentinelRef={sentinelRef}
         >
