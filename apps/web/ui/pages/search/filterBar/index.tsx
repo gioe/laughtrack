@@ -8,6 +8,7 @@ import ClubSearchBar from "@/ui/components/params/search/pages/club/all";
 import ClubDetailSearchBar from "@/ui/components/params/search/pages/club/detail";
 import ComedianSearchBar from "@/ui/components/params/search/pages/comedian/all";
 import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedian/detail";
+import PodcastSearchBar from "@/ui/components/params/search/pages/podcast/all";
 import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
@@ -26,6 +27,7 @@ const INFINITE_SCROLL_VARIANTS = new Set([
     SearchVariant.AllClubs,
     SearchVariant.AllComedians,
     SearchVariant.AllShows,
+    SearchVariant.AllPodcasts,
 ]);
 
 const VARIANT_TO_ENTITY_TYPE_MAP = {
@@ -34,6 +36,7 @@ const VARIANT_TO_ENTITY_TYPE_MAP = {
     [SearchVariant.AllComedians]: EntityType.Comedian,
     [SearchVariant.ComedianDetail]: EntityType.Show,
     [SearchVariant.AllShows]: EntityType.Show,
+    [SearchVariant.AllPodcasts]: EntityType.Podcast,
 } as const;
 
 const VARIANT_TO_SEARCH_BAR_MAP = {
@@ -42,6 +45,7 @@ const VARIANT_TO_SEARCH_BAR_MAP = {
     [SearchVariant.AllComedians]: ComedianSearchBar,
     [SearchVariant.ComedianDetail]: ComedianDetailSearchBar,
     [SearchVariant.AllShows]: ShowSearchBar,
+    [SearchVariant.AllPodcasts]: PodcastSearchBar,
 } as const;
 
 interface FilterBarProps {

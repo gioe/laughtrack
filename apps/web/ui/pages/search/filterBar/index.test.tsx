@@ -28,6 +28,9 @@ vi.mock("@/ui/components/params/search/pages/comedian/all", () => ({
 vi.mock("@/ui/components/params/search/pages/comedian/detail", () => ({
     default: () => <div data-testid="comedian-detail-search" />,
 }));
+vi.mock("@/ui/components/params/search/pages/podcast/all", () => ({
+    default: () => <div data-testid="podcast-all-search" />,
+}));
 vi.mock("@/ui/components/params/search/pages/show/all", () => ({
     default: () => <div data-testid="show-all-search" />,
 }));
@@ -159,6 +162,19 @@ describe("FilterBar", () => {
         );
         expect(
             container.querySelector('[data-testid="comedian-detail-search"]'),
+        ).not.toBeNull();
+    });
+
+    it("renders the correct search bar for AllPodcasts", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.AllPodcasts}
+                total={5}
+                filterData={[]}
+            />,
+        );
+        expect(
+            container.querySelector('[data-testid="podcast-all-search"]'),
         ).not.toBeNull();
     });
 });

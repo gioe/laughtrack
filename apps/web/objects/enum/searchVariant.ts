@@ -3,7 +3,8 @@ export enum SearchVariant {
     AllClubs,
     ComedianDetail,
     AllComedians,
-    AllShows
+    AllShows,
+    AllPodcasts,
 }
 
 export const allVariantTypes = [
@@ -12,5 +13,6 @@ export const allVariantTypes = [
     SearchVariant.AllComedians,
     SearchVariant.ComedianDetail,
     SearchVariant.AllShows,
+    SearchVariant.AllPodcasts,
 
-]
+];

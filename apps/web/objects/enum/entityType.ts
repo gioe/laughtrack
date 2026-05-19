@@ -2,6 +2,7 @@ export enum EntityType {
     Comedian = "comedian",
     Club = "club",
     Show = "show",
+    Podcast = "podcast",
     Tag = "tag",
     User = "user",
     UserProfile = "user_profile",

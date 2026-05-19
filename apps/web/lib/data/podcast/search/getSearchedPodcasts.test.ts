@@ -15,6 +15,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { getSearchedPodcasts } from "./getSearchedPodcasts";
+import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -129,6 +130,30 @@ describe("getSearchedPodcasts", () => {
             expect.objectContaining({
                 take: 50,
                 skip: 100,
+            }),
+        );
+    });
+
+    it("maps podcast sort params to stable orderBy clauses", async () => {
+        await getSearchedPodcasts({ sort: SortParamValue.ActivityDesc });
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+            }),
+        );
+    });
+
+    it("can sort by episode count", async () => {
+        await getSearchedPodcasts({ sort: SortParamValue.ShowCountDesc });
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                orderBy: [
+                    { episodes: { _count: "desc" } },
+                    { title: "asc" },
+                    { id: "asc" },
+                ],
             }),
         );
     });

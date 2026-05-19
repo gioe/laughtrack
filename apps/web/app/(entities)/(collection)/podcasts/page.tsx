@@ -4,9 +4,11 @@ import { unstable_cache } from "next/cache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import JsonLd from "@/ui/components/JsonLd";
 import SearchDetailHeader from "@/ui/pages/search/header";
+import FilterBar from "@/ui/pages/search/filterBar";
 import PodcastSearchClient from "@/ui/pages/search/podcast/PodcastSearchClient";
 import { getSearchedPodcasts } from "@/lib/data/podcast/search/getSearchedPodcasts";
 import { buildPodcastCollectionJsonLd } from "@/util/jsonLd";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 
 type PodcastsPageProps = {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -34,12 +36,13 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 export default async function PodcastsPage(props: PodcastsPageProps) {
     const searchParams = await props.searchParams;
     const q = firstParam(searchParams.q);
+    const sort = firstParam(searchParams.sort);
     const getCached = unstable_cache(
-        async () => getSearchedPodcasts({ q }),
-        ["podcasts-search-page-data-v2", q ?? ""],
+        async () => getSearchedPodcasts({ q, sort }),
+        ["podcasts-search-page-data-v3", q ?? "", sort ?? ""],
         {
             revalidate: CACHE.search,
-            tags: ["podcasts-search-page-data-v2", q ?? ""],
+            tags: ["podcasts-search-page-data-v3", q ?? "", sort ?? ""],
         },
     );
     const { data, total } = await getCached();
@@ -54,26 +57,12 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
                 variant="podcast"
                 tagline={tagline}
             />
+            <FilterBar
+                variant={SearchVariant.AllPodcasts}
+                total={total}
+                filterData={[]}
+            />
             <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
-                <form action="/podcasts" className="mb-6 flex gap-2">
-                    <label htmlFor="podcast-search" className="sr-only">
-                        Search podcasts
-                    </label>
-                    <input
-                        id="podcast-search"
-                        name="q"
-                        type="search"
-                        defaultValue={q ?? ""}
-                        placeholder="Search podcasts or hosts"
-                        className="min-w-0 flex-1 rounded-md border border-gray-300 px-4 py-2 font-dmSans text-body text-foreground shadow-sm focus:border-copper focus:outline-none focus:ring-2 focus:ring-copper"
-                    />
-                    <button
-                        type="submit"
-                        className="rounded-md bg-copper px-4 py-2 font-dmSans text-sm font-semibold text-white transition-colors hover:bg-copper/90 focus:outline-none focus:ring-2 focus:ring-copper"
-                    >
-                        Search
-                    </button>
-                </form>
                 <Suspense>
                     <PodcastSearchClient
                         initialData={data}

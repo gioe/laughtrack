@@ -54,6 +54,17 @@ export const getSortOptionsForEntityType = (
             }
             return base;
         }
+        case EntityType.Podcast:
+            return [
+                { name: "A-Z", value: SortParamValue.NameAsc },
+                { name: "Z-A", value: SortParamValue.NameDesc },
+                { name: "Recently Updated", value: SortParamValue.ActivityDesc },
+                { name: "Oldest Updated", value: SortParamValue.ActivityAsc },
+                { name: "Most Episodes", value: SortParamValue.ShowCountDesc },
+                { name: "Fewest Episodes", value: SortParamValue.ShowCountAsc },
+                { name: "Newest First", value: SortParamValue.InsertedAtDesc },
+                { name: "Oldest First", value: SortParamValue.InsertedAtAsc },
+            ];
         default:
             return [
                 { name: "Earliest Date", value: SortParamValue.DateAsc },

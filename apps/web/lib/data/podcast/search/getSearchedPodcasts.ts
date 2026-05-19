@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { PodcastSearchResponse } from "../interface";
+import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 const DEFAULT_PAGE_SIZE = 25;
 const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
@@ -41,8 +42,41 @@ function normalizeSize(raw: string | undefined): number {
     return Math.min(size, 50);
 }
 
+function getPodcastOrderBy(
+    sort: string | undefined,
+): Prisma.PodcastOrderByWithRelationInput[] {
+    switch (sort) {
+        case SortParamValue.NameDesc:
+            return [{ title: "desc" }, { id: "asc" }];
+        case SortParamValue.ActivityDesc:
+            return [{ updatedAt: "desc" }, { id: "desc" }];
+        case SortParamValue.ActivityAsc:
+            return [{ updatedAt: "asc" }, { id: "asc" }];
+        case SortParamValue.ShowCountDesc:
+            return [
+                { episodes: { _count: "desc" } },
+                { title: "asc" },
+                { id: "asc" },
+            ];
+        case SortParamValue.ShowCountAsc:
+            return [
+                { episodes: { _count: "asc" } },
+                { title: "asc" },
+                { id: "asc" },
+            ];
+        case SortParamValue.InsertedAtDesc:
+            return [{ createdAt: "desc" }, { id: "desc" }];
+        case SortParamValue.InsertedAtAsc:
+            return [{ createdAt: "asc" }, { id: "asc" }];
+        case SortParamValue.NameAsc:
+        default:
+            return [{ title: "asc" }, { id: "asc" }];
+    }
+}
+
 export async function getSearchedPodcasts(params: {
     q?: string;
+    sort?: string;
     page?: string;
     size?: string;
 }): Promise<PodcastSearchResponse> {
@@ -83,7 +117,7 @@ export async function getSearchedPodcasts(params: {
                     },
                 },
             },
-            orderBy: [{ title: "asc" }, { id: "asc" }],
+            orderBy: getPodcastOrderBy(params.sort),
             take: size,
             skip: page * size,
         }),

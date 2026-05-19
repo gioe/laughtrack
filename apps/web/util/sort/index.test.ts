@@ -81,4 +81,21 @@ describe("getSortOptionsForEntityType", () => {
             expect(values).toContain(SortParamValue.PriceDesc);
         });
     });
+
+    describe("EntityType.Podcast", () => {
+        const options = getSortOptionsForEntityType(EntityType.Podcast);
+
+        it("first option (UI default) is A-Z / NameAsc", () => {
+            expect(options[0]).toEqual({
+                name: "A-Z",
+                value: SortParamValue.NameAsc,
+            });
+        });
+
+        it("includes recent activity and episode count options", () => {
+            const values = options.map((o) => o.value);
+            expect(values).toContain(SortParamValue.ActivityDesc);
+            expect(values).toContain(SortParamValue.ShowCountDesc);
+        });
+    });
 });
