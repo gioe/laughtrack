@@ -58,7 +58,8 @@ struct ShowDetailView: View {
                                 title: nil,
                                 subtitle: nil,
                                 imageURL: show.imageUrl,
-                                badges: ShowDetailPresentation.heroBadges(for: show, now: context.date)
+                                badges: ShowDetailPresentation.heroBadges(for: show, now: context.date),
+                                fallbackSystemImage: "ticket.fill"
                             )
                         }
                         .ignoresSafeArea(.container, edges: .top)
