@@ -161,18 +161,18 @@ struct ContentViewNavigationTests {
         #expect(HomeContentSection.sections(for: shellState.selectedPrimitive) == [.comedians])
     }
 
-    @Test("location header button stays on the near me tab when toggling primitive filters")
-    func locationHeaderButtonStaysOnNearMeWhenTogglingPrimitives() async throws {
+    @Test("location header stays hidden on the Discover tab when toggling primitive filters")
+    func locationHeaderStaysHiddenOnDiscoverWhenTogglingPrimitives() async throws {
         let shellState = AppShellState()
 
         #expect(shellState.selectedTab == .nearMe)
-        #expect(shellState.showsLocationHeader)
+        #expect(!shellState.showsLocationHeader)
 
         shellState.selectPrimitive(.clubs)
 
         #expect(shellState.selectedTab == .nearMe)
         #expect(shellState.selectedPrimitive == .clubs)
-        #expect(shellState.showsLocationHeader)
+        #expect(!shellState.showsLocationHeader)
     }
 
     @Test("Profile entry point from near me pushes the expected navigation intent")

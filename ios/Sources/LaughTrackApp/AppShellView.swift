@@ -17,7 +17,7 @@ final class AppShellState: ObservableObject {
     }
 
     var showsLocationHeader: Bool {
-        selectedTab == .nearMe
+        false
     }
 
     var visiblePrimitiveFilters: [SearchRootModel.Pivot] {
@@ -103,7 +103,6 @@ struct AppShellView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
-    @State private var isHomeLocationEditorPresented = false
 
     init(
         apiClient: Client,
@@ -201,14 +200,6 @@ struct AppShellView: View {
             )
             .environment(\.appTheme, theme)
         }
-        .sheet(isPresented: $isHomeLocationEditorPresented) {
-            HomeLocationFilterModal(
-                nearbyLocationController: nearbyLocationController,
-                isPresented: $isHomeLocationEditorPresented
-            )
-            .environment(\.appTheme, theme)
-            .presentationDetents([.medium, .large])
-        }
     }
 
     private var selectedTabBinding: Binding<AppTab> {
@@ -230,10 +221,6 @@ struct AppShellView: View {
             accountHeaderButton
 
             primitiveFilterScroller
-
-            if shellState.showsLocationHeader {
-                locationHeaderButton
-            }
         }
         .padding(.horizontal, theme.spacing.lg)
         .padding(.top, AccountHeaderLayout.accountHeaderTopPadding(safeAreaTop: safeAreaTop, theme: theme))
@@ -249,16 +236,6 @@ struct AppShellView: View {
             accessibilityIdentifier: LaughTrackViewTestID.accountHeaderButton
         ) {
             coordinator.push(AppRoute.accountHeaderTarget())
-        }
-    }
-
-    private var locationHeaderButton: some View {
-        shellHeaderIconButton(
-            systemImage: "mappin.and.ellipse",
-            accessibilityLabel: "Location",
-            accessibilityIdentifier: LaughTrackViewTestID.locationHeaderButton
-        ) {
-            isHomeLocationEditorPresented = true
         }
     }
 
