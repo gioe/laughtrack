@@ -47,6 +47,27 @@ afterEach(() => {
 });
 
 describe("AdminPipelineRunsTable", () => {
+    it("groups runs by pipeline", () => {
+        render(
+            <AdminPipelineRunsTable
+                runs={[
+                    runs[0],
+                    {
+                        ...runs[0],
+                        id: 8,
+                        runKey: "scraper:2026-05-18T12:00:00.000Z",
+                    },
+                ]}
+            />,
+        );
+
+        expect(screen.getAllByText("Venue scraper")).toHaveLength(1);
+        expect(screen.getAllByText("2").length).toBeGreaterThan(0);
+        expect(
+            screen.queryByText("scraper:2026-05-18T12:00:00.000Z"),
+        ).toBeNull();
+    });
+
     it("expands a GitHub Actions row to show workflow details and links", () => {
         render(<AdminPipelineRunsTable runs={runs} />);
 
@@ -55,7 +76,12 @@ describe("AdminPipelineRunsTable", () => {
 
         fireEvent.click(
             screen.getByRole("button", {
-                name: /Venue scraper scraper:2026-05-19T12:00:00.000Z/,
+                name: /Venue scraper scraper/,
+            }),
+        );
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: /scraper:2026-05-19T12:00:00.000Z/,
             }),
         );
 
@@ -94,7 +120,12 @@ describe("AdminPipelineRunsTable", () => {
 
         fireEvent.click(
             screen.getByRole("button", {
-                name: /Venue scraper scraper:2026-05-19T12:00:00.000Z/,
+                name: /Venue scraper scraper/,
+            }),
+        );
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: /scraper:2026-05-19T12:00:00.000Z/,
             }),
         );
 

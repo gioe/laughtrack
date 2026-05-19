@@ -263,15 +263,27 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
             ORDER BY latest_exported_at DESC
         `,
         db.$queryRaw<PipelineRunRow[]>`
-            SELECT id, run_key, SPLIT_PART(run_key, ':', 1) AS pipeline_key,
+            WITH normalized AS (
+                SELECT sr.*, SPLIT_PART(sr.run_key, ':', 1) AS pipeline_key
+                FROM scraper_runs sr
+            ),
+            ranked AS (
+                SELECT normalized.*,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY pipeline_key
+                           ORDER BY exported_at DESC
+                       ) AS recency_rank
+                FROM normalized
+            )
+            SELECT id, run_key, pipeline_key,
                    exported_at, duration_seconds, shows_scraped, shows_saved,
                    shows_inserted, shows_updated, shows_failed_save,
                    shows_skipped_dedup, shows_validation_failed,
                    shows_db_errors, clubs_processed, clubs_successful,
                    clubs_failed, errors_total, success_rate, raw_snapshot
-            FROM scraper_runs
-            ORDER BY exported_at DESC
-            LIMIT 12
+            FROM ranked
+            WHERE recency_rank <= 20
+            ORDER BY pipeline_key ASC, exported_at DESC
         `,
         db.$queryRaw<PipelineClubRow[]>`
             WITH latest_run AS (
