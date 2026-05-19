@@ -12,12 +12,12 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
         let isOpenMic = Self.isOpenMic(show)
         let isSoldOut = show.soldOut == true
-        let dateStack = ShowFormatting.dateStack(show.date, timezoneID: show.timezone)
         let lineup = isOpenMic ? [] : Self.topLineup(for: show, limit: 3)
+        let metadata = Self.metadata(for: show)
 
         return VStack(alignment: .leading, spacing: theme.spacing.sm) {
             HStack(alignment: .top, spacing: theme.spacing.md) {
-                dateColumn(stack: dateStack, isOpenMic: isOpenMic)
+                rowArtwork(isSoldOut: isSoldOut)
 
                 VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                     Text(Self.listTitle(for: show))
@@ -34,11 +34,12 @@ struct ShowRow: View {
                             .lineLimit(1)
                     }
 
-                    if let room = Self.roomLabel(for: show) {
-                        Text(room)
+                    if !metadata.isEmpty {
+                        Text(metadata.joined(separator: " • "))
                             .font(laughTrack.typography.metadata)
                             .foregroundStyle(laughTrack.colors.textSecondary)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     if !isOpenMic {
@@ -66,32 +67,51 @@ struct ShowRow: View {
     }
 
     @ViewBuilder
-    private func dateColumn(stack: ShowDateStack, isOpenMic: Bool) -> some View {
+    private func rowArtwork(isSoldOut: Bool) -> some View {
         let laughTrack = theme.laughTrackTokens
+        let rawImageURL = Self.artworkImageURL(for: show)
 
-        VStack(alignment: .center, spacing: 2) {
-            Text(stack.weekday)
-                .font(laughTrack.typography.eyebrow)
-                .textCase(.uppercase)
-                .foregroundStyle(laughTrack.colors.accentStrong)
-
-            Text(stack.day)
-                .font(.system(
-                    size: isOpenMic ? 22 : 28,
-                    weight: .bold,
-                    design: .rounded
-                ))
-                .foregroundStyle(laughTrack.colors.textPrimary)
-
-            Text(stack.time)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+        Group {
+            if let url = URL.normalizedExternalURL(rawImageURL) {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    rowArtworkBackground
+                        .overlay {
+                            ProgressView()
+                                .tint(laughTrack.colors.accent)
+                        }
+                } error: { _ in
+                    rowArtworkFallback
+                }
+            } else {
+                rowArtworkFallback
+            }
         }
-        .frame(width: isOpenMic ? 52 : 64, alignment: .center)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(ShowFormatting.detailDate(show.date, timezoneID: show.timezone))
+        .frame(
+            width: LaughTrackEntityRowDesign.searchCard.artworkSize,
+            height: LaughTrackEntityRowDesign.searchCard.artworkSize
+        )
+        .clipShape(Circle())
+        .saturation(isSoldOut ? 0 : 1)
+        .opacity(isSoldOut ? 0.6 : 1)
+        .accessibilityHidden(true)
+    }
+
+    private var rowArtworkBackground: some View {
+        Circle()
+            .fill(theme.laughTrackTokens.colors.surfaceMuted)
+    }
+
+    private var rowArtworkFallback: some View {
+        rowArtworkBackground
+            .overlay {
+                Image(systemName: "music.mic")
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(theme.laughTrackTokens.colors.accentStrong)
+            }
     }
 
     @ViewBuilder
@@ -213,6 +233,13 @@ struct ShowRow: View {
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
         let imageURL = featuredComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
         return imageURL?.isEmpty == false ? imageURL : nil
+    }
+
+    static func metadata(for show: Components.Schemas.Show) -> [String] {
+        [
+            ShowFormatting.listDate(show.date, timezoneID: show.timezone),
+            roomLabel(for: show),
+        ].compactMap { $0?.nonEmpty }
     }
 
     static func priceLabel(for show: Components.Schemas.Show) -> String? {

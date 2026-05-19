@@ -275,6 +275,15 @@ struct ShowRowTests {
         #expect(ShowRow.roomLabel(for: show) == nil)
     }
 
+    @Test("show row metadata keeps the date visible after artwork leads the row")
+    func showRowMetadataKeepsDateVisible() {
+        let show = makeShow(room: "Main Room", lineup: [])
+        let metadata = ShowRow.metadata(for: show)
+
+        #expect(metadata.first == ShowFormatting.listDate(show.date, timezoneID: show.timezone))
+        #expect(metadata.contains("Main Room"))
+    }
+
     private func makeShow(
         name: String = "Late show",
         clubName: String = "Comedy Cellar",
