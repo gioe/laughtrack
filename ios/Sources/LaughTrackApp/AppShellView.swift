@@ -153,7 +153,7 @@ struct AppShellView: View {
                 selectedPrimitive: shellState.selectedPrimitive,
                 searchNavigationBridge: searchNavigationBridge
             )
-                .tabItem { Label("Near Me", systemImage: "location.fill") }
+                .tabItem { Label("Discover", systemImage: "sparkles") }
                 .tag(AppTab.nearMe)
 
             SearchRootView(
