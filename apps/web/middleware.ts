@@ -58,7 +58,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 // Patterns for routes that require authentication.
 // Add new protected route prefixes here as the app grows.
 const PROTECTED_ROUTE_PATTERNS: RegExp[] = [/^\/profile(\/|$)/];
-const DEFAULT_PAGE_SIZE = "10";
+const DEFAULT_PAGE_SIZE = "20";
 const COMEDIAN_DETAIL_PAGE_SIZE = "5";
 
 function isProtectedRoute(pathname: string): boolean {
@@ -206,6 +206,10 @@ function getSortParamDefaultFromPath(
         );
     } else if (path.startsWith("/show")) {
         params.set(QueryProperty.Sort, SortParamValue.DateAsc);
+    } else if (path.startsWith("/podcast")) {
+        // /podcast/search defaults to "Most Episodes" (show count desc) so
+        // active podcasts surface first — mirrors iOS PodcastSortOption.mostEpisodes.
+        params.set(QueryProperty.Sort, SortParamValue.ShowCountDesc);
     }
     return params;
 }

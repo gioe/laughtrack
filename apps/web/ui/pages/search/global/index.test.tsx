@@ -60,7 +60,7 @@ describe("GlobalSearchClient", () => {
 
         await waitFor(() =>
             expect(fetchMock).toHaveBeenLastCalledWith(
-                "/api/v1/search?q=good&type=podcast",
+                "/api/v1/search?q=good&type=podcast&limit=20",
                 expect.any(Object),
             ),
         );

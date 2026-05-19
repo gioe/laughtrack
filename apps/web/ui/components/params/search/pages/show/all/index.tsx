@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Theater, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
@@ -14,9 +14,15 @@ import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
 import { DateRange, DistanceData } from "@/objects/interface";
 
 // Per-entity composers remain separate: each has a distinct filter set
-// (show: location + calendar + comedian + club; club: location + club; comedian: name only).
+// (show: location + calendar + comedian; club: location + club; comedian: name only).
 // The structural wrapper is already extracted as SearchBarLayout/SearchBarSection.
 // A shared HOC would add indirection without reducing the per-entity JSX sections.
+//
+// Shows intentionally exposes ONLY a comedian search input, not a club input.
+// This matches iOS's single-axis model on the Shows tab — two simultaneous
+// text inputs is not a common consumer-search convention (Spotify, Apple
+// Music, Netflix, etc. all use a single field). Filtering shows by club
+// happens through location + filter chips instead.
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
@@ -27,7 +33,6 @@ export default function ShowSearchBar() {
 
     const state = {
         comedian: getTypedParam(QueryProperty.Comedian),
-        club: getTypedParam(QueryProperty.Club),
         distance: {
             distance: getTypedParam(QueryProperty.Distance),
             zipCode: getTypedParam(QueryProperty.Zip),
@@ -55,11 +60,19 @@ export default function ShowSearchBar() {
         setMultipleTypedParams,
     ]);
 
+    // Drop any stale `club` URL param on mount — the input was removed when we
+    // converged on iOS's single-axis search model, and without a visible
+    // surface the filter becomes a hidden, unclearable state. Older shared
+    // links land here and get the filter cleared rather than being stuck.
+    const staleClub = getTypedParam(QueryProperty.Club);
+    useEffect(() => {
+        if (staleClub) {
+            setTypedParam(QueryProperty.Club, "");
+        }
+    }, [staleClub, setTypedParam]);
+
     const handleComedianSearch = (value: string) =>
         setTypedParam(QueryProperty.Comedian, value);
-
-    const handleClubSearch = (value: string) =>
-        setTypedParam(QueryProperty.Club, value);
 
     const handleDateRangeSelection = (value?: DateRange) => {
         setMultipleTypedParams({
@@ -111,30 +124,16 @@ export default function ShowSearchBar() {
                 </div>
             </SearchBarSection>
 
-            <SearchBarSection>
+            <SearchBarSection last>
                 <TextInputComponent
                     icon={
                         <Users
                             className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                         />
                     }
-                    placeholder="Search for comedian"
+                    placeholder="Search comedians"
                     value={state.comedian ?? ""}
                     onChange={handleComedianSearch}
-                    className={styleConfig.inputTextColor}
-                />
-            </SearchBarSection>
-
-            <SearchBarSection last>
-                <TextInputComponent
-                    icon={
-                        <Theater
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search by club"
-                    value={state.club ?? ""}
-                    onChange={handleClubSearch}
                     className={styleConfig.inputTextColor}
                 />
             </SearchBarSection>

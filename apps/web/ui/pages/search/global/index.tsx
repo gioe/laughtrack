@@ -1,9 +1,23 @@
 "use client";
 
+// /search is the cross-entity typeahead surface — a quick disambiguator for
+// users who know what they're looking for. Per-entity collection pages
+// (/show/search, /comedian/search, /club/search, /podcast/search) own the
+// rich filter chrome and browse experience. This page caps each entity group
+// at TYPEAHEAD_GROUP_LIMIT and offers a "See all" escape hatch that hands the
+// query off to the entity's collection page.
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarDays, Mic2, Podcast, Search } from "lucide-react";
+import {
+    ArrowRight,
+    Building2,
+    CalendarDays,
+    Mic2,
+    Podcast,
+    Search,
+} from "lucide-react";
 import EntityCard from "@/ui/components/cards/entity";
 
 const ENTITY_FILTERS = [
@@ -16,6 +30,31 @@ const ENTITY_FILTERS = [
 
 type SearchEntityType = Exclude<(typeof ENTITY_FILTERS)[number]["id"], "all">;
 type SearchFilter = (typeof ENTITY_FILTERS)[number]["id"];
+
+// How many matches each entity group shows before the "See all" link
+// hands users off to the per-entity collection page.
+const TYPEAHEAD_GROUP_LIMIT = 5;
+
+const ENTITY_GROUP_ORDER: SearchEntityType[] = [
+    "show",
+    "comedian",
+    "club",
+    "podcast",
+];
+
+const ENTITY_COLLECTION_PATH: Record<SearchEntityType, string> = {
+    show: "/show/search",
+    comedian: "/comedian/search",
+    club: "/club/search",
+    podcast: "/podcast/search",
+};
+
+const ENTITY_GROUP_HEADING: Record<SearchEntityType, string> = {
+    show: "Shows",
+    comedian: "Comedians",
+    club: "Clubs",
+    podcast: "Podcasts",
+};
 
 type GlobalSearchResult = {
     id: string;
@@ -148,9 +187,30 @@ export default function GlobalSearchClient() {
         const params = new URLSearchParams({
             q: trimmedQuery,
             type: filter,
+            // Request enough rows that each entity group can hit
+            // TYPEAHEAD_GROUP_LIMIT under "All". The API caps at 25.
+            limit: String(TYPEAHEAD_GROUP_LIMIT * 4),
         });
         return `/api/v1/search?${params.toString()}`;
     }, [filter, trimmedQuery]);
+
+    const groupedResults = useMemo(() => {
+        const groups: Record<SearchEntityType, GlobalSearchResult[]> = {
+            show: [],
+            comedian: [],
+            club: [],
+            podcast: [],
+        };
+        for (const result of results) {
+            groups[result.entityType].push(result);
+        }
+        return groups;
+    }, [results]);
+
+    const visibleGroupOrder = useMemo<SearchEntityType[]>(() => {
+        if (filter !== "all") return [filter];
+        return ENTITY_GROUP_ORDER.filter((t) => groupedResults[t].length > 0);
+    }, [filter, groupedResults]);
 
     useEffect(() => {
         if (!requestPath) {
@@ -250,25 +310,127 @@ export default function GlobalSearchClient() {
                     <p className="font-dmSans text-sm text-red-700">{error}</p>
                 ) : null}
 
-                <div className="space-y-3" aria-live="polite">
+                <div className="space-y-6" aria-live="polite">
                     {isLoading && trimmedQuery ? (
                         <p className="font-dmSans text-sm text-copper/70">
                             Searching...
                         </p>
                     ) : null}
                     {!trimmedQuery ? (
-                        <p className="font-dmSans text-sm text-copper/70">
-                            Start typing to search across LaughTrack.
-                        </p>
+                        <div className="space-y-4">
+                            <p className="font-dmSans text-sm text-copper/70">
+                                Start typing to jump to a show, comedian, club,
+                                or podcast — or browse a category below.
+                            </p>
+                            <div
+                                className="grid gap-3 sm:grid-cols-2"
+                                role="navigation"
+                                aria-label="Browse by category"
+                            >
+                                {ENTITY_GROUP_ORDER.map((entityType) => {
+                                    const Icon = ENTITY_META[entityType].icon;
+                                    return (
+                                        <Link
+                                            key={entityType}
+                                            href={
+                                                ENTITY_COLLECTION_PATH[
+                                                    entityType
+                                                ]
+                                            }
+                                            className="group flex items-center gap-3 rounded-lg border border-copper/20 bg-white px-4 py-3 transition hover:border-copper/50 hover:bg-copper/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                                        >
+                                            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-md bg-copper/10 text-copper">
+                                                <Icon
+                                                    size={20}
+                                                    aria-hidden="true"
+                                                />
+                                            </span>
+                                            <span className="flex flex-col">
+                                                <span className="font-gilroy-bold text-body font-bold text-foreground group-hover:text-copper">
+                                                    Browse{" "}
+                                                    {ENTITY_GROUP_HEADING[
+                                                        entityType
+                                                    ].toLowerCase()}
+                                                </span>
+                                                <span className="font-dmSans text-xs text-copper/60">
+                                                    {entityType === "show"
+                                                        ? "Upcoming dates, venues, and lineups"
+                                                        : entityType ===
+                                                            "comedian"
+                                                          ? "Comedians on tour"
+                                                          : entityType ===
+                                                              "club"
+                                                            ? "Comedy clubs and venues"
+                                                            : "Comedy podcasts"}
+                                                </span>
+                                            </span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     ) : null}
                     {trimmedQuery && results.length === 0 && !isLoading ? (
                         <p className="font-dmSans text-sm text-copper/70">
                             No results found.
                         </p>
                     ) : null}
-                    {results.map((result) => (
-                        <SearchResultRow key={result.id} result={result} />
-                    ))}
+                    {visibleGroupOrder.map((entityType) => {
+                        const groupRows = groupedResults[entityType];
+                        if (groupRows.length === 0) return null;
+                        const groupTotal = totals[entityType] ?? 0;
+                        const visible = groupRows.slice(
+                            0,
+                            TYPEAHEAD_GROUP_LIMIT,
+                        );
+                        const hasMore = groupTotal > visible.length;
+                        const seeAllHref = `${ENTITY_COLLECTION_PATH[entityType]}?q=${encodeURIComponent(trimmedQuery)}`;
+                        return (
+                            <section
+                                key={entityType}
+                                aria-label={ENTITY_GROUP_HEADING[entityType]}
+                                className="space-y-2"
+                            >
+                                <header className="flex items-baseline justify-between">
+                                    <h2 className="font-gilroy-bold text-sm font-bold uppercase tracking-widest text-copper/70">
+                                        {ENTITY_GROUP_HEADING[entityType]}
+                                    </h2>
+                                    {groupTotal > 0 ? (
+                                        <span className="font-dmSans text-xs text-copper/60">
+                                            {groupTotal.toLocaleString("en-US")}{" "}
+                                            {groupTotal === 1
+                                                ? "match"
+                                                : "matches"}
+                                        </span>
+                                    ) : null}
+                                </header>
+                                <div className="space-y-2">
+                                    {visible.map((result) => (
+                                        <SearchResultRow
+                                            key={result.id}
+                                            result={result}
+                                        />
+                                    ))}
+                                </div>
+                                {hasMore ? (
+                                    <Link
+                                        href={seeAllHref}
+                                        className="inline-flex items-center gap-1 font-dmSans text-sm font-semibold text-copper hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                                    >
+                                        See all{" "}
+                                        {groupTotal.toLocaleString("en-US")}{" "}
+                                        {ENTITY_GROUP_HEADING[
+                                            entityType
+                                        ].toLowerCase()}
+                                        <ArrowRight
+                                            size={14}
+                                            aria-hidden="true"
+                                        />
+                                    </Link>
+                                ) : null}
+                            </section>
+                        );
+                    })}
                 </div>
             </section>
         </main>

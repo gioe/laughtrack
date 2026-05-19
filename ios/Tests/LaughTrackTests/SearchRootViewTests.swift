@@ -29,7 +29,7 @@ struct SearchRootViewTests {
         #expect(model.query == "")
         #expect(model.selectedShortcut == "Near Me")
         #expect(SearchRootModel.Pivot.allCases == [.shows, .comedians, .clubs, .podcasts])
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search shows")
         #expect(SearchRootModel.Pivot.podcasts.queryPrompt == "Search podcast titles")
         #expect(ShowDistanceOption.allCases.map(\.title) == ["10 mi", "25 mi", "50 mi", "100 mi"])
         #expect(!showsModel.dateRange.isActive)
@@ -70,7 +70,7 @@ struct SearchRootViewTests {
         model.searchText = "Comedy"
         await model.reload()
 
-        #expect(fetcher.requests == [PodcastSearchRequest(query: "Comedy", limit: 20)])
+        #expect(fetcher.requests == [PodcastSearchRequest(query: "Comedy", limit: 20, sort: "show_count_desc")])
         guard case .success(let page) = model.phase else {
             Issue.record("Expected podcast search to load successfully")
             return
@@ -105,6 +105,7 @@ struct SearchRootViewTests {
             #expect(components.queryItems?.first(where: { $0.name == "q" })?.value == "")
             #expect(components.queryItems?.first(where: { $0.name == "page" })?.value == "0")
             #expect(components.queryItems?.first(where: { $0.name == "size" })?.value == "20")
+            #expect(components.queryItems?.first(where: { $0.name == "sort" })?.value == "popularity_desc")
             #expect(components.queryItems?.first(where: { $0.name == "type" }) == nil)
             #expect(components.queryItems?.first(where: { $0.name == "limit" }) == nil)
         }
@@ -113,7 +114,7 @@ struct SearchRootViewTests {
             urlSession: session
         )
 
-        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20))
+        let result = await fetcher.searchPodcasts(.init(query: "", limit: 20, sort: "popularity_desc"))
 
         guard case .success(let response) = result else {
             Issue.record("Expected podcast search fetcher to decode successfully")
@@ -337,7 +338,7 @@ struct SearchRootModelTests {
 
     @Test("search model exposes compact prompt copy")
     func searchModelExposesCompactPromptCopy() async throws {
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search shows")
         #expect(SearchRootModel.Pivot.shows.queryHelpText == "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.")
     }
 

@@ -97,6 +97,6 @@ struct SearchResultsSummary: View {
     let total: Int
 
     var body: some View {
-        LaughTrackContextRow(leading: "Showing \(count) of \(total)")
+        LaughTrackContextRow(leading: "Showing \(count.formatted(.number)) of \(total.formatted(.number))")
     }
 }

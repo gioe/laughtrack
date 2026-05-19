@@ -9,7 +9,8 @@ final class ClubsDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, Comp
 
     @Published var searchText = ""
     @Published var selectedFilterSlugs: Set<String> = []
-    @Published var sort: PrimitiveSortOption = .mostPopular
+    @Published var sort: ClubSortOption = .mostActive
+    @Published var includeEmpty: Bool = false
 
     func reload(
         apiClient: Client,
@@ -40,7 +41,8 @@ final class ClubsDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, Comp
         PrimitiveDiscoveryQuery(
             text: searchText.trimmingCharacters(in: .whitespacesAndNewlines),
             filters: selectedFilterSlugs.sorted(),
-            sort: sort
+            sort: sort.rawValue,
+            includeEmpty: includeEmpty
         )
     }
 
@@ -65,10 +67,11 @@ final class ClubsDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, Comp
                 .init(
                     query: .init(
                         club: query.text.nonEmpty,
-                        sort: query.sort.rawValue,
+                        sort: query.sort,
                         filters: query.filtersParam,
                         page: page,
-                        size: Self.pageSize
+                        size: Self.pageSize,
+                        includeEmpty: query.includeEmpty ? "true" : nil
                     ),
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )

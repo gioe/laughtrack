@@ -27,15 +27,19 @@ vi.mock("@/lib/db", () => ({
         },
         podcast: {
             findUnique: vi.fn(),
+            upsert: vi.fn(),
         },
         comedian: {
             findUnique: vi.fn(),
+        },
+        podcastEpisode: {
+            upsert: vi.fn(),
         },
         $transaction: vi.fn(),
     },
 }));
 
-import { GET, POST } from "./route";
+import { GET, POST, PUT } from "./route";
 import { db } from "@/lib/db";
 
 const mockFindProfile = vi.mocked(db.userProfile.findFirst);
@@ -411,5 +415,109 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                 reason: "Different person",
             }),
         });
+    });
+});
+
+describe("PUT /api/admin/podcast-ownership-reviews", () => {
+    it("ingests a manual RSS feed, links it to the comedian, audits, and revalidates", async () => {
+        const rss = `<?xml version="1.0"?>
+            <rss><channel>
+                <title>Manual Jane Feed</title>
+                <link>https://pod.example</link>
+                <description>Jane's show</description>
+                <item>
+                    <title>First Episode</title>
+                    <guid>episode-1</guid>
+                    <link>https://pod.example/1</link>
+                    <pubDate>Mon, 18 May 2026 12:00:00 GMT</pubDate>
+                    <enclosure url="https://cdn.example/1.mp3" />
+                </item>
+            </channel></rss>`;
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                text: async () => rss,
+            }),
+        );
+
+        const comedian = {
+            id: 42,
+            name: "Jane Comic",
+            uuid: "comedian-uuid",
+        };
+        const podcast = {
+            id: 99,
+            slug: "manual-jane-feed-manual-rss-abc",
+            title: "Manual Jane Feed",
+            feedUrl: "https://feeds.example.com/jane.xml",
+        };
+        const auditCreate = vi.fn();
+        const podcastUpsert = vi.fn().mockResolvedValue(podcast);
+        const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
+        const comedianPodcastUpsert = vi.fn();
+        const episodeUpsert = vi.fn();
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                podcast: { upsert: podcastUpsert },
+                comedian: { findUnique: comedianFindUnique },
+                comedianPodcast: { upsert: comedianPodcastUpsert },
+                podcastEpisode: { upsert: episodeUpsert },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 42,
+                feedUrl: "https://feeds.example.com/jane.xml",
+                reason: "Confirmed manually",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.episodeCount).toBe(1);
+        expect(podcastUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    source: "manual_rss",
+                    feedUrl: "https://feeds.example.com/jane.xml",
+                    title: "Manual Jane Feed",
+                }),
+            }),
+        );
+        expect(comedianPodcastUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    comedianId: 42,
+                    podcastId: 99,
+                    reviewStatus: "accepted",
+                    source: "manual_rss",
+                }),
+            }),
+        );
+        expect(episodeUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                create: expect.objectContaining({
+                    title: "First Episode",
+                    audioUrl: "https://cdn.example/1.mp3",
+                }),
+            }),
+        );
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "podcast_manual_rss.ingest",
+                entityType: "podcast",
+                entityId: "99",
+                reason: "Confirmed manually",
+            }),
+        });
+        expect(mocks.revalidateTag).toHaveBeenCalledWith(
+            "podcasts-search-page-data-v2",
+        );
+        expect(mocks.revalidateTag).toHaveBeenCalledWith(
+            "manual-jane-feed-manual-rss-abc",
+        );
     });
 });

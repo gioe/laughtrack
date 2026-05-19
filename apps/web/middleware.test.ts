@@ -18,7 +18,7 @@ describe("setParamDefaults", () => {
             "/comedian/search",
         );
 
-        expect(params.get(QueryProperty.Size)).toBe("10");
+        expect(params.get(QueryProperty.Size)).toBe("20");
     });
 
     it("does not override explicit page sizes on comedian detail pages", () => {

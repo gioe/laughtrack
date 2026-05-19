@@ -106,10 +106,10 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
             <FilterModal filters={filters} total={total} />
             <SearchDetailHeader
                 title="Search clubs"
-                subTitle={`${total} results`}
+                subTitle={`${total.toLocaleString("en-US")} results`}
                 variant="club"
                 theme={theme}
-                tagline="Discover comedy clubs in your area"
+                tagline="Browse comedy clubs"
             />
             <FilterBar
                 variant={SearchVariant.AllClubs}

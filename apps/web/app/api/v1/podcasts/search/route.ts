@@ -11,9 +11,9 @@ export async function GET(req: NextRequest) {
     try {
         const result = await getSearchedPodcasts({
             q: sp.get("q") ?? undefined,
-            sort: sp.get("sort") ?? undefined,
             page: sp.get("page") ?? undefined,
             size: sp.get("size") ?? undefined,
+            sort: sp.get("sort") ?? undefined,
         });
 
         return NextResponse.json(result, { headers: rateLimitHeaders(rl) });

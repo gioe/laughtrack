@@ -102,6 +102,45 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Jane Comic");
         expect(screen.getByText(/Popularity 74.0/)).toBeTruthy();
+        const rssLink = screen.getAllByRole("link", {
+            name: /RSS: https:\/\/pod\.example\/feed\.xml/,
+        })[0] as HTMLAnchorElement;
+        expect(rssLink.href).toBe("https://pod.example/feed.xml");
+    });
+
+    it("can ingest an arbitrary RSS feed from the comedian view", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                podcast: { title: "Manual Jane Feed" },
+                episodeCount: 7,
+            }),
+        } as never);
+        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+
+        fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        fireEvent.change(screen.getByLabelText("Add arbitrary RSS feed"), {
+            target: { value: "https://feeds.example.com/jane.xml" },
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Ingest RSS" }));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/podcast-ownership-reviews",
+                expect.objectContaining({
+                    method: "PUT",
+                    body: JSON.stringify({
+                        comedianId: 42,
+                        feedUrl: "https://feeds.example.com/jane.xml",
+                        reason: "Manual RSS feed added during podcast ownership review for Jane Comic",
+                    }),
+                }),
+            );
+        });
+        expect(
+            await screen.findByText(/Manual Jane Feed ingested/),
+        ).toBeTruthy();
     });
 
     it("saves a selected podcast owner with a reason", async () => {

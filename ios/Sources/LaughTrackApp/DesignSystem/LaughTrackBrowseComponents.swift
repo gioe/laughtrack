@@ -268,10 +268,10 @@ struct LaughTrackSearchField<TrailingAccessory: View>: View {
         }
         .padding(.horizontal, laughTrack.browseDensity.compactCardPadding)
         .padding(.vertical, theme.spacing.md)
-        .background(laughTrack.colors.surfaceElevated)
+        .background(laughTrack.colors.surfaceMuted)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)

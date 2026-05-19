@@ -64,6 +64,62 @@ enum PrimitiveSortOption: String, CaseIterable, Identifiable {
     }
 }
 
+// Podcasts sort separately because "popularity" is meaningless for episodic
+// content — the meaningful axis is episode count (web labels this "Most
+// Episodes" / show_count_desc). Aligned with web's getSortOptionsForEntityType.
+enum PodcastSortOption: String, CaseIterable, Identifiable {
+    case mostEpisodes = "show_count_desc"
+    case fewestEpisodes = "show_count_asc"
+    case alphabetical = "name_asc"
+    case reverseAlphabetical = "name_desc"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .mostEpisodes:
+            return "Most episodes"
+        case .fewestEpisodes:
+            return "Fewest episodes"
+        case .alphabetical:
+            return "A-Z"
+        case .reverseAlphabetical:
+            return "Z-A"
+        }
+    }
+}
+
+// Clubs sort separately because the web default is "Most Active"
+// (total_shows_desc) — popularity data is sparse for venues, so clubs lead
+// with show-count activity. Kept aligned with web's getSortOptionsForEntityType.
+enum ClubSortOption: String, CaseIterable, Identifiable {
+    case mostActive = "total_shows_desc"
+    case leastActive = "total_shows_asc"
+    case mostPopular = "popularity_desc"
+    case leastPopular = "popularity_asc"
+    case alphabetical = "name_asc"
+    case reverseAlphabetical = "name_desc"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .mostActive:
+            return "Most active"
+        case .leastActive:
+            return "Least active"
+        case .mostPopular:
+            return "Most popular"
+        case .leastPopular:
+            return "Least popular"
+        case .alphabetical:
+            return "A-Z"
+        case .reverseAlphabetical:
+            return "Z-A"
+        }
+    }
+}
+
 struct ShowsListQuery: Hashable {
     let comedian: String
     let club: String
@@ -120,7 +176,24 @@ struct ShowsListQuery: Hashable {
 struct PrimitiveDiscoveryQuery: Hashable {
     let text: String
     let filters: [String]
-    let sort: PrimitiveSortOption
+    /// API sort raw value (e.g. "popularity_desc", "total_shows_desc"). Stored
+    /// as `String` so Comedians (`PrimitiveSortOption`) and Clubs
+    /// (`ClubSortOption`) can share this query envelope without coupling to a
+    /// single enum.
+    let sort: String
+    let includeEmpty: Bool
+
+    init(
+        text: String,
+        filters: [String],
+        sort: String,
+        includeEmpty: Bool = false
+    ) {
+        self.text = text
+        self.filters = filters
+        self.sort = sort
+        self.includeEmpty = includeEmpty
+    }
 
     var filtersParam: String? {
         guard !filters.isEmpty else { return nil }
@@ -131,7 +204,8 @@ struct PrimitiveDiscoveryQuery: Hashable {
         [
             "text=\(text)",
             "filters=\(filtersParam ?? "")",
-            "sort=\(sort.rawValue)",
+            "sort=\(sort)",
+            "includeEmpty=\(includeEmpty)",
         ].joined(separator: "|")
     }
 }

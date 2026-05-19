@@ -29,6 +29,11 @@ const nextConfig = {
         destination: '/club/search',
         permanent: true,
       },
+      {
+        source: '/podcasts',
+        destination: '/podcast/search',
+        permanent: true,
+      },
     ];
   },
   images: {

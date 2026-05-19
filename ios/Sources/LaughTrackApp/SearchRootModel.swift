@@ -22,7 +22,7 @@ final class SearchRootModel: ObservableObject {
         var queryPrompt: String {
             switch self {
             case .shows:
-                return "Search nearby comedy"
+                return "Search shows"
             case .comedians:
                 return "Search comedian names"
             case .clubs:

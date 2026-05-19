@@ -28,7 +28,17 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("@prisma/client", () => ({
-    Prisma: { DbNull: Symbol.for("Prisma.DbNull") },
+    Prisma: {
+        DbNull: Symbol.for("Prisma.DbNull"),
+        PrismaClientKnownRequestError: class PrismaClientKnownRequestError extends Error {
+            code: string;
+            constructor(message: string, opts: { code: string }) {
+                super(message);
+                this.code = opts.code;
+            }
+        },
+        prismaVersion: { client: "test" },
+    },
 }));
 
 vi.mock("next/cache", () => ({
@@ -47,6 +57,28 @@ const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockRevalidateTag = vi.mocked(revalidateTag);
 
 const CLUB_ID = 42;
+
+function clubRow(overrides: Record<string, unknown> = {}) {
+    return {
+        id: CLUB_ID,
+        name: "Comedy Cellar",
+        city: "New York",
+        state: "NY",
+        website: "https://example.com",
+        visible: true,
+        status: "active",
+        clubType: "club",
+        closedAt: null,
+        totalShows: 10,
+        description: "Old description",
+        hours: null,
+        chain: null,
+        scrapingSources: [],
+        shows: [],
+        _count: { shows: 10 },
+        ...overrides,
+    };
+}
 
 function makeRequest(
     body: unknown = { description: "Hi", hours: null },
@@ -78,12 +110,7 @@ beforeEach(() => {
     mockTransaction.mockImplementation(async (callback) =>
         callback({
             club: {
-                findUnique: vi.fn().mockResolvedValue({
-                    id: CLUB_ID,
-                    name: "Comedy Cellar",
-                    description: "Old description",
-                    hours: null,
-                }),
+                findUnique: vi.fn().mockResolvedValue(clubRow()),
                 update: mockUpdate,
             },
             adminActionAudit: {
@@ -183,8 +210,10 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("happy path: updates, revalidates, returns 200", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
-            id: CLUB_ID,
-            name: "Comedy Cellar",
+            ...clubRow({
+                description: "Great club",
+                hours: { monday: "Closed", tuesday: "7 PM - 11 PM" },
+            }),
         } as never);
 
         const hours = {
@@ -213,12 +242,12 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 description: "Great club",
                 hours: { monday: "Closed", tuesday: "7 PM - 11 PM" },
             }),
-            select: {
+            select: expect.objectContaining({
                 id: true,
                 name: true,
                 description: true,
                 hours: true,
-            },
+            }),
         });
         expect(mockTransaction).toHaveBeenCalledTimes(1);
 
@@ -235,8 +264,7 @@ describe("PATCH /api/admin/clubs/[id]", () => {
     it("passes Prisma.DbNull when hours is null", async () => {
         mockAuth.mockResolvedValue(adminSession as never);
         mockUpdate.mockResolvedValue({
-            id: CLUB_ID,
-            name: "Gotham",
+            ...clubRow({ name: "Gotham", description: null, hours: null }),
         } as never);
 
         const [req, ctx] = makeRequest({ description: null, hours: null });
@@ -249,12 +277,12 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 description: null,
                 hours: Symbol.for("Prisma.DbNull"),
             }),
-            select: {
+            select: expect.objectContaining({
                 id: true,
                 name: true,
                 description: true,
                 hours: true,
-            },
+            }),
         });
     });
 
@@ -262,18 +290,20 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         mockAuth.mockResolvedValue(adminSession as never);
 
         const auditCreate = vi.fn();
-        const findUnique = vi.fn().mockResolvedValue({
-            id: CLUB_ID,
-            name: "Gotham",
-            description: "Old",
-            hours: { monday: "Closed" },
-        });
-        const update = vi.fn().mockResolvedValue({
-            id: CLUB_ID,
-            name: "Gotham",
-            description: "New",
-            hours: { monday: "7 PM - 11 PM" },
-        });
+        const findUnique = vi.fn().mockResolvedValue(
+            clubRow({
+                name: "Gotham",
+                description: "Old",
+                hours: { monday: "Closed" },
+            }),
+        );
+        const update = vi.fn().mockResolvedValue(
+            clubRow({
+                name: "Gotham",
+                description: "New",
+                hours: { monday: "7 PM - 11 PM" },
+            }),
+        );
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 club: { findUnique, update },
@@ -298,7 +328,12 @@ describe("PATCH /api/admin/clubs/[id]", () => {
         expect(res.status).toBe(200);
         expect(findUnique).toHaveBeenCalledWith({
             where: { id: CLUB_ID },
-            select: { id: true, name: true, description: true, hours: true },
+            select: expect.objectContaining({
+                id: true,
+                name: true,
+                description: true,
+                hours: true,
+            }),
         });
         expect(update).toHaveBeenCalledWith({
             where: { id: CLUB_ID },
@@ -306,28 +341,84 @@ describe("PATCH /api/admin/clubs/[id]", () => {
                 description: "New",
                 hours: { monday: "7 PM - 11 PM" },
             }),
-            select: { id: true, name: true, description: true, hours: true },
+            select: expect.objectContaining({
+                id: true,
+                name: true,
+                description: true,
+                hours: true,
+            }),
         });
         expect(auditCreate).toHaveBeenCalledWith({
-            data: {
+            data: expect.objectContaining({
                 actorProfileId: "profile-1",
                 action: "club.update",
                 entityType: "club",
                 entityId: String(CLUB_ID),
                 reason: null,
-                before: {
+                before: expect.objectContaining({
                     id: CLUB_ID,
                     name: "Gotham",
                     description: "Old",
                     hours: { monday: "Closed" },
-                },
-                after: {
+                }),
+                after: expect.objectContaining({
                     id: CLUB_ID,
                     name: "Gotham",
                     description: "New",
                     hours: { monday: "7 PM - 11 PM" },
-                },
-            },
+                }),
+            }),
+        });
+    });
+
+    it("updates club status overrides and audits them", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+
+        const auditCreate = vi.fn();
+        const findUnique = vi.fn().mockResolvedValue(clubRow());
+        const update = vi.fn().mockResolvedValue(
+            clubRow({
+                visible: false,
+                status: "closed",
+                clubType: "festival",
+                closedAt: new Date("2026-05-19T00:00:00.000Z"),
+            }),
+        );
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                club: { findUnique, update },
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const [req, ctx] = makeRequest({
+            visible: false,
+            status: "closed",
+            clubType: "festival",
+            closedAt: "2026-05-19",
+        });
+        const res = await PATCH(req, ctx);
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.club.visible).toBe(false);
+        expect(body.club.status).toBe("closed");
+        expect(update).toHaveBeenCalledWith({
+            where: { id: CLUB_ID },
+            data: expect.objectContaining({
+                visible: false,
+                status: "closed",
+                clubType: "festival",
+                closedAt: new Date("2026-05-19T00:00:00.000Z"),
+            }),
+            select: expect.any(Object),
+        });
+        expect(auditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "club.status_override",
+                entityType: "club",
+                entityId: String(CLUB_ID),
+            }),
         });
     });
 });

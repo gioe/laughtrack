@@ -3,7 +3,16 @@ import LaughTrackCore
 
 struct PodcastSearchRequest: Equatable, Sendable {
     let query: String
+    let page: Int
     let limit: Int
+    let sort: String
+
+    init(query: String, page: Int = 0, limit: Int, sort: String) {
+        self.query = query
+        self.page = page
+        self.limit = limit
+        self.sort = sort
+    }
 }
 
 struct PodcastSearchResponse: Equatable, Sendable {
@@ -33,10 +42,11 @@ protocol PodcastSearchFetching {
 }
 
 @MainActor
-final class PodcastSearchModel: EntitySearchModel<String, PodcastSearchResult>, SearchRootQueryReceivable {
+final class PodcastSearchModel: EntitySearchModel<PodcastRequestKey, PodcastSearchResult>, SearchRootQueryReceivable {
     private static let pageSize = 20
 
     @Published var searchText = ""
+    @Published var sort: PodcastSortOption = .mostEpisodes
     private let fetcher: any PodcastSearchFetching
 
     override init() {
@@ -50,14 +60,20 @@ final class PodcastSearchModel: EntitySearchModel<String, PodcastSearchResult>, 
     }
 
     func reload() async {
-        let query = requestKey
-        await super.reload(query: query, shouldDebounce: !query.isEmpty) { _, query in
-            switch await self.fetcher.searchPodcasts(.init(query: query, limit: Self.pageSize)) {
-            case .success(let response):
-                return .success(.init(items: response.items, total: response.total))
-            case .failure(let failure):
-                return .failure(failure)
-            }
+        let key = requestKey
+        await super.reload(query: key, shouldDebounce: !key.text.isEmpty, fetch: fetchPage)
+    }
+
+    func loadMore() async {
+        await super.loadMore(query: requestKey, fetch: fetchPage)
+    }
+
+    private func fetchPage(page: Int, query: PodcastRequestKey) async -> Result<DiscoverySearchResponse<PodcastSearchResult>, LoadFailure> {
+        switch await fetcher.searchPodcasts(.init(query: query.text, page: page, limit: Self.pageSize, sort: query.sort)) {
+        case .success(let response):
+            return .success(.init(items: response.items, total: response.total))
+        case .failure(let failure):
+            return .failure(failure)
         }
     }
 
@@ -65,9 +81,17 @@ final class PodcastSearchModel: EntitySearchModel<String, PodcastSearchResult>, 
         searchText = query
     }
 
-    var requestKey: String {
-        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    var requestKey: PodcastRequestKey {
+        PodcastRequestKey(
+            text: searchText.trimmingCharacters(in: .whitespacesAndNewlines),
+            sort: sort.rawValue
+        )
     }
+}
+
+struct PodcastRequestKey: Hashable, Sendable {
+    let text: String
+    let sort: String
 }
 
 @MainActor
@@ -105,8 +129,9 @@ final class URLSessionPodcastSearchFetcher: PodcastSearchFetching {
 
         components.queryItems = [
             URLQueryItem(name: "q", value: request.query),
-            URLQueryItem(name: "page", value: "0"),
+            URLQueryItem(name: "page", value: String(request.page)),
             URLQueryItem(name: "size", value: String(request.limit)),
+            URLQueryItem(name: "sort", value: request.sort),
         ]
 
         guard let url = components.url else {

@@ -508,7 +508,7 @@ export class QueryHelper {
         tiebreakers?: Record<string, "asc" | "desc">[],
     ) {
         // Default values for pagination
-        const defaultSize = 10;
+        const defaultSize = 20;
         const defaultPage = 1;
         const defaultSortField = SortParamValue.PopularityDesc;
 

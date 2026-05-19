@@ -143,7 +143,7 @@ export default async function ShowSearchPage(props: SearchPageProps) {
 
             <SearchDetailHeader
                 title="Search shows"
-                subTitle={`${total} results`}
+                subTitle={`${total.toLocaleString("en-US")} results`}
                 variant="show"
                 tagline={tagline}
             />

@@ -2,7 +2,7 @@
 
 import { ExternalLink, Plus, Save, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
 import type { AdminPodcastOwnershipReviewCandidate } from "@/lib/admin/podcastOwnershipReviews";
 
@@ -57,6 +57,8 @@ type SearchResult = {
 type Props = {
     candidates: AdminPodcastOwnershipReviewCandidate[];
 };
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function formatPercent(value: number) {
     return `${Math.round(value * 100)}%`;
@@ -224,6 +226,77 @@ function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
     ) as Record<string, OwnerOption | null>;
 }
 
+function clampPage(page: number, totalPages: number) {
+    return Math.min(Math.max(page, 1), Math.max(totalPages, 1));
+}
+
+function PaginationControls({
+    page,
+    pageSize,
+    totalItems,
+    label,
+    onPageChange,
+    onPageSizeChange,
+}: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    label: string;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+}) {
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, totalItems);
+
+    return (
+        <div className="flex flex-col gap-3 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-sm text-cedar md:flex-row md:items-center md:justify-between">
+            <div className="font-semibold">
+                {start}-{end} of {totalItems} {label}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-2 font-semibold">
+                    Per page
+                    <select
+                        value={pageSize}
+                        onChange={(event) =>
+                            onPageSizeChange(Number(event.target.value))
+                        }
+                        className="rounded-md border border-gray-300 bg-white px-2 py-1 text-cedar outline-none focus:border-copper-dark focus:ring-2 focus:ring-copper-dark/30"
+                    >
+                        {PAGE_SIZE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="border-copper-dark bg-white text-copper-dark disabled:border-gray-300 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page <= 1}
+                >
+                    Previous
+                </Button>
+                <span className="font-semibold">
+                    Page {page} of {totalPages}
+                </span>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="border-copper-dark bg-white text-copper-dark disabled:border-gray-300 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page >= totalPages}
+                >
+                    Next
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminPodcastOwnershipReviewManager({
     candidates,
 }: Props) {
@@ -232,6 +305,8 @@ export default function AdminPodcastOwnershipReviewManager({
     const comedianGroups = groupByComedian(candidates, groups);
     const [activeView, setActiveView] = useState<ReviewView>("podcast");
     const [sort, setSort] = useState<ReviewSort>("name-asc");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
     const [selectedOwners, setSelectedOwners] = useState<
         Record<string, OwnerOption | null>
     >(() => selectedOwnerDefaults(groups));
@@ -240,10 +315,18 @@ export default function AdminPodcastOwnershipReviewManager({
     const [searchResults, setSearchResults] = useState<
         Record<string, SearchResult[]>
     >({});
+    const [manualFeedUrls, setManualFeedUrls] = useState<
+        Record<string, string>
+    >({});
     const [searchingKey, setSearchingKey] = useState<string | null>(null);
+    const [ingestingKey, setIngestingKey] = useState<string | null>(null);
     const [pendingKey, setPendingKey] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeView, sort, pageSize]);
 
     async function searchComedians(groupKey: string) {
         const term = searchTerms[groupKey]?.trim();
@@ -328,6 +411,56 @@ export default function AdminPodcastOwnershipReviewManager({
         startTransition(() => router.refresh());
     }
 
+    async function ingestManualFeed(comedianGroup: ComedianReviewGroup) {
+        const feedUrl = manualFeedUrls[comedianGroup.key]?.trim() ?? "";
+        if (!feedUrl) return;
+
+        setStatus({ kind: "idle" });
+        setIngestingKey(comedianGroup.key);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/podcast-ownership-reviews", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: comedianGroup.comedian.id,
+                    feedUrl,
+                    reason: `Manual RSS feed added during podcast ownership review for ${comedianGroup.comedian.name}`,
+                }),
+            });
+        } catch (error) {
+            setIngestingKey(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setIngestingKey(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const body = (await res.json()) as {
+            podcast?: { title?: string };
+            episodeCount?: number;
+        };
+        setManualFeedUrls((prev) => ({ ...prev, [comedianGroup.key]: "" }));
+        setStatus({
+            kind: "ok",
+            message: `${body.podcast?.title ?? "RSS feed"} ingested with ${body.episodeCount ?? 0} episodes.`,
+        });
+        startTransition(() => router.refresh());
+    }
+
     if (groups.length === 0) {
         return (
             <div className="rounded-md border border-copper/25 bg-white p-6 font-dmSans text-body text-soft-charcoal">
@@ -338,6 +471,19 @@ export default function AdminPodcastOwnershipReviewManager({
 
     const sortedPodcastGroups = sortPodcastGroups(groups, sort);
     const sortedComedianGroups = sortComedianGroups(comedianGroups, sort);
+    const activeGroups =
+        activeView === "podcast" ? sortedPodcastGroups : sortedComedianGroups;
+    const totalPages = Math.max(1, Math.ceil(activeGroups.length / pageSize));
+    const currentPage = clampPage(page, totalPages);
+    const pageStart = (currentPage - 1) * pageSize;
+    const pagedPodcastGroups =
+        activeView === "podcast"
+            ? sortedPodcastGroups.slice(pageStart, pageStart + pageSize)
+            : [];
+    const pagedComedianGroups =
+        activeView === "comedian"
+            ? sortedComedianGroups.slice(pageStart, pageStart + pageSize)
+            : [];
 
     return (
         <div className="space-y-5">
@@ -399,9 +545,19 @@ export default function AdminPodcastOwnershipReviewManager({
                     </select>
                 </label>
             </div>
+            <PaginationControls
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={activeGroups.length}
+                label={activeView === "podcast" ? "podcasts" : "comedians"}
+                onPageChange={(nextPage) =>
+                    setPage(clampPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
             <ul className="divide-y divide-gray-300 rounded-md border border-gray-300 bg-white">
                 {activeView === "podcast"
-                    ? sortedPodcastGroups.map((group) => {
+                    ? pagedPodcastGroups.map((group) => {
                           const noteId = `podcast-review-note-${group.key}`;
                           const searchId = `podcast-owner-search-${group.key}`;
                           const selectedOwner =
@@ -732,7 +888,7 @@ export default function AdminPodcastOwnershipReviewManager({
                               </li>
                           );
                       })
-                    : sortedComedianGroups.map((comedianGroup) => (
+                    : pagedComedianGroups.map((comedianGroup) => (
                           <li
                               key={comedianGroup.key}
                               className="grid gap-4 p-4"
@@ -754,6 +910,47 @@ export default function AdminPodcastOwnershipReviewManager({
                                           attached
                                       </p>
                                   </div>
+                              </div>
+                              <div className="grid gap-2 rounded-md border border-gray-300 bg-white p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                                  <label className="grid gap-1 font-dmSans text-sm font-semibold text-cedar">
+                                      Add arbitrary RSS feed
+                                      <input
+                                          type="url"
+                                          value={
+                                              manualFeedUrls[
+                                                  comedianGroup.key
+                                              ] ?? ""
+                                          }
+                                          onChange={(event) =>
+                                              setManualFeedUrls((prev) => ({
+                                                  ...prev,
+                                                  [comedianGroup.key]:
+                                                      event.target.value,
+                                              }))
+                                          }
+                                          className="min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-soft-charcoal focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                          placeholder="https://example.com/rss.xml"
+                                      />
+                                  </label>
+                                  <Button
+                                      type="button"
+                                      variant="outline"
+                                      className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                      disabled={
+                                          ingestingKey !== null ||
+                                          pendingKey !== null ||
+                                          !manualFeedUrls[
+                                              comedianGroup.key
+                                          ]?.trim()
+                                      }
+                                      onClick={() =>
+                                          void ingestManualFeed(comedianGroup)
+                                      }
+                                  >
+                                      {ingestingKey === comedianGroup.key
+                                          ? "Ingesting..."
+                                          : "Ingest RSS"}
+                                  </Button>
                               </div>
                               <div className="grid gap-3">
                                   {comedianGroup.podcastGroups.map((group) => {
@@ -791,6 +988,36 @@ export default function AdminPodcastOwnershipReviewManager({
                                                           ? `by ${group.podcast.authorName}`
                                                           : "Author missing"}
                                                   </p>
+                                                  <div className="mt-2 font-dmSans text-caption">
+                                                      {group.podcast.feedUrl ? (
+                                                          <a
+                                                              href={
+                                                                  group.podcast
+                                                                      .feedUrl
+                                                              }
+                                                              target="_blank"
+                                                              rel="noreferrer"
+                                                              className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                          >
+                                                              <span className="truncate">
+                                                                  RSS:{" "}
+                                                                  {
+                                                                      group
+                                                                          .podcast
+                                                                          .feedUrl
+                                                                  }
+                                                              </span>
+                                                              <ExternalLink
+                                                                  className="h-3.5 w-3.5 shrink-0"
+                                                                  aria-hidden="true"
+                                                              />
+                                                          </a>
+                                                      ) : (
+                                                          <span className="text-soft-charcoal">
+                                                              RSS feed missing
+                                                          </span>
+                                                      )}
+                                                  </div>
                                                   <div className="mt-2 flex flex-wrap gap-2">
                                                       {selectedOwner ? (
                                                           <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
@@ -885,6 +1112,16 @@ export default function AdminPodcastOwnershipReviewManager({
                           </li>
                       ))}
             </ul>
+            <PaginationControls
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={activeGroups.length}
+                label={activeView === "podcast" ? "podcasts" : "comedians"}
+                onPageChange={(nextPage) =>
+                    setPage(clampPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
         </div>
     );
 }

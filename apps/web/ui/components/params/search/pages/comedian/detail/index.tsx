@@ -91,7 +91,7 @@ export default function ComedianDetailSearchBar() {
                             className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                         />
                     }
-                    placeholder="Search by club"
+                    placeholder="Search clubs"
                     value={state.club ?? ""}
                     onChange={handleClubSearch}
                     className={styleConfig.inputTextColor}

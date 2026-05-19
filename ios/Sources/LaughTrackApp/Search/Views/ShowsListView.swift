@@ -27,12 +27,11 @@ struct ShowsListView: View {
     }
 
     var body: some View {
-        LaughTrackCard(density: .compact) {
-            VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+        VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
                 if let unifiedSearchText {
                     SearchField(
                         title: "Search",
-                        prompt: unifiedSearchPrompt ?? "Search nearby comedy",
+                        prompt: unifiedSearchPrompt ?? "Search shows",
                         text: unifiedSearchText,
                         showsTitle: false
                     )
@@ -116,7 +115,6 @@ struct ShowsListView: View {
                     }
                 }
             }
-        }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
@@ -207,7 +205,7 @@ private struct ShowFiltersPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(spacing: theme.spacing.sm) {
+            ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
                 if model.allowsLocationFiltering {
                     PillDropdownTrigger(
                         id: "shows-distance",
@@ -226,10 +224,6 @@ private struct ShowFiltersPanel: View {
                     openDropdownID: $openDropdownID
                 )
 
-                Spacer(minLength: 0)
-            }
-
-            HStack(spacing: theme.spacing.sm) {
                 if model.allowsLocationFiltering {
                     PillSheetTrigger(
                         title: zipChipTitle,
@@ -250,10 +244,6 @@ private struct ShowFiltersPanel: View {
                     isDateEditorPresented = true
                 }
 
-                Spacer(minLength: 0)
-            }
-
-            HStack(spacing: theme.spacing.sm) {
                 PillSheetTrigger(
                     title: activeFilterCount > 0 ? filterCountTitle : "Filters",
                     systemImage: "line.3.horizontal.decrease",
@@ -262,8 +252,6 @@ private struct ShowFiltersPanel: View {
                 ) {
                     isFilterEditorPresented = true
                 }
-
-                Spacer(minLength: 0)
             }
 
             if model.allowsLocationFiltering, let nearbyStatusMessage = model.nearbyStatusMessage {

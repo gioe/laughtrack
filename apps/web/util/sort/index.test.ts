@@ -13,28 +13,21 @@ describe("getSortOptionsForEntityType", () => {
             });
         });
 
-        it("'Most Active' maps to ActivityDesc", () => {
-            const opt = options.find((o) => o.name === "Most Active");
-            expect(opt).toBeDefined();
-            expect(opt?.value).toBe(SortParamValue.ActivityDesc);
+        it("exposes the four iOS-aligned axes and nothing else", () => {
+            expect(options.map((o) => o.value)).toEqual([
+                SortParamValue.PopularityDesc,
+                SortParamValue.PopularityAsc,
+                SortParamValue.NameAsc,
+                SortParamValue.NameDesc,
+            ]);
         });
 
-        it("'Least Active' maps to ActivityAsc", () => {
-            const opt = options.find((o) => o.name === "Least Active");
-            expect(opt).toBeDefined();
-            expect(opt?.value).toBe(SortParamValue.ActivityAsc);
-        });
-
-        it("'Most Popular' maps to PopularityDesc", () => {
-            const opt = options.find((o) => o.name === "Most Popular");
-            expect(opt).toBeDefined();
-            expect(opt?.value).toBe(SortParamValue.PopularityDesc);
-        });
-
-        it("'Least Popular' maps to PopularityAsc", () => {
-            const opt = options.find((o) => o.name === "Least Popular");
-            expect(opt).toBeDefined();
-            expect(opt?.value).toBe(SortParamValue.PopularityAsc);
+        it("does not surface scraping-derived activity axes to public users", () => {
+            const values = options.map((o) => o.value);
+            expect(values).not.toContain(SortParamValue.ActivityDesc);
+            expect(values).not.toContain(SortParamValue.ActivityAsc);
+            expect(values).not.toContain(SortParamValue.ShowCountDesc);
+            expect(values).not.toContain(SortParamValue.ShowCountAsc);
         });
     });
 
@@ -63,39 +56,49 @@ describe("getSortOptionsForEntityType", () => {
     describe("default case (Show/other)", () => {
         const options = getSortOptionsForEntityType(EntityType.Show);
 
-        it("includes date sort options", () => {
-            const values = options.map((o) => o.value);
-            expect(values).toContain(SortParamValue.DateAsc);
-            expect(values).toContain(SortParamValue.DateDesc);
+        it("exposes the five iOS-aligned show axes and nothing else", () => {
+            expect(options.map((o) => o.value)).toEqual([
+                SortParamValue.DateAsc,
+                SortParamValue.DateDesc,
+                SortParamValue.PopularityDesc,
+                SortParamValue.PriceAsc,
+                SortParamValue.PriceDesc,
+            ]);
         });
 
-        it("includes popularity sort options", () => {
+        it("does not surface PopularityAsc, NameAsc, or NameDesc to public users", () => {
             const values = options.map((o) => o.value);
-            expect(values).toContain(SortParamValue.PopularityDesc);
-            expect(values).toContain(SortParamValue.PopularityAsc);
-        });
-
-        it("includes price sort options", () => {
-            const values = options.map((o) => o.value);
-            expect(values).toContain(SortParamValue.PriceAsc);
-            expect(values).toContain(SortParamValue.PriceDesc);
+            expect(values).not.toContain(SortParamValue.PopularityAsc);
+            expect(values).not.toContain(SortParamValue.NameAsc);
+            expect(values).not.toContain(SortParamValue.NameDesc);
         });
     });
 
     describe("EntityType.Podcast", () => {
         const options = getSortOptionsForEntityType(EntityType.Podcast);
 
-        it("first option (UI default) is A-Z / NameAsc", () => {
+        it("first option (UI default) is 'Most Episodes' / ShowCountDesc", () => {
             expect(options[0]).toEqual({
-                name: "A-Z",
-                value: SortParamValue.NameAsc,
+                name: "Most Episodes",
+                value: SortParamValue.ShowCountDesc,
             });
         });
 
-        it("includes recent activity and episode count options", () => {
+        it("exposes the four iOS-aligned axes and nothing else", () => {
+            expect(options.map((o) => o.value)).toEqual([
+                SortParamValue.ShowCountDesc,
+                SortParamValue.ShowCountAsc,
+                SortParamValue.NameAsc,
+                SortParamValue.NameDesc,
+            ]);
+        });
+
+        it("does not surface scraping-derived activity or freshness axes to public users", () => {
             const values = options.map((o) => o.value);
-            expect(values).toContain(SortParamValue.ActivityDesc);
-            expect(values).toContain(SortParamValue.ShowCountDesc);
+            expect(values).not.toContain(SortParamValue.ActivityDesc);
+            expect(values).not.toContain(SortParamValue.ActivityAsc);
+            expect(values).not.toContain(SortParamValue.InsertedAtDesc);
+            expect(values).not.toContain(SortParamValue.InsertedAtAsc);
         });
     });
 });

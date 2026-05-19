@@ -4,7 +4,7 @@ import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { Button } from "@/ui/components/ui/button";
 import { Ban, Save, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 type Props = {
     comedians: AdminComedianListItem[];
@@ -16,6 +16,8 @@ type Status = {
     kind: "idle" | "ok" | "error";
     message?: string;
 };
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200];
 
 function formatDate(iso: string | null) {
     if (!iso) return null;
@@ -39,11 +41,82 @@ function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
     });
 }
 
+function clampPage(page: number, totalPages: number) {
+    return Math.min(Math.max(page, 1), Math.max(totalPages, 1));
+}
+
+function PaginationControls({
+    page,
+    pageSize,
+    totalItems,
+    onPageChange,
+    onPageSizeChange,
+}: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+}) {
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const start = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, totalItems);
+
+    return (
+        <div className="flex flex-col gap-3 rounded-md border border-copper/25 bg-white px-3 py-2 font-dmSans text-body text-cedar md:flex-row md:items-center md:justify-between">
+            <div className="font-semibold">
+                {start}-{end} of {totalItems} comedians
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-2 font-semibold">
+                    Per page
+                    <select
+                        value={pageSize}
+                        onChange={(event) =>
+                            onPageSizeChange(Number(event.target.value))
+                        }
+                        className="rounded-md border border-soft-charcoal/30 bg-white px-2 py-1 text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                    >
+                        {PAGE_SIZE_OPTIONS.map((option) => (
+                            <option key={option} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    disabled={page <= 1}
+                    onClick={() => onPageChange(page - 1)}
+                >
+                    Previous
+                </Button>
+                <span className="font-semibold">
+                    Page {page} of {totalPages}
+                </span>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="border-copper-dark bg-white text-copper-dark disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    disabled={page >= totalPages}
+                    onClick={() => onPageChange(page + 1)}
+                >
+                    Next
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminComedianManager({ comedians }: Props) {
     const router = useRouter();
     const [rows, setRows] = useState(comedians);
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(50);
     const [parentSearches, setParentSearches] = useState<
         Record<number, string>
     >({});
@@ -74,6 +147,14 @@ export default function AdminComedianManager({ comedians }: Props) {
             : rows;
         return sortRows(filtered, sort);
     }, [query, rows, sort]);
+    const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
+    const currentPage = clampPage(page, totalPages);
+    const pageStart = (currentPage - 1) * pageSize;
+    const pagedRows = visibleRows.slice(pageStart, pageStart + pageSize);
+
+    useEffect(() => {
+        setPage(1);
+    }, [query, sort, pageSize]);
 
     function parentValue(row: AdminComedianListItem) {
         return Object.hasOwn(selectedParents, row.id)
@@ -212,7 +293,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                             type="search"
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            className="w-full rounded-md border border-soft-charcoal/30 bg-white py-2 pl-10 pr-3 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                            className="w-full rounded-md border border-soft-charcoal/30 bg-white py-2 pl-10 pr-3 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                             placeholder="Name, parent, block reason"
                         />
                     </span>
@@ -249,14 +330,23 @@ export default function AdminComedianManager({ comedians }: Props) {
                 </p>
             )}
 
+            <PaginationControls
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={visibleRows.length}
+                onPageChange={(nextPage) =>
+                    setPage(clampPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
             <div className="overflow-x-auto rounded-md border border-copper/25 bg-white">
-                <div className="grid grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)] gap-4 border-b border-copper/20 bg-coconut-cream px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                <div className="grid min-w-[980px] grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)] gap-4 border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
                     <div>Comedian</div>
                     <div>Parent relationship</div>
                     <div>Blocklist</div>
                 </div>
                 <ul className="divide-y divide-copper/15">
-                    {visibleRows.map((row) => {
+                    {pagedRows.map((row) => {
                         const parent = parentValue(row);
                         const candidates = parentCandidates(row);
                         const disabled = pendingId !== null || isPending;
@@ -264,7 +354,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                         return (
                             <li
                                 key={row.id}
-                                className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)]"
+                                className="grid min-w-[980px] gap-4 px-4 py-4 lg:grid-cols-[minmax(260px,1fr)_minmax(260px,420px)_minmax(260px,380px)]"
                             >
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -341,7 +431,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     }),
                                                 )
                                             }
-                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                             placeholder="Search parent name"
                                         />
                                     </label>
@@ -372,7 +462,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="gap-2 border-copper/40 text-cedar"
+                                        className="gap-2 border-copper/40 text-cedar disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                         disabled={
                                             disabled ||
                                             !isParentDirty(row) ||
@@ -418,14 +508,14 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             }),
                                                         )
                                                     }
-                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                     maxLength={1000}
                                                 />
                                             </label>
                                             <Button
                                                 type="button"
                                                 variant="outline"
-                                                className="gap-2 border-red-800/40 text-red-950 hover:bg-red-50"
+                                                className="gap-2 border-red-800/40 text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                 disabled={
                                                     disabled ||
                                                     pendingId === row.id ||
@@ -448,6 +538,15 @@ export default function AdminComedianManager({ comedians }: Props) {
                     })}
                 </ul>
             </div>
+            <PaginationControls
+                page={currentPage}
+                pageSize={pageSize}
+                totalItems={visibleRows.length}
+                onPageChange={(nextPage) =>
+                    setPage(clampPage(nextPage, totalPages))
+                }
+                onPageSizeChange={setPageSize}
+            />
         </div>
     );
 }

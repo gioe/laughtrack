@@ -63,7 +63,7 @@ export default function ClubSearchBar() {
                             className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                         />
                     }
-                    placeholder="Search for club"
+                    placeholder="Search clubs"
                     value={state.club ?? ""}
                     onChange={handleClubSearch}
                     className={styleConfig.inputTextColor}

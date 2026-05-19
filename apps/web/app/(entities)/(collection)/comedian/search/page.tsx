@@ -22,7 +22,7 @@ export async function generateMetadata(props: {
     const zip =
         typeof searchParams.zip === "string" ? searchParams.zip : undefined;
 
-    const title = zip ? `Find Comedians Near ${zip}` : "Find Comedians";
+    const title = zip ? `Comedians Near ${zip}` : "Comedians";
     const description = zip
         ? `Browse comedy performers near ${zip}. Discover upcoming shows on LaughTrack.`
         : "Browse comedy performers and discover upcoming shows on LaughTrack.";
@@ -121,10 +121,10 @@ export default async function ComedianSearchPage(
 
             <SearchDetailHeader
                 title="Search comedians"
-                subTitle={`${total} results`}
+                subTitle={`${total.toLocaleString("en-US")} results`}
                 variant="comedian"
                 theme={theme}
-                tagline="Find comedians performing near you"
+                tagline="Browse comedians on tour"
             />
 
             <FilterBar

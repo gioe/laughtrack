@@ -12,7 +12,7 @@ final class ShowsListModel: EntitySearchModel<ShowsListQuery, Components.Schemas
         case failed
     }
 
-    private static let pageSize = 10
+    private static let pageSize = 20
 
     @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""

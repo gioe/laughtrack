@@ -1,169 +1,50 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { Button } from "@/ui/components/ui/button";
+import { listAdminClubGroups } from "@/lib/admin/clubManagement";
+import AdminClubManager from "@/ui/pages/admin/clubs/AdminClubManager";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 50;
-
-export default async function AdminClubsPage(props: {
-    searchParams: Promise<{ q?: string; page?: string }>;
-}) {
-    const { q = "", page: pageRaw } = await props.searchParams;
-    const page = Math.max(0, Number(pageRaw) || 0);
-    const query = q.trim();
-
-    const where = query
-        ? { name: { contains: query, mode: "insensitive" as const } }
-        : {};
-
-    const [clubs, total] = await Promise.all([
-        db.club.findMany({
-            where,
-            orderBy: { name: "asc" },
-            skip: page * PAGE_SIZE,
-            take: PAGE_SIZE,
-            select: {
-                id: true,
-                name: true,
-                city: true,
-                state: true,
-                description: true,
-                hours: true,
-            },
-        }),
-        db.club.count({ where }),
-    ]);
-
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+export default async function AdminClubsPage() {
+    const groups = await listAdminClubGroups();
+    const clubCount = groups.reduce(
+        (sum, group) => sum + group.clubs.length,
+        0,
+    );
+    const chainCount = groups.filter((group) => group.chain).length;
+    const hiddenCount = groups.reduce(
+        (sum, group) =>
+            sum + group.clubs.filter((club) => !club.visible).length,
+        0,
+    );
+    const closedCount = groups.reduce(
+        (sum, group) =>
+            sum + group.clubs.filter((club) => club.status === "closed").length,
+        0,
+    );
 
     return (
-        <div className="mx-auto max-w-5xl">
-            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h1 className="font-chivo text-h1 text-cedar">Admin · Clubs</h1>
+        <div className="space-y-6">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h1 className="font-chivo text-h1 text-cedar">
+                        Admin · Clubs
+                    </h1>
+                    <p className="mt-2 font-dmSans text-body text-soft-charcoal">
+                        {clubCount.toLocaleString()} clubs ·{" "}
+                        {chainCount.toLocaleString()} chains ·{" "}
+                        {hiddenCount.toLocaleString()} hidden ·{" "}
+                        {closedCount.toLocaleString()} closed
+                    </p>
+                </div>
                 <Link
                     href="/admin/deny-list"
-                    className="text-sm font-medium text-copper-dark hover:underline"
+                    className="font-dmSans text-body font-semibold text-copper-dark hover:underline"
                 >
                     Deny list
                 </Link>
             </div>
-            <form method="get" className="flex gap-2 mb-6">
-                <input
-                    type="text"
-                    name="q"
-                    defaultValue={query}
-                    placeholder="Search by name…"
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
-                />
-                <Button type="submit" variant="roundedShimmer">
-                    Search
-                </Button>
-            </form>
 
-            <p className="text-sm text-gray-700 mb-2">
-                {total} club{total === 1 ? "" : "s"} · page {page + 1} of{" "}
-                {totalPages}
-            </p>
-
-            <ul className="divide-y divide-gray-300">
-                {clubs.map((club) => {
-                    const hasDescription =
-                        typeof club.description === "string" &&
-                        club.description.trim() !== "";
-                    const hasHours =
-                        club.hours !== null && club.hours !== undefined;
-                    return (
-                        <li
-                            key={club.id}
-                            className="py-3 flex items-center justify-between"
-                        >
-                            <div>
-                                <Link
-                                    href={`/admin/clubs/${club.id}`}
-                                    className="font-semibold hover:underline"
-                                >
-                                    {club.name}
-                                </Link>
-                                <div className="text-sm text-gray-700">
-                                    {[club.city, club.state]
-                                        .filter(Boolean)
-                                        .join(", ") || "—"}
-                                </div>
-                            </div>
-                            <div className="text-xs flex gap-3">
-                                <span
-                                    className={
-                                        hasDescription
-                                            ? "text-green-600"
-                                            : "text-amber-600"
-                                    }
-                                >
-                                    {hasDescription ? "✓" : "—"} description
-                                </span>
-                                <span
-                                    className={
-                                        hasHours
-                                            ? "text-green-600"
-                                            : "text-amber-600"
-                                    }
-                                >
-                                    {hasHours ? "✓" : "—"} hours
-                                </span>
-                            </div>
-                        </li>
-                    );
-                })}
-            </ul>
-
-            {totalPages > 1 && (
-                <nav className="flex justify-between mt-6">
-                    <PaginationLink
-                        label="← Prev"
-                        disabled={page === 0}
-                        q={query}
-                        page={page - 1}
-                    />
-                    <PaginationLink
-                        label="Next →"
-                        disabled={page + 1 >= totalPages}
-                        q={query}
-                        page={page + 1}
-                    />
-                </nav>
-            )}
+            <AdminClubManager groups={groups} />
         </div>
-    );
-}
-
-function PaginationLink({
-    label,
-    q,
-    page,
-    disabled,
-}: {
-    label: string;
-    q: string;
-    page: number;
-    disabled: boolean;
-}) {
-    if (disabled) {
-        return (
-            <span className="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium opacity-50 cursor-not-allowed bg-gray-100">
-                {label}
-            </span>
-        );
-    }
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (page > 0) params.set("page", String(page));
-    const qs = params.toString();
-    return (
-        <Link
-            href={`/admin/clubs${qs ? `?${qs}` : ""}`}
-            className="inline-flex items-center justify-center px-4 py-2 border border-gray-400 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
-        >
-            {label}
-        </Link>
     );
 }

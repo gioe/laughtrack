@@ -96,7 +96,17 @@ struct ClubsListSkeleton: View {
         EntityRowsSkeleton(
             label: "Loading clubs",
             artworkShape: .circle,
-            showsDisclosureIndicator: true
+            showsDisclosureIndicator: false
+        )
+    }
+}
+
+struct PodcastsListSkeleton: View {
+    var body: some View {
+        EntityRowsSkeleton(
+            label: "Loading podcasts",
+            artworkShape: .roundedRectangle(cornerRadius: 12),
+            showsDisclosureIndicator: false
         )
     }
 }

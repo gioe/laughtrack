@@ -19,9 +19,9 @@ interface HeaderProps {
 const MOBILE_NAV_ITEMS = [
     { title: "Search", href: "/search", match: "/search" },
     { title: "Shows", href: "/show/search", match: "/show" },
-    { title: "Clubs", href: "/club/search", match: "/club" },
     { title: "Comedians", href: "/comedian/search", match: "/comedian" },
-    { title: "Podcasts", href: "/podcasts", match: "/podcast" },
+    { title: "Clubs", href: "/club/search", match: "/club" },
+    { title: "Podcasts", href: "/podcast/search", match: "/podcast" },
 ];
 
 function MobileNavLink({

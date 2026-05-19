@@ -8,37 +8,44 @@ import {
     MusicalNoteIcon,
 } from "@heroicons/react/24/outline";
 
-// Navigation menu items
+// Navigation menu items.
+// Top-level "Search" in the nav points at /search — the cross-entity typeahead
+// for users who know what they're looking for. The per-entity dropdowns below
+// label their inner link "Browse all" to keep the role split visible: search
+// dispatches, browse collects.
 const MENU_ITEMS = {
     comedian: [
         {
-            name: "Search",
-            description: "Search for comedians you're interested in",
+            name: "Browse all",
+            description:
+                "Browse comedians and filter by location, sort, and more",
             href: "/comedian/search",
             icon: FaceSmileIcon,
         },
     ],
     club: [
         {
-            name: "Search",
-            description: "Search for clubs you're interested in",
+            name: "Browse all",
+            description:
+                "Browse comedy clubs and filter by location, chain, and more",
             href: "/club/search",
             icon: BuildingStorefrontIcon,
         },
     ],
     show: [
         {
-            name: "Search",
-            description: "Search for shows in your area",
+            name: "Browse all",
+            description:
+                "Browse upcoming shows with date, location, and lineup filters",
             href: "/show/search",
             icon: MapPinIcon,
         },
     ],
     podcast: [
         {
-            name: "Search",
-            description: "Search for comedy podcasts",
-            href: "/podcasts",
+            name: "Browse all",
+            description: "Browse comedy podcasts",
+            href: "/podcast/search",
             icon: MusicalNoteIcon,
         },
     ],
@@ -65,14 +72,14 @@ export default function NavigationMenu({ pathname }: { pathname: string }) {
                     isHighlighted={pathname.includes("/show")}
                 />
                 <NavigationDropdown
-                    title="Clubs"
-                    items={MENU_ITEMS.club}
-                    isHighlighted={pathname.includes("/club")}
-                />
-                <NavigationDropdown
                     title="Comedians"
                     items={MENU_ITEMS.comedian}
                     isHighlighted={pathname.includes("/comedian")}
+                />
+                <NavigationDropdown
+                    title="Clubs"
+                    items={MENU_ITEMS.club}
+                    isHighlighted={pathname.includes("/club")}
                 />
                 <NavigationDropdown
                     title="Podcasts"

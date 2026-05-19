@@ -22,14 +22,7 @@ struct ClubsDiscoveryView: View {
     }
 
     var body: some View {
-        LaughTrackCard(density: .compact) {
-            VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                LaughTrackShelfHeader(
-                    eyebrow: "Clubs",
-                    title: "Clubs in reach",
-                    subtitle: "Keep venues dense, tappable, and easy to scan."
-                )
-
+        VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
                 if let unifiedSearchText {
                     SearchField(
                         title: "Search",
@@ -45,30 +38,34 @@ struct ClubsDiscoveryView: View {
                     )
                 }
 
-                VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                    HStack(spacing: theme.spacing.sm) {
-                        PillDropdownTrigger(
-                            id: "clubs-sort",
-                            selected: model.sort,
-                            triggerLabel: { $0.title },
-                            accessibilityLabel: { "Sort \($0.title)" },
-                            openDropdownID: $openDropdownID
-                        )
+                ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                    PillDropdownTrigger(
+                        id: "clubs-sort",
+                        selected: model.sort,
+                        triggerLabel: { $0.title },
+                        accessibilityLabel: { "Sort \($0.title)" },
+                        openDropdownID: $openDropdownID
+                    )
 
-                        Spacer(minLength: 0)
+                    PillSheetTrigger(
+                        title: model.selectedFilterSlugs.count > 0 ? filterCountTitle : "Filters",
+                        systemImage: "line.3.horizontal.decrease",
+                        isActive: model.selectedFilterSlugs.count > 0,
+                        accessibilityLabel: "Filter results"
+                    ) {
+                        isFilterEditorPresented = true
                     }
 
-                    HStack(spacing: theme.spacing.sm) {
-                        PillSheetTrigger(
-                            title: model.selectedFilterSlugs.count > 0 ? filterCountTitle : "Filters",
-                            systemImage: "line.3.horizontal.decrease",
-                            isActive: model.selectedFilterSlugs.count > 0,
-                            accessibilityLabel: "Filter results"
-                        ) {
-                            isFilterEditorPresented = true
-                        }
-
-                        Spacer(minLength: 0)
+                    PillSheetTrigger(
+                        title: "Include all",
+                        systemImage: "eye",
+                        isActive: model.includeEmpty,
+                        accessibilityLabel: "Include clubs with no upcoming shows",
+                        accessibilityHint: model.includeEmpty
+                            ? "Currently showing clubs without upcoming shows."
+                            : "Currently hiding clubs without upcoming shows."
+                    ) {
+                        model.includeEmpty.toggle()
                     }
                 }
 
@@ -122,7 +119,6 @@ struct ClubsDiscoveryView: View {
                     }
                 }
             }
-        }
         .task(id: DiscoveryLoadTaskKey(isActive: isActive, query: model.requestKey)) {
             guard isActive else { return }
             await model.reload(apiClient: apiClient, cache: pageCache)
@@ -141,7 +137,7 @@ struct ClubsDiscoveryView: View {
             GeometryReader { proxy in
                 PillDropdownOverlay(
                     id: "clubs-sort",
-                    options: PrimitiveSortOption.allCases,
+                    options: ClubSortOption.allCases,
                     selected: $model.sort,
                     triggerLabel: { $0.title },
                     optionLabel: { $0.title },
@@ -178,8 +174,7 @@ struct ClubRow: View {
             subtitle: Self.subtitle(for: club),
             metadata: Self.metadata(for: club),
             systemImage: "building.2.fill",
-            imageURL: club.imageUrl,
-            showsDisclosureIndicator: true
+            imageURL: club.imageUrl
         )
     }
 

@@ -47,10 +47,6 @@ struct ShowRow: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .layoutPriority(1)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.textSecondary)
             }
 
             if !lineup.isEmpty {

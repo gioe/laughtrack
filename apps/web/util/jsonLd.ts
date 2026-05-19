@@ -282,7 +282,7 @@ export function buildPodcastCollectionJsonLd(podcasts: PodcastDTO[]): object {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         name: "Comedy Podcasts",
-        url: `${BASE_URL}/podcasts`,
+        url: `${BASE_URL}/podcast/search`,
         mainEntity: {
             "@type": "ItemList",
             itemListElement: podcasts.map((podcast, index) => ({

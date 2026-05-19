@@ -21,6 +21,7 @@ import {
     searchFilterChipClassName,
     searchFilterChipCompactClassName,
 } from "@/ui/components/params/search/filterChipStyles";
+import DateShortcutChips from "./DateShortcutChips";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -77,6 +78,7 @@ const FilterBar = ({
     const { getTypedParam, setTypedParam } = useUrlParams();
     const isClubSearch = variant === SearchVariant.AllClubs;
     const isComedianSearch = variant === SearchVariant.AllComedians;
+    const isShowSearch = variant === SearchVariant.AllShows;
     const includeEmpty =
         isClubSearch || isComedianSearch
             ? (getTypedParam("includeEmpty") ?? false)
@@ -122,6 +124,15 @@ const FilterBar = ({
                 role="search"
                 aria-label="Search and filter results"
             >
+                {/* Date shortcut row — Shows only. Surfaces Tonight/This
+                    Weekend/This Week as one-tap chips so users don't have to
+                    open the WHEN calendar for the common cases (mirrors iOS
+                    Search's selectedShortcut row). */}
+                {isShowSearch && (
+                    <div className="mb-3">
+                        <DateShortcutChips />
+                    </div>
+                )}
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3">
                     {/* Search input — full-width until lg; flex-1 above so tablet keeps the input full-width instead of getting squeezed by the controls cluster */}
                     <div className="min-w-0 lg:flex-1">
@@ -174,8 +185,16 @@ const FilterBar = ({
                                     </select>
                                 )}
 
+                            {/* "Include all" toggles the `includeEmpty` flag, which by
+                                default hides clubs/comedians with no upcoming shows.
+                                Shows don't surface this control because every show row
+                                is itself an upcoming event; Podcasts skip it because
+                                a podcast isn't bound to a show calendar. */}
                             {(isClubSearch || isComedianSearch) && (
-                                <label className="flex items-center gap-1.5 text-sm text-copper/70 whitespace-nowrap cursor-pointer select-none">
+                                <label
+                                    className="flex items-center gap-1.5 text-sm text-copper/70 whitespace-nowrap cursor-pointer select-none"
+                                    title="Include results with no upcoming shows"
+                                >
                                     <input
                                         type="checkbox"
                                         checked={includeEmpty}
@@ -187,7 +206,7 @@ const FilterBar = ({
                                         }
                                         className="accent-copper w-3.5 h-3.5"
                                     />
-                                    Show all
+                                    Include all
                                 </label>
                             )}
 

@@ -10,6 +10,7 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
     @Published var searchText = ""
     @Published var selectedFilterSlugs: Set<String> = []
     @Published var sort: PrimitiveSortOption = .mostPopular
+    @Published var includeEmpty: Bool = false
 
     func reload(
         apiClient: Client,
@@ -42,7 +43,8 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
         PrimitiveDiscoveryQuery(
             text: searchText.trimmingCharacters(in: .whitespacesAndNewlines),
             filters: selectedFilterSlugs.sorted(),
-            sort: sort
+            sort: sort.rawValue,
+            includeEmpty: includeEmpty
         )
     }
 
@@ -71,10 +73,11 @@ final class ComediansDiscoveryModel: EntitySearchModel<PrimitiveDiscoveryQuery, 
                 .init(
                     query: .init(
                         comedian: query.text.nonEmpty,
-                        sort: query.sort.rawValue,
+                        sort: query.sort,
                         filters: query.filtersParam,
                         page: page,
-                        size: Self.pageSize
+                        size: Self.pageSize,
+                        includeEmpty: query.includeEmpty ? "true" : nil
                     ),
                     headers: .init(xTimezone: TimeZone.current.identifier)
                 )

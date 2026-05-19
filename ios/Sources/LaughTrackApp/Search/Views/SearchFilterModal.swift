@@ -52,7 +52,7 @@ struct SearchFilterModal: View {
                         .foregroundStyle(laughTrack.colors.textSecondary)
                         .textCase(.uppercase)
 
-                    FlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
+                    ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
                         ForEach(filters, id: \.slug) { filter in
                             Button {
                                 toggle(filter.slug)
@@ -96,7 +96,7 @@ struct SearchFilterModal: View {
     }
 }
 
-private struct FlowLayout: Layout {
+struct ChipFlowLayout: Layout {
     var spacing: CGFloat
     var rowSpacing: CGFloat
 

@@ -23,7 +23,7 @@ export default function PodcastSearchBar() {
         }
         current.delete("page");
         const qs = current.toString();
-        router.replace(qs ? `?${qs}` : "/podcasts");
+        router.replace(qs ? `?${qs}` : "/podcast/search");
     };
 
     return (
