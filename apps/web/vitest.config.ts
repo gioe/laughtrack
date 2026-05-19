@@ -11,6 +11,11 @@ export default defineConfig({
         env: {
             BUNNYCDN_CDN_HOST: "test.b-cdn.net",
         },
+        // PGlite migration tests bootstrap an in-process Postgres WASM in
+        // beforeAll; under the full 113-file suite's CPU contention that can
+        // exceed vitest's 10s default and surface as misleading "hook timeout"
+        // failures unrelated to the code under test.
+        hookTimeout: 30000,
     },
     resolve: {
         alias: {
