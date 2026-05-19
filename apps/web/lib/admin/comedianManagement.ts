@@ -33,6 +33,13 @@ export type AdminComedianListItem = {
         reviewStatus: string;
         confidence: number;
     }>;
+    latestTicketPurchase: {
+        url: string;
+        showId: number;
+        showName: string | null;
+        showDate: string;
+        clubName: string;
+    } | null;
 };
 
 export type AdminComedianListResult = {
@@ -88,6 +95,52 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                         { podcast: { title: "asc" } },
                     ],
                 },
+                lineupItems: {
+                    where: {
+                        show: {
+                            tickets: {
+                                some: {
+                                    AND: [
+                                        { purchaseUrl: { not: null } },
+                                        { purchaseUrl: { not: "" } },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                    select: {
+                        show: {
+                            select: {
+                                id: true,
+                                name: true,
+                                date: true,
+                                club: {
+                                    select: {
+                                        name: true,
+                                    },
+                                },
+                                tickets: {
+                                    where: {
+                                        AND: [
+                                            { purchaseUrl: { not: null } },
+                                            { purchaseUrl: { not: "" } },
+                                        ],
+                                    },
+                                    select: {
+                                        purchaseUrl: true,
+                                    },
+                                    orderBy: [
+                                        { soldOut: "asc" },
+                                        { id: "asc" },
+                                    ],
+                                    take: 1,
+                                },
+                            },
+                        },
+                    },
+                    orderBy: [{ show: { date: "desc" } }],
+                    take: 1,
+                },
                 _count: {
                     select: {
                         alternativeNames: true,
@@ -111,6 +164,9 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
             const denyListEntry = denyListByName.get(
                 normalizeDenyListName(comedian.name),
             );
+            const latestTicketShow = comedian.lineupItems[0]?.show ?? null;
+            const latestTicketUrl =
+                latestTicketShow?.tickets[0]?.purchaseUrl ?? null;
             return {
                 id: comedian.id,
                 uuid: comedian.uuid,
@@ -134,6 +190,16 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                     reviewStatus: link.reviewStatus,
                     confidence: link.confidence,
                 })),
+                latestTicketPurchase:
+                    latestTicketShow && latestTicketUrl
+                        ? {
+                              url: latestTicketUrl,
+                              showId: latestTicketShow.id,
+                              showName: latestTicketShow.name,
+                              showDate: latestTicketShow.date.toISOString(),
+                              clubName: latestTicketShow.club.name,
+                          }
+                        : null,
             };
         }),
         denyListCount: denyListRows.length,

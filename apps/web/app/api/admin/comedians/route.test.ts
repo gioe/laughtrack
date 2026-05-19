@@ -52,6 +52,7 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         parentComedianId: null,
         parentComedian: null,
         comedianPodcasts: [],
+        lineupItems: [],
         _count: { alternativeNames: 0 },
         ...overrides,
     };

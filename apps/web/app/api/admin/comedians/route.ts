@@ -29,6 +29,15 @@ type ComedianSnapshot = {
             websiteUrl: string | null;
         };
     }>;
+    lineupItems: Array<{
+        show: {
+            id: number;
+            name: string | null;
+            date: Date;
+            club: { name: string };
+            tickets: Array<{ purchaseUrl: string | null }>;
+        };
+    }>;
     _count: { alternativeNames: number };
 };
 
@@ -143,6 +152,18 @@ function serializeComedian(
             reviewStatus: link.reviewStatus,
             confidence: link.confidence,
         })),
+        latestTicketPurchase: (() => {
+            const show = comedian.lineupItems[0]?.show ?? null;
+            const url = show?.tickets[0]?.purchaseUrl ?? null;
+            if (!show || !url) return null;
+            return {
+                url,
+                showId: show.id,
+                showName: show.name,
+                showDate: show.date.toISOString(),
+                clubName: show.club.name,
+            };
+        })(),
     };
 }
 
@@ -194,6 +215,49 @@ async function findComedianSnapshot(
                     { confidence: "desc" },
                     { podcast: { title: "asc" } },
                 ],
+            },
+            lineupItems: {
+                where: {
+                    show: {
+                        tickets: {
+                            some: {
+                                AND: [
+                                    { purchaseUrl: { not: null } },
+                                    { purchaseUrl: { not: "" } },
+                                ],
+                            },
+                        },
+                    },
+                },
+                select: {
+                    show: {
+                        select: {
+                            id: true,
+                            name: true,
+                            date: true,
+                            club: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                            tickets: {
+                                where: {
+                                    AND: [
+                                        { purchaseUrl: { not: null } },
+                                        { purchaseUrl: { not: "" } },
+                                    ],
+                                },
+                                select: {
+                                    purchaseUrl: true,
+                                },
+                                orderBy: [{ soldOut: "asc" }, { id: "asc" }],
+                                take: 1,
+                            },
+                        },
+                    },
+                },
+                orderBy: [{ show: { date: "desc" } }],
+                take: 1,
             },
             _count: {
                 select: {

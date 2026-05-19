@@ -24,8 +24,8 @@ const groups: AdminClubGroup[] = [
         },
         totals: {
             clubCount: 2,
-            visibleCount: 2,
-            activeCount: 2,
+            visibleCount: 1,
+            activeCount: 1,
             scrapedShowCount: 15,
         },
         clubs: [
@@ -65,9 +65,9 @@ const groups: AdminClubGroup[] = [
                 city: "Boston",
                 state: "MA",
                 website: "https://example.com/boston",
-                visible: true,
-                status: "active",
-                clubType: "club",
+                visible: false,
+                status: "closed",
+                clubType: "venue",
                 closedAt: null,
                 totalShows: 7,
                 scrapedShowCount: 7,
@@ -129,6 +129,75 @@ describe("AdminClubManager", () => {
 
         expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
         expect(screen.queryByText("Funny Bone Albany")).toBeNull();
+    });
+
+    it("searches, sorts, and filters clubs within an opened chain", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+
+        fireEvent.change(screen.getByLabelText("Search within Funny Bone"), {
+            target: { value: "Boston" },
+        });
+        expect(screen.getByText("1 of 2 clubs shown")).toBeTruthy();
+        expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
+        expect(screen.queryByText("Funny Bone Albany")).toBeNull();
+
+        fireEvent.change(screen.getByLabelText("Search within Funny Bone"), {
+            target: { value: "" },
+        });
+        fireEvent.change(
+            screen.getByLabelText("Filter Funny Bone clubs by status"),
+            { target: { value: "closed" } },
+        );
+        expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
+        expect(screen.queryByText("Funny Bone Albany")).toBeNull();
+
+        fireEvent.change(
+            screen.getByLabelText("Filter Funny Bone clubs by status"),
+            { target: { value: "all" } },
+        );
+        fireEvent.change(
+            screen.getByLabelText("Filter Funny Bone clubs by visibility"),
+            { target: { value: "hidden" } },
+        );
+        expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
+        expect(screen.queryByText("Funny Bone Albany")).toBeNull();
+
+        fireEvent.change(
+            screen.getByLabelText("Filter Funny Bone clubs by visibility"),
+            { target: { value: "all" } },
+        );
+        fireEvent.change(screen.getByLabelText("Sort Funny Bone clubs"), {
+            target: { value: "name-desc" },
+        });
+        expect(
+            screen.getAllByRole("link", { name: /Funny Bone/ })[0].textContent,
+        ).toBe("Funny Bone Boston");
+    });
+
+    it("toggles from chain groups to scraper groups", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(screen.getByRole("button", { name: "By scraper" }));
+
+        expect(screen.getByText("seatengine")).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: /No scraping source/ }),
+        ).toBeTruthy();
+
+        const scraperToggle = screen.getByRole("button", {
+            name: /seatengine/,
+        });
+        const scraperPanelId = scraperToggle.getAttribute("aria-controls");
+        expect(scraperPanelId).toBeTruthy();
+        expect(document.getElementById(scraperPanelId!)!.hidden).toBe(true);
+
+        fireEvent.click(scraperToggle);
+
+        expect(document.getElementById(scraperPanelId!)!.hidden).toBe(false);
+        expect(screen.getByText("Funny Bone Albany")).toBeTruthy();
+        expect(screen.queryByText("Funny Bone Boston")).toBeTruthy();
     });
 
     it("starts chain groups closed and reopens them", () => {

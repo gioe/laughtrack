@@ -454,6 +454,40 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             podcasts
                                         </span>
                                     </div>
+                                    {row.latestTicketPurchase ? (
+                                        <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
+                                            <a
+                                                href={
+                                                    row.latestTicketPurchase.url
+                                                }
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-2 text-body font-semibold text-copper-dark hover:underline"
+                                            >
+                                                Latest ticket purchase
+                                                <ExternalLink className="h-4 w-4" />
+                                            </a>
+                                            <div className="mt-1 text-caption text-soft-charcoal">
+                                                {row.latestTicketPurchase
+                                                    .showName ??
+                                                    "Untitled show"}{" "}
+                                                ·{" "}
+                                                {
+                                                    row.latestTicketPurchase
+                                                        .clubName
+                                                }{" "}
+                                                ·{" "}
+                                                {formatDate(
+                                                    row.latestTicketPurchase
+                                                        .showDate,
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
+                                            No ticket purchase link found.
+                                        </div>
+                                    )}
                                     <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
                                         <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                             Display name

@@ -36,6 +36,13 @@ const comedians: AdminComedianListItem[] = [
         blockReason: null,
         blockAddedBy: null,
         blockAddedAt: null,
+        latestTicketPurchase: {
+            url: "https://tickets.example.com/parent",
+            showId: 100,
+            showName: "Parent Comic Live",
+            showDate: "2026-05-20T00:00:00.000Z",
+            clubName: "Comedy Cellar",
+        },
         attributedPodcasts: [
             {
                 id: 10,
@@ -62,6 +69,7 @@ const comedians: AdminComedianListItem[] = [
         blockReason: null,
         blockAddedBy: null,
         blockAddedAt: null,
+        latestTicketPurchase: null,
         attributedPodcasts: [],
     },
 ];
@@ -193,8 +201,22 @@ describe("AdminComedianManager", () => {
         expect(toggle.getAttribute("aria-expanded")).toBe("true");
         expect(panel!.hidden).toBe(false);
         expect(screen.getByText("Parent Podcast")).toBeTruthy();
-        expect(screen.getByRole("link", { name: /RSS/ }).getAttribute("href"))
-            .toBe("https://example.com/parent.xml");
+        expect(
+            screen.getByRole("link", { name: /RSS/ }).getAttribute("href"),
+        ).toBe("https://example.com/parent.xml");
+    });
+
+    it("links to the latest ticket purchase url", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+
+        const link = screen.getByRole("link", {
+            name: /Latest ticket purchase/,
+        });
+
+        expect(link.getAttribute("href")).toBe(
+            "https://tickets.example.com/parent",
+        );
+        expect(screen.getByText(/Parent Comic Live/)).toBeTruthy();
     });
 
     it("adds a comedian to the blocklist", async () => {
