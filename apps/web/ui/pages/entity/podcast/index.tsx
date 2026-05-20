@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ExternalLink, Headphones, Podcast, Rss } from "lucide-react";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import EntityCard from "@/ui/components/cards/entity";
+import { Button } from "@/ui/components/ui/button";
 import {
     startPodcastEpisode,
     usePodcastPlayer,
@@ -164,6 +165,36 @@ function EpisodeRow({
     );
 }
 
+function PodcastPrimaryCta({ podcast }: { podcast: PodcastDTO }) {
+    const websiteUrl = podcast.websiteUrl;
+    const feedUrl = podcast.feedUrl;
+    const url = websiteUrl ?? feedUrl;
+    if (!url) return null;
+
+    const isWebsite = Boolean(websiteUrl);
+    const label = isWebsite ? "Listen on host site" : "Open RSS feed";
+    const helper = isWebsite
+        ? "Opens the podcast's host site in a new tab."
+        : "Opens the podcast's RSS feed in a new tab.";
+
+    return (
+        <div className="mt-5">
+            <Button asChild variant="roundedShimmer" className="gap-2">
+                <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} for ${podcast.title}`}
+                >
+                    {label}
+                    <ExternalLink size={16} aria-hidden="true" />
+                </a>
+            </Button>
+            <p className="mt-2 font-dmSans text-xs text-gray-500">{helper}</p>
+        </div>
+    );
+}
+
 export default function PodcastDetail({
     podcast,
     episodes,
@@ -193,19 +224,9 @@ export default function PodcastDetail({
                             {podcast.description}
                         </p>
                     ) : null}
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                        {podcast.websiteUrl ? (
-                            <a
-                                href={podcast.websiteUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-md bg-copper px-4 py-2 font-dmSans text-sm font-semibold text-white transition-colors hover:bg-copper/90 focus:outline-none focus:ring-2 focus:ring-copper"
-                            >
-                                Website
-                                <ExternalLink size={16} aria-hidden="true" />
-                            </a>
-                        ) : null}
-                        {podcast.feedUrl ? (
+                    <PodcastPrimaryCta podcast={podcast} />
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                        {podcast.websiteUrl && podcast.feedUrl ? (
                             <a
                                 href={podcast.feedUrl}
                                 target="_blank"
