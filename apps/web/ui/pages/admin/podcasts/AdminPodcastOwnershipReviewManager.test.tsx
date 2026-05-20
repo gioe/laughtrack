@@ -113,9 +113,40 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 title: "Lower Pop Show",
             },
         };
+        const nonOwnedJaneCandidate: AdminPodcastOwnershipReviewCandidate = {
+            ...candidate,
+            id: 14,
+            podcast: {
+                ...candidate.podcast!,
+                id: 101,
+                slug: "jane-guest-show",
+                title: "Jane Guest Show",
+            },
+            existingOwnerships: [
+                {
+                    id: 202,
+                    associationType: "owner",
+                    source: "manual",
+                    reviewStatus: "accepted",
+                    confidence: 1,
+                    reviewedAt: "2026-05-18T12:00:00.000Z",
+                    reviewedBy: "profile-1",
+                    comedian: {
+                        id: 88,
+                        uuid: "uuid-88",
+                        name: "Other Owner",
+                        popularity: 2,
+                    },
+                },
+            ],
+        };
         render(
             <AdminPodcastOwnershipReviewManager
-                candidates={[lowerPopularityCandidate, candidate]}
+                candidates={[
+                    lowerPopularityCandidate,
+                    nonOwnedJaneCandidate,
+                    candidate,
+                ]}
             />,
         );
 
@@ -128,6 +159,10 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Jane Comic");
         expect(screen.getAllByText(/Popularity 74/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/1 owned podcast/).length).toBeGreaterThan(
+            0,
+        );
+        expect(screen.queryByText(/2 podcasts attached/)).toBeNull();
         fireEvent.change(screen.getByLabelText("Sort"), {
             target: { value: "popularity-asc" },
         });

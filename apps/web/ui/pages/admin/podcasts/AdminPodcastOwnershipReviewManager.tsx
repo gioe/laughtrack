@@ -853,263 +853,292 @@ export default function AdminPodcastOwnershipReviewManager({
                               </ReviewGroupFrame>
                           );
                       })
-                    : pagedComedianGroups.map((comedianGroup) => (
-                          <ReviewGroupFrame
-                              key={comedianGroup.key}
-                              groupKey={`comedian-${comedianGroup.key}`}
-                              title={comedianGroup.comedian.name}
-                              subtitle={`Popularity ${formatPopularity(comedianGroup.popularity)}`}
-                              summary={`${comedianGroup.podcastGroups.length} podcast${comedianGroup.podcastGroups.length === 1 ? "" : "s"} attached`}
-                              collapsed={isGroupCollapsed(
-                                  `comedian-${comedianGroup.key}`,
-                              )}
-                              onToggle={toggleGroup}
-                          >
-                              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                                  <div>
-                                      <h2 className="font-gilroy-bold text-h3 leading-tight text-cedar">
-                                          {comedianGroup.comedian.name}
-                                      </h2>
-                                      <p className="font-dmSans text-caption text-soft-charcoal">
-                                          Popularity{" "}
-                                          {formatPopularity(
-                                              comedianGroup.popularity,
-                                          )}{" "}
-                                          · {comedianGroup.podcastGroups.length}{" "}
-                                          podcast
-                                          {comedianGroup.podcastGroups
-                                              .length === 1
-                                              ? ""
-                                              : "s"}{" "}
-                                          attached
-                                      </p>
+                    : pagedComedianGroups.map((comedianGroup) => {
+                          const ownedPodcastCount =
+                              comedianGroup.podcastGroups.filter((group) => {
+                                  return (
+                                      selectedOwners[group.key]?.id ===
+                                      comedianGroup.comedian.id
+                                  );
+                              }).length;
+                          return (
+                              <ReviewGroupFrame
+                                  key={comedianGroup.key}
+                                  groupKey={`comedian-${comedianGroup.key}`}
+                                  title={comedianGroup.comedian.name}
+                                  subtitle={`Popularity ${formatPopularity(comedianGroup.popularity)}`}
+                                  summary={`${ownedPodcastCount} owned podcast${ownedPodcastCount === 1 ? "" : "s"}`}
+                                  collapsed={isGroupCollapsed(
+                                      `comedian-${comedianGroup.key}`,
+                                  )}
+                                  onToggle={toggleGroup}
+                              >
+                                  <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                      <div>
+                                          <h2 className="font-gilroy-bold text-h3 leading-tight text-cedar">
+                                              {comedianGroup.comedian.name}
+                                          </h2>
+                                          <p className="font-dmSans text-caption text-soft-charcoal">
+                                              Popularity{" "}
+                                              {formatPopularity(
+                                                  comedianGroup.popularity,
+                                              )}{" "}
+                                              · {ownedPodcastCount} owned
+                                              podcast
+                                              {ownedPodcastCount === 1
+                                                  ? ""
+                                                  : "s"}
+                                          </p>
+                                      </div>
                                   </div>
-                              </div>
-                              <div className="grid gap-2 rounded-md border border-gray-300 bg-white p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-                                  <label className="grid gap-1 font-dmSans text-sm font-semibold text-cedar">
-                                      Add arbitrary RSS feed
-                                      <input
-                                          type="url"
-                                          value={
-                                              manualFeedUrls[
+                                  <div className="grid gap-2 rounded-md border border-gray-300 bg-white p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                                      <label className="grid gap-1 font-dmSans text-sm font-semibold text-cedar">
+                                          Add arbitrary RSS feed
+                                          <input
+                                              type="url"
+                                              value={
+                                                  manualFeedUrls[
+                                                      comedianGroup.key
+                                                  ] ?? ""
+                                              }
+                                              onChange={(event) =>
+                                                  setManualFeedUrls((prev) => ({
+                                                      ...prev,
+                                                      [comedianGroup.key]:
+                                                          event.target.value,
+                                                  }))
+                                              }
+                                              className="min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-soft-charcoal focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
+                                              placeholder="https://example.com/rss.xml"
+                                          />
+                                      </label>
+                                      <Button
+                                          type="button"
+                                          variant="outline"
+                                          className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                          disabled={
+                                              ingestingKey !== null ||
+                                              pendingKey !== null ||
+                                              !manualFeedUrls[
                                                   comedianGroup.key
-                                              ] ?? ""
+                                              ]?.trim()
                                           }
-                                          onChange={(event) =>
-                                              setManualFeedUrls((prev) => ({
-                                                  ...prev,
-                                                  [comedianGroup.key]:
-                                                      event.target.value,
-                                              }))
+                                          onClick={() =>
+                                              void ingestManualFeed(
+                                                  comedianGroup,
+                                              )
                                           }
-                                          className="min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 font-dmSans text-body font-normal text-foreground placeholder:text-soft-charcoal focus:border-copper-dark focus:outline-none focus:ring-2 focus:ring-copper-dark"
-                                          placeholder="https://example.com/rss.xml"
-                                      />
-                                  </label>
-                                  <Button
-                                      type="button"
-                                      variant="outline"
-                                      className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
-                                      disabled={
-                                          ingestingKey !== null ||
-                                          pendingKey !== null ||
-                                          !manualFeedUrls[
-                                              comedianGroup.key
-                                          ]?.trim()
-                                      }
-                                      onClick={() =>
-                                          void ingestManualFeed(comedianGroup)
-                                      }
-                                  >
-                                      {ingestingKey === comedianGroup.key
-                                          ? "Ingesting..."
-                                          : "Ingest RSS"}
-                                  </Button>
-                              </div>
-                              <div className="grid gap-3">
-                                  {comedianGroup.podcastGroups.map((group) => {
-                                      const selectedOwner =
-                                          selectedOwners[group.key] ?? null;
-                                      const isSelectedOwner =
-                                          selectedOwner?.id ===
-                                          comedianGroup.comedian.id;
-                                      const disabled =
-                                          isPending || pendingKey !== null;
-                                      return (
-                                          <section
-                                              key={group.key}
-                                              className="grid gap-3 rounded-md border border-gray-200 bg-ecru-white p-3 md:grid-cols-[minmax(0,1fr)_auto]"
-                                          >
-                                              <div className="min-w-0">
-                                                  <div className="flex flex-wrap items-center gap-2">
-                                                      <h3 className="font-gilroy-bold text-body text-cedar">
-                                                          {group.podcast.title}
-                                                      </h3>
-                                                      <span
-                                                          className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
-                                                              selectedOwner
-                                                                  ? "bg-green-50 text-green-800"
-                                                                  : "bg-red-50 text-red-800"
-                                                          }`}
-                                                      >
-                                                          {selectedOwner
-                                                              ? "Approved"
-                                                              : "Blocked"}
-                                                      </span>
-                                                  </div>
-                                                  <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
-                                                      {group.podcast.authorName
-                                                          ? `by ${group.podcast.authorName}`
-                                                          : "Author missing"}
-                                                  </p>
-                                                  <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
-                                                      {group.podcast.feedUrl ? (
-                                                          <a
-                                                              href={
-                                                                  group.podcast
-                                                                      .feedUrl
-                                                              }
-                                                              target="_blank"
-                                                              rel="noreferrer"
-                                                              className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
-                                                          >
-                                                              <span className="truncate">
-                                                                  RSS:{" "}
+                                      >
+                                          {ingestingKey === comedianGroup.key
+                                              ? "Ingesting..."
+                                              : "Ingest RSS"}
+                                      </Button>
+                                  </div>
+                                  <div className="grid gap-3">
+                                      {comedianGroup.podcastGroups.map(
+                                          (group) => {
+                                              const selectedOwner =
+                                                  selectedOwners[group.key] ??
+                                                  null;
+                                              const isSelectedOwner =
+                                                  selectedOwner?.id ===
+                                                  comedianGroup.comedian.id;
+                                              const disabled =
+                                                  isPending ||
+                                                  pendingKey !== null;
+                                              return (
+                                                  <section
+                                                      key={group.key}
+                                                      className="grid gap-3 rounded-md border border-gray-200 bg-ecru-white p-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                                                  >
+                                                      <div className="min-w-0">
+                                                          <div className="flex flex-wrap items-center gap-2">
+                                                              <h3 className="font-gilroy-bold text-body text-cedar">
                                                                   {
                                                                       group
                                                                           .podcast
-                                                                          .feedUrl
+                                                                          .title
                                                                   }
-                                                              </span>
-                                                              <ExternalLink
-                                                                  className="h-3.5 w-3.5 shrink-0"
-                                                                  aria-hidden="true"
-                                                              />
-                                                          </a>
-                                                      ) : (
-                                                          <span className="text-soft-charcoal">
-                                                              RSS feed missing
-                                                          </span>
-                                                      )}
-                                                      {group.podcast
-                                                          .websiteUrl && (
-                                                          <a
-                                                              href={
-                                                                  group.podcast
-                                                                      .websiteUrl
-                                                              }
-                                                              target="_blank"
-                                                              rel="noreferrer"
-                                                              className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
-                                                          >
-                                                              <span className="truncate">
-                                                                  Website:{" "}
-                                                                  {
-                                                                      group
-                                                                          .podcast
-                                                                          .websiteUrl
-                                                                  }
-                                                              </span>
-                                                              <ExternalLink
-                                                                  className="h-3.5 w-3.5 shrink-0"
-                                                                  aria-hidden="true"
-                                                              />
-                                                          </a>
-                                                      )}
-                                                  </div>
-                                                  <div className="mt-2 flex flex-wrap gap-2">
-                                                      {selectedOwner ? (
-                                                          <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
-                                                              Owner:{" "}
-                                                              {
-                                                                  selectedOwner.name
-                                                              }
-                                                              <button
-                                                                  type="button"
-                                                                  onClick={() =>
-                                                                      setSelectedOwners(
-                                                                          (
-                                                                              prev,
-                                                                          ) => ({
-                                                                              ...prev,
-                                                                              [group.key]:
-                                                                                  null,
-                                                                          }),
-                                                                      )
-                                                                  }
-                                                                  className="rounded-full p-0.5 text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-700"
-                                                                  aria-label={`Remove ${selectedOwner.name} as owner`}
+                                                              </h3>
+                                                              <span
+                                                                  className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
+                                                                      selectedOwner
+                                                                          ? "bg-green-50 text-green-800"
+                                                                          : "bg-red-50 text-red-800"
+                                                                  }`}
                                                               >
-                                                                  <X
-                                                                      className="h-3.5 w-3.5"
-                                                                      aria-hidden="true"
-                                                                  />
-                                                              </button>
-                                                          </span>
-                                                      ) : (
-                                                          <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
-                                                              No owner
-                                                          </span>
-                                                      )}
-                                                  </div>
-                                              </div>
-                                              <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                                                  <Button
-                                                      type="button"
-                                                      variant="outline"
-                                                      className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white"
-                                                      onClick={() =>
-                                                          setSelectedOwners(
-                                                              (prev) => ({
-                                                                  ...prev,
-                                                                  [group.key]: {
-                                                                      id: comedianGroup
-                                                                          .comedian
-                                                                          .id,
-                                                                      uuid: comedianGroup
-                                                                          .comedian
-                                                                          .uuid,
-                                                                      name: comedianGroup
-                                                                          .comedian
-                                                                          .name,
-                                                                      popularity:
-                                                                          comedianGroup
-                                                                              .comedian
-                                                                              .popularity,
-                                                                  },
-                                                              }),
-                                                          )
-                                                      }
-                                                      disabled={
-                                                          disabled ||
-                                                          isSelectedOwner
-                                                      }
-                                                  >
-                                                      Set as owner
-                                                  </Button>
-                                                  <Button
-                                                      type="button"
-                                                      className="gap-2 !text-white"
-                                                      variant="roundedShimmer"
-                                                      onClick={() =>
-                                                          void save(group)
-                                                      }
-                                                      disabled={disabled}
-                                                      aria-label={`Save ${group.podcast.title}`}
-                                                  >
-                                                      <Save
-                                                          className="h-4 w-4"
-                                                          aria-hidden="true"
-                                                      />
-                                                      Save
-                                                  </Button>
-                                              </div>
-                                          </section>
-                                      );
-                                  })}
-                              </div>
-                          </ReviewGroupFrame>
-                      ))}
+                                                                  {selectedOwner
+                                                                      ? "Approved"
+                                                                      : "Blocked"}
+                                                              </span>
+                                                          </div>
+                                                          <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                                                              {group.podcast
+                                                                  .authorName
+                                                                  ? `by ${group.podcast.authorName}`
+                                                                  : "Author missing"}
+                                                          </p>
+                                                          <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
+                                                              {group.podcast
+                                                                  .feedUrl ? (
+                                                                  <a
+                                                                      href={
+                                                                          group
+                                                                              .podcast
+                                                                              .feedUrl
+                                                                      }
+                                                                      target="_blank"
+                                                                      rel="noreferrer"
+                                                                      className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                  >
+                                                                      <span className="truncate">
+                                                                          RSS:{" "}
+                                                                          {
+                                                                              group
+                                                                                  .podcast
+                                                                                  .feedUrl
+                                                                          }
+                                                                      </span>
+                                                                      <ExternalLink
+                                                                          className="h-3.5 w-3.5 shrink-0"
+                                                                          aria-hidden="true"
+                                                                      />
+                                                                  </a>
+                                                              ) : (
+                                                                  <span className="text-soft-charcoal">
+                                                                      RSS feed
+                                                                      missing
+                                                                  </span>
+                                                              )}
+                                                              {group.podcast
+                                                                  .websiteUrl && (
+                                                                  <a
+                                                                      href={
+                                                                          group
+                                                                              .podcast
+                                                                              .websiteUrl
+                                                                      }
+                                                                      target="_blank"
+                                                                      rel="noreferrer"
+                                                                      className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                  >
+                                                                      <span className="truncate">
+                                                                          Website:{" "}
+                                                                          {
+                                                                              group
+                                                                                  .podcast
+                                                                                  .websiteUrl
+                                                                          }
+                                                                      </span>
+                                                                      <ExternalLink
+                                                                          className="h-3.5 w-3.5 shrink-0"
+                                                                          aria-hidden="true"
+                                                                      />
+                                                                  </a>
+                                                              )}
+                                                          </div>
+                                                          <div className="mt-2 flex flex-wrap gap-2">
+                                                              {selectedOwner ? (
+                                                                  <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
+                                                                      Owner:{" "}
+                                                                      {
+                                                                          selectedOwner.name
+                                                                      }
+                                                                      <button
+                                                                          type="button"
+                                                                          onClick={() =>
+                                                                              setSelectedOwners(
+                                                                                  (
+                                                                                      prev,
+                                                                                  ) => ({
+                                                                                      ...prev,
+                                                                                      [group.key]:
+                                                                                          null,
+                                                                                  }),
+                                                                              )
+                                                                          }
+                                                                          className="rounded-full p-0.5 text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-700"
+                                                                          aria-label={`Remove ${selectedOwner.name} as owner`}
+                                                                      >
+                                                                          <X
+                                                                              className="h-3.5 w-3.5"
+                                                                              aria-hidden="true"
+                                                                          />
+                                                                      </button>
+                                                                  </span>
+                                                              ) : (
+                                                                  <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
+                                                                      No owner
+                                                                  </span>
+                                                              )}
+                                                          </div>
+                                                      </div>
+                                                      <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                                                          <Button
+                                                              type="button"
+                                                              variant="outline"
+                                                              className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white"
+                                                              onClick={() =>
+                                                                  setSelectedOwners(
+                                                                      (
+                                                                          prev,
+                                                                      ) => ({
+                                                                          ...prev,
+                                                                          [group.key]:
+                                                                              {
+                                                                                  id: comedianGroup
+                                                                                      .comedian
+                                                                                      .id,
+                                                                                  uuid: comedianGroup
+                                                                                      .comedian
+                                                                                      .uuid,
+                                                                                  name: comedianGroup
+                                                                                      .comedian
+                                                                                      .name,
+                                                                                  popularity:
+                                                                                      comedianGroup
+                                                                                          .comedian
+                                                                                          .popularity,
+                                                                              },
+                                                                      }),
+                                                                  )
+                                                              }
+                                                              disabled={
+                                                                  disabled ||
+                                                                  isSelectedOwner
+                                                              }
+                                                          >
+                                                              Set as owner
+                                                          </Button>
+                                                          <Button
+                                                              type="button"
+                                                              className="gap-2 !text-white"
+                                                              variant="roundedShimmer"
+                                                              onClick={() =>
+                                                                  void save(
+                                                                      group,
+                                                                  )
+                                                              }
+                                                              disabled={
+                                                                  disabled
+                                                              }
+                                                              aria-label={`Save ${group.podcast.title}`}
+                                                          >
+                                                              <Save
+                                                                  className="h-4 w-4"
+                                                                  aria-hidden="true"
+                                                              />
+                                                              Save
+                                                          </Button>
+                                                      </div>
+                                                  </section>
+                                              );
+                                          },
+                                      )}
+                                  </div>
+                              </ReviewGroupFrame>
+                          );
+                      })}
             </div>
             <AdminPagination
                 page={currentPage}
