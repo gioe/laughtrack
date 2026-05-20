@@ -275,10 +275,11 @@ const PrivacyPage = async () => {
                     </h2>
                     <p>
                         The Service is not directed to anyone under the age of
-                        13. We do not knowingly collect personal information
-                        from children under 13. If you believe a child has
-                        provided us with personal information, please email
-                        admin@laugh-track.com and we will delete it.
+                        18. We do not knowingly collect personal information
+                        from anyone under the age of 18. If you believe a
+                        minor has provided us with personal information,
+                        please email admin@laugh-track.com and we will delete
+                        it.
                     </p>
                 </div>
 
