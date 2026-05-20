@@ -87,7 +87,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
         expect(res.status).toBe(401);
     });
 
-    it("lists pending candidates with context", async () => {
+    it("lists all candidate statuses with context", async () => {
         mockFindCandidates.mockResolvedValue([
             {
                 id: 12,
@@ -142,6 +142,11 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expect(mockFindCandidates).toHaveBeenCalledWith(
+            expect.not.objectContaining({
+                where: { candidateStatus: "pending" },
+            }),
+        );
         expect(body.candidates).toEqual([
             expect.objectContaining({
                 id: 12,

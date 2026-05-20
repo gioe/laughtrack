@@ -1,5 +1,5 @@
 import { writeAdminActionAudit } from "@/lib/admin/audit";
-import { listPendingPodcastOwnershipReviews } from "@/lib/admin/podcastOwnershipReviews";
+import { listPodcastOwnershipReviews } from "@/lib/admin/podcastOwnershipReviews";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
@@ -252,7 +252,7 @@ export async function GET() {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
-    const candidates = await listPendingPodcastOwnershipReviews();
+    const candidates = await listPodcastOwnershipReviews();
     return NextResponse.json({ candidates });
 }
 

@@ -129,13 +129,21 @@ function groupCandidates(
         const acceptedOwner = ownershipOptions.find(
             (option) => option.reviewStatus === "accepted",
         );
+        const pendingCandidate = rows.find(
+            (candidate) => candidate.candidateStatus === "pending",
+        );
+        const suggestedOwner = pendingCandidate
+            ? candidateOptions.find(
+                  (option) => option.id === pendingCandidate.comedian.id,
+              )
+            : null;
 
         return {
             key: String(podcastId),
             podcast,
             candidates: rows,
             ownerOptions: Array.from(uniqueOptions.values()),
-            initialOwner: acceptedOwner ?? candidateOptions[0] ?? null,
+            initialOwner: acceptedOwner ?? suggestedOwner ?? null,
             popularity: Math.max(
                 0,
                 ...rows.map((candidate) => candidate.comedian.popularity),
@@ -421,7 +429,7 @@ export default function AdminPodcastOwnershipReviewManager({
     if (groups.length === 0) {
         return (
             <div className="rounded-md border border-copper/25 bg-white p-6 font-dmSans text-body text-soft-charcoal">
-                No pending podcast ownership reviews.
+                No podcast ownership review records found.
             </div>
         );
     }

@@ -1,7 +1,5 @@
 import { db } from "@/lib/db";
 
-const PENDING_LIMIT = 100;
-
 type CandidateRow = {
     id: number;
     comedianId: number;
@@ -124,11 +122,10 @@ function serializeCandidate(
     };
 }
 
-export async function listPendingPodcastOwnershipReviews(): Promise<
+export async function listPodcastOwnershipReviews(): Promise<
     AdminPodcastOwnershipReviewCandidate[]
 > {
     const candidates = await db.podcastCandidateReview.findMany({
-        where: { candidateStatus: "pending" },
         select: {
             id: true,
             comedianId: true,
@@ -161,8 +158,7 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
                 },
             },
         },
-        orderBy: [{ confidence: "desc" }, { id: "asc" }],
-        take: PENDING_LIMIT,
+        orderBy: [{ updatedAt: "desc" }, { confidence: "desc" }, { id: "asc" }],
     });
 
     const pairs = candidates
@@ -208,3 +204,5 @@ export async function listPendingPodcastOwnershipReviews(): Promise<
         ),
     );
 }
+
+export const listPendingPodcastOwnershipReviews = listPodcastOwnershipReviews;

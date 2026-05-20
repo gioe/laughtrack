@@ -1,9 +1,9 @@
 import { isAdminSession } from "@/lib/auth/requireAdmin";
-import { Button } from "@/ui/components/ui/button";
 import {
     BadgeCheck,
     Building2,
     ChevronRight,
+    Menu,
     Podcast,
     UserRound,
     UsersRound,
@@ -80,39 +80,49 @@ export default async function AdminLayout({
                             </div>
                         </div>
                     </Link>
-                    <div className="flex items-center gap-2 rounded-md border border-copper/25 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
-                        <BadgeCheck className="h-4 w-4 text-copper-dark" />
-                        Admin access
+                    <div className="flex flex-wrap items-center gap-3">
+                        <details className="group relative">
+                            <summary
+                                aria-label="Admin navigation"
+                                className="flex cursor-pointer list-none items-center gap-2 rounded-md border border-copper/35 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar shadow-sm outline-none hover:bg-copper/10 focus-visible:ring-2 focus-visible:ring-copper/40 [&::-webkit-details-marker]:hidden"
+                            >
+                                <Menu className="h-5 w-5 text-copper-dark" />
+                                Menu
+                            </summary>
+                            <nav
+                                aria-label="Admin navigation"
+                                className="absolute right-0 z-30 mt-2 w-72 overflow-hidden rounded-md border border-copper/25 bg-white shadow-xl"
+                            >
+                                {ADMIN_NAV_ITEMS.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className="flex items-center gap-3 border-b border-copper/10 px-4 py-3 text-left last:border-b-0 hover:bg-coconut-cream/60"
+                                        >
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-copper/20 bg-coconut-cream text-copper-dark">
+                                                <Icon className="h-5 w-5" />
+                                            </span>
+                                            <span className="min-w-0">
+                                                <span className="block font-gilroy-bold text-body leading-tight text-cedar">
+                                                    {item.label}
+                                                </span>
+                                                <span className="block truncate font-dmSans text-caption text-soft-charcoal">
+                                                    {item.description}
+                                                </span>
+                                            </span>
+                                        </Link>
+                                    );
+                                })}
+                            </nav>
+                        </details>
+                        <div className="flex items-center gap-2 rounded-md border border-copper/25 bg-white/70 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
+                            <BadgeCheck className="h-4 w-4 text-copper-dark" />
+                            Admin access
+                        </div>
                     </div>
                 </div>
-                <nav
-                    aria-label="Admin navigation"
-                    className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-5 md:px-8"
-                >
-                    {ADMIN_NAV_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                            <Button
-                                key={item.href}
-                                asChild
-                                variant="roundedShimmerOutline"
-                                className="h-auto min-w-44 justify-start gap-3 bg-white/80 px-4 py-3 text-left"
-                            >
-                                <Link href={item.href}>
-                                    <Icon className="h-5 w-5 shrink-0" />
-                                    <span className="min-w-0">
-                                        <span className="block font-gilroy-bold text-body leading-tight">
-                                            {item.label}
-                                        </span>
-                                        <span className="block truncate font-dmSans text-caption font-normal text-soft-charcoal">
-                                            {item.description}
-                                        </span>
-                                    </span>
-                                </Link>
-                            </Button>
-                        );
-                    })}
-                </nav>
             </header>
             <main
                 id="main-content"

@@ -77,6 +77,25 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(screen.getByText(/matched_name/)).toBeTruthy();
     });
 
+    it("does not preselect owners for non-pending rejected candidates", () => {
+        render(
+            <AdminPodcastOwnershipReviewManager
+                candidates={[
+                    {
+                        ...candidate,
+                        candidateStatus: "rejected",
+                        existingOwnerships: [],
+                    },
+                ]}
+            />,
+        );
+
+        openGroup(/The Jane Show/);
+
+        expect(screen.getByText("No owner")).toBeTruthy();
+        expect(screen.getAllByText(/blocked/i).length).toBeGreaterThan(0);
+    });
+
     it("switches to comedian view and sorts by popularity", () => {
         const lowerPopularityCandidate: AdminPodcastOwnershipReviewCandidate = {
             ...candidate,
