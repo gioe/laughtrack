@@ -30,4 +30,4 @@ Every actionable report becomes a tracked task. The flow:
 3. **Work the task through `/tusk`** like any other bug — feature branch, fix, merge to `main`, Vercel auto-deploys.
 4. **Close the loop with the reporter** once the fix is live. Reference the deployed change so they can verify.
 
-For a confirmed live outage, also note it in the Discord #laughtrack channel (see `MEMORY.md` reference) so the next nightly scraper run is monitored more closely.
+For a confirmed live outage, also note it in the Discord #laughtrack channel (where the nightly scraper run posts metrics via Spidey Bot) so the next run is monitored more closely.
