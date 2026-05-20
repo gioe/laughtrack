@@ -49,7 +49,7 @@ describe("ShowCardHeader", () => {
         render(<ShowCardHeader show={new Show(baseShow)} />);
 
         expect(
-            screen.getByRole("heading", { level: 2, name: "Late Show" }),
+            screen.getByRole("heading", { level: 3, name: "Late Show" }),
         ).toBeTruthy();
         expect(screen.getByText("The Copper Room")).toBeTruthy();
     });
