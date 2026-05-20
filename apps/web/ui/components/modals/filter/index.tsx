@@ -8,6 +8,8 @@ import { FilterChip } from "../../params/filter/chips";
 import { useFilters } from "@/hooks/useFilters";
 import { useFilterModal } from "@/hooks";
 import ComedianAdvancedFilters from "./comedianAdvanced";
+import { useUrlParams } from "@/hooks/useUrlParams";
+import { QueryProperty } from "@/objects/enum";
 
 interface FilterModalProps {
     filters: FilterDTO[];
@@ -21,6 +23,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
     const filterModal = useFilterModal();
     const { handleOpen, handleFilterChange, handleClose, selections } =
         useFilters(filters);
+    const isPodcastSearch = variant === SearchVariant.AllPodcasts;
 
     useEffect(() => {
         if (filterModal.isOpen) {
@@ -49,6 +52,8 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
             {variant === SearchVariant.AllComedians && (
                 <ComedianAdvancedFilters />
             )}
+
+            {isPodcastSearch && <PodcastAdvancedFilters />}
 
             {filters.length > 0 && (
                 <div className="mb-6 pt-7 animate-slideUp">
@@ -82,3 +87,39 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
 };
 
 export default FilterModal;
+
+function PodcastAdvancedFilters() {
+    const { getTypedParam, setTypedParam } = useUrlParams();
+    const includeAllPodcasts =
+        (getTypedParam(QueryProperty.IncludeEmpty) ?? false) === true;
+
+    return (
+        <div className="mb-6 pt-2 animate-slideUp">
+            <h3 className="text-lead font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                Podcast Scope
+            </h3>
+            <label className="flex items-start gap-3 rounded-md border border-gray-200 p-3 cursor-pointer transition-colors hover:bg-gray-50">
+                <input
+                    type="checkbox"
+                    checked={includeAllPodcasts}
+                    onChange={() =>
+                        setTypedParam(
+                            QueryProperty.IncludeEmpty,
+                            !includeAllPodcasts,
+                        )
+                    }
+                    className="mt-1 accent-copper w-4 h-4"
+                />
+                <span>
+                    <span className="block font-dmSans text-sm font-semibold text-gray-800">
+                        Include all podcasts
+                    </span>
+                    <span className="block font-dmSans text-sm text-gray-600">
+                        Show podcasts that do not yet have accepted public host
+                        ownership.
+                    </span>
+                </span>
+            </label>
+        </div>
+    );
+}

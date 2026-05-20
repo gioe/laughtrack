@@ -106,7 +106,8 @@ const FilterBar = ({
           ((getTypedParam("minUpcomingShows") ?? 0) > 0 ? 1 : 0)
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
-    const showFilterButton = filterData.length > 0 || isComedianSearch;
+    const showFilterButton =
+        filterData.length > 0 || isComedianSearch || isPodcastSearch;
 
     const removeFilter = (slug: string) => {
         const updated = selectedSlugs.filter((s) => s !== slug).join(",");

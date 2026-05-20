@@ -54,7 +54,11 @@ export default async function PodcastsPage(props: PodcastsPageProps) {
     return (
         <>
             <JsonLd data={[buildPodcastCollectionJsonLd(data)]} />
-            <FilterModal filters={filters} total={total} />
+            <FilterModal
+                filters={filters}
+                total={total}
+                variant={SearchVariant.AllPodcasts}
+            />
             <SearchDetailHeader
                 title="Search podcasts"
                 subTitle={`${total.toLocaleString("en-US")} results`}

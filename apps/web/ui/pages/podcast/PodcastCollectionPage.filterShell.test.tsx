@@ -50,7 +50,15 @@ vi.mock("@/ui/pages/search/filterBar", () => ({
             data-variant={String(variant)}
             data-total={total}
             data-filter-count={filterData.length}
-        />
+        >
+            <button type="button">Sort</button>
+            <button type="button">Filter</button>
+            <label>
+                <input type="checkbox" />
+                Include all
+            </label>
+            <span>{total} results</span>
+        </div>
     ),
 }));
 
@@ -96,6 +104,11 @@ describe("PodcastsPage filter shell integration", () => {
         expect(filterBar?.getAttribute("data-variant")).toBe(
             String(SearchVariant.AllPodcasts),
         );
+        expect(container.querySelector("button")).not.toBeNull();
+        expect(container.textContent).toContain("Sort");
+        expect(container.textContent).toContain("Filter");
+        expect(container.textContent).toContain("Include all");
+        expect(container.textContent).toContain("0 results");
     });
 
     it("renders the shared FilterModal alongside the FilterBar", async () => {

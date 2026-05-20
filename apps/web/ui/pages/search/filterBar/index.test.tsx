@@ -177,4 +177,18 @@ describe("FilterBar", () => {
             container.querySelector('[data-testid="podcast-all-search"]'),
         ).not.toBeNull();
     });
+
+    it("renders the FilterModalButton for AllPodcasts even without tag filters", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.AllPodcasts}
+                total={5}
+                filterData={[]}
+            />,
+        );
+
+        expect(
+            container.querySelector('[data-testid="filter-modal-button"]'),
+        ).not.toBeNull();
+    });
 });
