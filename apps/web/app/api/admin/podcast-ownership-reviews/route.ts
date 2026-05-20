@@ -240,7 +240,7 @@ function parseRssFeed(xml: string, feedUrl: string): ParsedRssFeed {
 }
 
 function revalidatePodcastReviewSurfaces(slug: string | null | undefined) {
-    revalidateTag("podcasts-search-page-data-v2");
+    revalidateTag("podcasts-search-page-data-v3");
     revalidateTag("podcast-detail-data-v2");
     revalidateTag("podcast-metadata");
     if (slug) {

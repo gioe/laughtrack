@@ -332,7 +332,7 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             }),
         });
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
-            "podcasts-search-page-data-v2",
+            "podcasts-search-page-data-v3",
         );
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
             "podcast-detail-data-v2",
@@ -519,7 +519,7 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
             }),
         });
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
-            "podcasts-search-page-data-v2",
+            "podcasts-search-page-data-v3",
         );
         expect(mocks.revalidateTag).toHaveBeenCalledWith(
             "manual-jane-feed-manual-rss-abc",
