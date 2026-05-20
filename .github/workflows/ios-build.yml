@@ -29,3 +29,42 @@ jobs:
 
       - name: Compile-gate LaughTrackTests against the current API surface
         run: cd ios && swift build --build-tests
+
+  # Sim-test job pinned to iOS 18.3.1 (TASK-2339). The iOS 26.1 / 26.2 SDK has
+  # a regression in _UIHostingView's accessibility-tree wiring that fails ~18
+  # tests across 16 HostedView suites on those runtimes; bisect details and
+  # workaround patterns live in ios/CLAUDE.md under "iOS 26 Accessibility-Tree
+  # Wiring Regression (TASK-1921)". Pin the blocking CI test job to 18.3.1
+  # until Apple ships a fix.
+  sim-tests-ios-18:
+    runs-on: macos-latest
+    needs: swift-build-tests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show available iOS simulator runtimes
+        run: xcrun simctl list runtimes
+
+      - name: Install fastlane dependencies
+        run: cd ios && bundle install
+
+      - name: Run tests on the pinned iOS 18.3.1 simulator
+        run: cd ios && bundle exec fastlane test
+
+  # Non-blocking watcher (TASK-2339). Runs the same suite on the latest iOS
+  # 26.x simulator so a future Apple fix surfaces in the CI signal — until
+  # then this job is expected to fail and must stay non-blocking.
+  sim-tests-ios-26-watch:
+    runs-on: macos-latest
+    needs: swift-build-tests
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install fastlane dependencies
+        run: cd ios && bundle install
+
+      - name: Run tests on the iOS 26.x simulator (watcher)
+        run: cd ios && bundle exec fastlane test_ios26_watch
