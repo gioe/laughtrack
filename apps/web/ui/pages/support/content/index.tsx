@@ -6,52 +6,68 @@ const SupportSection = () => {
 
     return (
         <div className="w-full bg-coconut-cream">
-            {/* Content Container */}
             <div className="max-w-7xl mx-auto px-6 py-12">
-                {/* Header */}
-                <h1 className="text-h1 font-bold text-center mb-4 font-chivo">
-                    Support
-                </h1>
+                <div className="text-center mb-8">
+                    <h1 className="text-h1 font-bold mb-4 font-chivo">
+                        Support
+                    </h1>
+                    <p className="text-muted-foreground font-dmSans text-body max-w-3xl mx-auto">
+                        Need help with Laughtrack? Email us and we'll send a
+                        first human response within 2 business days.
+                    </p>
+                </div>
 
-                {/* Image Container - Fixed height with full width */}
                 <div className="w-full h-[600px] mb-8 relative">
                     <img
                         src={imageUrl?.toString()}
-                        alt={"Logo"}
+                        alt="Comedy venue"
                         className="w-full h-full object-cover rounded-lg"
                     />
                 </div>
 
-                {/* Text Content */}
-                <div className="space-y-6 text-muted-foreground text-left text-lead font-dmSans">
-                    <p>
-                        We built Laughtrack because we saw a problem that needed
-                        solving. It's not the biggest problem in the world, but
-                        it's a real one. We're not trying to disrupt industries
-                        or harvest attention. We simply wanted to build
-                        something helpful and sustainable. No venture capital,
-                        no big tech backing - just regular people using our
-                        skills to create something useful.
-                    </p>
+                <div className="space-y-10 text-muted-foreground text-left font-dmSans max-w-3xl mx-auto">
+                    <section className="space-y-4">
+                        <h2 className="font-chivo text-3xl font-bold text-foreground">
+                            Report a bug or ask for help
+                        </h2>
+                        <p className="text-lead">
+                            Send support requests, bug reports, broken ticket
+                            links, missing venue details, and product
+                            suggestions to{" "}
+                            <a
+                                href="mailto:contact@laugh-track.com"
+                                className="font-semibold text-copper underline underline-offset-4 hover:text-cedar"
+                            >
+                                contact@laugh-track.com
+                            </a>
+                            .
+                        </p>
+                        <p className="text-lead">
+                            We check the inbox on business days and aim to send
+                            a first human response within 2 business days of
+                            receiving your message. That first response may be a
+                            quick acknowledgement, a clarifying question, or the
+                            next step we're taking.
+                        </p>
+                    </section>
 
-                    <p>
-                        While the site is free, there are real costs to keeping
-                        it running smoothly. If you've found value in using this
-                        product and want to contribute to its continued
-                        development, consider making a one-time or recurring
-                        contribution. Your support directly enables ongoing
-                        improvements and helps ensure the site's longevity.
-                    </p>
-
-                    <p>
-                        We're an accessible team - if you have suggestions for
-                        the product, email us at contact@laugh-track.com. More
-                        interest means more resources we can dedicate to
-                        building features that benefit everyone or, I guess,
-                        anyone.
-                    </p>
-
-                    <p>Thank you for the support.</p>
+                    <section className="space-y-4 border-t border-copper/25 pt-8">
+                        <h2 className="font-chivo text-3xl font-bold text-foreground">
+                            Keeping Laughtrack useful
+                        </h2>
+                        <p className="text-lead">
+                            We built Laughtrack because finding live comedy
+                            should be simpler. The site is free to use, and
+                            there are real costs to keeping the data fresh and
+                            the product running smoothly.
+                        </p>
+                        <p className="text-lead">
+                            More interest gives us more room to improve the
+                            product, keep fixing rough edges, and build features
+                            that help people find shows worth leaving the house
+                            for.
+                        </p>
+                    </section>
                 </div>
             </div>
         </div>
