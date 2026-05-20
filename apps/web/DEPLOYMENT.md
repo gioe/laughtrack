@@ -356,3 +356,75 @@ These secrets are consumed by the scraper application and should be added to any
 - `NEXT_PUBLIC_SENTRY_DSN` — enables Sentry error tracking **(build-time)**
 - `DIRECTORY_PATH` — local file storage path (not needed on Vercel/Cloud Run)
 - `K_REVISION` — auto-set by Cloud Run, do not set manually
+
+---
+
+## Uptime Monitoring & Incident Response
+
+Production uptime is monitored by [Better Stack](https://betterstack.com/uptime). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via an incoming webhook.
+
+### What gets probed
+
+| Monitor | URL | Why |
+|---|---|---|
+| Homepage canary | `https://laugh-track.com/` | Full SSR path — catches DB / Prisma / NextAuth / CDN failures that a thin liveness check would miss |
+| Liveness probe | `https://laugh-track.com/api/health` | Cheap 200 OK from `apps/web/app/api/health/route.ts`. No DB dependency, so it stays green during transient DB blips while the homepage tells you whether real traffic is affected |
+
+The homepage is the leading signal (deep canary). The `/api/health` endpoint is a corroborating signal — if both fail, the app is hard-down; if only the homepage fails, the outage is in the data layer or middleware.
+
+### "Down" criteria
+
+A monitor is considered **down** when **any** of the following holds for **2 consecutive checks** (≥ 2 minutes of failure at the default 60s interval):
+
+- HTTP status ≥ 500, or
+- Request times out (no response within **10 seconds** for `/api/health`, **15 seconds** for `/`), or
+- TLS handshake fails
+
+Two consecutive failures (rather than one) suppresses single-region network blips. Better Stack's multi-region check (US-East + EU + Asia, with majority-rules confirmation) further reduces false positives.
+
+A monitor is considered **recovered** after **2 consecutive successful checks**.
+
+### Paging destination
+
+- **Primary:** Discord `#laughtrack` channel (Better Stack → Incoming Webhook integration → Discord webhook URL).
+- **Escalation:** Email to `gioematt@gmail.com` if the Discord incident is not acknowledged within 10 minutes.
+
+Both endpoints fire on `down`; only the Discord channel fires on `recovered`.
+
+### Who responds
+
+Matt Gioe (`gioematt@gmail.com`) is the sole on-call. There is no rotation. If unreachable, the site stays down — flag this in the post-incident retro and add an escalation contact.
+
+### Incident response steps
+
+When a page fires:
+
+1. **Acknowledge** in Better Stack (mobile app or dashboard) to stop further pages while you investigate.
+2. **Reproduce** — open `https://laugh-track.com/` and `https://laugh-track.com/api/health` from your browser. Note which is failing.
+3. **Triage by failure pattern:**
+   - **Both endpoints down** → app is hard-down. Check the [Vercel dashboard](https://vercel.com/dashboard) for the latest deployment status. If a recent deploy looks suspect, **Vercel → Deployments → Promote** the previous successful deployment to roll back.
+   - **Only `/` down, `/api/health` up** → SSR / DB path is broken. Check:
+     - [Neon console](https://console.neon.tech) — is the compute endpoint suspended or out of CPU credits?
+     - [Sentry](https://sentry.io) — any new spike of errors on the homepage route?
+     - Vercel logs for the most recent deployment.
+   - **Only `/api/health` down, `/` up** → unlikely (homepage covers the same Node runtime). Treat as Vercel infrastructure flap; wait 5 minutes before deeper investigation.
+4. **Communicate** — drop a note in `#laughtrack` Discord describing what you're seeing, even if you don't have a fix yet.
+5. **Resolve and close** the incident in Better Stack once both monitors are green for ≥ 5 minutes.
+6. **Post-incident** — file a tusk task (`/create-task`) capturing root cause, time to detect, time to resolve, and any follow-up work (e.g. add a new alert, fix a brittle code path).
+
+### One-time Better Stack setup
+
+Performed once; record the resulting monitor IDs in 1Password / a secure note.
+
+1. Sign up for [Better Stack Uptime](https://betterstack.com/uptime) (free tier covers 10 monitors).
+2. Create a Discord incoming webhook in the `#laughtrack` channel (Discord → Channel Settings → Integrations → Webhooks → New Webhook). Copy the URL.
+3. In Better Stack: **Integrations → Discord → Add integration**, paste the webhook URL.
+4. In Better Stack: **Monitors → Create monitor** twice — once per URL above. For each:
+   - **URL:** `https://laugh-track.com/` and `https://laugh-track.com/api/health`
+   - **Check frequency:** 60 seconds
+   - **Request timeout:** 15s for `/`, 10s for `/api/health`
+   - **Confirm by:** 2 consecutive failures, multiple regions
+   - **On-call schedule:** the Discord integration created above; add email escalation after 10 minutes
+   - **Expected status code:** `200`
+5. Trigger a test failure: pause one monitor manually and confirm Discord receives the alert in `#laughtrack`. Resume the monitor.
+6. Document the monitor IDs in the team notes so they can be referenced from future runbooks.
