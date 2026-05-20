@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Headphones, Podcast, Rss } from "lucide-react";
+import { ExternalLink, Headphones, Heart, Podcast, Rss } from "lucide-react";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import EntityCard from "@/ui/components/cards/entity";
 import { Button } from "@/ui/components/ui/button";
+import { useFavorite } from "@/hooks/useFavorite";
 import {
     startPodcastEpisode,
     usePodcastPlayer,
@@ -178,7 +179,7 @@ function PodcastPrimaryCta({ podcast }: { podcast: PodcastDTO }) {
         : "Opens the podcast's RSS feed in a new tab.";
 
     return (
-        <div className="mt-5">
+        <div>
             <Button asChild variant="roundedShimmer" className="gap-2">
                 <a
                     href={url}
@@ -200,6 +201,17 @@ export default function PodcastDetail({
     episodes,
     relatedComedians,
 }: PodcastDetailProps) {
+    const { isFavorite, handleFavoriteClick, isAuthenticated } = useFavorite({
+        initialState: podcast.isFavorite ?? false,
+        entityId: String(podcast.id),
+        entityType: "podcast",
+    });
+    const favoriteLabel = isAuthenticated
+        ? isFavorite
+            ? "Remove from favorites"
+            : "Add to favorites"
+        : "Sign in to favorite this podcast";
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10">
             <section className="grid gap-6 md:grid-cols-[224px_minmax(0,1fr)] md:items-end">
@@ -224,7 +236,30 @@ export default function PodcastDetail({
                             {podcast.description}
                         </p>
                     ) : null}
-                    <PodcastPrimaryCta podcast={podcast} />
+                    <div className="mt-5 flex flex-wrap items-start gap-3">
+                        <Button
+                            type="button"
+                            variant="roundedShimmer"
+                            onClick={handleFavoriteClick}
+                            aria-label={favoriteLabel}
+                            aria-pressed={
+                                isAuthenticated ? isFavorite : undefined
+                            }
+                            className="gap-2"
+                        >
+                            <Heart
+                                size={16}
+                                aria-hidden="true"
+                                className={
+                                    isFavorite
+                                        ? "fill-current text-red-100"
+                                        : ""
+                                }
+                            />
+                            {isFavorite ? "Favorited" : "Add to favorites"}
+                        </Button>
+                        <PodcastPrimaryCta podcast={podcast} />
+                    </div>
                     <div className="mt-4 flex flex-wrap items-center gap-3">
                         {podcast.websiteUrl && podcast.feedUrl ? (
                             <a

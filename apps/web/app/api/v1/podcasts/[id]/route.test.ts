@@ -16,10 +16,15 @@ vi.mock("@/lib/rateLimit", () => ({
     ),
     rateLimitHeaders: vi.fn(),
 }));
+vi.mock("@/lib/auth/resolveAuth", () => ({
+    PROFILE_MISSING: Symbol("PROFILE_MISSING"),
+    resolveAuth: vi.fn(() => Promise.resolve(null)),
+}));
 
 import { GET } from "./route";
 import { getPodcastDetailPageDataById } from "@/lib/data/podcast/detail/getPodcastDetailPageData";
 import { rateLimitHeaders } from "@/lib/rateLimit";
+import { resolveAuth } from "@/lib/auth/resolveAuth";
 import {
     RATE_LIMIT_SENTINEL_HEADER,
     RATE_LIMIT_SENTINEL_HEADERS,
@@ -28,6 +33,7 @@ import {
 
 const mockGetPodcastDetailPageDataById = vi.mocked(getPodcastDetailPageDataById);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
+const mockResolveAuth = vi.mocked(resolveAuth);
 
 function makeRequest(): NextRequest {
     return new NextRequest("http://localhost/api/v1/podcasts/42");
@@ -94,10 +100,46 @@ describe("GET /api/v1/podcasts/[id]", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(mockGetPodcastDetailPageDataById).toHaveBeenCalledWith(42);
+        expect(mockGetPodcastDetailPageDataById).toHaveBeenCalledWith(
+            42,
+            undefined,
+        );
         expect(body.podcast.title).toBe("The Laugh Track Pod");
         expect(body.episodes).toHaveLength(1);
         expect(body.relatedComedians).toHaveLength(1);
+    });
+
+    it("passes the authenticated profile id to the detail lookup", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-123",
+            userId: "user-123",
+            role: "User",
+        } as never);
+        mockGetPodcastDetailPageDataById.mockResolvedValue({
+            podcast: {
+                id: 42,
+                slug: "the-laugh-track-pod",
+                title: "The Laugh Track Pod",
+                authorName: "Laugh Track Network",
+                websiteUrl: null,
+                feedUrl: null,
+                imageUrl: null,
+                description: null,
+                episodeCount: 12,
+                isFavorite: true,
+            },
+            episodes: [],
+            relatedComedians: [],
+        });
+
+        await GET(makeRequest(), {
+            params: Promise.resolve({ id: "42" }),
+        });
+
+        expect(mockGetPodcastDetailPageDataById).toHaveBeenCalledWith(
+            42,
+            "profile-123",
+        );
     });
 
     it("returns 400 for invalid ids", async () => {

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { db } from "@/lib/db";
+import { auth } from "@/auth";
 import JsonLd from "@/ui/components/JsonLd";
 import PodcastDetail from "@/ui/pages/entity/podcast";
 import { getPodcastDetailPageData } from "@/lib/data/podcast/detail/getPodcastDetailPageData";
@@ -68,13 +69,14 @@ export async function generateMetadata(props: {
 export default async function PodcastDetailPage(props: {
     params: Promise<{ slug: string }>;
 }) {
-    const { slug } = await props.params;
+    const [session, { slug }] = await Promise.all([auth(), props.params]);
+    const profileId = session?.profile?.id;
     const getCached = unstable_cache(
-        async () => getPodcastDetailPageData(slug),
-        ["podcast-detail-data-v2", slug],
+        async () => getPodcastDetailPageData(slug, profileId),
+        ["podcast-detail-data-v2", slug, profileId ?? "anonymous"],
         {
             revalidate: CACHE.detailPage,
-            tags: ["podcast-detail-data-v2", slug],
+            tags: ["podcast-detail-data-v2", slug, profileId ?? "anonymous"],
         },
     );
 

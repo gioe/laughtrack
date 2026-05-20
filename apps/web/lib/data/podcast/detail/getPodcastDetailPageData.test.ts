@@ -61,4 +61,21 @@ describe("getPodcastDetailPageData", () => {
             }),
         );
     });
+
+    it("selects favorite rows when a profile id is provided", async () => {
+        await expect(
+            getPodcastDetailPageData("chrissy-chaos", "profile-123"),
+        ).rejects.toThrow(NotFoundError);
+
+        expect(mockFindFirst).toHaveBeenCalledWith(
+            expect.objectContaining({
+                select: expect.objectContaining({
+                    favorites: {
+                        where: { profileId: "profile-123" },
+                        select: { id: true },
+                    },
+                }),
+            }),
+        );
+    });
 });

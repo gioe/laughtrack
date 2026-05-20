@@ -48,6 +48,14 @@ vi.mock("@/ui/components/cards/entity", () => ({
     ),
 }));
 
+vi.mock("@/hooks/useFavorite", () => ({
+    useFavorite: () => ({
+        isFavorite: false,
+        handleFavoriteClick: vi.fn(),
+        isAuthenticated: true,
+    }),
+}));
+
 const basePodcast: PodcastDTO = {
     id: 1,
     slug: "the-good-podcast",

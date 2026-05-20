@@ -47,6 +47,7 @@ function mapEpisode(episode: {
 
 async function getPodcastDetailPageDataByWhere(
     where: { slug: string } | { id: number },
+    profileId?: string,
 ): Promise<PodcastDetailResponse> {
     const podcast = await db.podcast.findFirst({
         where: {
@@ -108,6 +109,14 @@ async function getPodcastDetailPageDataByWhere(
                     episodes: true,
                 },
             },
+            ...(profileId
+                ? {
+                      favorites: {
+                          where: { profileId },
+                          select: { id: true },
+                      },
+                  }
+                : {}),
         },
     });
 
@@ -163,6 +172,10 @@ async function getPodcastDetailPageDataByWhere(
             imageUrl: safePodcastImageUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
+            isFavorite: Boolean(
+                (podcast as typeof podcast & { favorites?: { id: number }[] })
+                    .favorites?.length,
+            ),
         },
         episodes: podcast.episodes.map(mapEpisode),
         relatedComedians,
@@ -171,12 +184,14 @@ async function getPodcastDetailPageDataByWhere(
 
 export async function getPodcastDetailPageData(
     slug: string,
+    profileId?: string,
 ): Promise<PodcastDetailResponse> {
-    return getPodcastDetailPageDataByWhere({ slug });
+    return getPodcastDetailPageDataByWhere({ slug }, profileId);
 }
 
 export async function getPodcastDetailPageDataById(
     id: number,
+    profileId?: string,
 ): Promise<PodcastDetailResponse> {
-    return getPodcastDetailPageDataByWhere({ id });
+    return getPodcastDetailPageDataByWhere({ id }, profileId);
 }
