@@ -16,6 +16,7 @@ import type {
     PodcastEpisodeDTO,
 } from "@/lib/data/podcast/interface";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import DetailTabs, { DetailTab } from "@/ui/pages/entity/detailTabs";
 
 interface PodcastDetailProps {
     podcast: PodcastDTO;
@@ -196,6 +197,64 @@ function PodcastPrimaryCta({ podcast }: { podcast: PodcastDTO }) {
     );
 }
 
+function PodcastEpisodesSection({
+    podcast,
+    episodes,
+}: {
+    podcast: PodcastDTO;
+    episodes: PodcastEpisodeDTO[];
+}) {
+    return (
+        <section className="mt-10" aria-labelledby="podcast-episodes-heading">
+            <h2
+                id="podcast-episodes-heading"
+                className="font-gilroy-bold text-h2 font-bold text-foreground"
+            >
+                Episodes
+            </h2>
+            <ul role="list" className="mt-4 space-y-3">
+                {episodes.map((episode) => (
+                    <li key={episode.id}>
+                        <EpisodeRow podcast={podcast} episode={episode} />
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
+function PodcastRelatedComediansSection({
+    relatedComedians,
+}: {
+    relatedComedians: ComedianDTO[];
+}) {
+    if (relatedComedians.length === 0) return null;
+
+    return (
+        <section className="mt-10" aria-labelledby="related-comedians-heading">
+            <header className="mb-4 flex items-end justify-between gap-4">
+                <h2
+                    id="related-comedians-heading"
+                    className="font-gilroy-bold text-h2 font-bold text-foreground"
+                >
+                    Related comedians
+                </h2>
+                <Link
+                    href="/comedian/search"
+                    className="font-dmSans text-sm font-semibold text-copper hover:underline"
+                >
+                    Browse comedians
+                </Link>
+            </header>
+            <ComedianGrid
+                comedians={relatedComedians}
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                cardVariant="compact"
+            />
+        </section>
+    );
+}
+
 export default function PodcastDetail({
     podcast,
     episodes,
@@ -279,51 +338,28 @@ export default function PodcastDetail({
                 </div>
             </section>
 
-            <section
-                className="mt-10"
-                aria-labelledby="podcast-episodes-heading"
-            >
-                <h2
-                    id="podcast-episodes-heading"
-                    className="font-gilroy-bold text-h2 font-bold text-foreground"
-                >
-                    Episodes
-                </h2>
-                <ul role="list" className="mt-4 space-y-3">
-                    {episodes.map((episode) => (
-                        <li key={episode.id}>
-                            <EpisodeRow podcast={podcast} episode={episode} />
-                        </li>
-                    ))}
-                </ul>
-            </section>
-
             {relatedComedians.length > 0 ? (
-                <section
-                    className="mt-12"
-                    aria-labelledby="related-comedians-heading"
+                <DetailTabs
+                    ariaLabel="Podcast detail sections"
+                    className="mt-8"
+                    defaultTabId="episodes"
+                    tabIdPrefix="podcast-detail"
                 >
-                    <header className="mb-4 flex items-end justify-between gap-4">
-                        <h2
-                            id="related-comedians-heading"
-                            className="font-gilroy-bold text-h2 font-bold text-foreground"
-                        >
-                            Related comedians
-                        </h2>
-                        <Link
-                            href="/comedian/search"
-                            className="font-dmSans text-sm font-semibold text-copper hover:underline"
-                        >
-                            Browse comedians
-                        </Link>
-                    </header>
-                    <ComedianGrid
-                        comedians={relatedComedians}
-                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
-                        cardVariant="compact"
-                    />
-                </section>
-            ) : null}
+                    <DetailTab id="episodes" label="Episodes">
+                        <PodcastEpisodesSection
+                            podcast={podcast}
+                            episodes={episodes}
+                        />
+                    </DetailTab>
+                    <DetailTab id="comedians" label="Comedians">
+                        <PodcastRelatedComediansSection
+                            relatedComedians={relatedComedians}
+                        />
+                    </DetailTab>
+                </DetailTabs>
+            ) : (
+                <PodcastEpisodesSection podcast={podcast} episodes={episodes} />
+            )}
         </div>
     );
 }

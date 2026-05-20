@@ -6,10 +6,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/ui/components/ui/button";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
-import SiblingLocations from "@/ui/pages/entity/club/siblings";
-import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
-import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
@@ -22,7 +19,7 @@ import JsonLd from "@/ui/components/JsonLd";
 import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
 import { readTimezoneCookie } from "@/util/timezone";
-import ClubShowRooms from "@/ui/pages/entity/club/showRooms";
+import ClubDetailTabs from "@/ui/pages/entity/club/detailTabs";
 
 type DetailSearchParams = Record<string, string | string[] | undefined>;
 
@@ -159,21 +156,16 @@ export default async function ClubDetailPage(props: {
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
-            {data.chainName && (
-                <SiblingLocations
-                    chainName={data.chainName}
-                    siblings={siblings}
-                />
-            )}
             {isFestival && shows.length > 0 && (
                 <FestivalDateRange shows={shows} />
             )}
-            <FilterBar
-                variant={SearchVariant.ClubDetail}
+            <ClubDetailTabs
+                chainName={data.chainName ?? null}
                 total={total}
-                filterData={filters}
+                filters={filters}
+                shows={shows}
+                siblings={siblings}
             />
-            <ClubShowRooms shows={shows} />
         </>
     );
 }

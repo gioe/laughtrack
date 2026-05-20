@@ -10,10 +10,9 @@ import JsonLd from "@/ui/components/JsonLd";
 import { buildShowJsonLd } from "@/util/jsonLd";
 import type { Metadata } from "next";
 import ShowDetailHeader from "@/ui/pages/entity/show/header";
-import ShowLineupSection from "@/ui/pages/entity/show/lineupSection";
 import ShowTicketCta from "@/ui/pages/entity/show/ticketCta";
 import ShowDescription from "@/ui/pages/entity/show/description";
-import RelatedShowsSection from "@/ui/pages/entity/show/relatedShows";
+import ShowDetailTabs from "@/ui/pages/entity/show/detailTabs";
 
 function parseShowId(raw: string): number | null {
     const id = Number(raw);
@@ -127,9 +126,9 @@ export default async function ShowDetailPage(props: {
             <ShowDetailHeader show={show} />
             <ShowTicketCta show={show} isPast={isPast} />
             <ShowDescription description={show.description} />
-            <ShowLineupSection lineup={show.lineup ?? []} />
-            <RelatedShowsSection
-                shows={relatedShows}
+            <ShowDetailTabs
+                lineup={show.lineup ?? []}
+                relatedShows={relatedShows}
                 clubName={show.clubName}
             />
         </>
