@@ -369,8 +369,8 @@ Production uptime is monitored by [UptimeRobot](https://uptimerobot.com). Pages 
 
 | Monitor | URL | Why |
 |---|---|---|
-| Homepage canary | `https://laugh-track.com/` | Full SSR path — catches DB / Prisma / NextAuth / CDN failures that a thin liveness check would miss |
-| Liveness probe | `https://laugh-track.com/api/health` | Cheap 200 OK from `apps/web/app/api/health/route.ts`. No DB dependency, so it stays green during transient DB blips while the homepage tells you whether real traffic is affected |
+| Homepage canary | `https://www.laugh-track.com/` | Full SSR path — catches DB / Prisma / NextAuth / CDN failures that a thin liveness check would miss. Monitor the canonical `www.` host directly so a redirect-layer issue at the apex does not masquerade as an app outage. |
+| Liveness probe | `https://www.laugh-track.com/api/health` | Cheap 200 OK from `apps/web/app/api/health/route.ts`. No DB dependency, so it stays green during transient DB blips while the homepage tells you whether real traffic is affected |
 
 The homepage is the leading signal (deep canary). The `/api/health` endpoint is a corroborating signal — if both fail, the app is hard-down; if only the homepage fails, the outage is in the data layer or middleware.
 
@@ -402,7 +402,7 @@ Matt Gioe (`gioematt@gmail.com`) is the sole on-call. There is no rotation. If u
 When a page fires:
 
 1. **Acknowledge** in UptimeRobot (mobile app or dashboard) to stop further pages while you investigate.
-2. **Reproduce** — open `https://laugh-track.com/` and `https://laugh-track.com/api/health` from your browser. Note which is failing.
+2. **Reproduce** — open `https://www.laugh-track.com/` and `https://www.laugh-track.com/api/health` from your browser. Note which is failing.
 3. **Triage by failure pattern:**
    - **Both endpoints down** → app is hard-down. Check the [Vercel dashboard](https://vercel.com/dashboard) for the latest deployment status. If a recent deploy looks suspect, **Vercel → Deployments → Promote** the previous successful deployment to roll back.
    - **Only `/` down, `/api/health` up** → SSR / DB path is broken. Check:
@@ -435,7 +435,7 @@ Performed once; record the resulting monitor IDs in 1Password / a secure note.
 4. Add a second alert contact: **Type: E-mail**, address `gioematt@gmail.com`, for escalation redundancy.
 5. **Monitors → New Monitor** twice — once per URL above. For each:
    - **Monitor Type:** HTTP(s)
-   - **URL:** `https://laugh-track.com/` and `https://laugh-track.com/api/health`
+   - **URL:** `https://www.laugh-track.com/` and `https://www.laugh-track.com/api/health`
    - **Monitoring Interval:** 5 minutes (free tier) or 1 minute (paid tier if upgraded)
    - **Timeout:** 15s for `/`, 10s for `/api/health`
    - **Alert Contacts:** select both the Discord webhook and the email contact created above
