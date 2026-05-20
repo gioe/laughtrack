@@ -3,6 +3,7 @@ import { NotFoundError } from "@/objects/NotFoundError";
 import type { PodcastDetailResponse, PodcastEpisodeDTO } from "../interface";
 import type { SocialDataDTO } from "@/objects/class/socialData/socialData.interface";
 import type { Prisma } from "@prisma/client";
+import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 
 const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
     comedianPodcasts: {
@@ -11,10 +12,6 @@ const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
         },
     },
 } satisfies Prisma.PodcastWhereInput;
-
-function safePodcastImageUrl(url: string | null): string | null {
-    return url?.startsWith("https://") ? url : null;
-}
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -169,7 +166,7 @@ async function getPodcastDetailPageDataByWhere(
             authorName: podcast.authorName,
             websiteUrl: podcast.websiteUrl,
             feedUrl: podcast.feedUrl,
-            imageUrl: safePodcastImageUrl(podcast.imageUrl),
+            imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
             isFavorite: Boolean(

@@ -65,12 +65,6 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
         port: '',
         pathname: '/a/**',
-      },
-      // Podcast artwork is sourced from feed-owned CDN hosts.
-      {
-        protocol: 'https',
-        hostname: '**',
-        port: '',
       }
     ],
   },

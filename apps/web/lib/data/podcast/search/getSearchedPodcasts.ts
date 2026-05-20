@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { PodcastSearchResponse } from "../interface";
+import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 
 const DEFAULT_PAGE_SIZE = 20;
 const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
@@ -11,10 +12,6 @@ const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
         },
     },
 } satisfies Prisma.PodcastWhereInput;
-
-function safePodcastImageUrl(url: string | null): string | null {
-    return url?.startsWith("https://") ? url : null;
-}
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -167,7 +164,7 @@ export async function getSearchedPodcasts(params: {
             authorName: podcast.authorName,
             websiteUrl: podcast.websiteUrl,
             feedUrl: podcast.feedUrl,
-            imageUrl: safePodcastImageUrl(podcast.imageUrl),
+            imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
             isFavorite: Boolean(

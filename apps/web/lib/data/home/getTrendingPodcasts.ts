@@ -1,6 +1,7 @@
 import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
 import type { PodcastDTO } from "@/lib/data/podcast/interface";
+import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import type { Prisma } from "@prisma/client";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 
@@ -22,10 +23,6 @@ function resolveZipCodes(zipCode: string, radius: number): string[] {
     } catch {
         return [zipCode];
     }
-}
-
-function safePodcastImageUrl(url: string | null): string | null {
-    return url?.startsWith("https://") ? url : null;
 }
 
 function plainText(value: string | null): string | null {
@@ -113,7 +110,7 @@ export async function getTrendingPodcasts(
         authorName: podcast.authorName,
         websiteUrl: podcast.websiteUrl,
         feedUrl: podcast.feedUrl,
-        imageUrl: safePodcastImageUrl(podcast.imageUrl),
+        imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
         description: plainText(podcast.description),
         episodeCount: podcast._count.episodes,
     }));

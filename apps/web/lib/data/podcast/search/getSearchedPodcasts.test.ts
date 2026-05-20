@@ -128,7 +128,8 @@ describe("getSearchedPodcasts", () => {
                     authorName: "Vulture",
                     websiteUrl: "https://example.com",
                     feedUrl: "https://example.com/feed.xml",
-                    imageUrl: "https://cdn.example.com/good-one.jpg",
+                    imageUrl:
+                        "/api/v1/podcast-artwork?url=https%3A%2F%2Fcdn.example.com%2Fgood-one.jpg",
                     description: "Comedy interviews",
                     episodeCount: 42,
                     isFavorite: false,
