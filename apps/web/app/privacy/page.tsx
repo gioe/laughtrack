@@ -14,259 +14,258 @@ const PrivacyPage = async () => {
             <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-white/85">
                 <h1 className="text-3xl font-bold mb-2 text-white">Privacy Policy</h1>
                 <p className="mb-10 text-xs text-white/55">
-                    Last Updated: February 28, 2025
+                    Last Updated: May 20, 2026
                 </p>
 
                 <div className="mb-10 space-y-4">
                     <p>
                         Laughtrack Digital, LLC (&ldquo;us&rdquo;,
                         &ldquo;we&rdquo;, or &ldquo;our&rdquo;) operates the
-                        Laughtrack website and mobile application (the
+                        Laughtrack website at laugh-track.com and the Laughtrack
+                        iOS mobile application (together, the
                         &ldquo;Service&rdquo;).
                     </p>
                     <p>
-                        This page informs you of our policies regarding the
-                        collection, use, and disclosure of personal data when
-                        you use our Service and the choices you have associated
-                        with that data.
-                    </p>
-                    <p>
-                        We use your data to provide and improve the Service. By
-                        using the Service, you agree to the collection and use
-                        of information in accordance with this policy.
+                        This page describes what data we collect when you use
+                        the Service, how we use it, and the choices you have
+                        about it. We try to keep the list short and to only
+                        collect what we actually need to run the Service.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        1. Information Collection and Use
-                    </h2>
-                    <p>
-                        We collect several different types of information for
-                        various purposes to provide and improve our Service to
-                        you.
-                    </p>
-
-                    <h3 className="text-xl font-semibold mt-6 mb-2">
-                        1.1 Types of Data Collected
-                    </h3>
-
-                    <h4 className="text-lg font-medium mt-4 mb-2">
-                        1.1.1 Personal Data
-                    </h4>
-                    <p>
-                        While using our Service, we may ask you to provide us
-                        with certain personally identifiable information that
-                        can be used to contact or identify you (&ldquo;Personal
-                        Data&rdquo;). Personally identifiable information may
-                        include, but is not limited to:
-                    </p>
-                    <ul className="list-disc pl-6 space-y-1">
-                        <li>Email address</li>
-                        <li>First name and last name</li>
-                        <li>Phone number</li>
-                        <li>Address, State, Province, ZIP/Postal code, City</li>
-                        <li>Cookies and Usage Data</li>
-                    </ul>
-
-                    <h4 className="text-lg font-medium mt-4 mb-2">
-                        1.1.2 Usage Data
-                    </h4>
-                    <p>
-                        We may also collect information that your browser sends
-                        whenever you visit our Service or when you access the
-                        Service by or through a mobile device (&ldquo;Usage
-                        Data&rdquo;).
-                    </p>
-                    <p>
-                        This Usage Data may include information such as your
-                        computer&rsquo;s Internet Protocol address (e.g., IP
-                        address), browser type, browser version, the pages of
-                        our Service that you visit, the time and date of your
-                        visit, the time spent on those pages, unique device
-                        identifiers and other diagnostic data.
-                    </p>
-                    <p>
-                        When you access the Service with a mobile device, this
-                        Usage Data may include information such as the type of
-                        mobile device you use, your mobile device unique ID, the
-                        IP address of your mobile device, your mobile operating
-                        system, the type of mobile Internet browser you use,
-                        unique device identifiers and other diagnostic data.
-                    </p>
-
-                    <h4 className="text-lg font-medium mt-4 mb-2">
-                        1.1.3 Tracking & Cookies Data
-                    </h4>
-                    <p>
-                        We use cookies and similar tracking technologies to
-                        track the activity on our Service and hold certain
-                        information.
-                    </p>
-                    <p>
-                        Cookies are files with a small amount of data which may
-                        include an anonymous unique identifier. Cookies are sent
-                        to your browser from a website and stored on your
-                        device. Tracking technologies also used are beacons,
-                        tags, and scripts to collect and track information and
-                        to improve and analyze our Service.
-                    </p>
-
-                    <p>
-                        You can instruct your browser to refuse all cookies or
-                        to indicate when a cookie is being sent. However, if you
-                        do not accept cookies, you may not be able to use some
-                        portions of our Service.
-                    </p>
-                    <p>Examples of Cookies we use:</p>
-                    <ul className="list-disc pl-6 space-y-1">
-                        <li>
-                            <strong>Session Cookies:</strong> We use Session
-                            Cookies to operate our Service.
-                        </li>
-                        <li>
-                            <strong>Preference Cookies:</strong> We use
-                            Preference Cookies to remember your preferences and
-                            various settings.
-                        </li>
-                        <li>
-                            <strong>Security Cookies:</strong> We use Security
-                            Cookies for security purposes.
-                        </li>
-                    </ul>
-                </div>
-
-                <div className="mb-10 space-y-4">
-                    <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        2. Use of Data
-                    </h2>
-                    <p>
-                        Laughtrack Digital, LLC uses the collected data for
-                        various purposes:
-                    </p>
-                    <ul className="list-disc pl-6 space-y-1">
-                        <li>To provide and maintain the Service</li>
-                        <li>To notify you about changes to our Service</li>
-                        <li>
-                            To allow you to participate in interactive features
-                            of our Service when you choose to do so
-                        </li>
-                        <li>To provide customer care and support</li>
-                        <li>
-                            To provide analysis or valuable information so that
-                            we can improve the Service
-                        </li>
-                        <li>To monitor the usage of the Service</li>
-                        <li>To detect, prevent and address technical issues</li>
-                    </ul>
-                </div>
-
-                <div className="mb-10 space-y-4">
-                    <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        3. Transfer of Data
-                    </h2>
-                    <p>
-                        Your information, including Personal Data, may be
-                        transferred to — and maintained on — computers located
-                        outside of your state, province, country or other
-                        governmental jurisdiction where the data protection laws
-                        may differ from those of your jurisdiction.
-                    </p>
-                    <p>
-                        Your consent to this Privacy Policy followed by your
-                        submission of such information represents your agreement
-                        to that transfer.
-                    </p>
-                    <p>
-                        Laughtrack Digital, LLC will take all steps reasonably
-                        necessary to ensure that your data is treated securely
-                        and in accordance with this Privacy Policy and no
-                        transfer of your Personal Data will take place to an
-                        organization or a country unless there are adequate
-                        controls in place including the security of your data
-                        and other personal information.
-                    </p>
-                </div>
-
-                <div className="mb-10 space-y-4">
-                    <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        4. Disclosure of Data
+                        1. Information We Collect
                     </h2>
 
                     <h3 className="text-xl font-semibold mt-6 mb-2">
-                        4.1 Legal Requirements
+                        1.1 Account information (Google or Apple sign-in)
                     </h3>
                     <p>
-                        Laughtrack Digital, LLC may disclose your Personal Data
-                        in the good faith belief that such action is necessary
-                        to:
+                        You sign in with Google or Apple. When you do, the
+                        identity provider returns the following information to
+                        us, which we store so we can recognize your account on
+                        return visits:
                     </p>
                     <ul className="list-disc pl-6 space-y-1">
-                        <li>To comply with a legal obligation</li>
+                        <li>Your email address</li>
                         <li>
-                            To protect and defend the rights or property of
-                            Laughtrack Digital, LLC
+                            Your name, if Google or Apple provides one (Apple
+                            users can choose to hide their name and use a relay
+                            email)
                         </li>
                         <li>
-                            To prevent or investigate possible wrongdoing in
-                            connection with the Service
+                            Your profile photo URL, if the identity provider
+                            provides one
                         </li>
                         <li>
-                            To protect the personal safety of users of the
-                            Service or the public
+                            An internal user ID and the OAuth tokens issued by
+                            Google or Apple. We use the tokens only to keep you
+                            signed in and to refresh your session; we do not
+                            use them to read other data from your Google or
+                            Apple account.
                         </li>
-                        <li>To protect against legal liability</li>
+                    </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        1.2 Location and ZIP code
+                    </h3>
+                    <p>
+                        Laughtrack uses ZIP codes (US 5-digit postal codes) to
+                        show you comedy shows near you. You can provide a ZIP
+                        code in two ways:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>
+                            <strong>By typing it in.</strong> On the website,
+                            your most recently chosen ZIP code is also cached
+                            in your browser&rsquo;s local storage so the site
+                            remembers it.
+                        </li>
+                        <li>
+                            <strong>From your device location (iOS only).</strong>{" "}
+                            If you tap &ldquo;Use my location&rdquo; in the iOS
+                            app and grant location permission, the app reads
+                            your device location, converts it to a 5-digit ZIP
+                            code on-device, and discards the underlying
+                            coordinates. Only the resulting ZIP code is sent to
+                            our servers. We do not store or share your precise
+                            location.
+                        </li>
+                    </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        1.3 Your saved preferences
+                    </h3>
+                    <p>
+                        While signed in, you can save preferences that we store
+                        in your account so they follow you across devices:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>Comedians you favorite</li>
+                        <li>Podcasts you favorite or claim ownership of</li>
+                        <li>
+                            Email and push notification preferences (whether
+                            you want to be notified about shows)
+                        </li>
+                    </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        1.4 Calendar (iOS only)
+                    </h3>
+                    <p>
+                        If you tap &ldquo;Add to calendar&rdquo; on a show in
+                        the iOS app, we ask iOS for write-only access to your
+                        calendar so we can add that event. We do not read your
+                        existing calendar entries, and we do not send any
+                        calendar data to our servers.
+                    </p>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        1.5 Usage and diagnostic data
+                    </h3>
+                    <p>
+                        We collect a limited amount of standard server and
+                        client diagnostic information so the Service stays up
+                        and works correctly. This includes IP address, browser
+                        or app version, device type, the pages you visit, and
+                        timestamps. We do not use this data for advertising and
+                        we do not sell it.
+                    </p>
+                    <p>
+                        We also set the cookies necessary to keep you signed in
+                        (a NextAuth session cookie) and to remember basic
+                        preferences. We do not set advertising cookies.
+                    </p>
+                </div>
+
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        2. How We Use Your Data
+                    </h2>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>To sign you in and keep you signed in</li>
+                        <li>
+                            To show you nearby and relevant comedy shows,
+                            comedians, and podcasts
+                        </li>
+                        <li>To save the preferences you set</li>
+                        <li>
+                            To send you the notifications you have opted in to
+                        </li>
+                        <li>
+                            To monitor the health of the Service and fix bugs
+                            and crashes
+                        </li>
+                        <li>
+                            To comply with legal obligations and protect the
+                            Service from abuse
+                        </li>
+                    </ul>
+                    <p>
+                        We do not sell your personal information, and we do not
+                        use it for third-party advertising.
+                    </p>
+                </div>
+
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        3. Service Providers We Share Data With
+                    </h2>
+                    <p>
+                        We use the following third parties to run the Service.
+                        They process data on our behalf, under their own
+                        privacy policies, and only for the purposes listed:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>
+                            <strong>Google and Apple</strong> &mdash; identity
+                            providers for sign-in. They share your email, name,
+                            and (for Google) profile photo URL with us when you
+                            sign in.
+                        </li>
+                        <li>
+                            <strong>Vercel</strong> &mdash; hosts the website
+                            and collects standard request logs and aggregate
+                            usage analytics (Vercel Analytics) so we can
+                            monitor traffic and performance.
+                        </li>
+                        <li>
+                            <strong>Neon</strong> &mdash; hosts our PostgreSQL
+                            database, where your account, preferences, and ZIP
+                            code are stored.
+                        </li>
+                        <li>
+                            <strong>Sentry</strong> &mdash; receives error and
+                            crash reports from the website so we can debug
+                            issues. Reports may include your user ID and the
+                            request that triggered the error.
+                        </li>
+                        <li>
+                            <strong>Bunny CDN</strong> &mdash; serves images
+                            (comedian photos, club photos, show artwork) from a
+                            global edge network. Bunny sees standard delivery
+                            metadata (IP, user agent) for image requests.
+                        </li>
                     </ul>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        5. Security of Data
+                        4. Data Transfers
                     </h2>
                     <p>
-                        The security of your data is important to us, but
-                        remember that no method of transmission over the
-                        Internet, or method of electronic storage is 100%
-                        secure. While we strive to use commercially acceptable
-                        means to protect your Personal Data, we cannot guarantee
-                        its absolute security.
+                        Your information may be processed and stored on servers
+                        located outside your country or region, including in
+                        the United States. By using the Service you consent to
+                        that transfer.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        6. Service Providers
+                        5. Disclosure for Legal Reasons
                     </h2>
                     <p>
-                        We may employ third party companies and individuals to
-                        facilitate our Service (&ldquo;Service
-                        Providers&rdquo;), to provide the Service on our behalf,
-                        to perform Service-related services or to assist us in
-                        analyzing how our Service is used.
-                    </p>
-                    <p>
-                        These third parties have access to your Personal Data
-                        only to perform these tasks on our behalf and are
-                        obligated not to disclose or use it for any other
-                        purpose.
+                        We may disclose your information if we believe in good
+                        faith that doing so is necessary to comply with a legal
+                        obligation, protect the rights or property of
+                        Laughtrack Digital, LLC or its users, investigate
+                        possible wrongdoing in connection with the Service, or
+                        protect against legal liability.
                     </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        7. Links To Other Sites
+                        6. Your Choices
+                    </h2>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>
+                            You can revoke location or calendar permission for
+                            the iOS app at any time in iOS Settings.
+                        </li>
+                        <li>
+                            You can turn email and push notifications off in
+                            your account settings.
+                        </li>
+                        <li>
+                            You can request that we delete your account and the
+                            personal data associated with it by emailing
+                            admin@laugh-track.com.
+                        </li>
+                    </ul>
+                </div>
+
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        7. Security
                     </h2>
                     <p>
-                        Our Service may contain links to other sites that are
-                        not operated by us. If you click on a third party link,
-                        you will be directed to that third party&rsquo;s site.
-                        We strongly advise you to review the Privacy Policy of
-                        every site you visit.
-                    </p>
-                    <p>
-                        We have no control over and assume no responsibility for
-                        the content, privacy policies or practices of any third
-                        party sites or services.
+                        We use commercially reasonable measures to protect your
+                        information, but no method of transmission over the
+                        Internet or method of electronic storage is 100%
+                        secure, and we cannot guarantee absolute security.
                     </p>
                 </div>
 
@@ -275,18 +274,11 @@ const PrivacyPage = async () => {
                         8. Children&rsquo;s Privacy
                     </h2>
                     <p>
-                        Our Service does not address anyone under the age of 18
-                        (&ldquo;Children&rdquo;).
-                    </p>
-                    <p>
-                        We do not knowingly collect personally identifiable
-                        information from anyone under the age of 18. If you are
-                        a parent or guardian and you are aware that your child
-                        has provided us with Personal Data, please contact us.
-                        If we become aware that we have collected Personal Data
-                        from children without verification of parental consent,
-                        we take steps to remove that information from our
-                        servers.
+                        The Service is not directed to anyone under the age of
+                        13. We do not knowingly collect personal information
+                        from children under 13. If you believe a child has
+                        provided us with personal information, please email
+                        admin@laugh-track.com and we will delete it.
                     </p>
                 </div>
 
@@ -295,20 +287,11 @@ const PrivacyPage = async () => {
                         9. Changes To This Privacy Policy
                     </h2>
                     <p>
-                        We may update our Privacy Policy from time to time. We
-                        will notify you of any changes by posting the new
-                        Privacy Policy on this page.
-                    </p>
-                    <p>
-                        We will let you know via email and/or a prominent notice
-                        on our Service, prior to the change becoming effective
-                        and update the &ldquo;effective date&rdquo; at the top
-                        of this Privacy Policy.
-                    </p>
-                    <p>
-                        You are advised to review this Privacy Policy
-                        periodically for any changes. Changes to this Privacy
-                        Policy are effective when they are posted on this page.
+                        We may update this Privacy Policy from time to time.
+                        When we do, we will update the &ldquo;Last
+                        Updated&rdquo; date at the top of this page. Material
+                        changes will be highlighted in the Service before they
+                        take effect.
                     </p>
                 </div>
 
@@ -317,12 +300,15 @@ const PrivacyPage = async () => {
                         10. Contact Us
                     </h2>
                     <p>
-                        If you have any questions about this Privacy Policy,
-                        please contact us:
+                        Questions about this Privacy Policy? Email{" "}
+                        <a
+                            href="mailto:admin@laugh-track.com"
+                            className="underline text-white"
+                        >
+                            admin@laugh-track.com
+                        </a>
+                        .
                     </p>
-                    <ul className="list-disc pl-6 space-y-1">
-                        <li>By email: admin@laugh-track.com</li>
-                    </ul>
                 </div>
             </div>
         </main>
