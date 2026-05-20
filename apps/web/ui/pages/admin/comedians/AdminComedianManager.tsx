@@ -32,6 +32,11 @@ type Status = {
     message?: string;
 };
 
+type WebsiteEdit = {
+    website: string;
+    websiteScrapingUrl: string;
+};
+
 function formatDate(iso: string | null) {
     if (!iso) return null;
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
@@ -71,6 +76,9 @@ export default function AdminComedianManager({ comedians }: Props) {
         {},
     );
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
+    const [websiteEdits, setWebsiteEdits] = useState<
+        Record<number, WebsiteEdit>
+    >({});
     const [openPodcastRows, setOpenPodcastRows] = useState<Set<number>>(
         new Set(),
     );
@@ -84,6 +92,8 @@ export default function AdminComedianManager({ comedians }: Props) {
             ? rows.filter((row) => {
                   return [
                       row.name,
+                      row.website ?? "",
+                      row.websiteScrapingUrl ?? "",
                       row.parent?.name ?? "",
                       row.blockReason ?? "",
                       row.blockAddedBy ?? "",
@@ -123,8 +133,50 @@ export default function AdminComedianManager({ comedians }: Props) {
         return name.trim().replace(/\s+/g, " ");
     }
 
+    function normalizedUrl(value: string) {
+        return value.trim() || null;
+    }
+
     function isNameDirty(row: AdminComedianListItem) {
         return normalizedAdminName(nameValue(row)) !== row.name;
+    }
+
+    function websiteValue(row: AdminComedianListItem) {
+        return websiteEdits[row.id]?.website ?? row.website ?? "";
+    }
+
+    function websiteScrapingUrlValue(row: AdminComedianListItem) {
+        return (
+            websiteEdits[row.id]?.websiteScrapingUrl ??
+            row.websiteScrapingUrl ??
+            ""
+        );
+    }
+
+    function isWebsiteDirty(row: AdminComedianListItem) {
+        return (
+            normalizedUrl(websiteValue(row)) !== (row.website ?? null) ||
+            normalizedUrl(websiteScrapingUrlValue(row)) !==
+                (row.websiteScrapingUrl ?? null)
+        );
+    }
+
+    function isRecordDirty(row: AdminComedianListItem) {
+        return isNameDirty(row) || isWebsiteDirty(row);
+    }
+
+    function updateWebsiteEdit(
+        row: AdminComedianListItem,
+        patch: Partial<WebsiteEdit>,
+    ) {
+        setWebsiteEdits((current) => ({
+            ...current,
+            [row.id]: {
+                website: websiteValue(row),
+                websiteScrapingUrl: websiteScrapingUrlValue(row),
+                ...patch,
+            },
+        }));
     }
 
     function togglePodcastRow(rowId: number) {
@@ -204,7 +256,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     async function saveComedianRecord(row: AdminComedianListItem) {
         const name = normalizedAdminName(nameValue(row));
-        if (!name || name === row.name) return;
+        if (!name || !isRecordDirty(row)) return;
 
         setStatus({ kind: "idle" });
         setPendingId(row.id);
@@ -217,6 +269,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                 body: JSON.stringify({
                     comedianId: row.id,
                     name,
+                    website: normalizedUrl(websiteValue(row)),
+                    websiteScrapingUrl: normalizedUrl(
+                        websiteScrapingUrlValue(row),
+                    ),
                 }),
             });
         } catch (error) {
@@ -246,6 +302,11 @@ export default function AdminComedianManager({ comedians }: Props) {
             ),
         );
         setNameEdits((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
+        setWebsiteEdits((current) => {
             const next = { ...current };
             delete next[row.id];
             return next;
@@ -513,7 +574,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 disabled={
                                                     disabled ||
                                                     pendingId === row.id ||
-                                                    !isNameDirty(row) ||
+                                                    !isRecordDirty(row) ||
                                                     !normalizedAdminName(
                                                         nameValue(row),
                                                     )
@@ -525,6 +586,44 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 <Save className="h-4 w-4" />
                                                 Save record
                                             </Button>
+                                        </div>
+                                        <div className="mt-3 grid gap-3">
+                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Website
+                                                <input
+                                                    aria-label="Comedian website"
+                                                    type="url"
+                                                    value={websiteValue(row)}
+                                                    onChange={(event) =>
+                                                        updateWebsiteEdit(row, {
+                                                            website:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                    placeholder="https://example.com"
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                            </label>
+                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Tour scrape URL
+                                                <input
+                                                    aria-label="Comedian website scraping URL"
+                                                    type="url"
+                                                    value={websiteScrapingUrlValue(
+                                                        row,
+                                                    )}
+                                                    onChange={(event) =>
+                                                        updateWebsiteEdit(row, {
+                                                            websiteScrapingUrl:
+                                                                event.target
+                                                                    .value,
+                                                        })
+                                                    }
+                                                    placeholder="https://example.com/tour"
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                            </label>
                                         </div>
                                     </div>
                                     <button

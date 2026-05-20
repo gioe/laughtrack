@@ -47,6 +47,8 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
         id: 2,
         uuid: "uuid-2",
         name: "Alias Comic",
+        website: null,
+        websiteScrapingUrl: null,
         popularity: 12,
         totalShows: 1,
         parentComedianId: null,
@@ -280,6 +282,55 @@ describe("PUT /api/admin/comedians", () => {
                     entityId: "2",
                 }),
             }),
+        );
+    });
+
+    it("updates comedian website fields", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const auditCreate = vi.fn();
+        const update = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(
+                makeComedian({
+                    website: "https://alias.example.com",
+                    websiteScrapingUrl: "https://alias.example.com/tour",
+                }),
+            );
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique, update },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PUT(
+            makeRequest({
+                comedianId: 2,
+                name: "Alias Comic",
+                website: " https://alias.example.com ",
+                websiteScrapingUrl: " https://alias.example.com/tour ",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(update).toHaveBeenCalledWith({
+            where: { id: 2 },
+            data: {
+                name: "Alias Comic",
+                uuid: "3e19dd3064b1dc0cf4e7d69d7f5cb762",
+                website: "https://alias.example.com",
+                websiteScrapingUrl: "https://alias.example.com/tour",
+            },
+        });
+        expect(body.comedian.website).toBe("https://alias.example.com");
+        expect(body.comedian.websiteScrapingUrl).toBe(
+            "https://alias.example.com/tour",
         );
     });
 

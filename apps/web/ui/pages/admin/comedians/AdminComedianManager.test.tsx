@@ -28,6 +28,8 @@ const comedians: AdminComedianListItem[] = [
         id: 1,
         uuid: "uuid-1",
         name: "Parent Comic",
+        website: "https://parent.example.com",
+        websiteScrapingUrl: "https://parent.example.com/tour",
         popularity: 82,
         totalShows: 10,
         parent: null,
@@ -61,6 +63,8 @@ const comedians: AdminComedianListItem[] = [
         id: 2,
         uuid: "uuid-2",
         name: "Alias Comic",
+        website: null,
+        websiteScrapingUrl: null,
         popularity: 12,
         totalShows: 1,
         parent: null,
@@ -146,6 +150,8 @@ describe("AdminComedianManager", () => {
                     ...comedians[1],
                     name: "Alias Comic",
                     uuid: "updated-uuid",
+                    website: "https://alias.example.com",
+                    websiteScrapingUrl: "https://alias.example.com/tour",
                 },
             }),
         } as never);
@@ -165,6 +171,15 @@ describe("AdminComedianManager", () => {
         fireEvent.change(nameInputs[0], {
             target: { value: "Alias Comic" },
         });
+        fireEvent.change(screen.getAllByLabelText("Comedian website")[0], {
+            target: { value: "https://alias.example.com" },
+        });
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian website scraping URL")[0],
+            {
+                target: { value: "https://alias.example.com/tour" },
+            },
+        );
         fireEvent.click(
             screen.getAllByRole("button", { name: "Save record" })[0],
         );
@@ -177,6 +192,8 @@ describe("AdminComedianManager", () => {
                     body: JSON.stringify({
                         comedianId: 2,
                         name: "Alias Comic",
+                        website: "https://alias.example.com",
+                        websiteScrapingUrl: "https://alias.example.com/tour",
                     }),
                 }),
             );

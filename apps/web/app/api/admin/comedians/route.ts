@@ -12,6 +12,8 @@ type ComedianSnapshot = {
     id: number;
     uuid: string;
     name: string;
+    website: string | null;
+    websiteScrapingUrl: string | null;
     popularity: number;
     totalShows: number;
     parentComedianId: number | null;
@@ -83,6 +85,14 @@ const putSchema = z
     .object({
         comedianId: z.number().int().positive(),
         name: z.string().trim().min(1).max(255),
+        website: z.string().trim().url().max(2000).nullable().optional(),
+        websiteScrapingUrl: z
+            .string()
+            .trim()
+            .url()
+            .max(2000)
+            .nullable()
+            .optional(),
         reason: z.string().trim().max(1000).optional(),
     })
     .strict();
@@ -96,6 +106,11 @@ function serializeDate(value: Date | string | null | undefined) {
 
 function normalizeName(name: string) {
     return name.trim().replace(/\s+/g, " ");
+}
+
+function normalizeOptionalUrl(value: string | null | undefined) {
+    const normalized = value?.trim() ?? "";
+    return normalized || null;
 }
 
 function generateComedianUuid(name: string) {
@@ -117,6 +132,8 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         id: comedian.id,
         uuid: comedian.uuid,
         name: comedian.name,
+        website: comedian.website,
+        websiteScrapingUrl: comedian.websiteScrapingUrl,
         popularity: comedian.popularity,
         totalShows: comedian.totalShows,
         parentComedianId: comedian.parentComedianId,
@@ -133,6 +150,8 @@ function serializeComedian(
         id: comedian.id,
         uuid: comedian.uuid,
         name: comedian.name,
+        website: comedian.website,
+        websiteScrapingUrl: comedian.websiteScrapingUrl,
         popularity: comedian.popularity,
         totalShows: comedian.totalShows,
         parent: comedian.parentComedian,
@@ -185,6 +204,8 @@ async function findComedianSnapshot(
             id: true,
             uuid: true,
             name: true,
+            website: true,
+            websiteScrapingUrl: true,
             popularity: true,
             totalShows: true,
             parentComedianId: true,
@@ -517,6 +538,14 @@ export async function PUT(req: NextRequest) {
 
     const name = normalizeName(parsed.data.name);
     const uuid = generateComedianUuid(name);
+    const website =
+        "website" in parsed.data
+            ? normalizeOptionalUrl(parsed.data.website)
+            : undefined;
+    const websiteScrapingUrl =
+        "websiteScrapingUrl" in parsed.data
+            ? normalizeOptionalUrl(parsed.data.websiteScrapingUrl)
+            : undefined;
 
     try {
         const result = await db.$transaction(
@@ -544,7 +573,14 @@ export async function PUT(req: NextRequest) {
 
                 await tx.comedian.update({
                     where: { id: before.id },
-                    data: { name, uuid },
+                    data: {
+                        name,
+                        uuid,
+                        ...(website !== undefined ? { website } : {}),
+                        ...(websiteScrapingUrl !== undefined
+                            ? { websiteScrapingUrl }
+                            : {}),
+                    },
                 });
 
                 const after = await findComedianSnapshot(tx, before.id);

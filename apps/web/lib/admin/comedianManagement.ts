@@ -11,6 +11,8 @@ export type AdminComedianListItem = {
     id: number;
     uuid: string;
     name: string;
+    website: string | null;
+    websiteScrapingUrl: string | null;
     popularity: number;
     totalShows: number;
     parent: {
@@ -65,6 +67,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 id: true,
                 uuid: true,
                 name: true,
+                website: true,
+                websiteScrapingUrl: true,
                 popularity: true,
                 totalShows: true,
                 parentComedian: {
@@ -171,6 +175,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 id: comedian.id,
                 uuid: comedian.uuid,
                 name: comedian.name,
+                website: comedian.website,
+                websiteScrapingUrl: comedian.websiteScrapingUrl,
                 popularity: comedian.popularity,
                 totalShows: comedian.totalShows,
                 parent: comedian.parentComedian,
