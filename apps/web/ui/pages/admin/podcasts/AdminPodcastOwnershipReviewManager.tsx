@@ -78,6 +78,13 @@ function formatPercent(value: number) {
     return `${Math.round(value * 100)}%`;
 }
 
+function formatPopularity(value: number) {
+    return value.toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: value > 0 && value < 1 ? 2 : 1,
+    });
+}
+
 function formatDate(iso: string) {
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
@@ -851,7 +858,7 @@ export default function AdminPodcastOwnershipReviewManager({
                               key={comedianGroup.key}
                               groupKey={`comedian-${comedianGroup.key}`}
                               title={comedianGroup.comedian.name}
-                              subtitle={`Popularity ${comedianGroup.popularity.toFixed(1)}`}
+                              subtitle={`Popularity ${formatPopularity(comedianGroup.popularity)}`}
                               summary={`${comedianGroup.podcastGroups.length} podcast${comedianGroup.podcastGroups.length === 1 ? "" : "s"} attached`}
                               collapsed={isGroupCollapsed(
                                   `comedian-${comedianGroup.key}`,
@@ -865,7 +872,9 @@ export default function AdminPodcastOwnershipReviewManager({
                                       </h2>
                                       <p className="font-dmSans text-caption text-soft-charcoal">
                                           Popularity{" "}
-                                          {comedianGroup.popularity.toFixed(1)}{" "}
+                                          {formatPopularity(
+                                              comedianGroup.popularity,
+                                          )}{" "}
                                           · {comedianGroup.podcastGroups.length}{" "}
                                           podcast
                                           {comedianGroup.podcastGroups
@@ -953,7 +962,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                           ? `by ${group.podcast.authorName}`
                                                           : "Author missing"}
                                                   </p>
-                                                  <div className="mt-2 font-dmSans text-caption">
+                                                  <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
                                                       {group.podcast.feedUrl ? (
                                                           <a
                                                               href={
@@ -981,6 +990,31 @@ export default function AdminPodcastOwnershipReviewManager({
                                                           <span className="text-soft-charcoal">
                                                               RSS feed missing
                                                           </span>
+                                                      )}
+                                                      {group.podcast
+                                                          .websiteUrl && (
+                                                          <a
+                                                              href={
+                                                                  group.podcast
+                                                                      .websiteUrl
+                                                              }
+                                                              target="_blank"
+                                                              rel="noreferrer"
+                                                              className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                          >
+                                                              <span className="truncate">
+                                                                  Website:{" "}
+                                                                  {
+                                                                      group
+                                                                          .podcast
+                                                                          .websiteUrl
+                                                                  }
+                                                              </span>
+                                                              <ExternalLink
+                                                                  className="h-3.5 w-3.5 shrink-0"
+                                                                  aria-hidden="true"
+                                                              />
+                                                          </a>
                                                       )}
                                                   </div>
                                                   <div className="mt-2 flex flex-wrap gap-2">

@@ -104,7 +104,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 id: 77,
                 uuid: "uuid-77",
                 name: "Lower Pop",
-                popularity: 12,
+                popularity: 0.06,
             },
             podcast: {
                 ...candidate.podcast!,
@@ -127,13 +127,25 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Jane Comic");
-        expect(screen.getAllByText(/Popularity 74.0/).length).toBeGreaterThan(
+        expect(screen.getAllByText(/Popularity 74/).length).toBeGreaterThan(0);
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "popularity-asc" },
+        });
+        openGroup(/Lower Pop/);
+        expect(
+            screen.getAllByRole("heading", { level: 2 })[0].textContent,
+        ).toBe("Lower Pop");
+        expect(screen.getAllByText(/Popularity 0.06/).length).toBeGreaterThan(
             0,
         );
         const rssLink = screen.getAllByRole("link", {
             name: /RSS: https:\/\/pod\.example\/feed\.xml/,
         })[0] as HTMLAnchorElement;
         expect(rssLink.href).toBe("https://pod.example/feed.xml");
+        const websiteLink = screen.getAllByRole("link", {
+            name: /Website: https:\/\/pod\.example/,
+        })[0] as HTMLAnchorElement;
+        expect(websiteLink.href).toBe("https://pod.example/");
     });
 
     it("can ingest an arbitrary RSS feed from the comedian view", async () => {
