@@ -48,9 +48,28 @@ const SECURITY_HEADERS: Record<string, string> = {
         "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
 };
 
-function applySecurityHeaders(response: NextResponse): NextResponse {
+const CANONICAL_HOSTS = new Set([
+    "laugh-track.com",
+    "www.laugh-track.com",
+    "localhost",
+    "127.0.0.1",
+]);
+
+function getRequestHost(request: NextRequest): string {
+    return (request.headers.get("host") ?? request.nextUrl.host)
+        .split(":")[0]
+        .toLowerCase();
+}
+
+function applySecurityHeaders(
+    response: NextResponse,
+    request: NextRequest,
+): NextResponse {
     for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
         response.headers.set(key, value);
+    }
+    if (!CANONICAL_HOSTS.has(getRequestHost(request))) {
+        response.headers.set("X-Robots-Tag", "noindex");
     }
     return response;
 }
@@ -79,14 +98,14 @@ export async function middleware(request: NextRequest) {
                     status: 200,
                     headers: corsHeaders,
                 });
-                return applySecurityHeaders(preflightResponse);
+                return applySecurityHeaders(preflightResponse, request);
             }
 
             const response = NextResponse.next();
             Object.entries(corsHeaders).forEach(([key, value]) => {
                 response.headers.set(key, value);
             });
-            return applySecurityHeaders(response);
+            return applySecurityHeaders(response, request);
         }
 
         const url = request.nextUrl.clone();
@@ -101,7 +120,7 @@ export async function middleware(request: NextRequest) {
 
         // Handle protected routes
         if (!isProtectedRoute(pathname)) {
-            return applySecurityHeaders(response);
+            return applySecurityHeaders(response, request);
         }
 
         const token = await getToken({ req: request });
@@ -109,7 +128,10 @@ export async function middleware(request: NextRequest) {
         if (!token) {
             const loginUrl = new URL("/", request.url);
             loginUrl.searchParams.set("callbackUrl", pathname);
-            return applySecurityHeaders(NextResponse.redirect(loginUrl));
+            return applySecurityHeaders(
+                NextResponse.redirect(loginUrl),
+                request,
+            );
         }
 
         // Special handling for profile route
@@ -118,6 +140,7 @@ export async function middleware(request: NextRequest) {
             if (!userId) {
                 return applySecurityHeaders(
                     NextResponse.redirect(new URL("/", request.url)),
+                    request,
                 );
             }
 
@@ -129,14 +152,15 @@ export async function middleware(request: NextRequest) {
                     NextResponse.redirect(
                         new URL(`/profile/${userId}`, request.url),
                     ),
+                    request,
                 );
             }
         }
 
-        return applySecurityHeaders(response);
+        return applySecurityHeaders(response, request);
     } catch (error) {
         console.error("Middleware error:", error);
-        return applySecurityHeaders(NextResponse.next());
+        return applySecurityHeaders(NextResponse.next(), request);
     }
 }
 

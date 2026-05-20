@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { setParamDefaults } from "./middleware";
+import { NextRequest } from "next/server";
+import { middleware, setParamDefaults } from "./middleware";
 import { QueryProperty } from "./objects/enum";
 
 describe("setParamDefaults", () => {
@@ -28,5 +29,23 @@ describe("setParamDefaults", () => {
         );
 
         expect(params.get(QueryProperty.Size)).toBe("20");
+    });
+});
+
+describe("middleware SEO headers", () => {
+    it("adds noindex to non-canonical hosts", async () => {
+        const response = await middleware(
+            new NextRequest("https://laughtrack.vercel.app/club/search"),
+        );
+
+        expect(response.headers.get("X-Robots-Tag")).toBe("noindex");
+    });
+
+    it("does not add noindex to canonical hosts", async () => {
+        const response = await middleware(
+            new NextRequest("https://www.laugh-track.com/club/search"),
+        );
+
+        expect(response.headers.get("X-Robots-Tag")).toBeNull();
     });
 });
