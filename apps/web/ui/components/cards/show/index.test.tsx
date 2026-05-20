@@ -82,13 +82,34 @@ const baseShow: ShowDTO = {
 };
 
 describe("ShowCard", () => {
-    it("keeps rendering the lineup grid in the default context", () => {
-        render(<ShowCard show={baseShow} />);
+    it("renders the lineup grid in the default context when lineup is non-empty", () => {
+        const showWithLineup: ShowDTO = {
+            ...baseShow,
+            lineup: [
+                {
+                    id: 1,
+                    uuid: "uuid-1",
+                    name: "Headliner",
+                    imageUrl: "https://cdn.example.com/headliner.jpg",
+                    hasImage: true,
+                },
+            ],
+        };
+        render(<ShowCard show={showWithLineup} />);
 
         expect(screen.getAllByTestId("lineup-grid")).toHaveLength(2);
         expect(
             screen.queryByAltText("The Copper Room venue artwork"),
         ).toBeNull();
+    });
+
+    it("falls back to venue artwork in the default context when lineup is empty", () => {
+        render(<ShowCard show={baseShow} />);
+
+        expect(screen.queryByTestId("lineup-grid")).toBeNull();
+        expect(
+            screen.getAllByAltText("The Copper Room venue artwork"),
+        ).toHaveLength(2);
     });
 
     it("uses venue artwork instead of the lineup grid in comedian detail context", () => {

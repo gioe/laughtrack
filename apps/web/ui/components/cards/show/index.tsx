@@ -76,12 +76,12 @@ const ShowCard: React.FC<ShowCardProps> = ({
     const ticketLabel = stillOnSale
         ? `Get tickets for ${showDescriptor}`
         : `${showDescriptor} is sold out`;
-    const renderVisualPanel = () =>
-        context === "comedian-detail" ? (
-            <ShowCardArtwork show={parsedShow} />
-        ) : (
-            <LineupGrid lineup={parsedShow.lineup} />
-        );
+    const renderVisualPanel = () => {
+        if (context === "comedian-detail" || parsedShow.lineup.length === 0) {
+            return <ShowCardArtwork show={parsedShow} />;
+        }
+        return <LineupGrid lineup={parsedShow.lineup} />;
+    };
 
     return (
         <EntityCard
