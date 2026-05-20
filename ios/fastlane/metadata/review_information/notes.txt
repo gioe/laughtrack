@@ -1,5 +1,7 @@
 Laughtrack is a comedy show discovery app. Sign-in is optional — all browsing (comedians, shows, clubs, location-based discovery) works without an account. Sign-in (Apple or Google) is only required to favorite comedians and to add shows to the device calendar.
 
+The app is intentionally dark-mode-only for this release. It forces a dark appearance by design, regardless of the device's current light or dark mode setting.
+
 To test full functionality:
 
 1. Open the app — the Near Me tab requests location permission for nearby show discovery. If denied, browsing still works via manual search.
