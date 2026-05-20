@@ -34,7 +34,9 @@ import { applyPublicReadRateLimit } from "@/lib/rateLimit";
 const mockApplyPublicReadRateLimit = vi.mocked(applyPublicReadRateLimit);
 
 function makeRequest(url: string): NextRequest {
-    return new NextRequest(`http://localhost/api/v1/podcast-artwork?url=${encodeURIComponent(url)}`);
+    return new NextRequest(
+        `http://localhost/api/v1/podcast-artwork?url=${encodeURIComponent(url)}`,
+    );
 }
 
 beforeEach(() => {

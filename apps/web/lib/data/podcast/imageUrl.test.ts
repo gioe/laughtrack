@@ -6,7 +6,9 @@ describe("podcast image URLs", () => {
         expect(safePodcastImageUrl("https://cdn.example.com/art.jpg")).toBe(
             "https://cdn.example.com/art.jpg",
         );
-        expect(safePodcastImageUrl("http://cdn.example.com/art.jpg")).toBeNull();
+        expect(
+            safePodcastImageUrl("http://cdn.example.com/art.jpg"),
+        ).toBeNull();
         expect(safePodcastImageUrl(null)).toBeNull();
     });
 
