@@ -54,16 +54,6 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
 
     return (
         <div className="max-w-2xl bg-coconut-cream space-y-6">
-            {parsedClub.description !== "" && (
-                <section>
-                    <h2 className="text-xl font-bold mb-2">
-                        {isFestival ? "About the Festival" : "About"}
-                    </h2>
-                    <p className="text-foreground whitespace-pre-line">
-                        {parsedClub.description}
-                    </p>
-                </section>
-            )}
             {hoursEntries.length > 0 && (
                 <section>
                     <h2 className="text-xl font-bold mb-2 flex items-center gap-2">

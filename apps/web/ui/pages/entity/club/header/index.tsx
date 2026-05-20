@@ -118,6 +118,17 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                 </div>
             </motion.div>
 
+            {parsedClub.description !== "" && (
+                <motion.p
+                    initial={{ opacity: 0, y: mv(10) }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={mt({ duration: 0.3, delay: mv(0.25) })}
+                    className="px-6 pt-6 max-w-3xl font-dmSans text-body leading-relaxed text-foreground whitespace-pre-line"
+                >
+                    {parsedClub.description}
+                </motion.p>
+            )}
+
             {/* Contact info below hero */}
             <div className="p-6">
                 <ClubDataColumn club={club} />
