@@ -51,6 +51,7 @@ type PodcastReviewGroup = {
     podcast: NonNullable<AdminPodcastOwnershipReviewCandidate["podcast"]>;
     candidates: AdminPodcastOwnershipReviewCandidate[];
     ownerOptions: OwnerOption[];
+    acceptedOwner: OwnerOption | null;
     initialOwner: OwnerOption | null;
     popularity: number;
 };
@@ -150,6 +151,7 @@ function groupCandidates(
             podcast,
             candidates: rows,
             ownerOptions: Array.from(uniqueOptions.values()),
+            acceptedOwner: acceptedOwner ?? null,
             initialOwner: acceptedOwner ?? suggestedOwner ?? null,
             popularity: Math.max(
                 0,
@@ -255,6 +257,12 @@ function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
     ) as Record<string, OwnerOption | null>;
 }
 
+function confirmedOwnerDefaults(groups: PodcastReviewGroup[]) {
+    return Object.fromEntries(
+        groups.map((group) => [group.key, group.acceptedOwner?.id ?? null]),
+    ) as Record<string, number | null>;
+}
+
 export default function AdminPodcastOwnershipReviewManager({
     candidates,
 }: Props) {
@@ -268,6 +276,9 @@ export default function AdminPodcastOwnershipReviewManager({
     const [selectedOwners, setSelectedOwners] = useState<
         Record<string, OwnerOption | null>
     >(() => selectedOwnerDefaults(groups));
+    const [confirmedOwnerIds, setConfirmedOwnerIds] = useState<
+        Record<string, number | null>
+    >(() => confirmedOwnerDefaults(groups));
     const [notes, setNotes] = useState<Record<string, string>>({});
     const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
     const [searchResults, setSearchResults] = useState<
@@ -380,6 +391,10 @@ export default function AdminPodcastOwnershipReviewManager({
                     ? `${group.podcast.title} blocked.`
                     : `${group.podcast.title} approved with ${owner.name} as owner.`,
         });
+        setConfirmedOwnerIds((prev) => ({
+            ...prev,
+            [group.key]: owner?.id ?? null,
+        }));
         startTransition(() => router.refresh());
     }
 
@@ -857,7 +872,7 @@ export default function AdminPodcastOwnershipReviewManager({
                           const ownedPodcastCount =
                               comedianGroup.podcastGroups.filter((group) => {
                                   return (
-                                      selectedOwners[group.key]?.id ===
+                                      confirmedOwnerIds[group.key] ===
                                       comedianGroup.comedian.id
                                   );
                               }).length;

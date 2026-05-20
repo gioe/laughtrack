@@ -113,6 +113,21 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 title: "Lower Pop Show",
             },
         };
+        const ownedJaneCandidate: AdminPodcastOwnershipReviewCandidate = {
+            ...candidate,
+            existingOwnerships: [
+                {
+                    id: 201,
+                    associationType: "owner",
+                    source: "manual",
+                    reviewStatus: "accepted",
+                    confidence: 1,
+                    reviewedAt: "2026-05-18T12:00:00.000Z",
+                    reviewedBy: "profile-1",
+                    comedian: candidate.comedian,
+                },
+            ],
+        };
         const nonOwnedJaneCandidate: AdminPodcastOwnershipReviewCandidate = {
             ...candidate,
             id: 14,
@@ -145,7 +160,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 candidates={[
                     lowerPopularityCandidate,
                     nonOwnedJaneCandidate,
-                    candidate,
+                    ownedJaneCandidate,
                 ]}
             />,
         );
