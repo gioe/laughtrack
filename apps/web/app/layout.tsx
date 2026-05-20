@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./fonts.css";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import { SessionProvider } from "next-auth/react";
@@ -169,6 +170,7 @@ export default async function RootLayout({
                         </StyleContextProvider>
                     </TimezoneProvider>
                     <Analytics />
+                    <SpeedInsights />
                 </body>
             </html>
         </SessionProvider>
