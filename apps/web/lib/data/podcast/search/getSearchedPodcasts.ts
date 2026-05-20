@@ -162,5 +162,9 @@ export async function getSearchedPodcasts(params: {
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
         })),
+        // Podcasts have no tag-driven filters yet, but the shared FilterBar /
+        // FilterModal contract requires a filters array — keep it empty until a
+        // podcast tag taxonomy exists.
+        filters: [],
     };
 }

@@ -19,6 +19,7 @@ export default function PodcastSearchClient({
     const params = {
         q: searchParams.get("q") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
+        includeEmpty: searchParams.get("includeEmpty") ?? undefined,
     };
     const {
         data,

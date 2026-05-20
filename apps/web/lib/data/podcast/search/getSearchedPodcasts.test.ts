@@ -133,6 +133,7 @@ describe("getSearchedPodcasts", () => {
                     episodeCount: 42,
                 },
             ],
+            filters: [],
         });
     });
 

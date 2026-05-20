@@ -1,4 +1,5 @@
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import type { FilterDTO } from "@/objects/interface";
 
 export interface PodcastEpisodeDTO {
     id: number;
@@ -31,4 +32,5 @@ export interface PodcastDetailResponse {
 export interface PodcastSearchResponse {
     data: PodcastDTO[];
     total: number;
+    filters: FilterDTO[];
 }

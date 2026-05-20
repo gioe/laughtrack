@@ -79,10 +79,12 @@ const FilterBar = ({
     const isClubSearch = variant === SearchVariant.AllClubs;
     const isComedianSearch = variant === SearchVariant.AllComedians;
     const isShowSearch = variant === SearchVariant.AllShows;
-    const includeEmpty =
-        isClubSearch || isComedianSearch
-            ? (getTypedParam("includeEmpty") ?? false)
-            : false;
+    const isPodcastSearch = variant === SearchVariant.AllPodcasts;
+    const includeEmptyApplies =
+        isClubSearch || isComedianSearch || isPodcastSearch;
+    const includeEmpty = includeEmptyApplies
+        ? (getTypedParam("includeEmpty") ?? false)
+        : false;
 
     const filtersParam: string = getTypedParam("filters") ?? "";
     const selectedSlugs = useMemo(
@@ -186,14 +188,18 @@ const FilterBar = ({
                                 )}
 
                             {/* "Include all" toggles the `includeEmpty` flag, which by
-                                default hides clubs/comedians with no upcoming shows.
-                                Shows don't surface this control because every show row
-                                is itself an upcoming event; Podcasts skip it because
-                                a podcast isn't bound to a show calendar. */}
-                            {(isClubSearch || isComedianSearch) && (
+                                default hides results with weak signal: clubs/comedians
+                                with no upcoming shows, and podcasts with no LaughTrack
+                                comedian ownership. Shows don't surface this control
+                                because every show row is itself an upcoming event. */}
+                            {includeEmptyApplies && (
                                 <label
                                     className="flex items-center gap-1.5 text-sm text-copper/70 whitespace-nowrap cursor-pointer select-none"
-                                    title="Include results with no upcoming shows"
+                                    title={
+                                        isPodcastSearch
+                                            ? "Include podcasts without tracked comedian hosts"
+                                            : "Include results with no upcoming shows"
+                                    }
                                 >
                                     <input
                                         type="checkbox"
