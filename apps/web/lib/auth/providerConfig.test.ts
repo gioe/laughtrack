@@ -18,15 +18,17 @@ describe("auth provider config", () => {
         });
     });
 
-    it("falls back to legacy Google env names", () => {
+    it("ignores legacy Google env names", () => {
         delete process.env.AUTH_GOOGLE_ID;
         delete process.env.AUTH_GOOGLE_SECRET;
         process.env.GOOGLE_CLIENT_ID = "legacy-google-id";
         process.env.GOOGLE_CLIENT_SECRET = "legacy-google-secret";
+        process.env.GOOGLE_ID = "legacy-google-id-alt";
+        process.env.GOOGLE_SECRET = "legacy-google-secret-alt";
 
         expect(googleProviderConfig()).toEqual({
-            clientId: "legacy-google-id",
-            clientSecret: "legacy-google-secret",
+            clientId: undefined,
+            clientSecret: undefined,
         });
     });
 
@@ -40,15 +42,17 @@ describe("auth provider config", () => {
         });
     });
 
-    it("falls back to legacy Apple env names", () => {
+    it("ignores legacy Apple env names", () => {
         delete process.env.AUTH_APPLE_ID;
         delete process.env.AUTH_APPLE_SECRET;
         process.env.APPLE_CLIENT_ID = "legacy-apple-id";
         process.env.APPLE_CLIENT_SECRET = "legacy-apple-secret";
+        process.env.APPLE_ID = "legacy-apple-id-alt";
+        process.env.APPLE_SECRET = "legacy-apple-secret-alt";
 
         expect(appleProviderConfig()).toEqual({
-            clientId: "legacy-apple-id",
-            clientSecret: "legacy-apple-secret",
+            clientId: undefined,
+            clientSecret: undefined,
         });
     });
 });
