@@ -170,7 +170,7 @@ export default function PodcastDetail({
     relatedComedians,
 }: PodcastDetailProps) {
     return (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10">
             <section className="grid gap-6 md:grid-cols-[224px_minmax(0,1fr)] md:items-end">
                 <PodcastArtwork
                     podcast={podcast}
@@ -268,6 +268,6 @@ export default function PodcastDetail({
                     />
                 </section>
             ) : null}
-        </main>
+        </div>
     );
 }
