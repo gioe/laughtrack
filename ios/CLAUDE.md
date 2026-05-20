@@ -224,6 +224,26 @@ them, but tests built on top of it inherit the constraints.
    workaround in `nearMeProfileButtonPushesProfileRoute`
    (`ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
 
+### CI Simulator Pin: iOS 18.3.1 (TASK-2339)
+
+The fastlane `test` lane and the `sim-tests-ios-18` job in
+`.github/workflows/ios-build.yml` are pinned to the **iOS 18.3.1** simulator
+runtime (`iPhone 16 Pro`) to dodge the iOS 26.x HostedView accessibility-tree
+wiring regression described in the next section. Same source revision fails
+~18 tests across 16 HostedView suites on iOS 26.1 / 26.2 and passes cleanly on
+iOS 18.3.1; pinning keeps the release-blocking CI signal green until Apple
+ships an SDK fix.
+
+A separate `sim-tests-ios-26-watch` job (`fastlane test_ios26_watch`) runs the
+same suite against the latest iOS 26.x runtime with `continue-on-error: true`.
+It is **expected to fail** until Apple fixes the regression — when it starts
+passing, that is the signal to drop the 18.3.1 pin. Don't "fix" the watcher
+job by silencing it; let it fail loudly.
+
+Bumping `TEST_IOS_VERSION` in `ios/fastlane/Fastfile` requires re-verifying the
+HostedView suites pass against the new runtime. The bisect table below is the
+canonical evidence supporting the pin.
+
 ### iOS 26 Accessibility-Tree Wiring Regression (TASK-1921)
 
 As of 2026-05-07, on iPhone 17 / iOS 26.1 and iOS 26.2 simulators, the
