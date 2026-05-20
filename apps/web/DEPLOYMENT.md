@@ -361,7 +361,7 @@ These secrets are consumed by the scraper application and should be added to any
 
 ## Uptime Monitoring & Incident Response
 
-Production uptime is monitored by [Better Stack](https://betterstack.com/uptime). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via an incoming webhook.
+Production uptime is monitored by [Better Stack](https://betterstack.com/uptime). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via Better Stack's Slack integration pointed at the Discord webhook's Slack-compatible endpoint (see setup below).
 
 ### What gets probed
 
@@ -386,7 +386,7 @@ A monitor is considered **recovered** after **2 consecutive successful checks**.
 
 ### Paging destination
 
-- **Primary:** Discord `#laughtrack` channel (Better Stack → Incoming Webhook integration → Discord webhook URL).
+- **Primary:** Discord `#laughtrack` channel. Better Stack does not have a native Discord integration. Use Better Stack's **Slack** integration and supply the Discord channel's webhook URL with `/slack` appended — Discord's webhook endpoint accepts Slack-formatted payloads at the `/slack` suffix, so Better Stack's Slack-format POST renders natively in `#laughtrack`.
 - **Escalation:** Email to `gioematt@gmail.com` if the Discord incident is not acknowledged within 10 minutes.
 
 Both endpoints fire on `down`; only the Discord channel fires on `recovered`.
@@ -417,14 +417,14 @@ When a page fires:
 Performed once; record the resulting monitor IDs in 1Password / a secure note.
 
 1. Sign up for [Better Stack Uptime](https://betterstack.com/uptime) (free tier covers 10 monitors).
-2. Create a Discord incoming webhook in the `#laughtrack` channel (Discord → Channel Settings → Integrations → Webhooks → New Webhook). Copy the URL.
-3. In Better Stack: **Integrations → Discord → Add integration**, paste the webhook URL.
+2. Create a Discord incoming webhook in the `#laughtrack` channel (Discord → Channel Settings → Integrations → Webhooks → New Webhook). Copy the webhook URL. **Append `/slack` to the end** — e.g. `https://discord.com/api/webhooks/<id>/<token>/slack`. Discord's webhook endpoint accepts Slack-formatted payloads at this suffix; Better Stack only knows how to emit Slack-format, so the suffix is what makes Discord render the alerts.
+3. In Better Stack: **Integrations → Slack** (not Discord — Better Stack has no native Discord integration). Paste the Discord webhook URL with `/slack` appended from step 2.
 4. In Better Stack: **Monitors → Create monitor** twice — once per URL above. For each:
    - **URL:** `https://laugh-track.com/` and `https://laugh-track.com/api/health`
    - **Check frequency:** 60 seconds
    - **Request timeout:** 15s for `/`, 10s for `/api/health`
    - **Confirm by:** 2 consecutive failures, multiple regions
-   - **On-call schedule:** the Discord integration created above; add email escalation after 10 minutes
+   - **On-call schedule:** the Slack integration created above (which now points at the Discord channel); add email escalation after 10 minutes
    - **Expected status code:** `200`
 5. Trigger a test failure: pause one monitor manually and confirm Discord receives the alert in `#laughtrack`. Resume the monitor.
 6. Document the monitor IDs in the team notes so they can be referenced from future runbooks.
