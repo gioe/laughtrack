@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import { auth } from "@/auth";
 import { CACHE } from "@/util/constants/cacheConstants";
 import JsonLd from "@/ui/components/JsonLd";
 import FilterModal from "@/ui/components/modals/filter";
@@ -35,13 +36,17 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 }
 
 export default async function PodcastsPage(props: PodcastsPageProps) {
-    const searchParams = await props.searchParams;
+    const [session, searchParams] = await Promise.all([
+        auth(),
+        props.searchParams,
+    ]);
     const q = firstParam(searchParams.q);
     const sort = firstParam(searchParams.sort);
     const includeEmpty = firstParam(searchParams.includeEmpty);
-    const cacheKey = JSON.stringify({ q, sort, includeEmpty });
+    const profileId = session?.profile?.id;
+    const cacheKey = JSON.stringify({ q, sort, includeEmpty, profileId });
     const getCached = unstable_cache(
-        async () => getSearchedPodcasts({ q, sort, includeEmpty }),
+        async () => getSearchedPodcasts({ q, sort, includeEmpty, profileId }),
         ["podcasts-search-page-data-v3", cacheKey],
         {
             revalidate: CACHE.search,

@@ -17,6 +17,10 @@ vi.mock("@/lib/data/podcast/search/getSearchedPodcasts", () => ({
     getSearchedPodcasts: mockGetSearchedPodcasts,
 }));
 
+vi.mock("@/auth", () => ({
+    auth: vi.fn(() => Promise.resolve(null)),
+}));
+
 vi.mock("next/cache", () => ({
     unstable_cache: <T,>(fn: () => Promise<T>) => fn,
 }));
@@ -136,6 +140,7 @@ describe("PodcastsPage filter shell integration", () => {
             q: "comedy",
             sort: "name_asc",
             includeEmpty: "true",
+            profileId: undefined,
         });
     });
 

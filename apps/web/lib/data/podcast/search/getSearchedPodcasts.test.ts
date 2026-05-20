@@ -131,10 +131,26 @@ describe("getSearchedPodcasts", () => {
                     imageUrl: "https://cdn.example.com/good-one.jpg",
                     description: "Comedy interviews",
                     episodeCount: 42,
+                    isFavorite: false,
                 },
             ],
             filters: [],
         });
+    });
+
+    it("includes favorite rows when a profile id is provided", async () => {
+        await getSearchedPodcasts({ profileId: "profile-123" });
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                select: expect.objectContaining({
+                    favorites: {
+                        where: { profileId: "profile-123" },
+                        select: { id: true },
+                    },
+                }),
+            }),
+        );
     });
 
     it("uses zero-indexed API pagination and caps page size", async () => {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedPodcasts } from "@/lib/data/podcast/search/getSearchedPodcasts";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 
 export async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "podcasts-search");
@@ -9,12 +10,15 @@ export async function GET(req: NextRequest) {
     const sp = req.nextUrl.searchParams;
 
     try {
+        const rawAuthCtx = await resolveAuth(req);
+        const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
         const result = await getSearchedPodcasts({
             q: sp.get("q") ?? undefined,
             page: sp.get("page") ?? undefined,
             size: sp.get("size") ?? undefined,
             sort: sp.get("sort") ?? undefined,
             includeEmpty: sp.get("includeEmpty") ?? undefined,
+            profileId: authCtx?.profileId,
         });
 
         return NextResponse.json(result, { headers: rateLimitHeaders(rl) });

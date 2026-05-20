@@ -21,6 +21,7 @@ export interface PodcastDTO {
     imageUrl: string | null;
     description: string | null;
     episodeCount: number;
+    isFavorite?: boolean;
 }
 
 export interface PodcastDetailResponse {

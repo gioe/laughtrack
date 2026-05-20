@@ -104,6 +104,7 @@ export async function getSearchedPodcasts(params: {
     size?: string;
     sort?: string;
     includeEmpty?: string;
+    profileId?: string;
 }): Promise<PodcastSearchResponse> {
     const query = params.q?.trim() ?? "";
     const page = normalizePage(params.page);
@@ -142,6 +143,14 @@ export async function getSearchedPodcasts(params: {
                         episodes: true,
                     },
                 },
+                ...(params.profileId
+                    ? {
+                          favorites: {
+                              where: { profileId: params.profileId },
+                              select: { id: true },
+                          },
+                      }
+                    : {}),
             },
             orderBy: orderByFor(sort),
             take: size,
@@ -161,6 +170,10 @@ export async function getSearchedPodcasts(params: {
             imageUrl: safePodcastImageUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
+            isFavorite: Boolean(
+                (podcast as typeof podcast & { favorites?: { id: number }[] })
+                    .favorites?.length,
+            ),
         })),
         // Podcasts have no tag-driven filters yet, but the shared FilterBar /
         // FilterModal contract requires a filters array — keep it empty until a

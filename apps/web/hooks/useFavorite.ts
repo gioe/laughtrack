@@ -9,6 +9,7 @@ import { pendingFavorite } from "@/util/pendingFavorite";
 interface UseFavoriteProps {
     initialState: boolean;
     entityId: string;
+    entityType?: "comedian" | "podcast";
 }
 
 interface UseFavoriteReturn {
@@ -20,9 +21,12 @@ interface UseFavoriteReturn {
 const FAVORITE_ERROR_MSG = "Failed to update favorite. Please try again.";
 const SIGNIN_NUDGE_MSG = "Sign in to save your favorites";
 
+type FavoriteError = { error: string };
+
 export const useFavorite = ({
     initialState,
     entityId,
+    entityType = "comedian",
 }: UseFavoriteProps): UseFavoriteReturn => {
     const session = useSession();
     const loginModal = useLoginModal();
@@ -38,7 +42,10 @@ export const useFavorite = ({
             setIsFavorite(newFavoriteState);
 
             try {
-                const response = await favorite(newFavoriteState, entityId);
+                const response =
+                    entityType === "podcast"
+                        ? await favoritePodcast(newFavoriteState, entityId)
+                        : await favorite(newFavoriteState, entityId);
                 if (
                     response !== null &&
                     typeof response === "object" &&
@@ -62,18 +69,18 @@ export const useFavorite = ({
                 toast.error(FAVORITE_ERROR_MSG);
             }
         },
-        [entityId],
+        [entityId, entityType],
     );
 
     // Once authenticated, complete any favorite action the user started while logged out.
     useEffect(() => {
         if (session.status !== "authenticated") return;
         if (pendingConsumedRef.current) return;
-        const pending = pendingFavorite.consume(entityId);
+        const pending = pendingFavorite.consume(`${entityType}:${entityId}`);
         if (!pending) return;
         pendingConsumedRef.current = true;
         void performFavorite(pending.setFavorite);
-    }, [session.status, entityId, performFavorite]);
+    }, [session.status, entityId, entityType, performFavorite]);
 
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -82,7 +89,7 @@ export const useFavorite = ({
             await performFavorite(!isFavorite);
         } else {
             pendingFavorite.set({
-                entityId,
+                entityId: `${entityType}:${entityId}`,
                 setFavorite: !isFavorite,
             });
             toast(SIGNIN_NUDGE_MSG, { icon: "❤️" });
@@ -96,3 +103,42 @@ export const useFavorite = ({
         isAuthenticated: session.status === "authenticated",
     };
 };
+
+async function favoritePodcast(
+    setFavorite: boolean,
+    entityId: string,
+): Promise<boolean | FavoriteError | undefined> {
+    const podcastId = Number.parseInt(entityId, 10);
+    if (!Number.isInteger(podcastId) || podcastId <= 0) {
+        return { error: "podcastId is required" };
+    }
+
+    const response = await fetch(
+        setFavorite
+            ? "/api/v1/favorite-podcasts"
+            : `/api/v1/favorite-podcasts/${podcastId}`,
+        {
+            method: setFavorite ? "POST" : "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: setFavorite ? JSON.stringify({ podcastId }) : undefined,
+        },
+    );
+
+    if (!response.ok) {
+        if (response.status === 401) return undefined;
+        const body = (await response.json().catch(() => null)) as
+            | { error?: unknown }
+            | null;
+        return {
+            error:
+                typeof body?.error === "string"
+                    ? body.error
+                    : FAVORITE_ERROR_MSG,
+        };
+    }
+
+    const body = (await response.json().catch(() => null)) as
+        | { data?: { isFavorited?: unknown } }
+        | null;
+    return body?.data?.isFavorited === true;
+}
