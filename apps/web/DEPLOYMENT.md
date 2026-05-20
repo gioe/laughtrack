@@ -361,7 +361,9 @@ These secrets are consumed by the scraper application and should be added to any
 
 ## Uptime Monitoring & Incident Response
 
-Production uptime is monitored by [Better Stack](https://betterstack.com/uptime). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via Better Stack's Slack integration pointed at the Discord webhook's Slack-compatible endpoint (see setup below).
+Production uptime is monitored by [UptimeRobot](https://uptimerobot.com). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via UptimeRobot's native Discord webhook alert contact.
+
+> **Why not Better Stack:** Better Stack has no native Discord integration. The recommended workaround uses its Slack integration, but Better Stack's Slack OAuth requires a real (paid) Slack workspace to install the app — we don't have one and don't want to pay for one just for paging. UptimeRobot's Discord support is first-class and works on its free tier.
 
 ### What gets probed
 
@@ -374,22 +376,22 @@ The homepage is the leading signal (deep canary). The `/api/health` endpoint is 
 
 ### "Down" criteria
 
-A monitor is considered **down** when **any** of the following holds for **2 consecutive checks** (≥ 2 minutes of failure at the default 60s interval):
+A monitor is considered **down** when **any** of the following holds for **2 consecutive checks** (≥ 10 minutes of failure at the UptimeRobot free-tier 5-minute interval; paid plans probe every 30–60s and bring detection time down accordingly):
 
 - HTTP status ≥ 500, or
 - Request times out (no response within **10 seconds** for `/api/health`, **15 seconds** for `/`), or
 - TLS handshake fails
 
-Two consecutive failures (rather than one) suppresses single-region network blips. Better Stack's multi-region check (US-East + EU + Asia, with majority-rules confirmation) further reduces false positives.
+Two consecutive failures (rather than one) suppresses single-region network blips. UptimeRobot's multi-region probes (US, EU, Asia) with majority-rules confirmation further reduce false positives.
 
 A monitor is considered **recovered** after **2 consecutive successful checks**.
 
 ### Paging destination
 
-- **Primary:** Discord `#laughtrack` channel. Better Stack does not have a native Discord integration. Use Better Stack's **Slack** integration and supply the Discord channel's webhook URL with `/slack` appended — Discord's webhook endpoint accepts Slack-formatted payloads at the `/slack` suffix, so Better Stack's Slack-format POST renders natively in `#laughtrack`.
-- **Escalation:** Email to `gioematt@gmail.com` if the Discord incident is not acknowledged within 10 minutes.
+- **Primary:** Discord `#laughtrack` channel via UptimeRobot's native Discord alert contact (the Discord channel's incoming webhook URL is pasted directly into UptimeRobot as a Webhook-type alert contact; UptimeRobot's Discord integration emits a Discord-formatted payload, so no Slack-compatibility trick is required).
+- **Escalation:** Email to `gioematt@gmail.com` as a second alert contact on each monitor; UptimeRobot will email immediately on every state change.
 
-Both endpoints fire on `down`; only the Discord channel fires on `recovered`.
+Both contacts fire on `down`; both also fire on `recovered`.
 
 ### Who responds
 
@@ -399,7 +401,7 @@ Matt Gioe (`gioematt@gmail.com`) is the sole on-call. There is no rotation. If u
 
 When a page fires:
 
-1. **Acknowledge** in Better Stack (mobile app or dashboard) to stop further pages while you investigate.
+1. **Acknowledge** in UptimeRobot (mobile app or dashboard) to stop further pages while you investigate.
 2. **Reproduce** — open `https://laugh-track.com/` and `https://laugh-track.com/api/health` from your browser. Note which is failing.
 3. **Triage by failure pattern:**
    - **Both endpoints down** → app is hard-down. Check the [Vercel dashboard](https://vercel.com/dashboard) for the latest deployment status. If a recent deploy looks suspect, **Vercel → Deployments → Promote** the previous successful deployment to roll back.
@@ -409,22 +411,34 @@ When a page fires:
      - Vercel logs for the most recent deployment.
    - **Only `/api/health` down, `/` up** → unlikely (homepage covers the same Node runtime). Treat as Vercel infrastructure flap; wait 5 minutes before deeper investigation.
 4. **Communicate** — drop a note in `#laughtrack` Discord describing what you're seeing, even if you don't have a fix yet.
-5. **Resolve and close** the incident in Better Stack once both monitors are green for ≥ 5 minutes.
+5. **Resolve and close** the incident in UptimeRobot once both monitors are green for ≥ 5 minutes.
 6. **Post-incident** — file a tusk task (`/create-task`) capturing root cause, time to detect, time to resolve, and any follow-up work (e.g. add a new alert, fix a brittle code path).
 
-### One-time Better Stack setup
+### One-time UptimeRobot setup
 
 Performed once; record the resulting monitor IDs in 1Password / a secure note.
 
-1. Sign up for [Better Stack Uptime](https://betterstack.com/uptime) (free tier covers 10 monitors).
-2. Create a Discord incoming webhook in the `#laughtrack` channel (Discord → Channel Settings → Integrations → Webhooks → New Webhook). Copy the webhook URL. **Append `/slack` to the end** — e.g. `https://discord.com/api/webhooks/<id>/<token>/slack`. Discord's webhook endpoint accepts Slack-formatted payloads at this suffix; Better Stack only knows how to emit Slack-format, so the suffix is what makes Discord render the alerts.
-3. In Better Stack: **Integrations → Slack** (not Discord — Better Stack has no native Discord integration). Paste the Discord webhook URL with `/slack` appended from step 2.
-4. In Better Stack: **Monitors → Create monitor** twice — once per URL above. For each:
+1. Sign up for [UptimeRobot](https://uptimerobot.com) (free tier covers 50 monitors at 5-minute intervals; paid Solo tier adds 30s–60s intervals).
+2. Create a Discord incoming webhook in the `#laughtrack` channel (Discord → Channel Settings → Integrations → Webhooks → New Webhook). Copy the webhook URL. Do **not** append `/slack` — UptimeRobot posts in Discord's native format.
+3. In UptimeRobot: **My Settings → Add Alert Contact → Type: Webhook**. Paste the Discord webhook URL from step 2. Enable **Send as JSON (application/json)** and use a Discord-compatible POST body that interpolates UptimeRobot's variables, for example:
+   ```json
+   {
+     "content": "🚨 **\*monitorFriendlyName\*** is **\*alertTypeFriendlyName\***",
+     "embeds": [{
+       "title": "\*monitorFriendlyName\*",
+       "url": "\*monitorURL\*",
+       "description": "\*alertDetails\*",
+       "color": 15158332
+     }]
+   }
+   ```
+4. Add a second alert contact: **Type: E-mail**, address `gioematt@gmail.com`, for escalation redundancy.
+5. **Monitors → New Monitor** twice — once per URL above. For each:
+   - **Monitor Type:** HTTP(s)
    - **URL:** `https://laugh-track.com/` and `https://laugh-track.com/api/health`
-   - **Check frequency:** 60 seconds
-   - **Request timeout:** 15s for `/`, 10s for `/api/health`
-   - **Confirm by:** 2 consecutive failures, multiple regions
-   - **On-call schedule:** the Slack integration created above (which now points at the Discord channel); add email escalation after 10 minutes
-   - **Expected status code:** `200`
-5. Trigger a test failure: pause one monitor manually and confirm Discord receives the alert in `#laughtrack`. Resume the monitor.
-6. Document the monitor IDs in the team notes so they can be referenced from future runbooks.
+   - **Monitoring Interval:** 5 minutes (free tier) or 1 minute (paid tier if upgraded)
+   - **Timeout:** 15s for `/`, 10s for `/api/health`
+   - **Alert Contacts:** select both the Discord webhook and the email contact created above
+   - **HTTP Status Codes:** alert on anything that is not `200`
+6. Trigger a test failure: pause one monitor manually (Monitors → ⏸) and confirm Discord receives the alert in `#laughtrack`. Resume the monitor.
+7. Document the monitor IDs in the team notes so they can be referenced from future runbooks.
