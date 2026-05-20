@@ -19,6 +19,7 @@ import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import AdultContentAcknowledgment from "@/ui/components/adultContentAcknowledgment";
 
 import { TimezoneProvider } from "@/contexts/TimezoneProvider";
 import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
@@ -161,6 +162,7 @@ export default async function RootLayout({
                         <Suspense fallback={null}>
                             <LoginModal />
                         </Suspense>
+                        <AdultContentAcknowledgment />
                         <StyleContextProvider
                             initialContext={StyleContextKey.Home}
                         >

@@ -64,6 +64,8 @@ enum LaughTrackViewTestID {
     static let favoritesClubsSection = "laughtrack.favorites.clubs-section"
     static let favoritesPodcastsSection = "laughtrack.favorites.podcasts-section"
     static let libraryFavoritesSection = favoritesComediansSection
+    static let adultContentAcknowledgmentScreen = "laughtrack.adult-content-ack.screen"
+    static let adultContentAcknowledgmentButton = "laughtrack.adult-content-ack.button"
     static let firstEntryAuthChoiceScreen = "laughtrack.auth-choice.screen"
     static let firstEntryContinueAsGuestButton = "laughtrack.auth-choice.continue-as-guest"
 
@@ -117,6 +119,7 @@ struct ContentView: View {
 
     enum RootSurface: Equatable {
         case loading
+        case adultContentAcknowledgment
         case authChoiceGate(message: String?)
         case signedOutShell(message: String?)
         case authenticatedShell
@@ -133,6 +136,7 @@ struct ContentView: View {
     @StateObject private var favorites = ComedianFavoriteStore()
     @StateObject private var podcastFavorites = PodcastFavoriteStore()
     @StateObject private var shellState = AppShellState()
+    @StateObject private var adultContentAcknowledgmentStore = AdultContentAcknowledgmentStore()
     @StateObject private var firstEntryAuthChoiceStore = FirstEntryAuthChoiceStore()
     @StateObject private var podcastPlayer = PodcastPlaybackController()
     @Namespace private var authLogoNamespace
@@ -142,6 +146,7 @@ struct ContentView: View {
             authState: authManager.state,
             hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
             currentUser: authManager.currentUser,
+            hasAcknowledgedAdultContent: adultContentAcknowledgmentStore.hasAcknowledgedAdultContent,
             hasChosenGuestBrowsing: firstEntryAuthChoiceStore.hasChosenGuestBrowsing
         )
 
@@ -150,6 +155,11 @@ struct ContentView: View {
             case .loading:
                 AuthLoadingView(logoNamespace: authLogoNamespace)
                     .transition(.opacity)
+            case .adultContentAcknowledgment:
+                AdultContentAcknowledgmentView(
+                    acknowledge: adultContentAcknowledgmentStore.acknowledge
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.985, anchor: .center)))
             case .authChoiceGate(let message):
                 FirstEntryAuthChoiceView(
                     message: message,
@@ -200,8 +210,13 @@ struct ContentView: View {
         authState: AuthManager.State,
         hasLoadedCurrentUser: Bool,
         currentUser: AuthenticatedUser?,
+        hasAcknowledgedAdultContent: Bool = true,
         hasChosenGuestBrowsing: Bool = false
     ) -> RootSurface {
+        guard hasAcknowledgedAdultContent else {
+            return .adultContentAcknowledgment
+        }
+
         switch authState {
         case .restoring, .signingIn:
             return .loading
@@ -389,6 +404,28 @@ private struct PodcastMiniPlayerView: View {
 }
 
 @MainActor
+final class AdultContentAcknowledgmentStore: ObservableObject {
+    static let storageKey = "laughtrack.adult-content-acknowledged"
+
+    @Published private(set) var hasAcknowledgedAdultContent: Bool
+
+    private let appStateStorage: AppStateStorageProtocol
+
+    init(appStateStorage: AppStateStorageProtocol = AppStateStorage()) {
+        self.appStateStorage = appStateStorage
+        self.hasAcknowledgedAdultContent = appStateStorage.getValue(
+            forKey: Self.storageKey,
+            as: Bool.self
+        ) ?? false
+    }
+
+    func acknowledge() {
+        hasAcknowledgedAdultContent = true
+        appStateStorage.setValue(true, forKey: Self.storageKey)
+    }
+}
+
+@MainActor
 final class FirstEntryAuthChoiceStore: ObservableObject {
     static let storageKey = "laughtrack.auth.first-entry-guest-choice"
 
@@ -407,6 +444,84 @@ final class FirstEntryAuthChoiceStore: ObservableObject {
     func continueAsGuest() {
         hasChosenGuestBrowsing = true
         appStateStorage.setValue(true, forKey: Self.storageKey)
+    }
+}
+
+private struct AdultContentAcknowledgmentView: View {
+    @Environment(\.appTheme) private var theme
+
+    let acknowledge: () -> Void
+    @State private var hasAppeared = false
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        ZStack {
+            laughTrack.colors.canvas
+                .ignoresSafeArea()
+
+            VStack(spacing: theme.spacing.lg) {
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.system(size: 42, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .frame(width: 72, height: 72)
+                    .background(laughTrack.colors.surfaceElevated)
+                    .clipShape(Circle())
+
+                VStack(spacing: theme.spacing.sm) {
+                    Text("Adult content notice")
+                        .font(laughTrack.typography.screenTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text("This app shows live comedy events that may contain adult content, including mature language and themes.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Button(action: acknowledge) {
+                    HStack(spacing: theme.spacing.sm) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .frame(width: 22)
+
+                        Text("I understand")
+                            .font(laughTrack.typography.action)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.9)
+                    }
+                    .foregroundStyle(laughTrack.colors.textInverse)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .padding(.horizontal, theme.spacing.md)
+                    .contentShape(Rectangle())
+                    .background(laughTrack.colors.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(LaughTrackViewTestID.adultContentAcknowledgmentButton)
+            }
+            .padding(theme.spacing.xl)
+            .frame(maxWidth: 440)
+            .background(laughTrack.colors.surfaceElevated)
+            .overlay(
+                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+            .shadowStyle(laughTrack.shadows.floating)
+            .padding(.horizontal, theme.spacing.lg)
+            .opacity(hasAppeared ? 1 : 0)
+            .offset(y: hasAppeared ? 0 : 12)
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.adultContentAcknowledgmentScreen)
+        .onAppear {
+            withAnimation(.spring(response: 0.48, dampingFraction: 0.86).delay(0.08)) {
+                hasAppeared = true
+            }
+        }
     }
 }
 

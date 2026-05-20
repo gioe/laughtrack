@@ -21,6 +21,34 @@ struct ContentViewNavigationTests {
         ) == .loading)
     }
 
+    @Test("fresh install shows adult content acknowledgment before auth routing")
+    func freshInstallShowsAdultContentAcknowledgment() async throws {
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasAcknowledgedAdultContent: false,
+            hasChosenGuestBrowsing: false
+        ) == .adultContentAcknowledgment)
+        #expect(LaughTrackViewTestID.adultContentAcknowledgmentScreen == "laughtrack.adult-content-ack.screen")
+        #expect(LaughTrackViewTestID.adultContentAcknowledgmentButton == "laughtrack.adult-content-ack.button")
+    }
+
+    @Test("adult content acknowledgment persists between launches")
+    func adultContentAcknowledgmentPersistsBetweenLaunches() async throws {
+        let storage = AppStateStorage(
+            userDefaults: UserDefaults(suiteName: "ContentViewNavigationTests.adult.\(UUID().uuidString)")!
+        )
+        let store = AdultContentAcknowledgmentStore(appStateStorage: storage)
+
+        #expect(!store.hasAcknowledgedAdultContent)
+
+        store.acknowledge()
+
+        #expect(store.hasAcknowledgedAdultContent)
+        #expect(AdultContentAcknowledgmentStore(appStateStorage: storage).hasAcknowledgedAdultContent)
+    }
+
     @Test("first-launch signed-out user sees auth choice gate")
     func firstLaunchSignedOutUserSeesAuthChoiceGate() async throws {
         #expect(ContentView.rootSurface(
