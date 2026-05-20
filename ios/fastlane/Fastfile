@@ -195,7 +195,10 @@ platform :ios do
       skip_screenshots: false,
       skip_binary_upload: true,
       overwrite_screenshots: true,
-      precheck_include_in_app_purchases: false
+      precheck_include_in_app_purchases: false,
+      app_review_information: {
+        demo_account_required: false
+      }
     )
   end
 
@@ -211,7 +214,10 @@ platform :ios do
       skip_metadata: false,
       skip_screenshots: false,
       skip_binary_upload: false,
-      precheck_include_in_app_purchases: false
+      precheck_include_in_app_purchases: false,
+      app_review_information: {
+        demo_account_required: false
+      }
     )
   end
 
@@ -228,7 +234,10 @@ platform :ios do
       submission_information: {
         add_id_info_uses_idfa: false
       },
-      precheck_include_in_app_purchases: false
+      precheck_include_in_app_purchases: false,
+      app_review_information: {
+        demo_account_required: false
+      }
     )
   end
 
