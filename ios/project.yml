@@ -80,6 +80,8 @@ targets:
     sources:
       - path: Sources/LaughTrackApp
       - path: Resources
+      - path: PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: Sources/LaughTrackApp/Info.plist
       properties:

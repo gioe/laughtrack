@@ -74,6 +74,7 @@
 		5C3CAA72E332C5CE372BEA93 /* ComedianDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */; };
 		5FECACC3A16CCB6448BADCF3 /* DetailHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32660C7210ED82ACF6884F4 /* DetailHero.swift */; };
 		6345F1EA9EAEA2507D01175F /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427388AED0335B0C7AC80040 /* AuthManager.swift */; };
+		6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */; };
 		69B7A099BA643750CFE54512 /* EntityDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9A2BE7EB1ACA27F65E10C5 /* EntityDataFlowTests.swift */; };
 		6ABEE832F9DD11A82D34B73C /* SearchRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22E3FEC26FAACA575C943CBF /* SearchRootView.swift */; };
 		6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */; };
@@ -392,6 +393,7 @@
 		A7488519FE0E33B0A18BB456 /* DetailNavigationChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailNavigationChrome.swift; sourceTree = "<group>"; };
 		A74BC487918A42A77595DEB3 /* SnapshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotHelper.swift; sourceTree = "<group>"; };
 		A8BA3B55591C23E4463A3C08 /* FavoriteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteButton.swift; sourceTree = "<group>"; };
+		A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A8F8A66AB1B210569977A53D /* ComedianLineupRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianLineupRow.swift; sourceTree = "<group>"; };
 		AD130C65850C7623AC95788F /* LaughTrackBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBridge.swift; sourceTree = "<group>"; };
 		AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewTests.swift; sourceTree = "<group>"; };
@@ -680,6 +682,7 @@
 		4912D91429873852372DFFCF = {
 			isa = PBXGroup;
 			children = (
+				A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */,
 				43950B4019193E7B51DA39C4 /* LaughTrackAPIClient */,
 				60D274A90614E6596D6F336D /* LaughTrackApp */,
 				11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */,
@@ -1083,6 +1086,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				41DC07457C594E4BA82A70E8 /* Assets.xcassets in Resources */,
+				6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
