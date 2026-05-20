@@ -60,12 +60,18 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
+function openGroup(name: RegExp | string) {
+    fireEvent.click(screen.getByRole("button", { name }));
+}
+
 describe("AdminPodcastOwnershipReviewManager", () => {
     it("renders candidate context and evidence", () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
+        openGroup(/The Jane Show/);
+
         expect(screen.getAllByText("Jane Comic").length).toBeGreaterThan(0);
-        expect(screen.getByText("The Jane Show")).toBeTruthy();
+        expect(screen.getAllByText("The Jane Show").length).toBeGreaterThan(0);
         expect(screen.getByText("Owner: Jane Comic")).toBeTruthy();
         expect(screen.getAllByText("91%").length).toBeGreaterThan(0);
         expect(screen.getByText(/matched_name/)).toBeTruthy();
@@ -98,10 +104,13 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         fireEvent.change(screen.getByLabelText("Sort"), {
             target: { value: "popularity-desc" },
         });
+        openGroup(/Jane Comic/);
 
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Jane Comic");
-        expect(screen.getByText(/Popularity 74.0/)).toBeTruthy();
+        expect(screen.getAllByText(/Popularity 74.0/).length).toBeGreaterThan(
+            0,
+        );
         const rssLink = screen.getAllByRole("link", {
             name: /RSS: https:\/\/pod\.example\/feed\.xml/,
         })[0] as HTMLAnchorElement;
@@ -120,6 +129,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
         fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        openGroup(/Jane Comic/);
         fireEvent.change(screen.getByLabelText("Add arbitrary RSS feed"), {
             target: { value: "https://feeds.example.com/jane.xml" },
         });
@@ -146,6 +156,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     it("saves a selected podcast owner with a reason", async () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
+        openGroup(/The Jane Show/);
         fireEvent.change(screen.getByLabelText("Review note"), {
             target: { value: "Verified host credit" },
         });
@@ -172,6 +183,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     it("blocks a podcast when the owner tag is removed", async () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
+        openGroup(/The Jane Show/);
         fireEvent.click(
             screen.getByRole("button", { name: "Remove Jane Comic as owner" }),
         );
@@ -211,6 +223,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
             } as never);
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
+        openGroup(/The Jane Show/);
         fireEvent.change(
             screen.getByLabelText("Add owner", { selector: "input" }),
             {

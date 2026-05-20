@@ -1,7 +1,16 @@
 "use client";
 
-import { ExternalLink, Plus, Save, Search, X } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronRight,
+    ExternalLink,
+    Plus,
+    Save,
+    Search,
+    X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
 import {
@@ -252,6 +261,9 @@ export default function AdminPodcastOwnershipReviewManager({
     const [manualFeedUrls, setManualFeedUrls] = useState<
         Record<string, string>
     >({});
+    const [collapsedGroups, setCollapsedGroups] = useState<
+        Record<string, boolean>
+    >({});
     const [searchingKey, setSearchingKey] = useState<string | null>(null);
     const [ingestingKey, setIngestingKey] = useState<string | null>(null);
     const [pendingKey, setPendingKey] = useState<string | null>(null);
@@ -261,6 +273,17 @@ export default function AdminPodcastOwnershipReviewManager({
     useEffect(() => {
         setPage(1);
     }, [activeView, sort, pageSize]);
+
+    function isGroupCollapsed(groupKey: string) {
+        return collapsedGroups[groupKey] ?? true;
+    }
+
+    function toggleGroup(groupKey: string) {
+        setCollapsedGroups((current) => ({
+            ...current,
+            [groupKey]: !(current[groupKey] ?? true),
+        }));
+    }
 
     async function searchComedians(groupKey: string) {
         const term = searchTerms[groupKey]?.trim();
@@ -469,7 +492,7 @@ export default function AdminPodcastOwnershipReviewManager({
                 }
                 onPageSizeChange={setPageSize}
             />
-            <ul className="divide-y divide-gray-300 rounded-md border border-gray-300 bg-white">
+            <div className="space-y-4">
                 {activeView === "podcast"
                     ? pagedPodcastGroups.map((group) => {
                           const noteId = `podcast-review-note-${group.key}`;
@@ -478,8 +501,21 @@ export default function AdminPodcastOwnershipReviewManager({
                               selectedOwners[group.key] ?? null;
                           const disabled = isPending || pendingKey !== null;
                           const resultRows = searchResults[group.key] ?? [];
+                          const frameKey = `podcast-${group.key}`;
                           return (
-                              <li key={group.key} className="grid gap-4 p-4">
+                              <ReviewGroupFrame
+                                  key={group.key}
+                                  groupKey={frameKey}
+                                  title={group.podcast.title}
+                                  subtitle={
+                                      group.podcast.authorName
+                                          ? `by ${group.podcast.authorName}`
+                                          : "Author missing"
+                                  }
+                                  summary={`${group.candidates.length} candidate${group.candidates.length === 1 ? "" : "s"} · ${selectedOwner ? "approved" : "blocked"} · popularity ${group.popularity.toFixed(1)}`}
+                                  collapsed={isGroupCollapsed(frameKey)}
+                                  onToggle={toggleGroup}
+                              >
                                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
                                       <div className="min-w-0">
                                           <div className="flex flex-wrap items-center gap-2">
@@ -799,13 +835,20 @@ export default function AdminPodcastOwnershipReviewManager({
                                           ))}
                                       </div>
                                   </details>
-                              </li>
+                              </ReviewGroupFrame>
                           );
                       })
                     : pagedComedianGroups.map((comedianGroup) => (
-                          <li
+                          <ReviewGroupFrame
                               key={comedianGroup.key}
-                              className="grid gap-4 p-4"
+                              groupKey={`comedian-${comedianGroup.key}`}
+                              title={comedianGroup.comedian.name}
+                              subtitle={`Popularity ${comedianGroup.popularity.toFixed(1)}`}
+                              summary={`${comedianGroup.podcastGroups.length} podcast${comedianGroup.podcastGroups.length === 1 ? "" : "s"} attached`}
+                              collapsed={isGroupCollapsed(
+                                  `comedian-${comedianGroup.key}`,
+                              )}
+                              onToggle={toggleGroup}
                           >
                               <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                                   <div>
@@ -1023,9 +1066,9 @@ export default function AdminPodcastOwnershipReviewManager({
                                       );
                                   })}
                               </div>
-                          </li>
+                          </ReviewGroupFrame>
                       ))}
-            </ul>
+            </div>
             <AdminPagination
                 page={currentPage}
                 pageSize={pageSize}
@@ -1037,5 +1080,62 @@ export default function AdminPodcastOwnershipReviewManager({
                 onPageSizeChange={setPageSize}
             />
         </div>
+    );
+}
+
+function ReviewGroupFrame({
+    groupKey,
+    title,
+    subtitle,
+    summary,
+    collapsed,
+    onToggle,
+    children,
+}: {
+    groupKey: string;
+    title: string;
+    subtitle: string;
+    summary: string;
+    collapsed: boolean;
+    onToggle: (groupKey: string) => void;
+    children: ReactNode;
+}) {
+    const panelId = `podcast-review-group-${groupKey}`;
+
+    return (
+        <section className="overflow-hidden rounded-md border border-copper/25 bg-white">
+            <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
+                <button
+                    type="button"
+                    aria-expanded={!collapsed}
+                    aria-controls={panelId}
+                    onClick={() => onToggle(groupKey)}
+                    className="flex w-full min-w-0 items-start gap-3 text-left"
+                >
+                    <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/30 bg-white/10">
+                        {collapsed ? (
+                            <ChevronRight className="h-4 w-4" />
+                        ) : (
+                            <ChevronDown className="h-4 w-4" />
+                        )}
+                    </span>
+                    <span className="min-w-0">
+                        <span className="block font-gilroy-bold text-h3 leading-tight">
+                            {title}
+                        </span>
+                        <span className="mt-1 block font-dmSans text-caption text-white/85">
+                            {subtitle} · {summary}
+                        </span>
+                    </span>
+                </button>
+            </header>
+            <div
+                id={panelId}
+                hidden={collapsed}
+                className={`${collapsed ? "hidden" : ""} grid gap-4 p-4`}
+            >
+                {children}
+            </div>
+        </section>
     );
 }
