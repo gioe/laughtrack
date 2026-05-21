@@ -1,6 +1,7 @@
 import Foundation
 import HTTPTypes
 import OpenAPIRuntime
+import SwiftUI
 import Testing
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -97,10 +98,112 @@ struct LibraryFavoritesViewTests {
         #expect(recorder.getFavoritesCalls == 0)
     }
 
+    @Test("favorite shows and podcasts match expected search fields")
+    func favoritesSearchMatchersUseDisplayFields() {
+        let parentComedian = lineup(name: "Atsuko Okatsuka")
+        let show = show(
+            name: "Basement Showcase",
+            clubName: "The Stand",
+            lineup: [
+                lineup(name: "Atsuko Alias", parentComedian: parentComedian),
+            ]
+        )
+        let podcast = Components.Schemas.FavoritePodcastItem(
+            id: 301,
+            title: "Good One",
+            authorName: "Jesse David Fox",
+            episodeCount: 82,
+            isFavorite: true
+        )
+
+        #expect(LibraryFavoritesPresentation.matches(show: show, query: "basement"))
+        #expect(LibraryFavoritesPresentation.matches(show: show, query: "stand"))
+        #expect(LibraryFavoritesPresentation.matches(show: show, query: "atsuko alias"))
+        #expect(LibraryFavoritesPresentation.matches(show: show, query: "okatsuka"))
+        #expect(!LibraryFavoritesPresentation.matches(show: show, query: "cellar"))
+
+        #expect(LibraryFavoritesPresentation.matches(podcast: podcast, query: "good"))
+        #expect(LibraryFavoritesPresentation.matches(podcast: podcast, query: "fox"))
+        #expect(!LibraryFavoritesPresentation.matches(podcast: podcast, query: "club"))
+    }
+
+    @Test("favorite searchable section returns expected paged item slices")
+    func favoriteSearchableSectionPagingSlicesItems() {
+        typealias Section = FavoriteSearchableSection<Int, Int, EmptyView>
+        let items = Array(1...25)
+
+        #expect(
+            Section.pagedItems(
+                items: Array(1...5),
+                query: "",
+                page: 0,
+                pageSize: 20,
+                matchesQuery: { item, query in "\(item)".contains(query) }
+            ) == [1, 2, 3, 4, 5]
+        )
+
+        #expect(
+            Section.pagedItems(
+                items: items,
+                query: "",
+                page: 1,
+                pageSize: 20,
+                matchesQuery: { item, query in "\(item)".contains(query) }
+            ) == [21, 22, 23, 24, 25]
+        )
+
+        #expect(
+            Section.pagedItems(
+                items: items,
+                query: "no-match",
+                page: 0,
+                pageSize: 20,
+                matchesQuery: { item, query in "\(item)".contains(query) }
+            ).isEmpty
+        )
+    }
+
     private func makeClient(response: MockLibraryFavoritesTransport.Response) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
             transport: MockLibraryFavoritesTransport(response: response)
+        )
+    }
+
+    private func show(
+        name: String,
+        clubName: String,
+        lineup: [Components.Schemas.ComedianLineup]
+    ) -> Components.Schemas.Show {
+        Components.Schemas.Show(
+            id: 901,
+            clubID: 202,
+            clubName: clubName,
+            date: Date().addingTimeInterval(60 * 60 * 24),
+            tickets: [],
+            name: name,
+            socialData: nil,
+            lineup: lineup,
+            description: "A favorite comedian is on this bill.",
+            address: "116 E 16th St, New York, NY",
+            room: "Main Room",
+            imageUrl: "https://example.com/show.png",
+            soldOut: false,
+            distanceMiles: nil
+        )
+    }
+
+    private func lineup(
+        name: String,
+        parentComedian: Components.Schemas.ComedianLineup? = nil
+    ) -> Components.Schemas.ComedianLineup {
+        Components.Schemas.ComedianLineup(
+            name: name,
+            imageUrl: "https://example.com/\(name).png",
+            uuid: UUID().uuidString,
+            id: name.utf8.reduce(0) { $0 + Int($1) },
+            showCount: 1,
+            parentComedian: parentComedian
         )
     }
 }

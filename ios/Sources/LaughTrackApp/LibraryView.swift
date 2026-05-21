@@ -206,7 +206,7 @@ private struct FavoriteShowsSection: View {
                     id: \.id,
                     searchPlaceholder: "Search favorite shows"
                 ) { show, query in
-                    Self.matches(show: show, query: query)
+                    LibraryFavoritesPresentation.matches(show: show, query: query)
                 } row: { show in
                     Button {
                         coordinator.open(.show(show.id))
@@ -217,27 +217,6 @@ private struct FavoriteShowsSection: View {
                 }
             }
         }
-    }
-
-    private static func matches(show: Components.Schemas.Show, query: String) -> Bool {
-        if let name = show.name, name.localizedCaseInsensitiveContains(query) {
-            return true
-        }
-        if let clubName = show.clubName, clubName.localizedCaseInsensitiveContains(query) {
-            return true
-        }
-        if let lineup = show.lineup {
-            for comedian in lineup {
-                if comedian.name.localizedCaseInsensitiveContains(query) {
-                    return true
-                }
-                if let parent = comedian.parentComedian,
-                   parent.name.localizedCaseInsensitiveContains(query) {
-                    return true
-                }
-            }
-        }
-        return false
     }
 }
 
@@ -386,7 +365,7 @@ private struct FavoritePodcastsSection: View {
                         id: \.id,
                         searchPlaceholder: "Search saved podcasts"
                     ) { podcast, query in
-                        Self.matches(podcast: podcast, query: query)
+                        LibraryFavoritesPresentation.matches(podcast: podcast, query: query)
                     } row: { podcast in
                         Button {
                             coordinator.push(.podcastDetail(podcast.id))
@@ -417,16 +396,6 @@ private struct FavoritePodcastsSection: View {
         }
         return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
-
-    private static func matches(podcast: Components.Schemas.FavoritePodcastItem, query: String) -> Bool {
-        if podcast.title.localizedCaseInsensitiveContains(query) {
-            return true
-        }
-        if let author = podcast.authorName, author.localizedCaseInsensitiveContains(query) {
-            return true
-        }
-        return false
-    }
 }
 
 enum LibraryFavoritesPresentation {
@@ -435,6 +404,37 @@ enum LibraryFavoritesPresentation {
         selectedPrimitive: SearchRootModel.Pivot?
     ) -> Bool {
         selectedPrimitive == nil || selectedPrimitive == primitive
+    }
+
+    static func matches(show: Components.Schemas.Show, query: String) -> Bool {
+        if let name = show.name, name.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if let clubName = show.clubName, clubName.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if let lineup = show.lineup {
+            for comedian in lineup {
+                if comedian.name.localizedCaseInsensitiveContains(query) {
+                    return true
+                }
+                if let parent = comedian.parentComedian,
+                   parent.name.localizedCaseInsensitiveContains(query) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    static func matches(podcast: Components.Schemas.FavoritePodcastItem, query: String) -> Bool {
+        if podcast.title.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if let author = podcast.authorName, author.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        return false
     }
 }
 

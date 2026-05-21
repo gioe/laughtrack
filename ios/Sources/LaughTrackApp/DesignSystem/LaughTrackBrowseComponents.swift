@@ -735,11 +735,41 @@ struct FavoriteSearchableSection<Item, ID: Hashable, Row: View>: View {
     }
 
     private var pagedItems: [Item] {
-        guard !filteredItems.isEmpty else { return [] }
-        let start = clampedPage * pageSize
-        guard start < filteredItems.count else { return [] }
-        let end = min(start + pageSize, filteredItems.count)
-        return Array(filteredItems[start..<end])
+        Self.pagedItems(
+            items: filteredItems,
+            page: clampedPage,
+            pageSize: pageSize
+        )
+    }
+
+    static func pagedItems(
+        items: [Item],
+        query: String,
+        page: Int,
+        pageSize: Int,
+        matchesQuery: (Item, String) -> Bool
+    ) -> [Item] {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let filteredItems = trimmedQuery.isEmpty ? items : items.filter { matchesQuery($0, trimmedQuery) }
+        let pageCount = filteredItems.isEmpty ? 1 : Int(ceil(Double(filteredItems.count) / Double(pageSize)))
+        let clampedPage = max(0, min(page, pageCount - 1))
+        return Self.pagedItems(
+            items: filteredItems,
+            page: clampedPage,
+            pageSize: pageSize
+        )
+    }
+
+    private static func pagedItems(
+        items: [Item],
+        page: Int,
+        pageSize: Int
+    ) -> [Item] {
+        guard !items.isEmpty else { return [] }
+        let start = page * pageSize
+        guard start < items.count else { return [] }
+        let end = min(start + pageSize, items.count)
+        return Array(items[start..<end])
     }
 
     var body: some View {
