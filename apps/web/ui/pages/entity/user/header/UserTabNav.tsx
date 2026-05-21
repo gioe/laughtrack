@@ -11,7 +11,7 @@ interface UserTabNavProps {
 }
 
 const tabs = [
-    { id: "favorites" as TabType, label: "Favorite Comedians", icon: Star },
+    { id: "favorites" as TabType, label: "Favorites", icon: Star },
     { id: "notifications" as TabType, label: "Notifications", icon: Bell },
     { id: "account" as TabType, label: "Account Settings", icon: Settings },
 ];

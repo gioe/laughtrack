@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
@@ -18,9 +19,29 @@ interface UserDetailHeaderProps {
 
 type TabType = "favorites" | "notifications" | "account";
 
+const VALID_TABS: readonly TabType[] = ["favorites", "notifications", "account"];
+
+const parseTab = (value: string | null): TabType =>
+    VALID_TABS.includes(value as TabType) ? (value as TabType) : "favorites";
+
 const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
     const { mv } = useMotionProps();
-    const [activeTab, setActiveTab] = useState<TabType>("favorites");
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const activeTab = parseTab(searchParams?.get("tab") ?? null);
+
+    const handleTabChange = (next: TabType) => {
+        const params = new URLSearchParams(searchParams?.toString() ?? "");
+        if (next === "favorites") {
+            params.delete("tab");
+        } else {
+            params.set("tab", next);
+        }
+        const qs = params.toString();
+        router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    };
+
     const { fields, dirtyFields, isLoading, handleFieldChange, handleSave } =
         useProfileForm(profile);
 
@@ -32,7 +53,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                 image={profile.image}
             />
 
-            <UserTabNav activeTab={activeTab} onTabChange={setActiveTab} />
+            <UserTabNav activeTab={activeTab} onTabChange={handleTabChange} />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <AnimatePresence mode="wait">
