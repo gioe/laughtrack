@@ -168,6 +168,7 @@ model Club {
   productionCompanyVenues ProductionCompanyVenue[]
   scrapingSources         ScrapingSource[]
   aliases                 ClubAlias[]
+  favorites               FavoriteClub[]
 
   @@index([visible])
   @@index([chainId])
@@ -469,6 +470,7 @@ model UserProfile {
   nearbyDistanceMiles         Int?               @map("nearby_distance_miles")
   userid                      String             @unique @map("user_id")
   adminActionAudits           AdminActionAudit[]
+  favoriteClubs               FavoriteClub[]
   favoriteComedians           FavoriteComedian[]
   favoritePodcasts            FavoritePodcast[]
   user                        User               @relation(fields: [userid], references: [id])
@@ -560,6 +562,18 @@ model FavoritePodcast {
   @@id([profileId, podcastId])
   @@index([podcastId])
   @@map("favorite_podcasts")
+}
+
+model FavoriteClub {
+  id        Int         @default(autoincrement())
+  clubId    Int         @map("club_id")
+  profileId String      @map("profile_id")
+  club      Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      UserProfile @relation(fields: [profileId], references: [id])
+
+  @@id([profileId, clubId])
+  @@index([clubId])
+  @@map("favorite_clubs")
 }
 
 model Show {
