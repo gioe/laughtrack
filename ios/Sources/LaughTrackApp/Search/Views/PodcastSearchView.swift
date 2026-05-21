@@ -3,15 +3,6 @@ import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
 
-private let podcastSearchRowDesign = LaughTrackEntityRowDesign(
-    artworkSize: 70,
-    artworkShape: .roundedRectangle(cornerRadius: 12),
-    minHeight: 86,
-    titleLineLimit: 2,
-    subtitleLineLimit: 1,
-    metadataLineLimit: 1
-)
-
 struct PodcastSearchView: View {
     let apiClient: Client
     @ObservedObject var model: PodcastSearchModel
@@ -159,7 +150,7 @@ struct PodcastSearchRow: View {
                     subtitle: podcast.subtitle?.nonEmpty,
                     systemImage: "headphones",
                     imageURL: podcast.imageUrl,
-                    design: podcastSearchRowDesign
+                    design: .savedEntity
                 )
             }
             .buttonStyle(.plain)
