@@ -627,6 +627,151 @@ struct LaughTrackInlineStateCard: View {
     }
 }
 
+struct LaughTrackPagedControls: View {
+    @Environment(\.appTheme) private var theme
+
+    let currentPage: Int
+    let pageCount: Int
+    let onPrevious: () -> Void
+    let onNext: () -> Void
+
+    private var isFirstPage: Bool { currentPage <= 0 }
+    private var isLastPage: Bool { currentPage >= pageCount - 1 }
+
+    var body: some View {
+        HStack(spacing: theme.spacing.sm) {
+            LaughTrackButton(
+                "Previous",
+                systemImage: "chevron.left",
+                tone: .secondary,
+                density: .compact,
+                fullWidth: false,
+                action: onPrevious
+            )
+            .disabled(isFirstPage)
+            .opacity(isFirstPage ? 0.5 : 1)
+            .accessibilityLabel("Previous page")
+
+            Spacer(minLength: 0)
+
+            LaughTrackBrowseChip(
+                "Page \(currentPage + 1) of \(pageCount)",
+                tone: .subtle
+            )
+
+            Spacer(minLength: 0)
+
+            LaughTrackButton(
+                "Next",
+                systemImage: "chevron.right",
+                tone: .secondary,
+                density: .compact,
+                fullWidth: false,
+                action: onNext
+            )
+            .disabled(isLastPage)
+            .opacity(isLastPage ? 0.5 : 1)
+            .accessibilityLabel("Next page")
+        }
+    }
+}
+
+struct FavoriteSearchableSection<Item, ID: Hashable, Row: View>: View {
+    static var defaultPageSize: Int { 20 }
+
+    @Environment(\.appTheme) private var theme
+
+    let items: [Item]
+    let idKeyPath: KeyPath<Item, ID>
+    let searchPlaceholder: String
+    let pageSize: Int
+    let matchesQuery: (Item, String) -> Bool
+    let row: (Item) -> Row
+
+    @State private var query = ""
+    @State private var page = 0
+
+    init(
+        items: [Item],
+        id idKeyPath: KeyPath<Item, ID>,
+        searchPlaceholder: String,
+        pageSize: Int = Self.defaultPageSize,
+        matchesQuery: @escaping (Item, String) -> Bool,
+        @ViewBuilder row: @escaping (Item) -> Row
+    ) {
+        self.items = items
+        self.idKeyPath = idKeyPath
+        self.searchPlaceholder = searchPlaceholder
+        self.pageSize = pageSize
+        self.matchesQuery = matchesQuery
+        self.row = row
+    }
+
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var filteredItems: [Item] {
+        guard !trimmedQuery.isEmpty else { return items }
+        return items.filter { matchesQuery($0, trimmedQuery) }
+    }
+
+    private var pageCount: Int {
+        guard !filteredItems.isEmpty else { return 1 }
+        return Int(ceil(Double(filteredItems.count) / Double(pageSize)))
+    }
+
+    private var clampedPage: Int {
+        max(0, min(page, pageCount - 1))
+    }
+
+    private var pagedItems: [Item] {
+        guard !filteredItems.isEmpty else { return [] }
+        let start = clampedPage * pageSize
+        guard start < filteredItems.count else { return [] }
+        let end = min(start + pageSize, filteredItems.count)
+        return Array(filteredItems[start..<end])
+    }
+
+    var body: some View {
+        let tokens = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
+            LaughTrackSearchField(placeholder: searchPlaceholder, text: $query)
+
+            if filteredItems.isEmpty {
+                LaughTrackStateView(
+                    tone: .empty,
+                    title: "No matches",
+                    message: "Try a different search."
+                )
+            } else {
+                ForEach(pagedItems, id: idKeyPath) { item in
+                    row(item)
+                }
+
+                if pageCount > 1 {
+                    LaughTrackPagedControls(
+                        currentPage: clampedPage,
+                        pageCount: pageCount,
+                        onPrevious: {
+                            let next = clampedPage - 1
+                            if next >= 0 { page = next }
+                        },
+                        onNext: {
+                            let next = clampedPage + 1
+                            if next < pageCount { page = next }
+                        }
+                    )
+                }
+            }
+        }
+        .onChange(of: query) { _ in
+            page = 0
+        }
+    }
+}
+
 #if DEBUG
 struct LaughTrackBrowseComponents_Previews: PreviewProvider {
     static var previews: some View {
