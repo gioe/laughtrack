@@ -198,6 +198,77 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(websiteLink.href).toBe("https://pod.example/");
     });
 
+    it("filters the podcast view by podcast name", () => {
+        const otherCandidate: AdminPodcastOwnershipReviewCandidate = {
+            ...candidate,
+            id: 13,
+            comedian: {
+                id: 77,
+                uuid: "uuid-77",
+                name: "Other Comic",
+                popularity: 12,
+            },
+            podcast: {
+                ...candidate.podcast!,
+                id: 100,
+                slug: "other-show",
+                title: "Other Show",
+                authorName: "Other Comic",
+            },
+        };
+        render(
+            <AdminPodcastOwnershipReviewManager
+                candidates={[candidate, otherCandidate]}
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText("Search podcasts"), {
+            target: { value: "jane" },
+        });
+
+        expect(
+            screen.getByRole("button", { name: /The Jane Show/ }),
+        ).toBeTruthy();
+        expect(screen.queryByRole("button", { name: /Other Show/ })).toBeNull();
+        expect(screen.getAllByText("1-1 of 1 podcasts").length).toBe(2);
+    });
+
+    it("filters the comedian view by comedian name", () => {
+        const otherCandidate: AdminPodcastOwnershipReviewCandidate = {
+            ...candidate,
+            id: 13,
+            comedian: {
+                id: 77,
+                uuid: "uuid-77",
+                name: "Other Comic",
+                popularity: 12,
+            },
+            podcast: {
+                ...candidate.podcast!,
+                id: 100,
+                slug: "other-show",
+                title: "Other Show",
+                authorName: "Other Comic",
+            },
+        };
+        render(
+            <AdminPodcastOwnershipReviewManager
+                candidates={[candidate, otherCandidate]}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
+        fireEvent.change(screen.getByLabelText("Search comedians"), {
+            target: { value: "other" },
+        });
+
+        expect(
+            screen.getByRole("button", { name: /Other Comic/ }),
+        ).toBeTruthy();
+        expect(screen.queryByRole("button", { name: /Jane Comic/ })).toBeNull();
+        expect(screen.getAllByText("1-1 of 1 comedians").length).toBe(2);
+    });
+
     it("can ingest an arbitrary RSS feed from the comedian view", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
@@ -288,6 +359,34 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 }),
             );
         });
+    });
+
+    it("blocks a podcast from the podcast row action", async () => {
+        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+
+        openGroup(/The Jane Show/);
+        fireEvent.change(screen.getByLabelText("Review note"), {
+            target: { value: "Not a host-owned feed" },
+        });
+        fireEvent.click(
+            screen.getByRole("button", { name: "Block The Jane Show" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/podcast-ownership-reviews",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        podcastId: 99,
+                        ownerComedianId: null,
+                        reason: "Not a host-owned feed",
+                    }),
+                }),
+            );
+        });
+        expect(await screen.findByText("The Jane Show blocked.")).toBeTruthy();
+        expect(screen.getByText("No owner")).toBeTruthy();
     });
 
     it("can search for and add a different owner", async () => {

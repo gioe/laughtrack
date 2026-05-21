@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    Ban,
     ChevronDown,
     ChevronRight,
     ExternalLink,
@@ -15,6 +16,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/ui/components/ui/button";
 import {
     AdminPagination,
+    AdminSearchField,
     AdminSegmentedControl,
     AdminSelectField,
     AdminToolbar,
@@ -251,6 +253,28 @@ function sortComedianGroups(groups: ComedianReviewGroup[], sort: ReviewSort) {
     });
 }
 
+function normalizeSearch(value: string) {
+    return value.trim().toLocaleLowerCase();
+}
+
+function filterPodcastGroups(groups: PodcastReviewGroup[], query: string) {
+    const normalizedQuery = normalizeSearch(query);
+    if (!normalizedQuery) return groups;
+
+    return groups.filter((group) =>
+        group.podcast.title.toLocaleLowerCase().includes(normalizedQuery),
+    );
+}
+
+function filterComedianGroups(groups: ComedianReviewGroup[], query: string) {
+    const normalizedQuery = normalizeSearch(query);
+    if (!normalizedQuery) return groups;
+
+    return groups.filter((group) =>
+        group.comedian.name.toLocaleLowerCase().includes(normalizedQuery),
+    );
+}
+
 function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
     return Object.fromEntries(
         groups.map((group) => [group.key, group.initialOwner]),
@@ -270,6 +294,10 @@ export default function AdminPodcastOwnershipReviewManager({
     const groups = groupCandidates(candidates);
     const comedianGroups = groupByComedian(candidates, groups);
     const [activeView, setActiveView] = useState<ReviewView>("podcast");
+    const [queries, setQueries] = useState<Record<ReviewView, string>>({
+        podcast: "",
+        comedian: "",
+    });
     const [sort, setSort] = useState<ReviewSort>("name-asc");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
@@ -295,10 +323,18 @@ export default function AdminPodcastOwnershipReviewManager({
     const [pendingKey, setPendingKey] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
+    const activeQuery = queries[activeView];
 
     useEffect(() => {
         setPage(1);
-    }, [activeView, sort, pageSize]);
+    }, [activeView, activeQuery, sort, pageSize]);
+
+    function updateActiveQuery(value: string) {
+        setQueries((current) => ({
+            ...current,
+            [activeView]: value,
+        }));
+    }
 
     function isGroupCollapsed(groupKey: string) {
         return collapsedGroups[groupKey] ?? true;
@@ -347,9 +383,15 @@ export default function AdminPodcastOwnershipReviewManager({
         }
     }
 
-    async function save(group: PodcastReviewGroup) {
+    async function save(
+        group: PodcastReviewGroup,
+        ownerOverride?: OwnerOption | null,
+    ) {
         const reason = notes[group.key]?.trim() ?? "";
-        const owner = selectedOwners[group.key] ?? null;
+        const owner =
+            ownerOverride === undefined
+                ? (selectedOwners[group.key] ?? null)
+                : ownerOverride;
         setStatus({ kind: "idle" });
         setPendingKey(group.key);
 
@@ -391,6 +433,10 @@ export default function AdminPodcastOwnershipReviewManager({
                     ? `${group.podcast.title} blocked.`
                     : `${group.podcast.title} approved with ${owner.name} as owner.`,
         });
+        setSelectedOwners((prev) => ({
+            ...prev,
+            [group.key]: owner,
+        }));
         setConfirmedOwnerIds((prev) => ({
             ...prev,
             [group.key]: owner?.id ?? null,
@@ -456,8 +502,14 @@ export default function AdminPodcastOwnershipReviewManager({
         );
     }
 
-    const sortedPodcastGroups = sortPodcastGroups(groups, sort);
-    const sortedComedianGroups = sortComedianGroups(comedianGroups, sort);
+    const sortedPodcastGroups = filterPodcastGroups(
+        sortPodcastGroups(groups, sort),
+        queries.podcast,
+    );
+    const sortedComedianGroups = filterComedianGroups(
+        sortComedianGroups(comedianGroups, sort),
+        queries.comedian,
+    );
     const activeGroups =
         activeView === "podcast" ? sortedPodcastGroups : sortedComedianGroups;
     const totalPages = Math.max(1, Math.ceil(activeGroups.length / pageSize));
@@ -485,15 +537,31 @@ export default function AdminPodcastOwnershipReviewManager({
                 </p>
             )}
             <AdminToolbar>
-                <AdminSegmentedControl
-                    label="Review view"
-                    value={activeView}
-                    onChange={setActiveView}
-                    options={[
-                        { value: "podcast", label: "By podcast" },
-                        { value: "comedian", label: "By comedian" },
-                    ]}
-                />
+                <div className="grid gap-3 lg:grid-cols-[minmax(220px,auto)_minmax(260px,1fr)] lg:items-end">
+                    <AdminSegmentedControl
+                        label="Review view"
+                        value={activeView}
+                        onChange={setActiveView}
+                        options={[
+                            { value: "podcast", label: "By podcast" },
+                            { value: "comedian", label: "By comedian" },
+                        ]}
+                    />
+                    <AdminSearchField
+                        label={
+                            activeView === "podcast"
+                                ? "Search podcasts"
+                                : "Search comedians"
+                        }
+                        value={activeQuery}
+                        onChange={updateActiveQuery}
+                        placeholder={
+                            activeView === "podcast"
+                                ? "Podcast name"
+                                : "Comedian name"
+                        }
+                    />
+                </div>
                 <AdminSelectField
                     label="Sort"
                     value={sort}
@@ -802,7 +870,23 @@ export default function AdminPodcastOwnershipReviewManager({
                                                   maxLength={1000}
                                               />
                                           </label>
-                                          <div>
+                                          <div className="flex flex-wrap gap-2">
+                                              <Button
+                                                  type="button"
+                                                  variant="outline"
+                                                  className="gap-2 border-red-700 bg-white !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                  onClick={() =>
+                                                      void save(group, null)
+                                                  }
+                                                  disabled={disabled}
+                                                  aria-label={`Block ${group.podcast.title}`}
+                                              >
+                                                  <Ban
+                                                      className="h-4 w-4"
+                                                      aria-hidden="true"
+                                                  />
+                                                  Block podcast
+                                              </Button>
                                               <Button
                                                   type="button"
                                                   className="gap-2 !text-white"
