@@ -165,6 +165,21 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /favorite-podcasts/{podcastId}`.
     /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)`.
     func removeFavoritePodcast(_ input: Operations.RemoveFavoritePodcast.Input) async throws -> Operations.RemoveFavoritePodcast.Output
+    /// List the signed-in user’s saved favorite clubs
+    ///
+    /// - Remark: HTTP `GET /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)`.
+    func getFavoriteClubs(_ input: Operations.GetFavoriteClubs.Input) async throws -> Operations.GetFavoriteClubs.Output
+    /// Favorite a club
+    ///
+    /// - Remark: HTTP `POST /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)`.
+    func addFavoriteClub(_ input: Operations.AddFavoriteClub.Input) async throws -> Operations.AddFavoriteClub.Output
+    /// Unfavorite a club
+    ///
+    /// - Remark: HTTP `DELETE /favorite-clubs/{clubId}`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)`.
+    func removeFavoriteClub(_ input: Operations.RemoveFavoriteClub.Input) async throws -> Operations.RemoveFavoriteClub.Output
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -504,6 +519,39 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// List the signed-in user’s saved favorite clubs
+    ///
+    /// - Remark: HTTP `GET /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)`.
+    public func getFavoriteClubs(headers: Operations.GetFavoriteClubs.Input.Headers = .init()) async throws -> Operations.GetFavoriteClubs.Output {
+        try await getFavoriteClubs(Operations.GetFavoriteClubs.Input(headers: headers))
+    }
+    /// Favorite a club
+    ///
+    /// - Remark: HTTP `POST /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)`.
+    public func addFavoriteClub(
+        headers: Operations.AddFavoriteClub.Input.Headers = .init(),
+        body: Operations.AddFavoriteClub.Input.Body
+    ) async throws -> Operations.AddFavoriteClub.Output {
+        try await addFavoriteClub(Operations.AddFavoriteClub.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Unfavorite a club
+    ///
+    /// - Remark: HTTP `DELETE /favorite-clubs/{clubId}`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)`.
+    public func removeFavoriteClub(
+        path: Operations.RemoveFavoriteClub.Input.Path,
+        headers: Operations.RemoveFavoriteClub.Input.Headers = .init()
+    ) async throws -> Operations.RemoveFavoriteClub.Output {
+        try await removeFavoriteClub(Operations.RemoveFavoriteClub.Input(
+            path: path,
+            headers: headers
+        ))
+    }
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -839,6 +887,56 @@ public enum Components {
             /// - Parameters:
             ///   - data:
             public init(data: [Components.Schemas.ComedianSearchItem]) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/FavoriteClubItem`.
+        public struct FavoriteClubItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoriteClubItem/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoriteClubItem/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/FavoriteClubItem/imageUrl`.
+            public var imageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/FavoriteClubItem/isFavorite`.
+            public var isFavorite: Swift.Bool
+            /// Creates a new `FavoriteClubItem`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - name:
+            ///   - imageUrl:
+            ///   - isFavorite:
+            public init(
+                id: Swift.Int,
+                name: Swift.String,
+                imageUrl: Swift.String,
+                isFavorite: Swift.Bool
+            ) {
+                self.id = id
+                self.name = name
+                self.imageUrl = imageUrl
+                self.isFavorite = isFavorite
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case name
+                case imageUrl
+                case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/FavoriteClubListResponse`.
+        public struct FavoriteClubListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoriteClubListResponse/data`.
+            public var data: [Components.Schemas.FavoriteClubItem]
+            /// Creates a new `FavoriteClubListResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: [Components.Schemas.FavoriteClubItem]) {
                 self.data = data
             }
             public enum CodingKeys: String, CodingKey {
@@ -11082,6 +11180,996 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.RemoveFavoritePodcast.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List the signed-in user’s saved favorite clubs
+    ///
+    /// - Remark: HTTP `GET /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)`.
+    public enum GetFavoriteClubs {
+        public static let id: Swift.String = "getFavoriteClubs"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-clubs/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoriteClubs.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoriteClubs.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetFavoriteClubs.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetFavoriteClubs.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteClubListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteClubListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteClubs.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteClubs.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorite clubs
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetFavoriteClubs.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetFavoriteClubs.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteClubs.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteClubs.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetFavoriteClubs.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetFavoriteClubs.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteClubs.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteClubs.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetFavoriteClubs.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetFavoriteClubs.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteClubs.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteClubs.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/get(getFavoriteClubs)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetFavoriteClubs.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetFavoriteClubs.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Favorite a club
+    ///
+    /// - Remark: HTTP `POST /favorite-clubs`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)`.
+    public enum AddFavoriteClub {
+        public static let id: Swift.String = "addFavoriteClub"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-clubs/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.AddFavoriteClub.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.AddFavoriteClub.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.AddFavoriteClub.Input.Headers
+            /// - Remark: Generated from `#/paths/favorite-clubs/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/requestBody/json`.
+                public struct JsonPayload: Codable, Hashable, Sendable {
+                    /// Club numeric id
+                    ///
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/requestBody/json/clubId`.
+                    public var clubId: Swift.Int
+                    /// Creates a new `JsonPayload`.
+                    ///
+                    /// - Parameters:
+                    ///   - clubId: Club numeric id
+                    public init(clubId: Swift.Int) {
+                        self.clubId = clubId
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case clubId
+                    }
+                }
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/requestBody/content/application\/json`.
+                case json(Operations.AddFavoriteClub.Input.Body.JsonPayload)
+            }
+            public var body: Operations.AddFavoriteClub.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.AddFavoriteClub.Input.Headers = .init(),
+                body: Operations.AddFavoriteClub.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorited successfully
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.AddFavoriteClub.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.AddFavoriteClub.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing or invalid clubId
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.AddFavoriteClub.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.AddFavoriteClub.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.AddFavoriteClub.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.AddFavoriteClub.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Club not found
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.AddFavoriteClub.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.AddFavoriteClub.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.AddFavoriteClub.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.AddFavoriteClub.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/POST/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.AddFavoriteClub.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.AddFavoriteClub.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/post(addFavoriteClub)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.AddFavoriteClub.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.AddFavoriteClub.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Unfavorite a club
+    ///
+    /// - Remark: HTTP `DELETE /favorite-clubs/{clubId}`.
+    /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)`.
+    public enum RemoveFavoriteClub {
+        public static let id: Swift.String = "removeFavoriteClub"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/path`.
+            public struct Path: Sendable, Hashable {
+                /// Club numeric id
+                ///
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/path/clubId`.
+                public var clubId: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - clubId: Club numeric id
+                public init(clubId: Swift.Int) {
+                    self.clubId = clubId
+                }
+            }
+            public var path: Operations.RemoveFavoriteClub.Input.Path
+            /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RemoveFavoriteClub.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RemoveFavoriteClub.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RemoveFavoriteClub.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.RemoveFavoriteClub.Input.Path,
+                headers: Operations.RemoveFavoriteClub.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoriteClub.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoriteClub.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Unfavorited successfully (idempotent — succeeds whether or not the favorite existed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.RemoveFavoriteClub.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.RemoveFavoriteClub.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoriteClub.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoriteClub.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Missing clubId
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.RemoveFavoriteClub.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.RemoveFavoriteClub.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoriteClub.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoriteClub.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.RemoveFavoriteClub.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.RemoveFavoriteClub.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoriteClub.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoriteClub.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.RemoveFavoriteClub.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.RemoveFavoriteClub.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-clubs/{clubId}/DELETE/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RemoveFavoriteClub.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RemoveFavoriteClub.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.RemoveFavoriteClub.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.RemoveFavoriteClub.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

@@ -1778,6 +1778,180 @@
         }
       }
     },
+    "/favorite-clubs": {
+      "get": {
+        "operationId": "getFavoriteClubs",
+        "summary": "List the signed-in user’s saved favorite clubs",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorite clubs",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteClubListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "addFavoriteClub",
+        "summary": "Favorite a club",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["clubId"],
+                "properties": {
+                  "clubId": {
+                    "type": "integer",
+                    "description": "Club numeric id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Favorited successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid clubId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Club not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorite-clubs/{clubId}": {
+      "delete": {
+        "operationId": "removeFavoriteClub",
+        "summary": "Unfavorite a club",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "clubId",
+            "in": "path",
+            "required": true,
+            "description": "Club numeric id",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unfavorited successfully (idempotent — succeeds whether or not the favorite existed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing clubId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/zip-lookup": {
       "get": {
         "operationId": "lookupZip",
@@ -2000,6 +2174,26 @@
           "data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+          }
+        }
+      },
+      "FavoriteClubItem": {
+        "type": "object",
+        "required": ["id", "name", "imageUrl", "isFavorite"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "isFavorite": { "type": "boolean" }
+        }
+      },
+      "FavoriteClubListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FavoriteClubItem" }
           }
         }
       },
