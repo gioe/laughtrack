@@ -101,6 +101,7 @@ struct AppShellViewTests {
             .navigationCoordinator(coordinator)
             .environmentObject(authManager)
             .environmentObject(PodcastFavoriteStore())
+            .environmentObject(ClubFavoriteStore())
         )
 
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton) == nil)
@@ -136,6 +137,7 @@ struct AppShellViewTests {
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
                 .environmentObject(PodcastFavoriteStore())
+            .environmentObject(ClubFavoriteStore())
         )
         await host.settle()
 
