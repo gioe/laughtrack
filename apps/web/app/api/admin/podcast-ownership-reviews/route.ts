@@ -12,6 +12,7 @@ const decisionSchema = z
     .object({
         podcastId: z.number().int().positive(),
         ownerComedianId: z.number().int().positive().nullable(),
+        denyListed: z.boolean().optional(),
         reason: z.string().trim().max(1000).optional(),
     })
     .strict();
@@ -270,6 +271,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { podcastId, ownerComedianId } = parsed.data;
+    const denyListed = parsed.data.denyListed ?? false;
     const reason = parsed.data.reason?.trim() || null;
 
     try {
@@ -280,6 +282,9 @@ export async function POST(req: NextRequest) {
                     id: true,
                     slug: true,
                     title: true,
+                    source: true,
+                    sourcePodcastId: true,
+                    feedUrl: true,
                 },
             });
             if (!podcast) return null;
@@ -342,6 +347,21 @@ export async function POST(req: NextRequest) {
                     evidence: true,
                     reviewedAt: true,
                     reviewedBy: true,
+                },
+            });
+            const beforeDenyListEntries = await tx.podcastDenyList.findMany({
+                where: { podcastId, restoredAt: null },
+                select: {
+                    id: true,
+                    podcastId: true,
+                    source: true,
+                    sourcePodcastId: true,
+                    feedUrl: true,
+                    reason: true,
+                    deniedAt: true,
+                    deniedBy: true,
+                    restoredAt: true,
+                    restoredBy: true,
                 },
             });
 
@@ -454,12 +474,48 @@ export async function POST(req: NextRequest) {
                       },
                   })
                 : null;
+            const denyListEntry = denyListed
+                ? await tx.podcastDenyList.upsert({
+                      where: { podcastId },
+                      create: {
+                          podcastId,
+                          source: podcast.source,
+                          sourcePodcastId: podcast.sourcePodcastId,
+                          feedUrl: podcast.feedUrl,
+                          reason,
+                          deniedAt: reviewedAt,
+                          deniedBy: profileId,
+                      },
+                      update: {
+                          source: podcast.source,
+                          sourcePodcastId: podcast.sourcePodcastId,
+                          feedUrl: podcast.feedUrl,
+                          reason,
+                          deniedAt: reviewedAt,
+                          deniedBy: profileId,
+                          restoredAt: null,
+                          restoredBy: null,
+                      },
+                  })
+                : null;
+
+            if (!denyListed) {
+                await tx.podcastDenyList.updateMany({
+                    where: { podcastId, restoredAt: null },
+                    data: {
+                        restoredAt: reviewedAt,
+                        restoredBy: profileId,
+                    },
+                });
+            }
 
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
                 action: ownerComedianId
                     ? "podcast_ownership_review.approve"
-                    : "podcast_ownership_review.block",
+                    : denyListed
+                      ? "podcast_ownership_review.deny_list"
+                      : "podcast_ownership_review.reject",
                 entityType: "podcast",
                 entityId: podcastId,
                 reason,
@@ -467,15 +523,17 @@ export async function POST(req: NextRequest) {
                     podcast,
                     candidates: beforeCandidates.map(candidateSnapshot),
                     ownerships: beforeOwnerships.map(ownershipSnapshot),
+                    denyListEntries: beforeDenyListEntries,
                 },
                 after: {
                     podcast,
                     owner,
                     ownership: ownership ? ownershipSnapshot(ownership) : null,
+                    denyListEntry,
                 },
             });
 
-            return { podcast, owner, ownership };
+            return { podcast, owner, ownership, denyListEntry };
         });
 
         if (!result) {
@@ -498,6 +556,7 @@ export async function POST(req: NextRequest) {
             podcast: result.podcast,
             owner: result.owner,
             ownership: result.ownership,
+            denyListEntry: result.denyListEntry,
         });
     } catch (error) {
         console.error("Admin podcast ownership review failed:", error);

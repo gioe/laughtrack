@@ -35,6 +35,11 @@ vi.mock("@/lib/db", () => ({
         podcastEpisode: {
             upsert: vi.fn(),
         },
+        podcastDenyList: {
+            findMany: vi.fn(),
+            upsert: vi.fn(),
+            updateMany: vi.fn(),
+        },
         $transaction: vi.fn(),
     },
 }));
@@ -115,6 +120,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                     imageUrl: "https://img.example/jane.jpg",
                     websiteUrl: "https://pod.example",
                     feedUrl: "https://pod.example/feed.xml",
+                    denyListEntries: [],
                 },
             },
         ] as never);
@@ -190,7 +196,14 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
     });
 
     it("approves a podcast owner, rejects competing candidates, audits, and revalidates", async () => {
-        const podcast = { id: 99, slug: "jane-show", title: "The Jane Show" };
+        const podcast = {
+            id: 99,
+            slug: "jane-show",
+            title: "The Jane Show",
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+        };
         const owner = {
             id: 42,
             name: "Jane Comic",
@@ -237,6 +250,9 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const ownershipFindMany = vi.fn().mockResolvedValue([]);
         const ownershipUpdateMany = vi.fn();
         const upsert = vi.fn().mockResolvedValue(upsertedOwnership);
+        const denyListFindMany = vi.fn().mockResolvedValue([]);
+        const denyListUpsert = vi.fn();
+        const denyListUpdateMany = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: { findUnique: podcastFindUnique },
@@ -249,6 +265,11 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                     findMany: ownershipFindMany,
                     updateMany: ownershipUpdateMany,
                     upsert,
+                },
+                podcastDenyList: {
+                    findMany: denyListFindMany,
+                    upsert: denyListUpsert,
+                    updateMany: denyListUpdateMany,
                 },
                 adminActionAudit: { create: auditCreate },
             } as never),
@@ -322,6 +343,11 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                 }),
             }),
         );
+        expect(denyListUpsert).not.toHaveBeenCalled();
+        expect(denyListUpdateMany).toHaveBeenCalledWith({
+            where: { podcastId: 99, restoredAt: null },
+            data: expect.objectContaining({ restoredBy: "profile-1" }),
+        });
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 actorProfileId: "profile-1",
@@ -340,8 +366,15 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         expect(mocks.revalidateTag).toHaveBeenCalledWith("jane-show");
     });
 
-    it("blocks a podcast by rejecting pending candidates and accepted ownerships", async () => {
-        const podcast = { id: 99, slug: "jane-show", title: "The Jane Show" };
+    it("deny-lists a podcast by rejecting pending candidates and accepted ownerships", async () => {
+        const podcast = {
+            id: 99,
+            slug: "jane-show",
+            title: "The Jane Show",
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+        };
         const candidate = {
             id: 12,
             comedianId: 42,
@@ -369,6 +402,18 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const ownershipFindMany = vi.fn().mockResolvedValue([]);
         const ownershipUpdateMany = vi.fn();
         const upsert = vi.fn();
+        const denyListFindMany = vi.fn().mockResolvedValue([]);
+        const denyListUpsert = vi.fn().mockResolvedValue({
+            id: 5,
+            podcastId: 99,
+            source: "podcast-index",
+            sourcePodcastId: "feed-99",
+            feedUrl: "https://pod.example/feed.xml",
+            reason: "Not comedy",
+            deniedAt: new Date("2026-05-18T12:00:00Z"),
+            deniedBy: "profile-1",
+        });
+        const denyListUpdateMany = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: { findUnique: podcastFindUnique },
@@ -382,6 +427,11 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                     updateMany: ownershipUpdateMany,
                     upsert,
                 },
+                podcastDenyList: {
+                    findMany: denyListFindMany,
+                    upsert: denyListUpsert,
+                    updateMany: denyListUpdateMany,
+                },
                 adminActionAudit: { create: auditCreate },
             } as never),
         );
@@ -390,7 +440,8 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             makeRequest({
                 podcastId: 99,
                 ownerComedianId: null,
-                reason: "Different person",
+                denyListed: true,
+                reason: "Not comedy",
             }),
         );
 
@@ -414,10 +465,28 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             }),
         );
         expect(upsert).not.toHaveBeenCalled();
+        expect(denyListUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { podcastId: 99 },
+                create: expect.objectContaining({
+                    podcastId: 99,
+                    source: "podcast-index",
+                    sourcePodcastId: "feed-99",
+                    deniedBy: "profile-1",
+                    reason: "Not comedy",
+                }),
+                update: expect.objectContaining({
+                    restoredAt: null,
+                    restoredBy: null,
+                    reason: "Not comedy",
+                }),
+            }),
+        );
+        expect(denyListUpdateMany).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
-                action: "podcast_ownership_review.block",
-                reason: "Different person",
+                action: "podcast_ownership_review.deny_list",
+                reason: "Not comedy",
             }),
         });
     });

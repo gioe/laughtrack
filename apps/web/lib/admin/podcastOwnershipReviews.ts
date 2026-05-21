@@ -26,6 +26,12 @@ type CandidateRow = {
         imageUrl: string | null;
         websiteUrl: string | null;
         feedUrl: string | null;
+        denyListEntries: Array<{
+            id: number;
+            reason: string | null;
+            deniedAt: Date;
+            deniedBy: string | null;
+        }>;
     } | null;
 };
 
@@ -71,6 +77,12 @@ export type AdminPodcastOwnershipReviewCandidate = {
         imageUrl: string | null;
         websiteUrl: string | null;
         feedUrl: string | null;
+        denyListEntry: {
+            id: number;
+            reason: string | null;
+            deniedAt: string;
+            deniedBy: string | null;
+        } | null;
     } | null;
     existingOwnerships: Array<{
         id: number;
@@ -108,7 +120,27 @@ function serializeCandidate(
         createdAt: candidate.createdAt.toISOString(),
         updatedAt: candidate.updatedAt.toISOString(),
         comedian: candidate.comedian,
-        podcast: candidate.podcast,
+        podcast: candidate.podcast
+            ? {
+                  id: candidate.podcast.id,
+                  slug: candidate.podcast.slug,
+                  title: candidate.podcast.title,
+                  authorName: candidate.podcast.authorName,
+                  imageUrl: candidate.podcast.imageUrl,
+                  websiteUrl: candidate.podcast.websiteUrl,
+                  feedUrl: candidate.podcast.feedUrl,
+                  denyListEntry: candidate.podcast.denyListEntries?.[0]
+                      ? {
+                            id: candidate.podcast.denyListEntries[0].id,
+                            reason: candidate.podcast.denyListEntries[0].reason,
+                            deniedAt:
+                                candidate.podcast.denyListEntries[0].deniedAt.toISOString(),
+                            deniedBy:
+                                candidate.podcast.denyListEntries[0].deniedBy,
+                        }
+                      : null,
+              }
+            : null,
         existingOwnerships: ownerships.map((ownership) => ({
             id: ownership.id,
             associationType: ownership.associationType,
@@ -155,6 +187,16 @@ export async function listPodcastOwnershipReviews(): Promise<
                     imageUrl: true,
                     websiteUrl: true,
                     feedUrl: true,
+                    denyListEntries: {
+                        where: { restoredAt: null },
+                        select: {
+                            id: true,
+                            reason: true,
+                            deniedAt: true,
+                            deniedBy: true,
+                        },
+                        take: 1,
+                    },
                 },
             },
         },
