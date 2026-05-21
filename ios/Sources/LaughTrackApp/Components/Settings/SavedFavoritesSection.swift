@@ -57,30 +57,23 @@ struct SavedFavoritesSection: View {
                             }
                         }
                     case .loaded:
-                        ForEach(favorites.savedFavoriteComedians, id: \.uuid) { comedian in
+                        FavoriteSearchableSection(
+                            items: favorites.savedFavoriteComedians,
+                            id: \.uuid,
+                            searchPlaceholder: "Search saved comedians"
+                        ) { comedian, query in
+                            comedian.name.localizedCaseInsensitiveContains(query)
+                        } row: { comedian in
                             Button {
                                 coordinator.push(.comedianDetail(comedian.id))
                             } label: {
-                                HStack(spacing: laughTrack.spacing.itemGap) {
-                                    VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
-                                        Text(comedian.name)
-                                            .font(laughTrack.typography.cardTitle)
-                                            .foregroundStyle(laughTrack.colors.textPrimary)
-                                        Text(
-                                            comedian.showCount == 1
-                                                ? "1 tracked show appearance"
-                                                : "\(comedian.showCount) tracked show appearances"
-                                        )
-                                        .font(laughTrack.typography.body)
-                                        .foregroundStyle(laughTrack.colors.textSecondary)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(laughTrack.colors.textSecondary)
-                                }
-                                .padding(.vertical, laughTrack.spacing.tight)
+                                LaughTrackEntityRow(
+                                    title: comedian.name,
+                                    subtitle: Self.subtitle(for: comedian),
+                                    systemImage: "person.fill",
+                                    imageURL: comedian.imageUrl,
+                                    showsDisclosureIndicator: true
+                                )
                             }
                             .buttonStyle(.plain)
                         }
@@ -89,5 +82,11 @@ struct SavedFavoritesSection: View {
             }
         }
         .accessibilityIdentifier(LaughTrackViewTestID.favoritesComediansSection)
+    }
+
+    private static func subtitle(for comedian: Components.Schemas.ComedianSearchItem) -> String? {
+        comedian.showCount == 1
+            ? "1 tracked show appearance"
+            : "\(comedian.showCount) tracked show appearances"
     }
 }
