@@ -15,9 +15,22 @@ from scripts.core import discover_comedian_podcast_candidates as mod  # noqa: E4
 
 
 class _FakeCursor:
-    def __init__(self, rows: list[Any]):
-        self.rows = rows
+    def __init__(
+        self,
+        rows: list[Any] | None = None,
+        *,
+        fetchall_results: list[list[Any]] | None = None,
+        fetchone_results: list[Any] | None = None,
+    ):
         self.executed: list[tuple[str, tuple[Any, ...] | None]] = []
+        if rows is not None and fetchall_results is None and fetchone_results is None:
+            self._fetchall_queue: list[list[Any]] = [list(rows)]
+            self._fetchone_queue: list[Any] = [rows[0] if rows else None]
+        else:
+            self._fetchall_queue = (
+                [list(rs) for rs in fetchall_results] if fetchall_results else []
+            )
+            self._fetchone_queue = list(fetchone_results) if fetchone_results else []
 
     def __enter__(self):
         return self
@@ -29,15 +42,29 @@ class _FakeCursor:
         self.executed.append((query, params))
 
     def fetchall(self) -> list[Any]:
-        return self.rows
+        if self._fetchall_queue:
+            return self._fetchall_queue.pop(0)
+        return []
 
     def fetchone(self) -> Any:
-        return self.rows[0] if self.rows else None
+        if self._fetchone_queue:
+            return self._fetchone_queue.pop(0)
+        return None
 
 
 class _FakeConnection:
-    def __init__(self, rows: list[Any]):
-        self.cursor_obj = _FakeCursor(rows)
+    def __init__(
+        self,
+        rows: list[Any] | None = None,
+        *,
+        fetchall_results: list[list[Any]] | None = None,
+        fetchone_results: list[Any] | None = None,
+    ):
+        self.cursor_obj = _FakeCursor(
+            rows,
+            fetchall_results=fetchall_results,
+            fetchone_results=fetchone_results,
+        )
         self.commits = 0
 
     def __enter__(self):
@@ -156,7 +183,10 @@ def test_parse_search_payload_stores_source_fields_and_image_url():
 
 
 def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
-    conn = _FakeConnection([(42,)])
+    conn = _FakeConnection(
+        fetchall_results=[[]],
+        fetchone_results=[(42,)],
+    )
     candidate = mod.PodcastCandidate(
         comedian_id=12,
         source=mod._SOURCE,
@@ -179,9 +209,12 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
 
     assert written == 1
     assert conn.commits == 1
-    assert len(conn.cursor_obj.executed) == 2
-    podcast_query, podcast_params = conn.cursor_obj.executed[0]
-    review_query, review_params = conn.cursor_obj.executed[1]
+    assert len(conn.cursor_obj.executed) == 3
+    deny_query, _ = conn.cursor_obj.executed[0]
+    podcast_query, podcast_params = conn.cursor_obj.executed[1]
+    review_query, review_params = conn.cursor_obj.executed[2]
+    assert "FROM podcast_deny_list" in deny_query
+    assert "restored_at IS NULL" in deny_query
     assert "INSERT INTO podcasts" in podcast_query
     assert "ON CONFLICT (source, source_podcast_id)" in podcast_query
     assert podcast_params[:7] == (
@@ -200,6 +233,154 @@ def test_persist_candidates_upserts_podcasts_and_candidate_reviews(monkeypatch):
     assert evidence["matched_name"] == "Steve-O"
     assert evidence["normalized_match"] == "steve o"
     assert evidence["confidence_band"] == "title_exact"
+
+
+def _candidate(
+    *,
+    comedian_id: int = 12,
+    source: str = mod._SOURCE,
+    source_podcast_id: str = "101",
+    feed_url: str | None = "https://feeds.example.com/show.xml",
+) -> Any:
+    return mod.PodcastCandidate(
+        comedian_id=comedian_id,
+        source=source,
+        source_podcast_id=source_podcast_id,
+        matched_name="Steve-O",
+        normalized_match="steve o",
+        confidence=0.99,
+        title="Steve-O's Wild Ride",
+        author_name="Steve-O",
+        feed_url=feed_url,
+        website_url="https://example.com",
+        image_url="https://example.com/image.jpg",
+        description="Comedy interviews",
+        evidence={"confidence_band": "title_exact", "source_fields": {}},
+    )
+
+
+def test_load_active_deny_list_excludes_restored_entries():
+    cursor = _FakeCursor(
+        fetchall_results=[
+            [
+                (mod._SOURCE, "101", None),
+                ("manual_rss", "abc123", "https://feeds.example.com/manual.xml"),
+                (None, None, "https://feeds.example.com/urlonly.xml"),
+            ]
+        ]
+    )
+
+    deny_keys, deny_urls = mod.load_active_deny_list(cursor)
+
+    query, _ = cursor.executed[0]
+    assert "FROM podcast_deny_list" in query
+    assert "restored_at IS NULL" in query
+    assert deny_keys == {(mod._SOURCE, "101"), ("manual_rss", "abc123")}
+    assert deny_urls == {
+        "https://feeds.example.com/manual.xml",
+        "https://feeds.example.com/urlonly.xml",
+    }
+
+
+def test_candidate_is_denied_matches_source_pair_or_feed_url():
+    deny_keys = {(mod._SOURCE, "101")}
+    deny_urls = {"https://feeds.example.com/blocked.xml"}
+
+    assert mod.candidate_is_denied(_candidate(source_podcast_id="101"), deny_keys, deny_urls)
+    assert mod.candidate_is_denied(
+        _candidate(source_podcast_id="999", feed_url="https://feeds.example.com/blocked.xml"),
+        deny_keys,
+        deny_urls,
+    )
+    assert not mod.candidate_is_denied(
+        _candidate(source_podcast_id="999", feed_url="https://feeds.example.com/allowed.xml"),
+        deny_keys,
+        deny_urls,
+    )
+    assert not mod.candidate_is_denied(
+        _candidate(source_podcast_id="999", feed_url=None),
+        deny_keys,
+        deny_urls,
+    )
+
+
+def test_persist_candidates_skips_deny_listed_source_podcast_id(monkeypatch):
+    conn = _FakeConnection(
+        fetchall_results=[[(mod._SOURCE, "101", None)]],
+        fetchone_results=[],
+    )
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    written = mod.persist_candidates([_candidate(source_podcast_id="101")], dry_run=False)
+
+    assert written == 0
+    assert conn.commits == 1
+    queries = [q for q, _ in conn.cursor_obj.executed]
+    assert any("FROM podcast_deny_list" in q for q in queries)
+    assert not any("INSERT INTO podcasts" in q for q in queries)
+    assert not any("INSERT INTO podcast_candidate_reviews" in q for q in queries)
+
+
+def test_persist_candidates_skips_deny_listed_feed_url(monkeypatch):
+    conn = _FakeConnection(
+        fetchall_results=[[(None, None, "https://feeds.example.com/show.xml")]],
+        fetchone_results=[],
+    )
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    written = mod.persist_candidates(
+        [_candidate(source_podcast_id="999", feed_url="https://feeds.example.com/show.xml")],
+        dry_run=False,
+    )
+
+    assert written == 0
+    queries = [q for q, _ in conn.cursor_obj.executed]
+    assert not any("INSERT INTO podcasts" in q for q in queries)
+
+
+def test_persist_candidates_writes_allowed_candidate_alongside_denied_one(monkeypatch):
+    conn = _FakeConnection(
+        fetchall_results=[[(mod._SOURCE, "blocked-101", None)]],
+        fetchone_results=[(42,)],
+    )
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    written = mod.persist_candidates(
+        [
+            _candidate(source_podcast_id="blocked-101"),
+            _candidate(source_podcast_id="allowed-202", feed_url="https://feeds.example.com/ok.xml"),
+        ],
+        dry_run=False,
+    )
+
+    assert written == 1
+    insert_queries = [
+        q for q, _ in conn.cursor_obj.executed if "INSERT INTO podcasts" in q
+    ]
+    assert len(insert_queries) == 1
+    review_queries = [
+        q for q, _ in conn.cursor_obj.executed if "INSERT INTO podcast_candidate_reviews" in q
+    ]
+    assert len(review_queries) == 1
+
+
+def test_persist_candidates_does_not_treat_restored_entries_as_denied(monkeypatch):
+    # The deny-list query already filters WHERE restored_at IS NULL — so a restored
+    # row never reaches load_active_deny_list. Simulating that here ensures the
+    # restore path proceeds with a normal write.
+    conn = _FakeConnection(
+        fetchall_results=[[]],
+        fetchone_results=[(42,)],
+    )
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    written = mod.persist_candidates([_candidate(source_podcast_id="101")], dry_run=False)
+
+    assert written == 1
+    insert_queries = [
+        q for q, _ in conn.cursor_obj.executed if "INSERT INTO podcasts" in q
+    ]
+    assert len(insert_queries) == 1
 
 
 def test_persist_candidates_dry_run_does_not_write(monkeypatch):

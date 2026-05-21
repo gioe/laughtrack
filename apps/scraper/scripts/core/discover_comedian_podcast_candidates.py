@@ -141,6 +141,12 @@ _UPSERT_REVIEW_SQL = """
         updated_at = NOW()
 """
 
+_GET_ACTIVE_DENY_LIST_SQL = """
+    SELECT source, source_podcast_id, feed_url
+    FROM podcast_deny_list
+    WHERE restored_at IS NULL
+"""
+
 _FALSE_POSITIVE_TITLE_RE = re.compile(
     r"\b(best|top|roundup|calendar|tickets?|shows?|events?|open mic|stand[- ]?up)\b",
     re.IGNORECASE,
@@ -356,6 +362,31 @@ def load_target_comedians(
             ]
 
 
+def load_active_deny_list(cur) -> tuple[set[tuple[str, str]], set[str]]:
+    cur.execute(_GET_ACTIVE_DENY_LIST_SQL)
+    deny_keys: set[tuple[str, str]] = set()
+    deny_urls: set[str] = set()
+    for row in cur.fetchall():
+        source, source_podcast_id, feed_url = row
+        if source and source_podcast_id:
+            deny_keys.add((str(source), str(source_podcast_id)))
+        if feed_url:
+            deny_urls.add(str(feed_url))
+    return deny_keys, deny_urls
+
+
+def candidate_is_denied(
+    candidate: PodcastCandidate,
+    deny_keys: set[tuple[str, str]],
+    deny_urls: set[str],
+) -> bool:
+    if (candidate.source, candidate.source_podcast_id) in deny_keys:
+        return True
+    if candidate.feed_url and candidate.feed_url in deny_urls:
+        return True
+    return False
+
+
 def _podcast_evidence(candidate: PodcastCandidate) -> dict[str, Any]:
     return {
         "provider": _SOURCE,
@@ -387,7 +418,17 @@ def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int
 
     with get_connection() as conn:
         with conn.cursor() as cur:
+            deny_keys, deny_urls = load_active_deny_list(cur)
+            written = 0
             for candidate in candidates:
+                if candidate_is_denied(candidate, deny_keys, deny_urls):
+                    Logger.info(
+                        f"[discover-podcasts] skipping deny-listed feed for comedian "
+                        f"{candidate.comedian_id} source={candidate.source} "
+                        f"source_podcast_id={candidate.source_podcast_id} "
+                        f"feed_url={candidate.feed_url}"
+                    )
+                    continue
                 cur.execute(
                     _UPSERT_PODCAST_SQL,
                     (
@@ -423,8 +464,9 @@ def persist_candidates(candidates: list[PodcastCandidate], dry_run: bool) -> int
                         json.dumps(_review_evidence(candidate), sort_keys=True),
                     ),
                 )
+                written += 1
         conn.commit()
-    return len(candidates)
+    return written
 
 
 def _build_search_params(search_term: str, max_results: int) -> dict[str, Any]:
