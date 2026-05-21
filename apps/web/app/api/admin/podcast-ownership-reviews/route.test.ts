@@ -50,7 +50,7 @@ import { db } from "@/lib/db";
 
 const mockFindProfile = vi.mocked(db.userProfile.findFirst);
 const mockFindCandidates = vi.mocked(db.podcastCandidateReview.findMany);
-const mockFindOwnerships = vi.mocked(db.comedianPodcast.findMany);
+const mockFindHostships = vi.mocked(db.comedianPodcast.findMany);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockDenyListFindFirst = vi.mocked(db.podcastDenyList.findFirst);
 
@@ -64,7 +64,7 @@ const adminSession = {
 
 function makeRequest(body: unknown) {
     return new NextRequest(
-        "http://localhost/api/admin/podcast-ownership-reviews",
+        "http://localhost/api/admin/podcast-hostship-reviews",
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -82,11 +82,11 @@ beforeEach(() => {
         role: "admin",
     } as never);
     mockFindCandidates.mockResolvedValue([]);
-    mockFindOwnerships.mockResolvedValue([]);
     mockDenyListFindFirst.mockResolvedValue(null);
+    mockFindHostships.mockResolvedValue([]);
 });
 
-describe("GET /api/admin/podcast-ownership-reviews", () => {
+describe("GET /api/admin/podcast-hostship-reviews", () => {
     it("requires admin access", async () => {
         mocks.auth.mockResolvedValue(null);
 
@@ -127,7 +127,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                 },
             },
         ] as never);
-        mockFindOwnerships.mockResolvedValue([
+        mockFindHostships.mockResolvedValue([
             {
                 id: 55,
                 comedianId: 42,
@@ -172,7 +172,7 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
                 }),
                 confidence: 0.91,
                 evidence: { matched_name: "Jane Comic" },
-                existingOwnerships: [
+                existingHostships: [
                     expect.objectContaining({
                         id: 55,
                         reviewStatus: "accepted",
@@ -189,10 +189,10 @@ describe("GET /api/admin/podcast-ownership-reviews", () => {
     });
 });
 
-describe("POST /api/admin/podcast-ownership-reviews", () => {
+describe("POST /api/admin/podcast-hostship-reviews", () => {
     it("rejects invalid payloads", async () => {
         const res = await POST(
-            makeRequest({ podcastId: 99, ownerComedianId: "hold" }),
+            makeRequest({ podcastId: 99, hostComedianId: "hold" }),
         );
 
         expect(res.status).toBe(400);
@@ -202,20 +202,18 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const res = await POST(
             makeRequest({
                 podcastId: 99,
-                ownerComedianId: 42,
+                hostComedianIds: [42],
                 denyListed: true,
             }),
         );
         const body = await res.json();
 
         expect(res.status).toBe(400);
-        expect(body.error).toBe(
-            "A deny-listed podcast cannot also have an owner",
-        );
+        expect(body.error).toBe("A deny-listed podcast cannot also have hosts");
         expect(mockTransaction).not.toHaveBeenCalled();
     });
 
-    it("approves a podcast owner, rejects competing candidates, audits, and revalidates", async () => {
+    it("approves podcast hosts and co-hosts, rejects competing candidates, audits, and revalidates", async () => {
         const podcast = {
             id: 99,
             slug: "jane-show",
@@ -224,11 +222,17 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             sourcePodcastId: "feed-99",
             feedUrl: "https://pod.example/feed.xml",
         };
-        const owner = {
+        const host = {
             id: 42,
             name: "Jane Comic",
             uuid: "comedian-uuid",
             popularity: 74,
+        };
+        const cohost = {
+            id: 77,
+            name: "Co Host",
+            uuid: "comedian-uuid-77",
+            popularity: 31,
         };
         const candidate = {
             id: 12,
@@ -250,7 +254,7 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             },
             podcast,
         };
-        const upsertedOwnership = {
+        const upsertedHostship = {
             id: 88,
             comedianId: 42,
             podcastId: 99,
@@ -262,14 +266,36 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             reviewedAt: new Date("2026-05-18T12:00:00Z"),
             reviewedBy: "profile-1",
         };
+        const upsertedCohostship = {
+            ...upsertedHostship,
+            id: 89,
+            comedianId: 77,
+            associationType: "cohost",
+        };
         const auditCreate = vi.fn();
         const podcastFindUnique = vi.fn().mockResolvedValue(podcast);
-        const comedianFindUnique = vi.fn().mockResolvedValue(owner);
-        const candidateFindMany = vi.fn().mockResolvedValue([candidate]);
+        const comedianFindUnique = vi
+            .fn()
+            .mockResolvedValueOnce(host)
+            .mockResolvedValueOnce(cohost);
+        const candidateFindMany = vi.fn().mockResolvedValue([
+            candidate,
+            {
+                ...candidate,
+                id: 13,
+                comedianId: 77,
+                associationType: "cohost",
+                confidence: 0.72,
+                comedian: cohost,
+            },
+        ]);
         const candidateUpdateMany = vi.fn();
-        const ownershipFindMany = vi.fn().mockResolvedValue([]);
-        const ownershipUpdateMany = vi.fn();
-        const upsert = vi.fn().mockResolvedValue(upsertedOwnership);
+        const hostshipFindMany = vi.fn().mockResolvedValue([]);
+        const hostshipUpdateMany = vi.fn();
+        const upsert = vi
+            .fn()
+            .mockResolvedValueOnce(upsertedHostship)
+            .mockResolvedValueOnce(upsertedCohostship);
         const denyListFindMany = vi.fn().mockResolvedValue([]);
         const denyListUpsert = vi.fn();
         const denyListUpdateMany = vi.fn();
@@ -282,8 +308,8 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                     updateMany: candidateUpdateMany,
                 },
                 comedianPodcast: {
-                    findMany: ownershipFindMany,
-                    updateMany: ownershipUpdateMany,
+                    findMany: hostshipFindMany,
+                    updateMany: hostshipUpdateMany,
                     upsert,
                 },
                 podcastDenyList: {
@@ -298,14 +324,24 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const res = await POST(
             makeRequest({
                 podcastId: 99,
-                ownerComedianId: 42,
+                hostComedianIds: [42],
+                cohostComedianIds: [77],
                 reason: "Matches host feed",
             }),
         );
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(body.owner).toEqual(owner);
+        expect(body.hostships).toEqual([
+            {
+                ...upsertedHostship,
+                reviewedAt: "2026-05-18T12:00:00.000Z",
+            },
+            {
+                ...upsertedCohostship,
+                reviewedAt: "2026-05-18T12:00:00.000Z",
+            },
+        ]);
         expect(candidateUpdateMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
@@ -322,7 +358,7 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
             expect.objectContaining({
                 where: expect.objectContaining({
                     podcastId: 99,
-                    comedianId: { not: 42 },
+                    comedianId: { notIn: [42, 77] },
                 }),
                 data: expect.objectContaining({
                     candidateStatus: "rejected",
@@ -330,12 +366,12 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                 }),
             }),
         );
-        expect(ownershipUpdateMany).toHaveBeenCalledWith(
+        expect(hostshipUpdateMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
                     podcastId: 99,
                     reviewStatus: "accepted",
-                    comedianId: { not: 42 },
+                    associationType: { in: ["host", "cohost"] },
                 },
                 data: expect.objectContaining({
                     reviewStatus: "rejected",
@@ -363,6 +399,18 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                 }),
             }),
         );
+        expect(upsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    comedianId_podcastId_associationType_source: {
+                        comedianId: 77,
+                        podcastId: 99,
+                        associationType: "cohost",
+                        source: "podcast-index",
+                    },
+                },
+            }),
+        );
         expect(denyListUpsert).not.toHaveBeenCalled();
         expect(denyListUpdateMany).toHaveBeenCalledWith({
             where: { podcastId: 99, restoredAt: null },
@@ -371,7 +419,7 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 actorProfileId: "profile-1",
-                action: "podcast_ownership_review.approve",
+                action: "podcast_hostship_review.approve",
                 entityType: "podcast",
                 entityId: "99",
                 reason: "Matches host feed",
@@ -386,7 +434,7 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         expect(mocks.revalidateTag).toHaveBeenCalledWith("jane-show");
     });
 
-    it("deny-lists a podcast by rejecting pending candidates and accepted ownerships", async () => {
+    it("deny-lists a podcast by rejecting pending candidates and accepted hostships", async () => {
         const podcast = {
             id: 99,
             slug: "jane-show",
@@ -419,8 +467,8 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const podcastFindUnique = vi.fn().mockResolvedValue(podcast);
         const candidateFindMany = vi.fn().mockResolvedValue([candidate]);
         const candidateUpdateMany = vi.fn();
-        const ownershipFindMany = vi.fn().mockResolvedValue([]);
-        const ownershipUpdateMany = vi.fn();
+        const hostshipFindMany = vi.fn().mockResolvedValue([]);
+        const hostshipUpdateMany = vi.fn();
         const upsert = vi.fn();
         const denyListFindMany = vi.fn().mockResolvedValue([]);
         const denyListUpsert = vi.fn().mockResolvedValue({
@@ -443,8 +491,8 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                     updateMany: candidateUpdateMany,
                 },
                 comedianPodcast: {
-                    findMany: ownershipFindMany,
-                    updateMany: ownershipUpdateMany,
+                    findMany: hostshipFindMany,
+                    updateMany: hostshipUpdateMany,
                     upsert,
                 },
                 podcastDenyList: {
@@ -459,7 +507,8 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         const res = await POST(
             makeRequest({
                 podcastId: 99,
-                ownerComedianId: null,
+                hostComedianIds: [],
+                cohostComedianIds: [],
                 denyListed: true,
                 reason: "Not comedy",
             }),
@@ -475,9 +524,13 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
                 }),
             }),
         );
-        expect(ownershipUpdateMany).toHaveBeenCalledWith(
+        expect(hostshipUpdateMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { podcastId: 99, reviewStatus: "accepted" },
+                where: {
+                    podcastId: 99,
+                    reviewStatus: "accepted",
+                    associationType: { in: ["host", "cohost"] },
+                },
                 data: expect.objectContaining({
                     reviewStatus: "rejected",
                     reviewedBy: "profile-1",
@@ -505,14 +558,14 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         expect(denyListUpdateMany).not.toHaveBeenCalled();
         expect(auditCreate).toHaveBeenCalledWith({
             data: expect.objectContaining({
-                action: "podcast_ownership_review.deny_list",
+                action: "podcast_hostship_review.deny_list",
                 reason: "Not comedy",
             }),
         });
     });
 });
 
-describe("PUT /api/admin/podcast-ownership-reviews", () => {
+describe("PUT /api/admin/podcast-hostship-reviews", () => {
     it("ingests a manual RSS feed, links it to the comedian, audits, and revalidates", async () => {
         const rss = `<?xml version="1.0"?>
             <rss><channel>
