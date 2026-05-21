@@ -55,7 +55,7 @@ beforeEach(() => {
     );
 });
 
-describe("GET /api/v1/podcast-artwork", () => {
+describe.sequential("GET /api/v1/podcast-artwork", () => {
     it("rejects URLs that are not exact podcast image rows", async () => {
         const res = await GET(makeRequest("https://internal.example/art.jpg"));
 
@@ -64,6 +64,9 @@ describe("GET /api/v1/podcast-artwork", () => {
     });
 
     it("rejects non-HTTPS artwork URLs before querying upstream", async () => {
+        mockFindFirst.mockClear();
+        vi.mocked(fetch).mockClear();
+
         const res = await GET(makeRequest("http://cdn.example.com/art.jpg"));
 
         expect(res.status).toBe(400);

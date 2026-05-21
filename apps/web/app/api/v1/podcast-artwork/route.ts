@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
     if (rl instanceof NextResponse) return rl;
 
     const requestedUrl = req.nextUrl.searchParams.get("url");
+    if (!requestedUrl?.trim().startsWith("https://")) return badRequest(rl);
+
     const safeUrl = safePodcastImageUrl(requestedUrl);
     if (!safeUrl) return badRequest(rl);
 
