@@ -52,6 +52,7 @@ const mockFindProfile = vi.mocked(db.userProfile.findFirst);
 const mockFindCandidates = vi.mocked(db.podcastCandidateReview.findMany);
 const mockFindOwnerships = vi.mocked(db.comedianPodcast.findMany);
 const mockTransaction = vi.mocked(db.$transaction);
+const mockDenyListFindFirst = vi.mocked(db.podcastDenyList.findFirst);
 
 const adminSession = {
     profile: {
@@ -82,6 +83,7 @@ beforeEach(() => {
     } as never);
     mockFindCandidates.mockResolvedValue([]);
     mockFindOwnerships.mockResolvedValue([]);
+    mockDenyListFindFirst.mockResolvedValue(null);
 });
 
 describe("GET /api/admin/podcast-ownership-reviews", () => {
@@ -549,14 +551,12 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
         const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
-        const denyListFindFirst = vi.fn().mockResolvedValue(null);
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: comedianFindUnique },
                 comedianPodcast: { upsert: comedianPodcastUpsert },
                 podcastEpisode: { upsert: episodeUpsert },
-                podcastDenyList: { findFirst: denyListFindFirst },
                 adminActionAudit: { create: auditCreate },
             } as never),
         );
@@ -615,39 +615,14 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
         );
     });
 
-    it("rejects deny-listed feed URLs without upserting the podcast", async () => {
-        vi.stubGlobal(
-            "fetch",
-            vi.fn().mockResolvedValue({
-                ok: true,
-                text: async () => `<?xml version="1.0"?><rss><channel><title>x</title></channel></rss>`,
-            }),
-        );
+    it("rejects deny-listed feed URLs before fetching the RSS feed", async () => {
+        const fetchSpy = vi.fn();
+        vi.stubGlobal("fetch", fetchSpy);
 
-        const comedian = {
-            id: 42,
-            name: "Jane Comic",
-            uuid: "comedian-uuid",
-        };
-        const podcastUpsert = vi.fn();
-        const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
-        const comedianPodcastUpsert = vi.fn();
-        const episodeUpsert = vi.fn();
-        const auditCreate = vi.fn();
-        const denyListFindFirst = vi.fn().mockResolvedValue({
+        mockDenyListFindFirst.mockResolvedValue({
             id: 7,
             reason: "Not comedy",
-        });
-        mockTransaction.mockImplementation(async (callback) =>
-            callback({
-                podcast: { upsert: podcastUpsert },
-                comedian: { findUnique: comedianFindUnique },
-                comedianPodcast: { upsert: comedianPodcastUpsert },
-                podcastEpisode: { upsert: episodeUpsert },
-                podcastDenyList: { findFirst: denyListFindFirst },
-                adminActionAudit: { create: auditCreate },
-            } as never),
-        );
+        } as never);
 
         const res = await PUT(
             makeRequest({
@@ -660,7 +635,7 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
         expect(res.status).toBe(409);
         expect(body.error).toBe("Feed is deny-listed");
         expect(body.reason).toBe("Not comedy");
-        expect(denyListFindFirst).toHaveBeenCalledWith(
+        expect(mockDenyListFindFirst).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
                     restoredAt: null,
@@ -671,42 +646,18 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
                 }),
             }),
         );
-        expect(podcastUpsert).not.toHaveBeenCalled();
-        expect(comedianPodcastUpsert).not.toHaveBeenCalled();
-        expect(episodeUpsert).not.toHaveBeenCalled();
-        expect(auditCreate).not.toHaveBeenCalled();
+        // Pre-check short-circuits before any network call or DB transaction.
+        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(mockTransaction).not.toHaveBeenCalled();
         expect(mocks.revalidateTag).not.toHaveBeenCalled();
     });
 
-    it("rejects when deny-list entry matches manual_rss source pair", async () => {
-        vi.stubGlobal(
-            "fetch",
-            vi.fn().mockResolvedValue({
-                ok: true,
-                text: async () => `<?xml version="1.0"?><rss><channel><title>x</title></channel></rss>`,
-            }),
-        );
-
-        const comedian = {
-            id: 42,
-            name: "Jane Comic",
-            uuid: "comedian-uuid",
-        };
-        const podcastUpsert = vi.fn();
-        const denyListFindFirst = vi.fn().mockResolvedValue({
+    it("includes the manual_rss source pair in the deny-list OR clause", async () => {
+        vi.stubGlobal("fetch", vi.fn());
+        mockDenyListFindFirst.mockResolvedValue({
             id: 8,
             reason: null,
-        });
-        mockTransaction.mockImplementation(async (callback) =>
-            callback({
-                podcast: { upsert: podcastUpsert },
-                comedian: { findUnique: vi.fn().mockResolvedValue(comedian) },
-                comedianPodcast: { upsert: vi.fn() },
-                podcastEpisode: { upsert: vi.fn() },
-                podcastDenyList: { findFirst: denyListFindFirst },
-                adminActionAudit: { create: vi.fn() },
-            } as never),
-        );
+        } as never);
 
         const res = await PUT(
             makeRequest({
@@ -716,7 +667,23 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
         );
 
         expect(res.status).toBe(409);
-        expect(podcastUpsert).not.toHaveBeenCalled();
+        const call = mockDenyListFindFirst.mock.calls[0]?.[0];
+        const orClause = (call?.where as { OR: unknown[] })?.OR;
+        expect(orClause).toEqual(
+            expect.arrayContaining([
+                {
+                    source: "manual_rss",
+                    sourcePodcastId: expect.any(String),
+                },
+            ]),
+        );
+        const sourcePair = orClause?.find(
+            (entry): entry is { source: string; sourcePodcastId: string } =>
+                typeof entry === "object" &&
+                entry !== null &&
+                "sourcePodcastId" in entry,
+        );
+        expect(sourcePair?.sourcePodcastId).toMatch(/^[0-9a-f]{40}$/);
     });
 
     it("proceeds when deny-list entry is restored (findFirst returns null)", async () => {
@@ -748,14 +715,13 @@ describe("PUT /api/admin/podcast-ownership-reviews", () => {
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
         const auditCreate = vi.fn();
-        const denyListFindFirst = vi.fn().mockResolvedValue(null);
+        mockDenyListFindFirst.mockResolvedValue(null);
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: vi.fn().mockResolvedValue(comedian) },
                 comedianPodcast: { upsert: comedianPodcastUpsert },
                 podcastEpisode: { upsert: episodeUpsert },
-                podcastDenyList: { findFirst: denyListFindFirst },
                 adminActionAudit: { create: auditCreate },
             } as never),
         );

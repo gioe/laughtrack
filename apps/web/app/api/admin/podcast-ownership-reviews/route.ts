@@ -591,6 +591,23 @@ export async function PUT(req: NextRequest) {
         );
     }
 
+    const source = "manual_rss";
+    const sourcePodcastId = hashValue(feedUrl);
+
+    const denyEntry = await db.podcastDenyList.findFirst({
+        where: {
+            restoredAt: null,
+            OR: [{ feedUrl }, { source, sourcePodcastId }],
+        },
+        select: { id: true, reason: true },
+    });
+    if (denyEntry) {
+        return NextResponse.json(
+            { error: "Feed is deny-listed", reason: denyEntry.reason },
+            { status: 409 },
+        );
+    }
+
     let rssText: string;
     try {
         const response = await fetch(feedUrl, {
@@ -617,8 +634,6 @@ export async function PUT(req: NextRequest) {
     }
 
     const parsedFeed = parseRssFeed(rssText, feedUrl);
-    const source = "manual_rss";
-    const sourcePodcastId = hashValue(feedUrl);
     const slug = buildPodcastSlug(
         parsedFeed.title,
         source,
@@ -633,23 +648,6 @@ export async function PUT(req: NextRequest) {
                 select: { id: true, name: true, uuid: true },
             });
             if (!comedian) return null;
-
-            const denyEntry = await tx.podcastDenyList.findFirst({
-                where: {
-                    restoredAt: null,
-                    OR: [
-                        { feedUrl },
-                        { source, sourcePodcastId },
-                    ],
-                },
-                select: { id: true, reason: true },
-            });
-            if (denyEntry) {
-                return {
-                    denied: true as const,
-                    denyEntry,
-                };
-            }
 
             const podcast = await tx.podcast.upsert({
                 where: {
@@ -820,15 +818,6 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json(
                 { error: "Comedian not found" },
                 { status: 404 },
-            );
-        }
-        if ("denied" in result) {
-            return NextResponse.json(
-                {
-                    error: "Feed is deny-listed",
-                    reason: result.denyEntry.reason,
-                },
-                { status: 409 },
             );
         }
 
