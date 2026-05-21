@@ -634,6 +634,23 @@ export async function PUT(req: NextRequest) {
             });
             if (!comedian) return null;
 
+            const denyEntry = await tx.podcastDenyList.findFirst({
+                where: {
+                    restoredAt: null,
+                    OR: [
+                        { feedUrl },
+                        { source, sourcePodcastId },
+                    ],
+                },
+                select: { id: true, reason: true },
+            });
+            if (denyEntry) {
+                return {
+                    denied: true as const,
+                    denyEntry,
+                };
+            }
+
             const podcast = await tx.podcast.upsert({
                 where: {
                     source_sourcePodcastId: {
@@ -803,6 +820,15 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json(
                 { error: "Comedian not found" },
                 { status: 404 },
+            );
+        }
+        if ("denied" in result) {
+            return NextResponse.json(
+                {
+                    error: "Feed is deny-listed",
+                    reason: result.denyEntry.reason,
+                },
+                { status: 409 },
             );
         }
 
