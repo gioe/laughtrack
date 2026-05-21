@@ -113,6 +113,7 @@ describe("/api/v1/favorite-podcasts", () => {
             {
                 podcast: {
                     id: 42,
+                    slug: "the-laugh-track-pod",
                     title: "The Laugh Track Pod",
                     authorName: "Host McHost",
                     websiteUrl: "https://example.com/pod",
@@ -140,13 +141,14 @@ describe("/api/v1/favorite-podcasts", () => {
             data: [
                 {
                     id: 42,
+                    slug: "the-laugh-track-pod",
                     title: "The Laugh Track Pod",
-                    author_name: "Host McHost",
-                    website_url: "https://example.com/pod",
-                    feed_url: "https://example.com/pod/rss.xml",
-                    image_url: "https://example.com/pod/art.jpg",
+                    authorName: "Host McHost",
+                    websiteUrl: "https://example.com/pod",
+                    feedUrl: "https://example.com/pod/rss.xml",
+                    imageUrl: "https://example.com/pod/art.jpg",
                     description: "Comedy interviews.",
-                    episode_count: 12,
+                    episodeCount: 12,
                     isFavorite: true,
                 },
             ],

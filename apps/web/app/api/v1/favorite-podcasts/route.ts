@@ -5,6 +5,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 const favoritePodcastSelect = {
     id: true,
+    slug: true,
     title: true,
     authorName: true,
     websiteUrl: true,
@@ -53,13 +54,14 @@ export async function GET(req: NextRequest) {
             {
                 data: favorites.map(({ podcast }) => ({
                     id: podcast.id,
+                    slug: podcast.slug,
                     title: podcast.title,
-                    author_name: podcast.authorName,
-                    website_url: podcast.websiteUrl,
-                    feed_url: podcast.feedUrl,
-                    image_url: podcast.imageUrl,
+                    authorName: podcast.authorName,
+                    websiteUrl: podcast.websiteUrl,
+                    feedUrl: podcast.feedUrl,
+                    imageUrl: podcast.imageUrl,
                     description: podcast.description,
-                    episode_count: podcast._count.episodes,
+                    episodeCount: podcast._count.episodes,
                     isFavorite: true,
                 })),
             },
