@@ -28,6 +28,11 @@ describe("getSearchedPodcasts", () => {
         await getSearchedPodcasts({});
 
         const publicOwnershipWhere = {
+            denyListEntries: {
+                none: {
+                    restoredAt: null,
+                },
+            },
             comedianPodcasts: {
                 some: {
                     reviewStatus: "accepted",
@@ -50,11 +55,23 @@ describe("getSearchedPodcasts", () => {
         await getSearchedPodcasts({ includeEmpty: "true" });
 
         expect(mockCount).toHaveBeenCalledWith({
-            where: {},
+            where: {
+                denyListEntries: {
+                    none: {
+                        restoredAt: null,
+                    },
+                },
+            },
         });
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: {},
+                where: {
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
+                },
             }),
         );
     });
@@ -66,6 +83,11 @@ describe("getSearchedPodcasts", () => {
             where: {
                 AND: [
                     {
+                        denyListEntries: {
+                            none: {
+                                restoredAt: null,
+                            },
+                        },
                         comedianPodcasts: {
                             some: {
                                 reviewStatus: "accepted",

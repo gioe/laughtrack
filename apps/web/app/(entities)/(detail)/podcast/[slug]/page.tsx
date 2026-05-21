@@ -9,6 +9,7 @@ import JsonLd from "@/ui/components/JsonLd";
 import PodcastDetail from "@/ui/pages/entity/podcast";
 import { getPodcastDetailPageData } from "@/lib/data/podcast/detail/getPodcastDetailPageData";
 import { buildPodcastJsonLd } from "@/util/jsonLd";
+import { PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE } from "@/lib/data/podcast/publicWhere";
 
 export async function generateMetadata(props: {
     params: Promise<{ slug: string }>;
@@ -19,11 +20,7 @@ export async function generateMetadata(props: {
             db.podcast.findFirst({
                 where: {
                     slug,
-                    comedianPodcasts: {
-                        some: {
-                            reviewStatus: "accepted",
-                        },
-                    },
+                    ...PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE,
                 },
                 select: {
                     title: true,

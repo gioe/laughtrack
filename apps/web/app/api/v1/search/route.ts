@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { PUBLIC_PODCAST_OWNER_OR_HOST_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const SEARCH_TYPES = ["show", "comedian", "club", "podcast"] as const;
 type SearchEntityType = (typeof SEARCH_TYPES)[number];
@@ -25,15 +26,6 @@ function containsQuery(query: string) {
     return { contains: query, mode: "insensitive" as const };
 }
 
-const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
-    comedianPodcasts: {
-        some: {
-            reviewStatus: "accepted",
-            associationType: { in: ["host", "owner"] },
-        },
-    },
-};
-
 function profileHref(kind: "comedian" | "club", name: string) {
     return `/${kind}/${encodeURIComponent(name)}`;
 }
@@ -44,7 +36,7 @@ async function searchPodcasts(
 ): Promise<{ data: GlobalSearchResult[]; total: number }> {
     const where = {
         AND: [
-            PUBLIC_PODCAST_OWNERSHIP_WHERE,
+            PUBLIC_PODCAST_OWNER_OR_HOST_WHERE,
             {
                 OR: [
                     { title: containsQuery(query) },

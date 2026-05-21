@@ -33,6 +33,11 @@ describe("getPodcastDetailPageData", () => {
             expect.objectContaining({
                 where: {
                     slug: "chrissy-chaos",
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
                     comedianPodcasts: {
                         some: {
                             reviewStatus: "accepted",
@@ -52,6 +57,11 @@ describe("getPodcastDetailPageData", () => {
             expect.objectContaining({
                 where: {
                     id: 42,
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
                     comedianPodcasts: {
                         some: {
                             reviewStatus: "accepted",

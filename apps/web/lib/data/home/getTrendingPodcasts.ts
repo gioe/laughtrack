@@ -4,6 +4,7 @@ import type { PodcastDTO } from "@/lib/data/podcast/interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import type { Prisma } from "@prisma/client";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
+import { PUBLIC_PODCAST_DENY_LIST_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 50;
@@ -40,6 +41,7 @@ function whereFor(
 ): Prisma.PodcastWhereInput {
     if (!zipCode) {
         return {
+            ...PUBLIC_PODCAST_DENY_LIST_WHERE,
             comedianPodcasts: {
                 some: PUBLIC_PODCAST_OWNERSHIP,
             },
@@ -50,6 +52,7 @@ function whereFor(
     const nearbyZips = resolveZipCodes(zipCode, radius);
 
     return {
+        ...PUBLIC_PODCAST_DENY_LIST_WHERE,
         comedianPodcasts: {
             some: {
                 ...PUBLIC_PODCAST_OWNERSHIP,

@@ -2,16 +2,12 @@ import { db } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { PodcastSearchResponse } from "../interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
+import {
+    PUBLIC_PODCAST_DENY_LIST_WHERE,
+    PUBLIC_PODCAST_OWNER_OR_HOST_WHERE,
+} from "@/lib/data/podcast/publicWhere";
 
 const DEFAULT_PAGE_SIZE = 20;
-const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
-    comedianPodcasts: {
-        some: {
-            reviewStatus: "accepted",
-            associationType: { in: ["host", "owner"] },
-        },
-    },
-} satisfies Prisma.PodcastWhereInput;
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -108,7 +104,9 @@ export async function getSearchedPodcasts(params: {
     const size = normalizeSize(params.size);
     const sort = normalizeSort(params.sort);
     const includeEmpty = params.includeEmpty === "true";
-    const ownershipWhere = includeEmpty ? {} : PUBLIC_PODCAST_OWNERSHIP_WHERE;
+    const ownershipWhere = includeEmpty
+        ? PUBLIC_PODCAST_DENY_LIST_WHERE
+        : PUBLIC_PODCAST_OWNER_OR_HOST_WHERE;
     const queryWhere: Prisma.PodcastWhereInput | null = query
         ? {
               OR: [

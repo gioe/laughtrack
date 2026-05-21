@@ -94,6 +94,11 @@ describe("GET /api/v1/search", () => {
         const expectedPodcastWhere = {
             AND: [
                 {
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
                     comedianPodcasts: {
                         some: {
                             reviewStatus: "accepted",

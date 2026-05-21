@@ -26,6 +26,11 @@ describe("getTrendingPodcasts", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
                     comedianPodcasts: {
                         some: expect.objectContaining({
                             reviewStatus: "accepted",
@@ -60,6 +65,11 @@ describe("getTrendingPodcasts", () => {
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
+                    denyListEntries: {
+                        none: {
+                            restoredAt: null,
+                        },
+                    },
                     comedianPodcasts: {
                         some: {
                             reviewStatus: "accepted",

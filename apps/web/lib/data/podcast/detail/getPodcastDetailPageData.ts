@@ -2,16 +2,8 @@ import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
 import type { PodcastDetailResponse, PodcastEpisodeDTO } from "../interface";
 import type { SocialDataDTO } from "@/objects/class/socialData/socialData.interface";
-import type { Prisma } from "@prisma/client";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
-
-const PUBLIC_PODCAST_OWNERSHIP_WHERE = {
-    comedianPodcasts: {
-        some: {
-            reviewStatus: "accepted",
-        },
-    },
-} satisfies Prisma.PodcastWhereInput;
+import { PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE } from "@/lib/data/podcast/publicWhere";
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -49,7 +41,7 @@ async function getPodcastDetailPageDataByWhere(
     const podcast = await db.podcast.findFirst({
         where: {
             ...where,
-            ...PUBLIC_PODCAST_OWNERSHIP_WHERE,
+            ...PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE,
         },
         select: {
             id: true,
