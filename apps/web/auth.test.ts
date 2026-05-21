@@ -167,7 +167,7 @@ describe("auth.ts NextAuth config", () => {
             expect(result).toBe(session);
         });
 
-        it("swallows lookup errors and still returns the session", async () => {
+        it("swallows lookup errors and logs the sanitized error", async () => {
             const consoleSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -181,7 +181,16 @@ describe("auth.ts NextAuth config", () => {
             });
 
             expect(result).toBe(session);
-            expect(consoleSpy).toHaveBeenCalled();
+            expect(consoleSpy).toHaveBeenCalledTimes(1);
+            const [label, payload] = consoleSpy.mock.calls[0];
+            expect(label).toBe("Error fetching user profile:");
+            expect(typeof payload).toBe("string");
+            const parsed = JSON.parse(payload as string);
+            expect(parsed).toMatchObject({
+                name: "Error",
+                message: "db down",
+            });
+            expect(parsed).not.toHaveProperty("stack");
             consoleSpy.mockRestore();
         });
     });

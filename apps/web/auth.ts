@@ -127,7 +127,10 @@ const _nextAuth = NextAuth({
                     // Add profile to session
                     session.profile = token.profile as UserProfile;
                 } catch (error) {
-                    console.error("Error fetching user profile:", error);
+                    console.error(
+                        "Error fetching user profile:",
+                        JSON.stringify(sanitizeAuthError(error)),
+                    );
                 }
             }
             return session;
