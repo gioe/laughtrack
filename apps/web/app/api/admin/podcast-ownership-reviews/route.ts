@@ -273,6 +273,12 @@ export async function POST(req: NextRequest) {
     const { podcastId, ownerComedianId } = parsed.data;
     const denyListed = parsed.data.denyListed ?? false;
     const reason = parsed.data.reason?.trim() || null;
+    if (denyListed && ownerComedianId) {
+        return NextResponse.json(
+            { error: "A deny-listed podcast cannot also have an owner" },
+            { status: 400 },
+        );
+    }
 
     try {
         const result = await db.$transaction(async (tx) => {

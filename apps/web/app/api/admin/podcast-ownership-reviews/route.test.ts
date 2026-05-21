@@ -195,6 +195,23 @@ describe("POST /api/admin/podcast-ownership-reviews", () => {
         expect(res.status).toBe(400);
     });
 
+    it("rejects conflicting approve and deny-list decisions", async () => {
+        const res = await POST(
+            makeRequest({
+                podcastId: 99,
+                ownerComedianId: 42,
+                denyListed: true,
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.error).toBe(
+            "A deny-listed podcast cannot also have an owner",
+        );
+        expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
     it("approves a podcast owner, rejects competing candidates, audits, and revalidates", async () => {
         const podcast = {
             id: 99,
