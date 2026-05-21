@@ -1,12 +1,13 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import EntityCard from "../../entity";
+import { useFavorite } from "@/hooks/useFavorite";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -21,6 +22,19 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
         parsedClub.city && parsedClub.state
             ? `${parsedClub.city}, ${parsedClub.state}`
             : parsedClub.city || parsedClub.address;
+
+    const clubId = club.id;
+    const canFavorite = typeof clubId === "number" && clubId > 0;
+    const { isFavorite, handleFavoriteClick, isAuthenticated } = useFavorite({
+        initialState: club.is_Favorite ?? false,
+        entityId: canFavorite ? String(clubId) : "0",
+        entityType: "club",
+    });
+    const favoriteLabel = isAuthenticated
+        ? isFavorite
+            ? `Remove ${parsedClub.name} from favorites`
+            : `Add ${parsedClub.name} to favorites`
+        : `Sign in to favorite ${parsedClub.name}`;
 
     return (
         <EntityCard chrome="coconut-hover" className="pb-4 px-4 h-full">
@@ -39,6 +53,26 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                         priority={false}
                     />
                 </Link>
+                {canFavorite && (
+                    <button
+                        type="button"
+                        onClick={handleFavoriteClick}
+                        aria-label={favoriteLabel}
+                        aria-pressed={isAuthenticated ? isFavorite : undefined}
+                        className={`absolute right-2 top-2 z-10 rounded-full bg-white/90 p-2 text-gray-700 shadow-sm transition hover:bg-white hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-copper ${
+                            isAuthenticated
+                                ? ""
+                                : "border border-dashed border-gray-400"
+                        }`}
+                    >
+                        <Heart
+                            aria-hidden="true"
+                            className={`h-5 w-5 ${
+                                isFavorite ? "fill-current text-red-500" : ""
+                            }`}
+                        />
+                    </button>
+                )}
             </div>
             <div className="mt-4 space-y-2">
                 <h3 className="text-h3 font-extrabold font-gilroy-bold text-center text-foreground hover:text-foreground transition-colors">
