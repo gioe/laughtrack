@@ -17,6 +17,9 @@ packages:
   swift-openapi-urlsession:
     url: https://github.com/apple/swift-openapi-urlsession
     from: "1.2.0"
+  sentry-cocoa:
+    url: https://github.com/getsentry/sentry-cocoa
+    from: "9.13.0"
 targets:
   LaughTrackCore:
     type: framework
@@ -36,6 +39,8 @@ targets:
         product: HTTPTypes
       - package: swift-openapi-urlsession
         product: OpenAPIURLSession
+      - package: sentry-cocoa
+        product: Sentry
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
@@ -91,6 +96,7 @@ targets:
         # downgrading whatever fastlane wrote (TASK-1902).
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        SentryDSN: "$(SENTRY_DSN)"
         ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor

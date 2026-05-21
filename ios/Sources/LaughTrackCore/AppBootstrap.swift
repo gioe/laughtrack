@@ -2,6 +2,7 @@ import Foundation
 import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIURLSession
+import Sentry
 
 @MainActor
 public struct AppBootstrap {
@@ -10,12 +11,17 @@ public struct AppBootstrap {
     public let authManager: AuthManager
     public let apiClient: Client
     public let theme: LaughTrackTheme
+    private static let sentryTestCrashArgument = "SENTRY_TEST_CRASH"
+    private static var sentryStarted = false
 
     public init(
         container: ServiceContainer? = nil,
         oauthSessionRunner: any OAuthSessionRunning = SystemOAuthSessionRunner(),
         theme: LaughTrackTheme = LaughTrackTheme()
     ) {
+        Self.configureSentryIfNeeded()
+        Self.scheduleSentryTestCrashIfRequested()
+
         let container = container ?? ServiceContainer()
         ServiceRegistration.configure(container)
         self.container = container
@@ -157,5 +163,29 @@ public struct AppBootstrap {
 
         ServiceRegistration.configureZipLocationResolver(container, apiClient: apiClient)
         ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
+    }
+
+    private static func configureSentryIfNeeded() {
+        guard !sentryStarted, let dsn = AppConfiguration.sentryDSN else { return }
+        sentryStarted = true
+
+        SentrySDK.start { options in
+            options.dsn = dsn
+            options.environment = AppConfiguration.sentryEnvironment
+            options.releaseName = AppConfiguration.sentryReleaseIdentifier
+            options.dist = AppConfiguration.sentryBuildNumber
+            options.tracesSampleRate = 0.1
+        }
+    }
+
+    private static func scheduleSentryTestCrashIfRequested() {
+        let processInfo = ProcessInfo.processInfo
+        let shouldCrash = processInfo.arguments.contains(sentryTestCrashArgument)
+            || processInfo.environment["LAUGHTRACK_SENTRY_TEST_CRASH"] == "1"
+        guard shouldCrash else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            fatalError("LaughTrack Sentry test crash")
+        }
     }
 }

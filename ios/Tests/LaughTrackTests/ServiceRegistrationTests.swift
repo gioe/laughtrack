@@ -152,4 +152,28 @@ struct AppConfigurationTests {
     func apiBaseURL() {
         #expect(AppConfiguration.apiBaseURL == URL(string: "https://www.laugh-track.com")!)
     }
+
+    @Test("sentryDSN prefers runtime override and ignores empty plist placeholders")
+    func sentryDSN() {
+        let info = ["SentryDSN": "$(SENTRY_DSN)"]
+        #expect(AppConfiguration.sentryDSN(infoDictionary: info, environment: [:]) == nil)
+        #expect(
+            AppConfiguration.sentryDSN(
+                infoDictionary: info,
+                environment: ["SENTRY_DSN": " https://examplePublicKey@o0.ingest.sentry.io/1 "]
+            ) == "https://examplePublicKey@o0.ingest.sentry.io/1"
+        )
+    }
+
+    @Test("sentry release identifier includes the build number")
+    func sentryReleaseIdentifier() {
+        let info = [
+            "CFBundleIdentifier": "app.laughtrack.ios",
+            "CFBundleShortVersionString": "1.2",
+            "CFBundleVersion": "42",
+        ]
+
+        #expect(AppConfiguration.sentryReleaseIdentifier(infoDictionary: info) == "app.laughtrack.ios@1.2+42")
+        #expect(AppConfiguration.sentryBuildNumber(infoDictionary: info) == "42")
+    }
 }

@@ -73,6 +73,7 @@
 		5A4285ADBE378CD0C587B7C7 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF86F29E41E550F89B40A3E /* AppSettings.swift */; };
 		5C3CAA72E332C5CE372BEA93 /* ComedianDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */; };
 		5FECACC3A16CCB6448BADCF3 /* DetailHero.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32660C7210ED82ACF6884F4 /* DetailHero.swift */; };
+		60C50443C0E7D139E66586D8 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 243C442F7C44DD30BBE78BCD /* Sentry */; };
 		6345F1EA9EAEA2507D01175F /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427388AED0335B0C7AC80040 /* AuthManager.swift */; };
 		6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A8E6CBF78B8826E53BA50BFF /* PrivacyInfo.xcprivacy */; };
 		69B7A099BA643750CFE54512 /* EntityDataFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A9A2BE7EB1ACA27F65E10C5 /* EntityDataFlowTests.swift */; };
@@ -458,6 +459,7 @@
 				1735C9271E7A5DEED56422ED /* OpenAPIRuntime in Frameworks */,
 				C385816EB40B0E60FD8350AD /* HTTPTypes in Frameworks */,
 				0C145C2A445386A99C1A41E1 /* OpenAPIURLSession in Frameworks */,
+				60C50443C0E7D139E66586D8 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -960,6 +962,7 @@
 				6AF9C434C99637FEA0F1C1FF /* OpenAPIRuntime */,
 				F840714F147704B940EFAC06 /* HTTPTypes */,
 				5DCCCA95DB28A342FFAAEC81 /* OpenAPIURLSession */,
+				243C442F7C44DD30BBE78BCD /* Sentry */,
 			);
 			productName = LaughTrackCore;
 			productReference = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */;
@@ -1062,6 +1065,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				043017419D5BF7055F628F43 /* XCRemoteSwiftPackageReference "ios-libs" */,
+				1A00A93B86A833818EFAD01B /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				A218FFDB29FEA859746F3235 /* XCRemoteSwiftPackageReference "swift-http-types" */,
 				84B17814638981A8256A1360 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */,
 				C12B3CB9CCBB3E72413D024E /* XCRemoteSwiftPackageReference "swift-openapi-urlsession" */,
@@ -1791,6 +1795,14 @@
 				revision = 409ad92db9ab062382390f79063cd90429cc8a5d;
 			};
 		};
+		1A00A93B86A833818EFAD01B /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.13.0;
+			};
+		};
 		84B17814638981A8256A1360 /* XCRemoteSwiftPackageReference "swift-openapi-runtime" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-openapi-runtime";
@@ -1822,6 +1834,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A218FFDB29FEA859746F3235 /* XCRemoteSwiftPackageReference "swift-http-types" */;
 			productName = HTTPTypes;
+		};
+		243C442F7C44DD30BBE78BCD /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1A00A93B86A833818EFAD01B /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
 		};
 		362B635800535696613C37C8 /* APIClient */ = {
 			isa = XCSwiftPackageProductDependency;

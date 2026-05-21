@@ -1,5 +1,5 @@
 {
-  "originHash" : "5efa6406b3da5a505295d344c12f6ae08ff09463a443062780caa63ef19e8b41",
+  "originHash" : "f09ca06a2677cf73f3c96a3b8343ea50cf1d8415253c2c2c7137151d45e2f012",
   "pins" : [
     {
       "identity" : "ios-libs",
@@ -7,6 +7,15 @@
       "location" : "https://github.com/gioe/ios-libs.git",
       "state" : {
         "revision" : "409ad92db9ab062382390f79063cd90429cc8a5d"
+      }
+    },
+    {
+      "identity" : "sentry-cocoa",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/getsentry/sentry-cocoa",
+      "state" : {
+        "revision" : "64c9c5cc401aefde0eda46a9192b36082533a79d",
+        "version" : "9.13.0"
       }
     },
     {
