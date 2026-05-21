@@ -310,12 +310,35 @@ model Podcast {
   episodes         PodcastEpisode[]
   comedianPodcasts ComedianPodcast[]
   candidateReviews PodcastCandidateReview[]
+  denyListEntries  PodcastDenyList[]
   favorites        FavoritePodcast[]
 
   @@unique([source, sourcePodcastId])
   @@index([source])
   @@index([feedUrl])
   @@map("podcasts")
+}
+
+model PodcastDenyList {
+  id              Int       @id @default(autoincrement())
+  podcastId       Int?      @map("podcast_id")
+  source          String?
+  sourcePodcastId String?   @map("source_podcast_id")
+  feedUrl         String?   @map("feed_url")
+  reason          String?
+  deniedAt        DateTime  @default(now()) @map("denied_at") @db.Timestamptz
+  deniedBy        String?   @map("denied_by")
+  restoredAt      DateTime? @map("restored_at") @db.Timestamptz
+  restoredBy      String?   @map("restored_by")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  podcast         Podcast?  @relation(fields: [podcastId], references: [id], onDelete: SetNull)
+
+  @@unique([podcastId])
+  @@unique([source, sourcePodcastId])
+  @@unique([feedUrl])
+  @@index([restoredAt])
+  @@map("podcast_deny_list")
 }
 
 model PodcastEpisode {
