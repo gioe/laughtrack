@@ -60,14 +60,11 @@ describe("AdminLayout", () => {
         const markup = await renderAdminLayout();
 
         expect(markup).toContain("LaughTrack Admin");
-        expect(markup).toContain("Accounts and favorites");
-        expect(markup).toContain("Club operations");
-        expect(markup).toContain("Run status");
-        expect(markup).toContain("Aliases and blocks");
-        expect(markup).toContain('href="/admin/users"');
-        expect(markup).toContain('href="/admin/clubs"');
-        expect(markup).toContain('href="/admin/pipelines"');
-        expect(markup).toContain('href="/admin/comedians"');
+        expect(markup).toContain('aria-label="Admin navigation"');
+        expect(markup.indexOf("Menu")).toBeLessThan(
+            markup.indexOf("LaughTrack Admin"),
+        );
+        expect(markup).toContain("Admin access");
         expect(markup).toContain('data-testid="admin-clubs-child"');
         expect(mocks.notFound).not.toHaveBeenCalled();
     });

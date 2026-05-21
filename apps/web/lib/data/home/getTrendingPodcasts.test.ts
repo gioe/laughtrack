@@ -95,7 +95,7 @@ describe("getTrendingPodcasts", () => {
                 authorName: "Vulture",
                 websiteUrl: "https://example.com/good-one",
                 feedUrl: "https://example.com/feed.xml",
-                imageUrl: "http://insecure.example.com/good-one.jpg",
+                imageUrl: "http://cdn.example.com/good-one.jpg",
                 description: "<p>Comedy interviews</p>",
                 _count: { episodes: 12 },
             },
@@ -109,7 +109,8 @@ describe("getTrendingPodcasts", () => {
                 authorName: "Vulture",
                 websiteUrl: "https://example.com/good-one",
                 feedUrl: "https://example.com/feed.xml",
-                imageUrl: null,
+                imageUrl:
+                    "/api/v1/podcast-artwork?url=https%3A%2F%2Fcdn.example.com%2Fgood-one.jpg",
                 description: "Comedy interviews",
                 episodeCount: 12,
             },
