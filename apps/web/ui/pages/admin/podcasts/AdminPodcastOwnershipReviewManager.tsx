@@ -277,7 +277,10 @@ function filterComedianGroups(groups: ComedianReviewGroup[], query: string) {
 
 function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
     return Object.fromEntries(
-        groups.map((group) => [group.key, group.initialOwner]),
+        groups.map((group) => [
+            group.key,
+            group.podcast.denyListEntry ? null : group.initialOwner,
+        ]),
     ) as Record<string, OwnerOption | null>;
 }
 
@@ -386,6 +389,7 @@ export default function AdminPodcastOwnershipReviewManager({
     async function save(
         group: PodcastReviewGroup,
         ownerOverride?: OwnerOption | null,
+        denyListed = false,
     ) {
         const reason = notes[group.key]?.trim() ?? "";
         const owner =
@@ -403,6 +407,7 @@ export default function AdminPodcastOwnershipReviewManager({
                 body: JSON.stringify({
                     podcastId: group.podcast.id,
                     ownerComedianId: owner?.id ?? null,
+                    denyListed,
                     reason,
                 }),
             });
@@ -428,10 +433,11 @@ export default function AdminPodcastOwnershipReviewManager({
 
         setStatus({
             kind: "ok",
-            message:
-                owner === null
-                    ? `${group.podcast.title} blocked.`
-                    : `${group.podcast.title} approved with ${owner.name} as owner.`,
+            message: denyListed
+                ? `${group.podcast.title} deny-listed.`
+                : owner === null
+                  ? `${group.podcast.title} restored without an owner.`
+                  : `${group.podcast.title} approved with ${owner.name} as owner.`,
         });
         setSelectedOwners((prev) => ({
             ...prev,
@@ -597,6 +603,9 @@ export default function AdminPodcastOwnershipReviewManager({
                           const searchId = `podcast-owner-search-${group.key}`;
                           const selectedOwner =
                               selectedOwners[group.key] ?? null;
+                          const isDenied = Boolean(
+                              group.podcast.denyListEntry,
+                          );
                           const disabled = isPending || pendingKey !== null;
                           const resultRows = searchResults[group.key] ?? [];
                           const frameKey = `podcast-${group.key}`;
@@ -610,7 +619,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                           ? `by ${group.podcast.authorName}`
                                           : "Author missing"
                                   }
-                                  summary={`${group.candidates.length} candidate${group.candidates.length === 1 ? "" : "s"} · ${selectedOwner ? "approved" : "blocked"} · popularity ${group.popularity.toFixed(1)}`}
+                                  summary={`${group.candidates.length} candidate${group.candidates.length === 1 ? "" : "s"} · ${selectedOwner ? "approved" : isDenied ? "deny-listed" : "no owner"} · popularity ${group.popularity.toFixed(1)}`}
                                   collapsed={isGroupCollapsed(frameKey)}
                                   onToggle={toggleGroup}
                               >
@@ -624,12 +633,16 @@ export default function AdminPodcastOwnershipReviewManager({
                                                   className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
                                                       selectedOwner
                                                           ? "bg-green-50 text-green-800"
+                                                          : isDenied
+                                                            ? "bg-red-50 text-red-800"
                                                           : "bg-red-50 text-red-800"
                                                   }`}
                                               >
                                                   {selectedOwner
                                                       ? "Approved"
-                                                      : "Blocked"}
+                                                      : isDenied
+                                                        ? "Deny-listed"
+                                                        : "No owner"}
                                               </span>
                                           </div>
                                           <div className="mt-2 font-dmSans text-body text-soft-charcoal">
@@ -667,10 +680,26 @@ export default function AdminPodcastOwnershipReviewManager({
                                                   </span>
                                               ) : (
                                                   <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
-                                                      No owner
+                                                      {isDenied
+                                                          ? "Deny-listed"
+                                                          : "No owner"}
                                                   </span>
                                               )}
                                           </div>
+                                          {group.podcast.denyListEntry && (
+                                              <p className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 font-dmSans text-caption text-red-900">
+                                                  Denied{" "}
+                                                  {formatDate(
+                                                      group.podcast
+                                                          .denyListEntry
+                                                          .deniedAt,
+                                                  )}
+                                                  {group.podcast.denyListEntry
+                                                      .reason
+                                                      ? `: ${group.podcast.denyListEntry.reason}`
+                                                      : ""}
+                                              </p>
+                                          )}
                                           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-caption text-soft-charcoal">
                                               <span>
                                                   {group.candidates.length}{" "}
@@ -876,7 +905,11 @@ export default function AdminPodcastOwnershipReviewManager({
                                                   variant="outline"
                                                   className="gap-2 border-red-700 bg-white !text-red-800 hover:bg-red-700 hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
                                                   onClick={() =>
-                                                      void save(group, null)
+                                                      void save(
+                                                          group,
+                                                          null,
+                                                          true,
+                                                      )
                                                   }
                                                   disabled={disabled}
                                                   aria-label={`Block ${group.podcast.title}`}
@@ -885,8 +918,26 @@ export default function AdminPodcastOwnershipReviewManager({
                                                       className="h-4 w-4"
                                                       aria-hidden="true"
                                                   />
-                                                  Block podcast
+                                                  Deny-list podcast
                                               </Button>
+                                              {isDenied && (
+                                                  <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white disabled:border-gray-300 disabled:bg-gray-100 disabled:!text-soft-charcoal disabled:opacity-100"
+                                                      onClick={() =>
+                                                          void save(
+                                                              group,
+                                                              null,
+                                                              false,
+                                                          )
+                                                      }
+                                                      disabled={disabled}
+                                                      aria-label={`Restore ${group.podcast.title}`}
+                                                  >
+                                                      Restore podcast
+                                                  </Button>
+                                              )}
                                               <Button
                                                   type="button"
                                                   className="gap-2 !text-white"
@@ -1039,6 +1090,9 @@ export default function AdminPodcastOwnershipReviewManager({
                                               const selectedOwner =
                                                   selectedOwners[group.key] ??
                                                   null;
+                                              const isDenied = Boolean(
+                                                  group.podcast.denyListEntry,
+                                              );
                                               const isSelectedOwner =
                                                   selectedOwner?.id ===
                                                   comedianGroup.comedian.id;
@@ -1063,12 +1117,16 @@ export default function AdminPodcastOwnershipReviewManager({
                                                                   className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
                                                                       selectedOwner
                                                                           ? "bg-green-50 text-green-800"
+                                                                          : isDenied
+                                                                            ? "bg-red-50 text-red-800"
                                                                           : "bg-red-50 text-red-800"
                                                                   }`}
                                                               >
                                                                   {selectedOwner
                                                                       ? "Approved"
-                                                                      : "Blocked"}
+                                                                      : isDenied
+                                                                        ? "Deny-listed"
+                                                                        : "No owner"}
                                                               </span>
                                                           </div>
                                                           <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
@@ -1167,7 +1225,9 @@ export default function AdminPodcastOwnershipReviewManager({
                                                                   </span>
                                                               ) : (
                                                                   <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
-                                                                      No owner
+                                                                      {isDenied
+                                                                          ? "Deny-listed"
+                                                                          : "No owner"}
                                                                   </span>
                                                               )}
                                                           </div>

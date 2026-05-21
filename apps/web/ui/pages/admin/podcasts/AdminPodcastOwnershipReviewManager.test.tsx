@@ -43,6 +43,7 @@ const candidate: AdminPodcastOwnershipReviewCandidate = {
         imageUrl: null,
         websiteUrl: "https://pod.example",
         feedUrl: "https://pod.example/feed.xml",
+        denyListEntry: null,
     },
     existingOwnerships: [],
 };
@@ -92,8 +93,8 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         openGroup(/The Jane Show/);
 
-        expect(screen.getByText("No owner")).toBeTruthy();
-        expect(screen.getAllByText(/blocked/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText("No owner").length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/no owner/i).length).toBeGreaterThan(0);
     });
 
     it("switches to comedian view and sorts by popularity", () => {
@@ -324,6 +325,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                     body: JSON.stringify({
                         podcastId: 99,
                         ownerComedianId: 42,
+                        denyListed: false,
                         reason: "Verified host credit",
                     }),
                 }),
@@ -354,6 +356,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                     body: JSON.stringify({
                         podcastId: 99,
                         ownerComedianId: null,
+                        denyListed: false,
                         reason: "Wrong Jane",
                     }),
                 }),
@@ -361,7 +364,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         });
     });
 
-    it("blocks a podcast from the podcast row action", async () => {
+    it("deny-lists a podcast from the podcast row action", async () => {
         render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
@@ -380,13 +383,59 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                     body: JSON.stringify({
                         podcastId: 99,
                         ownerComedianId: null,
+                        denyListed: true,
                         reason: "Not a host-owned feed",
                     }),
                 }),
             );
         });
-        expect(await screen.findByText("The Jane Show blocked.")).toBeTruthy();
-        expect(screen.getByText("No owner")).toBeTruthy();
+        expect(
+            await screen.findByText("The Jane Show deny-listed."),
+        ).toBeTruthy();
+        expect(screen.getAllByText("No owner").length).toBeGreaterThan(0);
+    });
+
+    it("shows and restores durable deny-list state", async () => {
+        render(
+            <AdminPodcastOwnershipReviewManager
+                candidates={[
+                    {
+                        ...candidate,
+                        podcast: {
+                            ...candidate.podcast!,
+                            denyListEntry: {
+                                id: 5,
+                                reason: "Not comedy",
+                                deniedAt: "2026-05-18T12:00:00.000Z",
+                                deniedBy: "profile-1",
+                            },
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        openGroup(/The Jane Show/);
+        expect(screen.getAllByText("Deny-listed").length).toBeGreaterThan(0);
+        expect(screen.getByText(/Not comedy/)).toBeTruthy();
+        fireEvent.click(
+            screen.getByRole("button", { name: "Restore The Jane Show" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/podcast-ownership-reviews",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        podcastId: 99,
+                        ownerComedianId: null,
+                        denyListed: false,
+                        reason: "",
+                    }),
+                }),
+            );
+        });
     });
 
     it("can search for and add a different owner", async () => {
@@ -424,6 +473,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                     body: JSON.stringify({
                         podcastId: 99,
                         ownerComedianId: 77,
+                        denyListed: false,
                         reason: "",
                     }),
                 }),
