@@ -1,26 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockNextAuth, mockFindUnique, mockUserProfileCreate, capturedConfig } =
-    vi.hoisted(() => {
-        const captured: { value: any } = { value: null };
-        const findUnique = vi.fn();
-        const userProfileCreate = vi.fn();
-        const nextAuth = vi.fn((config: any) => {
-            captured.value = config;
-            return {
-                handlers: { GET: vi.fn(), POST: vi.fn() },
-                signIn: vi.fn(),
-                signOut: vi.fn(),
-                auth: vi.fn(),
-            };
-        });
+const {
+    mockNextAuth,
+    mockFindUnique,
+    mockUserProfileCreate,
+    mockCreateTransport,
+    mockBuildMagicLinkEmail,
+    capturedConfig,
+} = vi.hoisted(() => {
+    const captured: { value: any } = { value: null };
+    const findUnique = vi.fn();
+    const userProfileCreate = vi.fn();
+    const createTransport = vi.fn();
+    const buildMagicLink = vi.fn();
+    const nextAuth = vi.fn((config: any) => {
+        captured.value = config;
         return {
-            mockNextAuth: nextAuth,
-            mockFindUnique: findUnique,
-            mockUserProfileCreate: userProfileCreate,
-            capturedConfig: captured,
+            handlers: { GET: vi.fn(), POST: vi.fn() },
+            signIn: vi.fn(),
+            signOut: vi.fn(),
+            auth: vi.fn(),
         };
     });
+    return {
+        mockNextAuth: nextAuth,
+        mockFindUnique: findUnique,
+        mockUserProfileCreate: userProfileCreate,
+        mockCreateTransport: createTransport,
+        mockBuildMagicLinkEmail: buildMagicLink,
+        capturedConfig: captured,
+    };
+});
 
 vi.mock("react", async (importOriginal) => {
     const actual = await importOriginal<typeof import("react")>();
@@ -41,7 +51,10 @@ vi.mock("next-auth/providers/nodemailer", () => ({
         ...config,
     })),
 }));
-vi.mock("nodemailer", () => ({ createTransport: vi.fn() }));
+vi.mock("nodemailer", () => ({ createTransport: mockCreateTransport }));
+vi.mock("@/lib/auth/emailTemplate", () => ({
+    buildMagicLinkEmail: mockBuildMagicLinkEmail,
+}));
 vi.mock("./lib/db", () => ({
     prisma: { userProfile: { findUnique: mockFindUnique } },
     db: {
@@ -68,6 +81,8 @@ const PROFILE_ROW = {
 beforeEach(() => {
     mockFindUnique.mockReset();
     mockUserProfileCreate.mockReset();
+    mockCreateTransport.mockReset();
+    mockBuildMagicLinkEmail.mockReset();
 });
 
 describe("auth.ts NextAuth config", () => {
@@ -291,4 +306,90 @@ describe("auth.ts NextAuth config", () => {
         });
     });
 
+    describe("sendVerificationRequest", () => {
+        const findEmailProvider = () =>
+            (capturedConfig.value.providers as Array<any>).find(
+                (p) => p.id === "email",
+            );
+
+        it("calls createTransport with provider.server and sendMail with the rendered email", async () => {
+            const sendMail = vi.fn().mockResolvedValue({
+                rejected: [],
+                pending: [],
+            });
+            mockCreateTransport.mockReturnValueOnce({ sendMail });
+            mockBuildMagicLinkEmail.mockReturnValueOnce({
+                subject: "Sign in to LaughTrack",
+                text: "text body",
+                html: "<p>html body</p>",
+            });
+            const provider = findEmailProvider();
+
+            await provider.sendVerificationRequest({
+                identifier: "user@example.com",
+                url: "https://laugh-track.com/verify?token=abc",
+                provider,
+            });
+
+            expect(mockCreateTransport).toHaveBeenCalledWith(provider.server);
+            expect(mockBuildMagicLinkEmail).toHaveBeenCalledWith({
+                url: "https://laugh-track.com/verify?token=abc",
+            });
+            expect(sendMail).toHaveBeenCalledWith({
+                to: "user@example.com",
+                from: provider.from,
+                subject: "Sign in to LaughTrack",
+                text: "text body",
+                html: "<p>html body</p>",
+            });
+        });
+
+        it("throws when sendMail returns rejected addresses", async () => {
+            const sendMail = vi.fn().mockResolvedValue({
+                rejected: ["bad@example.com"],
+                pending: [],
+            });
+            mockCreateTransport.mockReturnValueOnce({ sendMail });
+            mockBuildMagicLinkEmail.mockReturnValueOnce({
+                subject: "s",
+                text: "t",
+                html: "h",
+            });
+            const provider = findEmailProvider();
+
+            await expect(
+                provider.sendVerificationRequest({
+                    identifier: "bad@example.com",
+                    url: "https://laugh-track.com/verify?token=abc",
+                    provider,
+                }),
+            ).rejects.toThrow(
+                "Email (bad@example.com) could not be sent",
+            );
+        });
+
+        it("throws when sendMail returns pending addresses", async () => {
+            const sendMail = vi.fn().mockResolvedValue({
+                rejected: [],
+                pending: ["pending@example.com"],
+            });
+            mockCreateTransport.mockReturnValueOnce({ sendMail });
+            mockBuildMagicLinkEmail.mockReturnValueOnce({
+                subject: "s",
+                text: "t",
+                html: "h",
+            });
+            const provider = findEmailProvider();
+
+            await expect(
+                provider.sendVerificationRequest({
+                    identifier: "pending@example.com",
+                    url: "https://laugh-track.com/verify?token=abc",
+                    provider,
+                }),
+            ).rejects.toThrow(
+                "Email (pending@example.com) could not be sent",
+            );
+        });
+    });
 });
