@@ -90,6 +90,7 @@
         "@types/react": "18.2.42",
         "@types/react-dom": "^18",
         "@types/zipcodes": "^8.0.5",
+        "@vitest/coverage-v8": "^4.1.7",
         "eslint": "^9.13.0",
         "eslint-plugin-react-hooks": "^7.0.1",
         "happy-dom": "^20.8.9",

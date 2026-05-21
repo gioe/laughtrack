@@ -6,6 +6,7 @@ apps/web/.vercel/
 apps/web/*.tsbuildinfo
 apps/web/next-env.d.ts
 apps/web/.env*.local
+apps/web/coverage/
 
 # Python / Scraper
 apps/scraper/.venv/
