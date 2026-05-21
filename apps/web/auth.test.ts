@@ -1,23 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockNextAuth, mockFindUnique, capturedConfig } = vi.hoisted(() => {
-    const captured: { value: any } = { value: null };
-    const findUnique = vi.fn();
-    const nextAuth = vi.fn((config: any) => {
-        captured.value = config;
+const { mockNextAuth, mockFindUnique, mockUserProfileCreate, capturedConfig } =
+    vi.hoisted(() => {
+        const captured: { value: any } = { value: null };
+        const findUnique = vi.fn();
+        const userProfileCreate = vi.fn();
+        const nextAuth = vi.fn((config: any) => {
+            captured.value = config;
+            return {
+                handlers: { GET: vi.fn(), POST: vi.fn() },
+                signIn: vi.fn(),
+                signOut: vi.fn(),
+                auth: vi.fn(),
+            };
+        });
         return {
-            handlers: { GET: vi.fn(), POST: vi.fn() },
-            signIn: vi.fn(),
-            signOut: vi.fn(),
-            auth: vi.fn(),
+            mockNextAuth: nextAuth,
+            mockFindUnique: findUnique,
+            mockUserProfileCreate: userProfileCreate,
+            capturedConfig: captured,
         };
     });
-    return {
-        mockNextAuth: nextAuth,
-        mockFindUnique: findUnique,
-        capturedConfig: captured,
-    };
-});
 
 vi.mock("react", async (importOriginal) => {
     const actual = await importOriginal<typeof import("react")>();
@@ -41,7 +44,12 @@ vi.mock("next-auth/providers/nodemailer", () => ({
 vi.mock("nodemailer", () => ({ createTransport: vi.fn() }));
 vi.mock("./lib/db", () => ({
     prisma: { userProfile: { findUnique: mockFindUnique } },
-    db: { userProfile: { findUnique: mockFindUnique, create: vi.fn() } },
+    db: {
+        userProfile: {
+            findUnique: mockFindUnique,
+            create: mockUserProfileCreate,
+        },
+    },
 }));
 
 // Import after mocks so NextAuth() runs with the stub and captures the config.
@@ -59,6 +67,7 @@ const PROFILE_ROW = {
 
 beforeEach(() => {
     mockFindUnique.mockReset();
+    mockUserProfileCreate.mockReset();
 });
 
 describe("auth.ts NextAuth config", () => {
@@ -240,4 +249,46 @@ describe("auth.ts NextAuth config", () => {
             expect(result).toBe(token);
         });
     });
+
+    describe("events.createUser", () => {
+        it("creates a UserProfile row with the default shape for the new user", async () => {
+            mockUserProfileCreate.mockResolvedValueOnce({ id: "profile-1" });
+
+            await capturedConfig.value.events.createUser({
+                user: { id: "user-1", email: "new@example.com" },
+            });
+
+            expect(mockUserProfileCreate).toHaveBeenCalledTimes(1);
+            expect(mockUserProfileCreate).toHaveBeenCalledWith({
+                data: {
+                    userid: "user-1",
+                    role: "user",
+                    emailShowNotifications: false,
+                    pushShowNotifications: false,
+                },
+            });
+        });
+
+        it("swallows errors from db.userProfile.create and logs instead of throwing", async () => {
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            mockUserProfileCreate.mockRejectedValueOnce(
+                new Error("unique constraint failed"),
+            );
+
+            await expect(
+                capturedConfig.value.events.createUser({
+                    user: { id: "user-1" },
+                }),
+            ).resolves.toBeUndefined();
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "Error creating user profile:",
+                expect.any(Error),
+            );
+            consoleSpy.mockRestore();
+        });
+    });
+
 });
