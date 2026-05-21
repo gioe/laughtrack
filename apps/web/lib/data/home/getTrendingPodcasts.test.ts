@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 describe("getTrendingPodcasts", () => {
-    it("filters to accepted local comedian-owned podcasts when a zip is resolved", async () => {
+    it("filters to accepted local host-attributed podcasts when a zip is resolved", async () => {
         await getTrendingPodcasts("10001");
 
         expect(mockFindMany).toHaveBeenCalledWith(
@@ -31,35 +31,86 @@ describe("getTrendingPodcasts", () => {
                             restoredAt: null,
                         },
                     },
-                    comedianPodcasts: {
-                        some: expect.objectContaining({
-                            reviewStatus: "accepted",
-                            associationType: { in: ["host", "owner"] },
-                            comedian: expect.objectContaining({
-                                parentComedianId: null,
-                                lineupItems: {
-                                    some: {
-                                        show: expect.objectContaining({
-                                            date: { gt: expect.any(Date) },
-                                            club: {
-                                                zipCode: {
-                                                    in: expect.arrayContaining([
-                                                        "10001",
-                                                    ]),
-                                                },
+                    OR: [
+                        {
+                            comedianPodcasts: {
+                                some: expect.objectContaining({
+                                    reviewStatus: "accepted",
+                                    associationType: "host",
+                                    comedian: expect.objectContaining({
+                                        parentComedianId: null,
+                                        lineupItems: {
+                                            some: {
+                                                show: expect.objectContaining({
+                                                    date: {
+                                                        gt: expect.any(Date),
+                                                    },
+                                                    club: {
+                                                        zipCode: {
+                                                            in: expect.arrayContaining(
+                                                                ["10001"],
+                                                            ),
+                                                        },
+                                                    },
+                                                }),
                                             },
+                                        },
+                                    }),
+                                }),
+                            },
+                        },
+                        {
+                            AND: [
+                                {
+                                    comedianPodcasts: {
+                                        none: {
+                                            reviewStatus: "accepted",
+                                            associationType: "host",
+                                        },
+                                    },
+                                },
+                                {
+                                    comedianPodcasts: {
+                                        some: expect.objectContaining({
+                                            reviewStatus: "accepted",
+                                            associationType: "cohost",
+                                            comedian: expect.objectContaining({
+                                                parentComedianId: null,
+                                                lineupItems: {
+                                                    some: {
+                                                        show: expect.objectContaining(
+                                                            {
+                                                                date: {
+                                                                    gt: expect.any(
+                                                                        Date,
+                                                                    ),
+                                                                },
+                                                                club: {
+                                                                    zipCode: {
+                                                                        in: expect.arrayContaining(
+                                                                            [
+                                                                                "10001",
+                                                                            ],
+                                                                        ),
+                                                                    },
+                                                                },
+                                                            },
+                                                        ),
+                                                    },
+                                                },
+                                            }),
                                         }),
                                     },
                                 },
-                            }),
-                        }),
-                    },
+                            ],
+                        },
+                    ],
                 },
             }),
         );
     });
 
-    it("falls back to global accepted comedian-owned podcasts when no zip is resolved", async () => {
+    it("falls back to global accepted host-attributed podcasts when no zip is resolved", async () => {
         await getTrendingPodcasts(null);
 
         expect(mockFindMany).toHaveBeenCalledWith(
@@ -70,12 +121,36 @@ describe("getTrendingPodcasts", () => {
                             restoredAt: null,
                         },
                     },
-                    comedianPodcasts: {
-                        some: {
-                            reviewStatus: "accepted",
-                            associationType: { in: ["host", "owner"] },
+                    OR: [
+                        {
+                            comedianPodcasts: {
+                                some: {
+                                    reviewStatus: "accepted",
+                                    associationType: "host",
+                                },
+                            },
                         },
-                    },
+                        {
+                            AND: [
+                                {
+                                    comedianPodcasts: {
+                                        none: {
+                                            reviewStatus: "accepted",
+                                            associationType: "host",
+                                        },
+                                    },
+                                },
+                                {
+                                    comedianPodcasts: {
+                                        some: {
+                                            reviewStatus: "accepted",
+                                            associationType: "cohost",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    ],
                 },
             }),
         );

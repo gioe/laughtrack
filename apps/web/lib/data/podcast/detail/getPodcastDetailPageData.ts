@@ -3,7 +3,11 @@ import { NotFoundError } from "@/objects/NotFoundError";
 import type { PodcastDetailResponse, PodcastEpisodeDTO } from "../interface";
 import type { SocialDataDTO } from "@/objects/class/socialData/socialData.interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
-import { PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE } from "@/lib/data/podcast/publicWhere";
+import {
+    ACCEPTED_PODCAST_COHOST_WHERE,
+    ACCEPTED_PODCAST_HOST_WHERE,
+    PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
+} from "@/lib/data/podcast/publicWhere";
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -41,7 +45,7 @@ async function getPodcastDetailPageDataByWhere(
     const podcast = await db.podcast.findFirst({
         where: {
             ...where,
-            ...PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE,
+            ...PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
         },
         select: {
             id: true,
@@ -93,6 +97,41 @@ async function getPodcastDetailPageDataByWhere(
                 orderBy: [{ releaseDate: "desc" }, { id: "desc" }],
                 take: 50,
             },
+            comedianPodcasts: {
+                where: {
+                    OR: [
+                        ACCEPTED_PODCAST_HOST_WHERE,
+                        ACCEPTED_PODCAST_COHOST_WHERE,
+                    ],
+                },
+                select: {
+                    associationType: true,
+                    comedian: {
+                        select: {
+                            id: true,
+                            uuid: true,
+                            name: true,
+                            hasImage: true,
+                            bio: true,
+                            linktree: true,
+                            instagramAccount: true,
+                            instagramFollowers: true,
+                            tiktokAccount: true,
+                            tiktokFollowers: true,
+                            youtubeAccount: true,
+                            youtubeFollowers: true,
+                            website: true,
+                            popularity: true,
+                            _count: {
+                                select: {
+                                    lineupItems: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: [{ associationType: "desc" }, { comedianId: "asc" }],
+            },
             _count: {
                 select: {
                     episodes: true,
@@ -113,15 +152,18 @@ async function getPodcastDetailPageDataByWhere(
         throw new NotFoundError("Podcast not found");
     }
 
-    const comedianById = new Map<
-        number,
-        (typeof podcast.episodes)[number]["appearances"][number]["comedian"]
-    >();
-    for (const episode of podcast.episodes) {
-        for (const appearance of episode.appearances) {
-            comedianById.set(appearance.comedian.id, appearance.comedian);
-        }
-    }
+    const hostLinks = podcast.comedianPodcasts.filter(
+        (link) => link.associationType === "host",
+    );
+    const attributedLinks =
+        hostLinks.length > 0
+            ? hostLinks
+            : podcast.comedianPodcasts.filter(
+                  (link) => link.associationType === "cohost",
+              );
+    const comedianById = new Map(
+        attributedLinks.map((link) => [link.comedian.id, link.comedian]),
+    );
 
     const relatedComedians = Array.from(comedianById.values())
         .sort((a, b) => a.name.localeCompare(b.name))

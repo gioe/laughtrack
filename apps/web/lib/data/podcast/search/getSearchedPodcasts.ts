@@ -4,7 +4,7 @@ import type { PodcastSearchResponse } from "../interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import {
     PUBLIC_PODCAST_DENY_LIST_WHERE,
-    PUBLIC_PODCAST_OWNER_OR_HOST_WHERE,
+    PUBLIC_PODCAST_HOST_ROLE_WHERE,
 } from "@/lib/data/podcast/publicWhere";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -106,7 +106,7 @@ export async function getSearchedPodcasts(params: {
     const includeEmpty = params.includeEmpty === "true";
     const ownershipWhere = includeEmpty
         ? PUBLIC_PODCAST_DENY_LIST_WHERE
-        : PUBLIC_PODCAST_OWNER_OR_HOST_WHERE;
+        : PUBLIC_PODCAST_HOST_ROLE_WHERE;
     const queryWhere: Prisma.PodcastWhereInput | null = query
         ? {
               OR: [

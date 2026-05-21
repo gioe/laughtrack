@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { PUBLIC_PODCAST_OWNER_OR_HOST_WHERE } from "@/lib/data/podcast/publicWhere";
+import { PUBLIC_PODCAST_HOST_ROLE_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const SEARCH_TYPES = ["show", "comedian", "club", "podcast"] as const;
 type SearchEntityType = (typeof SEARCH_TYPES)[number];
@@ -36,7 +36,7 @@ async function searchPodcasts(
 ): Promise<{ data: GlobalSearchResult[]; total: number }> {
     const where = {
         AND: [
-            PUBLIC_PODCAST_OWNER_OR_HOST_WHERE,
+            PUBLIC_PODCAST_HOST_ROLE_WHERE,
             {
                 OR: [
                     { title: containsQuery(query) },

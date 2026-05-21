@@ -8,21 +8,28 @@ export const PUBLIC_PODCAST_DENY_LIST_WHERE = {
     },
 } satisfies Prisma.PodcastWhereInput;
 
-export const PUBLIC_PODCAST_OWNER_OR_HOST_WHERE = {
+export const ACCEPTED_PODCAST_HOST_WHERE = {
+    reviewStatus: "accepted",
+    associationType: "host",
+} satisfies Prisma.ComedianPodcastWhereInput;
+
+export const ACCEPTED_PODCAST_COHOST_WHERE = {
+    reviewStatus: "accepted",
+    associationType: "cohost",
+} satisfies Prisma.ComedianPodcastWhereInput;
+
+export const PUBLIC_PODCAST_HOST_ROLE_WHERE = {
     ...PUBLIC_PODCAST_DENY_LIST_WHERE,
-    comedianPodcasts: {
-        some: {
-            reviewStatus: "accepted",
-            associationType: { in: ["host", "owner"] },
+    OR: [
+        { comedianPodcasts: { some: ACCEPTED_PODCAST_HOST_WHERE } },
+        {
+            AND: [
+                { comedianPodcasts: { none: ACCEPTED_PODCAST_HOST_WHERE } },
+                { comedianPodcasts: { some: ACCEPTED_PODCAST_COHOST_WHERE } },
+            ],
         },
-    },
+    ],
 } satisfies Prisma.PodcastWhereInput;
 
-export const PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE = {
-    ...PUBLIC_PODCAST_DENY_LIST_WHERE,
-    comedianPodcasts: {
-        some: {
-            reviewStatus: "accepted",
-        },
-    },
-} satisfies Prisma.PodcastWhereInput;
+export const PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE =
+    PUBLIC_PODCAST_HOST_ROLE_WHERE;

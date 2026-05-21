@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
-import { PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE } from "@/lib/data/podcast/publicWhere";
+import { PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE } from "@/lib/data/podcast/publicWhere";
 
 const SITE_URL = "https://www.laugh-track.com";
 
@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 orderBy: { popularity: "desc" },
             }),
             db.podcast.findMany({
-                where: PUBLIC_PODCAST_ACCEPTED_OWNERSHIP_WHERE,
+                where: PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
                 select: { slug: true },
                 orderBy: { title: "asc" },
             }),

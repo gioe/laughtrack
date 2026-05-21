@@ -24,29 +24,53 @@ beforeEach(() => {
 });
 
 describe("getSearchedPodcasts", () => {
-    it("only counts and returns podcasts with an accepted comedian ownership relationship", async () => {
+    it("only counts and returns podcasts with accepted host-role attribution", async () => {
         await getSearchedPodcasts({});
 
-        const publicOwnershipWhere = {
+        const publicAttributionWhere = {
             denyListEntries: {
                 none: {
                     restoredAt: null,
                 },
             },
-            comedianPodcasts: {
-                some: {
-                    reviewStatus: "accepted",
-                    associationType: { in: ["host", "owner"] },
+            OR: [
+                {
+                    comedianPodcasts: {
+                        some: {
+                            reviewStatus: "accepted",
+                            associationType: "host",
+                        },
+                    },
                 },
-            },
+                {
+                    AND: [
+                        {
+                            comedianPodcasts: {
+                                none: {
+                                    reviewStatus: "accepted",
+                                    associationType: "host",
+                                },
+                            },
+                        },
+                        {
+                            comedianPodcasts: {
+                                some: {
+                                    reviewStatus: "accepted",
+                                    associationType: "cohost",
+                                },
+                            },
+                        },
+                    ],
+                },
+            ],
         };
 
         expect(mockCount).toHaveBeenCalledWith({
-            where: publicOwnershipWhere,
+            where: publicAttributionWhere,
         });
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: publicOwnershipWhere,
+                where: publicAttributionWhere,
             }),
         );
     });
@@ -88,12 +112,36 @@ describe("getSearchedPodcasts", () => {
                                 restoredAt: null,
                             },
                         },
-                        comedianPodcasts: {
-                            some: {
-                                reviewStatus: "accepted",
-                                associationType: { in: ["host", "owner"] },
+                        OR: [
+                            {
+                                comedianPodcasts: {
+                                    some: {
+                                        reviewStatus: "accepted",
+                                        associationType: "host",
+                                    },
+                                },
                             },
-                        },
+                            {
+                                AND: [
+                                    {
+                                        comedianPodcasts: {
+                                            none: {
+                                                reviewStatus: "accepted",
+                                                associationType: "host",
+                                            },
+                                        },
+                                    },
+                                    {
+                                        comedianPodcasts: {
+                                            some: {
+                                                reviewStatus: "accepted",
+                                                associationType: "cohost",
+                                            },
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
                     },
                     {
                         OR: [

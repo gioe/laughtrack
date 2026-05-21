@@ -4,15 +4,14 @@ import type { PodcastDTO } from "@/lib/data/podcast/interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import type { Prisma } from "@prisma/client";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
-import { PUBLIC_PODCAST_DENY_LIST_WHERE } from "@/lib/data/podcast/publicWhere";
+import {
+    ACCEPTED_PODCAST_COHOST_WHERE,
+    ACCEPTED_PODCAST_HOST_WHERE,
+    PUBLIC_PODCAST_DENY_LIST_WHERE,
+} from "@/lib/data/podcast/publicWhere";
 
 const DEFAULT_LIMIT = 8;
 const MAX_LIMIT = 50;
-
-const PUBLIC_PODCAST_OWNERSHIP = {
-    reviewStatus: "accepted",
-    associationType: { in: ["host", "owner"] },
-} satisfies Prisma.ComedianPodcastWhereInput;
 
 function resolveZipCodes(zipCode: string, radius: number): string[] {
     try {
@@ -42,35 +41,71 @@ function whereFor(
     if (!zipCode) {
         return {
             ...PUBLIC_PODCAST_DENY_LIST_WHERE,
-            comedianPodcasts: {
-                some: PUBLIC_PODCAST_OWNERSHIP,
-            },
+            OR: [
+                { comedianPodcasts: { some: ACCEPTED_PODCAST_HOST_WHERE } },
+                {
+                    AND: [
+                        {
+                            comedianPodcasts: {
+                                none: ACCEPTED_PODCAST_HOST_WHERE,
+                            },
+                        },
+                        {
+                            comedianPodcasts: {
+                                some: ACCEPTED_PODCAST_COHOST_WHERE,
+                            },
+                        },
+                    ],
+                },
+            ],
         };
     }
 
     const now = new Date();
     const nearbyZips = resolveZipCodes(zipCode, radius);
-
-    return {
-        ...PUBLIC_PODCAST_DENY_LIST_WHERE,
-        comedianPodcasts: {
+    const comedianWhere = {
+        parentComedianId: null,
+        lineupItems: {
             some: {
-                ...PUBLIC_PODCAST_OWNERSHIP,
-                comedian: {
-                    parentComedianId: null,
-                    lineupItems: {
-                        some: {
-                            show: {
-                                date: { gt: now },
-                                club: {
-                                    zipCode: { in: nearbyZips },
-                                },
-                            },
-                        },
+                show: {
+                    date: { gt: now },
+                    club: {
+                        zipCode: { in: nearbyZips },
                     },
                 },
             },
         },
+    } satisfies Prisma.ComedianWhereInput;
+
+    return {
+        ...PUBLIC_PODCAST_DENY_LIST_WHERE,
+        OR: [
+            {
+                comedianPodcasts: {
+                    some: {
+                        ...ACCEPTED_PODCAST_HOST_WHERE,
+                        comedian: comedianWhere,
+                    },
+                },
+            },
+            {
+                AND: [
+                    {
+                        comedianPodcasts: {
+                            none: ACCEPTED_PODCAST_HOST_WHERE,
+                        },
+                    },
+                    {
+                        comedianPodcasts: {
+                            some: {
+                                ...ACCEPTED_PODCAST_COHOST_WHERE,
+                                comedian: comedianWhere,
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
     };
 }
 

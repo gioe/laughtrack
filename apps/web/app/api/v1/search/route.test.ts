@@ -99,12 +99,36 @@ describe("GET /api/v1/search", () => {
                             restoredAt: null,
                         },
                     },
-                    comedianPodcasts: {
-                        some: {
-                            reviewStatus: "accepted",
-                            associationType: { in: ["host", "owner"] },
+                    OR: [
+                        {
+                            comedianPodcasts: {
+                                some: {
+                                    reviewStatus: "accepted",
+                                    associationType: "host",
+                                },
+                            },
                         },
-                    },
+                        {
+                            AND: [
+                                {
+                                    comedianPodcasts: {
+                                        none: {
+                                            reviewStatus: "accepted",
+                                            associationType: "host",
+                                        },
+                                    },
+                                },
+                                {
+                                    comedianPodcasts: {
+                                        some: {
+                                            reviewStatus: "accepted",
+                                            associationType: "cohost",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    ],
                 },
                 {
                     OR: [
