@@ -259,4 +259,42 @@ describe("/api/v1/favorite-clubs", () => {
             true,
         );
     });
+
+    it("returns 400 when the POST body is not valid JSON", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+
+        const req = new NextRequest("http://localhost/api/v1/favorite-clubs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "not-json",
+        });
+        const res = await POST(req);
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.error).toMatch(/invalid request body/i);
+        expect(mockToggleFavoriteClub).not.toHaveBeenCalled();
+    });
+
+    it("returns 500 with a generic error envelope when toggleFavoriteClub throws", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockClubFindUnique.mockResolvedValue({ id: 42 } as never);
+        mockToggleFavoriteClub.mockRejectedValueOnce(new Error("DB down"));
+        const consoleSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+
+        const res = await POST(makeRequest());
+        const body = await res.json();
+
+        expect(res.status).toBe(500);
+        expect(body.error).toMatch(/failed to add favorite club/i);
+        consoleSpy.mockRestore();
+    });
 });

@@ -146,4 +146,23 @@ describe("DELETE /api/v1/favorite-clubs/[clubId]", () => {
         expect(res.status).toBe(200);
         expect(body).toEqual({ data: { isFavorited: false } });
     });
+
+    it("returns 500 with a generic error envelope when toggleFavoriteClub throws", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockToggleFavoriteClub.mockRejectedValueOnce(new Error("DB down"));
+        const consoleSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
+
+        const [req, ctx] = makeRequest();
+        const res = await DELETE(req, ctx);
+        const body = await res.json();
+
+        expect(res.status).toBe(500);
+        expect(body.error).toMatch(/failed to remove favorite club/i);
+        consoleSpy.mockRestore();
+    });
 });
