@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
     findMany: vi.fn(),
-    findOwnerships: vi.fn(),
+    findHostships: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -12,12 +12,12 @@ vi.mock("@/lib/db", () => ({
             findMany: mocks.findMany,
         },
         comedianPodcast: {
-            findMany: mocks.findOwnerships,
+            findMany: mocks.findHostships,
         },
     },
 }));
 
-vi.mock("@/ui/pages/admin/podcasts/AdminPodcastOwnershipReviewManager", () => ({
+vi.mock("@/ui/pages/admin/podcasts/AdminPodcastHostshipReviewManager", () => ({
     default: ({ candidates }: { candidates: Array<{ id: number }> }) => (
         <div data-testid="podcast-review-manager">
             {candidates.length} candidates
@@ -25,15 +25,15 @@ vi.mock("@/ui/pages/admin/podcasts/AdminPodcastOwnershipReviewManager", () => ({
     ),
 }));
 
-import AdminPodcastOwnershipReviewPage from "./page";
+import AdminPodcastHostshipReviewPage from "./page";
 
 beforeEach(() => {
     vi.clearAllMocks();
     mocks.findMany.mockResolvedValue([]);
-    mocks.findOwnerships.mockResolvedValue([]);
+    mocks.findHostships.mockResolvedValue([]);
 });
 
-describe("AdminPodcastOwnershipReviewPage", () => {
+describe("AdminPodcastHostshipReviewPage", () => {
     it("renders total and pending candidate counts with manager", async () => {
         mocks.findMany.mockResolvedValue([
             {
@@ -94,7 +94,7 @@ describe("AdminPodcastOwnershipReviewPage", () => {
             },
         ]);
 
-        const element = await AdminPodcastOwnershipReviewPage();
+        const element = await AdminPodcastHostshipReviewPage();
         const markup = renderToStaticMarkup(element);
 
         expect(markup).toContain("Admin · Podcast Reviews");

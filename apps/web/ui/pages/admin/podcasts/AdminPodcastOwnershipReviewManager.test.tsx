@@ -10,9 +10,9 @@ import {
     waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AdminPodcastOwnershipReviewManager, {
-    type AdminPodcastOwnershipReviewCandidate,
-} from "./AdminPodcastOwnershipReviewManager";
+import AdminPodcastHostshipReviewManager, {
+    type AdminPodcastHostshipReviewCandidate,
+} from "./AdminPodcastHostshipReviewManager";
 
 const mocks = vi.hoisted(() => ({
     refresh: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
     }),
 }));
 
-const candidate: AdminPodcastOwnershipReviewCandidate = {
+const candidate: AdminPodcastHostshipReviewCandidate = {
     id: 12,
     source: "podcast-index",
     sourcePodcastId: "feed-99",
@@ -45,7 +45,7 @@ const candidate: AdminPodcastOwnershipReviewCandidate = {
         feedUrl: "https://pod.example/feed.xml",
         denyListEntry: null,
     },
-    existingOwnerships: [],
+    existingHostships: [],
 };
 
 beforeEach(() => {
@@ -65,27 +65,27 @@ function openGroup(name: RegExp | string) {
     fireEvent.click(screen.getByRole("button", { name }));
 }
 
-describe("AdminPodcastOwnershipReviewManager", () => {
+describe("AdminPodcastHostshipReviewManager", () => {
     it("renders candidate context and evidence", () => {
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
 
         expect(screen.getAllByText("Jane Comic").length).toBeGreaterThan(0);
         expect(screen.getAllByText("The Jane Show").length).toBeGreaterThan(0);
-        expect(screen.getByText("Owner: Jane Comic")).toBeTruthy();
+        expect(screen.getByText("Host: Jane Comic")).toBeTruthy();
         expect(screen.getAllByText("91%").length).toBeGreaterThan(0);
         expect(screen.getByText(/matched_name/)).toBeTruthy();
     });
 
-    it("does not preselect owners for non-pending rejected candidates", () => {
+    it("does not preselect hosts for non-pending rejected candidates", () => {
         render(
-            <AdminPodcastOwnershipReviewManager
+            <AdminPodcastHostshipReviewManager
                 candidates={[
                     {
                         ...candidate,
                         candidateStatus: "rejected",
-                        existingOwnerships: [],
+                        existingHostships: [],
                     },
                 ]}
             />,
@@ -93,12 +93,12 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         openGroup(/The Jane Show/);
 
-        expect(screen.getAllByText("No owner").length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/no owner/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText("No host").length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/no host/i).length).toBeGreaterThan(0);
     });
 
     it("switches to comedian view and sorts by popularity", () => {
-        const lowerPopularityCandidate: AdminPodcastOwnershipReviewCandidate = {
+        const lowerPopularityCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
             id: 13,
             comedian: {
@@ -114,12 +114,12 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 title: "Lower Pop Show",
             },
         };
-        const ownedJaneCandidate: AdminPodcastOwnershipReviewCandidate = {
+        const hostedJaneCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
-            existingOwnerships: [
+            existingHostships: [
                 {
                     id: 201,
-                    associationType: "owner",
+                    associationType: "host",
                     source: "manual",
                     reviewStatus: "accepted",
                     confidence: 1,
@@ -129,7 +129,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 },
             ],
         };
-        const nonOwnedJaneCandidate: AdminPodcastOwnershipReviewCandidate = {
+        const nonHostedJaneCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
             id: 14,
             podcast: {
@@ -138,10 +138,10 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 slug: "jane-guest-show",
                 title: "Jane Guest Show",
             },
-            existingOwnerships: [
+            existingHostships: [
                 {
                     id: 202,
-                    associationType: "owner",
+                    associationType: "host",
                     source: "manual",
                     reviewStatus: "accepted",
                     confidence: 1,
@@ -150,18 +150,18 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                     comedian: {
                         id: 88,
                         uuid: "uuid-88",
-                        name: "Other Owner",
+                        name: "Other Host",
                         popularity: 2,
                     },
                 },
             ],
         };
         render(
-            <AdminPodcastOwnershipReviewManager
+            <AdminPodcastHostshipReviewManager
                 candidates={[
                     lowerPopularityCandidate,
-                    nonOwnedJaneCandidate,
-                    ownedJaneCandidate,
+                    nonHostedJaneCandidate,
+                    hostedJaneCandidate,
                 ]}
             />,
         );
@@ -175,7 +175,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Jane Comic");
         expect(screen.getAllByText(/Popularity 74/).length).toBeGreaterThan(0);
-        expect(screen.getAllByText(/1 owned podcast/).length).toBeGreaterThan(
+        expect(screen.getAllByText(/1 hosted podcast/).length).toBeGreaterThan(
             0,
         );
         expect(screen.queryByText(/2 podcasts attached/)).toBeNull();
@@ -200,7 +200,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     });
 
     it("filters the podcast view by podcast name", () => {
-        const otherCandidate: AdminPodcastOwnershipReviewCandidate = {
+        const otherCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
             id: 13,
             comedian: {
@@ -218,7 +218,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
             },
         };
         render(
-            <AdminPodcastOwnershipReviewManager
+            <AdminPodcastHostshipReviewManager
                 candidates={[candidate, otherCandidate]}
             />,
         );
@@ -235,7 +235,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     });
 
     it("filters the comedian view by comedian name", () => {
-        const otherCandidate: AdminPodcastOwnershipReviewCandidate = {
+        const otherCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
             id: 13,
             comedian: {
@@ -253,7 +253,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
             },
         };
         render(
-            <AdminPodcastOwnershipReviewManager
+            <AdminPodcastHostshipReviewManager
                 candidates={[candidate, otherCandidate]}
             />,
         );
@@ -279,7 +279,7 @@ describe("AdminPodcastOwnershipReviewManager", () => {
                 episodeCount: 7,
             }),
         } as never);
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         fireEvent.click(screen.getByRole("button", { name: "By comedian" }));
         openGroup(/Jane Comic/);
@@ -290,13 +290,13 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     method: "PUT",
                     body: JSON.stringify({
                         comedianId: 42,
                         feedUrl: "https://feeds.example.com/jane.xml",
-                        reason: "Manual RSS feed added during podcast ownership review for Jane Comic",
+                        reason: "Manual RSS feed added during podcast hostship review for Jane Comic",
                     }),
                 }),
             );
@@ -306,8 +306,8 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         ).toBeTruthy();
     });
 
-    it("saves a selected podcast owner with a reason", async () => {
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+    it("saves a selected podcast host with a reason", async () => {
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
         fireEvent.change(screen.getByLabelText("Review note"), {
@@ -319,12 +319,13 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
                         podcastId: 99,
-                        ownerComedianId: 42,
+                        hostComedianIds: [42],
+                        cohostComedianIds: [],
                         denyListed: false,
                         reason: "Verified host credit",
                     }),
@@ -334,12 +335,55 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(mocks.refresh).toHaveBeenCalled();
     });
 
-    it("blocks a podcast when the owner tag is removed", async () => {
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+    it("saves selected host and co-host roles", async () => {
+        render(
+            <AdminPodcastHostshipReviewManager
+                candidates={[
+                    candidate,
+                    {
+                        ...candidate,
+                        id: 13,
+                        associationType: "cohost",
+                        comedian: {
+                            id: 77,
+                            uuid: "uuid-77",
+                            name: "Co Host",
+                            popularity: 31,
+                        },
+                    },
+                ]}
+            />,
+        );
+
+        openGroup(/The Jane Show/);
+        fireEvent.click(screen.getByRole("button", { name: "Co-host: Co Host" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Save The Jane Show" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/podcast-hostship-reviews",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        podcastId: 99,
+                        hostComedianIds: [42],
+                        cohostComedianIds: [77],
+                        denyListed: false,
+                        reason: "",
+                    }),
+                }),
+            );
+        });
+    });
+
+    it("blocks a podcast when the host tag is removed", async () => {
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
         fireEvent.click(
-            screen.getByRole("button", { name: "Remove Jane Comic as owner" }),
+            screen.getByRole("button", { name: "Remove Jane Comic as host" }),
         );
         fireEvent.change(screen.getByLabelText("Review note"), {
             target: { value: "Wrong Jane" },
@@ -350,12 +394,13 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
                         podcastId: 99,
-                        ownerComedianId: null,
+                        hostComedianIds: [],
+                        cohostComedianIds: [],
                         denyListed: false,
                         reason: "Wrong Jane",
                     }),
@@ -365,11 +410,11 @@ describe("AdminPodcastOwnershipReviewManager", () => {
     });
 
     it("deny-lists a podcast from the podcast row action", async () => {
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
         fireEvent.change(screen.getByLabelText("Review note"), {
-            target: { value: "Not a host-owned feed" },
+            target: { value: "Not a host-hosted feed" },
         });
         fireEvent.click(
             screen.getByRole("button", { name: "Block The Jane Show" }),
@@ -377,14 +422,15 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
                         podcastId: 99,
-                        ownerComedianId: null,
+                        hostComedianIds: [],
+                        cohostComedianIds: [],
                         denyListed: true,
-                        reason: "Not a host-owned feed",
+                        reason: "Not a host-hosted feed",
                     }),
                 }),
             );
@@ -392,12 +438,12 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         expect(
             await screen.findByText("The Jane Show deny-listed."),
         ).toBeTruthy();
-        expect(screen.getAllByText("No owner").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("No host").length).toBeGreaterThan(0);
     });
 
     it("shows and restores durable deny-list state", async () => {
         render(
-            <AdminPodcastOwnershipReviewManager
+            <AdminPodcastHostshipReviewManager
                 candidates={[
                     {
                         ...candidate,
@@ -424,12 +470,13 @@ describe("AdminPodcastOwnershipReviewManager", () => {
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
                         podcastId: 99,
-                        ownerComedianId: null,
+                        hostComedianIds: [],
+                        cohostComedianIds: [],
                         denyListed: false,
                         reason: "",
                     }),
@@ -438,41 +485,42 @@ describe("AdminPodcastOwnershipReviewManager", () => {
         });
     });
 
-    it("can search for and add a different owner", async () => {
+    it("can search for and add a different host", async () => {
         vi.mocked(global.fetch)
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({
-                    data: [{ id: 77, uuid: "uuid-77", name: "Right Owner" }],
+                    data: [{ id: 77, uuid: "uuid-77", name: "Right Host" }],
                 }),
             } as never)
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => ({ ok: true }),
             } as never);
-        render(<AdminPodcastOwnershipReviewManager candidates={[candidate]} />);
+        render(<AdminPodcastHostshipReviewManager candidates={[candidate]} />);
 
         openGroup(/The Jane Show/);
         fireEvent.change(
-            screen.getByLabelText("Add owner", { selector: "input" }),
+            screen.getByLabelText("Add host", { selector: "input" }),
             {
-                target: { value: "Right Owner" },
+                target: { value: "Right Host" },
             },
         );
         fireEvent.click(screen.getByRole("button", { name: "Search" }));
-        await screen.findByText("Right Owner");
-        fireEvent.click(screen.getByRole("button", { name: "Right Owner" }));
+        await screen.findByText("Right Host");
+        fireEvent.click(screen.getByRole("button", { name: "Right Host" }));
         fireEvent.click(
             screen.getByRole("button", { name: "Save The Jane Show" }),
         );
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenLastCalledWith(
-                "/api/admin/podcast-ownership-reviews",
+                "/api/admin/podcast-hostship-reviews",
                 expect.objectContaining({
                     body: JSON.stringify({
                         podcastId: 99,
-                        ownerComedianId: 77,
+                        hostComedianIds: [77],
+                        cohostComedianIds: [],
                         denyListed: false,
                         reason: "",
                     }),

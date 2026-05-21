@@ -22,16 +22,16 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
-import type { AdminPodcastOwnershipReviewCandidate } from "@/lib/admin/podcastOwnershipReviews";
+import type { AdminPodcastHostshipReviewCandidate } from "@/lib/admin/podcastHostshipReviews";
 
-export type { AdminPodcastOwnershipReviewCandidate };
+export type { AdminPodcastHostshipReviewCandidate };
 
 type Status = {
     kind: "idle" | "ok" | "error";
     message?: string;
 };
 
-type OwnerOption = {
+type ComedianOption = {
     id: number;
     uuid: string;
     name: string;
@@ -50,18 +50,20 @@ type ReviewSort =
 
 type PodcastReviewGroup = {
     key: string;
-    podcast: NonNullable<AdminPodcastOwnershipReviewCandidate["podcast"]>;
-    candidates: AdminPodcastOwnershipReviewCandidate[];
-    ownerOptions: OwnerOption[];
-    acceptedOwner: OwnerOption | null;
-    initialOwner: OwnerOption | null;
+    podcast: NonNullable<AdminPodcastHostshipReviewCandidate["podcast"]>;
+    candidates: AdminPodcastHostshipReviewCandidate[];
+    comedianOptions: ComedianOption[];
+    acceptedHost: ComedianOption | null;
+    acceptedCohosts: ComedianOption[];
+    initialHost: ComedianOption | null;
+    initialCohosts: ComedianOption[];
     popularity: number;
 };
 
 type ComedianReviewGroup = {
     key: string;
-    comedian: AdminPodcastOwnershipReviewCandidate["comedian"];
-    candidates: AdminPodcastOwnershipReviewCandidate[];
+    comedian: AdminPodcastHostshipReviewCandidate["comedian"];
+    candidates: AdminPodcastHostshipReviewCandidate[];
     podcastGroups: PodcastReviewGroup[];
     popularity: number;
 };
@@ -74,7 +76,7 @@ type SearchResult = {
 };
 
 type Props = {
-    candidates: AdminPodcastOwnershipReviewCandidate[];
+    candidates: AdminPodcastHostshipReviewCandidate[];
 };
 
 function formatPercent(value: number) {
@@ -98,9 +100,9 @@ function evidencePreview(evidence: unknown) {
 }
 
 function groupCandidates(
-    candidates: AdminPodcastOwnershipReviewCandidate[],
+    candidates: AdminPodcastHostshipReviewCandidate[],
 ): PodcastReviewGroup[] {
-    const byPodcast = new Map<number, AdminPodcastOwnershipReviewCandidate[]>();
+    const byPodcast = new Map<number, AdminPodcastHostshipReviewCandidate[]>();
     for (const candidate of candidates) {
         if (!candidate.podcast) continue;
         const rows = byPodcast.get(candidate.podcast.id) ?? [];
@@ -110,16 +112,16 @@ function groupCandidates(
 
     return Array.from(byPodcast.entries()).map(([podcastId, rows]) => {
         const podcast = rows[0].podcast!;
-        const ownershipOptions = rows.flatMap((candidate) =>
-            candidate.existingOwnerships.map((ownership) => ({
-                id: ownership.comedian.id,
-                uuid: ownership.comedian.uuid,
-                name: ownership.comedian.name,
-                popularity: ownership.comedian.popularity,
-                confidence: ownership.confidence,
-                source: ownership.source,
-                associationType: ownership.associationType,
-                reviewStatus: ownership.reviewStatus,
+        const hostshipOptions = rows.flatMap((candidate) =>
+            candidate.existingHostships.map((hostship) => ({
+                id: hostship.comedian.id,
+                uuid: hostship.comedian.uuid,
+                name: hostship.comedian.name,
+                popularity: hostship.comedian.popularity,
+                confidence: hostship.confidence,
+                source: hostship.source,
+                associationType: hostship.associationType,
+                reviewStatus: hostship.reviewStatus,
             })),
         );
         const candidateOptions = rows.map((candidate) => ({
@@ -131,18 +133,25 @@ function groupCandidates(
             source: candidate.source,
             associationType: candidate.associationType,
         }));
-        const uniqueOptions = new Map<number, OwnerOption>();
-        for (const option of [...ownershipOptions, ...candidateOptions]) {
+        const uniqueOptions = new Map<number, ComedianOption>();
+        for (const option of [...hostshipOptions, ...candidateOptions]) {
             if (!uniqueOptions.has(option.id))
                 uniqueOptions.set(option.id, option);
         }
-        const acceptedOwner = ownershipOptions.find(
-            (option) => option.reviewStatus === "accepted",
+        const acceptedHost = hostshipOptions.find(
+            (option) =>
+                option.reviewStatus === "accepted" &&
+                option.associationType === "host",
+        );
+        const acceptedCohosts = hostshipOptions.filter(
+            (option) =>
+                option.reviewStatus === "accepted" &&
+                option.associationType === "cohost",
         );
         const pendingCandidate = rows.find(
             (candidate) => candidate.candidateStatus === "pending",
         );
-        const suggestedOwner = pendingCandidate
+        const suggestedHost = pendingCandidate
             ? candidateOptions.find(
                   (option) => option.id === pendingCandidate.comedian.id,
               )
@@ -152,20 +161,22 @@ function groupCandidates(
             key: String(podcastId),
             podcast,
             candidates: rows,
-            ownerOptions: Array.from(uniqueOptions.values()),
-            acceptedOwner: acceptedOwner ?? null,
-            initialOwner: acceptedOwner ?? suggestedOwner ?? null,
+            comedianOptions: Array.from(uniqueOptions.values()),
+            acceptedHost: acceptedHost ?? null,
+            acceptedCohosts,
+            initialHost: acceptedHost ?? suggestedHost ?? null,
+            initialCohosts: acceptedHost ? acceptedCohosts : [],
             popularity: Math.max(
                 0,
                 ...rows.map((candidate) => candidate.comedian.popularity),
-                ...ownershipOptions.map((option) => option.popularity),
+                ...hostshipOptions.map((option) => option.popularity),
             ),
         };
     });
 }
 
 function groupByComedian(
-    candidates: AdminPodcastOwnershipReviewCandidate[],
+    candidates: AdminPodcastHostshipReviewCandidate[],
     podcastGroups: PodcastReviewGroup[],
 ): ComedianReviewGroup[] {
     const podcastGroupById = new Map(
@@ -173,7 +184,7 @@ function groupByComedian(
     );
     const byComedian = new Map<
         number,
-        AdminPodcastOwnershipReviewCandidate[]
+        AdminPodcastHostshipReviewCandidate[]
     >();
     for (const candidate of candidates) {
         if (!candidate.podcast) continue;
@@ -275,22 +286,31 @@ function filterComedianGroups(groups: ComedianReviewGroup[], query: string) {
     );
 }
 
-function selectedOwnerDefaults(groups: PodcastReviewGroup[]) {
+function selectedHostDefaults(groups: PodcastReviewGroup[]) {
     return Object.fromEntries(
         groups.map((group) => [
             group.key,
-            group.podcast.denyListEntry ? null : group.initialOwner,
+            group.podcast.denyListEntry ? null : group.initialHost,
         ]),
-    ) as Record<string, OwnerOption | null>;
+    ) as Record<string, ComedianOption | null>;
 }
 
-function confirmedOwnerDefaults(groups: PodcastReviewGroup[]) {
+function confirmedHostDefaults(groups: PodcastReviewGroup[]) {
     return Object.fromEntries(
-        groups.map((group) => [group.key, group.acceptedOwner?.id ?? null]),
+        groups.map((group) => [group.key, group.acceptedHost?.id ?? null]),
     ) as Record<string, number | null>;
 }
 
-export default function AdminPodcastOwnershipReviewManager({
+function selectedCohostDefaults(groups: PodcastReviewGroup[]) {
+    return Object.fromEntries(
+        groups.map((group) => [
+            group.key,
+            group.podcast.denyListEntry ? [] : group.initialCohosts,
+        ]),
+    ) as Record<string, ComedianOption[]>;
+}
+
+export default function AdminPodcastHostshipReviewManager({
     candidates,
 }: Props) {
     const router = useRouter();
@@ -304,12 +324,15 @@ export default function AdminPodcastOwnershipReviewManager({
     const [sort, setSort] = useState<ReviewSort>("name-asc");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
-    const [selectedOwners, setSelectedOwners] = useState<
-        Record<string, OwnerOption | null>
-    >(() => selectedOwnerDefaults(groups));
-    const [confirmedOwnerIds, setConfirmedOwnerIds] = useState<
+    const [selectedHosts, setSelectedHosts] = useState<
+        Record<string, ComedianOption | null>
+    >(() => selectedHostDefaults(groups));
+    const [selectedCohosts, setSelectedCohosts] = useState<
+        Record<string, ComedianOption[]>
+    >(() => selectedCohostDefaults(groups));
+    const [confirmedHostIds, setConfirmedHostIds] = useState<
         Record<string, number | null>
-    >(() => confirmedOwnerDefaults(groups));
+    >(() => confirmedHostDefaults(groups));
     const [notes, setNotes] = useState<Record<string, string>>({});
     const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
     const [searchResults, setSearchResults] = useState<
@@ -388,25 +411,32 @@ export default function AdminPodcastOwnershipReviewManager({
 
     async function save(
         group: PodcastReviewGroup,
-        ownerOverride?: OwnerOption | null,
+        hostOverride?: ComedianOption | null,
         denyListed = false,
     ) {
         const reason = notes[group.key]?.trim() ?? "";
-        const owner =
-            ownerOverride === undefined
-                ? (selectedOwners[group.key] ?? null)
-                : ownerOverride;
+        const host =
+            hostOverride === undefined
+                ? (selectedHosts[group.key] ?? null)
+                : hostOverride;
+        const cohosts =
+            hostOverride === null
+                ? []
+                : (selectedCohosts[group.key] ?? []).filter(
+                      (cohost) => cohost.id !== host?.id,
+                  );
         setStatus({ kind: "idle" });
         setPendingKey(group.key);
 
         let res: Response;
         try {
-            res = await fetch("/api/admin/podcast-ownership-reviews", {
+            res = await fetch("/api/admin/podcast-hostship-reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     podcastId: group.podcast.id,
-                    ownerComedianId: owner?.id ?? null,
+                    hostComedianIds: host ? [host.id] : [],
+                    cohostComedianIds: cohosts.map((cohost) => cohost.id),
                     denyListed,
                     reason,
                 }),
@@ -435,17 +465,21 @@ export default function AdminPodcastOwnershipReviewManager({
             kind: "ok",
             message: denyListed
                 ? `${group.podcast.title} deny-listed.`
-                : owner === null
-                  ? `${group.podcast.title} restored without an owner.`
-                  : `${group.podcast.title} approved with ${owner.name} as owner.`,
+                : host === null
+                  ? `${group.podcast.title} restored without hosts.`
+                  : `${group.podcast.title} approved with ${host.name} as host.`,
         });
-        setSelectedOwners((prev) => ({
+        setSelectedHosts((prev) => ({
             ...prev,
-            [group.key]: owner,
+            [group.key]: host,
         }));
-        setConfirmedOwnerIds((prev) => ({
+        setConfirmedHostIds((prev) => ({
             ...prev,
-            [group.key]: owner?.id ?? null,
+            [group.key]: host?.id ?? null,
+        }));
+        setSelectedCohosts((prev) => ({
+            ...prev,
+            [group.key]: cohosts,
         }));
         startTransition(() => router.refresh());
     }
@@ -459,13 +493,13 @@ export default function AdminPodcastOwnershipReviewManager({
 
         let res: Response;
         try {
-            res = await fetch("/api/admin/podcast-ownership-reviews", {
+            res = await fetch("/api/admin/podcast-hostship-reviews", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     comedianId: comedianGroup.comedian.id,
                     feedUrl,
-                    reason: `Manual RSS feed added during podcast ownership review for ${comedianGroup.comedian.name}`,
+                    reason: `Manual RSS feed added during podcast hostship review for ${comedianGroup.comedian.name}`,
                 }),
             });
         } catch (error) {
@@ -503,7 +537,7 @@ export default function AdminPodcastOwnershipReviewManager({
     if (groups.length === 0) {
         return (
             <div className="rounded-md border border-copper/25 bg-white p-6 font-dmSans text-body text-soft-charcoal">
-                No podcast ownership review records found.
+                No podcast hostship review records found.
             </div>
         );
     }
@@ -600,9 +634,11 @@ export default function AdminPodcastOwnershipReviewManager({
                 {activeView === "podcast"
                     ? pagedPodcastGroups.map((group) => {
                           const noteId = `podcast-review-note-${group.key}`;
-                          const searchId = `podcast-owner-search-${group.key}`;
-                          const selectedOwner =
-                              selectedOwners[group.key] ?? null;
+                          const searchId = `podcast-host-search-${group.key}`;
+                          const selectedHost =
+                              selectedHosts[group.key] ?? null;
+                          const selectedGroupCohosts =
+                              selectedCohosts[group.key] ?? [];
                           const isDenied = Boolean(
                               group.podcast.denyListEntry,
                           );
@@ -619,7 +655,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                           ? `by ${group.podcast.authorName}`
                                           : "Author missing"
                                   }
-                                  summary={`${group.candidates.length} candidate${group.candidates.length === 1 ? "" : "s"} · ${selectedOwner ? "approved" : isDenied ? "deny-listed" : "no owner"} · popularity ${group.popularity.toFixed(1)}`}
+                                  summary={`${group.candidates.length} candidate${group.candidates.length === 1 ? "" : "s"} · ${selectedHost ? "approved" : isDenied ? "deny-listed" : "no host"} · popularity ${group.popularity.toFixed(1)}`}
                                   collapsed={isGroupCollapsed(frameKey)}
                                   onToggle={toggleGroup}
                               >
@@ -631,18 +667,18 @@ export default function AdminPodcastOwnershipReviewManager({
                                               </h2>
                                               <span
                                                   className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
-                                                      selectedOwner
+                                                      selectedHost
                                                           ? "bg-green-50 text-green-800"
                                                           : isDenied
                                                             ? "bg-red-50 text-red-800"
                                                           : "bg-red-50 text-red-800"
                                                   }`}
                                               >
-                                                  {selectedOwner
+                                                  {selectedHost
                                                       ? "Approved"
                                                       : isDenied
                                                         ? "Deny-listed"
-                                                        : "No owner"}
+                                                        : "No host"}
                                               </span>
                                           </div>
                                           <div className="mt-2 font-dmSans text-body text-soft-charcoal">
@@ -654,14 +690,14 @@ export default function AdminPodcastOwnershipReviewManager({
                                               )}
                                           </div>
                                           <div className="mt-3 flex flex-wrap gap-2">
-                                              {selectedOwner ? (
+                                              {selectedHost ? (
                                                   <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
-                                                      Owner:{" "}
-                                                      {selectedOwner.name}
+                                                      Host:{" "}
+                                                      {selectedHost.name}
                                                       <button
                                                           type="button"
                                                           onClick={() =>
-                                                              setSelectedOwners(
+                                                              setSelectedHosts(
                                                                   (prev) => ({
                                                                       ...prev,
                                                                       [group.key]:
@@ -670,7 +706,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                               )
                                                           }
                                                           className="rounded-full p-0.5 text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-700"
-                                                          aria-label={`Remove ${selectedOwner.name} as owner`}
+                                                          aria-label={`Remove ${selectedHost.name} as host`}
                                                       >
                                                           <X
                                                               className="h-3.5 w-3.5"
@@ -682,8 +718,52 @@ export default function AdminPodcastOwnershipReviewManager({
                                                   <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
                                                       {isDenied
                                                           ? "Deny-listed"
-                                                          : "No owner"}
+                                                          : "No host"}
                                                   </span>
+                                              )}
+                                              {selectedGroupCohosts.map(
+                                                  (cohost) => (
+                                                      <span
+                                                          key={cohost.id}
+                                                          className="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-blue-900"
+                                                      >
+                                                          Co-host:{" "}
+                                                          {cohost.name}
+                                                          <button
+                                                              type="button"
+                                                              onClick={() =>
+                                                                  setSelectedCohosts(
+                                                                      (
+                                                                          prev,
+                                                                      ) => ({
+                                                                          ...prev,
+                                                                          [group.key]:
+                                                                              (
+                                                                                  prev[
+                                                                                      group
+                                                                                          .key
+                                                                                  ] ??
+                                                                                  []
+                                                                              ).filter(
+                                                                                  (
+                                                                                      item,
+                                                                                  ) =>
+                                                                                      item.id !==
+                                                                                      cohost.id,
+                                                                              ),
+                                                                      }),
+                                                                  )
+                                                              }
+                                                              className="rounded-full p-0.5 text-blue-900 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-700"
+                                                              aria-label={`Remove ${cohost.name} as co-host`}
+                                                          >
+                                                              <X
+                                                                  className="h-3.5 w-3.5"
+                                                                  aria-hidden="true"
+                                                              />
+                                                          </button>
+                                                      </span>
+                                                  ),
                                               )}
                                           </div>
                                           {group.podcast.denyListEntry && (
@@ -757,16 +837,16 @@ export default function AdminPodcastOwnershipReviewManager({
                                       <div className="grid gap-3">
                                           <div className="grid gap-2">
                                               <p className="font-dmSans text-sm font-semibold text-cedar">
-                                                  Owner candidates
+                                                  Host candidates
                                               </p>
                                               <div className="flex flex-wrap gap-2">
-                                                  {group.ownerOptions.map(
+                                                  {group.comedianOptions.map(
                                                       (option) => (
                                                           <button
                                                               key={option.id}
                                                               type="button"
                                                               onClick={() =>
-                                                                  setSelectedOwners(
+                                                                  setSelectedHosts(
                                                                       (
                                                                           prev,
                                                                       ) => ({
@@ -777,7 +857,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                                   )
                                                               }
                                                               className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-dmSans text-sm font-semibold ${
-                                                                  selectedOwner?.id ===
+                                                                  selectedHost?.id ===
                                                                   option.id
                                                                       ? "border-green-500 bg-green-50 text-green-900"
                                                                       : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
@@ -800,13 +880,81 @@ export default function AdminPodcastOwnershipReviewManager({
                                                       ),
                                                   )}
                                               </div>
+                                              <div className="flex flex-wrap gap-2">
+                                                  {group.comedianOptions.map(
+                                                      (option) => {
+                                                          const isCohost =
+                                                              selectedGroupCohosts.some(
+                                                                  (cohost) =>
+                                                                      cohost.id ===
+                                                                      option.id,
+                                                              );
+                                                          return (
+                                                              <button
+                                                                  key={option.id}
+                                                                  type="button"
+                                                                  onClick={() =>
+                                                                      setSelectedCohosts(
+                                                                          (
+                                                                              prev,
+                                                                          ) => {
+                                                                              const current =
+                                                                                  prev[
+                                                                                      group
+                                                                                          .key
+                                                                                  ] ??
+                                                                                  [];
+                                                                              const next =
+                                                                                  isCohost
+                                                                                      ? current.filter(
+                                                                                            (
+                                                                                                cohost,
+                                                                                            ) =>
+                                                                                                cohost.id !==
+                                                                                                option.id,
+                                                                                        )
+                                                                                      : [
+                                                                                            ...current.filter(
+                                                                                                (
+                                                                                                    cohost,
+                                                                                                ) =>
+                                                                                                    cohost.id !==
+                                                                                                    option.id,
+                                                                                            ),
+                                                                                            option,
+                                                                                        ];
+                                                                              return {
+                                                                                  ...prev,
+                                                                                  [group.key]:
+                                                                                      next,
+                                                                              };
+                                                                          },
+                                                                      )
+                                                                  }
+                                                                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-dmSans text-sm font-semibold ${
+                                                                      isCohost
+                                                                          ? "border-blue-500 bg-blue-50 text-blue-900"
+                                                                          : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                                  }`}
+                                                              >
+                                                                  <Plus
+                                                                      className="h-3.5 w-3.5"
+                                                                      aria-hidden="true"
+                                                                  />
+                                                                  Co-host:{" "}
+                                                                  {option.name}
+                                                              </button>
+                                                          );
+                                                      },
+                                                  )}
+                                              </div>
                                           </div>
                                           <div className="grid gap-1">
                                               <label
                                                   htmlFor={searchId}
                                                   className="font-dmSans text-sm font-semibold text-cedar"
                                               >
-                                                  Add owner
+                                                  Add host
                                               </label>
                                               <div className="flex gap-2">
                                                   <input
@@ -859,7 +1007,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                           key={result.id}
                                                           type="button"
                                                           onClick={() =>
-                                                              setSelectedOwners(
+                                                              setSelectedHosts(
                                                                   (prev) => ({
                                                                       ...prev,
                                                                       [group.key]:
@@ -1004,10 +1152,10 @@ export default function AdminPodcastOwnershipReviewManager({
                           );
                       })
                     : pagedComedianGroups.map((comedianGroup) => {
-                          const ownedPodcastCount =
+                          const hostedPodcastCount =
                               comedianGroup.podcastGroups.filter((group) => {
                                   return (
-                                      confirmedOwnerIds[group.key] ===
+                                      confirmedHostIds[group.key] ===
                                       comedianGroup.comedian.id
                                   );
                               }).length;
@@ -1017,7 +1165,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                   groupKey={`comedian-${comedianGroup.key}`}
                                   title={comedianGroup.comedian.name}
                                   subtitle={`Popularity ${formatPopularity(comedianGroup.popularity)}`}
-                                  summary={`${ownedPodcastCount} owned podcast${ownedPodcastCount === 1 ? "" : "s"}`}
+                                  summary={`${hostedPodcastCount} hosted podcast${hostedPodcastCount === 1 ? "" : "s"}`}
                                   collapsed={isGroupCollapsed(
                                       `comedian-${comedianGroup.key}`,
                                   )}
@@ -1033,9 +1181,9 @@ export default function AdminPodcastOwnershipReviewManager({
                                               {formatPopularity(
                                                   comedianGroup.popularity,
                                               )}{" "}
-                                              · {ownedPodcastCount} owned
+                                              · {hostedPodcastCount} hosted
                                               podcast
-                                              {ownedPodcastCount === 1
+                                              {hostedPodcastCount === 1
                                                   ? ""
                                                   : "s"}
                                           </p>
@@ -1087,14 +1235,14 @@ export default function AdminPodcastOwnershipReviewManager({
                                   <div className="grid gap-3">
                                       {comedianGroup.podcastGroups.map(
                                           (group) => {
-                                              const selectedOwner =
-                                                  selectedOwners[group.key] ??
+                                              const selectedHost =
+                                                  selectedHosts[group.key] ??
                                                   null;
                                               const isDenied = Boolean(
                                                   group.podcast.denyListEntry,
                                               );
-                                              const isSelectedOwner =
-                                                  selectedOwner?.id ===
+                                              const isSelectedHost =
+                                                  selectedHost?.id ===
                                                   comedianGroup.comedian.id;
                                               const disabled =
                                                   isPending ||
@@ -1115,18 +1263,18 @@ export default function AdminPodcastOwnershipReviewManager({
                                                               </h3>
                                                               <span
                                                                   className={`rounded-md px-2 py-1 font-dmSans text-caption font-semibold ${
-                                                                      selectedOwner
+                                                                      selectedHost
                                                                           ? "bg-green-50 text-green-800"
                                                                           : isDenied
                                                                             ? "bg-red-50 text-red-800"
                                                                           : "bg-red-50 text-red-800"
                                                                   }`}
                                                               >
-                                                                  {selectedOwner
+                                                                  {selectedHost
                                                                       ? "Approved"
                                                                       : isDenied
                                                                         ? "Deny-listed"
-                                                                        : "No owner"}
+                                                                        : "No host"}
                                                               </span>
                                                           </div>
                                                           <p className="mt-1 font-dmSans text-caption text-soft-charcoal">
@@ -1195,16 +1343,16 @@ export default function AdminPodcastOwnershipReviewManager({
                                                               )}
                                                           </div>
                                                           <div className="mt-2 flex flex-wrap gap-2">
-                                                              {selectedOwner ? (
+                                                              {selectedHost ? (
                                                                   <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
-                                                                      Owner:{" "}
+                                                                      Host:{" "}
                                                                       {
-                                                                          selectedOwner.name
+                                                                          selectedHost.name
                                                                       }
                                                                       <button
                                                                           type="button"
                                                                           onClick={() =>
-                                                                              setSelectedOwners(
+                                                                              setSelectedHosts(
                                                                                   (
                                                                                       prev,
                                                                                   ) => ({
@@ -1215,7 +1363,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                                               )
                                                                           }
                                                                           className="rounded-full p-0.5 text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-700"
-                                                                          aria-label={`Remove ${selectedOwner.name} as owner`}
+                                                                          aria-label={`Remove ${selectedHost.name} as host`}
                                                                       >
                                                                           <X
                                                                               className="h-3.5 w-3.5"
@@ -1227,7 +1375,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                                   <span className="rounded-md border border-red-200 bg-red-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-red-900">
                                                                       {isDenied
                                                                           ? "Deny-listed"
-                                                                          : "No owner"}
+                                                                          : "No host"}
                                                                   </span>
                                                               )}
                                                           </div>
@@ -1238,7 +1386,7 @@ export default function AdminPodcastOwnershipReviewManager({
                                                               variant="outline"
                                                               className="border-copper-dark bg-white !text-copper-dark hover:bg-copper-dark hover:!text-white"
                                                               onClick={() =>
-                                                                  setSelectedOwners(
+                                                                  setSelectedHosts(
                                                                       (
                                                                           prev,
                                                                       ) => ({
@@ -1264,10 +1412,10 @@ export default function AdminPodcastOwnershipReviewManager({
                                                               }
                                                               disabled={
                                                                   disabled ||
-                                                                  isSelectedOwner
+                                                                  isSelectedHost
                                                               }
                                                           >
-                                                              Set as owner
+                                                              Set as host
                                                           </Button>
                                                           <Button
                                                               type="button"

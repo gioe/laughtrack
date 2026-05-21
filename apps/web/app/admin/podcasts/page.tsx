@@ -1,11 +1,11 @@
-import { listPodcastOwnershipReviews } from "@/lib/admin/podcastOwnershipReviews";
-import AdminPodcastOwnershipReviewManager from "@/ui/pages/admin/podcasts/AdminPodcastOwnershipReviewManager";
+import { listPodcastHostshipReviews } from "@/lib/admin/podcastHostshipReviews";
+import AdminPodcastHostshipReviewManager from "@/ui/pages/admin/podcasts/AdminPodcastHostshipReviewManager";
 import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPodcastOwnershipReviewPage() {
-    const candidates = await listPodcastOwnershipReviews();
+export default async function AdminPodcastHostshipReviewPage() {
+    const candidates = await listPodcastHostshipReviews();
     const pendingCount = candidates.filter(
         (candidate) => candidate.candidateStatus === "pending",
     ).length;
@@ -14,12 +14,12 @@ export default async function AdminPodcastOwnershipReviewPage() {
         <div className="space-y-6">
             <AdminPageHeader
                 eyebrow="Admin · Podcast Reviews"
-                title="Podcast ownership"
-                description="Review podcast-to-comedian ownership, approved feeds, and candidate matches."
+                title="Podcast hostship"
+                description="Review podcast-to-comedian hostship, approved feeds, and candidate matches."
                 summary={`${candidates.length.toLocaleString()} total candidate${candidates.length === 1 ? "" : "s"} · ${pendingCount.toLocaleString()} pending`}
             />
 
-            <AdminPodcastOwnershipReviewManager candidates={candidates} />
+            <AdminPodcastHostshipReviewManager candidates={candidates} />
         </div>
     );
 }
