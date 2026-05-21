@@ -347,6 +347,15 @@ struct LaughTrackEntityRowDesign: Equatable {
         subtitleLineLimit: 2,
         metadataLineLimit: 2
     )
+
+    static let savedEntity = Self(
+        artworkSize: 70,
+        artworkShape: .roundedRectangle(cornerRadius: 12),
+        minHeight: 86,
+        titleLineLimit: 2,
+        subtitleLineLimit: 1,
+        metadataLineLimit: 1
+    )
 }
 
 struct LaughTrackEntityRow: View {
@@ -768,6 +777,9 @@ struct FavoriteSearchableSection<Item, ID: Hashable, Row: View>: View {
         }
         .onChange(of: query) { _ in
             page = 0
+        }
+        .onChange(of: items.count) { _ in
+            page = min(page, max(0, pageCount - 1))
         }
     }
 }

@@ -10,7 +10,7 @@ struct LibraryView: View {
 
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
-    let searchNavigationBridge: SearchNavigationBridge?
+    let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
@@ -20,7 +20,7 @@ struct LibraryView: View {
     init(
         apiClient: Client,
         selectedPrimitive: SearchRootModel.Pivot? = nil,
-        searchNavigationBridge: SearchNavigationBridge? = nil
+        searchNavigationBridge: SearchNavigationBridge
     ) {
         self.apiClient = apiClient
         self.selectedPrimitive = selectedPrimitive
@@ -84,7 +84,7 @@ private struct FavoritesHeader: View {
 private struct FavoritePrimitiveSections: View {
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
-    let searchNavigationBridge: SearchNavigationBridge?
+    let searchNavigationBridge: SearchNavigationBridge
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
@@ -241,15 +241,6 @@ private struct FavoriteShowsSection: View {
     }
 }
 
-private let favoriteClubsRowDesign = LaughTrackEntityRowDesign(
-    artworkSize: 70,
-    artworkShape: .roundedRectangle(cornerRadius: 12),
-    minHeight: 86,
-    titleLineLimit: 2,
-    subtitleLineLimit: 1,
-    metadataLineLimit: 1
-)
-
 private struct FavoriteClubsSection: View {
     let apiClient: Client
 
@@ -322,7 +313,7 @@ private struct FavoriteClubsSection: View {
                         systemImage: "building.2",
                         imageURL: club.imageUrl,
                         showsDisclosureIndicator: true,
-                        design: favoriteClubsRowDesign
+                        design: .savedEntity
                     )
                 }
                 .buttonStyle(.plain)
@@ -331,18 +322,9 @@ private struct FavoriteClubsSection: View {
     }
 }
 
-private let favoritePodcastsRowDesign = LaughTrackEntityRowDesign(
-    artworkSize: 70,
-    artworkShape: .roundedRectangle(cornerRadius: 12),
-    minHeight: 86,
-    titleLineLimit: 2,
-    subtitleLineLimit: 1,
-    metadataLineLimit: 1
-)
-
 private struct FavoritePodcastsSection: View {
     let apiClient: Client
-    let searchNavigationBridge: SearchNavigationBridge?
+    let searchNavigationBridge: SearchNavigationBridge
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -371,9 +353,11 @@ private struct FavoritePodcastsSection: View {
                         tone: .empty,
                         title: "No saved podcasts yet",
                         message: "Tap the heart on any podcast and it will appear here for this account.",
-                        actionTitle: searchNavigationBridge != nil ? "Browse podcasts" : nil,
-                        action: searchNavigationBridge.map { bridge in
-                            { bridge.openSearch(.init(pivot: .podcasts, query: "", shortcut: nil)) }
+                        actionTitle: "Browse podcasts",
+                        action: {
+                            searchNavigationBridge.openSearch(
+                                .init(pivot: .podcasts, query: "", shortcut: nil)
+                            )
                         }
                     )
                 case .failure(let failure):
@@ -413,7 +397,7 @@ private struct FavoritePodcastsSection: View {
                                 systemImage: "headphones",
                                 imageURL: podcast.imageUrl,
                                 showsDisclosureIndicator: true,
-                                design: favoritePodcastsRowDesign
+                                design: .savedEntity
                             )
                         }
                         .buttonStyle(.plain)
