@@ -15,6 +15,7 @@
         "test:e2e": "playwright test",
         "test:e2e:visual": "playwright test --config=playwright.visual.config.ts",
         "test:e2e:visual:update": "playwright test --config=playwright.visual.config.ts --update-snapshots",
+        "pretype-check": "prisma generate",
         "type-check": "tsc -b",
         "prepare": "cd ../.. && node apps/web/node_modules/.bin/husky",
         "audit-fix": "npm audit fix --legacy-peer-deps && echo 'Done. Check git diff apps/web/package-lock.json for implicit transitive version bumps in packages listed in package.json.'"
