@@ -12,6 +12,7 @@ struct LaughTrackApp: App {
     @StateObject private var coordinator = NavigationCoordinator<AppRoute>()
     @StateObject private var authManager: AuthManager
     @StateObject private var loginModalPresenter = LoginModalPresenter()
+    @StateObject private var clubFavorites = ClubFavoriteStore()
 
     private let container: ServiceContainer
     private let apiClient: Client
@@ -38,6 +39,7 @@ struct LaughTrackApp: App {
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
                 .environmentObject(loginModalPresenter)
+                .environmentObject(clubFavorites)
                 .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
                 .preferredColorScheme(.dark)
         }
