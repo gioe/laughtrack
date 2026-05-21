@@ -105,7 +105,10 @@ const _nextAuth = NextAuth({
                     },
                 });
             } catch (error) {
-                console.error("Error creating user profile:", error);
+                console.error(
+                    "Error creating user profile:",
+                    JSON.stringify(sanitizeAuthError(error)),
+                );
             }
         },
     },

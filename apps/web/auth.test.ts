@@ -293,7 +293,7 @@ describe("auth.ts NextAuth config", () => {
             });
         });
 
-        it("swallows errors from db.userProfile.create and logs instead of throwing", async () => {
+        it("swallows errors from db.userProfile.create and logs the sanitized error", async () => {
             const consoleSpy = vi
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -307,10 +307,16 @@ describe("auth.ts NextAuth config", () => {
                 }),
             ).resolves.toBeUndefined();
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "Error creating user profile:",
-                expect.any(Error),
-            );
+            expect(consoleSpy).toHaveBeenCalledTimes(1);
+            const [label, payload] = consoleSpy.mock.calls[0];
+            expect(label).toBe("Error creating user profile:");
+            expect(typeof payload).toBe("string");
+            const parsed = JSON.parse(payload as string);
+            expect(parsed).toMatchObject({
+                name: "Error",
+                message: "unique constraint failed",
+            });
+            expect(parsed).not.toHaveProperty("stack");
             consoleSpy.mockRestore();
         });
     });
