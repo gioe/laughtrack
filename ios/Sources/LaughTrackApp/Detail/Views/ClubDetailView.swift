@@ -10,6 +10,8 @@ struct ClubDetailView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var clubFavorites: ClubFavoriteStore
+    @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @Environment(\.serviceContainer) private var serviceContainer
@@ -37,6 +39,7 @@ struct ClubDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
+                let isFavorite = clubFavorites.value(for: club.id)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
@@ -47,6 +50,17 @@ struct ClubDetailView: View {
                         openURL: { url in
                             openURL(url)
                         },
+                        favoriteState: DetailHeroFavoriteState(
+                            isFavorite: isFavorite,
+                            isPending: clubFavorites.isPending(club.id),
+                            action: {
+                                await toggleFavorite(
+                                    clubID: club.id,
+                                    name: club.name,
+                                    currentValue: isFavorite
+                                )
+                            }
+                        ),
                         fallbackSystemImage: "building.2.fill"
                     )
                     .ignoresSafeArea(.container, edges: .top)
@@ -82,6 +96,24 @@ struct ClubDetailView: View {
 
     private func clubHeroActions(club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         ClubDetailHeroPresentation.actions(for: club)
+    }
+
+    private func toggleFavorite(clubID: Int, name: String, currentValue: Bool) async {
+        let result = await clubFavorites.toggle(
+            clubID: clubID,
+            currentValue: currentValue,
+            apiClient: apiClient,
+            authManager: authManager
+        )
+
+        switch result {
+        case .updated(let next):
+            feedbackMessage = FavoriteFeedback.message(for: name, isFavorite: next)
+        case .signInRequired:
+            loginModalPresenter.present()
+        case .failure(let message):
+            feedbackMessage = message
+        }
     }
 
     private var navigationTitle: String {
