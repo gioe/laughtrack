@@ -238,8 +238,12 @@ const PrivacyPage = async () => {
 
                 <div className="mb-10 space-y-4">
                     <h2 className="text-2xl font-semibold mt-8 mb-2">
-                        6. Your Choices
+                        6. Your Rights and Choices
                     </h2>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        6.1 Choices available to everyone
+                    </h3>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>
                             You can revoke location or calendar permission for
@@ -255,6 +259,137 @@ const PrivacyPage = async () => {
                             admin@laugh-track.com.
                         </li>
                     </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        6.2 California residents (CCPA/CPRA)
+                    </h3>
+                    <p>
+                        If you are a California resident, you have the
+                        following rights under the California Consumer Privacy
+                        Act, as amended by the California Privacy Rights Act:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>
+                            <strong>Right to know.</strong> You may request
+                            confirmation of whether we process your personal
+                            information and the categories of personal
+                            information we have collected, the sources, the
+                            purposes for which it is used, and the categories
+                            of third parties with whom we share it. The
+                            categories we collect are described in Section 1
+                            of this policy.
+                        </li>
+                        <li>
+                            <strong>Right to access.</strong> You may request
+                            a copy of the specific pieces of personal
+                            information we hold about you.
+                        </li>
+                        <li>
+                            <strong>Right to delete.</strong> You may request
+                            that we delete the personal information we have
+                            collected from you, subject to legal exceptions
+                            (for example, information we need to keep to
+                            comply with a legal obligation).
+                        </li>
+                        <li>
+                            <strong>Right to correct.</strong> You may request
+                            that we correct inaccurate personal information we
+                            hold about you.
+                        </li>
+                        <li>
+                            <strong>Right to opt out of sale or sharing.</strong>{" "}
+                            We do not sell your personal information and we
+                            do not share it for cross-context behavioral
+                            advertising, so there is nothing to opt out of.
+                            If that ever changes, we will update this policy
+                            and provide a clear opt-out before the change
+                            takes effect.
+                        </li>
+                        <li>
+                            <strong>Right to non-discrimination.</strong> We
+                            will not deny you the Service, charge you a
+                            different price, or provide you a different level
+                            of quality for exercising any of these rights.
+                        </li>
+                    </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        6.3 EU, EEA, and UK residents (GDPR/UK GDPR)
+                    </h3>
+                    <p>
+                        If you are in the European Union, European Economic
+                        Area, or United Kingdom, you have the following
+                        rights under the GDPR and UK GDPR:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-1">
+                        <li>
+                            <strong>Right of access.</strong> You may obtain
+                            confirmation of whether we process your personal
+                            data and a copy of that data.
+                        </li>
+                        <li>
+                            <strong>Right to rectification.</strong> You may
+                            ask us to correct inaccurate or incomplete
+                            personal data.
+                        </li>
+                        <li>
+                            <strong>Right to erasure.</strong> You may ask us
+                            to delete your personal data, subject to legal
+                            exceptions.
+                        </li>
+                        <li>
+                            <strong>Right to data portability.</strong> You
+                            may receive your personal data in a structured,
+                            commonly used, machine-readable format and ask us
+                            to transmit it to another controller where
+                            technically feasible.
+                        </li>
+                        <li>
+                            <strong>Right to restriction of processing.</strong>{" "}
+                            You may ask us to limit how we use your personal
+                            data in certain circumstances.
+                        </li>
+                        <li>
+                            <strong>Right to object.</strong> You may object
+                            to our processing of your personal data,
+                            including for direct marketing.
+                        </li>
+                        <li>
+                            <strong>Right to withdraw consent.</strong> Where
+                            we rely on consent to process your data, you may
+                            withdraw that consent at any time without
+                            affecting the lawfulness of processing carried
+                            out before withdrawal.
+                        </li>
+                        <li>
+                            <strong>Right to lodge a complaint.</strong> You
+                            have the right to lodge a complaint with your
+                            local data protection supervisory authority.
+                        </li>
+                    </ul>
+
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        6.4 How to exercise these rights
+                    </h3>
+                    <p>
+                        To exercise any of the rights described above, email{" "}
+                        <a
+                            href="mailto:admin@laugh-track.com"
+                            className="underline text-white"
+                        >
+                            admin@laugh-track.com
+                        </a>{" "}
+                        from the email address associated with your
+                        Laughtrack account, or include enough information for
+                        us to verify your identity. We will respond within
+                        <strong> 30 days</strong> of receiving a verifiable
+                        request. If we need more time (up to an additional 60
+                        days under the CCPA, or two months under the GDPR),
+                        we will let you know within the initial 30-day
+                        window. You may also designate an authorized agent to
+                        make a request on your behalf, subject to
+                        verification.
+                    </p>
                 </div>
 
                 <div className="mb-10 space-y-4">
