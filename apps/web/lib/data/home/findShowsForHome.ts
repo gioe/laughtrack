@@ -93,6 +93,7 @@ export async function findShowsForHome(
         | Prisma.ShowOrderByWithRelationInput[],
     take = 8,
     options: HomeShowQueryOptions = {},
+    skip = 0,
 ): Promise<ShowDTO[]> {
     const queryTake = options.sortByHomeRelevance
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
@@ -102,6 +103,7 @@ export async function findShowsForHome(
         select: HOME_SHOW_SELECT,
         orderBy,
         take: queryTake,
+        skip,
     });
 
     const mapped = shows.map((show) => {
