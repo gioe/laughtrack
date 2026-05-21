@@ -137,7 +137,7 @@ struct AppShellViewTests {
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
                 .environmentObject(PodcastFavoriteStore())
-            .environmentObject(ClubFavoriteStore())
+                .environmentObject(ClubFavoriteStore())
         )
         await host.settle()
 
