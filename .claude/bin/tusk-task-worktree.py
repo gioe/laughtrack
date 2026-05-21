@@ -2,6 +2,7 @@
 """Create and inspect task-owned git worktrees."""
 
 import argparse
+import json
 import os
 import sqlite3
 import subprocess
@@ -115,81 +116,113 @@ def _create_worktree(
     return result.returncode == 0, result.stderr.strip()
 
 
-def _resolve_primary_repo_root(repo_root: str) -> str | None:
-    result = _run_git(repo_root, ["rev-parse", "--path-format=absolute", "--git-common-dir"])
-    if result.returncode != 0 or not result.stdout.strip():
-        return None
+def _primary_repo_root(repo_root: str) -> str:
+    """Resolve the primary checkout's root from a possibly-worktree ``repo_root``.
 
-    git_common_dir = result.stdout.strip()
-    return os.path.realpath(os.path.join(git_common_dir, ".."))
-
-
-def _link_primary_resource(
-    primary_repo_root: str,
-    workspace_path: str,
-    relative_path: str,
-    *,
-    resource_label: str,
-) -> str | None:
-    source = os.path.join(primary_repo_root, relative_path)
-    if not os.path.exists(source):
-        return None
-
-    target_parent = os.path.dirname(os.path.join(workspace_path, relative_path))
-    if not os.path.isdir(target_parent):
-        return None
-
-    target = os.path.join(workspace_path, relative_path)
-    if os.path.lexists(target):
-        if os.path.islink(target) and not os.path.exists(target):
-            os.unlink(target)
-        else:
-            return None
-
-    try:
-        os.symlink(source, target)
-    except OSError as exc:
-        return f"Warning: could not link {resource_label} into task workspace: {exc}"
-    return None
-
-
-def _ensure_workspace_resources_available(
-    repo_root: str, workspace_path: str
-) -> list[str]:
-    primary_repo_root = _resolve_primary_repo_root(repo_root)
-    if not primary_repo_root:
-        return []
-
-    resources = [
-        ("apps/scraper/.venv", "scraper venv"),
-        ("apps/scraper/.env", "scraper env"),
-        ("apps/web/node_modules", "web node_modules"),
-        ("apps/web/.env.local", "web env"),
-    ]
-    warnings = []
-    for relative_path, label in resources:
-        warning = _link_primary_resource(
-            primary_repo_root,
-            workspace_path,
-            relative_path,
-            resource_label=label,
-        )
-        if warning:
-            warnings.append(warning)
-    return warnings
-
-
-def _ensure_scraper_venv_available(repo_root: str, workspace_path: str) -> str | None:
-    """Backward-compatible wrapper for tests and older importers."""
-    primary_repo_root = _resolve_primary_repo_root(repo_root)
-    if not primary_repo_root:
-        return None
-    return _link_primary_resource(
-        primary_repo_root,
-        workspace_path,
-        "apps/scraper/.venv",
-        resource_label="scraper venv",
+    ``repo_root`` is whatever the dispatcher passed in (cwd-resolved). In a
+    linked worktree, ``git --git-common-dir`` points at the primary's ``.git``;
+    the parent of that is the primary checkout. In the primary itself, the
+    common-dir is the same as the git-dir and the parent IS the primary root.
+    Falls back to ``repo_root`` on any git error so symlink seeding is best-
+    effort and never breaks worktree creation.
+    """
+    result = _run_git(
+        repo_root,
+        ["rev-parse", "--path-format=absolute", "--git-common-dir"],
     )
+    if result.returncode != 0:
+        return repo_root
+    common_dir = result.stdout.strip()
+    if not common_dir:
+        return repo_root
+    primary = os.path.dirname(common_dir)
+    return primary if os.path.isdir(primary) else repo_root
+
+
+def _load_symlink_files(config_path: str) -> list[str]:
+    """Load ``worktree.symlink_files`` from the project config, returning [] on any error."""
+    if not config_path or not os.path.exists(config_path):
+        return []
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    worktree_cfg = cfg.get("worktree")
+    if not isinstance(worktree_cfg, dict):
+        return []
+    names = worktree_cfg.get("symlink_files")
+    if not isinstance(names, list):
+        return []
+    # Filter to non-empty strings; ignore None / empty / non-string entries.
+    return [str(n) for n in names if isinstance(n, str) and n]
+
+
+def _link_gitignored_files(
+    primary_root: str,
+    worktree_path: str,
+    names: list[str],
+) -> list[dict]:
+    """Walk ``primary_root`` for files/dirs whose basename appears in ``names``
+    and create absolute-path symlinks at the corresponding paths under
+    ``worktree_path``. Skips ``.git``; skips entries whose worktree path
+    already exists; never follows symlinks during the walk.
+
+    Returns a list of ``{"src": <primary_path>, "dst": <worktree_path>}``
+    entries for each symlink that was actually created.
+    """
+    if not names:
+        return []
+    name_set = set(names)
+    created: list[dict] = []
+    for root, dirs, files in os.walk(primary_root, followlinks=False):
+        if ".git" in dirs:
+            dirs.remove(".git")
+        # Capture matched dir names BEFORE we mutate `dirs` to control recursion.
+        matched_dirs = [d for d in dirs if d in name_set]
+        matched_files = [f for f in files if f in name_set]
+        for name in matched_dirs + matched_files:
+            src = os.path.join(root, name)
+            rel = os.path.relpath(src, primary_root)
+            dst = os.path.join(worktree_path, rel)
+            # Skip when the destination is already present (file, dir, or
+            # symlink, including a broken symlink — `lexists` catches all three).
+            if os.path.lexists(dst):
+                continue
+            try:
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                os.symlink(src, dst)
+            except OSError:
+                # Best-effort: do not abort worktree creation on a single
+                # failed symlink (permission errors, race conditions, etc.).
+                continue
+            created.append({"src": src, "dst": dst})
+        # Prevent os.walk from descending INTO any directory we just symlinked
+        # — the symlink target already contains its full subtree.
+        for d in matched_dirs:
+            dirs.remove(d)
+    return created
+
+
+def _attach_worktree(
+    repo_root: str,
+    worktree_path: str,
+    branch: str,
+) -> tuple[bool, str]:
+    """Re-attach a worktree at ``worktree_path`` checked out on existing ``branch``.
+
+    Mirrors ``_create_worktree`` but omits ``-b`` so an existing branch is
+    reused rather than recreated (issue #803). Used when a ``task_workspaces``
+    row exists, its branch still resolves in git, but ``workspace_path`` was
+    deleted from disk — the canonical recovery path that avoids forcing the
+    caller to prune-and-retry.
+    """
+    os.makedirs(os.path.dirname(worktree_path), exist_ok=True)
+    result = _run_git(
+        repo_root,
+        ["worktree", "add", worktree_path, branch],
+    )
+    return result.returncode == 0, result.stderr.strip()
 
 
 def _parse_git_worktrees(repo_root: str) -> dict[str, str]:
@@ -250,7 +283,9 @@ def _workspace_payload(row: sqlite3.Row, *, created: bool) -> dict:
     }
 
 
-def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
+def cmd_create(
+    db_path: str, config_path: str, repo_root: str, argv: list[str]
+) -> int:
     parser = argparse.ArgumentParser(
         prog="tusk task-worktree create",
         description="Create or reuse a task-owned git worktree.",
@@ -309,14 +344,47 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             (task_id, branch),
         ).fetchone()
         if existing:
-            setup_warnings = _ensure_workspace_resources_available(
-                repo_root,
-                existing["workspace_path"],
+            # Healthy state: registry row + workspace_path present on disk.
+            if os.path.isdir(existing["workspace_path"]):
+                print(dumps(_workspace_payload(existing, created=False)))
+                return 0
+            # Stale state (issue #803): registry row exists but workspace_path
+            # is gone from disk. The caller would otherwise `cd` into a
+            # dangling path. Recover when the branch still resolves in git;
+            # refuse loudly when it does not.
+            if _branch_exists(repo_root, existing["branch"]):
+                ok, err = _attach_worktree(
+                    repo_root,
+                    existing["workspace_path"],
+                    existing["branch"],
+                )
+                if not ok:
+                    print(
+                        "Error: recorded workspace path is missing on disk and "
+                        f"`git worktree add` could not re-attach it:\n"
+                        f"  Workspace path: {existing['workspace_path']}\n"
+                        f"  Branch:         {existing['branch']}\n"
+                        f"  git stderr:     {err}\n"
+                        f"  Hint: run `tusk task-worktree prune` to drop the stale row, "
+                        f"then re-run `tusk task-worktree create {task_id} {slug}` "
+                        f"to materialize a fresh workspace.",
+                        file=sys.stderr,
+                    )
+                    return 2
+                print(dumps(_workspace_payload(existing, created=True)))
+                return 0
+            # Both row and disk and branch are gone — registry is fully stale.
+            print(
+                "Error: recorded workspace is unusable — both the workspace "
+                "path and the branch are missing:\n"
+                f"  Workspace path: {existing['workspace_path']}\n"
+                f"  Branch:         {existing['branch']}\n"
+                f"  Hint: run `tusk task-worktree prune` to drop the stale row, "
+                f"then re-run `tusk task-worktree create {task_id} {slug}` "
+                f"to materialize a fresh workspace.",
+                file=sys.stderr,
             )
-            for setup_warning in setup_warnings:
-                print(setup_warning, file=sys.stderr)
-            print(dumps(_workspace_payload(existing, created=False)))
-            return 0
+            return 2
 
         if _branch_exists(repo_root, branch):
             print(
@@ -341,10 +409,6 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             print(f"Error: git worktree add failed:\n{err}", file=sys.stderr)
             return 2
 
-        setup_warnings = _ensure_workspace_resources_available(repo_root, workspace_path)
-        for setup_warning in setup_warnings:
-            print(setup_warning, file=sys.stderr)
-
         cur = conn.execute(
             """
             INSERT INTO task_workspaces (task_id, branch, workspace_path)
@@ -361,6 +425,16 @@ def cmd_create(db_path: str, repo_root: str, argv: list[str]) -> int:
             """,
             (cur.lastrowid,),
         ).fetchone()
+        # Seed gitignored runtime files (e.g. .venv, .env) from the primary
+        # repo per worktree.symlink_files config (issue #752). Opt-in: empty
+        # list (default) creates no symlinks. Best-effort: any individual
+        # symlink failure is swallowed inside _link_gitignored_files so a
+        # permissions or race issue does not abort the worktree creation we
+        # just recorded above.
+        symlink_names = _load_symlink_files(config_path)
+        if symlink_names:
+            primary_root = _primary_repo_root(repo_root)
+            _link_gitignored_files(primary_root, workspace_path, symlink_names)
         print(dumps(_workspace_payload(row, created=True)))
         return 0
     except sqlite3.IntegrityError as exc:
@@ -444,15 +518,13 @@ def main(argv: list[str]) -> int:
         return 1
 
     db_path = argv[0]
-    # argv[1] is config_path, accepted for dispatcher consistency.
-    # argv[2] is repo_root, used by create/status commands.
+    config_path = argv[1]
+    repo_root = argv[2]
     command = argv[3] if len(argv) > 3 else ""
     rest = argv[4:]
 
-    repo_root = argv[2]
-
     if command == "create":
-        return cmd_create(db_path, repo_root, rest)
+        return cmd_create(db_path, config_path, repo_root, rest)
     if command in {"list", "status"}:
         return cmd_list(db_path, repo_root, rest)
     if command == "prune":

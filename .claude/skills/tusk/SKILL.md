@@ -85,10 +85,6 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    ```
    This creates a recorded task workspace and feature branch, or returns the existing recorded workspace for the task. Parse the JSON response, then `cd` into `workspace_path` before exploring, editing, testing, committing, or merging. If `created` is `false`, continue from that existing workspace; do not create another branch or overlapping worktree. If you are already in the returned `workspace_path`, stay there.
 
-   For LaughTrack scraper work, `task-worktree create` also links `apps/scraper/.venv` from the primary checkout into the task workspace when the primary checkout has that venv. This makes acceptance commands such as `cd apps/scraper && .venv/bin/python3 -m pytest ...` work in task-owned worktrees without manual setup. If the primary checkout has no scraper venv, create it there first with `cd apps/scraper && make setup-venv`.
-
-   For LaughTrack web work, `task-worktree create` links ignored local resources from the primary checkout when they exist: `apps/web/node_modules`, `apps/web/.env.local`, and `apps/scraper/.env`. This makes `cd apps/web && npm run type-check` and `npm run dev` work in task-owned worktrees without manual symlink setup, while leaving any existing local files in the task workspace untouched.
-
    If you need to inspect recorded workspaces before deciding where to continue, run:
    ```bash
    tusk task-worktree list --format json
@@ -124,6 +120,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    2. If specific tests are named, run them directly. Otherwise, use `tusk test-detect` to find the project's test command, then run the most relevant subset.
    3. **If tests pass**: the issue may already be fixed or the description may be inaccurate — run `tusk skill-run cancel <run_id>`, surface this to the user, and stop before investigating further.
    4. **If tests fail**: capture the failure output. Use it as the primary diagnostic anchor in step 5 (Explore).
+
+   **State-mutating reproductions:** If the failing command writes to tracked files (e.g. `tusk version-bump`, `tusk changelog-add`, `tusk commit`, `tusk merge --rebase`), do **not** reproduce it against the active task worktree — the writes dirty the working tree and may block `tusk merge` / `tusk abandon` later. Reproduce against a throwaway location instead: `cd` into a fresh `tmp_path` repo (the integration-test pattern) and run the command there, or `git stash` the result immediately after. This is the filesystem analogue of the user-memory guidance to use a `TUSK_DB` throwaway for state-mutating DB reproductions.
 
 5. **Explore the codebase before implementing** — use a sub-agent to research:
    - What files will need to change?
@@ -180,12 +178,6 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     **After each `tusk commit` in foreground mode**, run `git status --short` to confirm your files were staged and committed — a zero-exit commit that produced no diff (e.g. all files were already tracked with no changes) will silently succeed without staging anything.
 
-    **Web contract coverage:** API and frontend task domains should run both
-    focused web tests and `npm run type-check`. DTO/schema changes can pass
-    Vitest while still breaking TypeScript contracts in Server Components,
-    Client Components, or shared route types, so the domain gate must catch
-    those regressions before commit or merge.
-
     **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria), or whether the file was removed via `git rm` (which stages the deletion — `tusk commit` then can't find the path to re-add). In either case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
     ```bash
     tusk criteria done <cid> --skip-verify
@@ -193,7 +185,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     If the error is a genuine pathspec mismatch (not an already-committed file), always pass file paths relative to the repo root (e.g., `ios/SomeFile.swift`, not `SomeFile.swift` from inside `ios/`). If the error persists, fall back to a path-limited commit:
     ```bash
     git add -- "<file1>" ["<file2>" ...]
-    git commit -o -- "<file1>" ["<file2>" ...] -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+    git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>" -o -- "<file1>" ["<file2>" ...]
     ```
     `git commit -o -- <files>` limits the commit to the listed paths so unrelated pre-staged changes cannot leak into the task commit. Then mark criteria done with `tusk criteria done <cid> --skip-verify` as usual.
 
@@ -208,7 +200,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk commit <task_id> "<message>" "<file>" --skip-verify
     ```
 
-    **If the commit removes a file from git tracking** (i.e., the staged change is a `git rm --cached` deletion, not a file modification), do NOT use `tusk commit` — it retries gitignored paths with `git add -f`, which re-adds the file and defeats the deletion. Use `git commit` directly:
+    **If the commit removes a file from git tracking** (any staged deletion — `git rm <file>`, `git rm --cached <file>`, or `rm <file>` followed by `git add <file>` — all produce identical `deleted: <path>` index entries), do NOT use `tusk commit` — it retries gitignored paths with `git add -f`, which re-adds the file and defeats the deletion. Use `git commit` directly:
     ```bash
     git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
     ```
@@ -241,7 +233,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     - **If `pre_existing` is `true`** — the failure is pre-existing and unrelated to your changes. **Skip the diagnosis loop entirely.** Do not attempt to fix tests in files you did not modify during this session. Fall back immediately to:
       ```bash
       git add -- "<file1>" ["<file2>" ...]
-      git commit -o -- "<file1>" ["<file2>" ...] -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+      git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>" -o -- "<file1>" ["<file2>" ...]
       ```
       Then mark criteria done with `tusk criteria done <cid> --skip-verify`. The `-o -- <files>` form is required here too; a plain `git commit` would include any unrelated paths that were staged before this task.
 
