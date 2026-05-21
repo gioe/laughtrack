@@ -198,6 +198,15 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         expect(res.status).toBe(400);
     });
 
+    it("rejects legacy owner payload fields", async () => {
+        const res = await POST(
+            makeRequest({ podcastId: 99, ownerComedianId: 42 }),
+        );
+
+        expect(res.status).toBe(400);
+        expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
     it("rejects conflicting approve and deny-list decisions", async () => {
         const res = await POST(
             makeRequest({
