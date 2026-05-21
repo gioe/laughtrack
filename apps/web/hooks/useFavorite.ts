@@ -9,7 +9,7 @@ import { pendingFavorite } from "@/util/pendingFavorite";
 interface UseFavoriteProps {
     initialState: boolean;
     entityId: string;
-    entityType?: "comedian" | "podcast";
+    entityType?: "comedian" | "podcast" | "club";
 }
 
 interface UseFavoriteReturn {
@@ -45,7 +45,9 @@ export const useFavorite = ({
                 const response =
                     entityType === "podcast"
                         ? await favoritePodcast(newFavoriteState, entityId)
-                        : await favorite(newFavoriteState, entityId);
+                        : entityType === "club"
+                          ? await favoriteClub(newFavoriteState, entityId)
+                          : await favorite(newFavoriteState, entityId);
                 if (
                     response !== null &&
                     typeof response === "object" &&
@@ -121,6 +123,45 @@ async function favoritePodcast(
             method: setFavorite ? "POST" : "DELETE",
             headers: { "Content-Type": "application/json" },
             body: setFavorite ? JSON.stringify({ podcastId }) : undefined,
+        },
+    );
+
+    if (!response.ok) {
+        if (response.status === 401) return undefined;
+        const body = (await response.json().catch(() => null)) as
+            | { error?: unknown }
+            | null;
+        return {
+            error:
+                typeof body?.error === "string"
+                    ? body.error
+                    : FAVORITE_ERROR_MSG,
+        };
+    }
+
+    const body = (await response.json().catch(() => null)) as
+        | { data?: { isFavorited?: unknown } }
+        | null;
+    return body?.data?.isFavorited === true;
+}
+
+async function favoriteClub(
+    setFavorite: boolean,
+    entityId: string,
+): Promise<boolean | FavoriteError | undefined> {
+    const clubId = Number.parseInt(entityId, 10);
+    if (!Number.isInteger(clubId) || clubId <= 0) {
+        return { error: "clubId is required" };
+    }
+
+    const response = await fetch(
+        setFavorite
+            ? "/api/v1/favorite-clubs"
+            : `/api/v1/favorite-clubs/${clubId}`,
+        {
+            method: setFavorite ? "POST" : "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: setFavorite ? JSON.stringify({ clubId }) : undefined,
         },
     );
 
