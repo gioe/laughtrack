@@ -10,7 +10,7 @@ import LaughTrackBridge
 @Suite("Favorites view content")
 @MainActor
 struct LibraryFavoritesViewTests {
-    @Test("signed-in favorites view renders saved comedians favorite shows and derived clubs")
+    @Test("signed-in favorites view renders saved comedians and favorite shows")
     func signedInLibraryLoadsSavedFavorites() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
             name: "library-favorites"
@@ -55,9 +55,6 @@ struct LibraryFavoritesViewTests {
             return
         }
         #expect(shows.map(\.name) == ["Taylor Tomlinson at The Stand"])
-        #expect(LibraryFavoritesPresentation.derivedClubs(from: shows) == [
-            FavoriteClubSummary(name: "The Stand", showCount: 1),
-        ])
     }
 
     @Test("favorites primitive filter shows only matching favorite content")

@@ -10,15 +10,21 @@ struct LibraryView: View {
 
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
+    let searchNavigationBridge: SearchNavigationBridge?
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
 
-    init(apiClient: Client, selectedPrimitive: SearchRootModel.Pivot? = nil) {
+    init(
+        apiClient: Client,
+        selectedPrimitive: SearchRootModel.Pivot? = nil,
+        searchNavigationBridge: SearchNavigationBridge? = nil
+    ) {
         self.apiClient = apiClient
         self.selectedPrimitive = selectedPrimitive
+        self.searchNavigationBridge = searchNavigationBridge
     }
 
     var body: some View {
@@ -32,6 +38,7 @@ struct LibraryView: View {
                     FavoritePrimitiveSections(
                         apiClient: apiClient,
                         selectedPrimitive: selectedPrimitive,
+                        searchNavigationBridge: searchNavigationBridge,
                         cache: serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self),
                         persistentCache: serviceContainer.resolve(PersistentMainPageCache.self)
                     )
@@ -77,6 +84,7 @@ private struct FavoritesHeader: View {
 private struct FavoritePrimitiveSections: View {
     let apiClient: Client
     let selectedPrimitive: SearchRootModel.Pivot?
+    let searchNavigationBridge: SearchNavigationBridge?
     let cache: DataCache<LaughTrackCacheKey>
     let persistentCache: PersistentMainPageCache
 
@@ -108,14 +116,14 @@ private struct FavoritePrimitiveSections: View {
             }
 
             if includes(.clubs) {
-                FavoriteClubsSection(
-                    phase: favoriteShowsModel.phase,
-                    favoriteListIsEmpty: favoriteListIsEmpty
-                )
+                FavoriteClubsSection(apiClient: apiClient)
             }
 
             if includes(.podcasts) {
-                FavoritePodcastsSection(apiClient: apiClient)
+                FavoritePodcastsSection(
+                    apiClient: apiClient,
+                    searchNavigationBridge: searchNavigationBridge
+                )
             }
         }
         .task(id: requestKey) {
@@ -166,8 +174,6 @@ private struct FavoriteShowsSection: View {
 
     @ViewBuilder
     private var content: some View {
-        let tokens = theme.laughTrackTokens
-
         if favoriteListIsEmpty {
             LaughTrackStateView(
                 tone: .empty,
@@ -176,27 +182,32 @@ private struct FavoriteShowsSection: View {
             )
         } else {
             switch phase {
-        case .idle, .loading:
-            LaughTrackStateView(
-                tone: .loading,
-                title: "Loading favorite shows",
-                message: "LaughTrack is checking upcoming dates for your saved comedians."
-            )
-        case .failure(let failure):
-            LaughTrackStateView(
-                tone: .error,
-                title: "Couldn’t load favorite shows",
-                message: failure.message
-            )
-        case .success(let shows) where shows.isEmpty:
-            LaughTrackStateView(
-                tone: .empty,
-                title: "No favorite shows yet",
-                message: "Save comedians with upcoming dates and their shows will appear here."
-            )
-        case .success(let shows):
-            VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
-                ForEach(shows.prefix(8), id: \.id) { show in
+            case .idle, .loading:
+                LaughTrackStateView(
+                    tone: .loading,
+                    title: "Loading favorite shows",
+                    message: "LaughTrack is checking upcoming dates for your saved comedians."
+                )
+            case .failure(let failure):
+                LaughTrackStateView(
+                    tone: .error,
+                    title: "Couldn’t load favorite shows",
+                    message: failure.message
+                )
+            case .success(let shows) where shows.isEmpty:
+                LaughTrackStateView(
+                    tone: .empty,
+                    title: "No favorite shows yet",
+                    message: "Save comedians with upcoming dates and their shows will appear here."
+                )
+            case .success(let shows):
+                FavoriteSearchableSection(
+                    items: shows,
+                    id: \.id,
+                    searchPlaceholder: "Search favorite shows"
+                ) { show, query in
+                    Self.matches(show: show, query: query)
+                } row: { show in
                     Button {
                         coordinator.open(.show(show.id))
                     } label: {
@@ -206,22 +217,53 @@ private struct FavoriteShowsSection: View {
                 }
             }
         }
+    }
+
+    private static func matches(show: Components.Schemas.Show, query: String) -> Bool {
+        if let name = show.name, name.localizedCaseInsensitiveContains(query) {
+            return true
         }
+        if let clubName = show.clubName, clubName.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if let lineup = show.lineup {
+            for comedian in lineup {
+                if comedian.name.localizedCaseInsensitiveContains(query) {
+                    return true
+                }
+                if let parent = comedian.parentComedian,
+                   parent.name.localizedCaseInsensitiveContains(query) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }
 
-private struct FavoriteClubsSection: View {
-    let phase: LoadPhase<[Components.Schemas.Show]>
-    let favoriteListIsEmpty: Bool
+private let favoriteClubsRowDesign = LaughTrackEntityRowDesign(
+    artworkSize: 70,
+    artworkShape: .roundedRectangle(cornerRadius: 12),
+    minHeight: 86,
+    titleLineLimit: 2,
+    subtitleLineLimit: 1,
+    metadataLineLimit: 1
+)
 
+private struct FavoriteClubsSection: View {
+    let apiClient: Client
+
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var clubFavorites: ClubFavoriteStore
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @Environment(\.appTheme) private var theme
 
     var body: some View {
         FavoriteSectionCard(
             identifier: LaughTrackViewTestID.favoritesClubsSection,
             eyebrow: "Clubs",
-            title: "Clubs from favorites",
-            subtitle: "Venues where your saved comedians have upcoming shows."
+            title: "Saved clubs",
+            subtitle: "Venues you've saved."
         ) {
             content
         }
@@ -229,56 +271,64 @@ private struct FavoriteClubsSection: View {
 
     @ViewBuilder
     private var content: some View {
-        let tokens = theme.laughTrackTokens
+        let laughTrack = theme.laughTrackTokens
 
-        if favoriteListIsEmpty {
-            LaughTrackStateView(
-                tone: .empty,
-                title: "No favorite clubs yet",
-                message: "When saved comedians announce upcoming shows, their venues will appear here."
-            )
-        } else {
-            switch phase {
+        switch clubFavorites.savedFavoritesPhase {
         case .idle, .loading:
             LaughTrackStateView(
                 tone: .loading,
-                title: "Loading favorite clubs",
-                message: "LaughTrack is deriving venues from your saved comedians' upcoming shows."
+                title: "Loading saved clubs",
+                message: "LaughTrack is fetching your saved clubs from your account."
+            )
+        case .empty:
+            LaughTrackStateView(
+                tone: .empty,
+                title: "No saved clubs yet",
+                message: "Tap the heart on any club and it will appear here for this account."
             )
         case .failure(let failure):
-            LaughTrackStateView(
-                tone: .error,
-                title: "Couldn’t load favorite clubs",
-                message: failure.message
-            )
-        case .success(let shows):
-            let clubs = LibraryFavoritesPresentation.derivedClubs(from: shows)
-            if clubs.isEmpty {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
                 LaughTrackStateView(
-                    tone: .empty,
-                    title: "No favorite clubs yet",
-                    message: "When saved comedians announce upcoming shows, their venues will appear here."
+                    tone: .error,
+                    title: "Couldn’t load saved clubs",
+                    message: failure.message
                 )
-            } else {
-                VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
-                    ForEach(clubs, id: \.name) { club in
-                        VStack(alignment: .leading, spacing: tokens.spacing.tight) {
-                            Text(club.name)
-                                .font(tokens.typography.cardTitle)
-                                .foregroundStyle(tokens.colors.textPrimary)
-                            Text(club.showCount == 1 ? "1 favorite-comedian show" : "\(club.showCount) favorite-comedian shows")
-                                .font(tokens.typography.body)
-                                .foregroundStyle(tokens.colors.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, tokens.spacing.tight)
+                LaughTrackButton(
+                    "Retry clubs",
+                    systemImage: "arrow.clockwise"
+                ) {
+                    Task {
+                        await clubFavorites.loadSavedFavorites(
+                            apiClient: apiClient,
+                            authManager: authManager,
+                            force: true
+                        )
                     }
                 }
             }
-        }
+        case .loaded:
+            FavoriteSearchableSection(
+                items: clubFavorites.savedFavoriteClubs,
+                id: \.id,
+                searchPlaceholder: "Search saved clubs"
+            ) { club, query in
+                club.name.localizedCaseInsensitiveContains(query)
+            } row: { club in
+                Button {
+                    coordinator.push(.clubDetail(club.id))
+                } label: {
+                    LaughTrackEntityRow(
+                        title: club.name,
+                        systemImage: "building.2",
+                        imageURL: club.imageUrl,
+                        showsDisclosureIndicator: true,
+                        design: favoriteClubsRowDesign
+                    )
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
-
 }
 
 private let favoritePodcastsRowDesign = LaughTrackEntityRowDesign(
@@ -292,6 +342,7 @@ private let favoritePodcastsRowDesign = LaughTrackEntityRowDesign(
 
 private struct FavoritePodcastsSection: View {
     let apiClient: Client
+    let searchNavigationBridge: SearchNavigationBridge?
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -319,7 +370,11 @@ private struct FavoritePodcastsSection: View {
                     LaughTrackStateView(
                         tone: .empty,
                         title: "No saved podcasts yet",
-                        message: "Tap the heart on any podcast and it will appear here for this account."
+                        message: "Tap the heart on any podcast and it will appear here for this account.",
+                        actionTitle: searchNavigationBridge != nil ? "Browse podcasts" : nil,
+                        action: searchNavigationBridge.map { bridge in
+                            { bridge.openSearch(.init(pivot: .podcasts, query: "", shortcut: nil)) }
+                        }
                     )
                 case .failure(let failure):
                     VStack(alignment: .leading, spacing: tokens.spacing.itemGap) {
@@ -342,7 +397,13 @@ private struct FavoritePodcastsSection: View {
                         }
                     }
                 case .loaded:
-                    ForEach(podcastFavorites.savedFavoritePodcasts, id: \.id) { podcast in
+                    FavoriteSearchableSection(
+                        items: podcastFavorites.savedFavoritePodcasts,
+                        id: \.id,
+                        searchPlaceholder: "Search saved podcasts"
+                    ) { podcast, query in
+                        Self.matches(podcast: podcast, query: query)
+                    } row: { podcast in
                         Button {
                             coordinator.push(.podcastDetail(podcast.id))
                         } label: {
@@ -372,6 +433,16 @@ private struct FavoritePodcastsSection: View {
         }
         return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
+
+    private static func matches(podcast: Components.Schemas.FavoritePodcastItem, query: String) -> Bool {
+        if podcast.title.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        if let author = podcast.authorName, author.localizedCaseInsensitiveContains(query) {
+            return true
+        }
+        return false
+    }
 }
 
 enum LibraryFavoritesPresentation {
@@ -381,29 +452,6 @@ enum LibraryFavoritesPresentation {
     ) -> Bool {
         selectedPrimitive == nil || selectedPrimitive == primitive
     }
-
-    static func derivedClubs(from shows: [Components.Schemas.Show]) -> [FavoriteClubSummary] {
-        let counts = shows.reduce(into: [String: Int]()) { result, show in
-            guard let clubName = show.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !clubName.isEmpty else {
-                return
-            }
-            result[clubName, default: 0] += 1
-        }
-
-        return counts
-            .map { FavoriteClubSummary(name: $0.key, showCount: $0.value) }
-            .sorted { lhs, rhs in
-                if lhs.showCount != rhs.showCount {
-                    return lhs.showCount > rhs.showCount
-                }
-                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-            }
-    }
-}
-
-struct FavoriteClubSummary: Hashable {
-    let name: String
-    let showCount: Int
 }
 
 private struct GuestFavoritesPreview: View {
@@ -421,9 +469,9 @@ private struct GuestFavoritesPreview: View {
         "Comedian Four",
     ]
     private static let sampleClubs = [
-        ("Sample Club One", "3 favorite-comedian shows"),
-        ("Sample Club Two", "2 favorite-comedian shows"),
-        ("Sample Club Three", "1 favorite-comedian show"),
+        ("Sample Club One", "Headliners every weekend"),
+        ("Sample Club Two", "Saved by you"),
+        ("Sample Club Three", "Local favorite"),
     ]
     private static let samplePodcasts = [
         ("Sample Podcast One", "Sample Host · 120 episodes"),
@@ -471,8 +519,8 @@ private struct GuestFavoritesPreview: View {
 
             TeaserSection(
                 eyebrow: "Clubs",
-                title: "Clubs from favorites",
-                subtitle: "Venues where your saved comedians have upcoming shows."
+                title: "Saved clubs",
+                subtitle: "Venues you've saved."
             ) {
                 ForEach(Self.sampleClubs, id: \.0) { name, detail in
                     TeaserRow(title: name, subtitle: detail)

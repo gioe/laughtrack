@@ -162,7 +162,11 @@ struct AppShellView: View {
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
-            LibraryView(apiClient: apiClient, selectedPrimitive: shellState.selectedPrimitive)
+            LibraryView(
+                apiClient: apiClient,
+                selectedPrimitive: shellState.selectedPrimitive,
+                searchNavigationBridge: searchNavigationBridge
+            )
                 .tabItem { Label("Favorites", systemImage: "heart.fill") }
                 .tag(AppTab.favorites)
         }
