@@ -186,7 +186,11 @@ describe("middleware auth redirects", () => {
     it("does not redirect an authenticated user visiting a public route", async () => {
         mockGetToken.mockResolvedValue(authToken("user-1"));
 
-        const response = await middleware(makeRequest("/club/search"));
+        const response = await middleware(
+            makeRequest("/club/search", {
+                cookie: "authjs.session-token=valid-token",
+            }),
+        );
 
         expect(mockGetToken).not.toHaveBeenCalled();
         expect(response.status).toBe(200);
