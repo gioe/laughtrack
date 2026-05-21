@@ -197,6 +197,26 @@ describe("auth.ts NextAuth config", () => {
             expect(result.profile).toEqual(updated);
         });
 
+        it("issues two lookups when both user and trigger='update' are present", async () => {
+            const initial = PROFILE_ROW;
+            const refreshed = { ...PROFILE_ROW, zipCode: "10001" };
+            mockFindUnique
+                .mockResolvedValueOnce(initial)
+                .mockResolvedValueOnce(refreshed);
+            const token: any = {};
+            const user: any = { id: "user-1" };
+
+            const result = await capturedConfig.value.callbacks.jwt({
+                token,
+                user,
+                trigger: "update",
+            });
+
+            expect(mockFindUnique).toHaveBeenCalledTimes(2);
+            expect(result.sub).toBe("user-1");
+            expect(result.profile).toEqual(refreshed);
+        });
+
         it("does not overwrite token.profile on update when prisma returns null", async () => {
             mockFindUnique.mockResolvedValueOnce(null);
             const token: any = { sub: "user-1", profile: PROFILE_ROW };
