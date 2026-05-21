@@ -1,0 +1,223 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const { mockNextAuth, mockFindUnique, capturedConfig } = vi.hoisted(() => {
+    const captured: { value: any } = { value: null };
+    const findUnique = vi.fn();
+    const nextAuth = vi.fn((config: any) => {
+        captured.value = config;
+        return {
+            handlers: { GET: vi.fn(), POST: vi.fn() },
+            signIn: vi.fn(),
+            signOut: vi.fn(),
+            auth: vi.fn(),
+        };
+    });
+    return {
+        mockNextAuth: nextAuth,
+        mockFindUnique: findUnique,
+        capturedConfig: captured,
+    };
+});
+
+vi.mock("react", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("react")>();
+    return { ...actual, cache: <T,>(fn: T) => fn };
+});
+vi.mock("next-auth", () => ({ default: mockNextAuth }));
+vi.mock("@auth/prisma-adapter", () => ({ PrismaAdapter: vi.fn(() => ({})) }));
+vi.mock("next-auth/providers/google", () => ({
+    default: vi.fn((config: unknown) => ({ id: "google", type: "oauth", config })),
+}));
+vi.mock("next-auth/providers/apple", () => ({
+    default: vi.fn((config: unknown) => ({ id: "apple", type: "oauth", config })),
+}));
+vi.mock("next-auth/providers/nodemailer", () => ({
+    default: vi.fn((config: any) => ({
+        id: config?.id ?? "email",
+        type: "email",
+        ...config,
+    })),
+}));
+vi.mock("nodemailer", () => ({ createTransport: vi.fn() }));
+vi.mock("./lib/db", () => ({
+    prisma: { userProfile: { findUnique: mockFindUnique } },
+    db: { userProfile: { findUnique: mockFindUnique, create: vi.fn() } },
+}));
+
+// Import after mocks so NextAuth() runs with the stub and captures the config.
+import "./auth";
+
+const PROFILE_ROW = {
+    id: "profile-1",
+    userid: "user-1",
+    role: "user",
+    emailShowNotifications: false,
+    pushShowNotifications: false,
+    zipCode: "11772",
+    nearbyDistanceMiles: 25,
+};
+
+beforeEach(() => {
+    mockFindUnique.mockReset();
+});
+
+describe("auth.ts NextAuth config", () => {
+    it("captured a config object at module load", () => {
+        expect(mockNextAuth).toHaveBeenCalledTimes(1);
+        expect(capturedConfig.value).toBeTruthy();
+        expect(capturedConfig.value.callbacks).toBeTruthy();
+    });
+
+    describe("providers admit Google, Apple, and Email", () => {
+        // auth.ts has no explicit signIn callback — admittance is controlled
+        // by the providers list. Asserting Google and Apple are configured is
+        // the equivalent "signIn admits these providers" guarantee.
+        it("includes Google and Apple OAuth providers and the email provider", () => {
+            const providers = capturedConfig.value.providers as Array<{
+                id: string;
+                type: string;
+            }>;
+            const ids = providers.map((p) => p.id);
+            expect(ids).toContain("google");
+            expect(ids).toContain("apple");
+            expect(ids).toContain("email");
+        });
+    });
+
+    describe("session callback", () => {
+        it("fetches the profile and maps it onto the session when token.profile is empty", async () => {
+            mockFindUnique.mockResolvedValueOnce(PROFILE_ROW);
+            const session: any = { profile: null, user: { id: "user-1" } };
+            const token: any = { sub: "user-1" };
+
+            const result = await capturedConfig.value.callbacks.session({
+                session,
+                token,
+            });
+
+            expect(mockFindUnique).toHaveBeenCalledWith({
+                where: { userid: "user-1" },
+            });
+            expect(token.profile).toEqual(PROFILE_ROW);
+            expect(result.profile).toEqual(PROFILE_ROW);
+        });
+
+        it("reuses token.profile without an extra db lookup when already cached", async () => {
+            const session: any = { profile: null, user: { id: "user-1" } };
+            const token: any = { sub: "user-1", profile: PROFILE_ROW };
+
+            const result = await capturedConfig.value.callbacks.session({
+                session,
+                token,
+            });
+
+            expect(mockFindUnique).not.toHaveBeenCalled();
+            expect(result.profile).toEqual(PROFILE_ROW);
+        });
+
+        it("leaves session.profile undefined when no profile row exists", async () => {
+            mockFindUnique.mockResolvedValueOnce(null);
+            const session: any = { profile: null, user: { id: "user-1" } };
+            const token: any = { sub: "user-1" };
+
+            const result = await capturedConfig.value.callbacks.session({
+                session,
+                token,
+            });
+
+            expect(mockFindUnique).toHaveBeenCalledTimes(1);
+            expect(token.profile).toBeUndefined();
+            expect(result.profile).toBeUndefined();
+        });
+
+        it("returns the session unchanged when token.sub is missing", async () => {
+            const session: any = { profile: null };
+            const token: any = {};
+
+            const result = await capturedConfig.value.callbacks.session({
+                session,
+                token,
+            });
+
+            expect(mockFindUnique).not.toHaveBeenCalled();
+            expect(result).toBe(session);
+        });
+
+        it("swallows lookup errors and still returns the session", async () => {
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            mockFindUnique.mockRejectedValueOnce(new Error("db down"));
+            const session: any = { profile: null };
+            const token: any = { sub: "user-1" };
+
+            const result = await capturedConfig.value.callbacks.session({
+                session,
+                token,
+            });
+
+            expect(result).toBe(session);
+            expect(consoleSpy).toHaveBeenCalled();
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe("jwt callback", () => {
+        it("populates token.sub and token.profile on initial sign in", async () => {
+            mockFindUnique.mockResolvedValueOnce(PROFILE_ROW);
+            const token: any = {};
+            const user: any = { id: "user-1" };
+
+            const result = await capturedConfig.value.callbacks.jwt({
+                token,
+                user,
+                trigger: "signIn",
+            });
+
+            expect(mockFindUnique).toHaveBeenCalledWith({
+                where: { userid: "user-1" },
+            });
+            expect(result.sub).toBe("user-1");
+            expect(result.profile).toEqual(PROFILE_ROW);
+        });
+
+        it("refreshes token.profile from prisma when trigger is 'update'", async () => {
+            const updated = { ...PROFILE_ROW, zipCode: "10001" };
+            mockFindUnique.mockResolvedValueOnce(updated);
+            const token: any = { sub: "user-1", profile: PROFILE_ROW };
+
+            const result = await capturedConfig.value.callbacks.jwt({
+                token,
+                trigger: "update",
+            });
+
+            expect(mockFindUnique).toHaveBeenCalledWith({
+                where: { userid: "user-1" },
+            });
+            expect(result.profile).toEqual(updated);
+        });
+
+        it("does not overwrite token.profile on update when prisma returns null", async () => {
+            mockFindUnique.mockResolvedValueOnce(null);
+            const token: any = { sub: "user-1", profile: PROFILE_ROW };
+
+            const result = await capturedConfig.value.callbacks.jwt({
+                token,
+                trigger: "update",
+            });
+
+            expect(result.profile).toEqual(PROFILE_ROW);
+        });
+
+        it("returns the token unchanged when no user and no update trigger", async () => {
+            const token: any = { sub: "user-1", profile: PROFILE_ROW };
+
+            const result = await capturedConfig.value.callbacks.jwt({
+                token,
+            });
+
+            expect(mockFindUnique).not.toHaveBeenCalled();
+            expect(result).toBe(token);
+        });
+    });
+});
