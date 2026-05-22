@@ -139,7 +139,9 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
 
             price = ticket_info.get("price")
             sold_out = ticket_info.get("availability", "").lower() == "soldout"
-            if price:
+            # Truthiness would route proven-free 0 / "0" into the no-price branch
+            # and lose the free signal — gate on presence instead.
+            if price is not None and price != "":
                 try:
                     price_value = float(str(price).replace("$", "").replace(",", ""))
                     tickets.append(

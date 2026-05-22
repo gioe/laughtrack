@@ -130,6 +130,20 @@ def test_from_dict_parses_ticket_attributes():
     assert ticket.remaining_tickets == 50
 
 
+def test_ninkashi_ticket_from_dict_none_price_is_unknown():
+    """TASK-2405: missing API price is unknown (None), not free (0)."""
+    raw_tickets = [{"description": "GA", "price": None, "sold_out": False}]
+    event = NinkashiEvent.from_dict(_raw_event(tickets=raw_tickets), URL_SITE)
+    assert event.tickets_attributes[0].price is None
+
+
+def test_ninkashi_ticket_from_dict_unparseable_price_is_unknown():
+    """TASK-2405: unparseable API price is unknown (None), not free (0)."""
+    raw_tickets = [{"description": "GA", "price": "weird", "sold_out": False}]
+    event = NinkashiEvent.from_dict(_raw_event(tickets=raw_tickets), URL_SITE)
+    assert event.tickets_attributes[0].price is None
+
+
 def test_from_dict_handles_missing_tickets():
     """from_dict() returns empty ticket list when tickets_attributes is absent."""
     raw = _raw_event()
