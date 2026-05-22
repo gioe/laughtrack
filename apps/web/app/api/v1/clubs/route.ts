@@ -24,8 +24,15 @@ export async function GET(req: NextRequest) {
             );
         }
         const clubs = await getClubs(limit, offset);
+        // Map camelCase ClubDTO to snake_case wire shape matching the iOS
+        // ClubListItem schema (ios/Sources/LaughTrackAPIClient/openapi.json).
         return NextResponse.json(
-            { data: clubs },
+            {
+                data: clubs.map(({ activeComedianCount, ...rest }) => ({
+                    ...rest,
+                    active_comedian_count: activeComedianCount,
+                })),
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {
