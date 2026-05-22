@@ -209,7 +209,9 @@ class TixrClient(BaseApiClient):
 
         api_url = f"{self.base_url}/api/groups/{normalized_group_id}/events?page={page}"
         try:
-            data = await self.fetch_json(url=api_url, logger_context={"group_id": normalized_group_id})
+            data = await self._fetch_group_events_json(
+                api_url, logger_context={"group_id": normalized_group_id}
+            )
         except Exception as exc:
             self.log_warning(
                 f"Tixr group-events API fetch failed for group_id={normalized_group_id}: {exc}"
@@ -245,6 +247,43 @@ class TixrClient(BaseApiClient):
             )
 
         return parsed
+
+    async def _fetch_group_events_json(
+        self, api_url: str, logger_context: JSONDict
+    ) -> Optional[Any]:
+        """Fetch group-events JSON direct first, then with the Tixr proxy key.
+
+        The group-events API is often available through curl-cffi direct egress
+        even when the rendered group page is DataDome-blocked. The residential
+        proxy remains the fallback for GHA-class egress where direct is blocked.
+        """
+        data = await self._fetch_group_events_json_direct(api_url, logger_context)
+        if data is not None:
+            return data
+
+        return await self.fetch_json(url=api_url, logger_context=logger_context)
+
+    async def _fetch_group_events_json_direct(
+        self, api_url: str, logger_context: JSONDict
+    ) -> Optional[Any]:
+        """Fetch group-events JSON without TixrClient headers or proxy routing."""
+        try:
+            async with AsyncSession(
+                impersonate=self._get_impersonation_target(api_url),
+                timeout=30,
+            ) as session:
+                await self._apply_rate_limit(api_url)
+                return await self.http_client.fetch_json(
+                    session=session,
+                    url=api_url,
+                    headers=None,
+                    logger_context=logger_context,
+                    proxy_url=None,
+                    scraper_key=None,
+                )
+        except Exception as exc:
+            self.log_warning(f"Tixr direct group-events API fetch failed for {api_url}: {exc}")
+            return None
 
     @classmethod
     def _extract_group_event_records(cls, data: Any) -> List[JSONDict]:

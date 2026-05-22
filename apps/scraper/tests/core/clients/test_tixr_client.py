@@ -1395,11 +1395,11 @@ class TestFetchGroupEvents:
         client = self._client(monkeypatch)
         calls = []
 
-        async def fake_fetch_json(url, logger_context=None):
+        async def fake_direct_fetch(url, logger_context):
             calls.append((url, logger_context))
             return {"events": [self._api_event()]}
 
-        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
         events = await client.fetch_group_events("1613")
 
@@ -1412,6 +1412,29 @@ class TestFetchGroupEvents:
                 {"group_id": "1613"},
             )
         ]
+        assert client.key == "tixr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_tries_direct_before_residential_proxy(self, monkeypatch):
+        client = self._client(monkeypatch)
+        calls = []
+
+        async def fake_direct_fetch(url, logger_context):
+            calls.append("direct")
+            return None
+
+        async def fake_fetch_json(url, logger_context=None):
+            calls.append(client.key)
+            return {"events": [self._api_event()]}
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+
+        events = await client.fetch_group_events("1613")
+
+        assert len(events) == 1
+        assert calls == ["direct", "tixr"]
+        assert client.key == "tixr"
 
     @pytest.mark.asyncio
     async def test_fetch_group_events_deduplicates_and_skips_unparseable(self, monkeypatch):
@@ -1420,10 +1443,10 @@ class TestFetchGroupEvents:
         duplicate = self._api_event("189028")
         invalid = {"id": "bad", "name": "Missing Date"}
 
-        async def fake_fetch_json(url, logger_context=None):
+        async def fake_direct_fetch(url, logger_context):
             return {"events": [valid, duplicate, invalid]}
 
-        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
         events = await client.fetch_group_events("1613")
 
