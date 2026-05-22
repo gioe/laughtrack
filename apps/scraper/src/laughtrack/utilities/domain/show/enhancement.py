@@ -42,18 +42,18 @@ class ShowEnhancement:
 
     @staticmethod
     def _create_enhanced_ticket_from_offer(offer: Offer) -> Optional[Ticket]:
-        """Create an enhanced ticket from an offer with advanced processing."""
+        """Create an enhanced ticket from an offer with advanced processing.
+
+        A None price signals "unknown" — the ticket is still emitted as an
+        access record (with the offer URL, type, and sold-out signal) rather
+        than dropped. See TASK-2405 audit.
+        """
         try:
-            # Extract and validate price
             price = ShowEnhancement._extract_price_from_offer(offer)
             if price is None:
                 Logger.warning(f"Could not extract valid price from offer: {offer.price}")
-                return None
 
-            # Determine ticket type from offer data
             ticket_type = ShowEnhancement._determine_ticket_type(offer)
-
-            # Determine sold out status
             sold_out = ShowEnhancement._is_sold_out(offer)
 
             return Ticket(price=price, purchase_url=offer.url or "", type=ticket_type, sold_out=sold_out)
