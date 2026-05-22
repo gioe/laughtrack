@@ -491,6 +491,58 @@ class TestInsertTicketsSingleTransaction:
         tx_conn.commit.assert_called_once()
         tx_conn.rollback.assert_not_called()
 
+    @pytest.mark.parametrize(
+        "failing_cursor_call_index, label",
+        [
+            (0, "schema_org_cleanup"),
+            (1, "stale_ticket_sweep"),
+        ],
+    )
+    def test_rollback_when_execute_with_cursor_raises(self, failing_cursor_call_index, label):
+        """Regression guard: if either DELETE (schema.org cleanup or the
+        TASK-2397 stale-ticket sweep) fails, the wrapping transaction must
+        roll back so a future refactor can't accidentally move one of the
+        DELETEs outside the single transaction without a test catching it."""
+        handler = TicketHandler()
+        tx_conn = MagicMock(name="tx_conn")
+
+        @contextmanager
+        def _real_transaction():
+            try:
+                yield tx_conn
+                tx_conn.commit()
+            except Exception:
+                tx_conn.rollback()
+                raise
+
+        handler.transaction = _real_transaction  # type: ignore[assignment]
+
+        cursor_call_count = {"n": 0}
+
+        def _maybe_raise(*_args, **_kwargs):
+            current = cursor_call_count["n"]
+            cursor_call_count["n"] += 1
+            if current == failing_cursor_call_index:
+                raise RuntimeError(f"{label} DELETE failed")
+            return None
+
+        handler.execute_with_cursor = MagicMock(side_effect=_maybe_raise)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show = _FakeShow(42, [_make_ticket("https://example.com/buy")])
+
+        with pytest.raises(RuntimeError, match=f"{label} DELETE failed"):
+            handler.insert_tickets([show])
+
+        # Transaction rolled back, did not commit.
+        tx_conn.rollback.assert_called_once()
+        tx_conn.commit.assert_not_called()
+
+        # If the sweep was the failing call, the schema.org cleanup ran first;
+        # if the cleanup was the failing call, no further SQL ran.
+        assert handler.execute_with_cursor.call_count == failing_cursor_call_index + 1
+        handler.execute_batch_operation.assert_not_called()
+
     def test_early_return_after_schema_org_cleanup_still_commits(self):
         """When every incoming ticket is filtered out as invalid schema.org,
         insert_tickets returns from inside the transaction block — the

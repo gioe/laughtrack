@@ -1,6 +1,6 @@
 """Ticket database handler for ticket-specific operations."""
 
-from typing import List, TYPE_CHECKING
+from typing import List, Set, TYPE_CHECKING
 
 from sql.ticket_queries import TicketQueries
 
@@ -34,7 +34,6 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
         Insert tickets into the database.
 
         Args:
-            conn: Database connection
             shows: List of shows containing tickets to insert
         """
 
@@ -92,7 +91,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                 # one round trip.
                 sweep_keep_show_ids: List[int] = []
                 sweep_keep_types: List[str] = []
-                shows_with_incoming_tickets: set = set()
+                shows_with_incoming_tickets: Set[int] = set()
                 for ticket in deduplicated_tickets:
                     if ticket.show_id is None:
                         continue
