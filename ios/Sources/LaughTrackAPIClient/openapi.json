@@ -1778,6 +1778,88 @@
         }
       }
     },
+    "/favorite-shows": {
+      "get": {
+        "operationId": "getFavoriteShows",
+        "summary": "List upcoming shows featuring the signed-in user's saved favorite comedians",
+        "tags": ["favorites"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "One-indexed page number (default 1)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size (default 20, max 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorite comedian shows",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteShowListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/favorite-clubs": {
       "get": {
         "operationId": "getFavoriteClubs",
@@ -2220,6 +2302,49 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/FavoritePodcastItem" }
           }
+        }
+      },
+      "FavoriteShowItem": {
+        "type": "object",
+        "required": ["id", "clubID", "date", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "clubID": { "type": "integer" },
+          "clubName": { "type": "string" },
+          "clubCity": { "type": ["string", "null"] },
+          "clubState": { "type": ["string", "null"] },
+          "date": { "type": "string", "format": "date-time" },
+          "tickets": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Ticket" }
+          },
+          "name": { "type": ["string", "null"] },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "lineup": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianLineup" }
+          },
+          "description": { "type": "string" },
+          "address": { "type": "string" },
+          "room": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "soldOut": { "type": "boolean" },
+          "distanceMiles": { "type": ["number", "null"] },
+          "timezone": { "type": ["string", "null"] }
+        }
+      },
+      "FavoriteShowListResponse": {
+        "type": "object",
+        "required": ["data", "total", "page", "size", "totalPages"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FavoriteShowItem" }
+          },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "size": { "type": "integer" },
+          "totalPages": { "type": "integer" }
         }
       },
       "SocialData": {
