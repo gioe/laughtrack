@@ -2170,9 +2170,9 @@
       },
       "MeUpdateRequest": {
         "type": "object",
-        "required": ["comedian_onboarding_completed"],
+        "required": ["comedianOnboardingCompleted"],
         "properties": {
-          "comedian_onboarding_completed": {
+          "comedianOnboardingCompleted": {
             "type": "boolean",
             "description": "Whether comedian onboarding has been completed or skipped."
           }
@@ -2184,9 +2184,9 @@
         "properties": {
           "data": {
             "type": "object",
-            "required": ["comedian_onboarding_completed"],
+            "required": ["comedianOnboardingCompleted"],
             "properties": {
-              "comedian_onboarding_completed": {
+              "comedianOnboardingCompleted": {
                 "type": "boolean",
                 "description": "Whether comedian onboarding has been completed or skipped."
               }
@@ -2196,9 +2196,9 @@
       },
       "MeData": {
         "type": "object",
-        "required": ["email", "email_show_notifications", "push_show_notifications", "comedian_onboarding_completed", "zip_code", "nearby_distance_miles"],
+        "required": ["email", "emailShowNotifications", "pushShowNotifications", "comedianOnboardingCompleted", "zipCode", "nearbyDistanceMiles"],
         "properties": {
-          "display_name": {
+          "displayName": {
             "type": "string",
             "nullable": true,
             "description": "User-facing display name from OAuth (User.name). May be null if the provider didn't supply one."
@@ -2207,29 +2207,29 @@
             "type": "string",
             "description": "Unique email address (User.email)."
           },
-          "avatar_url": {
+          "avatarUrl": {
             "type": "string",
             "nullable": true,
             "description": "Avatar/profile photo URL from OAuth (User.image). May be null."
           },
-          "email_show_notifications": {
+          "emailShowNotifications": {
             "type": "boolean",
             "description": "Whether the signed-in user receives email notifications for new shows from saved comedians."
           },
-          "push_show_notifications": {
+          "pushShowNotifications": {
             "type": "boolean",
             "description": "Whether the signed-in user receives push notifications for new shows from saved comedians."
           },
-          "comedian_onboarding_completed": {
+          "comedianOnboardingCompleted": {
             "type": "boolean",
             "description": "Whether comedian onboarding has been completed or skipped."
           },
-          "zip_code": {
+          "zipCode": {
             "type": "string",
             "nullable": true,
             "description": "Saved profile ZIP code used for Near Me."
           },
-          "nearby_distance_miles": {
+          "nearbyDistanceMiles": {
             "type": "integer",
             "nullable": true,
             "description": "Saved profile distance in miles used for Near Me."
@@ -2281,16 +2281,16 @@
       },
       "FavoritePodcastItem": {
         "type": "object",
-        "required": ["id", "title", "episode_count", "isFavorite"],
+        "required": ["id", "title", "episodeCount", "isFavorite"],
         "properties": {
           "id": { "type": "integer" },
           "title": { "type": "string" },
-          "author_name": { "type": ["string", "null"] },
-          "website_url": { "type": ["string", "null"] },
-          "feed_url": { "type": ["string", "null"] },
-          "image_url": { "type": ["string", "null"] },
+          "authorName": { "type": ["string", "null"] },
+          "websiteUrl": { "type": ["string", "null"] },
+          "feedUrl": { "type": ["string", "null"] },
+          "imageUrl": { "type": ["string", "null"] },
           "description": { "type": ["string", "null"] },
-          "episode_count": { "type": "integer" },
+          "episodeCount": { "type": "integer" },
           "isFavorite": { "type": "boolean" }
         }
       },
@@ -2319,7 +2319,7 @@
             "items": { "$ref": "#/components/schemas/Ticket" }
           },
           "name": { "type": ["string", "null"] },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
           "lineup": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianLineup" }
@@ -2352,12 +2352,12 @@
         "required": ["id"],
         "properties": {
           "id": { "type": "integer" },
-          "instagram_account": { "type": ["string", "null"] },
-          "instagram_followers": { "type": ["integer", "null"] },
-          "tiktok_account": { "type": ["string", "null"] },
-          "tiktok_followers": { "type": ["integer", "null"] },
-          "youtube_account": { "type": ["string", "null"] },
-          "youtube_followers": { "type": ["integer", "null"] },
+          "instagramAccount": { "type": ["string", "null"] },
+          "instagramFollowers": { "type": ["integer", "null"] },
+          "tiktokAccount": { "type": ["string", "null"] },
+          "tiktokFollowers": { "type": ["integer", "null"] },
+          "youtubeAccount": { "type": ["string", "null"] },
+          "youtubeFollowers": { "type": ["integer", "null"] },
           "website": { "type": ["string", "null"] },
           "popularity": { "type": ["number", "null"] },
           "linktree": { "type": ["string", "null"] }
@@ -2391,9 +2391,9 @@
           "uuid": { "type": "string" },
           "id": { "type": "integer" },
           "userId": { "type": "integer" },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
           "isFavorite": { "type": "boolean" },
-          "show_count": { "type": "integer" },
+          "showCount": { "type": "integer" },
           "role": { "type": ["string", "null"] },
           "isAlias": { "type": "boolean" },
           "parentComedian": { "$ref": "#/components/schemas/ComedianLineup" },
@@ -2418,7 +2418,7 @@
             "items": { "$ref": "#/components/schemas/Ticket" }
           },
           "name": { "type": ["string", "null"] },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
           "lineup": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianLineup" }
@@ -2523,7 +2523,7 @@
             "items": { "$ref": "#/components/schemas/Ticket" }
           },
           "name": { "type": ["string", "null"] },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
           "lineup": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianLineup" }
@@ -2553,14 +2553,14 @@
       },
       "ClubListItem": {
         "type": "object",
-        "required": ["id", "address", "name", "imageUrl", "active_comedian_count"],
+        "required": ["id", "address", "name", "imageUrl", "activeComedianCount"],
         "properties": {
           "id": { "type": "integer" },
           "address": { "type": "string" },
           "name": { "type": "string" },
           "zipCode": { "type": ["string", "null"] },
           "imageUrl": { "type": "string" },
-          "active_comedian_count": { "type": "integer" }
+          "activeComedianCount": { "type": "integer" }
         }
       },
       "ClubDetail": {
@@ -2587,13 +2587,13 @@
           "name": { "type": "string" },
           "zipCode": { "type": ["string", "null"] },
           "imageUrl": { "type": "string" },
-          "show_count": { "type": "integer" },
-          "is_Favorite": { "type": "boolean" },
+          "showCount": { "type": "integer" },
+          "isFavorite": { "type": "boolean" },
           "city": { "type": ["string", "null"] },
           "state": { "type": ["string", "null"] },
-          "phone_number": { "type": ["string", "null"] },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
-          "active_comedian_count": { "type": "integer" },
+          "phoneNumber": { "type": ["string", "null"] },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "activeComedianCount": { "type": "integer" },
           "distanceMiles": { "type": ["number", "null"] }
         }
       },
@@ -2614,25 +2614,25 @@
       },
       "ComedianListItem": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "social_data", "show_count"],
+        "required": ["id", "uuid", "name", "imageUrl", "socialData", "showCount"],
         "properties": {
           "id": { "type": "integer" },
           "uuid": { "type": "string" },
           "name": { "type": "string" },
           "imageUrl": { "type": "string" },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
-          "show_count": { "type": "integer" }
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "showCount": { "type": "integer" }
         }
       },
       "ComedianDetail": {
         "type": "object",
-        "required": ["id", "uuid", "name", "imageUrl", "social_data", "podcastAppearances"],
+        "required": ["id", "uuid", "name", "imageUrl", "socialData", "podcastAppearances"],
         "properties": {
           "id": { "type": "integer" },
           "uuid": { "type": "string" },
           "name": { "type": "string" },
           "imageUrl": { "type": "string" },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
           "podcastAppearances": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/PodcastAppearance" }
@@ -2710,14 +2710,14 @@
       },
       "ComedianSearchItem": {
         "type": "object",
-        "required": ["name", "imageUrl", "uuid", "id", "social_data", "show_count"],
+        "required": ["name", "imageUrl", "uuid", "id", "socialData", "showCount"],
         "properties": {
           "id": { "type": "integer" },
           "uuid": { "type": "string" },
           "name": { "type": "string" },
           "imageUrl": { "type": "string" },
-          "social_data": { "$ref": "#/components/schemas/SocialData" },
-          "show_count": { "type": "integer" },
+          "socialData": { "$ref": "#/components/schemas/SocialData" },
+          "showCount": { "type": "integer" },
           "isFavorite": { "type": "boolean" }
         }
       },
