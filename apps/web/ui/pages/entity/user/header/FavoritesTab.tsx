@@ -177,6 +177,7 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
             } catch {
                 if (!cancelled) {
                     setShows([]);
+                    setShowsTotal(0);
                     setShowError("Failed to load upcoming shows.");
                 }
             } finally {

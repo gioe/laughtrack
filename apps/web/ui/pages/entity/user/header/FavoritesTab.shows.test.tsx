@@ -106,14 +106,26 @@ describe("FavoritesTab shows pagination", () => {
         });
     });
 
-    it("clamps non-positive or non-numeric showsPage values to page=1", async () => {
-        searchParams = new URLSearchParams({ showsPage: "not-a-number" });
-        render(<FavoritesTab userId="user-1" />);
+    it.each([
+        ["non-numeric", "not-a-number"],
+        ["zero", "0"],
+        ["negative", "-3"],
+    ])(
+        "clamps %s showsPage value (%s) to page=1",
+        async (_label, raw) => {
+            searchParams = new URLSearchParams({ showsPage: raw });
+            render(<FavoritesTab userId="user-1" />);
 
-        await waitFor(() => {
-            expect(favoriteShowsCalls()).toContain(
-                "/api/v1/favorite-shows?page=1&size=20",
+            await waitFor(() => {
+                expect(favoriteShowsCalls()).toContain(
+                    "/api/v1/favorite-shows?page=1&size=20",
+                );
+            });
+
+            const otherPageHits = favoriteShowsCalls().filter(
+                (u) => !u.endsWith("?page=1&size=20"),
             );
-        });
-    });
+            expect(otherPageHits).toEqual([]);
+        },
+    );
 });
