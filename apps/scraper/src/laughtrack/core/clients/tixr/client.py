@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
+import pytz
 from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.event.tixr import TixrEvent
@@ -731,7 +732,7 @@ class TixrClient(BaseApiClient):
             supplied_tags = ["event"]
             room = ""
 
-            grouped = self._group_tiers_by_performance_time(data, base_date)
+            grouped = self._group_tiers_by_performance_time(data, base_date, timezone)
 
             shows: List[Show] = []
             for performance_date, tier_dicts in sorted(grouped.items(), key=lambda kv: kv[0]):
@@ -898,23 +899,30 @@ class TixrClient(BaseApiClient):
         ]
 
     def _group_tiers_by_performance_time(
-        self, data: dict, base_date: datetime
+        self, data: dict, base_date: datetime, venue_timezone: Optional[str]
     ) -> Dict[datetime, List[dict]]:
         """Bucket every tier by the performance time encoded in its ``name``.
 
-        Returns a mapping keyed on the concrete datetime each tier belongs to.
-        If fewer than two distinct *parsed* performance times are present,
-        every tier is returned in a single bucket at ``base_date`` so
-        unrelated naming conventions never trigger a false split.
+        Weekday + clock-time parsing happens in the venue's local timezone:
+        Tixr's ``formattedISOStartDate`` arrives in UTC for the live API even
+        when the venue is on Pacific time, so ``base_date.weekday()`` and
+        ``base_date.hour`` in UTC do not match the wall-clock day/time named
+        on the tier (e.g. "Friday 7:30pm"). Returns a mapping keyed on the
+        concrete datetime each tier belongs to. If fewer than two distinct
+        *parsed* performance times are present, every tier is returned in a
+        single bucket at ``base_date`` so unrelated naming conventions never
+        trigger a false split.
         """
         all_tiers = list(self._iter_event_tiers(data))
         if not all_tiers:
             return {base_date: []}
 
+        local_base = self._localize_for_weekday_math(base_date, venue_timezone)
+
         parsed_times: set = set()
         per_tier_times: List[Optional[datetime]] = []
         for tier in all_tiers:
-            tier_time = self._parse_tier_performance_time(tier.get("name"), base_date)
+            tier_time = self._parse_tier_performance_time(tier.get("name"), local_base)
             per_tier_times.append(tier_time)
             if tier_time is not None:
                 parsed_times.add(tier_time)
@@ -927,6 +935,23 @@ class TixrClient(BaseApiClient):
             key = tier_time if tier_time is not None else base_date
             buckets.setdefault(key, []).append(tier)
         return buckets
+
+    @staticmethod
+    def _localize_for_weekday_math(
+        base_date: datetime, venue_timezone: Optional[str]
+    ) -> datetime:
+        """Return ``base_date`` in the venue's local timezone for weekday math.
+
+        Falls back to ``base_date`` unchanged when no venue timezone is known
+        or pytz can't resolve the name.
+        """
+        if not venue_timezone:
+            return base_date
+        try:
+            tz = pytz.timezone(venue_timezone)
+        except Exception:
+            return base_date
+        return base_date.astimezone(tz)
 
     _PERFORMANCE_TIME_SUFFIX_RE = re.compile(
         r"\s+[-–—]\s*"

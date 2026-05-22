@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+import pytz
 
 from laughtrack.core.clients.tixr import client as tixr_module
 from laughtrack.core.clients.tixr.client import TixrClient
@@ -1502,15 +1503,19 @@ class TestFetchGroupEvents:
         into one TixrEvent per occurrence, each carrying only its own tiers.
 
         Models the live Laugh Factory Covina event 187607 ("JERRY GARCIA
-        (May 22-23)") which the API returned as a single Friday-7:30 event
-        with 24 tiers spanning Friday 7:30, Friday 9:30, Saturday 7, and
-        Saturday 9:30 shows.
+        (May 22-23)") whose API response carries ``formattedISOStartDate``
+        in UTC (Tixr emits UTC for the live group-events feed even for
+        Pacific venues) and ``venue.timezone="America/Los_Angeles"``. The
+        splitter must do its weekday + clock-time math in the venue's local
+        timezone so "Friday 7:30pm" lands on Friday-night PT, not Friday
+        morning PT.
         """
         client = self._client(monkeypatch)
+        # 2026-05-23T02:30:00Z is Friday 2026-05-22 19:30 PT (-07:00 DST).
         bundled_event = {
             "id": "187607",
             "name": "JERRY GARCIA (May 22-23)",
-            "formattedISOStartDate": "2026-05-22T19:30:00-07:00",
+            "formattedISOStartDate": "2026-05-23T02:30:00Z",
             "url": (
                 "https://www.tixr.com/groups/laughfactorycovina/events/"
                 "jerry-garcia-may-22-23--187607"
@@ -1540,18 +1545,23 @@ class TestFetchGroupEvents:
         assert len(events) == 4
         assert {event.event_id for event in events} == {"187607"}
 
-        by_dt = {(event.date_time.weekday(), event.date_time.hour, event.date_time.minute): event for event in events}
-        # Friday is weekday 4, Saturday is weekday 5 in datetime.
-        fri_730 = by_dt[(4, 19, 30)]
-        fri_930 = by_dt[(4, 21, 30)]
-        sat_7 = by_dt[(5, 19, 0)]
-        sat_930 = by_dt[(5, 21, 30)]
+        # Compare in Pacific local time — that's the wall clock named on each tier.
+        la = pytz.timezone("America/Los_Angeles")
+        by_local_dt = {}
+        for event in events:
+            local = event.date_time.astimezone(la)
+            by_local_dt[(local.weekday(), local.hour, local.minute)] = event
 
-        # Calendar dates anchored to the event's week (Fri 2026-05-22 / Sat 2026-05-23).
-        assert (fri_730.date_time.year, fri_730.date_time.month, fri_730.date_time.day) == (2026, 5, 22)
-        assert (fri_930.date_time.year, fri_930.date_time.month, fri_930.date_time.day) == (2026, 5, 22)
-        assert (sat_7.date_time.year, sat_7.date_time.month, sat_7.date_time.day) == (2026, 5, 23)
-        assert (sat_930.date_time.year, sat_930.date_time.month, sat_930.date_time.day) == (2026, 5, 23)
+        # Friday is weekday 4, Saturday is weekday 5.
+        fri_730 = by_local_dt[(4, 19, 30)]
+        fri_930 = by_local_dt[(4, 21, 30)]
+        sat_7 = by_local_dt[(5, 19, 0)]
+        sat_930 = by_local_dt[(5, 21, 30)]
+
+        # Each split lands on the matching calendar date in PT (Fri 5/22 / Sat 5/23).
+        for ev, expected_day in ((fri_730, 22), (fri_930, 22), (sat_7, 23), (sat_930, 23)):
+            local = ev.date_time.astimezone(la)
+            assert (local.year, local.month, local.day) == (2026, 5, expected_day)
 
         assert [t.type for t in fri_730.show.tickets] == [
             "General Admission - Friday 7:30pm",
