@@ -40,7 +40,6 @@ silently hides ``"the venue has 47 events"``.
 import argparse
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
