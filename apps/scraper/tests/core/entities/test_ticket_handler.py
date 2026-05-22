@@ -274,3 +274,118 @@ class TestInsertTicketsPurchaseUrlUpsert:
         inserted_tuples = handler.execute_batch_operation.call_args.args[1]
         assert len(inserted_tuples) == 1
         assert inserted_tuples[0][1] == "https://good.example/ticket"
+
+
+# ---------------------------------------------------------------------------
+# Stale-ticket sweep (TASK-2397)
+# ---------------------------------------------------------------------------
+
+class TestStaleTicketSweep:
+    """
+    Regression: re-inserting a show with a smaller tier set must remove the
+    types that are no longer in the incoming batch. Before TASK-2397, the
+    BATCH_ADD upsert on (show_id, type) left previously-inserted types orphaned
+    in the DB. The handler now issues DELETE_STALE_TICKETS_FOR_SHOWS before the
+    upsert, keyed by the set of (show_id, type) pairs in the new batch.
+    """
+
+    def test_shrinking_tier_set_sweeps_orphaned_types(self):
+        """Show inserted with 4 tier types then re-inserted with 2 — the keep set sent to the DELETE sweep contains only the 2 surviving types."""
+        show_id = 1956627  # mirrors the show ID from the TASK-2387 regression that surfaced this bug
+
+        def _ticket(t: str) -> Ticket:
+            return Ticket(price=25.0, purchase_url=f"https://example.com/{t}", sold_out=False, type=t)
+
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        # First insert: 4 tier types.
+        show_v1 = _FakeShow(show_id, [
+            _ticket("Fri 7:30pm"),
+            _ticket("Fri 9:30pm"),
+            _ticket("Sat 7:30pm"),
+            _ticket("Sat 9:30pm"),
+        ])
+        handler.insert_tickets([show_v1])
+
+        # Re-insert with only 2 tier types — simulates Tixr bundle splitter
+        # re-attaching a smaller subset to the show after re-scrape.
+        show_v2 = _FakeShow(show_id, [
+            _ticket("Fri 7:30pm"),
+            _ticket("Fri 9:30pm"),
+        ])
+        handler.insert_tickets([show_v2])
+
+        # Locate the sweep call from the second insert. Each insert_tickets()
+        # call emits two execute_with_cursor calls: schema.org cleanup, then
+        # stale sweep. The second insert's sweep is the 4th overall call.
+        cursor_calls = handler.execute_with_cursor.call_args_list
+        assert len(cursor_calls) == 4
+
+        second_sweep = cursor_calls[3]
+        assert second_sweep.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
+        affected_show_ids, keep_show_ids, keep_types = second_sweep.args[1]
+        assert affected_show_ids == [show_id]
+        assert keep_show_ids == [show_id, show_id]
+        assert keep_types == ["Fri 7:30pm", "Fri 9:30pm"]
+
+        # The BATCH_ADD on the second insert must carry only the 2 surviving
+        # tickets — combined with the sweep, the DB ends with exactly 2 rows.
+        second_insert_tuples = handler.execute_batch_operation.call_args_list[1].args[1]
+        assert len(second_insert_tuples) == 2
+        assert {t[4] for t in second_insert_tuples} == {"Fri 7:30pm", "Fri 9:30pm"}
+
+    def test_sweep_query_uses_unnest_keep_set(self):
+        """The sweep query must NOT EXISTS-filter against an unnest(int[], text[]) keep set so a single round trip covers all incoming (show_id, type) pairs."""
+        sql = TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
+        assert "DELETE FROM tickets" in sql
+        assert "show_id = ANY(%s)" in sql
+        assert "NOT EXISTS" in sql
+        assert "unnest(%s::int[], %s::text[])" in sql
+
+    def test_sweep_runs_per_show_in_multi_show_batch(self):
+        """Two shows in one batch — sweep includes both show_ids and parallel arrays of their (show_id, type) keep pairs."""
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show_a = _FakeShow(101, [
+            Ticket(price=20.0, purchase_url="https://a.example/ga", sold_out=False, type="GA"),
+        ])
+        show_b = _FakeShow(202, [
+            Ticket(price=50.0, purchase_url="https://b.example/vip", sold_out=False, type="VIP"),
+            Ticket(price=30.0, purchase_url="https://b.example/ga", sold_out=False, type="GA"),
+        ])
+        handler.insert_tickets([show_a, show_b])
+
+        # Sweep is the second execute_with_cursor call (after schema.org cleanup).
+        sweep_call = handler.execute_with_cursor.call_args_list[1]
+        assert sweep_call.args[0] == TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS
+        affected_show_ids, keep_show_ids, keep_types = sweep_call.args[1]
+        assert affected_show_ids == [101, 202]
+        # keep_show_ids / keep_types preserve insertion order from deduplicate_tickets.
+        assert list(zip(keep_show_ids, keep_types)) == [
+            (101, "GA"),
+            (202, "VIP"),
+            (202, "GA"),
+        ]
+
+    def test_no_sweep_when_all_incoming_tickets_are_invalid_schema_org(self):
+        """If every incoming ticket is filtered out as invalid schema.org, insert_tickets returns before scheduling a sweep — existing tickets for the show are left alone."""
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show = _FakeShow(77, [
+            Ticket(price=10.0, purchase_url="https://bad.example/1", sold_out=False, type="http://schema.org/InStock"),
+            Ticket(price=15.0, purchase_url="https://bad.example/2", sold_out=False, type="https://schema.org/SoldOut"),
+        ])
+        handler.insert_tickets([show])
+
+        # Only the schema.org cleanup runs; no sweep, no batch insert.
+        assert handler.execute_with_cursor.call_count == 1
+        assert handler.execute_with_cursor.call_args_list[0].args[0] == (
+            TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS
+        )
+        handler.execute_batch_operation.assert_not_called()
