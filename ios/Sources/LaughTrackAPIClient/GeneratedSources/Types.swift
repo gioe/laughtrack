@@ -746,7 +746,7 @@ public enum Components {
         public struct MeUpdateRequest: Codable, Hashable, Sendable {
             /// Whether comedian onboarding has been completed or skipped.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeUpdateRequest/comedian_onboarding_completed`.
+            /// - Remark: Generated from `#/components/schemas/MeUpdateRequest/comedianOnboardingCompleted`.
             public var comedianOnboardingCompleted: Swift.Bool
             /// Creates a new `MeUpdateRequest`.
             ///
@@ -756,7 +756,7 @@ public enum Components {
                 self.comedianOnboardingCompleted = comedianOnboardingCompleted
             }
             public enum CodingKeys: String, CodingKey {
-                case comedianOnboardingCompleted = "comedian_onboarding_completed"
+                case comedianOnboardingCompleted
             }
         }
         /// - Remark: Generated from `#/components/schemas/MeUpdateResponse`.
@@ -765,7 +765,7 @@ public enum Components {
             public struct DataPayload: Codable, Hashable, Sendable {
                 /// Whether comedian onboarding has been completed or skipped.
                 ///
-                /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data/comedian_onboarding_completed`.
+                /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data/comedianOnboardingCompleted`.
                 public var comedianOnboardingCompleted: Swift.Bool
                 /// Creates a new `DataPayload`.
                 ///
@@ -775,7 +775,7 @@ public enum Components {
                     self.comedianOnboardingCompleted = comedianOnboardingCompleted
                 }
                 public enum CodingKeys: String, CodingKey {
-                    case comedianOnboardingCompleted = "comedian_onboarding_completed"
+                    case comedianOnboardingCompleted
                 }
             }
             /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data`.
@@ -795,7 +795,7 @@ public enum Components {
         public struct MeData: Codable, Hashable, Sendable {
             /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/display_name`.
+            /// - Remark: Generated from `#/components/schemas/MeData/displayName`.
             public var displayName: Swift.String?
             /// Unique email address (User.email).
             ///
@@ -803,27 +803,27 @@ public enum Components {
             public var email: Swift.String
             /// Avatar/profile photo URL from OAuth (User.image). May be null.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/avatar_url`.
+            /// - Remark: Generated from `#/components/schemas/MeData/avatarUrl`.
             public var avatarUrl: Swift.String?
             /// Whether the signed-in user receives email notifications for new shows from saved comedians.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/email_show_notifications`.
+            /// - Remark: Generated from `#/components/schemas/MeData/emailShowNotifications`.
             public var emailShowNotifications: Swift.Bool
             /// Whether the signed-in user receives push notifications for new shows from saved comedians.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/push_show_notifications`.
+            /// - Remark: Generated from `#/components/schemas/MeData/pushShowNotifications`.
             public var pushShowNotifications: Swift.Bool
             /// Whether comedian onboarding has been completed or skipped.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/comedian_onboarding_completed`.
+            /// - Remark: Generated from `#/components/schemas/MeData/comedianOnboardingCompleted`.
             public var comedianOnboardingCompleted: Swift.Bool
             /// Saved profile ZIP code used for Near Me.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/zip_code`.
+            /// - Remark: Generated from `#/components/schemas/MeData/zipCode`.
             public var zipCode: Swift.String?
             /// Saved profile distance in miles used for Near Me.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/nearby_distance_miles`.
+            /// - Remark: Generated from `#/components/schemas/MeData/nearbyDistanceMiles`.
             public var nearbyDistanceMiles: Swift.Int?
             /// Creates a new `MeData`.
             ///
@@ -856,14 +856,14 @@ public enum Components {
                 self.nearbyDistanceMiles = nearbyDistanceMiles
             }
             public enum CodingKeys: String, CodingKey {
-                case displayName = "display_name"
+                case displayName
                 case email
-                case avatarUrl = "avatar_url"
-                case emailShowNotifications = "email_show_notifications"
-                case pushShowNotifications = "push_show_notifications"
-                case comedianOnboardingCompleted = "comedian_onboarding_completed"
-                case zipCode = "zip_code"
-                case nearbyDistanceMiles = "nearby_distance_miles"
+                case avatarUrl
+                case emailShowNotifications
+                case pushShowNotifications
+                case comedianOnboardingCompleted
+                case zipCode
+                case nearbyDistanceMiles
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.
@@ -967,17 +967,17 @@ public enum Components {
             public var id: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/title`.
             public var title: Swift.String
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/author_name`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/authorName`.
             public var authorName: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/website_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/websiteUrl`.
             public var websiteUrl: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/feed_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/feedUrl`.
             public var feedUrl: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/image_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/imageUrl`.
             public var imageUrl: Swift.String?
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/description`.
             public var description: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/episode_count`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/episodeCount`.
             public var episodeCount: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/isFavorite`.
             public var isFavorite: Swift.Bool
@@ -1017,12 +1017,12 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case id
                 case title
-                case authorName = "author_name"
-                case websiteUrl = "website_url"
-                case feedUrl = "feed_url"
-                case imageUrl = "image_url"
+                case authorName
+                case websiteUrl
+                case feedUrl
+                case imageUrl
                 case description
-                case episodeCount = "episode_count"
+                case episodeCount
                 case isFavorite
             }
         }
@@ -1059,7 +1059,7 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/name`.
             public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
@@ -1143,7 +1143,7 @@ public enum Components {
                 case date
                 case tickets
                 case name
-                case socialData = "social_data"
+                case socialData
                 case lineup
                 case description
                 case address
@@ -1199,17 +1199,17 @@ public enum Components {
         public struct SocialData: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/SocialData/id`.
             public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/SocialData/instagram_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/instagramAccount`.
             public var instagramAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/instagram_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/instagramFollowers`.
             public var instagramFollowers: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/SocialData/tiktok_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/tiktokAccount`.
             public var tiktokAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/tiktok_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/tiktokFollowers`.
             public var tiktokFollowers: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/SocialData/youtube_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/youtubeAccount`.
             public var youtubeAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/youtube_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/youtubeFollowers`.
             public var youtubeFollowers: Swift.Int?
             /// - Remark: Generated from `#/components/schemas/SocialData/website`.
             public var website: Swift.String?
@@ -1255,12 +1255,12 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
-                case instagramAccount = "instagram_account"
-                case instagramFollowers = "instagram_followers"
-                case tiktokAccount = "tiktok_account"
-                case tiktokFollowers = "tiktok_followers"
-                case youtubeAccount = "youtube_account"
-                case youtubeFollowers = "youtube_followers"
+                case instagramAccount
+                case instagramFollowers
+                case tiktokAccount
+                case tiktokFollowers
+                case youtubeAccount
+                case youtubeFollowers
                 case website
                 case popularity
                 case linktree
@@ -1383,7 +1383,7 @@ public enum Components {
                     yield &self.storage.value.userId
                 }
             }
-            /// - Remark: Generated from `#/components/schemas/ComedianLineup/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianLineup/socialData`.
             public var socialData: Components.Schemas.SocialData? {
                 get  {
                     self.storage.value.socialData
@@ -1401,7 +1401,7 @@ public enum Components {
                     yield &self.storage.value.isFavorite
                 }
             }
-            /// - Remark: Generated from `#/components/schemas/ComedianLineup/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianLineup/showCount`.
             public var showCount: Swift.Int? {
                 get  {
                     self.storage.value.showCount
@@ -1496,9 +1496,9 @@ public enum Components {
                 case uuid
                 case id
                 case userId
-                case socialData = "social_data"
+                case socialData
                 case isFavorite
-                case showCount = "show_count"
+                case showCount
                 case role
                 case isAlias
                 case parentComedian
@@ -1523,11 +1523,11 @@ public enum Components {
                 var id: Swift.Int
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/userId`.
                 var userId: Swift.Int?
-                /// - Remark: Generated from `#/components/schemas/ComedianLineup/social_data`.
+                /// - Remark: Generated from `#/components/schemas/ComedianLineup/socialData`.
                 var socialData: Components.Schemas.SocialData?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/isFavorite`.
                 var isFavorite: Swift.Bool?
-                /// - Remark: Generated from `#/components/schemas/ComedianLineup/show_count`.
+                /// - Remark: Generated from `#/components/schemas/ComedianLineup/showCount`.
                 var showCount: Swift.Int?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/role`.
                 var role: Swift.String?
@@ -1585,7 +1585,7 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/Show/name`.
             public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/Show/social_data`.
+            /// - Remark: Generated from `#/components/schemas/Show/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/Show/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
@@ -1669,7 +1669,7 @@ public enum Components {
                 case date
                 case tickets
                 case name
-                case socialData = "social_data"
+                case socialData
                 case lineup
                 case description
                 case address
@@ -1896,7 +1896,7 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/name`.
             public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ShowDetail/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
@@ -1983,7 +1983,7 @@ public enum Components {
                 case date
                 case tickets
                 case name
-                case socialData = "social_data"
+                case socialData
                 case lineup
                 case description
                 case address
@@ -2032,7 +2032,7 @@ public enum Components {
             public var zipCode: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubListItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ClubListItem/active_comedian_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubListItem/activeComedianCount`.
             public var activeComedianCount: Swift.Int
             /// Creates a new `ClubListItem`.
             ///
@@ -2064,7 +2064,7 @@ public enum Components {
                 case name
                 case zipCode
                 case imageUrl
-                case activeComedianCount = "active_comedian_count"
+                case activeComedianCount
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClubDetail`.
@@ -2144,19 +2144,19 @@ public enum Components {
             public var zipCode: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/showCount`.
             public var showCount: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/is_Favorite`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/isFavorite`.
             public var isFavorite: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/city`.
             public var city: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/state`.
             public var state: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/phone_number`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/phoneNumber`.
             public var phoneNumber: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/socialData`.
             public var socialData: Components.Schemas.SocialData?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/active_comedian_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/activeComedianCount`.
             public var activeComedianCount: Swift.Int?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/distanceMiles`.
             public var distanceMiles: Swift.Double?
@@ -2211,13 +2211,13 @@ public enum Components {
                 case name
                 case zipCode
                 case imageUrl
-                case showCount = "show_count"
-                case isFavorite = "is_Favorite"
+                case showCount
+                case isFavorite
                 case city
                 case state
-                case phoneNumber = "phone_number"
-                case socialData = "social_data"
-                case activeComedianCount = "active_comedian_count"
+                case phoneNumber
+                case socialData
+                case activeComedianCount
                 case distanceMiles
             }
         }
@@ -2260,9 +2260,9 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianListItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianListItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianListItem/socialData`.
             public var socialData: Components.Schemas.SocialData
-            /// - Remark: Generated from `#/components/schemas/ComedianListItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianListItem/showCount`.
             public var showCount: Swift.Int
             /// Creates a new `ComedianListItem`.
             ///
@@ -2293,8 +2293,8 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
-                case showCount = "show_count"
+                case socialData
+                case showCount
             }
         }
         /// - Remark: Generated from `#/components/schemas/ComedianDetail`.
@@ -2307,7 +2307,7 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianDetail/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianDetail/socialData`.
             public var socialData: Components.Schemas.SocialData
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/podcastAppearances`.
             public var podcastAppearances: [Components.Schemas.PodcastAppearance]
@@ -2340,7 +2340,7 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
+                case socialData
                 case podcastAppearances
             }
         }
@@ -2566,9 +2566,9 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/socialData`.
             public var socialData: Components.Schemas.SocialData
-            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/showCount`.
             public var showCount: Swift.Int
             /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/isFavorite`.
             public var isFavorite: Swift.Bool?
@@ -2604,8 +2604,8 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
-                case showCount = "show_count"
+                case socialData
+                case showCount
                 case isFavorite
             }
         }
