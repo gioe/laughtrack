@@ -23,6 +23,7 @@ from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
+from laughtrack.scrapers.implementations.venues.laugh_boston.extractor import LaughBostonEventExtractor
 from laughtrack.scrapers.implementations.venues.laugh_boston.scraper import LaughBostonScraper
 from laughtrack.scrapers.implementations.venues.laugh_boston.data import LaughBostonPageData
 
@@ -68,6 +69,33 @@ def _pixl_response() -> dict:
             }
         ]
     }
+
+
+@pytest.mark.parametrize(
+    "sale",
+    [{"name": "General Admission", "state": "OPEN"}, {"name": "GA", "currentPrice": None}],
+)
+def test_pixl_sale_missing_or_null_current_price_emits_unknown_price(sale):
+    """Missing Pixl sale prices are unknown, not free."""
+    data = _pixl_response()
+    data["events"][0]["sales"] = [sale]
+
+    events = LaughBostonEventExtractor.parse_events_from_pixl(data, _club())
+
+    assert len(events) == 1
+    assert events[0].show.tickets[0].price is None
+
+
+def test_pixl_empty_sales_and_empty_top_level_price_emits_unknown_price():
+    """The Pixl fallback ticket keeps empty top-level prices as unknown."""
+    data = _pixl_response()
+    data["events"][0]["sales"] = []
+    data["events"][0]["price"] = ""
+
+    events = LaughBostonEventExtractor.parse_events_from_pixl(data, _club())
+
+    assert len(events) == 1
+    assert events[0].show.tickets[0].price is None
 
 
 # ---------------------------------------------------------------------------

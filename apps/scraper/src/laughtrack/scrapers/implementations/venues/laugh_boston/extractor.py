@@ -82,14 +82,14 @@ class LaughBostonEventExtractor:
             for sale in sales:
                 if not isinstance(sale, dict):
                     continue
-                price = float(sale.get("currentPrice", 0))
+                price = LaughBostonEventExtractor._parse_price(sale.get("currentPrice"))
                 sold_out = sale.get("state", "OPEN") != "OPEN"
                 ticket_type = sale.get("name", "General Admission")
                 tickets.append(Ticket(price=price, purchase_url=ticket_url, sold_out=sold_out, type=ticket_type))
 
             if not tickets:
                 # Fallback: use top-level price and status fields
-                price_val = float(event.get("price", 0) or 0)
+                price_val = LaughBostonEventExtractor._parse_price(event.get("price"))
                 status = event.get("status", "available")
                 sold_out = status.lower() not in ("available", "open")
                 tickets.append(
@@ -116,4 +116,13 @@ class LaughBostonEventExtractor:
 
         except Exception as e:
             Logger.error(f"Error building TixrEvent from Pixl event: {e}")
+            return None
+
+    @staticmethod
+    def _parse_price(value: Any) -> Optional[float]:
+        if value in (None, ""):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
             return None
