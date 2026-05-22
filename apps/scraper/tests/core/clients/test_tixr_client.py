@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch
 
 import pytest
+import pytz
 
 from laughtrack.core.clients.tixr import client as tixr_module
 from laughtrack.core.clients.tixr.client import TixrClient
@@ -1402,7 +1403,7 @@ class TestFetchGroupEvents:
 
         monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
-        events = await client.fetch_group_events("1613")
+        events = await client.fetch_group_events("1613", max_pages=1)
 
         assert len(events) == 1
         assert events[0].event_id == "189028"
@@ -1410,10 +1411,45 @@ class TestFetchGroupEvents:
         assert calls == [
             (
                 "https://www.tixr.com/api/groups/1613/events?page=1",
-                {"group_id": "1613"},
+                {"group_id": "1613", "page": 1},
             )
         ]
         assert client.key == "tixr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_reads_until_first_empty_page(self, monkeypatch):
+        """Covina's group-events API returns additional events on page 2."""
+        client = self._client(monkeypatch)
+        calls = []
+
+        async def fake_direct_fetch(url, logger_context):
+            calls.append((url, logger_context))
+            if url.endswith("page=1"):
+                return {"events": [self._api_event("189028")]}
+            if url.endswith("page=2"):
+                return {"events": [self._api_event("190370")]}
+            return []
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+
+        events = await client.fetch_group_events("1613")
+
+        assert [event.event_id for event in events] == ["189028", "190370"]
+        assert [event.show.tickets[0].price for event in events] == [25.0, 25.0]
+        assert calls == [
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=1",
+                {"group_id": "1613", "page": 1},
+            ),
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=2",
+                {"group_id": "1613", "page": 2},
+            ),
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=3",
+                {"group_id": "1613", "page": 3},
+            ),
+        ]
 
     @pytest.mark.asyncio
     async def test_fetch_group_events_tries_direct_before_headerless_proxy(self, monkeypatch):
@@ -1431,7 +1467,7 @@ class TestFetchGroupEvents:
         monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
         monkeypatch.setattr(client, "_fetch_group_events_json_proxy", fake_proxy_fetch)
 
-        events = await client.fetch_group_events("1613")
+        events = await client.fetch_group_events("1613", max_pages=1)
 
         assert len(events) == 1
         assert calls == ["direct", "proxy"]
@@ -1493,3 +1529,240 @@ class TestFetchGroupEvents:
         events = await client.fetch_group_events("1613")
 
         assert [event.event_id for event in events] == ["189028"]
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_splits_multi_performance_bundle_by_ticket_time(
+        self, monkeypatch
+    ):
+        """A Tixr event whose tiers cover multiple performance times is split
+        into one TixrEvent per occurrence, each carrying only its own tiers.
+
+        Models the live Laugh Factory Covina event 187607 ("JERRY GARCIA
+        (May 22-23)") whose API response carries ``formattedISOStartDate``
+        in UTC (Tixr emits UTC for the live group-events feed even for
+        Pacific venues) and ``venue.timezone="America/Los_Angeles"``. The
+        splitter must do its weekday + clock-time math in the venue's local
+        timezone so "Friday 7:30pm" lands on Friday-night PT, not Friday
+        morning PT.
+        """
+        client = self._client(monkeypatch)
+        # 2026-05-23T02:30:00Z is Friday 2026-05-22 19:30 PT (-07:00 DST).
+        bundled_event = {
+            "id": "187607",
+            "name": "JERRY GARCIA (May 22-23)",
+            "formattedISOStartDate": "2026-05-23T02:30:00Z",
+            "url": (
+                "https://www.tixr.com/groups/laughfactorycovina/events/"
+                "jerry-garcia-may-22-23--187607"
+            ),
+            "group": {"subdomain": "laughfactorycovina"},
+            "venue": {"timezone": "America/Los_Angeles"},
+            "sales": [
+                {
+                    "tiers": [
+                        {"name": "General Admission - Friday 7:30pm", "price": "31.62", "active": True},
+                        {"name": "VIP Seating - Friday 7:30pm", "price": "42.32", "active": True},
+                        {"name": "General Admission - Friday 9:30pm", "price": "31.62", "active": True},
+                        {"name": "Booth Seats - Saturday 7pm", "price": "53.02", "active": True},
+                        {"name": "General Admission - Saturday 9:30pm", "price": "31.62", "active": True},
+                    ]
+                }
+            ],
+        }
+
+        async def fake_direct_fetch(url, logger_context):
+            return {"events": [bundled_event]}
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+
+        events = await client.fetch_group_events("1613")
+
+        assert len(events) == 4
+        assert {event.event_id for event in events} == {"187607"}
+
+        # Compare in Pacific local time — that's the wall clock named on each tier.
+        la = pytz.timezone("America/Los_Angeles")
+        by_local_dt = {}
+        for event in events:
+            local = event.date_time.astimezone(la)
+            by_local_dt[(local.weekday(), local.hour, local.minute)] = event
+
+        # Friday is weekday 4, Saturday is weekday 5.
+        fri_730 = by_local_dt[(4, 19, 30)]
+        fri_930 = by_local_dt[(4, 21, 30)]
+        sat_7 = by_local_dt[(5, 19, 0)]
+        sat_930 = by_local_dt[(5, 21, 30)]
+
+        # Each split lands on the matching calendar date in PT (Fri 5/22 / Sat 5/23).
+        for ev, expected_day in ((fri_730, 22), (fri_930, 22), (sat_7, 23), (sat_930, 23)):
+            local = ev.date_time.astimezone(la)
+            assert (local.year, local.month, local.day) == (2026, 5, expected_day)
+
+        # Post-split tier names drop the redundant " - <weekday> <clock>" suffix
+        # since each performance is now its own Show with the time on the Show
+        # itself. The three "General Admission - ..." source tiers collapse to
+        # the bare "General Admission" base name across distinct performances —
+        # the per-show Ticket.type set must stay collision-free (the model has
+        # @@unique([showId, type])).
+        assert [t.type for t in fri_730.show.tickets] == [
+            "General Admission",
+            "VIP Seating",
+        ]
+        assert [t.type for t in fri_930.show.tickets] == ["General Admission"]
+        assert [t.type for t in sat_7.show.tickets] == ["Booth Seats"]
+        assert [t.type for t in sat_930.show.tickets] == ["General Admission"]
+
+        # All three "General Admission - ..." source tiers share a base name
+        # but land on different shows — the splitter must never produce two
+        # tiers with the same base name on a single show.
+        for event in events:
+            tier_types = [t.type for t in event.show.tickets]
+            assert len(tier_types) == len(set(tier_types))
+
+        # All splits keep the bundled event's source URL so the user lands on the same purchase page.
+        assert {event.show.show_page_url for event in events} == {bundled_event["url"]}
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_preserves_single_performance_ticket_tiers(
+        self, monkeypatch
+    ):
+        """Single-performance events with tiers that lack a weekday+time
+        suffix still return one Show carrying every tier — the splitter
+        must not false-positive on plain tier names."""
+        client = self._client(monkeypatch)
+        plain_event = {
+            "id": "189028",
+            "name": "Comedy Night",
+            "formattedISOStartDate": "2026-05-12T20:00:00-07:00",
+            "url": (
+                "https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-189028"
+            ),
+            "group": {"subdomain": "laughfactorycovina"},
+            "sales": [
+                {
+                    "tiers": [
+                        {"name": "General Admission", "price": "25.00", "active": True},
+                        {"name": "VIP Seating", "price": "45.00", "active": True},
+                        {"name": "Booth Seats", "price": "55.00", "active": False},
+                    ]
+                }
+            ],
+        }
+
+        async def fake_direct_fetch(url, logger_context):
+            return {"events": [plain_event]}
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+
+        events = await client.fetch_group_events("1613")
+
+        assert len(events) == 1
+        event = events[0]
+        assert event.event_id == "189028"
+        assert (event.date_time.hour, event.date_time.minute) == (20, 0)
+        assert [t.type for t in event.show.tickets] == [
+            "General Admission",
+            "VIP Seating",
+            "Booth Seats",
+        ]
+        assert [t.sold_out for t in event.show.tickets] == [False, False, True]
+
+    def test_localize_for_weekday_math_returns_unchanged_when_no_timezone(self):
+        """A missing venue.timezone returns base_date unchanged.
+
+        The fallback path matters because a regression to the original
+        UTC-vs-local bug shows up only when the venue timezone is missing
+        or unresolvable — the live-API splitter test always passes a valid
+        timezone string.
+        """
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        assert TixrClient._localize_for_weekday_math(base, None) is base
+        assert TixrClient._localize_for_weekday_math(base, "") is base
+
+    def test_localize_for_weekday_math_returns_unchanged_when_timezone_invalid(self):
+        """An unresolvable timezone string returns base_date unchanged."""
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        assert TixrClient._localize_for_weekday_math(base, "Not/A_Real_Zone") is base
+
+    def test_localize_for_weekday_math_converts_to_venue_tz(self):
+        """A valid venue timezone returns the same instant in venue local time.
+
+        Anchors the contract the splitter relies on: a UTC ``base_date``
+        landing past midnight UTC must report the *previous* PT calendar
+        day so the tier "Friday 7:30pm" anchors on Friday-PT, not the
+        UTC Saturday that the same instant falls on.
+        """
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        local = TixrClient._localize_for_weekday_math(base, "America/Los_Angeles")
+        assert (local.year, local.month, local.day) == (2026, 5, 22)
+        assert (local.hour, local.minute) == (19, 30)
+        assert local.weekday() == 4  # Friday
+
+    def test_strip_performance_time_suffix_strips_matching_suffix(self):
+        """A tier name whose suffix matches the show's performance time is
+        stripped down to its base name."""
+        from datetime import datetime
+        # Friday 2026-05-22 19:30 PT — weekday=4, hour=19, minute=30.
+        perf = datetime(2026, 5, 22, 19, 30)
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 7:30pm", perf
+            )
+            == "Golden Circle"
+        )
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "General Admission - Fri 7:30pm", perf
+            )
+            == "General Admission"
+        )
+
+    def test_strip_performance_time_suffix_preserves_when_no_suffix(self):
+        """A tier name without a recognizable suffix is returned unchanged."""
+        from datetime import datetime
+        perf = datetime(2026, 5, 22, 19, 30)
+        assert (
+            TixrClient._strip_performance_time_suffix("General Admission", perf)
+            == "General Admission"
+        )
+        assert (
+            TixrClient._strip_performance_time_suffix("VIP - Premium Seating", perf)
+            == "VIP - Premium Seating"
+        )
+
+    def test_strip_performance_time_suffix_preserves_when_suffix_mismatches(self):
+        """Defensive guard: a tier carrying a parseable suffix that does NOT
+        match the host show's (weekday, hour, minute) keeps its original name.
+
+        This is what protects unexpected tier shapes — e.g. a tier that ends
+        up in the base-date catch-all bucket but happens to carry a different
+        weekday/time suffix — from being silently mangled.
+        """
+        from datetime import datetime
+        # Performance is Friday 7:30pm PT.
+        perf = datetime(2026, 5, 22, 19, 30)
+
+        # Wrong weekday — Saturday suffix vs Friday show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Saturday 7:30pm", perf
+            )
+            == "Golden Circle - Saturday 7:30pm"
+        )
+        # Wrong hour — 9:30pm suffix vs 7:30pm show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 9:30pm", perf
+            )
+            == "Golden Circle - Friday 9:30pm"
+        )
+        # Wrong minute — 7:00pm suffix vs 7:30pm show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 7pm", perf
+            )
+            == "Golden Circle - Friday 7pm"
+        )

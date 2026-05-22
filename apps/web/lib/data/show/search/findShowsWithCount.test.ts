@@ -562,9 +562,9 @@ describe("findShowsWithCount", () => {
     describe("Free filter wiring (TASK-2141)", () => {
         // The Free filter is exposed via the FREE_FILTER_SLUG inside the
         // existing `filters` CSV. QueryHelper.getFreeShowsClause translates
-        // that slug to a tickets predicate (any ticket priced 0 or NULL).
+        // that slug to a tickets predicate (any ticket priced 0).
         // findShowsWithCount spreads the clause into its where, narrowing
-        // results to shows with at least one free-or-null-priced ticket.
+        // results to shows with at least one explicitly free ticket.
 
         it("QueryHelper.getFreeShowsClause returns {} when filters is absent", () => {
             const helper = new QueryHelper({
@@ -593,7 +593,7 @@ describe("findShowsWithCount", () => {
             expect(helper.getFreeShowsClause()).toEqual({
                 tickets: {
                     some: {
-                        OR: [{ price: 0 }, { price: null }],
+                        price: 0,
                     },
                 },
             });
@@ -608,7 +608,7 @@ describe("findShowsWithCount", () => {
             expect(helper.getFreeShowsClause()).toEqual({
                 tickets: {
                     some: {
-                        OR: [{ price: 0 }, { price: null }],
+                        price: 0,
                     },
                 },
             });
@@ -648,7 +648,7 @@ describe("findShowsWithCount", () => {
             });
         });
 
-        it("findShowsWithCount narrows db.show.count to free-or-null-priced shows when Free is selected", async () => {
+        it("findShowsWithCount narrows db.show.count to explicitly free shows when Free is selected", async () => {
             let capturedCountWhere!: Record<string, unknown>;
             mockCount.mockImplementation(
                 (args: { where: Record<string, unknown> }) => {
@@ -665,14 +665,14 @@ describe("findShowsWithCount", () => {
 
             expect(capturedCountWhere.tickets).toEqual({
                 some: {
-                    OR: [{ price: 0 }, { price: null }],
+                    price: 0,
                 },
             });
             // And no spurious tag predicate from the synthetic slug.
             expect(capturedCountWhere.AND).toBeUndefined();
         });
 
-        it("findShowsWithCount narrows db.show.findMany to free-or-null-priced shows when Free is selected", async () => {
+        it("findShowsWithCount narrows db.show.findMany to explicitly free shows when Free is selected", async () => {
             let capturedFindManyWhere!: Record<string, unknown>;
             mockCount.mockResolvedValue(1);
             mockFindMany.mockImplementation(
@@ -690,7 +690,7 @@ describe("findShowsWithCount", () => {
 
             expect(capturedFindManyWhere.tickets).toEqual({
                 some: {
-                    OR: [{ price: 0 }, { price: null }],
+                    price: 0,
                 },
             });
         });
@@ -731,7 +731,7 @@ describe("findShowsWithCount", () => {
             // Free narrows the show row directly via the tickets predicate.
             expect(capturedCountWhere.tickets).toEqual({
                 some: {
-                    OR: [{ price: 0 }, { price: null }],
+                    price: 0,
                 },
             });
             // Real tags still flow through the taggedShows AND clause.

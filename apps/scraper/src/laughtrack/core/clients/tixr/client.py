@@ -5,9 +5,11 @@ Simplified Tixr API client for fetching event details.
 import html
 import json
 import re
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
+import pytz
 from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.event.tixr import TixrEvent
@@ -201,50 +203,67 @@ class TixrClient(BaseApiClient):
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
 
-    async def fetch_group_events(self, group_id: str, page: int = 1) -> List[TixrEvent]:
+    async def fetch_group_events(
+        self, group_id: str, page: int = 1, max_pages: int = 12
+    ) -> List[TixrEvent]:
         """Fetch Tixr events from the browser-consumed group events API."""
         normalized_group_id = str(group_id or "").strip()
         if not normalized_group_id:
             return []
 
-        api_url = f"{self.base_url}/api/groups/{normalized_group_id}/events?page={page}"
-        try:
-            data = await self._fetch_group_events_json(
-                api_url, logger_context={"group_id": normalized_group_id}
-            )
-        except Exception as exc:
-            self.log_warning(
-                f"Tixr group-events API fetch failed for group_id={normalized_group_id}: {exc}"
-            )
-            return []
-
-        events = self._extract_group_event_records(data)
-        if not events:
-            self.log_warning(
-                f"Tixr group-events API returned no parseable events for group_id={normalized_group_id}"
-            )
-            return []
-
         parsed: List[TixrEvent] = []
         seen_ids: set[str] = set()
-        for event_data in events:
-            event_id = str(event_data.get("id") or "").strip()
-            if event_id and event_id in seen_ids:
-                continue
+        start_page = max(1, int(page or 1))
+        stop_page = start_page + max(1, int(max_pages or 1))
 
-            show = self._create_show_from_data(event_data)
-            if show is None:
-                continue
-
-            if event_id:
-                seen_ids.add(event_id)
-            parsed.append(
-                TixrEvent.from_tixr_show(
-                    show=show,
-                    source_url=show.show_page_url,
-                    event_id=event_id,
-                )
+        for current_page in range(start_page, stop_page):
+            api_url = (
+                f"{self.base_url}/api/groups/{normalized_group_id}/events"
+                f"?page={current_page}"
             )
+            try:
+                data = await self._fetch_group_events_json(
+                    api_url,
+                    logger_context={
+                        "group_id": normalized_group_id,
+                        "page": current_page,
+                    },
+                )
+            except Exception as exc:
+                self.log_warning(
+                    f"Tixr group-events API fetch failed for group_id={normalized_group_id} "
+                    f"page={current_page}: {exc}"
+                )
+                break
+
+            events = self._extract_group_event_records(data)
+            if not events:
+                if not parsed:
+                    self.log_warning(
+                        f"Tixr group-events API returned no parseable events "
+                        f"for group_id={normalized_group_id} page={current_page}"
+                    )
+                break
+
+            for event_data in events:
+                event_id = str(event_data.get("id") or "").strip()
+                if event_id and event_id in seen_ids:
+                    continue
+
+                shows = self._create_shows_from_data(event_data)
+                if not shows:
+                    continue
+
+                if event_id:
+                    seen_ids.add(event_id)
+                for show in shows:
+                    parsed.append(
+                        TixrEvent.from_tixr_show(
+                            show=show,
+                            source_url=show.show_page_url,
+                            event_id=event_id,
+                        )
+                    )
 
         return parsed
 
@@ -686,74 +705,108 @@ class TixrClient(BaseApiClient):
             return None
 
     def _create_show_from_data(self, data: JSONDict) -> Optional[Show]:
+        """Create a single Show from a Tixr event dict.
+
+        Single-show callers (e.g. ``get_event_detail`` on the direct JSON API)
+        get the first emitted Show — when the source event is a bundled
+        multi-performance container, the trailing N-1 occurrences are dropped.
+        The remaining single-show paths only run on already-split content
+        (JSON-LD detail page, individual event API), so the drop is currently
+        inert; logged here so a future caller that hits a bundled response on
+        this path can be discovered before silently losing performances.
         """
-        Create a Show object from parsed Tixr API data.
+        shows = self._create_shows_from_data(data)
+        if len(shows) > 1:
+            self.log_warning(
+                f"Tixr event {data.get('id', '?')!r} returned "
+                f"{len(shows)} performances on the single-show path — "
+                f"dropping {len(shows) - 1}; use fetch_group_events for bundled events"
+            )
+        return shows[0] if shows else None
 
-        Args:
-            data: Parsed JSON data from Tixr API
+    def _create_shows_from_data(self, data: JSONDict) -> List[Show]:
+        """Create one or more Show objects from a Tixr event dict.
 
-        Returns:
-            Show object if successful, None otherwise
+        Tixr's group-events API can return a single event whose ticket tiers
+        cover multiple performance times (e.g. tiers named
+        "General Admission - Friday 9:30pm" alongside "... - Saturday 7pm").
+        When that pattern is detected, one Show is emitted per distinct
+        performance time with each Show carrying only the tickets that
+        belong to that occurrence. Single-performance events return one Show
+        unchanged.
         """
         try:
-            # Validate response structure
             if not isinstance(data, dict):
                 self.log_warning("Invalid response format: expected dict")
-                return None
+                return []
 
-            # Extract basic event information
             name = data.get("name", "")
             event_id = data.get("id", "")
 
-            # Extract venue timezone if available
             timezone = None
             venue_data = data.get("venue", {})
             if isinstance(venue_data, dict):
                 timezone = venue_data.get("timezone")
 
-            # Parse event date
-            date = None
+            base_date: Optional[datetime] = None
             formatted_iso = data.get("formattedISOStartDate")
             if formatted_iso:
-                date = DateTimeUtils.parse_datetime_with_timezone(formatted_iso, timezone)
+                base_date = DateTimeUtils.parse_datetime_with_timezone(formatted_iso, timezone)
 
-            # Skip events without valid date
-            if not date:
+            if not base_date:
                 self.log_warning(f"Event {event_id} has no valid date, skipping")
-                return None
+                return []
 
-            # Build show page URL
             show_page_url = self._build_show_page_url(data, event_id)
-
-            # Extract description
             description = data.get("description")
-
-            # Extract lineup/comedians
             lineup = self._extract_lineup(data)
+            supplied_tags = ["event"]
+            room = ""
 
-            # Extract ticket information
-            tickets = self._extract_ticket_info(data, show_page_url)
+            grouped = self._group_tiers_by_performance_time(data, base_date, timezone)
+            # Only the multi-bucket path is a true split. Single-bucket events
+            # never carry day-time-suffixed tiers in practice; gating on
+            # is_split keeps the strip a no-op for unchanged callers and lets
+            # the defensive name-match check stay the only guard on the split
+            # path.
+            is_split = len(grouped) > 1
 
-            # Default values for fields not available in Tixr API
-            supplied_tags = ["event"]  # Default tag as per project pattern
-            room = ""  # Default empty room as per project pattern
-
-            return Show(
-                name=name,
-                club_id=self.club.id,
-                date=date,
-                show_page_url=show_page_url,
-                lineup=lineup,
-                tickets=tickets,
-                supplied_tags=supplied_tags,
-                description=description,
-                timezone=timezone,
-                room=room,
-            )
+            shows: List[Show] = []
+            for performance_date, tier_dicts in sorted(grouped.items(), key=lambda kv: kv[0]):
+                if is_split:
+                    tier_dicts = [
+                        {
+                            **tier,
+                            "name": self._strip_performance_time_suffix(
+                                tier.get("name"), performance_date
+                            ),
+                        }
+                        if isinstance(tier, dict)
+                        else tier
+                        for tier in tier_dicts
+                    ]
+                tickets = self._build_tickets_from_tiers(tier_dicts, show_page_url)
+                if not tickets and performance_date == base_date:
+                    tickets = self._extract_fallback_tickets(data, show_page_url)
+                shows.append(
+                    Show(
+                        name=name,
+                        club_id=self.club.id,
+                        date=performance_date,
+                        show_page_url=show_page_url,
+                        lineup=list(lineup),
+                        tickets=tickets,
+                        supplied_tags=list(supplied_tags),
+                        description=description,
+                        timezone=timezone,
+                        room=room,
+                    )
+                )
+            return shows
 
         except Exception as e:
             self.log_error(f"Failed to create show from Tixr data: {e}")
-            return None
+            return []
 
     def _build_show_page_url(self, data: dict, event_id: str) -> str:
         """
@@ -832,61 +885,212 @@ class TixrClient(BaseApiClient):
         return lineup
 
     def _extract_ticket_info(self, data: dict, show_page_url: str) -> List[Ticket]:
+        """Extract every ticket tier on the event into Ticket objects.
+
+        Used by the JSON-LD / single-event detail path which does not split
+        bundled multi-performance events.
         """
-        Extract ticket information from event data.
-
-        Args:
-            data: Event data from API
-            show_page_url: URL for purchasing tickets
-
-        Returns:
-            List of Ticket objects
-        """
-        tickets = []
-
-        # Extract from sales data
-        sales_data = data.get("sales", [])
-        if isinstance(sales_data, list):
-            for sale in sales_data:
-                if not isinstance(sale, dict):
-                    continue
-
-                tiers = sale.get("tiers", [])
-                if isinstance(tiers, list):
-                    for tier in tiers:
-                        if not isinstance(tier, dict):
-                            continue
-
-                        # Extract ticket information
-                        price = tier.get("price")
-                        sold_out = not tier.get("active", True)
-                        ticket_type = tier.get("name", "General Admission")
-
-                        # Validate price (should be numeric)
-                        if price is not None:
-                            try:
-                                price = float(price)
-                            except (ValueError, TypeError):
-                                price = None
-
-                        ticket = Ticket(
-                            price=price or 0, purchase_url=show_page_url, sold_out=sold_out, type=ticket_type
-                        )
-                        tickets.append(ticket)
-
-        # If no tickets found from sales, check for direct ticket info
+        tiers = list(self._iter_event_tiers(data))
+        tickets = self._build_tickets_from_tiers(tiers, show_page_url)
         if not tickets:
-            # Check for ticket URL or pricing in main event data
-            ticket_url = data.get("ticketUrl", show_page_url)
-
-            # Create a default ticket entry if event has ticket info
-            if data.get("hasTickets", True):  # Assume tickets available unless specified
-                ticket = Ticket(
-                    price=0,  # Price not available
-                    purchase_url=ticket_url,
-                    sold_out=data.get("soldOut", False),
-                    type="General Admission",
-                )
-                tickets.append(ticket)
-
+            tickets = self._extract_fallback_tickets(data, show_page_url)
         return tickets
+
+    @staticmethod
+    def _iter_event_tiers(data: dict):
+        sales_data = data.get("sales", [])
+        if not isinstance(sales_data, list):
+            return
+        for sale in sales_data:
+            if not isinstance(sale, dict):
+                continue
+            tiers = sale.get("tiers", [])
+            if not isinstance(tiers, list):
+                continue
+            for tier in tiers:
+                if isinstance(tier, dict):
+                    yield tier
+
+    @staticmethod
+    def _build_tickets_from_tiers(tiers: List[dict], show_page_url: str) -> List[Ticket]:
+        tickets: List[Ticket] = []
+        for tier in tiers:
+            if not isinstance(tier, dict):
+                continue
+            price = tier.get("price")
+            if price is not None:
+                try:
+                    price = float(price)
+                except (ValueError, TypeError):
+                    price = None
+            tickets.append(
+                Ticket(
+                    price=price or 0,
+                    purchase_url=show_page_url,
+                    sold_out=not tier.get("active", True),
+                    type=tier.get("name", "General Admission"),
+                )
+            )
+        return tickets
+
+    @staticmethod
+    def _extract_fallback_tickets(data: dict, show_page_url: str) -> List[Ticket]:
+        if not data.get("hasTickets", True):
+            return []
+        ticket_url = data.get("ticketUrl", show_page_url)
+        return [
+            Ticket(
+                price=0,
+                purchase_url=ticket_url,
+                sold_out=data.get("soldOut", False),
+                type="General Admission",
+            )
+        ]
+
+    def _group_tiers_by_performance_time(
+        self, data: dict, base_date: datetime, venue_timezone: Optional[str]
+    ) -> Dict[datetime, List[dict]]:
+        """Bucket every tier by the performance time encoded in its ``name``.
+
+        Weekday + clock-time parsing happens in the venue's local timezone:
+        Tixr's ``formattedISOStartDate`` arrives in UTC for the live API even
+        when the venue is on Pacific time, so ``base_date.weekday()`` and
+        ``base_date.hour`` in UTC do not match the wall-clock day/time named
+        on the tier (e.g. "Friday 7:30pm"). Returns a mapping keyed on the
+        concrete datetime each tier belongs to. If fewer than two distinct
+        *parsed* performance times are present, every tier is returned in a
+        single bucket at ``base_date`` so unrelated naming conventions never
+        trigger a false split.
+        """
+        all_tiers = list(self._iter_event_tiers(data))
+        if not all_tiers:
+            return {base_date: []}
+
+        local_base = self._localize_for_weekday_math(base_date, venue_timezone)
+
+        parsed_times: set = set()
+        per_tier_times: List[Optional[datetime]] = []
+        for tier in all_tiers:
+            tier_time = self._parse_tier_performance_time(tier.get("name"), local_base)
+            per_tier_times.append(tier_time)
+            if tier_time is not None:
+                parsed_times.add(tier_time)
+
+        if len(parsed_times) < 2:
+            return {base_date: all_tiers}
+
+        buckets: Dict[datetime, List[dict]] = {}
+        for tier, tier_time in zip(all_tiers, per_tier_times):
+            key = tier_time if tier_time is not None else base_date
+            buckets.setdefault(key, []).append(tier)
+        return buckets
+
+    @staticmethod
+    def _localize_for_weekday_math(
+        base_date: datetime, venue_timezone: Optional[str]
+    ) -> datetime:
+        """Return ``base_date`` in the venue's local timezone for weekday math.
+
+        Falls back to ``base_date`` unchanged when no venue timezone is known
+        or pytz can't resolve the name.
+        """
+        if not venue_timezone:
+            return base_date
+        try:
+            tz = pytz.timezone(venue_timezone)
+        except Exception:
+            return base_date
+        return base_date.astimezone(tz)
+
+    _PERFORMANCE_TIME_SUFFIX_RE = re.compile(
+        r"\s+[-–—]\s*"
+        r"(?P<weekday>monday|tuesday|wednesday|thursday|friday|saturday|sunday"
+        r"|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun)"
+        r"\s+(?P<hour>\d{1,2})(?::(?P<minute>\d{2}))?"
+        r"\s*(?P<ampm>am|pm)\s*$",
+        re.IGNORECASE,
+    )
+
+    _WEEKDAY_INDEX = {
+        "monday": 0, "mon": 0,
+        "tuesday": 1, "tue": 1, "tues": 1,
+        "wednesday": 2, "wed": 2,
+        "thursday": 3, "thu": 3, "thur": 3, "thurs": 3,
+        "friday": 4, "fri": 4,
+        "saturday": 5, "sat": 5,
+        "sunday": 6, "sun": 6,
+    }
+
+    @classmethod
+    def _parse_tier_performance_time(
+        cls, tier_name: Any, base_date: datetime
+    ) -> Optional[datetime]:
+        """Parse the ``"... - <Weekday> <H[:MM]><am|pm>"`` suffix on a tier name.
+
+        Resolves the weekday to the matching date in the calendar week of
+        ``base_date`` (Monday-anchored) so Friday/Saturday tiers on a Friday
+        event land on the correct calendar dates. Returns ``None`` when the
+        tier name does not carry a recognizable suffix.
+        """
+        if not isinstance(tier_name, str) or base_date is None:
+            return None
+        match = cls._PERFORMANCE_TIME_SUFFIX_RE.search(tier_name)
+        if not match:
+            return None
+        weekday_idx = cls._WEEKDAY_INDEX.get(match.group("weekday").lower())
+        if weekday_idx is None:
+            return None
+        hour = int(match.group("hour"))
+        minute = int(match.group("minute") or 0)
+        if hour < 1 or hour > 12 or minute > 59:
+            return None
+        if match.group("ampm").lower() == "pm" and hour != 12:
+            hour += 12
+        elif match.group("ampm").lower() == "am" and hour == 12:
+            hour = 0
+        # Resolve to the named weekday on-or-after base_date so each tier
+        # lands in the future relative to the event start. Tixr bundles
+        # always anchor on the earliest performance, so later weekdays
+        # belong to the same calendar week (and a tier naming the same
+        # weekday as base_date maps to base_date itself).
+        delta_days = (weekday_idx - base_date.weekday()) % 7
+        perf_date = base_date + timedelta(days=delta_days)
+        return perf_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    @classmethod
+    def _strip_performance_time_suffix(
+        cls, tier_name: Any, performance_date: datetime
+    ) -> str:
+        """Strip a trailing ``" - <Weekday> <H[:MM]><am|pm>"`` suffix from a
+        tier name iff the suffix's weekday + clock match ``performance_date``.
+
+        Used by the split path in ``_create_shows_from_data`` to clean up
+        per-occurrence ticket-type labels (e.g. "Golden Circle - Friday 7:30pm"
+        → "Golden Circle") on shows that already carry the performance time
+        in their ``date`` field, so the suffix is redundant downstream.
+
+        Defensive: if the tier name has no recognizable suffix, or the parsed
+        suffix does not match ``performance_date``'s weekday / hour / minute,
+        the original string is returned unchanged. ``performance_date`` is
+        expected in the venue's local timezone — the same frame the suffix
+        was authored in.
+        """
+        if not isinstance(tier_name, str) or performance_date is None:
+            return tier_name if isinstance(tier_name, str) else ""
+        match = cls._PERFORMANCE_TIME_SUFFIX_RE.search(tier_name)
+        if not match:
+            return tier_name
+        weekday_idx = cls._WEEKDAY_INDEX.get(match.group("weekday").lower())
+        if weekday_idx is None or weekday_idx != performance_date.weekday():
+            return tier_name
+        hour = int(match.group("hour"))
+        minute = int(match.group("minute") or 0)
+        if hour < 1 or hour > 12 or minute > 59:
+            return tier_name
+        if match.group("ampm").lower() == "pm" and hour != 12:
+            hour += 12
+        elif match.group("ampm").lower() == "am" and hour == 12:
+            hour = 0
+        if hour != performance_date.hour or minute != performance_date.minute:
+            return tier_name
+        return tier_name[: match.start()].rstrip()

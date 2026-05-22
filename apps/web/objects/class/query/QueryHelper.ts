@@ -14,8 +14,9 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
  * uses this slug — `getFreeShowsClause` translates it to a ticket-price
  * predicate and `getShowTagsClause` strips it before querying tags.
  *
- * Qualification: a show matches when ANY of its tickets has price = 0 OR
- * price IS NULL. A mixed-price show (one paid + one free tier) still
+ * Qualification: a show matches when ANY of its tickets has price = 0.
+ * Unknown prices (price IS NULL) do not qualify as free. A mixed-price show
+ * (one paid + one free tier) still
  * qualifies, since the user wants to discover that a free option exists.
  */
 export const FREE_FILTER_SLUG = "free";
@@ -306,7 +307,7 @@ export class QueryHelper {
     /**
      * Prisma `Show.where` fragment for the Free filter. Returns `{}` when
      * FREE_FILTER_SLUG is absent from `params.filters`, otherwise narrows to
-     * shows that have at least one ticket with price = 0 OR price IS NULL.
+     * shows that have at least one ticket with price = 0.
      */
     getFreeShowsClause() {
         if (!isFreeFilterSelected(this.params.filters)) {
@@ -315,7 +316,7 @@ export class QueryHelper {
         return {
             tickets: {
                 some: {
-                    OR: [{ price: 0 }, { price: null }],
+                    price: 0,
                 },
             },
         };

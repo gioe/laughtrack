@@ -4,8 +4,8 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import CompactShowCard from "./index";
-import type { ShowDTO } from "@/objects/class/show/show.interface";
+import ShowTicketCta from "./index";
+import type { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 
 vi.mock("next/link", () => ({
     default: ({
@@ -24,28 +24,11 @@ vi.mock("next/link", () => ({
     ),
 }));
 
-vi.mock("next/image", () => ({
-    default: ({
-        alt,
-        src,
-        className,
-    }: {
-        alt: string;
-        src: string;
-        className?: string;
-    }) => <img alt={alt} src={src} className={className} />,
-}));
-
 vi.mock("@/hooks", () => ({
-    useMotionProps: () => ({
-        mv: (value: unknown) => value,
-        mp: (value: unknown) => value,
-        prefersReducedMotion: true,
-    }),
     useDialogKeyboard: () => {},
 }));
 
-const baseShow: ShowDTO = {
+const baseShow: ShowDetailDTO = {
     id: 42,
     clubId: 24,
     date: "2026-04-28T20:00:00Z" as never as Date,
@@ -53,54 +36,21 @@ const baseShow: ShowDTO = {
     clubName: "The Copper Room",
     address: "123 Main St",
     imageUrl: "https://cdn.example.com/copper-room.jpg",
-    lineup: [
-        {
-            name: "Headliner",
-            uuid: "headliner",
-            id: 7,
-            imageUrl: "https://cdn.example.com/headliner.jpg",
-            showCount: 10,
-        },
-    ],
-    tickets: [
-        {
-            price: 24,
-            purchaseUrl: "https://example.com/tickets",
-            soldOut: false,
-            type: "General admission",
-        },
-    ],
+    lineup: [],
+    tickets: [],
     timezone: "America/New_York",
+    showPageUrl: "https://example.com/show",
 };
 
 afterEach(() => {
     cleanup();
 });
 
-describe("CompactShowCard", () => {
-    it("renders the show name before the club name", () => {
-        const { container } = render(<CompactShowCard show={baseShow} />);
-
-        const primary = container.querySelector(
-            '[data-testid="compact-show-title"]',
-        );
-        const secondary = container.querySelector(
-            '[data-testid="compact-show-club"]',
-        );
-
-        expect(primary?.textContent).toBe("Late Show");
-        expect(secondary?.textContent).toBe("The Copper Room");
-    });
-
-    it("shows available ticket price", () => {
-        render(<CompactShowCard show={baseShow} />);
-
-        expect(screen.getAllByText("$24")).toHaveLength(1);
-    });
-
-    it("shows an info control for unknown-priced available tickets", () => {
+describe("ShowTicketCta", () => {
+    it("keeps unknown-priced available tickets as Get Tickets and explains unavailable pricing", () => {
         render(
-            <CompactShowCard
+            <ShowTicketCta
+                isPast={false}
                 show={{
                     ...baseShow,
                     tickets: [

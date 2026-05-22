@@ -2,7 +2,7 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowCard from "./index";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
@@ -54,6 +54,7 @@ vi.mock("@/hooks", () => ({
         mp: (value: unknown) => value,
         prefersReducedMotion: true,
     }),
+    useDialogKeyboard: () => {},
 }));
 
 vi.mock("@/ui/components/cards/show/header", () => ({
@@ -147,5 +148,40 @@ describe("ShowCard", () => {
             screen.getByRole("button", { name: /is sold out/i }).textContent,
         ).toBe("Sold Out");
         expect(screen.queryByRole("link", { name: /get tickets/i })).toBeNull();
+    });
+
+    it("shows an info control for unknown-priced available tickets", () => {
+        render(
+            <ShowCard
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: null,
+                            purchaseUrl: "https://tickets.example.com",
+                            type: "General Admission",
+                            soldOut: false,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByRole("link", { name: /get tickets for late show/i })
+                .textContent,
+        ).toContain("Get Tickets");
+        expect(screen.queryByText("Free")).toBeNull();
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: /why is the price unavailable/i,
+            }),
+        );
+
+        expect(
+            screen.getByRole("dialog", { name: "Price unavailable" })
+                .textContent,
+        ).toContain("The venue has not made this ticket price available yet.");
     });
 });

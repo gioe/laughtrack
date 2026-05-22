@@ -3,6 +3,10 @@ import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 
 type TicketPrice = number | string | { toNumber: () => number } | null;
 type TicketSource = Omit<TicketDTO, "price"> & { price: TicketPrice };
+type TicketAvailabilitySource = Pick<
+    TicketDTO,
+    "price" | "purchaseUrl" | "soldOut"
+>;
 
 export function mapTickets(tickets: TicketSource[]): TicketDTO[] {
     const val = tickets
@@ -52,4 +56,13 @@ export function formatTicketString(tickets: Ticket[]) {
             return `$${lowestPrice.toString()} - $${highestPrice.toString()}`;
         }
     }
+}
+
+export function hasUnknownAvailableTicketPrice(
+    tickets: TicketAvailabilitySource[],
+): boolean {
+    return tickets.some(
+        (ticket) =>
+            ticket.price == null && !!ticket.purchaseUrl && !ticket.soldOut,
+    );
 }
