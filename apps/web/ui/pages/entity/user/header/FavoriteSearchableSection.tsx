@@ -27,6 +27,7 @@ export interface FavoriteSearchableSectionProps<T> {
     queryKey: string;
     headerNote?: React.ReactNode;
     serverPageInfo?: ServerPageInfo;
+    searchScopeLabel?: string;
 }
 
 function FavoriteSearchableSection<T>({
@@ -43,6 +44,7 @@ function FavoriteSearchableSection<T>({
     queryKey,
     headerNote,
     serverPageInfo,
+    searchScopeLabel = "items",
 }: FavoriteSearchableSectionProps<T>) {
     const [search, setSearch] = React.useState("");
     const searchParams = useSearchParams();
@@ -56,6 +58,13 @@ function FavoriteSearchableSection<T>({
         if (!normalizedQuery) return items;
         return items.filter((item) => matchesQuery(item, normalizedQuery));
     }, [items, normalizedQuery, matchesQuery]);
+    const searchScopeNoun =
+        items.length === 1
+            ? searchScopeLabel.replace(/s$/, "")
+            : searchScopeLabel;
+    const serverSearchScopeNote = serverPageInfo
+        ? `Search applies to the ${items.length} ${searchScopeNoun} on this page.`
+        : null;
 
     let totalPages: number;
     let currentPage: number;
@@ -108,6 +117,11 @@ function FavoriteSearchableSection<T>({
                     className="w-full rounded-full border border-gray-200 bg-white py-2 pl-9 pr-3 font-dmSans text-sm text-foreground placeholder:text-gray-400 focus:border-copper focus:outline-none focus:ring-1 focus:ring-copper"
                 />
             </div>
+            {serverSearchScopeNote ? (
+                <p className="font-dmSans text-xs text-gray-500">
+                    {serverSearchScopeNote}
+                </p>
+            ) : null}
 
             {isLoading ? (
                 <div className="flex justify-center py-12">

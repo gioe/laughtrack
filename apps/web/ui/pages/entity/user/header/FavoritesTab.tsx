@@ -111,7 +111,8 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
 
         const loadComedians = async () => {
             try {
-                const body = await fetchJson<ComedianDTO[]>("/api/v1/favorites");
+                const body =
+                    await fetchJson<ComedianDTO[]>("/api/v1/favorites");
                 if (!cancelled) setComedians(body.data ?? []);
             } catch {
                 if (!cancelled)
@@ -122,7 +123,9 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
         };
         const loadClubs = async () => {
             try {
-                const body = await fetchJson<ClubDTO[]>("/api/v1/favorite-clubs");
+                const body = await fetchJson<ClubDTO[]>(
+                    "/api/v1/favorite-clubs",
+                );
                 if (!cancelled) setClubs(body.data ?? []);
             } catch {
                 if (!cancelled) setClubError("Failed to load favorite clubs.");
@@ -271,6 +274,7 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 gridClassName="grid grid-cols-1 gap-4"
                 queryKey={FAVORITE_SHOWS_PAGE_KEY}
                 headerNote={showsHeaderNote}
+                searchScopeLabel="shows"
                 serverPageInfo={{
                     currentPage: showsPage,
                     pageSize: FAVORITE_SHOWS_PAGE_SIZE,
