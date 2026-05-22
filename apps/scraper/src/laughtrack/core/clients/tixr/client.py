@@ -261,7 +261,7 @@ class TixrClient(BaseApiClient):
         if data is not None:
             return data
 
-        return await self.fetch_json(url=api_url, logger_context=logger_context)
+        return await self._fetch_group_events_json_proxy(api_url, logger_context)
 
     async def _fetch_group_events_json_direct(
         self, api_url: str, logger_context: JSONDict
@@ -283,6 +283,29 @@ class TixrClient(BaseApiClient):
                 )
         except Exception as exc:
             self.log_warning(f"Tixr direct group-events API fetch failed for {api_url}: {exc}")
+            return None
+
+    async def _fetch_group_events_json_proxy(
+        self, api_url: str, logger_context: JSONDict
+    ) -> Optional[Any]:
+        """Fetch group-events JSON through the Tixr proxy without custom headers."""
+        proxy_url = HttpClient.resolve_proxy_url(self.key)
+        try:
+            async with AsyncSession(
+                impersonate=self._get_impersonation_target(api_url),
+                timeout=30,
+            ) as session:
+                await self._apply_rate_limit(api_url)
+                return await self.http_client.fetch_json(
+                    session=session,
+                    url=api_url,
+                    headers=None,
+                    logger_context=logger_context,
+                    proxy_url=proxy_url,
+                    scraper_key=None,
+                )
+        except Exception as exc:
+            self.log_warning(f"Tixr proxied group-events API fetch failed for {api_url}: {exc}")
             return None
 
     @classmethod
