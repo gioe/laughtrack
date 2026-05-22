@@ -12,10 +12,6 @@ import PodcastSearchCard from "@/ui/components/cards/podcast";
 import ShowCard from "@/ui/components/cards/show";
 import FavoriteSearchableSection from "./FavoriteSearchableSection";
 
-interface FavoritesTabProps {
-    userId: string;
-}
-
 const FAVORITE_SHOWS_PAGE_SIZE = 20;
 const FAVORITE_SHOWS_PAGE_KEY = "showsPage";
 
@@ -71,7 +67,7 @@ const showMatches = (show: ShowDTO, q: string): boolean => {
     return name.includes(q) || club.includes(q) || lineup.includes(q);
 };
 
-const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
+const FavoritesTab = () => {
     const searchParams = useSearchParams();
     const showsPage = Math.max(
         1,

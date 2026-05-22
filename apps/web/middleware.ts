@@ -134,29 +134,6 @@ export async function middleware(request: NextRequest) {
             );
         }
 
-        // Special handling for profile route
-        if (pathname.startsWith("/profile")) {
-            const userId = token.sub;
-            if (!userId) {
-                return applySecurityHeaders(
-                    NextResponse.redirect(new URL("/", request.url)),
-                    request,
-                );
-            }
-
-            const requestedProfileId = pathname.split("/").pop();
-
-            if (requestedProfileId && userId !== requestedProfileId) {
-                // User is trying to access another user's profile - redirect to their own profile
-                return applySecurityHeaders(
-                    NextResponse.redirect(
-                        new URL(`/profile/${userId}`, request.url),
-                    ),
-                    request,
-                );
-            }
-        }
-
         return applySecurityHeaders(response, request);
     } catch (error) {
         console.error("Middleware error:", error);

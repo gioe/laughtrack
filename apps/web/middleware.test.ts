@@ -146,40 +146,24 @@ describe("middleware auth redirects", () => {
         mockGetToken.mockResolvedValue(null);
 
         const response = await middleware(
-            makeRequest("/profile/user-1", {
+            makeRequest("/profile", {
                 cookie: "authjs.session-token=expired-token",
             }),
         );
 
         expect(mockGetToken).toHaveBeenCalledOnce();
-        expectRedirectTo(response, "/?callbackUrl=%2Fprofile%2Fuser-1");
+        expectRedirectTo(response, "/?callbackUrl=%2Fprofile");
     });
 
-    it("redirects protected profile requests when the token lacks a user id", async () => {
-        mockGetToken.mockResolvedValue(authToken());
-
-        const response = await middleware(makeRequest("/profile/user-1"));
-
-        expectRedirectTo(response, "/");
-    });
-
-    it("redirects authenticated users away from another user's profile", async () => {
+    it("rewrites the profile route for authenticated users", async () => {
         mockGetToken.mockResolvedValue(authToken("user-1"));
 
-        const response = await middleware(makeRequest("/profile/user-2"));
-
-        expectRedirectTo(response, "/profile/user-1");
-    });
-
-    it("rewrites an authenticated user's own profile route", async () => {
-        mockGetToken.mockResolvedValue(authToken("user-1"));
-
-        const response = await middleware(makeRequest("/profile/user-1"));
+        const response = await middleware(makeRequest("/profile"));
 
         expect(response.status).toBe(200);
         expect(response.headers.get("location")).toBeNull();
         expect(response.headers.get("x-middleware-rewrite")).toBe(
-            "https://www.laugh-track.com/profile/user-1?page=1&size=20&direction=asc&zip=&distance=5",
+            "https://www.laugh-track.com/profile?page=1&size=20&direction=asc&zip=&distance=5",
         );
     });
 

@@ -78,7 +78,7 @@ describe("FavoritesTab shows pagination", () => {
             .filter((u) => u.startsWith("/api/v1/favorite-shows"));
 
     it("requests page=1 with size=20 on initial mount", async () => {
-        render(<FavoritesTab userId="user-1" />);
+        render(<FavoritesTab />);
 
         await waitFor(() => {
             expect(favoriteShowsCalls()).toContain(
@@ -88,7 +88,7 @@ describe("FavoritesTab shows pagination", () => {
     });
 
     it("refetches with the new page when showsPage URL param changes", async () => {
-        const { rerender } = render(<FavoritesTab userId="user-1" />);
+        const { rerender } = render(<FavoritesTab />);
 
         await waitFor(() => {
             expect(favoriteShowsCalls()).toContain(
@@ -97,7 +97,7 @@ describe("FavoritesTab shows pagination", () => {
         });
 
         searchParams = new URLSearchParams({ showsPage: "3" });
-        rerender(<FavoritesTab userId="user-1" />);
+        rerender(<FavoritesTab />);
 
         await waitFor(() => {
             expect(favoriteShowsCalls()).toContain(
@@ -114,7 +114,7 @@ describe("FavoritesTab shows pagination", () => {
         "clamps %s showsPage value (%s) to page=1",
         async (_label, raw) => {
             searchParams = new URLSearchParams({ showsPage: raw });
-            render(<FavoritesTab userId="user-1" />);
+            render(<FavoritesTab />);
 
             await waitFor(() => {
                 expect(favoriteShowsCalls()).toContain(
