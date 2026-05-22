@@ -1467,6 +1467,18 @@ class TestFetchGroupEvents:
         assert calls[0]["scraper_key"] is None
 
     @pytest.mark.asyncio
+    async def test_fetch_group_events_proxy_returns_none_when_tixr_proxy_not_configured(self, monkeypatch):
+        client = self._client(monkeypatch)
+        monkeypatch.setattr(tixr_module.HttpClient, "resolve_proxy_url", lambda key: None)
+
+        data = await client._fetch_group_events_json_proxy(
+            "https://www.tixr.com/api/groups/1613/events?page=1",
+            {"group_id": "1613"},
+        )
+
+        assert data is None
+
+    @pytest.mark.asyncio
     async def test_fetch_group_events_deduplicates_and_skips_unparseable(self, monkeypatch):
         client = self._client(monkeypatch)
         valid = self._api_event("189028")

@@ -17,6 +17,7 @@ WHERE c.id = ss.club_id
 
 UPDATE scraping_sources ss
 SET
+    enabled = FALSE,
     metadata = COALESCE(ss.metadata, '{}'::jsonb)
         - 'tixr_group_slug'
         - 'tixr_group_events_api_fallback'

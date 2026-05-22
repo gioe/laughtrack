@@ -290,6 +290,9 @@ class TixrClient(BaseApiClient):
     ) -> Optional[Any]:
         """Fetch group-events JSON through the Tixr proxy without custom headers."""
         proxy_url = HttpClient.resolve_proxy_url(self.key)
+        if proxy_url is None:
+            return None
+
         try:
             async with AsyncSession(
                 impersonate=self._get_impersonation_target(api_url),
