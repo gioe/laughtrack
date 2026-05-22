@@ -77,7 +77,7 @@ const mapLineupItem = (
             effectiveComedian.hasImage ?? undefined,
         ),
         hasImage: Boolean(effectiveComedian.hasImage),
-        show_count: effectiveComedian._count?.lineupItems ?? undefined,
+        showCount: effectiveComedian._count?.lineupItems ?? undefined,
         ...(item.role ? { role: item.role } : {}),
         isFavorite: userId
             ? (item.comedian.favoriteComedians?.length ?? 0) > 0

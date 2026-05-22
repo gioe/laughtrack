@@ -30,14 +30,14 @@ export class Comedian implements ComedianInterface {
             "dates" in input && input.dates !== undefined
                 ? input.dates.map((dto: ShowDTO) => new Show(dto))
                 : [];
-        this.socialData = input.social_data
-            ? new SocialData(input.social_data)
+        this.socialData = input.socialData
+            ? new SocialData(input.socialData)
             : undefined;
         this.isFavorite = input.isFavorite ?? false;
         this.id = input.id;
-        this.showCount = input.show_count;
+        this.showCount = input.showCount;
         this.role = "role" in input ? (input.role ?? undefined) : undefined;
-        this.coAppearances = (input as ComedianDTO).co_appearances;
+        this.coAppearances = (input as ComedianDTO).coAppearances;
         this.imageUrl = input.imageUrl;
         this.hasImage = input.hasImage ?? Boolean(input.imageUrl);
         this.uuid = input.uuid;

@@ -94,7 +94,7 @@ export async function getComediansByZip(
         name: row.name,
         imageUrl: buildComedianImageUrl(row.name, row.has_image),
         hasImage: Boolean(row.has_image),
-        social_data: {
+        socialData: {
             id: row.id,
             instagram_account: row.instagram_account,
             instagram_followers: row.instagram_followers,
@@ -106,6 +106,6 @@ export async function getComediansByZip(
             popularity: row.popularity,
             linktree: row.linktree,
         },
-        show_count: Number(row.show_count),
+        showCount: Number(row.show_count),
     }));
 }

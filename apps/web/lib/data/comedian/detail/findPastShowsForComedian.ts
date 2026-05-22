@@ -119,7 +119,7 @@ export async function findPastShowsForComedian(
             description: show.description ?? undefined,
             room: show.room,
             address: show.club.address,
-            clubID: show.club.id,
+            clubId: show.club.id,
             clubName: show.club.name,
             clubCity: show.club.city,
             clubState: show.club.state,

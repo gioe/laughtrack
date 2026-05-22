@@ -126,8 +126,8 @@ describe("getComediansByZip", () => {
             expect(dto.imageUrl).toBe(
                 `https://cdn.example.com/${row.name}.png`,
             );
-            expect(dto.show_count).toBe(row.show_count);
-            expect(dto.social_data).toMatchObject({
+            expect(dto.showCount).toBe(row.show_count);
+            expect(dto.socialData).toMatchObject({
                 id: row.id,
                 instagram_account: row.instagram_account,
                 instagram_followers: row.instagram_followers,
@@ -148,8 +148,8 @@ describe("getComediansByZip", () => {
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
-            expect(typeof result[0].show_count).toBe("number");
-            expect(result[0].show_count).toBe(5);
+            expect(typeof result[0].showCount).toBe("number");
+            expect(result[0].showCount).toBe(5);
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
@@ -179,9 +179,9 @@ describe("getComediansByZip", () => {
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
-            const { social_data } = result[0];
-            expect(social_data.instagram_account).toBeNull();
-            expect(social_data.website).toBeNull();
+            const { socialData } = result[0];
+            expect(socialData.instagram_account).toBeNull();
+            expect(socialData.website).toBeNull();
         });
     });
 

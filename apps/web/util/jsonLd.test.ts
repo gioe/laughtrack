@@ -232,7 +232,7 @@ describe("buildShowJsonLd", () => {
     it("marks ticket offers as sold out when show.soldOut is true", () => {
         const show: ShowDTO = {
             id: 1,
-            clubID: 2,
+            clubId: 2,
             name: "Ronny Chieng: I Love New York City Tour (SOLD OUT)",
             date: new Date("2026-06-20T18:00:00Z"),
             clubName: "Gotham Comedy Club",

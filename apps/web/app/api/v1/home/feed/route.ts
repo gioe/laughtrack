@@ -11,6 +11,10 @@ import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
+import {
+    mapComedianDtoToV1Wire,
+    mapShowDtoToV1Wire,
+} from "../../dtoWire";
 
 const ZIP_RE = /^\d{5}$/;
 const HERO_SHOW_COUNT = 3;
@@ -120,13 +124,18 @@ export async function GET(req: NextRequest) {
                         zipCode: hero.zipCode,
                         city: hero.city,
                         state: hero.state,
-                        shows: heroShows,
+                        shows: heroShows.map(mapShowDtoToV1Wire),
                     },
-                    trendingComedians,
-                    comediansNearYou,
-                    showsTonight,
-                    moreNearYou,
-                    trendingThisWeek,
+                    trendingComedians: trendingComedians.map(
+                        mapComedianDtoToV1Wire,
+                    ),
+                    comediansNearYou: comediansNearYou.map(
+                        mapComedianDtoToV1Wire,
+                    ),
+                    showsTonight: showsTonight.map(mapShowDtoToV1Wire),
+                    moreNearYou: moreNearYou.map(mapShowDtoToV1Wire),
+                    trendingThisWeek:
+                        trendingThisWeek.map(mapShowDtoToV1Wire),
                     trendingPodcasts,
                     popularClubs: popularClubsWire,
                 },

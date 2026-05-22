@@ -83,7 +83,7 @@ export async function findRelatedComedians(
             name: row.name,
             imageUrl: buildComedianImageUrl(row.name, row.has_image),
             hasImage: Boolean(row.has_image),
-            social_data: {
+            socialData: {
                 id: row.id,
                 instagram_account: row.instagram_account,
                 instagram_followers: row.instagram_followers,
@@ -95,8 +95,8 @@ export async function findRelatedComedians(
                 popularity: row.popularity,
                 linktree: row.linktree,
             },
-            show_count: Number(row.upcoming_show_count),
-            co_appearances: Number(row.co_appearances),
+            showCount: Number(row.upcoming_show_count),
+            coAppearances: Number(row.co_appearances),
         }));
     } catch (err) {
         console.error("findRelatedComedians: query failed", err);

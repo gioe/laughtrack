@@ -99,7 +99,7 @@ const comedian: ComedianDTO = {
     name: "Jordan Temple",
     imageUrl: "",
     hasImage: false,
-    social_data: {
+    socialData: {
         id: 20,
         instagram_followers: null,
         tiktok_followers: null,
@@ -111,12 +111,12 @@ const comedian: ComedianDTO = {
         popularity: null,
         linktree: null,
     },
-    show_count: 4,
+    showCount: 4,
 };
 
 const show: ShowDTO = {
     id: 3,
-    clubID: 1,
+    clubId: 1,
     date: "2026-04-28T20:00:00Z" as never as Date,
     name: "Late Show",
     clubName: "Copper Room",

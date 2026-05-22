@@ -3,6 +3,7 @@ import { findUpcomingRunsForComedian } from "@/lib/data/comedian/detail/findUpco
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
+import { mapShowDtoToV1Wire } from "../../../dtoWire";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -60,7 +61,13 @@ export async function GET(
         });
 
         return NextResponse.json(
-            { data: runs },
+            {
+                data: runs.map(({ clubId, shows, ...rest }) => ({
+                    ...rest,
+                    clubID: clubId,
+                    shows: shows.map(mapShowDtoToV1Wire),
+                })),
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

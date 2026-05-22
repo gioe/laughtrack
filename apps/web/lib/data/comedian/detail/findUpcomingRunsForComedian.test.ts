@@ -45,7 +45,7 @@ describe("findUpcomingRunsForComedian", () => {
             timezone: "America/New_York",
         });
 
-        expect(runs.map((run) => run.clubID)).toEqual([10, 20, 10]);
+        expect(runs.map((run) => run.clubId)).toEqual([10, 20, 10]);
         expect(runs.map((run) => run.shows.map((show) => show.id))).toEqual([
             [1, 2],
             [3],

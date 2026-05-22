@@ -4,6 +4,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { UserRole } from "@/objects/enum/userRole";
+import { mapComedianDtoToV1Wire } from "../../dtoWire";
 
 export async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-search");
@@ -52,7 +53,11 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(
-            { data: result.data, total: result.total, filters: result.filters },
+            {
+                data: result.data.map(mapComedianDtoToV1Wire),
+                total: result.total,
+                filters: result.filters,
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

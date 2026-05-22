@@ -13,9 +13,9 @@ export interface ComedianLineupDTO {
     uuid: string;
     id: number;
     userId?: number;
-    social_data?: SocialDataDTO;
+    socialData?: SocialDataDTO;
     isFavorite?: boolean;
-    show_count?: number;
+    showCount?: number;
     role?: string | null;
     isAlias?: boolean;
     parentComedian?: ComedianLineupDTO;

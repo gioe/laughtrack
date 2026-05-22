@@ -123,7 +123,7 @@ export async function findShowsForHome(
                 id: show.id,
                 name: show.name,
                 date: show.date,
-                clubID: show.club.id,
+                clubId: show.club.id,
                 clubName: show.club.name,
                 clubCity: show.club.city,
                 clubState: show.club.state,
@@ -171,7 +171,7 @@ function getLineupPopularity(lineup: ComedianLineupDTO[]): number {
 }
 
 function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
-    return comedian.show_count ?? 0;
+    return comedian.showCount ?? 0;
 }
 
 function compareHomeShowRelevance(

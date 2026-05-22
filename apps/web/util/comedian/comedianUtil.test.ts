@@ -78,7 +78,7 @@ describe("filterAndMapLineupItems", () => {
             const item = makeItem({ _count: { lineupItems: 17 } });
             const [result] = filterAndMapLineupItems([item]);
 
-            expect(result.show_count).toBe(17);
+            expect(result.showCount).toBe(17);
         });
 
         it("maps parent lineup item count for alias comedians", () => {
@@ -99,7 +99,7 @@ describe("filterAndMapLineupItems", () => {
             const [result] = filterAndMapLineupItems([child]);
 
             expect(result.name).toBe("Parent Comic");
-            expect(result.show_count).toBe(41);
+            expect(result.showCount).toBe(41);
         });
     });
 

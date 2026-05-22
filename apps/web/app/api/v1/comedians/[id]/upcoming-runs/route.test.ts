@@ -49,13 +49,13 @@ describe("GET /api/v1/comedians/[id]/upcoming-runs", () => {
     it("returns grouped upcoming runs using the iOS OpenAPI response shape", async () => {
         mockFindUpcomingRuns.mockResolvedValue([
             {
-                clubID: 10,
+                clubId: 10,
                 clubName: "Comedy Cellar",
                 clubImageUrl: "https://cdn.example.com/club.jpg",
                 shows: [
                     {
                         id: 101,
-                        clubID: 10,
+                        clubId: 10,
                         clubName: "Comedy Cellar",
                         clubCity: "New York",
                         clubState: "NY",

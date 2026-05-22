@@ -4,6 +4,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { findRelatedShowsForShow } from "@/lib/data/show/detail/findRelatedShowsForShow";
 import { findShowById } from "@/lib/data/show/detail/findShowById";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
+import { mapShowDtoToV1Wire } from "../../dtoWire";
 
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
@@ -65,7 +66,7 @@ export async function GET(
         return NextResponse.json(
             {
                 data: {
-                    ...show,
+                    ...mapShowDtoToV1Wire(show),
                     club: {
                         id: clubId,
                         name: show.clubName ?? null,
@@ -79,7 +80,7 @@ export async function GET(
                         isSoldOut: explicitlySoldOut || !ctaUrl,
                     },
                 },
-                relatedShows,
+                relatedShows: relatedShows.map(mapShowDtoToV1Wire),
             },
             { headers: rateLimitHeaders(rl) },
         );

@@ -85,7 +85,7 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
         isAlias,
         uuid: effectiveComedian.uuid,
         isFavorite: Boolean(comedian.favoriteComedians?.length),
-        social_data: {
+        socialData: {
             id: effectiveComedian.id,
             linktree: effectiveComedian.linktree,
             instagram_account: effectiveComedian.instagramAccount,
@@ -97,7 +97,7 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
             website: effectiveComedian.website,
             popularity: effectiveComedian.popularity,
         },
-        show_count: comedian._count.lineupItems,
+        showCount: comedian._count.lineupItems,
     };
 }
 

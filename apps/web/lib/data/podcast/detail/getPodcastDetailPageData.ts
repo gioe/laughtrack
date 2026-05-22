@@ -186,9 +186,9 @@ async function getPodcastDetailPageDataByWhere(
                 name: comedian.name,
                 hasImage: false,
                 imageUrl: "",
-                social_data: socialData,
+                socialData,
                 bio: comedian.bio,
-                show_count: comedian._count.lineupItems,
+                showCount: comedian._count.lineupItems,
             };
         });
 

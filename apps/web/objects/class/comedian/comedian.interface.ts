@@ -17,11 +17,11 @@ export interface ComedianDTO {
     uuid: string;
     id: number;
     userId?: number;
-    social_data: SocialDataDTO;
+    socialData: SocialDataDTO;
     dates?: ShowDTO[];
     isFavorite?: boolean;
-    show_count: number;
-    co_appearances?: number;
+    showCount: number;
+    coAppearances?: number;
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: ComedianLineupItemDTO[];

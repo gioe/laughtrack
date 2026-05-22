@@ -76,7 +76,7 @@ describe("GET /api/v1/podcasts/[id]", () => {
                     name: "Mark Normand",
                     hasImage: false,
                     imageUrl: "",
-                    social_data: {
+                    socialData: {
                         id: 101,
                         linktree: null,
                         instagram_account: null,
@@ -89,7 +89,7 @@ describe("GET /api/v1/podcasts/[id]", () => {
                         popularity: null,
                     },
                     bio: null,
-                    show_count: 0,
+                    showCount: 0,
                 },
             ],
         });

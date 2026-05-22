@@ -198,12 +198,12 @@ export async function findComedianByName(
             hasImage: Boolean(comedianData.hasImage),
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
-            show_count: comedianData.lineupItems.length,
+            showCount: comedianData.lineupItems.length,
             dates: comedianData.lineupItems.map((item) => ({
                 id: item.show.id,
                 date: item.show.date,
                 name: item.show.name,
-                clubID: item.show.club.id,
+                clubId: item.show.club.id,
                 clubName: item.show.club.name,
                 clubCity: item.show.club.city,
                 clubState: item.show.club.state,
@@ -213,7 +213,7 @@ export async function findComedianByName(
                 ),
             })),
             bio: comedianData.bio,
-            social_data: {
+            socialData: {
                 id: comedianData.id,
                 linktree: comedianData.linktree,
                 instagram_account: comedianData.instagramAccount,

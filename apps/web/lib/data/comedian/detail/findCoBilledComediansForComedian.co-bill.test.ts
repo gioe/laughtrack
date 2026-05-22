@@ -55,13 +55,13 @@ describe("findCoBilledComediansForComedian", () => {
                 id: 10,
                 uuid: "frequent-co-bill",
                 name: "Frequent Comic",
-                show_count: 8,
+                showCount: 8,
             }),
             expect.objectContaining({
                 id: 20,
                 uuid: "second-co-bill",
                 name: "Second Comic",
-                show_count: 5,
+                showCount: 5,
             }),
         ]);
         expect(mockFindMany).toHaveBeenCalledWith(

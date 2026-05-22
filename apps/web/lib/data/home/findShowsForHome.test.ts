@@ -56,7 +56,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
             imageUrl: item.comedian.hasImage
                 ? `https://cdn.example.com/${item.comedian.name}.png`
                 : "",
-            show_count: item.comedian._count?.lineupItems,
+            showCount: item.comedian._count?.lineupItems,
             isFavorite: false,
             isAlias: false,
         })),
@@ -244,7 +244,7 @@ describe("findShowsForHome", () => {
                 name: "Filtered Comic",
                 imageUrl: "https://cdn.example.com/Filtered Comic.png",
                 hasImage: true,
-                show_count: 12,
+                showCount: 12,
                 isFavorite: false,
                 isAlias: false,
             };
@@ -280,7 +280,7 @@ describe("findShowsForHome", () => {
             const dto = result[0];
             expect(dto.id).toBe(42);
             expect(dto.name).toBe("Friday Night Comedy");
-            expect(dto.clubID).toBe(117);
+            expect(dto.clubId).toBe(117);
             expect(dto.clubName).toBe("Comedy Cellar");
             expect(dto.address).toBe("117 Macdougal St");
         });

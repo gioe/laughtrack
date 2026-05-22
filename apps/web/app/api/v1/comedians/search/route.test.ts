@@ -50,7 +50,7 @@ const mockSearchResult = {
             uuid: "comedian-uuid",
             name: "Taylor Tomlinson",
             imageUrl: "https://cdn.example.com/taylor.jpg",
-            social_data: {
+            socialData: {
                 id: 1,
                 instagram_account: "taylortomlinson",
                 instagram_followers: 1000000,
@@ -62,7 +62,7 @@ const mockSearchResult = {
                 popularity: 0.95,
                 linktree: null,
             },
-            show_count: 4,
+            showCount: 4,
             isFavorite: true,
         },
     ],

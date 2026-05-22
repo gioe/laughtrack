@@ -138,7 +138,7 @@ export function buildOpeningHoursSpecification(
 
 export function buildComedianJsonLd(comedian: ComedianDTO): object {
     const sameAs: string[] = [];
-    const social = comedian.social_data;
+    const social = comedian.socialData;
     if (social?.instagram_account) {
         sameAs.push(`https://www.instagram.com/${social.instagram_account}`);
     }

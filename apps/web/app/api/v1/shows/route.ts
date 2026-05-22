@@ -4,6 +4,7 @@ import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { SearchParams } from "@/objects/interface";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
+import { mapShowDtoToV1Wire } from "../dtoWire";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -89,7 +90,11 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(
-            { total: result.total, data: result.data, filters: result.filters },
+            {
+                total: result.total,
+                data: result.data.map(mapShowDtoToV1Wire),
+                filters: result.filters,
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

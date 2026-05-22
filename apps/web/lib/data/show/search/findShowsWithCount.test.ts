@@ -163,7 +163,7 @@ describe("findShowsWithCount", () => {
 
             const result = await findShowsWithCount(makeHelper() as never);
 
-            expect(result.shows[0].clubID).toBe(321);
+            expect(result.shows[0].clubId).toBe(321);
             expect(result.shows[0].clubName).toBe("Laugh Factory");
             expect(result.shows[0].address).toBe("456 Sunset Blvd");
             expect(result.shows[0].clubCity).toBe("Los Angeles");

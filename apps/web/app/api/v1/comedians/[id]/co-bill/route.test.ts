@@ -47,7 +47,7 @@ describe("GET /api/v1/comedians/[id]/co-bill", () => {
                 name: "Frequent Comic",
                 imageUrl: "https://cdn.example.com/frequent.jpg",
                 hasImage: true,
-                show_count: 8,
+                showCount: 8,
                 isFavorite: false,
                 isAlias: false,
             },

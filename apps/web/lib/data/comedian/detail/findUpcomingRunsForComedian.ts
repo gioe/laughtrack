@@ -99,7 +99,7 @@ export interface UpcomingRunsFilters {
 }
 
 export interface UpcomingComedianRun {
-    clubID: number;
+    clubId: number;
     clubName: string;
     clubImageUrl: string;
     shows: ReturnType<typeof mapUpcomingRunShow>[];
@@ -222,7 +222,7 @@ function mapUpcomingRunShow(
         description: show.description ?? undefined,
         room: show.room,
         address: show.club.address,
-        clubID: show.club.id,
+        clubId: show.club.id,
         clubName: show.club.name,
         clubCity: show.club.city,
         clubState: show.club.state,
@@ -240,13 +240,13 @@ function groupConsecutiveRuns(
 ): UpcomingComedianRun[] {
     return shows.reduce<UpcomingComedianRun[]>((runs, show) => {
         const last = runs[runs.length - 1];
-        if (last && last.clubID === show.clubID) {
+        if (last && last.clubId === show.clubId) {
             last.shows.push(show);
             return runs;
         }
 
         runs.push({
-            clubID: show.clubID,
+            clubId: show.clubId,
             clubName: show.clubName ?? "Unknown club",
             clubImageUrl: show.imageUrl,
             shows: [show],
