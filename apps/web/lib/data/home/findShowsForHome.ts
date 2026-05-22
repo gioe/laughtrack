@@ -95,6 +95,12 @@ export async function findShowsForHome(
     options: HomeShowQueryOptions = {},
     skip = 0,
 ): Promise<ShowDTO[]> {
+    if (skip > 0 && options.sortByHomeRelevance) {
+        throw new Error(
+            "findShowsForHome: skip>0 is incompatible with sortByHomeRelevance=true. " +
+                "Pagination over a re-sorted candidate window would produce overlapping or missing rows between pages.",
+        );
+    }
     const queryTake = options.sortByHomeRelevance
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
         : take;

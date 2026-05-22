@@ -507,4 +507,43 @@ describe("findShowsForHome", () => {
             );
         });
     });
+
+    describe("skip + sortByHomeRelevance guard", () => {
+        it("throws when skip>0 is combined with sortByHomeRelevance=true", async () => {
+            await expect(
+                findShowsForHome(
+                    {},
+                    { date: "asc" },
+                    8,
+                    { sortByHomeRelevance: true },
+                    20,
+                ),
+            ).rejects.toThrow(/skip>0 is incompatible with sortByHomeRelevance/);
+            expect(mockFindMany).not.toHaveBeenCalled();
+        });
+
+        it("allows skip>0 when sortByHomeRelevance is false or omitted", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome({}, { date: "asc" }, 8, {}, 20);
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ skip: 20, take: 8 }),
+            );
+        });
+
+        it("allows skip=0 when sortByHomeRelevance=true", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome(
+                {},
+                { date: "asc" },
+                8,
+                { sortByHomeRelevance: true },
+                0,
+            );
+
+            expect(mockFindMany).toHaveBeenCalled();
+        });
+    });
 });
