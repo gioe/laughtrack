@@ -129,19 +129,19 @@ describe("getComediansByZip", () => {
             expect(dto.showCount).toBe(row.show_count);
             expect(dto.socialData).toMatchObject({
                 id: row.id,
-                instagram_account: row.instagram_account,
-                instagram_followers: row.instagram_followers,
-                tiktok_account: row.tiktok_account,
-                tiktok_followers: row.tiktok_followers,
-                youtube_account: row.youtube_account,
-                youtube_followers: row.youtube_followers,
+                instagramAccount: row.instagram_account,
+                instagramFollowers: row.instagram_followers,
+                tiktokAccount: row.tiktok_account,
+                tiktokFollowers: row.tiktok_followers,
+                youtubeAccount: row.youtube_account,
+                youtubeFollowers: row.youtube_followers,
                 website: row.website,
                 popularity: row.popularity,
                 linktree: row.linktree,
             });
         });
 
-        it("applies Number() cast to show_count from the DB row", async () => {
+        it("applies Number() cast to showCount from the DB row", async () => {
             // The SQL uses COUNT(DISTINCT s.id)::int so Prisma returns a JS number.
             // Number() is called defensively; verify it produces the expected value.
             const row = makeRow({ show_count: 5 });
@@ -180,7 +180,7 @@ describe("getComediansByZip", () => {
 
             const result = await getComediansByZip("10001");
             const { socialData } = result[0];
-            expect(socialData.instagram_account).toBeNull();
+            expect(socialData.instagramAccount).toBeNull();
             expect(socialData.website).toBeNull();
         });
     });

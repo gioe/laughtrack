@@ -49,14 +49,9 @@ export async function GET(req: NextRequest) {
             ...(profileId ? { profileId, userId } : {}),
         });
 
-        // Map camelCase ClubDTO to snake_case wire shape matching the iOS
-        // ClubSearchItem schema (ios/Sources/LaughTrackAPIClient/openapi.json).
         return NextResponse.json(
             {
-                data: result.data.map(({ showCount, ...rest }) => ({
-                    ...rest,
-                    show_count: showCount,
-                })),
+                data: result.data,
                 total: result.total,
                 filters: result.filters,
             },

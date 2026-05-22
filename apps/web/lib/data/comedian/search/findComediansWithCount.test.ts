@@ -121,7 +121,7 @@ describe("findComediansWithCount", () => {
             expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 
-        it("maps show_count from _count.lineupItems", async () => {
+        it("maps showCount from _count.lineupItems", async () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([makeComedianRow(1, 5)] as never);
 

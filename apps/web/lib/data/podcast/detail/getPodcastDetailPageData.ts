@@ -171,12 +171,12 @@ async function getPodcastDetailPageDataByWhere(
             const socialData: SocialDataDTO = {
                 id: comedian.id,
                 linktree: comedian.linktree,
-                instagram_account: comedian.instagramAccount,
-                instagram_followers: comedian.instagramFollowers,
-                tiktok_account: comedian.tiktokAccount,
-                tiktok_followers: comedian.tiktokFollowers,
-                youtube_account: comedian.youtubeAccount,
-                youtube_followers: comedian.youtubeFollowers,
+                instagramAccount: comedian.instagramAccount,
+                instagramFollowers: comedian.instagramFollowers,
+                tiktokAccount: comedian.tiktokAccount,
+                tiktokFollowers: comedian.tiktokFollowers,
+                youtubeAccount: comedian.youtubeAccount,
+                youtubeFollowers: comedian.youtubeFollowers,
                 website: comedian.website,
                 popularity: comedian.popularity,
             };

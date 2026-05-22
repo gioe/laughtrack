@@ -108,14 +108,6 @@ export async function GET(req: NextRequest) {
 
         const heroShows = showsNearZip.slice(0, HERO_SHOW_COUNT);
         const moreNearYou = showsNearZip.slice(HERO_SHOW_COUNT);
-        // Map camelCase ClubDTO to snake_case wire shape matching the iOS
-        // ClubListItem schema (ios/Sources/LaughTrackAPIClient/openapi.json).
-        const popularClubsWire = popularClubs.map(
-            ({ activeComedianCount, ...rest }) => ({
-                ...rest,
-                active_comedian_count: activeComedianCount,
-            }),
-        );
 
         return NextResponse.json(
             {
@@ -137,7 +129,7 @@ export async function GET(req: NextRequest) {
                     trendingThisWeek:
                         trendingThisWeek.map(mapShowDtoToV1Wire),
                     trendingPodcasts,
-                    popularClubs: popularClubsWire,
+                    popularClubs,
                 },
             },
             {

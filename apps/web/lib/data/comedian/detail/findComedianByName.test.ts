@@ -188,7 +188,7 @@ beforeEach(() => {
 });
 
 describe("findComedianByName", () => {
-    describe("show_count", () => {
+    describe("showCount", () => {
         it("equals lineupItems.length from the mocked Prisma response", async () => {
             const row = makeComedianRow({
                 lineupItems: [

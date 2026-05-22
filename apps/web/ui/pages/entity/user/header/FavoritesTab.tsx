@@ -19,12 +19,12 @@ interface FavoritePodcastApiItem {
     id: number;
     slug: string;
     title: string;
-    author_name: string | null;
-    website_url: string | null;
-    feed_url: string | null;
-    image_url: string | null;
+    authorName: string | null;
+    websiteUrl: string | null;
+    feedUrl: string | null;
+    imageUrl: string | null;
     description: string | null;
-    episode_count: number;
+    episodeCount: number;
     isFavorite?: boolean;
 }
 
@@ -32,12 +32,12 @@ const toPodcastDTO = (item: FavoritePodcastApiItem): PodcastDTO => ({
     id: item.id,
     slug: item.slug,
     title: item.title,
-    authorName: item.author_name,
-    websiteUrl: item.website_url,
-    feedUrl: item.feed_url,
-    imageUrl: item.image_url,
+    authorName: item.authorName,
+    websiteUrl: item.websiteUrl,
+    feedUrl: item.feedUrl,
+    imageUrl: item.imageUrl,
     description: item.description,
-    episodeCount: item.episode_count,
+    episodeCount: item.episodeCount,
     isFavorite: item.isFavorite ?? true,
 });
 

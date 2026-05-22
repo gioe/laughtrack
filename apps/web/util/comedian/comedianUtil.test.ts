@@ -73,7 +73,7 @@ describe("filterAndMapLineupItems", () => {
         });
     });
 
-    describe("show_count", () => {
+    describe("showCount", () => {
         it("maps lineup item count from the effective comedian", () => {
             const item = makeItem({ _count: { lineupItems: 17 } });
             const [result] = filterAndMapLineupItems([item]);

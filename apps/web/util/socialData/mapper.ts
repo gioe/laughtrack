@@ -6,16 +6,16 @@ export const toSocialDataInterface = (
 ): SocialDataInterface => {
     return {
         instagram: {
-            following: Number(payload.instagram_followers ?? "0"),
-            account: payload.instagram_account ?? ""
+            following: Number(payload.instagramFollowers ?? "0"),
+            account: payload.instagramAccount ?? ""
         },
         tiktok: {
-            following: Number(payload.tiktok_followers ?? "0"),
-            account: payload.tiktok_account ?? ""
+            following: Number(payload.tiktokFollowers ?? "0"),
+            account: payload.tiktokAccount ?? ""
         },
         youtube: {
-            following: Number(payload.youtube_followers ?? "0"),
-            account: payload.youtube_account ?? ""
+            following: Number(payload.youtubeFollowers ?? "0"),
+            account: payload.youtubeAccount ?? ""
         },
         linktree: payload.linktree ?? "",
         website: payload.website ?? "",

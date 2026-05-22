@@ -139,14 +139,14 @@ export function buildOpeningHoursSpecification(
 export function buildComedianJsonLd(comedian: ComedianDTO): object {
     const sameAs: string[] = [];
     const social = comedian.socialData;
-    if (social?.instagram_account) {
-        sameAs.push(`https://www.instagram.com/${social.instagram_account}`);
+    if (social?.instagramAccount) {
+        sameAs.push(`https://www.instagram.com/${social.instagramAccount}`);
     }
-    if (social?.tiktok_account) {
-        sameAs.push(`https://www.tiktok.com/@${social.tiktok_account}`);
+    if (social?.tiktokAccount) {
+        sameAs.push(`https://www.tiktok.com/@${social.tiktokAccount}`);
     }
-    if (social?.youtube_account) {
-        sameAs.push(`https://www.youtube.com/@${social.youtube_account}`);
+    if (social?.youtubeAccount) {
+        sameAs.push(`https://www.youtube.com/@${social.youtubeAccount}`);
     }
     if (social?.website) {
         sameAs.push(ensureAbsoluteUrl(social.website)!);

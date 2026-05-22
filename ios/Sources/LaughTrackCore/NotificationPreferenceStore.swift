@@ -59,9 +59,9 @@ public final class ProfileNotificationPreferenceSyncClient: NotificationPreferen
     private static func payloadKey(for channel: NotificationPreferenceChannel) -> String {
         switch channel {
         case .email:
-            return "email_show_notifications"
+            return "emailShowNotifications"
         case .push:
-            return "push_show_notifications"
+            return "pushShowNotifications"
         }
     }
 }
