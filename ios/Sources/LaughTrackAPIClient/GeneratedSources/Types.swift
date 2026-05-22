@@ -1041,123 +1041,10 @@ public enum Components {
                 case data
             }
         }
-        /// - Remark: Generated from `#/components/schemas/FavoriteShowItem`.
-        public struct FavoriteShowItem: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/id`.
-            public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubId`.
-            public var clubId: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubName`.
-            public var clubName: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubCity`.
-            public var clubCity: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubState`.
-            public var clubState: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/date`.
-            public var date: Foundation.Date
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/tickets`.
-            public var tickets: [Components.Schemas.Ticket]?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/name`.
-            public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/socialData`.
-            public var socialData: Components.Schemas.SocialData?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/lineup`.
-            public var lineup: [Components.Schemas.ComedianLineup]?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/description`.
-            public var description: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/address`.
-            public var address: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/room`.
-            public var room: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/imageUrl`.
-            public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/soldOut`.
-            public var soldOut: Swift.Bool?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/distanceMiles`.
-            public var distanceMiles: Swift.Double?
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/timezone`.
-            public var timezone: Swift.String?
-            /// Creates a new `FavoriteShowItem`.
-            ///
-            /// - Parameters:
-            ///   - id:
-            ///   - clubId:
-            ///   - clubName:
-            ///   - clubCity:
-            ///   - clubState:
-            ///   - date:
-            ///   - tickets:
-            ///   - name:
-            ///   - socialData:
-            ///   - lineup:
-            ///   - description:
-            ///   - address:
-            ///   - room:
-            ///   - imageUrl:
-            ///   - soldOut:
-            ///   - distanceMiles:
-            ///   - timezone:
-            public init(
-                id: Swift.Int,
-                clubId: Swift.Int,
-                clubName: Swift.String? = nil,
-                clubCity: Swift.String? = nil,
-                clubState: Swift.String? = nil,
-                date: Foundation.Date,
-                tickets: [Components.Schemas.Ticket]? = nil,
-                name: Swift.String? = nil,
-                socialData: Components.Schemas.SocialData? = nil,
-                lineup: [Components.Schemas.ComedianLineup]? = nil,
-                description: Swift.String? = nil,
-                address: Swift.String? = nil,
-                room: Swift.String? = nil,
-                imageUrl: Swift.String,
-                soldOut: Swift.Bool? = nil,
-                distanceMiles: Swift.Double? = nil,
-                timezone: Swift.String? = nil
-            ) {
-                self.id = id
-                self.clubId = clubId
-                self.clubName = clubName
-                self.clubCity = clubCity
-                self.clubState = clubState
-                self.date = date
-                self.tickets = tickets
-                self.name = name
-                self.socialData = socialData
-                self.lineup = lineup
-                self.description = description
-                self.address = address
-                self.room = room
-                self.imageUrl = imageUrl
-                self.soldOut = soldOut
-                self.distanceMiles = distanceMiles
-                self.timezone = timezone
-            }
-            public enum CodingKeys: String, CodingKey {
-                case id
-                case clubId
-                case clubName
-                case clubCity
-                case clubState
-                case date
-                case tickets
-                case name
-                case socialData
-                case lineup
-                case description
-                case address
-                case room
-                case imageUrl
-                case soldOut
-                case distanceMiles
-                case timezone
-            }
-        }
         /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse`.
         public struct FavoriteShowListResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/data`.
-            public var data: [Components.Schemas.FavoriteShowItem]
+            public var data: [Components.Schemas.Show]
             /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/total`.
             public var total: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/page`.
@@ -1175,7 +1062,7 @@ public enum Components {
             ///   - size:
             ///   - totalPages:
             public init(
-                data: [Components.Schemas.FavoriteShowItem],
+                data: [Components.Schemas.Show],
                 total: Swift.Int,
                 page: Swift.Int,
                 size: Swift.Int,

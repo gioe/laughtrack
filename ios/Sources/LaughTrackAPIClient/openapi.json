@@ -2304,42 +2304,13 @@
           }
         }
       },
-      "FavoriteShowItem": {
-        "type": "object",
-        "required": ["id", "clubId", "date", "imageUrl"],
-        "properties": {
-          "id": { "type": "integer" },
-          "clubId": { "type": "integer" },
-          "clubName": { "type": "string" },
-          "clubCity": { "type": ["string", "null"] },
-          "clubState": { "type": ["string", "null"] },
-          "date": { "type": "string", "format": "date-time" },
-          "tickets": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Ticket" }
-          },
-          "name": { "type": ["string", "null"] },
-          "socialData": { "$ref": "#/components/schemas/SocialData" },
-          "lineup": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ComedianLineup" }
-          },
-          "description": { "type": "string" },
-          "address": { "type": "string" },
-          "room": { "type": ["string", "null"] },
-          "imageUrl": { "type": "string" },
-          "soldOut": { "type": "boolean" },
-          "distanceMiles": { "type": ["number", "null"] },
-          "timezone": { "type": ["string", "null"] }
-        }
-      },
       "FavoriteShowListResponse": {
         "type": "object",
         "required": ["data", "total", "page", "size", "totalPages"],
         "properties": {
           "data": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FavoriteShowItem" }
+            "items": { "$ref": "#/components/schemas/Show" }
           },
           "total": { "type": "integer" },
           "page": { "type": "integer" },
