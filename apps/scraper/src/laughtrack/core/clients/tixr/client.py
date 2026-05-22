@@ -764,9 +764,27 @@ class TixrClient(BaseApiClient):
             room = ""
 
             grouped = self._group_tiers_by_performance_time(data, base_date, timezone)
+            # Only the multi-bucket path is a true split. Single-bucket events
+            # never carry day-time-suffixed tiers in practice; gating on
+            # is_split keeps the strip a no-op for unchanged callers and lets
+            # the defensive name-match check stay the only guard on the split
+            # path.
+            is_split = len(grouped) > 1
 
             shows: List[Show] = []
             for performance_date, tier_dicts in sorted(grouped.items(), key=lambda kv: kv[0]):
+                if is_split:
+                    tier_dicts = [
+                        {
+                            **tier,
+                            "name": self._strip_performance_time_suffix(
+                                tier.get("name"), performance_date
+                            ),
+                        }
+                        if isinstance(tier, dict)
+                        else tier
+                        for tier in tier_dicts
+                    ]
                 tickets = self._build_tickets_from_tiers(tier_dicts, show_page_url)
                 if not tickets and performance_date == base_date:
                     tickets = self._extract_fallback_tickets(data, show_page_url)
@@ -1038,3 +1056,41 @@ class TixrClient(BaseApiClient):
         delta_days = (weekday_idx - base_date.weekday()) % 7
         perf_date = base_date + timedelta(days=delta_days)
         return perf_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+    @classmethod
+    def _strip_performance_time_suffix(
+        cls, tier_name: Any, performance_date: datetime
+    ) -> str:
+        """Strip a trailing ``" - <Weekday> <H[:MM]><am|pm>"`` suffix from a
+        tier name iff the suffix's weekday + clock match ``performance_date``.
+
+        Used by the split path in ``_create_shows_from_data`` to clean up
+        per-occurrence ticket-type labels (e.g. "Golden Circle - Friday 7:30pm"
+        → "Golden Circle") on shows that already carry the performance time
+        in their ``date`` field, so the suffix is redundant downstream.
+
+        Defensive: if the tier name has no recognizable suffix, or the parsed
+        suffix does not match ``performance_date``'s weekday / hour / minute,
+        the original string is returned unchanged. ``performance_date`` is
+        expected in the venue's local timezone — the same frame the suffix
+        was authored in.
+        """
+        if not isinstance(tier_name, str) or performance_date is None:
+            return tier_name if isinstance(tier_name, str) else ""
+        match = cls._PERFORMANCE_TIME_SUFFIX_RE.search(tier_name)
+        if not match:
+            return tier_name
+        weekday_idx = cls._WEEKDAY_INDEX.get(match.group("weekday").lower())
+        if weekday_idx is None or weekday_idx != performance_date.weekday():
+            return tier_name
+        hour = int(match.group("hour"))
+        minute = int(match.group("minute") or 0)
+        if hour < 1 or hour > 12 or minute > 59:
+            return tier_name
+        if match.group("ampm").lower() == "pm" and hour != 12:
+            hour += 12
+        elif match.group("ampm").lower() == "am" and hour == 12:
+            hour = 0
+        if hour != performance_date.hour or minute != performance_date.minute:
+            return tier_name
+        return tier_name[: match.start()].rstrip()

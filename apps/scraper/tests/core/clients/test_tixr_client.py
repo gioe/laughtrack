@@ -1598,13 +1598,26 @@ class TestFetchGroupEvents:
             local = ev.date_time.astimezone(la)
             assert (local.year, local.month, local.day) == (2026, 5, expected_day)
 
+        # Post-split tier names drop the redundant " - <weekday> <clock>" suffix
+        # since each performance is now its own Show with the time on the Show
+        # itself. The three "General Admission - ..." source tiers collapse to
+        # the bare "General Admission" base name across distinct performances —
+        # the per-show Ticket.type set must stay collision-free (the model has
+        # @@unique([showId, type])).
         assert [t.type for t in fri_730.show.tickets] == [
-            "General Admission - Friday 7:30pm",
-            "VIP Seating - Friday 7:30pm",
+            "General Admission",
+            "VIP Seating",
         ]
-        assert [t.type for t in fri_930.show.tickets] == ["General Admission - Friday 9:30pm"]
-        assert [t.type for t in sat_7.show.tickets] == ["Booth Seats - Saturday 7pm"]
-        assert [t.type for t in sat_930.show.tickets] == ["General Admission - Saturday 9:30pm"]
+        assert [t.type for t in fri_930.show.tickets] == ["General Admission"]
+        assert [t.type for t in sat_7.show.tickets] == ["Booth Seats"]
+        assert [t.type for t in sat_930.show.tickets] == ["General Admission"]
+
+        # All three "General Admission - ..." source tiers share a base name
+        # but land on different shows — the splitter must never produce two
+        # tiers with the same base name on a single show.
+        for event in events:
+            tier_types = [t.type for t in event.show.tickets]
+            assert len(tier_types) == len(set(tier_types))
 
         # All splits keep the bundled event's source URL so the user lands on the same purchase page.
         assert {event.show.show_page_url for event in events} == {bundled_event["url"]}
