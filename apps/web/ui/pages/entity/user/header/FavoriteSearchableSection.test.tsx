@@ -154,6 +154,31 @@ describe("FavoriteSearchableSection serverPageInfo branch", () => {
         ).toBeTruthy();
     });
 
+    it("does not show a zero-count search scope while loading a server page", () => {
+        render(
+            <FavoriteSearchableSection<Item>
+                title="Shows"
+                items={[]}
+                isLoading={true}
+                emptyMessage="empty"
+                searchPlaceholder="search"
+                matchesQuery={matchesQuery}
+                renderItem={renderItem}
+                itemKey={itemKey}
+                gridClassName="grid"
+                queryKey="showsPage"
+                searchScopeLabel="shows"
+                serverPageInfo={{
+                    currentPage: 1,
+                    pageSize: 20,
+                    totalItems: 137,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText(/Search applies to the/)).toBeNull();
+    });
+
     it("falls back to client-side pagination when serverPageInfo is absent", () => {
         // 25 items, default PAGE_SIZE=20, so the first page shows items 1..20.
         const items = makeItems(25);

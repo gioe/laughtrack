@@ -62,7 +62,9 @@ function FavoriteSearchableSection<T>({
         items.length === 1
             ? searchScopeLabel.replace(/s$/, "")
             : searchScopeLabel;
-    const serverSearchScopeNote = serverPageInfo
+    const showServerSearchScopeNote =
+        serverPageInfo && !isLoading && !loadError && items.length > 0;
+    const serverSearchScopeNote = showServerSearchScopeNote
         ? `Search applies to the ${items.length} ${searchScopeNoun} on this page.`
         : null;
 
