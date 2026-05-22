@@ -139,6 +139,68 @@ def _primary_repo_root(repo_root: str) -> str:
     return primary if os.path.isdir(primary) else repo_root
 
 
+def _link_primary_resource(
+    primary_root: str,
+    worktree_path: str,
+    relative_path: str,
+    *,
+    resource_label: str,
+) -> str | None:
+    source = os.path.join(primary_root, relative_path)
+    if not os.path.exists(source):
+        return None
+
+    target_parent = os.path.dirname(os.path.join(worktree_path, relative_path))
+    if not os.path.isdir(target_parent):
+        return None
+
+    target = os.path.join(worktree_path, relative_path)
+    if os.path.lexists(target):
+        if os.path.islink(target) and not os.path.exists(target):
+            os.unlink(target)
+        else:
+            return None
+
+    try:
+        os.symlink(source, target)
+    except OSError as exc:
+        return f"Warning: could not link {resource_label} into task workspace: {exc}"
+    return None
+
+
+def _ensure_workspace_resources_available(
+    repo_root: str, worktree_path: str
+) -> list[str]:
+    primary_root = _primary_repo_root(repo_root)
+    resources = [
+        ("apps/scraper/.venv", "scraper venv"),
+        ("apps/scraper/.env", "scraper env"),
+        ("apps/web/node_modules", "web node_modules"),
+        ("apps/web/.env.local", "web env"),
+    ]
+    warnings = []
+    for relative_path, label in resources:
+        warning = _link_primary_resource(
+            primary_root,
+            worktree_path,
+            relative_path,
+            resource_label=label,
+        )
+        if warning:
+            warnings.append(warning)
+    return warnings
+
+
+def _ensure_scraper_venv_available(repo_root: str, worktree_path: str) -> str | None:
+    primary_root = _primary_repo_root(repo_root)
+    return _link_primary_resource(
+        primary_root,
+        worktree_path,
+        "apps/scraper/.venv",
+        resource_label="scraper venv",
+    )
+
+
 def _load_symlink_files(config_path: str) -> list[str]:
     """Load ``worktree.symlink_files`` from the project config, returning [] on any error."""
     if not config_path or not os.path.exists(config_path):
@@ -425,12 +487,11 @@ def cmd_create(
             """,
             (cur.lastrowid,),
         ).fetchone()
-        # Seed gitignored runtime files (e.g. .venv, .env) from the primary
-        # repo per worktree.symlink_files config (issue #752). Opt-in: empty
-        # list (default) creates no symlinks. Best-effort: any individual
-        # symlink failure is swallowed inside _link_gitignored_files so a
-        # permissions or race issue does not abort the worktree creation we
-        # just recorded above.
+        # Seed LaughTrack's standard gitignored runtime resources, then any
+        # additional project-configured resource names. Best-effort: any
+        # individual symlink failure is swallowed so a permissions or race
+        # issue does not abort the worktree creation we just recorded above.
+        _ensure_workspace_resources_available(repo_root, workspace_path)
         symlink_names = _load_symlink_files(config_path)
         if symlink_names:
             primary_root = _primary_repo_root(repo_root)
