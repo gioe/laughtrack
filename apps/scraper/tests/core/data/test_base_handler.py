@@ -16,6 +16,8 @@ from pathlib import Path
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 # ---------------------------------------------------------------------------
 # Bootstrap helpers — load source without triggering __init__.py chains
 # ---------------------------------------------------------------------------
@@ -237,3 +239,52 @@ class TestExecuteBatchOperationLogging:
         _mock_logger.info.assert_called_once_with(
             "insert operation: 0 new widget processed — all already existed"
         )
+
+
+class TestAcquireConnectionFallbackClose:
+    """Regression coverage for TASK-2411: _acquire_connection's no-conn fallback
+    must close the freshly-opened connection on both success and exception.
+
+    psycopg2's connection __exit__ only commits / rolls back the transaction —
+    it does not close the connection. Without the try/finally: new_conn.close()
+    wrapper around the inner `with new_conn:`, every handler call without an
+    externally-provided conn would leak a connection.
+    """
+
+    def _make_bare_conn(self):
+        """Minimal context-manager mock for create_connection() — no cursor wiring."""
+        conn = MagicMock()
+        conn.__enter__ = lambda s: conn
+        conn.__exit__ = MagicMock(return_value=False)
+        return conn
+
+    def test_fallback_closes_connection_on_success(self):
+        handler = _ConcreteHandler()
+        conn = self._make_bare_conn()
+
+        with patch.object(handler, "create_connection", return_value=conn):
+            with handler._acquire_connection(None) as active:
+                assert active is conn
+
+        conn.close.assert_called_once_with()
+
+    def test_fallback_closes_connection_on_exception(self):
+        handler = _ConcreteHandler()
+        conn = self._make_bare_conn()
+
+        class _Boom(Exception):
+            pass
+
+        with patch.object(handler, "create_connection", return_value=conn):
+            with pytest.raises(_Boom):
+                with handler._acquire_connection(None) as active:
+                    assert active is conn
+                    raise _Boom("simulated handler failure")
+
+        conn.close.assert_called_once_with()
+        # The inner `with new_conn:` must also see the exception so psycopg2
+        # rolls back the transaction before close() runs.
+        conn.__exit__.assert_called_once()
+        exc_type, exc_val, _tb = conn.__exit__.call_args.args
+        assert exc_type is _Boom
+        assert isinstance(exc_val, _Boom)
