@@ -1,9 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
-import { formatTicketString } from "@/util/ticket/ticketUtil";
+import {
+    formatTicketString,
+    hasUnknownAvailableTicketPrice,
+} from "@/util/ticket/ticketUtil";
 import { Ticket } from "@/objects/class/ticket/Ticket";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 import { Button } from "@/ui/components/ui/button";
+import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 
 interface ShowTicketCtaProps {
     show: ShowDetailDTO;
@@ -23,6 +29,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
     const tickets = (show.tickets ?? []).map((t) => new Ticket(t));
     const liveTickets = tickets.filter((t) => !t.soldOut);
     const priceLabel = formatTicketString(liveTickets);
+    const hasUnknownPrice = hasUnknownAvailableTicketPrice(show.tickets ?? []);
     const explicitlySoldOut =
         show.soldOut === true ||
         (tickets.length > 0 && tickets.every((t) => t.soldOut));
@@ -60,21 +67,24 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-8 mb-10">
-            <Button asChild variant="roundedShimmer" className="gap-2">
-                <Link
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={ctaLabel}
-                >
-                    Get Tickets
-                    {priceLabel && (
-                        <span className="text-white/90 font-dmSans font-normal">
-                            · {priceLabel}
-                        </span>
-                    )}
-                </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+                <Button asChild variant="roundedShimmer" className="gap-2">
+                    <Link
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={ctaLabel}
+                    >
+                        Get Tickets
+                        {priceLabel && (
+                            <span className="text-white/90 font-dmSans font-normal">
+                                · {priceLabel}
+                            </span>
+                        )}
+                    </Link>
+                </Button>
+                {hasUnknownPrice && <PriceUnavailableInfo />}
+            </div>
             <p className="mt-2 text-xs text-gray-500 font-dmSans">
                 Opens the venue&apos;s ticketing page in a new tab.
             </p>

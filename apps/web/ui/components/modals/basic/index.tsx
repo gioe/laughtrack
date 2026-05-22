@@ -21,6 +21,7 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                 ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
+                aria-label={title}
                 tabIndex={-1}
                 className="w-[calc(100%-2rem)] max-w-md bg-coconut-cream rounded-lg p-4 sm:p-6 m-4 outline-none"
             >
@@ -30,6 +31,7 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                     </h2>
                     <button
                         onClick={onClose}
+                        aria-label="Close dialog"
                         className="text-gray-500 hover:text-gray-700"
                     >
                         <X size={20} />

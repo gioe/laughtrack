@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { formatTicketString, mapTickets } from "./ticketUtil";
+import {
+    formatTicketString,
+    hasUnknownAvailableTicketPrice,
+    mapTickets,
+} from "./ticketUtil";
 
 describe("mapTickets", () => {
     it("keeps ticket prices numeric for API clients", () => {
@@ -30,5 +34,32 @@ describe("mapTickets", () => {
 
         expect(tickets[0].price).toBeNull();
         expect(formatTicketString(tickets)).toBe("");
+    });
+
+    it("detects only purchasable available tickets with unknown prices", () => {
+        expect(
+            hasUnknownAvailableTicketPrice([
+                {
+                    price: null,
+                    purchaseUrl: "https://example.com/tickets",
+                    soldOut: false,
+                },
+            ]),
+        ).toBe(true);
+
+        expect(
+            hasUnknownAvailableTicketPrice([
+                {
+                    price: 0,
+                    purchaseUrl: "https://example.com/free",
+                    soldOut: false,
+                },
+                {
+                    price: null,
+                    purchaseUrl: "https://example.com/sold-out",
+                    soldOut: true,
+                },
+            ]),
+        ).toBe(false);
     });
 });

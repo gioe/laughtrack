@@ -11,6 +11,8 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
 import EntityCard from "../entity";
 import { formatShowDate } from "@/util/dateUtil";
+import { hasUnknownAvailableTicketPrice } from "@/util/ticket/ticketUtil";
+import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -133,8 +135,12 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                     parsedShow.tickets[0].purchaseUrl;
                                 const canPurchase =
                                     stillOnSale && !!purchaseUrl;
+                                const hasUnknownPrice =
+                                    hasUnknownAvailableTicketPrice(
+                                        parsedShow.tickets,
+                                    );
                                 return (
-                                    <div className="sm:self-start relative z-[2]">
+                                    <div className="sm:self-start relative z-[2] flex flex-wrap items-center gap-2">
                                         {canPurchase ? (
                                             <Button
                                                 asChild
@@ -165,6 +171,9 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                                     ? "Get Tickets"
                                                     : "Sold Out"}
                                             </Button>
+                                        )}
+                                        {hasUnknownPrice && (
+                                            <PriceUnavailableInfo />
                                         )}
                                     </div>
                                 );

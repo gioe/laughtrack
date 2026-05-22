@@ -6,8 +6,12 @@ import Link from "next/link";
 import { Show } from "@/objects/class/show/Show";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { formatShowDate } from "@/util/dateUtil";
-import { formatTicketString } from "@/util/ticket/ticketUtil";
+import {
+    formatTicketString,
+    hasUnknownAvailableTicketPrice,
+} from "@/util/ticket/ticketUtil";
 import EntityCard from "../../entity";
+import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -45,6 +49,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
     const ticketAriaLabel = buyUrl
         ? `Get tickets for ${showDescriptor}`
         : undefined;
+    const hasUnknownPrice = hasUnknownAvailableTicketPrice(parsedShow.tickets);
 
     return (
         <EntityCard
@@ -126,15 +131,20 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
             {parsedShow.tickets.length > 0 && (
                 <div className="mt-auto pt-1 relative z-[2]">
                     {buyUrl ? (
-                        <Link
-                            href={buyUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={ticketAriaLabel}
-                            className="inline-block text-caption font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-                        >
-                            {ticketLabel || "Get Tickets"}
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                                href={buyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={ticketAriaLabel}
+                                className="inline-block text-caption font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                            >
+                                {ticketLabel || "Get Tickets"}
+                            </Link>
+                            {hasUnknownPrice && (
+                                <PriceUnavailableInfo className="h-7 w-7" />
+                            )}
+                        </div>
                     ) : (
                         <div className="flex items-center gap-2">
                             {struckPriceLabel && (
