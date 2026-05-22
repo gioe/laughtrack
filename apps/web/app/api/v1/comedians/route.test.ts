@@ -43,6 +43,47 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/comedians", () => {
+    describe("happy path", () => {
+        // Pin representative camelCase wire keys so a future regression
+        // (e.g. socialData → social_data) surfaces here, not in iOS.
+        it("returns the camelCase comedian wire shape from getTrendingComedians", async () => {
+            mockGetTrendingComedians.mockResolvedValue([
+                {
+                    id: 1,
+                    uuid: "comedian-uuid",
+                    name: "Taylor Tomlinson",
+                    imageUrl: "https://cdn.example.com/taylor.jpg",
+                    hasImage: true,
+                    showCount: 4,
+                    socialData: {
+                        id: 1,
+                        instagramAccount: "taylortomlinson",
+                        instagramFollowers: 1_000_000,
+                        tiktokAccount: null,
+                        tiktokFollowers: null,
+                        youtubeAccount: null,
+                        youtubeFollowers: null,
+                        website: null,
+                        popularity: 0.95,
+                        linktree: null,
+                    },
+                } as never,
+            ]);
+
+            const res = await GET(makeRequest());
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.data[0].imageUrl).toBe(
+                "https://cdn.example.com/taylor.jpg",
+            );
+            expect(body.data[0].showCount).toBe(4);
+            expect(body.data[0].socialData.instagramFollowers).toBe(
+                1_000_000,
+            );
+        });
+    });
+
     describe("offset validation", () => {
         it("returns 400 with rate-limit headers when offset is invalid", async () => {
             const res = await GET(makeRequest({ offset: "-1" }));

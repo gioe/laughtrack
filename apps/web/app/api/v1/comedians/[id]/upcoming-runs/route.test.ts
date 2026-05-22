@@ -84,6 +84,18 @@ describe("GET /api/v1/comedians/[id]/upcoming-runs", () => {
         expect(res.status).toBe(200);
         expectOpenApiResponse("/comedians/{id}/upcoming-runs", 200, body);
         expect(body.data[0].shows).toHaveLength(1);
+        // Pin representative camelCase wire keys so a future regression
+        // (e.g. clubImageUrl → club_image_url) surfaces here.
+        expect(body.data[0].clubId).toBe(10);
+        expect(body.data[0].clubName).toBe("Comedy Cellar");
+        expect(body.data[0].clubImageUrl).toBe(
+            "https://cdn.example.com/club.jpg",
+        );
+        expect(body.data[0].shows[0].clubId).toBe(10);
+        expect(body.data[0].shows[0].imageUrl).toBe(
+            "https://cdn.example.com/club.jpg",
+        );
+        expect(body.data[0].shows[0].soldOut).toBe(false);
         expect(mockFindUpcomingRuns).toHaveBeenCalledWith(123, {
             club: "cellar",
             location: "New York",

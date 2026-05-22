@@ -61,6 +61,14 @@ describe("GET /api/v1/comedians/[id]/co-bill", () => {
         expect(res.status).toBe(200);
         expectOpenApiResponse("/comedians/{id}/co-bill", 200, body);
         expect(body.data).toHaveLength(1);
+        // Pin representative camelCase wire keys so a future regression
+        // (e.g. imageUrl → image_url) surfaces here.
+        expect(body.data[0].imageUrl).toBe(
+            "https://cdn.example.com/frequent.jpg",
+        );
+        expect(body.data[0].showCount).toBe(8);
+        expect(body.data[0].hasImage).toBe(true);
+        expect(body.data[0].isFavorite).toBe(false);
         expect(mockFindCoBilledComedians).toHaveBeenCalledWith({
             comedianId: 123,
         });

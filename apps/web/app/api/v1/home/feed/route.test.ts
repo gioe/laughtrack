@@ -188,7 +188,12 @@ describe("GET /api/v1/home/feed", () => {
                 state: "NY",
             });
             mockGetShowsNearZip.mockResolvedValue([
-                { id: 1 },
+                {
+                    id: 1,
+                    clubId: 7,
+                    imageUrl: "https://cdn.example.com/1.jpg",
+                    soldOut: false,
+                },
                 { id: 2 },
                 { id: 3 },
                 { id: 4 },
@@ -205,6 +210,13 @@ describe("GET /api/v1/home/feed", () => {
             expect(
                 body.data.moreNearYou.map((s: { id: number }) => s.id),
             ).toEqual([4, 5]);
+            // Pin representative camelCase show keys on hero.shows so a
+            // future regression (e.g. clubId → club_id) surfaces here.
+            expect(body.data.hero.shows[0].clubId).toBe(7);
+            expect(body.data.hero.shows[0].imageUrl).toBe(
+                "https://cdn.example.com/1.jpg",
+            );
+            expect(body.data.hero.shows[0].soldOut).toBe(false);
         });
 
         it("returns empty moreNearYou when fewer than 3 near-you shows exist", async () => {

@@ -53,6 +53,38 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/comedians/past-shows", () => {
+    // Pin the route's camelCase wire keys: the root `total`
+    // (renamed from helper's `totalCount`) and show-shape camelCase fields.
+    it("returns the camelCase past-shows wire shape with renamed total field", async () => {
+        mockFindPastShowsForComedian.mockResolvedValue({
+            shows: [
+                {
+                    id: 101,
+                    clubId: 7,
+                    clubName: "Comedy Cellar",
+                    name: "Past Stop",
+                    date: new Date("2025-12-01T20:00:00.000Z"),
+                    imageUrl: "https://cdn.example.com/past.jpg",
+                    soldOut: false,
+                    lineup: [],
+                    tickets: [],
+                },
+            ],
+            totalCount: 42,
+        } as never);
+
+        const res = await GET(makeRequest());
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.total).toBe(42);
+        expect(body.data[0].clubId).toBe(7);
+        expect(body.data[0].imageUrl).toBe(
+            "https://cdn.example.com/past.jpg",
+        );
+        expect(body.data[0].soldOut).toBe(false);
+    });
+
     it("returns 500 with rate-limit headers when the past-shows helper fails unexpectedly", async () => {
         mockFindPastShowsForComedian.mockRejectedValue(
             new Error("DB unavailable"),

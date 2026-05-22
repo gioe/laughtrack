@@ -97,6 +97,15 @@ describe("GET /api/v1/comedians/search", () => {
             }),
         );
         expect(body.data[0].isFavorite).toBe(true);
+        // Pin representative camelCase wire keys so a future regression
+        // (e.g. socialData → social_data) surfaces here.
+        expect(body.data[0].imageUrl).toBe(
+            "https://cdn.example.com/taylor.jpg",
+        );
+        expect(body.data[0].showCount).toBe(4);
+        expect(body.data[0].socialData.instagramFollowers).toBe(
+            1000000,
+        );
     });
 
     it("degrades PROFILE_MISSING to anonymous search", async () => {
