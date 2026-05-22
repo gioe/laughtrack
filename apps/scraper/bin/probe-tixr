@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+"""
+Probe the live Tixr group-events API and dump raw JSON for fixture creation.
+
+Direct curl to ``api/groups/<id>/events`` is DataDome-blocked, so investigating
+field-shape bugs (e.g. TASK-2387's UTC-vs-PT timezone discovery) requires
+running through the real TixrClient transport: curl_cffi impersonation first,
+Tixr decodo proxy on fallback. This helper drives that exact code path and
+prints the response verbatim so test fixtures can copy the live shapes
+(timestamp tz markers, key casing, nested envelopes) without rebuilding the
+harness each time.
+
+When to use:
+    Run this before writing or updating any fixture used by
+    tests/scrapers/implementations/api/tixr/ — scraper fixtures must mirror
+    live API shape exactly. A "convenient" shape (e.g. local-time ISO with an
+    explicit offset) can pass while the live behavior is wrong by hours.
+
+Usage:
+    cd apps/scraper && python bin/probe-tixr 1613               # first 5 events
+    cd apps/scraper && python bin/probe-tixr laughfactorycovina # slug works too
+    cd apps/scraper && python bin/probe-tixr 1613 --page 2
+    cd apps/scraper && python bin/probe-tixr 1613 --limit 20
+    cd apps/scraper && python bin/probe-tixr 1613 --full        # no truncation
+    cd apps/scraper && make probe-tixr GROUP=1613               # via Makefile
+
+The positional argument accepts either the numeric Tixr group_id (1613) or
+the URL slug (laughfactorycovina). Both shapes work because TixrClient builds
+the URL the same way: https://www.tixr.com/api/groups/<id-or-slug>/events.
+For an existing club, look up the value via:
+    make club CLUB="<venue name>"
+and check ``active_scraping_source.metadata`` for ``tixr_group_id`` /
+``tixr_group_slug``.
+
+Output is JSON on stdout. The outer envelope is preserved as-returned; only
+the events list is truncated when ``--limit > 0`` and ``--full`` is not set.
+The original event count is printed to stderr so a truncated dump never
+silently hides ``"the venue has 47 events"``.
+"""
+import argparse
+import asyncio
+import json
+import os
+import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCRAPER_ROOT = SCRIPT_DIR.parent  # apps/scraper/
+ENV_FILE = SCRAPER_ROOT / ".env"
+
+# Put src/ on sys.path so ``import laughtrack...`` resolves from anywhere.
+for _path in (SCRAPER_ROOT / "src", SCRAPER_ROOT):
+    _p = str(_path)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print(
+        "Error: python-dotenv is not installed. Run: pip install python-dotenv",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE)
+else:
+    print(
+        f"Warning: .env not found at {ENV_FILE} — proxy fallback will fail if "
+        f"RESIDENTIAL_PROXY_URL is not exported in the environment",
+        file=sys.stderr,
+    )
+
+# Imports happen after sys.path setup + dotenv load so module-level env reads
+# (e.g. proxy registry) see the .env values.
+from laughtrack.core.clients.tixr.client import TixrClient  # noqa: E402
+from laughtrack.core.entities.club.model import Club, ScrapingSource  # noqa: E402
+
+
+def _stub_club(group_id: str) -> Club:
+    """Construct the minimal Club required by TixrClient.
+
+    None of these fields affect the outgoing request — TixrClient only reads
+    ``club.name`` for log lines and consults its own ``self.base_url``/``self.key``
+    when building URLs and resolving proxies.
+    """
+    club = Club(
+        id=0,
+        name=f"probe-tixr-group-{group_id}",
+        address="",
+        website="",
+        popularity=0,
+        zip_code="",
+        phone_number="",
+        visible=False,
+        timezone="America/Los_Angeles",
+    )
+    club.active_scraping_source = ScrapingSource(
+        id=0,
+        club_id=0,
+        platform="tixr",
+        scraper_key="tixr",
+        source_url=f"https://www.tixr.com/groups/{group_id}",
+        external_id=None,
+    )
+    club.scraping_sources = [club.active_scraping_source]
+    return club
+
+
+def _count_events(data) -> int:
+    if isinstance(data, list):
+        return len(data)
+    if isinstance(data, dict):
+        for key in ("events", "items", "results"):
+            value = data.get(key)
+            if isinstance(value, list):
+                return len(value)
+        nested = data.get("data")
+        if isinstance(nested, (list, dict)) and nested is not data:
+            return _count_events(nested)
+    return 0
+
+
+def _truncate_events(data, limit: int):
+    """Truncate the events list inside the response envelope, leaving shape intact.
+
+    Returns ``(truncated_data, original_event_count)``. When ``limit <= 0`` or
+    the response shape is unrecognized, returns ``data`` unmodified.
+    """
+    if limit <= 0 or data is None:
+        return data, _count_events(data)
+
+    if isinstance(data, list):
+        return data[:limit], len(data)
+
+    if isinstance(data, dict):
+        for key in ("events", "items", "results"):
+            value = data.get(key)
+            if isinstance(value, list):
+                truncated = dict(data)
+                truncated[key] = value[:limit]
+                return truncated, len(value)
+        nested = data.get("data")
+        if isinstance(nested, (list, dict)) and nested is not data:
+            new_nested, count = _truncate_events(nested, limit)
+            truncated = dict(data)
+            truncated["data"] = new_nested
+            return truncated, count
+
+    return data, _count_events(data)
+
+
+async def _probe(group_id: str, page: int):
+    club = _stub_club(group_id)
+    client = TixrClient(club)
+    api_url = f"{client.base_url}/api/groups/{group_id}/events?page={page}"
+    return await client._fetch_group_events_json(
+        api_url, logger_context={"group_id": group_id, "probe": True}
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        prog="probe-tixr",
+        description=(
+            "Dump raw JSON from the live Tixr group-events API for fixture "
+            "creation. Use this before writing scraper test fixtures so the "
+            "fixture mirrors the live API shape exactly (key casing, tz markers, "
+            "nested envelopes). See bin/probe-tixr module docstring for details."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  python bin/probe-tixr 1613               # Laugh Factory Covina (group_id)\n"
+            "  python bin/probe-tixr laughfactorycovina # same venue by slug\n"
+            "  python bin/probe-tixr 1613 --page 2 --limit 10\n"
+            "  python bin/probe-tixr 1613 --full        # dump every event\n"
+        ),
+    )
+    parser.add_argument(
+        "group_id",
+        help=(
+            "Tixr group_id (e.g. 1613) or group slug (e.g. laughfactorycovina). "
+            "For an existing club, look it up via `make club CLUB='<name>'` and "
+            "check active_scraping_source.metadata for tixr_group_id / tixr_group_slug."
+        ),
+    )
+    parser.add_argument(
+        "--page", type=int, default=1, help="Page number to fetch (default: 1)"
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help=(
+            "Truncate the events list to this many entries (default: 5). "
+            "The outer envelope is preserved as-returned."
+        ),
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Do not truncate; print every event (overrides --limit).",
+    )
+    args = parser.parse_args()
+
+    group_id = str(args.group_id).strip()
+    if not group_id:
+        print("Error: group_id is required", file=sys.stderr)
+        return 1
+
+    data = asyncio.run(_probe(group_id, args.page))
+    if data is None:
+        print(
+            f"Error: Tixr group-events fetch returned no data for group_id="
+            f"{group_id} (page={args.page}). Both direct curl-cffi and proxy "
+            f"fallback failed — confirm RESIDENTIAL_PROXY_URL (and any "
+            f"TIXR_PROXY_* session vars) are set in {ENV_FILE}, and that the "
+            f"group_id/slug is valid.",
+            file=sys.stderr,
+        )
+        return 2
+
+    limit = 0 if args.full else args.limit
+    truncated, total = _truncate_events(data, limit)
+
+    if total > 0 and limit > 0 and total > limit:
+        print(
+            f"Note: response contains {total} events; showing first {limit}. "
+            f"Re-run with --full or --limit {total} to dump all.",
+            file=sys.stderr,
+        )
+
+    print(json.dumps(truncated, indent=2, ensure_ascii=False, sort_keys=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

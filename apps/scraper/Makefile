@@ -813,6 +813,28 @@ else
 	@$(activate_venv) $(PYTHON) bin/query "$(SQL)"
 endif
 
+# Probe the live Tixr group-events API and dump raw JSON for fixture creation.
+# Runs through the real TixrClient transport (curl-cffi direct → tixr decodo
+# proxy fallback) so the output preserves live field shapes — copy from it
+# when writing scraper test fixtures so they mirror the live API exactly.
+#
+# Usage: make probe-tixr GROUP=1613                  # first 5 events
+#        make probe-tixr GROUP=laughfactorycovina    # slug works too
+#        make probe-tixr GROUP=1613 PAGE=2 LIMIT=10
+#        make probe-tixr GROUP=1613 ARGS=--full      # no truncation
+probe-tixr: check-env
+ifndef GROUP
+	@echo "❌ Usage: make probe-tixr GROUP='<tixr_group_id-or-slug>' [PAGE=N] [LIMIT=N] [ARGS=--full]"
+	@echo "   Example: make probe-tixr GROUP=1613"
+	@echo "   Look up GROUP via 'make club CLUB=<name>' → active_scraping_source.metadata.tixr_group_id"
+	@exit 1
+else
+	@$(activate_venv) $(PYTHON) bin/probe-tixr "$(GROUP)" \
+		$(if $(PAGE),--page $(PAGE)) \
+		$(if $(LIMIT),--limit $(LIMIT)) \
+		$(ARGS)
+endif
+
 # =============================================================================
 # DATA MAINTENANCE & UPDATES
 # =============================================================================
