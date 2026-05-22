@@ -209,14 +209,19 @@ class ShowFactoryUtils:
 
     @staticmethod
     def create_fallback_ticket(
-        purchase_url: str, price: float = 0.0, ticket_type: str = "General Admission", sold_out: bool = False
+        purchase_url: str,
+        price: Optional[float] = None,
+        ticket_type: str = "General Admission",
+        sold_out: bool = False,
     ) -> Ticket:
         """
         Create a standardized fallback ticket with common defaults.
 
         Args:
             purchase_url: URL for purchasing the ticket
-            price: Ticket price (defaults to 0.0)
+            price: Ticket price. Default is None ("price unknown"). Pass 0.0 only
+                when the event is explicitly proven free (e.g. RSVP-only, vendor
+                "free" flag, JSON-LD Offer { price: 0 }).
             ticket_type: Type of ticket (defaults to "General Admission")
             sold_out: Whether the ticket is sold out (defaults to False)
 

@@ -75,7 +75,8 @@ def test_to_show_fallback_ticket_from_external_link():
     assert isinstance(t, Ticket)
     assert t.purchase_url == data["externalLink"]
     assert t.type == "General Admission"
-    assert t.price == 0.0
+    # Fallback ticket carries no price signal; price is unknown, not free.
+    assert t.price is None
 
 
 def test_to_show_uses_tessera_ticket_data_when_present():

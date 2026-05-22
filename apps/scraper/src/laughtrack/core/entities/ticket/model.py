@@ -62,8 +62,14 @@ class Ticket(DatabaseEntity):
         Returns:
             Ticket: A new Ticket instance created from the offer
         """
+        try:
+            price: Optional[float] = float(offer.price)
+        except (TypeError, ValueError):
+            # Empty string, None, or unparseable price — signal "unknown" rather
+            # than free. An explicit "0" / 0 from JSON-LD still parses to 0.0.
+            price = None
         return cls(
-            price=float(offer.price) if offer.price else 0.0,
+            price=price,
             purchase_url=offer.url,
             sold_out=offer.availability == "SoldOut",
             type=offer.price_currency or "General Admission",
