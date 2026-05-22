@@ -48,3 +48,55 @@ def test_zero_price_offer_creates_ticket():
     assert ticket.purchase_url == "https://www.tickettailor.com/events/westrivercomedyclub/2041184"
     assert ticket.type == "General Admission"
     assert ticket.sold_out is False
+
+
+def test_empty_string_price_emits_ticket_with_none_price():
+    offer = Offer(
+        url="https://example.com/tix",
+        price_currency="USD",
+        price="",
+        availability="https://schema.org/InStock",
+        name="General Admission",
+    )
+
+    ticket = ShowEnhancement._create_enhanced_ticket_from_offer(offer)
+
+    assert ticket is not None
+    assert ticket.price is None
+    assert ticket.purchase_url == "https://example.com/tix"
+    assert ticket.type == "General Admission"
+    assert ticket.sold_out is False
+
+
+def test_none_price_emits_ticket_with_none_price():
+    offer = Offer(
+        url="https://example.com/tix",
+        price_currency="USD",
+        price=None,
+        availability="https://schema.org/SoldOut",
+        name="VIP",
+    )
+
+    ticket = ShowEnhancement._create_enhanced_ticket_from_offer(offer)
+
+    assert ticket is not None
+    assert ticket.price is None
+    assert ticket.purchase_url == "https://example.com/tix"
+    assert ticket.type == "VIP"
+    assert ticket.sold_out is True
+
+
+def test_unparseable_price_emits_ticket_with_none_price():
+    offer = Offer(
+        url="https://example.com/tix",
+        price_currency="USD",
+        price="see venue",
+        availability="https://schema.org/InStock",
+    )
+
+    ticket = ShowEnhancement._create_enhanced_ticket_from_offer(offer)
+
+    assert ticket is not None
+    assert ticket.price is None
+    assert ticket.purchase_url == "https://example.com/tix"
+    assert ticket.sold_out is False
