@@ -132,6 +132,32 @@ dates and look stale once the event passes. The canonical pattern is `FAKE0000<V
 where `<VENUE_CODE>` is a short uppercase abbreviation of the venue name (e.g. `COBBS`, `PLSF`,
 `2CTY`).
 
+#### Tixr Venues — Probe the Live API Before Writing Fixtures
+
+Tixr scraper test fixtures must mirror the live `api/groups/<id>/events`
+response shape exactly — including timestamp tz/offset format, key casing,
+and nested envelopes. A "convenient" fixture shape (e.g. local-time ISO with
+an explicit offset) can pass while live behavior is wrong by hours (see
+TASK-2387: the live API returns `formattedISOStartDate` in UTC even for
+Pacific venues, so weekday + clock-time parsing on tier-name suffixes had to
+move into venue local time).
+
+Direct `curl api/groups/<id>/events` is DataDome-blocked, so use the
+`bin/probe-tixr` helper, which goes through the real `TixrClient` transport
+(curl-cffi impersonation, then tixr decodo proxy on fallback) and dumps the
+raw JSON envelope:
+
+```bash
+cd apps/scraper && make probe-tixr GROUP=1613               # first 5 events
+cd apps/scraper && make probe-tixr GROUP=1613 ARGS=--full   # dump everything
+cd apps/scraper && python bin/probe-tixr laughfactorycovina # slug also works
+```
+
+Look up `GROUP` for an existing venue via `make club CLUB="<venue name>"` and
+check `active_scraping_source.metadata` for `tixr_group_id` /
+`tixr_group_slug`. The outer envelope is preserved as-returned — copy field
+shapes verbatim into the fixture so the test exercises live behavior.
+
 #### Always Include `test_transformation_pipeline_produces_shows`
 
 Every venue smoke test file (`test_pipeline_smoke.py`) **must** include a
