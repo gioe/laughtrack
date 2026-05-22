@@ -84,7 +84,7 @@ private struct FractionalDateTransport: ClientTransport {
           "data": [
             {
               "id": 854607,
-              "clubID": 123,
+              "clubId": 123,
               "date": "2026-05-27T02:30:00.000Z",
               "name": "Too Hot Tuesdays",
               "clubName": "Flappers Comedy Club And Restaurant Burbank",
@@ -122,7 +122,7 @@ private struct FavoriteShowsTransport: ClientTransport {
           "data": [
             {
               "id": 709,
-              "clubID": 123,
+              "clubId": 123,
               "clubName": "The Comedy Cellar",
               "clubCity": "New York",
               "clubState": "NY",

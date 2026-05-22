@@ -5,8 +5,6 @@ import {
     parseLimitParam,
     rateLimitHeaders,
 } from "@/lib/rateLimit";
-import { mapComedianDtoToV1Wire } from "../dtoWire";
-
 export async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians");
     if (rl instanceof NextResponse) return rl;
@@ -26,7 +24,7 @@ export async function GET(req: NextRequest) {
         }
         const comedians = await getTrendingComedians(limit, offset);
         return NextResponse.json(
-            { data: comedians.map(mapComedianDtoToV1Wire) },
+            { data: comedians },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

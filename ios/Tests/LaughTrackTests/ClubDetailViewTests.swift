@@ -12,7 +12,7 @@ import LaughTrackCore
 struct ClubDetailViewTests {
     @Test("club detail loads live venue data and related content")
     func clubDetailLoadsAndDisplaysSections() async throws {
-        let model = ClubDetailModel(clubID: 201)
+        let model = ClubDetailModel(clubId: 201)
         let transport = MockClubDetailTransport(
             clubResponse: .success(.init(data: primaryClub)),
             relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
@@ -44,7 +44,7 @@ struct ClubDetailViewTests {
 
     @Test("club detail surfaces API failures explicitly")
     func clubDetailShowsErrorState() async throws {
-        let model = ClubDetailModel(clubID: 201)
+        let model = ClubDetailModel(clubId: 201)
         await model.loadIfNeeded(
             apiClient: makeClient(
                 clubResponse: .status(.notFound),
@@ -64,7 +64,7 @@ struct ClubDetailViewTests {
 
     @Test("club detail renders explicit empty states for missing related content")
     func clubDetailShowsEmptyStates() async throws {
-        let model = ClubDetailModel(clubID: 201)
+        let model = ClubDetailModel(clubId: 201)
         await model.loadIfNeeded(
             apiClient: makeClient(
                 clubResponse: .success(.init(data: primaryClub)),
@@ -83,7 +83,7 @@ struct ClubDetailViewTests {
 
     @Test("club detail keeps venue content visible when related shows fail")
     func clubDetailShowsRelatedContentWarning() async throws {
-        let model = ClubDetailModel(clubID: 201)
+        let model = ClubDetailModel(clubId: 201)
         await model.loadIfNeeded(
             apiClient: makeClient(
                 clubResponse: .success(.init(data: primaryClub)),
@@ -101,7 +101,7 @@ struct ClubDetailViewTests {
 
     @Test("club detail show search pins requests to the current club")
     func clubDetailShowSearchPinsRequestsToCurrentClub() async throws {
-        let model = ClubDetailModel(clubID: 201)
+        let model = ClubDetailModel(clubId: 201)
         let transport = MockClubDetailTransport(
             clubResponse: .success(.init(data: primaryClub)),
             relatedShowsResponse: .success(.init(data: relatedShows, total: relatedShows.count, filters: [], zipCapTriggered: false))
@@ -152,7 +152,7 @@ struct ClubDetailViewTests {
         [
             .init(
                 id: 301,
-                clubID: 201,
+                clubId: 201,
                 clubName: "Comedy Cellar",
                 date: Date().addingTimeInterval(60 * 60 * 24),
                 tickets: nil,

@@ -27,16 +27,16 @@ public final class ClubFavoriteStore: ObservableObject {
 
     public init() {}
 
-    public func value(for clubID: Int, fallback: Bool? = nil) -> Bool {
-        values[clubID] ?? fallback ?? false
+    public func value(for clubId: Int, fallback: Bool? = nil) -> Bool {
+        values[clubId] ?? fallback ?? false
     }
 
-    public func storedValue(for clubID: Int) -> Bool? {
-        values[clubID]
+    public func storedValue(for clubId: Int) -> Bool? {
+        values[clubId]
     }
 
-    public func isPending(_ clubID: Int) -> Bool {
-        pending.contains(clubID)
+    public func isPending(_ clubId: Int) -> Bool {
+        pending.contains(clubId)
     }
 
     public func resetSavedFavorites() {
@@ -47,14 +47,14 @@ public final class ClubFavoriteStore: ObservableObject {
         pending = []
     }
 
-    public func seed(clubID: Int, value: Bool?) {
-        guard let value, values[clubID] == nil else { return }
-        values[clubID] = value
+    public func seed(clubId: Int, value: Bool?) {
+        guard let value, values[clubId] == nil else { return }
+        values[clubId] = value
     }
 
-    public func overwrite(clubID: Int, value: Bool?) {
+    public func overwrite(clubId: Int, value: Bool?) {
         guard let value else { return }
-        values[clubID] = value
+        values[clubId] = value
     }
 
     public func loadSavedFavorites(
@@ -113,7 +113,7 @@ public final class ClubFavoriteStore: ObservableObject {
     }
 
     public func toggle(
-        clubID: Int,
+        clubId: Int,
         currentValue: Bool,
         apiClient: Client,
         authManager: AuthManager
@@ -122,13 +122,13 @@ public final class ClubFavoriteStore: ObservableObject {
             return .signInRequired("Sign in from Settings to save favorite clubs.")
         }
 
-        pending.insert(clubID)
-        defer { pending.remove(clubID) }
+        pending.insert(clubId)
+        defer { pending.remove(clubId) }
 
         do {
             let response: Components.Schemas.FavoriteResponse
             if currentValue {
-                let output = try await apiClient.removeFavoriteClub(.init(path: .init(clubId: clubID)))
+                let output = try await apiClient.removeFavoriteClub(.init(path: .init(clubId: clubId)))
                 switch output {
                 case .ok(let ok):
                     response = try ok.body.json
@@ -144,7 +144,7 @@ public final class ClubFavoriteStore: ObservableObject {
                     return .failure("LaughTrack returned an unexpected response (\(status)).")
                 }
             } else {
-                let output = try await apiClient.addFavoriteClub(.init(body: .json(.init(clubId: clubID))))
+                let output = try await apiClient.addFavoriteClub(.init(body: .json(.init(clubId: clubId))))
                 switch output {
                 case .ok(let ok):
                     response = try ok.body.json
@@ -164,9 +164,9 @@ public final class ClubFavoriteStore: ObservableObject {
             }
 
             let nextValue = response.data.isFavorited
-            values[clubID] = nextValue
+            values[clubId] = nextValue
             if !nextValue {
-                savedFavoriteClubs.removeAll { $0.id == clubID }
+                savedFavoriteClubs.removeAll { $0.id == clubId }
                 if savedFavoriteClubs.isEmpty, hasLoadedSavedFavorites {
                     savedFavoritesPhase = .empty
                 }

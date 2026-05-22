@@ -562,7 +562,7 @@ private struct RawShowRailTransport: ClientTransport {
                     "showsTonight": [
                       {
                         "id": 101,
-                        "clubID": 301,
+                        "clubId": 301,
                         "date": "2026-04-29T00:00:00.000Z",
                         "name": "Tonight Show",
                         "clubName": "New York Comedy Club",
@@ -592,7 +592,7 @@ private struct RawShowRailTransport: ClientTransport {
                   "data": [
                     {
                       "id": 201,
-                      "clubID": 123,
+                      "clubId": 123,
                       "date": "2026-05-27T02:30:00.000Z",
                       "name": "Search Show",
                       "clubName": "Flappers Comedy Club And Restaurant Burbank",
@@ -756,7 +756,7 @@ private func makeShow(
 ) -> Components.Schemas.Show {
     .init(
         id: id,
-        clubID: 202,
+        clubId: 202,
         clubName: "The Stand",
         date: Date().addingTimeInterval(60 * 60 * 24),
         tickets: [],

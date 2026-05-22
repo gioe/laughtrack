@@ -142,9 +142,9 @@ struct ComedianDetailViewTests {
         let comedian = DemoContent.primaryComedian
         let runs: [Components.Schemas.UpcomingRun] = [
             // Two NY clubs in the same city collapse to one city.
-            fallbackRun(showIDs: [301, 302], clubID: 201, clubName: "Comedy Cellar", clubCity: "New York", clubState: "NY"),
-            fallbackRun(showIDs: [303], clubID: 202, clubName: "The Stand", clubCity: "New York", clubState: "NY"),
-            fallbackRun(showIDs: [304], clubID: 203, clubName: "Punch Line", clubCity: "San Francisco", clubState: "CA"),
+            fallbackRun(showIDs: [301, 302], clubId: 201, clubName: "Comedy Cellar", clubCity: "New York", clubState: "NY"),
+            fallbackRun(showIDs: [303], clubId: 202, clubName: "The Stand", clubCity: "New York", clubState: "NY"),
+            fallbackRun(showIDs: [304], clubId: 203, clubName: "Punch Line", clubCity: "San Francisco", clubState: "CA"),
         ]
 
         let stats = ComedianStatsPresentation.stats(for: comedian, runs: runs)
@@ -157,7 +157,7 @@ struct ComedianDetailViewTests {
     func comedianStatsOmitCityCountWhenMissing() {
         let comedian = DemoContent.primaryComedian
         let runs: [Components.Schemas.UpcomingRun] = [
-            fallbackRun(showIDs: [301], clubID: 201, clubName: "Comedy Cellar"),
+            fallbackRun(showIDs: [301], clubId: 201, clubName: "Comedy Cellar"),
         ]
 
         let stats = ComedianStatsPresentation.stats(for: comedian, runs: runs)
@@ -530,14 +530,14 @@ struct ComedianDetailViewTests {
 
     private func fallbackShow(
         id: Int,
-        clubID: Int = 101,
+        clubId: Int = 101,
         clubName: String = "Comedy Cellar",
         clubCity: String? = nil,
         clubState: String? = nil
     ) -> Components.Schemas.Show {
         .init(
             id: id,
-            clubID: clubID,
+            clubId: clubId,
             clubName: clubName,
             clubCity: clubCity,
             clubState: clubState,
@@ -619,19 +619,19 @@ struct ComedianDetailViewTests {
 
     private func fallbackRun(
         showIDs: [Int],
-        clubID: Int = 101,
+        clubId: Int = 101,
         clubName: String = "Comedy Cellar",
         clubCity: String? = nil,
         clubState: String? = nil
     ) -> Components.Schemas.UpcomingRun {
         .init(
-            clubID: clubID,
+            clubId: clubId,
             clubName: clubName,
             clubImageUrl: "https://example.com/show.png",
             shows: showIDs.map {
                 fallbackShow(
                     id: $0,
-                    clubID: clubID,
+                    clubId: clubId,
                     clubName: clubName,
                     clubCity: clubCity,
                     clubState: clubState

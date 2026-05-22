@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findCoBilledComediansForComedian } from "@/lib/data/comedian/detail/findCoBilledComediansForComedian";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-import { mapComedianLineupDtoToV1Wire } from "../../../dtoWire";
-
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
@@ -26,7 +24,7 @@ export async function GET(
         });
 
         return NextResponse.json(
-            { data: coBilledComedians.map(mapComedianLineupDtoToV1Wire) },
+            { data: coBilledComedians },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

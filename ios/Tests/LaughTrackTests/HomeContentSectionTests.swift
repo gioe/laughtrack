@@ -35,7 +35,7 @@ struct HomeContentSectionTests {
     func homeShowHeroOmitsFooterActions() {
         let show = Components.Schemas.Show(
             id: 801,
-            clubID: 301,
+            clubId: 301,
             clubName: "Comedy In Harlem",
             date: Date(timeIntervalSince1970: 1_777_590_000),
             tickets: [.init(price: 0, purchaseUrl: "https://example.com/tickets", soldOut: false, _type: "General admission")],

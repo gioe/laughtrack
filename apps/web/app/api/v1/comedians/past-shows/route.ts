@@ -7,8 +7,6 @@ import {
     findPastShowsForComedian,
     PAST_SHOWS_PAGE_SIZE,
 } from "@/lib/data/comedian/detail/findPastShowsForComedian";
-import { mapShowDtoToV1Wire } from "../../dtoWire";
-
 const MAX_PAGE_SIZE = 50;
 
 export async function GET(req: NextRequest) {
@@ -76,7 +74,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(
             {
-                data: result.shows.map(mapShowDtoToV1Wire),
+                data: result.shows,
                 total: result.totalCount,
             },
             { headers: rateLimitHeaders(rl) },

@@ -2306,10 +2306,10 @@
       },
       "FavoriteShowItem": {
         "type": "object",
-        "required": ["id", "clubID", "date", "imageUrl"],
+        "required": ["id", "clubId", "date", "imageUrl"],
         "properties": {
           "id": { "type": "integer" },
-          "clubID": { "type": "integer" },
+          "clubId": { "type": "integer" },
           "clubName": { "type": "string" },
           "clubCity": { "type": ["string", "null"] },
           "clubState": { "type": ["string", "null"] },
@@ -2405,10 +2405,10 @@
       },
       "Show": {
         "type": "object",
-        "required": ["id", "clubID", "date", "imageUrl"],
+        "required": ["id", "clubId", "date", "imageUrl"],
         "properties": {
           "id": { "type": "integer" },
-          "clubID": { "type": "integer" },
+          "clubId": { "type": "integer" },
           "clubName": { "type": "string" },
           "clubCity": { "type": ["string", "null"] },
           "clubState": { "type": ["string", "null"] },
@@ -2470,9 +2470,9 @@
       },
       "UpcomingRun": {
         "type": "object",
-        "required": ["clubID", "clubName", "clubImageUrl", "shows"],
+        "required": ["clubId", "clubName", "clubImageUrl", "shows"],
         "properties": {
-          "clubID": { "type": "integer" },
+          "clubId": { "type": "integer" },
           "clubName": { "type": "string" },
           "clubImageUrl": { "type": "string" },
           "shows": {

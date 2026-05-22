@@ -4,7 +4,7 @@ import LaughTrackBridge
 import LaughTrackCore
 
 struct ClubDetailView: View {
-    let clubID: Int
+    let clubId: Int
     let apiClient: Client
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
@@ -18,10 +18,10 @@ struct ClubDetailView: View {
     @StateObject private var model: ClubDetailModel
     @State private var feedbackMessage: String?
 
-    init(clubID: Int, apiClient: Client) {
-        self.clubID = clubID
+    init(clubId: Int, apiClient: Client) {
+        self.clubId = clubId
         self.apiClient = apiClient
-        _model = StateObject(wrappedValue: ClubDetailModel(clubID: clubID))
+        _model = StateObject(wrappedValue: ClubDetailModel(clubId: clubId))
     }
 
     var body: some View {
@@ -55,7 +55,7 @@ struct ClubDetailView: View {
                             isPending: clubFavorites.isPending(club.id),
                             action: {
                                 await toggleFavorite(
-                                    clubID: club.id,
+                                    clubId: club.id,
                                     name: club.name,
                                     currentValue: isFavorite
                                 )
@@ -98,9 +98,9 @@ struct ClubDetailView: View {
         ClubDetailHeroPresentation.actions(for: club)
     }
 
-    private func toggleFavorite(clubID: Int, name: String, currentValue: Bool) async {
+    private func toggleFavorite(clubId: Int, name: String, currentValue: Bool) async {
         let result = await clubFavorites.toggle(
-            clubID: clubID,
+            clubId: clubId,
             currentValue: currentValue,
             apiClient: apiClient,
             authManager: authManager

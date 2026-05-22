@@ -1045,8 +1045,8 @@ public enum Components {
         public struct FavoriteShowItem: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/id`.
             public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubID`.
-            public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubId`.
+            public var clubId: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubName`.
             public var clubName: Swift.String?
             /// - Remark: Generated from `#/components/schemas/FavoriteShowItem/clubCity`.
@@ -1081,7 +1081,7 @@ public enum Components {
             ///
             /// - Parameters:
             ///   - id:
-            ///   - clubID:
+            ///   - clubId:
             ///   - clubName:
             ///   - clubCity:
             ///   - clubState:
@@ -1099,7 +1099,7 @@ public enum Components {
             ///   - timezone:
             public init(
                 id: Swift.Int,
-                clubID: Swift.Int,
+                clubId: Swift.Int,
                 clubName: Swift.String? = nil,
                 clubCity: Swift.String? = nil,
                 clubState: Swift.String? = nil,
@@ -1117,7 +1117,7 @@ public enum Components {
                 timezone: Swift.String? = nil
             ) {
                 self.id = id
-                self.clubID = clubID
+                self.clubId = clubId
                 self.clubName = clubName
                 self.clubCity = clubCity
                 self.clubState = clubState
@@ -1136,7 +1136,7 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
-                case clubID
+                case clubId
                 case clubName
                 case clubCity
                 case clubState
@@ -1571,8 +1571,8 @@ public enum Components {
         public struct Show: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Show/id`.
             public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/Show/clubID`.
-            public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/Show/clubId`.
+            public var clubId: Swift.Int
             /// - Remark: Generated from `#/components/schemas/Show/clubName`.
             public var clubName: Swift.String?
             /// - Remark: Generated from `#/components/schemas/Show/clubCity`.
@@ -1607,7 +1607,7 @@ public enum Components {
             ///
             /// - Parameters:
             ///   - id:
-            ///   - clubID:
+            ///   - clubId:
             ///   - clubName:
             ///   - clubCity:
             ///   - clubState:
@@ -1625,7 +1625,7 @@ public enum Components {
             ///   - timezone:
             public init(
                 id: Swift.Int,
-                clubID: Swift.Int,
+                clubId: Swift.Int,
                 clubName: Swift.String? = nil,
                 clubCity: Swift.String? = nil,
                 clubState: Swift.String? = nil,
@@ -1643,7 +1643,7 @@ public enum Components {
                 timezone: Swift.String? = nil
             ) {
                 self.id = id
-                self.clubID = clubID
+                self.clubId = clubId
                 self.clubName = clubName
                 self.clubCity = clubCity
                 self.clubState = clubState
@@ -1662,7 +1662,7 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
-                case clubID
+                case clubId
                 case clubName
                 case clubCity
                 case clubState
@@ -1766,8 +1766,8 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/UpcomingRun`.
         public struct UpcomingRun: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubID`.
-            public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubId`.
+            public var clubId: Swift.Int
             /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubName`.
             public var clubName: Swift.String
             /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubImageUrl`.
@@ -1777,23 +1777,23 @@ public enum Components {
             /// Creates a new `UpcomingRun`.
             ///
             /// - Parameters:
-            ///   - clubID:
+            ///   - clubId:
             ///   - clubName:
             ///   - clubImageUrl:
             ///   - shows:
             public init(
-                clubID: Swift.Int,
+                clubId: Swift.Int,
                 clubName: Swift.String,
                 clubImageUrl: Swift.String,
                 shows: [Components.Schemas.Show]
             ) {
-                self.clubID = clubID
+                self.clubId = clubId
                 self.clubName = clubName
                 self.clubImageUrl = clubImageUrl
                 self.shows = shows
             }
             public enum CodingKeys: String, CodingKey {
-                case clubID
+                case clubId
                 case clubName
                 case clubImageUrl
                 case shows

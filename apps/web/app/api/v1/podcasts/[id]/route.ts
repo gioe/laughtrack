@@ -3,8 +3,6 @@ import { getPodcastDetailPageDataById } from "@/lib/data/podcast/detail/getPodca
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
-import { mapComedianDtoToV1Wire } from "../../dtoWire";
-
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parsePodcastId(raw: string): number | null {
@@ -41,12 +39,7 @@ export async function GET(
             authCtx?.profileId,
         );
         return NextResponse.json(
-            {
-                ...result,
-                relatedComedians: result.relatedComedians.map(
-                    mapComedianDtoToV1Wire,
-                ),
-            },
+            result,
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

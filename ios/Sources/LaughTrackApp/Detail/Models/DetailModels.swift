@@ -399,10 +399,10 @@ final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
 @MainActor
 final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     private static let pageSize = 8
-    let clubID: Int
+    let clubId: Int
 
-    init(clubID: Int) {
-        self.clubID = clubID
+    init(clubId: Int) {
+        self.clubId = clubId
     }
 
     func loadIfNeeded(apiClient: Client) async {
@@ -420,7 +420,7 @@ final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
     private func fetch(apiClient: Client) async -> Result<ClubDetailContent, LoadFailure> {
         do {
             let output = try await withDetailFetchRetry {
-                try await apiClient.getClub(.init(path: .init(id: clubID)))
+                try await apiClient.getClub(.init(path: .init(id: clubId)))
             }
             switch output {
             case .ok(let ok):

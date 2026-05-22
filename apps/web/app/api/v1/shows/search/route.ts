@@ -3,8 +3,6 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
-import { mapShowDtoToV1Wire } from "../../dtoWire";
-
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
 
@@ -86,7 +84,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(
             {
-                data: result.data.map(mapShowDtoToV1Wire),
+                data: result.data,
                 total: result.total,
                 filters: result.filters,
                 zipCapTriggered: result.zipCapTriggered,
