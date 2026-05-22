@@ -233,11 +233,13 @@ class HahaComedyClubScraper(BaseScraper):
             ticket_url = offers.get("url", "") if isinstance(offers, dict) else ""
             availability = offers.get("availability", "") if isinstance(offers, dict) else ""
             sold_out = "SoldOut" in availability
-            price_raw = offers.get("price", "") if isinstance(offers, dict) else ""
+            price_raw = offers.get("price") if isinstance(offers, dict) else None
             try:
-                price = float(price_raw) if price_raw else 0.0
+                # An explicit JSON-LD "0" still parses to 0.0 (proven free);
+                # missing / unparseable price becomes None (unknown).
+                price: Optional[float] = float(price_raw) if price_raw not in (None, "") else None
             except (ValueError, TypeError):
-                price = 0.0
+                price = None
 
             ticket_type = offers.get("name", "General Admission") if isinstance(offers, dict) else "General Admission"
             tickets = [

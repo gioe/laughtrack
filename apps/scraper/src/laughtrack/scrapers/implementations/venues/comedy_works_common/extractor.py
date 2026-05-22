@@ -152,7 +152,7 @@ class ComedyWorksBaseExtractor:
             tier_sold = "sold-out" in fieldset.get("class", [])
 
             tier_name = name_el.get_text(strip=True) if name_el else "General Admission"
-            tier_price = 0.0
+            tier_price: Optional[float] = None
             if price_el:
                 pm = _PRICE_RE.search(price_el.get_text(strip=True))
                 if pm:

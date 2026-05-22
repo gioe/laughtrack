@@ -23,7 +23,9 @@ class ShowPageUrlTicketAdapter:
         elif isinstance(self._underlying, Ticket):
             t = self._underlying
         else:
-            return Ticket(price=0.0, purchase_url=self._url, type="General Admission")
+            # Underlying object exposes neither a Ticket nor a to_ticket() — we
+            # have no price signal, so emit None (unknown) rather than 0 (free).
+            return Ticket(price=None, purchase_url=self._url, type="General Admission")
 
         if self._url:
             t.purchase_url = self._url

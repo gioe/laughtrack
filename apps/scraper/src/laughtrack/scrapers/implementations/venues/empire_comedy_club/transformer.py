@@ -27,9 +27,11 @@ class EmpireEventTransformer(DataTransformer[EmpireEvent]):
             tickets: List[Ticket] = []
             if raw_data.show_page_url:
                 sold_out = (raw_data.status or "").lower() == "sold out"
+                # Scraper extracts no price from Empire's listing; emit None
+                # (unknown) rather than 0 (free).
                 tickets.append(
                     Ticket(
-                        price=0.0,
+                        price=None,
                         type="General Admission",
                         purchase_url=raw_data.show_page_url,
                         sold_out=sold_out,

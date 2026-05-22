@@ -666,10 +666,12 @@ class TixrClient(BaseApiClient):
             for offer in data.get("offers", []):
                 if not isinstance(offer, dict):
                     continue
+                raw_price = offer.get("price")
                 try:
-                    price = float(offer.get("price", 0))
+                    price: Optional[float] = float(raw_price) if raw_price is not None else None
                 except (ValueError, TypeError):
-                    price = 0.0
+                    # Unparseable price: treat as unknown, not free.
+                    price = None
                 availability = offer.get("availability", "")
                 sold_out = "SoldOut" in availability
                 ticket_type = html.unescape(offer.get("name", "General Admission"))
@@ -684,8 +686,8 @@ class TixrClient(BaseApiClient):
 
             if not tickets:
                 self.log_warning(f"No offers found in JSON-LD for {page_url}; inserting placeholder ticket")
-                # No offers means no availability signal; default to not sold out
-                tickets.append(Ticket(price=0, purchase_url=show_page_url, sold_out=False, type="General Admission"))
+                # No offers means no price signal; price is unknown, not free.
+                tickets.append(Ticket(price=None, purchase_url=show_page_url, sold_out=False, type="General Admission"))
 
             return Show(
                 name=name,
@@ -925,7 +927,9 @@ class TixrClient(BaseApiClient):
                     price = None
             tickets.append(
                 Ticket(
-                    price=price or 0,
+                    # Pass `price` through as-is — `or 0` would collapse missing
+                    # tier price into "free". None means "unknown".
+                    price=price,
                     purchase_url=show_page_url,
                     sold_out=not tier.get("active", True),
                     type=tier.get("name", "General Admission"),
@@ -940,7 +944,8 @@ class TixrClient(BaseApiClient):
         ticket_url = data.get("ticketUrl", show_page_url)
         return [
             Ticket(
-                price=0,
+                # No tier/sale data on this event — price is unknown, not free.
+                price=None,
                 purchase_url=ticket_url,
                 sold_out=data.get("soldOut", False),
                 type="General Admission",

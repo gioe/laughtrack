@@ -105,7 +105,8 @@ def test_transform_to_show_keeps_url_only_fallback_when_price_unknown():
 
     assert show is not None
     assert len(show.tickets) == 1
-    assert show.tickets[0].price == 0.0
+    # "Price unknown" means None, not 0 (which is reserved for proven free).
+    assert show.tickets[0].price is None
     assert show.tickets[0].type == "General Admission"
     assert show.tickets[0].purchase_url == "https://parde.app/attending/events/no-price"
 

@@ -250,7 +250,8 @@ def test_transformer_creates_ticket_with_purchase_url():
     assert len(show.tickets) == 1
     assert show.tickets[0].purchase_url == "https://empirecomedyme.com/show/special"
     assert show.tickets[0].type == "General Admission"
-    assert show.tickets[0].price == 0.0
+    # Empire's listing exposes no price; unknown → None (not free).
+    assert show.tickets[0].price is None
 
 
 def test_transformer_sets_sold_out_from_status():

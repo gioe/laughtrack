@@ -78,7 +78,7 @@ class ComedyWorksDowntownEvent(ShowConvertible):
         for tier in st.tiers:
             tickets.append(
                 Ticket(
-                    price=tier.get("price", 0.0),
+                    price=tier.get("price"),
                     purchase_url=ticket_url,
                     sold_out=tier.get("sold_out", False),
                     type=tier.get("name", "General Admission"),

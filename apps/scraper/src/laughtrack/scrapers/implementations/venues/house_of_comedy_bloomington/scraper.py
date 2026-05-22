@@ -135,7 +135,9 @@ class HouseOfComedyBloomingtonScraper(BaseScraper):
             date=date,
             show_page_url=url,
             lineup=[],
-            tickets=[Ticket(price=0, purchase_url=url, sold_out=False, type="General Admission")],
+            # Listing page exposes no price — emit None (unknown) so the
+            # downstream Tixr detail fetch can fill in real per-event tiers.
+            tickets=[Ticket(price=None, purchase_url=url, sold_out=False, type="General Admission")],
             supplied_tags=["event"],
             description=None,
             timezone=self.club.timezone,

@@ -60,10 +60,11 @@ class NinkashiTicket:
     def from_dict(cls, data: dict) -> "NinkashiTicket":
         raw_price = data.get("price")
         try:
-            # Ninkashi API returns price in cents (e.g. 2500 = $25.00)
-            price = float(raw_price) / 100.0 if raw_price is not None else 0.0
+            # Ninkashi API returns price in cents (e.g. 2500 = $25.00).
+            # Missing / unparseable price is unknown, not free.
+            price: Optional[float] = float(raw_price) / 100.0 if raw_price is not None else None
         except (ValueError, TypeError):
-            price = 0.0
+            price = None
         return cls(
             price=price,
             sold_out=bool(data.get("sold_out", False)),
@@ -118,7 +119,9 @@ class NinkashiEvent(ShowConvertible):
             for t in self.tickets_attributes:
                 tickets.append(
                     Ticket(
-                        price=t.price or 0.0,
+                        # Pass tier price through as-is; `or 0.0` would
+                        # collapse None (unknown) into 0 (free).
+                        price=t.price,
                         purchase_url=ticket_url,
                         sold_out=t.sold_out,
                         type=t.name,

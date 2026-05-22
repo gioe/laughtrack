@@ -1202,16 +1202,18 @@ class TestCreateShowFromJsonld:
         assert show is not None
         assert len(show.tickets) == 1
         assert show.tickets[0].sold_out is False
-        assert show.tickets[0].price == 0
+        # Placeholder ticket carries no price signal; unknown is None, not 0.
+        assert show.tickets[0].price is None
         assert any("placeholder" in w.lower() or "no offers" in w.lower() for w in warnings)
 
-    def test_offer_price_zero_when_invalid(self, monkeypatch):
+    def test_offer_price_none_when_invalid(self, monkeypatch):
         client = self._client(monkeypatch)
         data = self._valid_data()
         data["offers"] = [{"price": "free", "availability": "", "url": "https://tixr.com/x"}]
         show = client._create_show_from_jsonld(data, "https://tixr.com/x")
         assert show is not None
-        assert show.tickets[0].price == 0.0
+        # Unparseable offer price is unknown, not free.
+        assert show.tickets[0].price is None
 
     def test_unparseable_start_date_returns_none(self, monkeypatch):
         client = self._client(monkeypatch)

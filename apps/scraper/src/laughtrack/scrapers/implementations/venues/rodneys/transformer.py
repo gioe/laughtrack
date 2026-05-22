@@ -153,10 +153,10 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
                 except (ValueError, TypeError):
                     pass
             elif purchase_url:
-                # No price in HTML — create a ticket with the purchase URL only
+                # No price in HTML — emit None (unknown) rather than 0 (free).
                 tickets.append(
                     Ticket(
-                        price=0.0,
+                        price=None,
                         type="General Admission",
                         purchase_url=purchase_url,
                         sold_out=sold_out,

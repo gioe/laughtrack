@@ -224,7 +224,10 @@ class SeatEngineClient(BaseApiClient):
             if inventory.get("active") is False and not show_sold_out:
                 continue
 
-            price = (inventory.get("price") or 0) / 100
+            raw_price = inventory.get("price")
+            # Inventory price arrives in cents. None means the tier omitted a
+            # price — keep that as unknown rather than collapsing to free.
+            price = raw_price / 100 if raw_price is not None else None
             ticket_type = inventory.get("title") or inventory.get("name") or "General Admission"
             inventory_sold_out = (
                 show_sold_out

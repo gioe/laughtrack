@@ -157,10 +157,11 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
 
             # Fallback to basic ticket from GraphQL data
             if not tickets and event.ticket_url:
-                # The GraphQL API (ShowTix4U) only provides a ticket URL — no sold_out signal
+                # The GraphQL API (ShowTix4U) only provides a ticket URL — no
+                # sold_out signal, and price is genuinely unknown (not free).
                 tickets = [
                     Ticket(
-                        price=0.0,  # Price unknown from GraphQL API
+                        price=None,
                         purchase_url=event.get_effective_ticket_url(),
                         sold_out=False,
                         type="General Admission",
