@@ -220,7 +220,9 @@ class TestInsertTicketsPurchaseUrlUpsert:
 
         handler.insert_tickets([show])
 
-        handler.execute_with_cursor.assert_called_once_with(
+        # Two execute_with_cursor calls: schema.org cleanup, then stale-ticket sweep.
+        cursor_calls = handler.execute_with_cursor.call_args_list
+        assert cursor_calls[0].args == (
             TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS,
             ([42],),
         )
@@ -265,7 +267,8 @@ class TestInsertTicketsPurchaseUrlUpsert:
 
         handler.insert_tickets([show])
 
-        assert len(formatted_queries) == 1
+        # Two formatted queries: schema.org cleanup + stale-ticket sweep.
+        assert len(formatted_queries) == 2
         assert "http://schema.org/%" in formatted_queries[0]
         assert "https://schema.org/%" in formatted_queries[0]
         inserted_tuples = handler.execute_batch_operation.call_args.args[1]

@@ -34,6 +34,16 @@ class TicketQueries:
               OR type LIKE 'https://schema.org/%%'
           )
     """
+
+    DELETE_STALE_TICKETS_FOR_SHOWS = """
+        DELETE FROM tickets t
+        WHERE t.show_id = ANY(%s)
+          AND NOT EXISTS (
+              SELECT 1
+              FROM unnest(%s::int[], %s::text[]) AS k(show_id, type)
+              WHERE k.show_id = t.show_id AND k.type = t.type
+          )
+    """
     
     BATCH_UPDATE_TICKET_AVAILABILITY = '''
         UPDATE tickets
