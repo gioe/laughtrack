@@ -69,12 +69,23 @@ class BaseDatabaseHandler(Generic[T], ABC):
     def _acquire_connection(
         self, conn: Optional[psycopg2.extensions.connection]
     ) -> Generator[psycopg2.extensions.connection, None, None]:
-        """Yield ``conn`` if provided; otherwise open and manage a fresh one."""
+        """Yield ``conn`` if provided; otherwise open and manage a fresh one.
+
+        psycopg2's connection ``__exit__`` only commits/rolls back the
+        transaction — it does not close the connection. The explicit
+        ``try/finally: new_conn.close()`` mirrors the cleanup pattern in
+        :func:`infrastructure.database.connection.get_connection` so the
+        fallback path does not leak a connection per call under load.
+        """
         if conn is not None:
             yield conn
         else:
-            with self.create_connection() as new_conn:
-                yield new_conn
+            new_conn = self.create_connection()
+            try:
+                with new_conn:
+                    yield new_conn
+            finally:
+                new_conn.close()
 
     def execute_with_cursor(
         self,
