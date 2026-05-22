@@ -32,8 +32,17 @@ Output JSON (stdout on success):
         "diff_lines": <int>,
         "diff_lines_meaningful": <int>,
         "summary": "<first 120 chars of git diff output>",
-        "recovered_from_task_commits": <bool>
+        "recovered_from_task_commits": <bool>,
+        "resolved_repo_root": "<path>"
     }
+
+``resolved_repo_root`` is the checkout against which the returned range
+should be interpreted (issue #821 / TASK-412). The primary checkout's
+``repo_root`` is used by default, but the worktree-fallback path may
+re-resolve into a sibling worktree to find the feature branch; callers
+that re-run ``git diff`` (e.g. ``tusk review validate-comments``) MUST
+use the returned ``resolved_repo_root`` as ``cwd`` to keep the diff
+consistent with the range.
 
 ``diff_lines`` counts every newline in the raw ``git diff`` output (legacy
 field, unchanged for backward compatibility). ``diff_lines_meaningful``
@@ -64,6 +73,7 @@ _git_helpers = tusk_loader.load("tusk-git-helpers")
 _db_lib = tusk_loader.load("tusk-db-lib")
 dumps = _json_lib.dumps
 task_grep_arg = _git_helpers.task_grep_arg
+find_task_commits = _git_helpers.find_task_commits
 commit_changed_files = _git_helpers.commit_changed_files
 task_referenced_paths = _git_helpers.task_referenced_paths
 filter_lockfile_diff_sections = _git_helpers.filter_lockfile_diff_sections
@@ -275,6 +285,23 @@ def _find_task_feature_worktree(
     return _maybe_return()
 
 
+def _sibling_hint(task_id: int, repo_root: str) -> str:
+    """Return a leading-space hint pointing at a sibling worktree, or ''.
+
+    Used by the "No changes found" error paths so the operator hitting
+    issue #817 from the primary checkout sees the feature-branch
+    worktree path in the error instead of having to guess where the
+    work actually lives.
+    """
+    sibling = _find_task_feature_worktree(task_id, repo_root)
+    if not sibling:
+        return ""
+    return (
+        f" Feature branch is checked out at sibling worktree '{sibling}'; "
+        f"re-run from there with `cd '{sibling}' && tusk review begin {task_id}`."
+    )
+
+
 def compute_range(
     task_id: int,
     repo_root: str,
@@ -303,27 +330,39 @@ def compute_range(
     diff_out = primary_result.stdout if primary_result.returncode == 0 else ""
     diff_lines = diff_out.count("\n") if diff_out else 0
     if diff_lines > 0:
-        return {
-            "range": primary,
-            "diff_lines": diff_lines,
-            "diff_lines_meaningful": _count_meaningful_lines(diff_out),
-            "summary": diff_out[:SUMMARY_CHARS],
-            "recovered_from_task_commits": False,
-        }
+        # Issue #821 / TASK-412: verify the chosen primary range actually
+        # contains at least one [TASK-<id>] commit before accepting it.
+        # When the orchestrator's CWD has unpushed local-default commits
+        # unrelated to this task, the primary range is non-empty-but-wrong;
+        # falling through to the commit-grep / worktree fallback recovers
+        # the real feature-branch range.
+        primary_task_commits = find_task_commits(
+            task_id, repo_root, refs=[primary],
+        )
+        if primary_task_commits:
+            return {
+                "range": primary,
+                "diff_lines": diff_lines,
+                "diff_lines_meaningful": _count_meaningful_lines(diff_out),
+                "summary": diff_out[:SUMMARY_CHARS],
+                "recovered_from_task_commits": False,
+                "resolved_repo_root": repo_root,
+            }
+        # Primary range is non-empty but contains no [TASK-N] commits.
+        # Fall through to commit-grep recovery as if it were empty.
 
-    # Primary range is empty — recover from [TASK-N] commits in recent history.
-    log_args = [
-        "log",
-        "--format=%H",
-        task_grep_arg(task_id),
-        "-n",
-        str(TASK_COMMIT_LIMIT),
-    ]
+    # Primary range is empty — recover from [TASK-N] commits across all refs
+    # (issue #817 / TASK-412). Scanning `--all` lets the primary checkout
+    # discover commits on a sibling worktree's feature branch through the
+    # shared git object database, without depending on HEAD-reachability or
+    # on the secondary worktree-list fallback below.
     started_at = _task_started_at(db_path, task_id)
-    if started_at:
-        log_args.append(f"--since={started_at} UTC")
-    log_result = _git(log_args, repo_root)
-    commits = [c for c in (log_result.stdout or "").splitlines() if c.strip()]
+    commits = find_task_commits(
+        task_id,
+        repo_root,
+        refs=["--all", "-n", str(TASK_COMMIT_LIMIT)],
+        since=started_at,
+    )
     if not commits:
         # Sibling-worktree fallback (issue #777): the feature branch may
         # live in another worktree (typical when `tusk task-worktree create`
@@ -365,7 +404,8 @@ def compute_range(
             f"No changes found — every [TASK-{task_id}] commit in recent git log "
             "touches files outside this task's referenced paths (prefix-match "
             "false positive, issue #656). The diff range cannot be determined "
-            "automatically. Confirm the correct commit range manually and re-run."
+            f"automatically.{_sibling_hint(task_id, repo_root)} Confirm the "
+            "correct commit range manually and re-run."
         )
     commits = filtered
 
@@ -377,10 +417,14 @@ def compute_range(
     diff_out = fallback_result.stdout or ""
     diff_lines = diff_out.count("\n")
     if diff_lines == 0:
-        raise SystemExit("No changes found compared to the base branch.")
+        raise SystemExit(
+            f"No changes found compared to the base branch for TASK-{task_id} "
+            f"in '{repo_root}'.{_sibling_hint(task_id, repo_root)}"
+        )
 
     return {
         "range": fallback,
+        "resolved_repo_root": repo_root,
         "diff_lines": diff_lines,
         "diff_lines_meaningful": _count_meaningful_lines(diff_out),
         "summary": diff_out[:SUMMARY_CHARS],
