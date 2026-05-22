@@ -214,8 +214,8 @@ public final class ProfileLocationPreferenceSyncClient: ProfileLocationPreferenc
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONSerialization.data(
             withJSONObject: [
-                "zip_code": zipCode.map { $0 as Any } ?? NSNull(),
-                "nearby_distance_miles": distanceMiles.map { $0 as Any } ?? NSNull()
+                "zipCode": zipCode.map { $0 as Any } ?? NSNull(),
+                "nearbyDistanceMiles": distanceMiles.map { $0 as Any } ?? NSNull()
             ],
             options: []
         )

@@ -2,14 +2,7 @@
  * @vitest-environment happy-dom
  */
 import React from "react";
-import {
-    afterEach,
-    beforeEach,
-    describe,
-    expect,
-    it,
-    vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import FavoriteSearchableSection from "./FavoriteSearchableSection";
 
@@ -62,6 +55,7 @@ describe("FavoriteSearchableSection serverPageInfo branch", () => {
                 itemKey={itemKey}
                 gridClassName="grid"
                 queryKey="showsPage"
+                searchScopeLabel="shows"
                 serverPageInfo={{
                     currentPage: 3,
                     pageSize: 20,
@@ -89,6 +83,7 @@ describe("FavoriteSearchableSection serverPageInfo branch", () => {
                 itemKey={itemKey}
                 gridClassName="grid"
                 queryKey="showsPage"
+                searchScopeLabel="shows"
                 serverPageInfo={{
                     currentPage: 3,
                     pageSize: 20,
@@ -129,6 +124,59 @@ describe("FavoriteSearchableSection serverPageInfo branch", () => {
             .getAllByRole("link")
             .find((el) => el.getAttribute("aria-current") === "page");
         expect(activeLink?.textContent).toBe("3");
+    });
+
+    it("explains search is scoped to the current server page", () => {
+        const items = makeItems(20);
+        render(
+            <FavoriteSearchableSection<Item>
+                title="Shows"
+                items={items}
+                isLoading={false}
+                emptyMessage="empty"
+                searchPlaceholder="search"
+                matchesQuery={matchesQuery}
+                renderItem={renderItem}
+                itemKey={itemKey}
+                gridClassName="grid"
+                queryKey="showsPage"
+                searchScopeLabel="shows"
+                serverPageInfo={{
+                    currentPage: 3,
+                    pageSize: 20,
+                    totalItems: 137,
+                }}
+            />,
+        );
+
+        expect(
+            screen.getByText("Search applies to the 20 shows on this page."),
+        ).toBeTruthy();
+    });
+
+    it("does not show a zero-count search scope while loading a server page", () => {
+        render(
+            <FavoriteSearchableSection<Item>
+                title="Shows"
+                items={[]}
+                isLoading={true}
+                emptyMessage="empty"
+                searchPlaceholder="search"
+                matchesQuery={matchesQuery}
+                renderItem={renderItem}
+                itemKey={itemKey}
+                gridClassName="grid"
+                queryKey="showsPage"
+                searchScopeLabel="shows"
+                serverPageInfo={{
+                    currentPage: 1,
+                    pageSize: 20,
+                    totalItems: 137,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText(/Search applies to the/)).toBeNull();
     });
 
     it("falls back to client-side pagination when serverPageInfo is absent", () => {

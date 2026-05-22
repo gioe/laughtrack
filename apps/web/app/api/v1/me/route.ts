@@ -11,9 +11,9 @@ import {
 } from "@/lib/rateLimit";
 
 const ProfileUpdateSchema = z.object({
-    comedian_onboarding_completed: z.boolean({
-        required_error: "comedian_onboarding_completed is required",
-        invalid_type_error: "comedian_onboarding_completed must be a boolean",
+    comedianOnboardingCompleted: z.boolean({
+        required_error: "comedianOnboardingCompleted is required",
+        invalid_type_error: "comedianOnboardingCompleted must be a boolean",
     }),
 });
 
@@ -73,17 +73,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
         {
             data: {
-                display_name: user.name,
+                displayName: user.name,
                 email: user.email,
-                avatar_url: user.image,
-                email_show_notifications:
+                avatarUrl: user.image,
+                emailShowNotifications:
                     user.profile?.emailShowNotifications ?? false,
-                push_show_notifications:
+                pushShowNotifications:
                     user.profile?.pushShowNotifications ?? false,
-                comedian_onboarding_completed:
+                comedianOnboardingCompleted:
                     user.profile?.comedianOnboardingCompleted ?? false,
-                zip_code: user.profile?.zipCode ?? null,
-                nearby_distance_miles:
+                zipCode: user.profile?.zipCode ?? null,
+                nearbyDistanceMiles:
                     user.profile?.nearbyDistanceMiles ?? null,
             },
         },
@@ -134,7 +134,7 @@ export async function PATCH(req: NextRequest) {
         where: { userid: authCtx.userId },
         data: {
             comedianOnboardingCompleted:
-                parsed.data.comedian_onboarding_completed,
+                parsed.data.comedianOnboardingCompleted,
         },
         select: {
             comedianOnboardingCompleted: true,
@@ -143,7 +143,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
         data: {
-            comedian_onboarding_completed:
+            comedianOnboardingCompleted:
                 updatedProfile.comedianOnboardingCompleted,
         },
     });

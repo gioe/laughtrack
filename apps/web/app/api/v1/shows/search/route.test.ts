@@ -45,6 +45,40 @@ beforeEach(() => {
 });
 
 describe("GET /api/v1/shows/search", () => {
+    // Pin camelCase wire keys distinctive to this route: `zipCapTriggered`
+    // (root) and a representative show field, so a future regression
+    // (e.g. zipCapTriggered → zip_cap_triggered) surfaces here.
+    it("returns the camelCase search wire shape including zipCapTriggered", async () => {
+        mockGetSearchedShows.mockResolvedValue({
+            data: [
+                {
+                    id: 1,
+                    clubId: 7,
+                    name: "Show",
+                    date: new Date("2026-07-04T20:00:00.000Z"),
+                    imageUrl: "https://cdn.example.com/show.jpg",
+                    soldOut: false,
+                    lineup: [],
+                },
+            ],
+            total: 1,
+            filters: [],
+            zipCapTriggered: false,
+        } as never);
+
+        const res = await GET(makeRequest());
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body.total).toBe(1);
+        expect(body.zipCapTriggered).toBe(false);
+        expect(body.data[0].clubId).toBe(7);
+        expect(body.data[0].imageUrl).toBe(
+            "https://cdn.example.com/show.jpg",
+        );
+        expect(body.data[0].soldOut).toBe(false);
+    });
+
     it("returns 500 with rate-limit headers when the search helper fails unexpectedly", async () => {
         mockGetSearchedShows.mockRejectedValue(new Error("DB unavailable"));
 

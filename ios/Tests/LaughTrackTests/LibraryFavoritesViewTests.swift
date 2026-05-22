@@ -177,7 +177,7 @@ struct LibraryFavoritesViewTests {
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
             id: 901,
-            clubID: 202,
+            clubId: 202,
             clubName: clubName,
             date: Date().addingTimeInterval(60 * 60 * 24),
             tickets: [],
@@ -268,7 +268,7 @@ private struct MockLibraryFavoritesTransport: ClientTransport {
             data: [
                 .init(
                     id: 901,
-                    clubID: 202,
+                    clubId: 202,
                     clubName: "The Stand",
                     date: Date().addingTimeInterval(60 * 60 * 24),
                     tickets: [],

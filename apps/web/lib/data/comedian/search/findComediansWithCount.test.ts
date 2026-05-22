@@ -121,13 +121,13 @@ describe("findComediansWithCount", () => {
             expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 
-        it("maps show_count from _count.lineupItems", async () => {
+        it("maps showCount from _count.lineupItems", async () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([makeComedianRow(1, 5)] as never);
 
             const result = await findComediansWithCount(makeHelper());
 
-            expect(result.comedians[0].show_count).toBe(5);
+            expect(result.comedians[0].showCount).toBe(5);
         });
     });
 
@@ -175,9 +175,9 @@ describe("findComediansWithCount", () => {
             const helper = makeHelper(SortParamValue.ShowCountAsc);
             const result = await findComediansWithCount(helper);
 
-            expect(result.comedians[0].show_count).toBe(1);
-            expect(result.comedians[1].show_count).toBe(2);
-            expect(result.comedians[2].show_count).toBe(5);
+            expect(result.comedians[0].showCount).toBe(1);
+            expect(result.comedians[1].showCount).toBe(2);
+            expect(result.comedians[2].showCount).toBe(5);
         });
     });
 
@@ -227,9 +227,9 @@ describe("findComediansWithCount", () => {
             const helper = makeHelper(SortParamValue.ShowCountDesc);
             const result = await findComediansWithCount(helper);
 
-            expect(result.comedians[0].show_count).toBe(5);
-            expect(result.comedians[1].show_count).toBe(2);
-            expect(result.comedians[2].show_count).toBe(1);
+            expect(result.comedians[0].showCount).toBe(5);
+            expect(result.comedians[1].showCount).toBe(2);
+            expect(result.comedians[2].showCount).toBe(1);
         });
 
         it("returns empty array when raw query finds no IDs", async () => {

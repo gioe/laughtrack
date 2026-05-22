@@ -11,13 +11,13 @@ import {
 
 const NotificationPreferenceUpdateSchema = z
     .object({
-        email_show_notifications: z.boolean().optional(),
-        push_show_notifications: z.boolean().optional(),
+        emailShowNotifications: z.boolean().optional(),
+        pushShowNotifications: z.boolean().optional(),
     })
     .refine(
         (data) =>
-            data.email_show_notifications !== undefined ||
-            data.push_show_notifications !== undefined,
+            data.emailShowNotifications !== undefined ||
+            data.pushShowNotifications !== undefined,
         {
             message: "At least one notification preference must be provided",
         },
@@ -65,8 +65,8 @@ export async function PATCH(req: NextRequest) {
     const updatedProfile = await db.userProfile.update({
         where: { userid: authCtx.userId },
         data: {
-            emailShowNotifications: parsed.data.email_show_notifications,
-            pushShowNotifications: parsed.data.push_show_notifications,
+            emailShowNotifications: parsed.data.emailShowNotifications,
+            pushShowNotifications: parsed.data.pushShowNotifications,
         },
         select: {
             emailShowNotifications: true,
@@ -76,8 +76,8 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
         data: {
-            email_show_notifications: updatedProfile.emailShowNotifications,
-            push_show_notifications: updatedProfile.pushShowNotifications,
+            emailShowNotifications: updatedProfile.emailShowNotifications,
+            pushShowNotifications: updatedProfile.pushShowNotifications,
         },
     });
 }

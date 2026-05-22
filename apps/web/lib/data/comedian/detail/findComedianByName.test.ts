@@ -188,7 +188,7 @@ beforeEach(() => {
 });
 
 describe("findComedianByName", () => {
-    describe("show_count", () => {
+    describe("showCount", () => {
         it("equals lineupItems.length from the mocked Prisma response", async () => {
             const row = makeComedianRow({
                 lineupItems: [
@@ -227,7 +227,7 @@ describe("findComedianByName", () => {
 
             const result = await findComedianByName(makeHelper());
 
-            expect(result.show_count).toBe(5);
+            expect(result.showCount).toBe(5);
         });
 
         it("is 0 when lineupItems is empty", async () => {
@@ -236,7 +236,7 @@ describe("findComedianByName", () => {
 
             const result = await findComedianByName(makeHelper());
 
-            expect(result.show_count).toBe(0);
+            expect(result.showCount).toBe(0);
         });
 
         it("maps upcoming show city data into dates for header city counts", async () => {
@@ -250,7 +250,7 @@ describe("findComedianByName", () => {
                     id: 101,
                     date: new Date("2026-05-01T20:00:00.000Z"),
                     name: "Friday Night",
-                    clubID: 201,
+                    clubId: 201,
                     clubName: "Comedy Club",
                     clubCity: "Austin",
                     clubState: "TX",
@@ -260,7 +260,7 @@ describe("findComedianByName", () => {
                     id: 102,
                     date: new Date("2026-05-02T20:00:00.000Z"),
                     name: null,
-                    clubID: 202,
+                    clubId: 202,
                     clubName: "Laugh Room",
                     clubCity: "Dallas",
                     clubState: "TX",
@@ -270,7 +270,7 @@ describe("findComedianByName", () => {
                     id: 103,
                     date: new Date("2026-05-03T20:00:00.000Z"),
                     name: "Late Show",
-                    clubID: 201,
+                    clubId: 201,
                     clubName: "Comedy Club",
                     clubCity: "Austin",
                     clubState: "TX",

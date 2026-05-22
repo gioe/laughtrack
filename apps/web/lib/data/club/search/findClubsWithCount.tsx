@@ -99,7 +99,7 @@ export async function findClubsWithCount(
                 state: club.state ?? undefined,
                 zipCode: club.zipCode,
                 imageUrl: buildClubImageUrl(club.name, club.hasImage),
-                show_count: club._count.shows,
+                showCount: club._count.shows,
                 distanceMiles: computeDistanceMiles(searchedZip, club.zipCode),
                 chainId: club.chainId ?? null,
                 chainName: club.chain?.name ?? null,

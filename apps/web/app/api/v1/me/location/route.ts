@@ -10,11 +10,11 @@ import {
 } from "@/lib/rateLimit";
 
 const ProfileLocationUpdateSchema = z.object({
-    zip_code: z
+    zipCode: z
         .string()
-        .regex(/^\d{5}$/, "zip_code must be a 5-digit US zip code")
+        .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
         .nullable(),
-    nearby_distance_miles: z.number().int().positive().nullable(),
+    nearbyDistanceMiles: z.number().int().positive().nullable(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -59,8 +59,8 @@ export async function PATCH(req: NextRequest) {
     const updatedProfile = await db.userProfile.update({
         where: { userid: authCtx.userId },
         data: {
-            zipCode: parsed.data.zip_code,
-            nearbyDistanceMiles: parsed.data.nearby_distance_miles,
+            zipCode: parsed.data.zipCode,
+            nearbyDistanceMiles: parsed.data.nearbyDistanceMiles,
         },
         select: {
             zipCode: true,
@@ -70,8 +70,8 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({
         data: {
-            zip_code: updatedProfile.zipCode,
-            nearby_distance_miles: updatedProfile.nearbyDistanceMiles,
+            zipCode: updatedProfile.zipCode,
+            nearbyDistanceMiles: updatedProfile.nearbyDistanceMiles,
         },
     });
 }

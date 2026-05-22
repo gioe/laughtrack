@@ -29,7 +29,7 @@ afterEach(() => {
 
 const makeShow = (id: number, room?: string | null): ShowDTO => ({
     id,
-    clubID: 1,
+    clubId: 1,
     clubName: "Comedy Cellar",
     date: "2026-05-20T20:00:00Z" as never as Date,
     tickets: [],

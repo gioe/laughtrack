@@ -88,7 +88,7 @@ describe("GET /api/v1/comedians/[id]", () => {
 
         expect(res.status).toBe(200);
         expectOpenApiResponse("/comedians/{id}", 200, body);
-        expect(body.data.social_data).toMatchObject({
+        expect(body.data.socialData).toMatchObject({
             id: 226475,
             website: "https://marcusdwiley.com/",
             popularity: 0.6,
@@ -242,7 +242,7 @@ describe("GET /api/v1/comedians/[id]", () => {
                 uuid: "comedian-uuid",
                 name: "Marcus D. Wiley",
                 imageUrl: "https://cdn.example.com/Marcus D. Wiley.jpg",
-                social_data: {
+                socialData: {
                     website: "https://marcusdwiley.com/",
                     popularity: 0.6,
                 },
@@ -251,7 +251,7 @@ describe("GET /api/v1/comedians/[id]", () => {
 
         expect(() => {
             expectOpenApiResponse("/comedians/{id}", 200, body);
-        }).toThrow("$.data.social_data.id is required");
+        }).toThrow("$.data.socialData.id is required");
     });
 
     it("returns 500 with rate-limit headers when the detail lookup fails unexpectedly", async () => {

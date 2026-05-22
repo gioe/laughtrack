@@ -50,7 +50,11 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(
-            { data: result.data, total: result.total, filters: result.filters },
+            {
+                data: result.data,
+                total: result.total,
+                filters: result.filters,
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

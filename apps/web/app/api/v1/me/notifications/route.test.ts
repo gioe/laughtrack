@@ -59,7 +59,7 @@ describe("PATCH /api/v1/me/notifications", () => {
     it("returns 401 when resolveAuth returns null", async () => {
         mockResolveAuth.mockResolvedValue(null);
 
-        const res = await PATCH(makeRequest({ push_show_notifications: true }));
+        const res = await PATCH(makeRequest({ pushShowNotifications: true }));
 
         expect(res.status).toBe(401);
         expect(mockUpdateProfile).not.toHaveBeenCalled();
@@ -68,7 +68,7 @@ describe("PATCH /api/v1/me/notifications", () => {
     it("returns 422 when authenticated user has no UserProfile row", async () => {
         mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
 
-        const res = await PATCH(makeRequest({ push_show_notifications: true }));
+        const res = await PATCH(makeRequest({ pushShowNotifications: true }));
 
         expect(res.status).toBe(422);
         expect(await res.json()).toEqual({ error: "profile_missing" });
@@ -102,8 +102,8 @@ describe("PATCH /api/v1/me/notifications", () => {
 
         const res = await PATCH(
             makeRequest({
-                email_show_notifications: true,
-                push_show_notifications: false,
+                emailShowNotifications: true,
+                pushShowNotifications: false,
             }),
         );
 
@@ -121,8 +121,8 @@ describe("PATCH /api/v1/me/notifications", () => {
         });
         expect(await res.json()).toEqual({
             data: {
-                email_show_notifications: true,
-                push_show_notifications: false,
+                emailShowNotifications: true,
+                pushShowNotifications: false,
             },
         });
     });
@@ -135,7 +135,7 @@ describe("PATCH /api/v1/me/notifications", () => {
             resetAt: 0,
         });
 
-        const res = await PATCH(makeRequest({ push_show_notifications: true }));
+        const res = await PATCH(makeRequest({ pushShowNotifications: true }));
 
         expect(res.status).toBe(429);
         expect(mockResolveAuth).not.toHaveBeenCalled();

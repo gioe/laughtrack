@@ -24,12 +24,12 @@ export interface SocialDiscoverable {
 // DTO
 export interface SocialDataDTO {
     id: number;
-    instagram_followers: number | null;
-    tiktok_followers: number | null;
-    youtube_followers: number | null;
-    instagram_account: string | null;
-    tiktok_account: string | null;
-    youtube_account: string | null;
+    instagramFollowers: number | null;
+    tiktokFollowers: number | null;
+    youtubeFollowers: number | null;
+    instagramAccount: string | null;
+    tiktokAccount: string | null;
+    youtubeAccount: string | null;
     website: string | null;
     popularity: number | null;
     linktree: string | null;

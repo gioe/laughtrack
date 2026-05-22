@@ -83,7 +83,7 @@ export function Header({ currentUser }: HeaderProps) {
                         {currentUser ? (
                             <div className="flex items-center gap-4">
                                 <Link
-                                    href={`/profile/${currentUser.id}`}
+                                    href="/profile"
                                     aria-current={
                                         pathname.includes("/profile")
                                             ? "page"

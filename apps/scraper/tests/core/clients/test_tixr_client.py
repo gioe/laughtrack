@@ -1363,6 +1363,7 @@ class TestFetchGroupEvents:
     def _client(self, monkeypatch) -> TixrClient:
         monkeypatch.setattr(BaseApiClient, "__init__", lambda self, club, proxy_pool=None: (
             setattr(self, "club", club) or setattr(self, "headers", {})
+            or setattr(self, "http_client", HttpClient())
         ))
         return TixrClient(_club())
 
@@ -1395,11 +1396,11 @@ class TestFetchGroupEvents:
         client = self._client(monkeypatch)
         calls = []
 
-        async def fake_fetch_json(url, logger_context=None):
+        async def fake_direct_fetch(url, logger_context):
             calls.append((url, logger_context))
             return {"events": [self._api_event()]}
 
-        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
         events = await client.fetch_group_events("1613")
 
@@ -1412,6 +1413,70 @@ class TestFetchGroupEvents:
                 {"group_id": "1613"},
             )
         ]
+        assert client.key == "tixr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_tries_direct_before_headerless_proxy(self, monkeypatch):
+        client = self._client(monkeypatch)
+        calls = []
+
+        async def fake_direct_fetch(url, logger_context):
+            calls.append("direct")
+            return None
+
+        async def fake_proxy_fetch(url, logger_context):
+            calls.append("proxy")
+            return {"events": [self._api_event()]}
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+        monkeypatch.setattr(client, "_fetch_group_events_json_proxy", fake_proxy_fetch)
+
+        events = await client.fetch_group_events("1613")
+
+        assert len(events) == 1
+        assert calls == ["direct", "proxy"]
+        assert client.key == "tixr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_proxy_keeps_headerless_fingerprint(self, monkeypatch):
+        client = self._client(monkeypatch)
+        calls = []
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                raise AssertionError("fetch_json should be patched")
+
+        async def fake_fetch_json(**kwargs):
+            calls.append(kwargs)
+            return {"events": [self._api_event()]}
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(client.http_client, "fetch_json", fake_fetch_json)
+        monkeypatch.setattr(tixr_module.HttpClient, "resolve_proxy_url", lambda key: "http://proxy")
+
+        data = await client._fetch_group_events_json_proxy(
+            "https://www.tixr.com/api/groups/1613/events?page=1",
+            {"group_id": "1613"},
+        )
+
+        assert data == {"events": [self._api_event()]}
+        assert calls[0]["headers"] is None
+        assert calls[0]["proxy_url"] == "http://proxy"
+        assert calls[0]["scraper_key"] is None
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_proxy_returns_none_when_tixr_proxy_not_configured(self, monkeypatch):
+        client = self._client(monkeypatch)
+        monkeypatch.setattr(tixr_module.HttpClient, "resolve_proxy_url", lambda key: None)
+
+        data = await client._fetch_group_events_json_proxy(
+            "https://www.tixr.com/api/groups/1613/events?page=1",
+            {"group_id": "1613"},
+        )
+
+        assert data is None
 
     @pytest.mark.asyncio
     async def test_fetch_group_events_deduplicates_and_skips_unparseable(self, monkeypatch):
@@ -1420,10 +1485,10 @@ class TestFetchGroupEvents:
         duplicate = self._api_event("189028")
         invalid = {"id": "bad", "name": "Missing Date"}
 
-        async def fake_fetch_json(url, logger_context=None):
+        async def fake_direct_fetch(url, logger_context):
             return {"events": [valid, duplicate, invalid]}
 
-        monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
         events = await client.fetch_group_events("1613")
 

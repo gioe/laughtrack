@@ -56,7 +56,7 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
             imageUrl: item.comedian.hasImage
                 ? `https://cdn.example.com/${item.comedian.name}.png`
                 : "",
-            show_count: item.comedian._count?.lineupItems,
+            showCount: item.comedian._count?.lineupItems,
             isFavorite: false,
             isAlias: false,
         })),
@@ -244,7 +244,7 @@ describe("findShowsForHome", () => {
                 name: "Filtered Comic",
                 imageUrl: "https://cdn.example.com/Filtered Comic.png",
                 hasImage: true,
-                show_count: 12,
+                showCount: 12,
                 isFavorite: false,
                 isAlias: false,
             };
@@ -280,7 +280,7 @@ describe("findShowsForHome", () => {
             const dto = result[0];
             expect(dto.id).toBe(42);
             expect(dto.name).toBe("Friday Night Comedy");
-            expect(dto.clubID).toBe(117);
+            expect(dto.clubId).toBe(117);
             expect(dto.clubName).toBe("Comedy Cellar");
             expect(dto.address).toBe("117 Macdougal St");
         });
@@ -505,6 +505,45 @@ describe("findShowsForHome", () => {
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ where, orderBy }),
             );
+        });
+    });
+
+    describe("skip + sortByHomeRelevance guard", () => {
+        it("throws when skip>0 is combined with sortByHomeRelevance=true", async () => {
+            await expect(
+                findShowsForHome(
+                    {},
+                    { date: "asc" },
+                    8,
+                    { sortByHomeRelevance: true },
+                    20,
+                ),
+            ).rejects.toThrow(/skip>0 is incompatible with sortByHomeRelevance/);
+            expect(mockFindMany).not.toHaveBeenCalled();
+        });
+
+        it("allows skip>0 when sortByHomeRelevance is false or omitted", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome({}, { date: "asc" }, 8, {}, 20);
+
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ skip: 20, take: 8 }),
+            );
+        });
+
+        it("allows skip=0 when sortByHomeRelevance=true", async () => {
+            mockFindMany.mockResolvedValue([] as never);
+
+            await findShowsForHome(
+                {},
+                { date: "asc" },
+                8,
+                { sortByHomeRelevance: true },
+                0,
+            );
+
+            expect(mockFindMany).toHaveBeenCalled();
         });
     });
 });

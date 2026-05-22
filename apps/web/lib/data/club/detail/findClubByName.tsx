@@ -63,7 +63,7 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
             city: clubData.city ?? undefined,
             state: clubData.state ?? undefined,
             zipCode: clubData.zipCode,
-            phone_number: clubData.phoneNumber ?? undefined,
+            phoneNumber: clubData.phoneNumber ?? undefined,
             description: clubData.description ?? undefined,
             hours: clubData.hours ?? undefined,
             chainId: clubData.chain?.id ?? null,

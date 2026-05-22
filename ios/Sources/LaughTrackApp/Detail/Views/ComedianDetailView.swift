@@ -1117,7 +1117,7 @@ private struct PodcastAppearanceRoleBadge: View {
             ShowRow(
                 show: Components.Schemas.Show(
                     id: 301,
-                    clubID: 201,
+                    clubId: 201,
                     clubName: "Comedy Cellar",
                     date: Date().addingTimeInterval(60 * 60 * 24),
                     tickets: [.init(price: 30, purchaseUrl: "https://laughtrack.app/demo/tickets/301", soldOut: false, _type: "General admission")],

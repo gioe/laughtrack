@@ -17,11 +17,11 @@ export interface ComedianDTO {
     uuid: string;
     id: number;
     userId?: number;
-    social_data: SocialDataDTO;
+    socialData: SocialDataDTO;
     dates?: ShowDTO[];
     isFavorite?: boolean;
-    show_count: number;
-    co_appearances?: number;
+    showCount: number;
+    coAppearances?: number;
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: ComedianLineupItemDTO[];
@@ -31,12 +31,12 @@ export interface ComedianDTO {
 
 export interface UpdateComedianDTO {
     name: string;
-    instagram_account: string;
-    instagram_followers: number;
-    tiktok_account: string;
-    tiktok_followers: number;
-    youtube_account: string;
-    youtube_followers: number;
+    instagramAccount: string;
+    instagramFollowers: number;
+    tiktokAccount: string;
+    tiktokFollowers: number;
+    youtubeAccount: string;
+    youtubeFollowers: number;
     website: string;
     linktree: string;
 }

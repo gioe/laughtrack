@@ -85,19 +85,19 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
         isAlias,
         uuid: effectiveComedian.uuid,
         isFavorite: Boolean(comedian.favoriteComedians?.length),
-        social_data: {
+        socialData: {
             id: effectiveComedian.id,
             linktree: effectiveComedian.linktree,
-            instagram_account: effectiveComedian.instagramAccount,
-            instagram_followers: effectiveComedian.instagramFollowers,
-            tiktok_account: effectiveComedian.tiktokAccount,
-            tiktok_followers: effectiveComedian.tiktokFollowers,
-            youtube_account: effectiveComedian.youtubeAccount,
-            youtube_followers: effectiveComedian.youtubeFollowers,
+            instagramAccount: effectiveComedian.instagramAccount,
+            instagramFollowers: effectiveComedian.instagramFollowers,
+            tiktokAccount: effectiveComedian.tiktokAccount,
+            tiktokFollowers: effectiveComedian.tiktokFollowers,
+            youtubeAccount: effectiveComedian.youtubeAccount,
+            youtubeFollowers: effectiveComedian.youtubeFollowers,
             website: effectiveComedian.website,
             popularity: effectiveComedian.popularity,
         },
-        show_count: comedian._count.lineupItems,
+        showCount: comedian._count.lineupItems,
     };
 }
 

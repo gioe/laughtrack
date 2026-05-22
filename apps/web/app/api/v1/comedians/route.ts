@@ -5,7 +5,6 @@ import {
     parseLimitParam,
     rateLimitHeaders,
 } from "@/lib/rateLimit";
-
 export async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians");
     if (rl instanceof NextResponse) return rl;

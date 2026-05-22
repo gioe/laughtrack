@@ -126,30 +126,30 @@ describe("getComediansByZip", () => {
             expect(dto.imageUrl).toBe(
                 `https://cdn.example.com/${row.name}.png`,
             );
-            expect(dto.show_count).toBe(row.show_count);
-            expect(dto.social_data).toMatchObject({
+            expect(dto.showCount).toBe(row.show_count);
+            expect(dto.socialData).toMatchObject({
                 id: row.id,
-                instagram_account: row.instagram_account,
-                instagram_followers: row.instagram_followers,
-                tiktok_account: row.tiktok_account,
-                tiktok_followers: row.tiktok_followers,
-                youtube_account: row.youtube_account,
-                youtube_followers: row.youtube_followers,
+                instagramAccount: row.instagram_account,
+                instagramFollowers: row.instagram_followers,
+                tiktokAccount: row.tiktok_account,
+                tiktokFollowers: row.tiktok_followers,
+                youtubeAccount: row.youtube_account,
+                youtubeFollowers: row.youtube_followers,
                 website: row.website,
                 popularity: row.popularity,
                 linktree: row.linktree,
             });
         });
 
-        it("applies Number() cast to show_count from the DB row", async () => {
+        it("applies Number() cast to showCount from the DB row", async () => {
             // The SQL uses COUNT(DISTINCT s.id)::int so Prisma returns a JS number.
             // Number() is called defensively; verify it produces the expected value.
             const row = makeRow({ show_count: 5 });
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
-            expect(typeof result[0].show_count).toBe("number");
-            expect(result[0].show_count).toBe(5);
+            expect(typeof result[0].showCount).toBe("number");
+            expect(result[0].showCount).toBe(5);
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
@@ -179,9 +179,9 @@ describe("getComediansByZip", () => {
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
-            const { social_data } = result[0];
-            expect(social_data.instagram_account).toBeNull();
-            expect(social_data.website).toBeNull();
+            const { socialData } = result[0];
+            expect(socialData.instagramAccount).toBeNull();
+            expect(socialData.website).toBeNull();
         });
     });
 

@@ -156,7 +156,7 @@ describe("GET /api/v1/me", () => {
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
     });
 
-    it("returns 200 with display_name, email, and avatar_url on success", async () => {
+    it("returns 200 with displayName, email, and avatarUrl on success", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-123",
             profileId: "profile-123",
@@ -180,14 +180,14 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body).toEqual({
             data: {
-                display_name: "Ada Lovelace",
+                displayName: "Ada Lovelace",
                 email: "ada@example.com",
-                avatar_url: "https://cdn.example.com/avatar.png",
-                email_show_notifications: true,
-                push_show_notifications: true,
-                zip_code: "94108",
-                nearby_distance_miles: 25,
-                comedian_onboarding_completed: true,
+                avatarUrl: "https://cdn.example.com/avatar.png",
+                emailShowNotifications: true,
+                pushShowNotifications: true,
+                zipCode: "94108",
+                nearbyDistanceMiles: 25,
+                comedianOnboardingCompleted: true,
             },
         });
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
@@ -210,7 +210,7 @@ describe("GET /api/v1/me", () => {
         });
     });
 
-    it("returns nulls for display_name and avatar_url when User columns are null", async () => {
+    it("returns nulls for displayName and avatarUrl when User columns are null", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-123",
             profileId: "profile-123",
@@ -234,14 +234,14 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body).toEqual({
             data: {
-                display_name: null,
+                displayName: null,
                 email: "anon@example.com",
-                avatar_url: null,
-                email_show_notifications: false,
-                push_show_notifications: false,
-                zip_code: null,
-                nearby_distance_miles: null,
-                comedian_onboarding_completed: false,
+                avatarUrl: null,
+                emailShowNotifications: false,
+                pushShowNotifications: false,
+                zipCode: null,
+                nearbyDistanceMiles: null,
+                comedianOnboardingCompleted: false,
             },
         });
     });
@@ -284,7 +284,7 @@ describe("PATCH /api/v1/me", () => {
         mockResolveAuth.mockResolvedValue(null);
 
         const res = await PATCH(
-            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+            makeRequest("PATCH", { comedianOnboardingCompleted: true }),
         );
 
         expect(res.status).toBe(401);
@@ -295,7 +295,7 @@ describe("PATCH /api/v1/me", () => {
         mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
 
         const res = await PATCH(
-            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+            makeRequest("PATCH", { comedianOnboardingCompleted: true }),
         );
 
         expect(res.status).toBe(422);
@@ -313,7 +313,7 @@ describe("PATCH /api/v1/me", () => {
         } as never);
 
         const res = await PATCH(
-            makeRequest("PATCH", { comedian_onboarding_completed: true }),
+            makeRequest("PATCH", { comedianOnboardingCompleted: true }),
         );
 
         expect(res.status).toBe(200);
@@ -323,7 +323,7 @@ describe("PATCH /api/v1/me", () => {
             select: { comedianOnboardingCompleted: true },
         });
         expect(await res.json()).toEqual({
-            data: { comedian_onboarding_completed: true },
+            data: { comedianOnboardingCompleted: true },
         });
         expect(mockCheckRateLimit).toHaveBeenNthCalledWith(
             1,
@@ -347,7 +347,7 @@ describe("PATCH /api/v1/me", () => {
 
         expect(res.status).toBe(400);
         expect(await res.json()).toEqual({
-            error: "comedian_onboarding_completed is required",
+            error: "comedianOnboardingCompleted is required",
         });
         expect(mockUpdateProfile).not.toHaveBeenCalled();
     });

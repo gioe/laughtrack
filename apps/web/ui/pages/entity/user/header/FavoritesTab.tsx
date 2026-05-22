@@ -12,10 +12,6 @@ import PodcastSearchCard from "@/ui/components/cards/podcast";
 import ShowCard from "@/ui/components/cards/show";
 import FavoriteSearchableSection from "./FavoriteSearchableSection";
 
-interface FavoritesTabProps {
-    userId: string;
-}
-
 const FAVORITE_SHOWS_PAGE_SIZE = 20;
 const FAVORITE_SHOWS_PAGE_KEY = "showsPage";
 
@@ -23,12 +19,12 @@ interface FavoritePodcastApiItem {
     id: number;
     slug: string;
     title: string;
-    author_name: string | null;
-    website_url: string | null;
-    feed_url: string | null;
-    image_url: string | null;
+    authorName: string | null;
+    websiteUrl: string | null;
+    feedUrl: string | null;
+    imageUrl: string | null;
     description: string | null;
-    episode_count: number;
+    episodeCount: number;
     isFavorite?: boolean;
 }
 
@@ -36,12 +32,12 @@ const toPodcastDTO = (item: FavoritePodcastApiItem): PodcastDTO => ({
     id: item.id,
     slug: item.slug,
     title: item.title,
-    authorName: item.author_name,
-    websiteUrl: item.website_url,
-    feedUrl: item.feed_url,
-    imageUrl: item.image_url,
+    authorName: item.authorName,
+    websiteUrl: item.websiteUrl,
+    feedUrl: item.feedUrl,
+    imageUrl: item.imageUrl,
     description: item.description,
-    episodeCount: item.episode_count,
+    episodeCount: item.episodeCount,
     isFavorite: item.isFavorite ?? true,
 });
 
@@ -71,7 +67,7 @@ const showMatches = (show: ShowDTO, q: string): boolean => {
     return name.includes(q) || club.includes(q) || lineup.includes(q);
 };
 
-const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
+const FavoritesTab = () => {
     const searchParams = useSearchParams();
     const showsPage = Math.max(
         1,
@@ -111,7 +107,8 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
 
         const loadComedians = async () => {
             try {
-                const body = await fetchJson<ComedianDTO[]>("/api/v1/favorites");
+                const body =
+                    await fetchJson<ComedianDTO[]>("/api/v1/favorites");
                 if (!cancelled) setComedians(body.data ?? []);
             } catch {
                 if (!cancelled)
@@ -122,7 +119,9 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
         };
         const loadClubs = async () => {
             try {
-                const body = await fetchJson<ClubDTO[]>("/api/v1/favorite-clubs");
+                const body = await fetchJson<ClubDTO[]>(
+                    "/api/v1/favorite-clubs",
+                );
                 if (!cancelled) setClubs(body.data ?? []);
             } catch {
                 if (!cancelled) setClubError("Failed to load favorite clubs.");
@@ -271,6 +270,7 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 gridClassName="grid grid-cols-1 gap-4"
                 queryKey={FAVORITE_SHOWS_PAGE_KEY}
                 headerNote={showsHeaderNote}
+                searchScopeLabel="shows"
                 serverPageInfo={{
                     currentPage: showsPage,
                     pageSize: FAVORITE_SHOWS_PAGE_SIZE,

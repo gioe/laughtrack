@@ -90,7 +90,7 @@ const club: ClubDTO = {
     city: "New York",
     state: "NY",
     zipCode: "10001",
-    show_count: 12,
+    showCount: 12,
 };
 
 const comedian: ComedianDTO = {
@@ -99,24 +99,24 @@ const comedian: ComedianDTO = {
     name: "Jordan Temple",
     imageUrl: "",
     hasImage: false,
-    social_data: {
+    socialData: {
         id: 20,
-        instagram_followers: null,
-        tiktok_followers: null,
-        youtube_followers: null,
-        instagram_account: null,
-        tiktok_account: null,
-        youtube_account: null,
+        instagramFollowers: null,
+        tiktokFollowers: null,
+        youtubeFollowers: null,
+        instagramAccount: null,
+        tiktokAccount: null,
+        youtubeAccount: null,
         website: null,
         popularity: null,
         linktree: null,
     },
-    show_count: 4,
+    showCount: 4,
 };
 
 const show: ShowDTO = {
     id: 3,
-    clubID: 1,
+    clubId: 1,
     date: "2026-04-28T20:00:00Z" as never as Date,
     name: "Late Show",
     clubName: "Copper Room",

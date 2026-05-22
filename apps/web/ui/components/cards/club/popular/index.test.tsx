@@ -50,7 +50,7 @@ describe("PopularClubCard", () => {
                     name: "No Photo Comedy Club",
                     zipCode: "10001",
                     imageUrl: "/placeholders/club-placeholder.svg",
-                    active_comedian_count: 4,
+                    activeComedianCount: 4,
                 }}
             />,
         );

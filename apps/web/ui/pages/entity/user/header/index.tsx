@@ -64,7 +64,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: mv(-20) }}
                         >
-                            <FavoritesTab userId={profile.userId!} />
+                            <FavoritesTab />
                         </motion.div>
                     )}
 

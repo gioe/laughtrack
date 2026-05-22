@@ -24,12 +24,12 @@ export interface ClubDTO {
     city?: string;
     state?: string;
     zipCode: string | null;
-    social_data?: SocialDataDTO;
+    socialData?: SocialDataDTO;
     dates?: ShowDTO[];
     isFavorite?: boolean;
-    show_count?: number;
-    active_comedian_count?: number;
-    phone_number?: string;
+    showCount?: number;
+    activeComedianCount?: number;
+    phoneNumber?: string;
     description?: string;
     hours?: unknown;
     distanceMiles?: number | null;

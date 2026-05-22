@@ -33,8 +33,8 @@ export class Show implements ShowInterface {
         this.name = input.name ?? "";
         this.date = input.date;
         this.socialData =
-            input.social_data !== undefined
-                ? new SocialData(input.social_data)
+            input.socialData !== undefined
+                ? new SocialData(input.socialData)
                 : undefined;
         const lineupComedians = input.lineup
             ? input.lineup.map((item: ComedianLineupDTO) => new Comedian(item))

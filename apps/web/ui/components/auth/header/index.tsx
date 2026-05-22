@@ -22,7 +22,7 @@ export default function AuthButtons({
                 <div className="hidden lg:flex lg:gap-x-12 items-center">
                     <HeaderItem
                         highlighted={pathname.includes("/profile")}
-                        href={`/profile/${currentUser.id}`}
+                        href="/profile"
                         title="Profile"
                     />
                     <Button

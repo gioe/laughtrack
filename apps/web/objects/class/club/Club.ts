@@ -50,7 +50,7 @@ export class Club implements ClubInterface {
         this.state = input.state ?? "";
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
-        this.phoneNumber = input.phone_number ?? "";
+        this.phoneNumber = input.phoneNumber ?? "";
         this.clubType = input.clubType ?? "club";
         this.description = input.description ?? "";
         this.hours = coerceHours(input.hours);
@@ -60,13 +60,13 @@ export class Club implements ClubInterface {
         // Initialize arrays and complex objects
         this.containedEntities =
             input.dates?.map((date) => new Show(date)) ?? [];
-        this.socialData = input.social_data
-            ? new SocialData(input.social_data)
+        this.socialData = input.socialData
+            ? new SocialData(input.socialData)
             : undefined;
 
         // Initialize flags and counts
         this.isFavorite = input.isFavorite ?? false;
-        this.showCount = input.show_count;
-        this.activeComedianCount = input.active_comedian_count;
+        this.showCount = input.showCount;
+        this.activeComedianCount = input.activeComedianCount;
     }
 }

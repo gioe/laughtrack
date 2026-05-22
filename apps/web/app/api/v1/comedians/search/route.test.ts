@@ -50,19 +50,19 @@ const mockSearchResult = {
             uuid: "comedian-uuid",
             name: "Taylor Tomlinson",
             imageUrl: "https://cdn.example.com/taylor.jpg",
-            social_data: {
+            socialData: {
                 id: 1,
-                instagram_account: "taylortomlinson",
-                instagram_followers: 1000000,
-                tiktok_account: null,
-                tiktok_followers: null,
-                youtube_account: null,
-                youtube_followers: null,
+                instagramAccount: "taylortomlinson",
+                instagramFollowers: 1000000,
+                tiktokAccount: null,
+                tiktokFollowers: null,
+                youtubeAccount: null,
+                youtubeFollowers: null,
                 website: "https://ttomcomedy.com/",
                 popularity: 0.95,
                 linktree: null,
             },
-            show_count: 4,
+            showCount: 4,
             isFavorite: true,
         },
     ],
@@ -97,6 +97,15 @@ describe("GET /api/v1/comedians/search", () => {
             }),
         );
         expect(body.data[0].isFavorite).toBe(true);
+        // Pin representative camelCase wire keys so a future regression
+        // (e.g. socialData → social_data) surfaces here.
+        expect(body.data[0].imageUrl).toBe(
+            "https://cdn.example.com/taylor.jpg",
+        );
+        expect(body.data[0].showCount).toBe(4);
+        expect(body.data[0].socialData.instagramFollowers).toBe(
+            1000000,
+        );
     });
 
     it("degrades PROFILE_MISSING to anonymous search", async () => {

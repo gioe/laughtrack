@@ -21,14 +21,14 @@ export interface ShowInterface extends Entity, SocialDiscoverable {
 // DB
 export interface ShowDTO {
     id: number;
-    clubID: number;
+    clubId: number;
     clubName?: string;
     clubCity?: string | null;
     clubState?: string | null;
     date: Date;
     tickets?: TicketDTO[];
     name: string | null;
-    social_data?: SocialDataDTO;
+    socialData?: SocialDataDTO;
     lineup?: ComedianLineupDTO[];
     description?: string;
     address?: string;

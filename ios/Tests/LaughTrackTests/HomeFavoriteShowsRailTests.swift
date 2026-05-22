@@ -116,7 +116,7 @@ struct HomeFavoriteShowsRailTests {
     private var favoriteShow: Components.Schemas.Show {
         .init(
             id: 901,
-            clubID: 202,
+            clubId: 202,
             clubName: "The Stand",
             date: Date().addingTimeInterval(60 * 60 * 24),
             tickets: [],

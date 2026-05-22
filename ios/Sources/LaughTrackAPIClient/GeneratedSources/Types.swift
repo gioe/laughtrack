@@ -165,6 +165,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /favorite-podcasts/{podcastId}`.
     /// - Remark: Generated from `#/paths//favorite-podcasts/{podcastId}/delete(removeFavoritePodcast)`.
     func removeFavoritePodcast(_ input: Operations.RemoveFavoritePodcast.Input) async throws -> Operations.RemoveFavoritePodcast.Output
+    /// List upcoming shows featuring the signed-in user's saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorite-shows`.
+    /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)`.
+    func getFavoriteShows(_ input: Operations.GetFavoriteShows.Input) async throws -> Operations.GetFavoriteShows.Output
     /// List the signed-in user’s saved favorite clubs
     ///
     /// - Remark: HTTP `GET /favorite-clubs`.
@@ -519,6 +524,19 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// List upcoming shows featuring the signed-in user's saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorite-shows`.
+    /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)`.
+    public func getFavoriteShows(
+        query: Operations.GetFavoriteShows.Input.Query = .init(),
+        headers: Operations.GetFavoriteShows.Input.Headers = .init()
+    ) async throws -> Operations.GetFavoriteShows.Output {
+        try await getFavoriteShows(Operations.GetFavoriteShows.Input(
+            query: query,
+            headers: headers
+        ))
+    }
     /// List the signed-in user’s saved favorite clubs
     ///
     /// - Remark: HTTP `GET /favorite-clubs`.
@@ -728,7 +746,7 @@ public enum Components {
         public struct MeUpdateRequest: Codable, Hashable, Sendable {
             /// Whether comedian onboarding has been completed or skipped.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeUpdateRequest/comedian_onboarding_completed`.
+            /// - Remark: Generated from `#/components/schemas/MeUpdateRequest/comedianOnboardingCompleted`.
             public var comedianOnboardingCompleted: Swift.Bool
             /// Creates a new `MeUpdateRequest`.
             ///
@@ -738,7 +756,7 @@ public enum Components {
                 self.comedianOnboardingCompleted = comedianOnboardingCompleted
             }
             public enum CodingKeys: String, CodingKey {
-                case comedianOnboardingCompleted = "comedian_onboarding_completed"
+                case comedianOnboardingCompleted
             }
         }
         /// - Remark: Generated from `#/components/schemas/MeUpdateResponse`.
@@ -747,7 +765,7 @@ public enum Components {
             public struct DataPayload: Codable, Hashable, Sendable {
                 /// Whether comedian onboarding has been completed or skipped.
                 ///
-                /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data/comedian_onboarding_completed`.
+                /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data/comedianOnboardingCompleted`.
                 public var comedianOnboardingCompleted: Swift.Bool
                 /// Creates a new `DataPayload`.
                 ///
@@ -757,7 +775,7 @@ public enum Components {
                     self.comedianOnboardingCompleted = comedianOnboardingCompleted
                 }
                 public enum CodingKeys: String, CodingKey {
-                    case comedianOnboardingCompleted = "comedian_onboarding_completed"
+                    case comedianOnboardingCompleted
                 }
             }
             /// - Remark: Generated from `#/components/schemas/MeUpdateResponse/data`.
@@ -777,7 +795,7 @@ public enum Components {
         public struct MeData: Codable, Hashable, Sendable {
             /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/display_name`.
+            /// - Remark: Generated from `#/components/schemas/MeData/displayName`.
             public var displayName: Swift.String?
             /// Unique email address (User.email).
             ///
@@ -785,27 +803,27 @@ public enum Components {
             public var email: Swift.String
             /// Avatar/profile photo URL from OAuth (User.image). May be null.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/avatar_url`.
+            /// - Remark: Generated from `#/components/schemas/MeData/avatarUrl`.
             public var avatarUrl: Swift.String?
             /// Whether the signed-in user receives email notifications for new shows from saved comedians.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/email_show_notifications`.
+            /// - Remark: Generated from `#/components/schemas/MeData/emailShowNotifications`.
             public var emailShowNotifications: Swift.Bool
             /// Whether the signed-in user receives push notifications for new shows from saved comedians.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/push_show_notifications`.
+            /// - Remark: Generated from `#/components/schemas/MeData/pushShowNotifications`.
             public var pushShowNotifications: Swift.Bool
             /// Whether comedian onboarding has been completed or skipped.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/comedian_onboarding_completed`.
+            /// - Remark: Generated from `#/components/schemas/MeData/comedianOnboardingCompleted`.
             public var comedianOnboardingCompleted: Swift.Bool
             /// Saved profile ZIP code used for Near Me.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/zip_code`.
+            /// - Remark: Generated from `#/components/schemas/MeData/zipCode`.
             public var zipCode: Swift.String?
             /// Saved profile distance in miles used for Near Me.
             ///
-            /// - Remark: Generated from `#/components/schemas/MeData/nearby_distance_miles`.
+            /// - Remark: Generated from `#/components/schemas/MeData/nearbyDistanceMiles`.
             public var nearbyDistanceMiles: Swift.Int?
             /// Creates a new `MeData`.
             ///
@@ -838,14 +856,14 @@ public enum Components {
                 self.nearbyDistanceMiles = nearbyDistanceMiles
             }
             public enum CodingKeys: String, CodingKey {
-                case displayName = "display_name"
+                case displayName
                 case email
-                case avatarUrl = "avatar_url"
-                case emailShowNotifications = "email_show_notifications"
-                case pushShowNotifications = "push_show_notifications"
-                case comedianOnboardingCompleted = "comedian_onboarding_completed"
-                case zipCode = "zip_code"
-                case nearbyDistanceMiles = "nearby_distance_miles"
+                case avatarUrl
+                case emailShowNotifications
+                case pushShowNotifications
+                case comedianOnboardingCompleted
+                case zipCode
+                case nearbyDistanceMiles
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteResponse`.
@@ -949,17 +967,17 @@ public enum Components {
             public var id: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/title`.
             public var title: Swift.String
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/author_name`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/authorName`.
             public var authorName: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/website_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/websiteUrl`.
             public var websiteUrl: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/feed_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/feedUrl`.
             public var feedUrl: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/image_url`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/imageUrl`.
             public var imageUrl: Swift.String?
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/description`.
             public var description: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/episode_count`.
+            /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/episodeCount`.
             public var episodeCount: Swift.Int
             /// - Remark: Generated from `#/components/schemas/FavoritePodcastItem/isFavorite`.
             public var isFavorite: Swift.Bool
@@ -999,12 +1017,12 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case id
                 case title
-                case authorName = "author_name"
-                case websiteUrl = "website_url"
-                case feedUrl = "feed_url"
-                case imageUrl = "image_url"
+                case authorName
+                case websiteUrl
+                case feedUrl
+                case imageUrl
                 case description
-                case episodeCount = "episode_count"
+                case episodeCount
                 case isFavorite
             }
         }
@@ -1023,21 +1041,62 @@ public enum Components {
                 case data
             }
         }
+        /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse`.
+        public struct FavoriteShowListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/data`.
+            public var data: [Components.Schemas.Show]
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/total`.
+            public var total: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/page`.
+            public var page: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/size`.
+            public var size: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse/totalPages`.
+            public var totalPages: Swift.Int
+            /// Creates a new `FavoriteShowListResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - total:
+            ///   - page:
+            ///   - size:
+            ///   - totalPages:
+            public init(
+                data: [Components.Schemas.Show],
+                total: Swift.Int,
+                page: Swift.Int,
+                size: Swift.Int,
+                totalPages: Swift.Int
+            ) {
+                self.data = data
+                self.total = total
+                self.page = page
+                self.size = size
+                self.totalPages = totalPages
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case total
+                case page
+                case size
+                case totalPages
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/SocialData`.
         public struct SocialData: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/SocialData/id`.
             public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/SocialData/instagram_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/instagramAccount`.
             public var instagramAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/instagram_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/instagramFollowers`.
             public var instagramFollowers: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/SocialData/tiktok_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/tiktokAccount`.
             public var tiktokAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/tiktok_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/tiktokFollowers`.
             public var tiktokFollowers: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/SocialData/youtube_account`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/youtubeAccount`.
             public var youtubeAccount: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/SocialData/youtube_followers`.
+            /// - Remark: Generated from `#/components/schemas/SocialData/youtubeFollowers`.
             public var youtubeFollowers: Swift.Int?
             /// - Remark: Generated from `#/components/schemas/SocialData/website`.
             public var website: Swift.String?
@@ -1083,12 +1142,12 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
-                case instagramAccount = "instagram_account"
-                case instagramFollowers = "instagram_followers"
-                case tiktokAccount = "tiktok_account"
-                case tiktokFollowers = "tiktok_followers"
-                case youtubeAccount = "youtube_account"
-                case youtubeFollowers = "youtube_followers"
+                case instagramAccount
+                case instagramFollowers
+                case tiktokAccount
+                case tiktokFollowers
+                case youtubeAccount
+                case youtubeFollowers
                 case website
                 case popularity
                 case linktree
@@ -1211,7 +1270,7 @@ public enum Components {
                     yield &self.storage.value.userId
                 }
             }
-            /// - Remark: Generated from `#/components/schemas/ComedianLineup/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianLineup/socialData`.
             public var socialData: Components.Schemas.SocialData? {
                 get  {
                     self.storage.value.socialData
@@ -1229,7 +1288,7 @@ public enum Components {
                     yield &self.storage.value.isFavorite
                 }
             }
-            /// - Remark: Generated from `#/components/schemas/ComedianLineup/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianLineup/showCount`.
             public var showCount: Swift.Int? {
                 get  {
                     self.storage.value.showCount
@@ -1324,9 +1383,9 @@ public enum Components {
                 case uuid
                 case id
                 case userId
-                case socialData = "social_data"
+                case socialData
                 case isFavorite
-                case showCount = "show_count"
+                case showCount
                 case role
                 case isAlias
                 case parentComedian
@@ -1351,11 +1410,11 @@ public enum Components {
                 var id: Swift.Int
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/userId`.
                 var userId: Swift.Int?
-                /// - Remark: Generated from `#/components/schemas/ComedianLineup/social_data`.
+                /// - Remark: Generated from `#/components/schemas/ComedianLineup/socialData`.
                 var socialData: Components.Schemas.SocialData?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/isFavorite`.
                 var isFavorite: Swift.Bool?
-                /// - Remark: Generated from `#/components/schemas/ComedianLineup/show_count`.
+                /// - Remark: Generated from `#/components/schemas/ComedianLineup/showCount`.
                 var showCount: Swift.Int?
                 /// - Remark: Generated from `#/components/schemas/ComedianLineup/role`.
                 var role: Swift.String?
@@ -1399,8 +1458,8 @@ public enum Components {
         public struct Show: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Show/id`.
             public var id: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/Show/clubID`.
-            public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/Show/clubId`.
+            public var clubId: Swift.Int
             /// - Remark: Generated from `#/components/schemas/Show/clubName`.
             public var clubName: Swift.String?
             /// - Remark: Generated from `#/components/schemas/Show/clubCity`.
@@ -1413,7 +1472,7 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/Show/name`.
             public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/Show/social_data`.
+            /// - Remark: Generated from `#/components/schemas/Show/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/Show/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
@@ -1435,7 +1494,7 @@ public enum Components {
             ///
             /// - Parameters:
             ///   - id:
-            ///   - clubID:
+            ///   - clubId:
             ///   - clubName:
             ///   - clubCity:
             ///   - clubState:
@@ -1453,7 +1512,7 @@ public enum Components {
             ///   - timezone:
             public init(
                 id: Swift.Int,
-                clubID: Swift.Int,
+                clubId: Swift.Int,
                 clubName: Swift.String? = nil,
                 clubCity: Swift.String? = nil,
                 clubState: Swift.String? = nil,
@@ -1471,7 +1530,7 @@ public enum Components {
                 timezone: Swift.String? = nil
             ) {
                 self.id = id
-                self.clubID = clubID
+                self.clubId = clubId
                 self.clubName = clubName
                 self.clubCity = clubCity
                 self.clubState = clubState
@@ -1490,14 +1549,14 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case id
-                case clubID
+                case clubId
                 case clubName
                 case clubCity
                 case clubState
                 case date
                 case tickets
                 case name
-                case socialData = "social_data"
+                case socialData
                 case lineup
                 case description
                 case address
@@ -1594,8 +1653,8 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/UpcomingRun`.
         public struct UpcomingRun: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubID`.
-            public var clubID: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubId`.
+            public var clubId: Swift.Int
             /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubName`.
             public var clubName: Swift.String
             /// - Remark: Generated from `#/components/schemas/UpcomingRun/clubImageUrl`.
@@ -1605,23 +1664,23 @@ public enum Components {
             /// Creates a new `UpcomingRun`.
             ///
             /// - Parameters:
-            ///   - clubID:
+            ///   - clubId:
             ///   - clubName:
             ///   - clubImageUrl:
             ///   - shows:
             public init(
-                clubID: Swift.Int,
+                clubId: Swift.Int,
                 clubName: Swift.String,
                 clubImageUrl: Swift.String,
                 shows: [Components.Schemas.Show]
             ) {
-                self.clubID = clubID
+                self.clubId = clubId
                 self.clubName = clubName
                 self.clubImageUrl = clubImageUrl
                 self.shows = shows
             }
             public enum CodingKeys: String, CodingKey {
-                case clubID
+                case clubId
                 case clubName
                 case clubImageUrl
                 case shows
@@ -1724,7 +1783,7 @@ public enum Components {
             public var tickets: [Components.Schemas.Ticket]?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/name`.
             public var name: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ShowDetail/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/socialData`.
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
@@ -1811,7 +1870,7 @@ public enum Components {
                 case date
                 case tickets
                 case name
-                case socialData = "social_data"
+                case socialData
                 case lineup
                 case description
                 case address
@@ -1860,7 +1919,7 @@ public enum Components {
             public var zipCode: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubListItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ClubListItem/active_comedian_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubListItem/activeComedianCount`.
             public var activeComedianCount: Swift.Int
             /// Creates a new `ClubListItem`.
             ///
@@ -1892,7 +1951,7 @@ public enum Components {
                 case name
                 case zipCode
                 case imageUrl
-                case activeComedianCount = "active_comedian_count"
+                case activeComedianCount
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClubDetail`.
@@ -1972,19 +2031,19 @@ public enum Components {
             public var zipCode: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/showCount`.
             public var showCount: Swift.Int?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/is_Favorite`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/isFavorite`.
             public var isFavorite: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/city`.
             public var city: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/state`.
             public var state: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/phone_number`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/phoneNumber`.
             public var phoneNumber: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/socialData`.
             public var socialData: Components.Schemas.SocialData?
-            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/active_comedian_count`.
+            /// - Remark: Generated from `#/components/schemas/ClubSearchItem/activeComedianCount`.
             public var activeComedianCount: Swift.Int?
             /// - Remark: Generated from `#/components/schemas/ClubSearchItem/distanceMiles`.
             public var distanceMiles: Swift.Double?
@@ -2039,13 +2098,13 @@ public enum Components {
                 case name
                 case zipCode
                 case imageUrl
-                case showCount = "show_count"
-                case isFavorite = "is_Favorite"
+                case showCount
+                case isFavorite
                 case city
                 case state
-                case phoneNumber = "phone_number"
-                case socialData = "social_data"
-                case activeComedianCount = "active_comedian_count"
+                case phoneNumber
+                case socialData
+                case activeComedianCount
                 case distanceMiles
             }
         }
@@ -2088,9 +2147,9 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianListItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianListItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianListItem/socialData`.
             public var socialData: Components.Schemas.SocialData
-            /// - Remark: Generated from `#/components/schemas/ComedianListItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianListItem/showCount`.
             public var showCount: Swift.Int
             /// Creates a new `ComedianListItem`.
             ///
@@ -2121,8 +2180,8 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
-                case showCount = "show_count"
+                case socialData
+                case showCount
             }
         }
         /// - Remark: Generated from `#/components/schemas/ComedianDetail`.
@@ -2135,7 +2194,7 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianDetail/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianDetail/socialData`.
             public var socialData: Components.Schemas.SocialData
             /// - Remark: Generated from `#/components/schemas/ComedianDetail/podcastAppearances`.
             public var podcastAppearances: [Components.Schemas.PodcastAppearance]
@@ -2168,7 +2227,7 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
+                case socialData
                 case podcastAppearances
             }
         }
@@ -2394,9 +2453,9 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/imageUrl`.
             public var imageUrl: Swift.String
-            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/social_data`.
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/socialData`.
             public var socialData: Components.Schemas.SocialData
-            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/show_count`.
+            /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/showCount`.
             public var showCount: Swift.Int
             /// - Remark: Generated from `#/components/schemas/ComedianSearchItem/isFavorite`.
             public var isFavorite: Swift.Bool?
@@ -2432,8 +2491,8 @@ public enum Components {
                 case uuid
                 case name
                 case imageUrl
-                case socialData = "social_data"
-                case showCount = "show_count"
+                case socialData
+                case showCount
                 case isFavorite
             }
         }
@@ -11180,6 +11239,370 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.RemoveFavoritePodcast.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// List upcoming shows featuring the signed-in user's saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorite-shows`.
+    /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)`.
+    public enum GetFavoriteShows {
+        public static let id: Swift.String = "getFavoriteShows"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/favorite-shows/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// One-indexed page number (default 1)
+                ///
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/query/page`.
+                public var page: Swift.Int?
+                /// Page size (default 20, max 50)
+                ///
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/query/size`.
+                public var size: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - page: One-indexed page number (default 1)
+                ///   - size: Page size (default 20, max 50)
+                public init(
+                    page: Swift.Int? = nil,
+                    size: Swift.Int? = nil
+                ) {
+                    self.page = page
+                    self.size = size
+                }
+            }
+            public var query: Operations.GetFavoriteShows.Input.Query
+            /// - Remark: Generated from `#/paths/favorite-shows/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoriteShows.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavoriteShows.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetFavoriteShows.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.GetFavoriteShows.Input.Query = .init(),
+                headers: Operations.GetFavoriteShows.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.FavoriteShowListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.FavoriteShowListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteShows.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteShows.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Favorite comedian shows
+            ///
+            /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetFavoriteShows.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetFavoriteShows.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteShows.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteShows.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Not authenticated
+            ///
+            /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.GetFavoriteShows.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.GetFavoriteShows.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/422/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/422/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteShows.Output.UnprocessableContent.Body
+                /// Creates a new `UnprocessableContent`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteShows.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            /// User profile not found (re-auth needed)
+            ///
+            /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)/responses/422`.
+            ///
+            /// HTTP response code: `422 unprocessableContent`.
+            case unprocessableContent(Operations.GetFavoriteShows.Output.UnprocessableContent)
+            /// The associated value of the enum case if `self` is `.unprocessableContent`.
+            ///
+            /// - Throws: An error if `self` is not `.unprocessableContent`.
+            /// - SeeAlso: `.unprocessableContent`.
+            public var unprocessableContent: Operations.GetFavoriteShows.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetFavoriteShows.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteShows.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetFavoriteShows.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetFavoriteShows.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetFavoriteShows.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetFavoriteShows.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/favorite-shows/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetFavoriteShows.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetFavoriteShows.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//favorite-shows/get(getFavoriteShows)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetFavoriteShows.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetFavoriteShows.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

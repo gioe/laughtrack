@@ -89,11 +89,11 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         await handleFavoriteWithAnimation(e);
     };
 
-    const hasUpcomingShows = comedian.show_count > 0;
+    const hasUpcomingShows = comedian.showCount > 0;
 
     const upcomingShowsLabel = hasUpcomingShows
         ? formatUpcomingShowsStat(
-              comedian.show_count,
+              comedian.showCount,
               getUpcomingCityCount(comedian),
           )
         : null;

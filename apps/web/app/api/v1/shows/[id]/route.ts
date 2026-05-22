@@ -4,7 +4,6 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { findRelatedShowsForShow } from "@/lib/data/show/detail/findRelatedShowsForShow";
 import { findShowById } from "@/lib/data/show/detail/findShowById";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
-
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parseShowId(raw: string): number | null {

@@ -95,6 +95,12 @@ export async function findShowsForHome(
     options: HomeShowQueryOptions = {},
     skip = 0,
 ): Promise<ShowDTO[]> {
+    if (skip > 0 && options.sortByHomeRelevance) {
+        throw new Error(
+            "findShowsForHome: skip>0 is incompatible with sortByHomeRelevance=true. " +
+                "Pagination over a re-sorted candidate window would produce overlapping or missing rows between pages.",
+        );
+    }
     const queryTake = options.sortByHomeRelevance
         ? Math.max(take, HOME_RELEVANCE_CANDIDATE_TAKE)
         : take;
@@ -117,7 +123,7 @@ export async function findShowsForHome(
                 id: show.id,
                 name: show.name,
                 date: show.date,
-                clubID: show.club.id,
+                clubId: show.club.id,
                 clubName: show.club.name,
                 clubCity: show.club.city,
                 clubState: show.club.state,
@@ -165,7 +171,7 @@ function getLineupPopularity(lineup: ComedianLineupDTO[]): number {
 }
 
 function getLineupItemPopularity(comedian: ComedianLineupDTO): number {
-    return comedian.show_count ?? 0;
+    return comedian.showCount ?? 0;
 }
 
 function compareHomeShowRelevance(

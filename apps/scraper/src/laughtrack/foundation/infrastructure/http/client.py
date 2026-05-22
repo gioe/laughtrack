@@ -40,9 +40,11 @@ import html as _html_lib
 import json as _json
 import os
 import re
+import secrets
 import threading
 import weakref
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import quote, unquote, urlparse, urlunparse
 
 from curl_cffi.requests import AsyncSession, Response
 
@@ -122,6 +124,40 @@ def _parse_json_from_rendered_html(rendered: str) -> Optional[Any]:
             return None
 
     return None
+
+
+def _with_tixr_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
+    """Return a Decodo proxy URL with a fresh sticky-session username for Tixr.
+
+    Tixr's DataDome has been returning ``t=bv`` challenges for the plain
+    Decodo URL, which means the selected egress IP is already banned and
+    Capsolver cannot solve it. Decodo rotates residential IPs by adding a
+    ``session`` parameter to the proxy username, so Tixr gets a fresh identity
+    per fetch while other allowlisted scrapers keep their configured URL.
+    """
+    if not proxy_url:
+        return proxy_url
+
+    parsed = urlparse(proxy_url)
+    hostname = (parsed.hostname or "").lower()
+    username = unquote(parsed.username or "")
+    if "decodo.com" not in hostname or not username:
+        return proxy_url
+
+    session_token = f"lt{secrets.token_hex(6)}"
+    base_username = re.sub(r"-session-[^-:@/]+", "", username)
+    if not base_username.startswith("user-"):
+        base_username = f"user-{base_username}"
+    username_with_session = f"{base_username}-session-{session_token}"
+    userinfo = quote(username_with_session, safe="")
+    if parsed.password is not None:
+        userinfo = f"{userinfo}:{quote(unquote(parsed.password), safe='')}"
+
+    netloc = f"{userinfo}@{parsed.hostname or hostname}"
+    if parsed.port is not None:
+        netloc = f"{netloc}:{parsed.port}"
+
+    return urlunparse(parsed._replace(netloc=netloc))
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +311,10 @@ class HttpClient:
         """
         if not scraper_key or scraper_key not in scraper_proxy_registry.proxy_enabled_keys():
             return None
-        return os.environ.get("RESIDENTIAL_PROXY_URL") or None
+        proxy_url = os.environ.get("RESIDENTIAL_PROXY_URL") or None
+        if scraper_key == "tixr":
+            proxy_url = _with_tixr_decodo_session(proxy_url)
+        return proxy_url
 
     @staticmethod
     async def _fetch_with_fallback(

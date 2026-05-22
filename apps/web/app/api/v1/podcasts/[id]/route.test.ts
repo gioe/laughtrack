@@ -76,20 +76,20 @@ describe("GET /api/v1/podcasts/[id]", () => {
                     name: "Mark Normand",
                     hasImage: false,
                     imageUrl: "",
-                    social_data: {
+                    socialData: {
                         id: 101,
                         linktree: null,
-                        instagram_account: null,
-                        instagram_followers: null,
-                        tiktok_account: null,
-                        tiktok_followers: null,
-                        youtube_account: null,
-                        youtube_followers: null,
+                        instagramAccount: null,
+                        instagramFollowers: null,
+                        tiktokAccount: null,
+                        tiktokFollowers: null,
+                        youtubeAccount: null,
+                        youtubeFollowers: null,
                         website: null,
                         popularity: null,
                     },
                     bio: null,
-                    show_count: 0,
+                    showCount: 0,
                 },
             ],
         });
@@ -107,6 +107,26 @@ describe("GET /api/v1/podcasts/[id]", () => {
         expect(body.podcast.title).toBe("The Laugh Track Pod");
         expect(body.episodes).toHaveLength(1);
         expect(body.relatedComedians).toHaveLength(1);
+        // Pin representative camelCase wire keys across each response section
+        // so a future regression (e.g. episodeCount → episode_count,
+        // socialData → social_data) surfaces here.
+        expect(body.podcast.authorName).toBe("Laugh Track Network");
+        expect(body.podcast.imageUrl).toBe(
+            "https://cdn.example.com/podcast.jpg",
+        );
+        expect(body.podcast.episodeCount).toBe(12);
+        expect(body.podcast.websiteUrl).toBe(
+            "https://podcasts.example.com",
+        );
+        expect(body.podcast.feedUrl).toBe(
+            "https://podcasts.example.com/feed.xml",
+        );
+        expect(body.episodes[0].durationSeconds).toBe(3_720);
+        expect(body.episodes[0].audioUrl).toBe(
+            "https://cdn.example.com/cellar.mp3",
+        );
+        expect(body.relatedComedians[0].socialData.popularity).toBeNull();
+        expect(body.relatedComedians[0].showCount).toBe(0);
     });
 
     it("passes the authenticated profile id to the detail lookup", async () => {

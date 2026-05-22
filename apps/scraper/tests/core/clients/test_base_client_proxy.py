@@ -6,12 +6,14 @@ was previously a silent false-success bug.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.parse import unquote, urlparse
 
 import pytest
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.foundation.infrastructure.http import scraper_proxy_registry
+from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 
 
@@ -570,3 +572,37 @@ class TestKeyDrivenResidentialProxyRouting:
 
         _, kwargs = session.get.call_args
         assert kwargs.get("proxies") is None
+
+    def test_tixr_decodo_residential_proxy_gets_fresh_session_username(
+        self, stub_registry, monkeypatch
+    ):
+        monkeypatch.setenv(
+            "RESIDENTIAL_PROXY_URL",
+            "http://baseuser:secret@us.decodo.com:10000",
+        )
+
+        first = urlparse(HttpClient.resolve_proxy_url("tixr"))
+        second = urlparse(HttpClient.resolve_proxy_url("tixr"))
+
+        assert first.hostname == "us.decodo.com"
+        assert first.password == "secret"
+        assert unquote(first.username or "").startswith("user-baseuser-session-lt")
+        assert unquote(second.username or "").startswith("user-baseuser-session-lt")
+        assert first.username != second.username
+
+    def test_non_tixr_decodo_residential_proxy_keeps_configured_username(
+        self, monkeypatch
+    ):
+        with patch.object(
+            scraper_proxy_registry,
+            "proxy_enabled_keys",
+            return_value=frozenset({"ticketweb"}),
+        ):
+            monkeypatch.setenv(
+                "RESIDENTIAL_PROXY_URL",
+                "http://baseuser:secret@us.decodo.com:10000",
+            )
+
+            resolved = urlparse(HttpClient.resolve_proxy_url("ticketweb"))
+
+        assert unquote(resolved.username or "") == "baseuser"

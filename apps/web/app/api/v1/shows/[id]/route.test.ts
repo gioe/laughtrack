@@ -52,7 +52,7 @@ describe("GET /api/v1/shows/[id]", () => {
             clubId: 7,
             show: {
                 id: 42,
-                clubID: 7,
+                clubId: 7,
                 name: "Friday Night Laughs",
                 date: new Date("2026-07-04T20:00:00.000Z"),
                 description: "A stacked lineup.",
@@ -78,7 +78,7 @@ describe("GET /api/v1/shows/[id]", () => {
         const relatedShows: RelatedShowsResult = [
             {
                 id: 44,
-                clubID: 7,
+                clubId: 7,
                 name: "Late Show",
                 date: new Date("2026-07-05T22:00:00.000Z"),
                 imageUrl: "https://cdn.example.com/late-show.jpg",
@@ -112,6 +112,25 @@ describe("GET /api/v1/shows/[id]", () => {
         expect(body.data.lineup).toHaveLength(1);
         expect(body.data.tickets).toHaveLength(1);
         expect(body.relatedShows).toHaveLength(1);
+        // Pin representative camelCase wire keys on the spread `...show`
+        // and on `relatedShows[]` so a future regression
+        // (e.g. clubId → club_id, soldOut → sold_out) surfaces here.
+        expect(body.data.clubId).toBe(7);
+        expect(body.data.imageUrl).toBe(
+            "https://cdn.example.com/comedy-cellar.jpg",
+        );
+        expect(body.data.soldOut).toBe(false);
+        expect(body.data.showPageUrl).toBe(
+            "https://club.example.com/show/42",
+        );
+        expect(body.data.tickets[0].purchaseUrl).toBe(
+            "https://tickets.example.com/show/42",
+        );
+        expect(body.data.tickets[0].soldOut).toBe(false);
+        expect(body.relatedShows[0].clubId).toBe(7);
+        expect(body.relatedShows[0].imageUrl).toBe(
+            "https://cdn.example.com/late-show.jpg",
+        );
     });
 
     it("returns 400 for non-numeric ids without coercing partial numbers", async () => {

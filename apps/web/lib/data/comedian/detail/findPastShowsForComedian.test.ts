@@ -119,7 +119,7 @@ describe("findPastShowsForComedian", () => {
             expect(result.shows).toHaveLength(1);
             expect(result.shows[0].id).toBe(42);
             expect(result.shows[0].name).toBe("Old Show");
-            expect(result.shows[0].clubID).toBe(17);
+            expect(result.shows[0].clubId).toBe(17);
             expect(result.shows[0].distanceMiles).toBeNull();
         });
     });

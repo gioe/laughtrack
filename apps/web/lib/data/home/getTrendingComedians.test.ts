@@ -143,7 +143,7 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(result.every((c) => c.show_count > 3)).toBe(true);
+            expect(result.every((c) => c.showCount > 3)).toBe(true);
         });
 
         it("returns no comedians when DB returns no rows (show_count > 3 filter found no matches)", async () => {
@@ -173,8 +173,8 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(result[0].show_count).toBeGreaterThan(3);
-            expect(result[1].show_count).toBeGreaterThan(3);
+            expect(result[0].showCount).toBeGreaterThan(3);
+            expect(result[1].showCount).toBeGreaterThan(3);
         });
     });
 
@@ -193,15 +193,15 @@ describe("getTrendingComedians", () => {
             expect(dto.imageUrl).toBe(
                 `https://cdn.example.com/${row.name}.png`,
             );
-            expect(dto.show_count).toBe(row.show_count);
-            expect(dto.social_data).toMatchObject({
+            expect(dto.showCount).toBe(row.show_count);
+            expect(dto.socialData).toMatchObject({
                 id: row.id,
-                instagram_account: row.instagram_account,
-                instagram_followers: row.instagram_followers,
-                tiktok_account: row.tiktok_account,
-                tiktok_followers: row.tiktok_followers,
-                youtube_account: row.youtube_account,
-                youtube_followers: row.youtube_followers,
+                instagramAccount: row.instagram_account,
+                instagramFollowers: row.instagram_followers,
+                tiktokAccount: row.tiktok_account,
+                tiktokFollowers: row.tiktok_followers,
+                youtubeAccount: row.youtube_account,
+                youtubeFollowers: row.youtube_followers,
                 website: row.website,
                 popularity: row.popularity,
                 linktree: row.linktree,
@@ -214,8 +214,8 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(typeof result[0].show_count).toBe("number");
-            expect(result[0].show_count).toBe(7);
+            expect(typeof result[0].showCount).toBe("number");
+            expect(result[0].showCount).toBe(7);
         });
 
         it("coerces BigInt show_count from Postgres COUNT() to a JS number via Number()", async () => {
@@ -226,8 +226,8 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(typeof result[0].show_count).toBe("number");
-            expect(result[0].show_count).toBe(12);
+            expect(typeof result[0].showCount).toBe("number");
+            expect(result[0].showCount).toBe(12);
         });
 
         it("handles null optional social fields", async () => {
@@ -244,10 +244,10 @@ describe("getTrendingComedians", () => {
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getTrendingComedians(8, 0);
-            const { social_data } = result[0];
+            const { socialData } = result[0];
 
-            expect(social_data.instagram_account).toBeNull();
-            expect(social_data.website).toBeNull();
+            expect(socialData.instagramAccount).toBeNull();
+            expect(socialData.website).toBeNull();
         });
     });
 

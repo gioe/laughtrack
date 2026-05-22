@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findCoBilledComediansForComedian } from "@/lib/data/comedian/detail/findCoBilledComediansForComedian";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },

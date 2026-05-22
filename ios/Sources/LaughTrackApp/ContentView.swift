@@ -292,7 +292,7 @@ struct ContentView: View {
             case .comedianDetail(let id):
                 ComedianDetailView(comedianID: id, apiClient: apiClient)
             case .clubDetail(let id):
-                ClubDetailView(clubID: id, apiClient: apiClient)
+                ClubDetailView(clubId: id, apiClient: apiClient)
             case .podcastDetail(let id):
                 PodcastDetailView(podcastID: id, apiClient: apiClient)
             }

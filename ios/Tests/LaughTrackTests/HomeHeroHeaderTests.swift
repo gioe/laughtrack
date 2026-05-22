@@ -160,7 +160,7 @@ private struct MockHomeShowsTonightTransport: ClientTransport {
     private func show(id: Int) -> Components.Schemas.Show {
         .init(
             id: id,
-            clubID: 201,
+            clubId: 201,
             clubName: "Comedy Cellar",
             date: Date().addingTimeInterval(TimeInterval(id - 800) * 60 * 60),
             tickets: [.init(price: 24, purchaseUrl: "https://example.com/tickets/\(id)", soldOut: false, _type: "General admission")],

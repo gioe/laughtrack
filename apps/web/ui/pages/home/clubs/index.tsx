@@ -23,7 +23,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     // Sort clubs once instead of on every render
     const sortedClubs = React.useMemo(() => {
         return [...clubs].sort((a, b) =>
-            (a.active_comedian_count ?? 0) > (b.active_comedian_count ?? 0)
+            (a.activeComedianCount ?? 0) > (b.activeComedianCount ?? 0)
                 ? -1
                 : 1,
         );

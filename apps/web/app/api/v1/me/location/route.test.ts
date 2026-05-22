@@ -52,7 +52,7 @@ describe("PATCH /api/v1/me/location", () => {
         mockResolveAuth.mockResolvedValue(null);
 
         const res = await PATCH(
-            makeRequest({ zip_code: "94108", nearby_distance_miles: 25 }),
+            makeRequest({ zipCode: "94108", nearbyDistanceMiles: 25 }),
         );
 
         expect(res.status).toBe(401);
@@ -63,7 +63,7 @@ describe("PATCH /api/v1/me/location", () => {
         mockResolveAuth.mockResolvedValue(PROFILE_MISSING);
 
         const res = await PATCH(
-            makeRequest({ zip_code: "94108", nearby_distance_miles: 25 }),
+            makeRequest({ zipCode: "94108", nearbyDistanceMiles: 25 }),
         );
 
         expect(res.status).toBe(422);
@@ -82,7 +82,7 @@ describe("PATCH /api/v1/me/location", () => {
         } as never);
 
         const res = await PATCH(
-            makeRequest({ zip_code: "94108", nearby_distance_miles: 25 }),
+            makeRequest({ zipCode: "94108", nearbyDistanceMiles: 25 }),
         );
 
         expect(res.status).toBe(200);
@@ -99,8 +99,8 @@ describe("PATCH /api/v1/me/location", () => {
         });
         expect(await res.json()).toEqual({
             data: {
-                zip_code: "94108",
-                nearby_distance_miles: 25,
+                zipCode: "94108",
+                nearbyDistanceMiles: 25,
             },
         });
     });
@@ -116,7 +116,7 @@ describe("PATCH /api/v1/me/location", () => {
         } as never);
 
         const res = await PATCH(
-            makeRequest({ zip_code: null, nearby_distance_miles: null }),
+            makeRequest({ zipCode: null, nearbyDistanceMiles: null }),
         );
 
         expect(res.status).toBe(200);

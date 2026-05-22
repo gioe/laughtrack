@@ -140,18 +140,18 @@ export async function getTrendingComedians(
         name: row.name,
         imageUrl: buildComedianImageUrl(row.name, row.has_image),
         hasImage: Boolean(row.has_image),
-        social_data: {
+        socialData: {
             id: row.id,
-            instagram_account: row.instagram_account,
-            instagram_followers: row.instagram_followers,
-            tiktok_account: row.tiktok_account,
-            tiktok_followers: row.tiktok_followers,
-            youtube_account: row.youtube_account,
-            youtube_followers: row.youtube_followers,
+            instagramAccount: row.instagram_account,
+            instagramFollowers: row.instagram_followers,
+            tiktokAccount: row.tiktok_account,
+            tiktokFollowers: row.tiktok_followers,
+            youtubeAccount: row.youtube_account,
+            youtubeFollowers: row.youtube_followers,
             website: row.website,
             popularity: row.popularity,
             linktree: row.linktree,
         },
-        show_count: Number(row.show_count),
+        showCount: Number(row.show_count),
     }));
 }

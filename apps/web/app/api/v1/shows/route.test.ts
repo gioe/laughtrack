@@ -53,6 +53,9 @@ const mockShowResult = {
     data: [
         {
             id: "show-1",
+            clubId: 7,
+            imageUrl: "https://cdn.example.com/show-1.jpg",
+            soldOut: false,
             lineup: [{ comedianId: "c1", isFavorite: true }],
         },
     ],
@@ -83,6 +86,14 @@ describe("GET /api/v1/shows", () => {
                 }),
             );
             expect(body.data[0].lineup[0].isFavorite).toBe(true);
+            // Pin representative camelCase wire keys so a future regression
+            // (e.g. clubId → club_id, imageUrl → image_url) surfaces here.
+            expect(body.total).toBe(1);
+            expect(body.data[0].clubId).toBe(7);
+            expect(body.data[0].imageUrl).toBe(
+                "https://cdn.example.com/show-1.jpg",
+            );
+            expect(body.data[0].soldOut).toBe(false);
         });
     });
 
