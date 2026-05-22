@@ -203,51 +203,67 @@ class TixrClient(BaseApiClient):
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
 
-    async def fetch_group_events(self, group_id: str, page: int = 1) -> List[TixrEvent]:
+    async def fetch_group_events(
+        self, group_id: str, page: int = 1, max_pages: int = 12
+    ) -> List[TixrEvent]:
         """Fetch Tixr events from the browser-consumed group events API."""
         normalized_group_id = str(group_id or "").strip()
         if not normalized_group_id:
             return []
 
-        api_url = f"{self.base_url}/api/groups/{normalized_group_id}/events?page={page}"
-        try:
-            data = await self._fetch_group_events_json(
-                api_url, logger_context={"group_id": normalized_group_id}
-            )
-        except Exception as exc:
-            self.log_warning(
-                f"Tixr group-events API fetch failed for group_id={normalized_group_id}: {exc}"
-            )
-            return []
-
-        events = self._extract_group_event_records(data)
-        if not events:
-            self.log_warning(
-                f"Tixr group-events API returned no parseable events for group_id={normalized_group_id}"
-            )
-            return []
-
         parsed: List[TixrEvent] = []
         seen_ids: set[str] = set()
-        for event_data in events:
-            event_id = str(event_data.get("id") or "").strip()
-            if event_id and event_id in seen_ids:
-                continue
+        start_page = max(1, int(page or 1))
+        stop_page = start_page + max(1, int(max_pages or 1))
 
-            shows = self._create_shows_from_data(event_data)
-            if not shows:
-                continue
-
-            if event_id:
-                seen_ids.add(event_id)
-            for show in shows:
-                parsed.append(
-                    TixrEvent.from_tixr_show(
-                        show=show,
-                        source_url=show.show_page_url,
-                        event_id=event_id,
-                    )
+        for current_page in range(start_page, stop_page):
+            api_url = (
+                f"{self.base_url}/api/groups/{normalized_group_id}/events"
+                f"?page={current_page}"
+            )
+            try:
+                data = await self._fetch_group_events_json(
+                    api_url,
+                    logger_context={
+                        "group_id": normalized_group_id,
+                        "page": current_page,
+                    },
                 )
+            except Exception as exc:
+                self.log_warning(
+                    f"Tixr group-events API fetch failed for group_id={normalized_group_id} "
+                    f"page={current_page}: {exc}"
+                )
+                break
+
+            events = self._extract_group_event_records(data)
+            if not events:
+                if not parsed:
+                    self.log_warning(
+                        f"Tixr group-events API returned no parseable events "
+                        f"for group_id={normalized_group_id} page={current_page}"
+                    )
+                break
+
+            for event_data in events:
+                event_id = str(event_data.get("id") or "").strip()
+                if event_id and event_id in seen_ids:
+                    continue
+
+                shows = self._create_shows_from_data(event_data)
+                if not shows:
+                    continue
+
+                if event_id:
+                    seen_ids.add(event_id)
+                for show in shows:
+                    parsed.append(
+                        TixrEvent.from_tixr_show(
+                            show=show,
+                            source_url=show.show_page_url,
+                            event_id=event_id,
+                        )
+                    )
 
         return parsed
 

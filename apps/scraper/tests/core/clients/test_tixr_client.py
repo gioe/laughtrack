@@ -1403,7 +1403,7 @@ class TestFetchGroupEvents:
 
         monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
 
-        events = await client.fetch_group_events("1613")
+        events = await client.fetch_group_events("1613", max_pages=1)
 
         assert len(events) == 1
         assert events[0].event_id == "189028"
@@ -1411,10 +1411,45 @@ class TestFetchGroupEvents:
         assert calls == [
             (
                 "https://www.tixr.com/api/groups/1613/events?page=1",
-                {"group_id": "1613"},
+                {"group_id": "1613", "page": 1},
             )
         ]
         assert client.key == "tixr"
+
+    @pytest.mark.asyncio
+    async def test_fetch_group_events_reads_until_first_empty_page(self, monkeypatch):
+        """Covina's group-events API returns additional events on page 2."""
+        client = self._client(monkeypatch)
+        calls = []
+
+        async def fake_direct_fetch(url, logger_context):
+            calls.append((url, logger_context))
+            if url.endswith("page=1"):
+                return {"events": [self._api_event("189028")]}
+            if url.endswith("page=2"):
+                return {"events": [self._api_event("190370")]}
+            return []
+
+        monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
+
+        events = await client.fetch_group_events("1613")
+
+        assert [event.event_id for event in events] == ["189028", "190370"]
+        assert [event.show.tickets[0].price for event in events] == [25.0, 25.0]
+        assert calls == [
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=1",
+                {"group_id": "1613", "page": 1},
+            ),
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=2",
+                {"group_id": "1613", "page": 2},
+            ),
+            (
+                "https://www.tixr.com/api/groups/1613/events?page=3",
+                {"group_id": "1613", "page": 3},
+            ),
+        ]
 
     @pytest.mark.asyncio
     async def test_fetch_group_events_tries_direct_before_headerless_proxy(self, monkeypatch):
@@ -1432,7 +1467,7 @@ class TestFetchGroupEvents:
         monkeypatch.setattr(client, "_fetch_group_events_json_direct", fake_direct_fetch)
         monkeypatch.setattr(client, "_fetch_group_events_json_proxy", fake_proxy_fetch)
 
-        events = await client.fetch_group_events("1613")
+        events = await client.fetch_group_events("1613", max_pages=1)
 
         assert len(events) == 1
         assert calls == ["direct", "proxy"]
