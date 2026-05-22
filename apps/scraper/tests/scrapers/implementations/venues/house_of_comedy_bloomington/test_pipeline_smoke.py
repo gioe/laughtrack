@@ -110,3 +110,19 @@ async def test_get_data_builds_events_from_compact_calendar_cards(monkeypatch):
     assert event.show.date.month == 5
     assert event.show.date.day == 10
     assert event.show.date.hour == 19
+
+
+@pytest.mark.asyncio
+async def test_listing_card_ticket_price_is_none_not_zero(monkeypatch):
+    """TASK-2405: listing page exposes no price, so the placeholder ticket must
+    report price=None (unknown) rather than 0 (proven-free)."""
+    scraper = HouseOfComedyBloomingtonScraper(_club())
+
+    monkeypatch.setattr(scraper, "fetch_html", AsyncMock(return_value=_ONE_EVENT_HTML))
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    event = result.event_list[0]
+    assert len(event.show.tickets) == 1
+    assert event.show.tickets[0].price is None

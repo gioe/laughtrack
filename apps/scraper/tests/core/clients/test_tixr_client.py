@@ -1254,6 +1254,53 @@ class TestCreateShowFromJsonld:
 
 
 # ---------------------------------------------------------------------------
+# _build_tickets_from_tiers / _extract_fallback_tickets — unknown-price path
+# ---------------------------------------------------------------------------
+
+class TestBuildTicketsFromTiers:
+    """Pin the null-vs-zero contract for tier-derived tickets (TASK-2405)."""
+
+    def test_tier_missing_price_emits_none(self):
+        tiers = [{"name": "GA", "active": True}]
+        tickets = TixrClient._build_tickets_from_tiers(tiers, "https://tixr.com/x")
+        assert len(tickets) == 1
+        assert tickets[0].price is None
+
+    def test_tier_unparseable_price_emits_none(self):
+        tiers = [{"name": "GA", "active": True, "price": "free"}]
+        tickets = TixrClient._build_tickets_from_tiers(tiers, "https://tixr.com/x")
+        assert len(tickets) == 1
+        assert tickets[0].price is None
+
+    def test_tier_numeric_price_preserved(self):
+        tiers = [{"name": "GA", "active": True, "price": "25"}]
+        tickets = TixrClient._build_tickets_from_tiers(tiers, "https://tixr.com/x")
+        assert tickets[0].price == 25.0
+
+    def test_tier_explicit_zero_price_preserved_as_free(self):
+        tiers = [{"name": "GA", "active": True, "price": 0}]
+        tickets = TixrClient._build_tickets_from_tiers(tiers, "https://tixr.com/x")
+        # An explicit 0 from Tixr means proven-free; do not promote to None.
+        assert tickets[0].price == 0
+
+
+class TestExtractFallbackTickets:
+    """Pin the null-vs-zero contract for the no-sales fallback path."""
+
+    def test_has_tickets_with_no_sales_emits_none_price(self):
+        data = {"hasTickets": True, "ticketUrl": "https://tixr.com/x"}
+        tickets = TixrClient._extract_fallback_tickets(data, "https://tixr.com/y")
+        assert len(tickets) == 1
+        assert tickets[0].price is None
+        assert tickets[0].purchase_url == "https://tixr.com/x"
+
+    def test_no_tickets_returns_empty(self):
+        data = {"hasTickets": False}
+        tickets = TixrClient._extract_fallback_tickets(data, "https://tixr.com/y")
+        assert tickets == []
+
+
+# ---------------------------------------------------------------------------
 # get_event_detail — event_id extraction
 # ---------------------------------------------------------------------------
 
