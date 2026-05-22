@@ -9,6 +9,7 @@ Covers:
 """
 
 import sys
+from contextlib import contextmanager
 from unittest.mock import MagicMock
 
 import pytest
@@ -245,7 +246,9 @@ class TestInsertTicketsPurchaseUrlUpsert:
 
         formatted_queries = []
 
-        def _execute_with_cursor(query, params, return_results=False):
+        def _execute_with_cursor(query, params, return_results=False, **_kwargs):
+            # ``**_kwargs`` swallows the ``conn=`` kwarg passed by insert_tickets
+            # under the single-transaction path (TASK-2410).
             formatted_queries.append(query % params)
             return None
 
@@ -389,3 +392,134 @@ class TestStaleTicketSweep:
             TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS
         )
         handler.execute_batch_operation.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Single-transaction wrapping (TASK-2410)
+# ---------------------------------------------------------------------------
+
+class TestInsertTicketsSingleTransaction:
+    """
+    insert_tickets must run the schema.org cleanup, stale-ticket sweep, and
+    BATCH_ADD upsert inside one DB transaction so a mid-flow failure leaves
+    the show's ticket rows unchanged (TASK-2410).
+    """
+
+    def test_all_operations_share_one_connection(self):
+        """All three SQL calls receive the same ``conn=`` from handler.transaction()."""
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        sentinel_conn = MagicMock(name="tx_conn")
+
+        @contextmanager
+        def _fake_transaction():
+            yield sentinel_conn
+
+        handler.transaction = _fake_transaction  # type: ignore[assignment]
+
+        show = _FakeShow(42, [_make_ticket("https://example.com/buy")])
+        handler.insert_tickets([show])
+
+        # 2 cursor calls (schema.org cleanup + stale sweep) + 1 batch call,
+        # every one with conn=sentinel_conn.
+        assert handler.execute_with_cursor.call_count == 2
+        for call in handler.execute_with_cursor.call_args_list:
+            assert call.kwargs.get("conn") is sentinel_conn
+
+        assert handler.execute_batch_operation.call_count == 1
+        assert handler.execute_batch_operation.call_args.kwargs.get("conn") is sentinel_conn
+
+    def test_rollback_on_batch_add_failure(self):
+        """When BATCH_ADD fails after the sweep, the transaction rolls back —
+        the prior DELETE statements never commit, so the show keeps its
+        previous ticket rows instead of being left with zero tickets."""
+        handler = TicketHandler()
+        tx_conn = MagicMock(name="tx_conn")
+
+        @contextmanager
+        def _real_transaction():
+            try:
+                yield tx_conn
+                tx_conn.commit()
+            except Exception:
+                tx_conn.rollback()
+                raise
+
+        handler.transaction = _real_transaction  # type: ignore[assignment]
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(
+            side_effect=RuntimeError("BATCH_ADD failed")
+        )
+
+        show = _FakeShow(42, [_make_ticket("https://example.com/buy")])
+
+        with pytest.raises(RuntimeError, match="BATCH_ADD failed"):
+            handler.insert_tickets([show])
+
+        # Cleanup + sweep both ran (and would have committed individually under
+        # the pre-2410 connection-per-statement model).
+        assert handler.execute_with_cursor.call_count == 2
+        assert handler.execute_batch_operation.call_count == 1
+
+        # Under the single-transaction wrap the connection rolls back, never commits.
+        tx_conn.rollback.assert_called_once()
+        tx_conn.commit.assert_not_called()
+
+    def test_commit_on_clean_success(self):
+        """Clean exit through the with-block commits the wrapping transaction."""
+        handler = TicketHandler()
+        tx_conn = MagicMock(name="tx_conn")
+
+        @contextmanager
+        def _real_transaction():
+            try:
+                yield tx_conn
+                tx_conn.commit()
+            except Exception:
+                tx_conn.rollback()
+                raise
+
+        handler.transaction = _real_transaction  # type: ignore[assignment]
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show = _FakeShow(42, [_make_ticket("https://example.com/buy")])
+        handler.insert_tickets([show])
+
+        tx_conn.commit.assert_called_once()
+        tx_conn.rollback.assert_not_called()
+
+    def test_early_return_after_schema_org_cleanup_still_commits(self):
+        """When every incoming ticket is filtered out as invalid schema.org,
+        insert_tickets returns from inside the transaction block — the
+        cleanup DELETE that already ran must commit, not roll back."""
+        handler = TicketHandler()
+        tx_conn = MagicMock(name="tx_conn")
+
+        @contextmanager
+        def _real_transaction():
+            try:
+                yield tx_conn
+                tx_conn.commit()
+            except Exception:
+                tx_conn.rollback()
+                raise
+
+        handler.transaction = _real_transaction  # type: ignore[assignment]
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show = _FakeShow(77, [
+            Ticket(price=10.0, purchase_url="https://bad.example/1", sold_out=False, type="http://schema.org/InStock"),
+        ])
+        handler.insert_tickets([show])
+
+        # Only schema.org cleanup ran — no sweep, no batch insert.
+        assert handler.execute_with_cursor.call_count == 1
+        handler.execute_batch_operation.assert_not_called()
+
+        # ...but the cleanup commits via the wrapping transaction's clean exit.
+        tx_conn.commit.assert_called_once()
+        tx_conn.rollback.assert_not_called()

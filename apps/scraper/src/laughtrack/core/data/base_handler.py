@@ -1,7 +1,8 @@
 """Base database handler for standardized database operations."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, List, Optional
+from contextlib import contextmanager
+from typing import Generator, Generic, List, Optional
 
 import psycopg2
 import psycopg2.extras
@@ -45,8 +46,43 @@ class BaseDatabaseHandler(Generic[T], ABC):
         """Get optimized cursor factory for database operations."""
         return psycopg2.extras.DictCursor
 
+    @contextmanager
+    def transaction(self) -> Generator[psycopg2.extensions.connection, None, None]:
+        """Yield one connection bound to a single explicit transaction.
+
+        Callers pass the yielded connection to execute_with_cursor /
+        execute_batch_operation via ``conn=`` so several handler operations share
+        one transaction. Commits on clean exit, rolls back on exception, always
+        closes the connection.
+        """
+        conn = self.create_connection()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    @contextmanager
+    def _acquire_connection(
+        self, conn: Optional[psycopg2.extensions.connection]
+    ) -> Generator[psycopg2.extensions.connection, None, None]:
+        """Yield ``conn`` if provided; otherwise open and manage a fresh one."""
+        if conn is not None:
+            yield conn
+        else:
+            with self.create_connection() as new_conn:
+                yield new_conn
+
     def execute_with_cursor(
-        self, operation: str, params: Optional[tuple] = None, return_results: bool = False
+        self,
+        operation: str,
+        params: Optional[tuple] = None,
+        return_results: bool = False,
+        *,
+        conn: Optional[psycopg2.extensions.connection] = None,
     ) -> Optional[List[DictRow]]:
         """
         Execute a database operation with proper cursor handling.
@@ -55,13 +91,16 @@ class BaseDatabaseHandler(Generic[T], ABC):
             operation: SQL operation to execute
             params: Optional parameters for the operation
             return_results: Whether to fetch results
+            conn: Optional externally-managed connection. When provided, the
+                operation reuses it and does not commit — the caller's
+                transaction context owns the commit/rollback.
 
         Returns:
             Optional list of results if return_results is True
         """
         try:
-            with self.create_connection() as conn:
-                with conn.cursor(cursor_factory=self._get_cursor_factory()) as cursor:
+            with self._acquire_connection(conn) as active_conn:
+                with active_conn.cursor(cursor_factory=self._get_cursor_factory()) as cursor:
                     cursor.execute(operation, params) if params else cursor.execute(operation)
                     return cursor.fetchall() if return_results else None
         except Exception as e:
@@ -75,6 +114,8 @@ class BaseDatabaseHandler(Generic[T], ABC):
         template: Optional[str] = None,
         return_results: bool = False,
         log_summary: bool = True,
+        *,
+        conn: Optional[psycopg2.extensions.connection] = None,
     ) -> Optional[List[DictRow]]:
         """
         Execute batch database operation with optimized handling and automatic logging.
@@ -85,6 +126,9 @@ class BaseDatabaseHandler(Generic[T], ABC):
             template: Optional template for execute_values
             return_results: Whether to return results
             log_summary: Whether to log operation summary (default: True)
+            conn: Optional externally-managed connection. When provided, the
+                batch reuses it and does not commit — the caller's transaction
+                context owns the commit/rollback.
 
         Returns:
             Optional list of results if return_results is True, else None
@@ -96,8 +140,8 @@ class BaseDatabaseHandler(Generic[T], ABC):
         original_count = len(items)
 
         try:
-            with self.create_connection() as conn:
-                with conn.cursor(cursor_factory=self._get_cursor_factory()) as cursor:
+            with self._acquire_connection(conn) as active_conn:
+                with active_conn.cursor(cursor_factory=self._get_cursor_factory()) as cursor:
                     results = execute_values(
                         cursor, query, items, template=template, page_size=1000, fetch=return_results
                     )

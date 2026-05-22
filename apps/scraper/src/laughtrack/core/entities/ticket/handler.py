@@ -55,54 +55,65 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
         deduplicated_tickets = TicketUtils.deduplicate_tickets(all_tickets)
 
         try:
-            if show_ids:
-                self.execute_with_cursor(
-                    TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS,
-                    (show_ids,),
-                )
-
-                removed_invalid = sum(
-                    1 for ticket in deduplicated_tickets if self._schema_org_ticket_type(ticket.type)
-                )
-                if removed_invalid:
-                    Logger.warning(
-                        f"insert_tickets: dropping {removed_invalid} invalid schema.org ticket type(s) before insert"
+            # Wrap the three SQL operations (schema.org cleanup, stale-ticket
+            # sweep, BATCH_ADD upsert) in one transaction so a mid-flow failure
+            # cannot leave a show with zero tickets (TASK-2410). Without this,
+            # the sweep added in TASK-2397 widens the risk window: the sweep
+            # commits, then BATCH_ADD fails, and the row gap persists.
+            with self.transaction() as conn:
+                if show_ids:
+                    self.execute_with_cursor(
+                        TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS,
+                        (show_ids,),
+                        conn=conn,
                     )
-                    deduplicated_tickets = [
-                        ticket for ticket in deduplicated_tickets if not self._schema_org_ticket_type(ticket.type)
-                    ]
 
-            if not deduplicated_tickets:
-                Logger.info("insert_tickets: no tickets to insert after invalid schema.org cleanup")
-                return
+                    removed_invalid = sum(
+                        1 for ticket in deduplicated_tickets if self._schema_org_ticket_type(ticket.type)
+                    )
+                    if removed_invalid:
+                        Logger.warning(
+                            f"insert_tickets: dropping {removed_invalid} invalid schema.org ticket type(s) before insert"
+                        )
+                        deduplicated_tickets = [
+                            ticket for ticket in deduplicated_tickets if not self._schema_org_ticket_type(ticket.type)
+                        ]
 
-            # Sweep stale tickets: for each show in the incoming batch, delete
-            # existing (show_id, type) rows whose type is no longer in the batch.
-            # Without this, a re-scrape that returns a smaller tier set leaves
-            # the previous tiers orphaned in the DB (TASK-2397). The keep set is
-            # passed as parallel arrays expanded via unnest() in the query so
-            # the whole sweep runs in one round trip.
-            sweep_keep_show_ids: List[int] = []
-            sweep_keep_types: List[str] = []
-            shows_with_incoming_tickets: set = set()
-            for ticket in deduplicated_tickets:
-                if ticket.show_id is None:
-                    continue
-                sweep_keep_show_ids.append(ticket.show_id)
-                sweep_keep_types.append(ticket.type)
-                shows_with_incoming_tickets.add(ticket.show_id)
+                if not deduplicated_tickets:
+                    Logger.info("insert_tickets: no tickets to insert after invalid schema.org cleanup")
+                    return
 
-            if shows_with_incoming_tickets:
-                self.execute_with_cursor(
-                    TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS,
-                    (sorted(shows_with_incoming_tickets), sweep_keep_show_ids, sweep_keep_types),
+                # Sweep stale tickets: for each show in the incoming batch,
+                # delete existing (show_id, type) rows whose type is no longer
+                # in the batch. Without this, a re-scrape that returns a
+                # smaller tier set leaves the previous tiers orphaned in the DB
+                # (TASK-2397). The keep set is passed as parallel arrays
+                # expanded via unnest() in the query so the whole sweep runs in
+                # one round trip.
+                sweep_keep_show_ids: List[int] = []
+                sweep_keep_types: List[str] = []
+                shows_with_incoming_tickets: set = set()
+                for ticket in deduplicated_tickets:
+                    if ticket.show_id is None:
+                        continue
+                    sweep_keep_show_ids.append(ticket.show_id)
+                    sweep_keep_types.append(ticket.type)
+                    shows_with_incoming_tickets.add(ticket.show_id)
+
+                if shows_with_incoming_tickets:
+                    self.execute_with_cursor(
+                        TicketQueries.DELETE_STALE_TICKETS_FOR_SHOWS,
+                        (sorted(shows_with_incoming_tickets), sweep_keep_show_ids, sweep_keep_types),
+                        conn=conn,
+                    )
+
+                # Convert tickets to tuples for batch operation
+                ticket_tuples = [ticket.to_tuple() for ticket in deduplicated_tickets]
+                results = self.execute_batch_operation(
+                    TicketQueries.BATCH_ADD_TICKETS, ticket_tuples, return_results=True, conn=conn
                 )
-
-            # Convert tickets to tuples for batch operation
-            ticket_tuples = [ticket.to_tuple() for ticket in deduplicated_tickets]
-            results = self.execute_batch_operation(TicketQueries.BATCH_ADD_TICKETS, ticket_tuples, return_results=True)
-            result_count = len(results) if results else 0
-            Logger.info(f"Successfully processed {result_count} ticket operations")
+                result_count = len(results) if results else 0
+                Logger.info(f"Successfully processed {result_count} ticket operations")
 
         except Exception as e:
             Logger.error(f"Error inserting tickets: {str(e)}")

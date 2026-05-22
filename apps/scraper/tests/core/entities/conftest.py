@@ -10,6 +10,7 @@ a live DB environment.
 import importlib.util
 import sys
 from abc import ABC as _ABC, abstractmethod as _abstractmethod
+from contextlib import contextmanager as _contextmanager
 from pathlib import Path
 from types import ModuleType
 from typing import Generic as _Generic, TypeVar as _TypeVar
@@ -134,11 +135,19 @@ class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
     @_abstractmethod
     def get_entity_class(self): ...
 
-    def execute_with_cursor(self, operation, params=None, return_results=False):
+    def execute_with_cursor(self, operation, params=None, return_results=False, *, conn=None):
         raise NotImplementedError  # always patched in tests
 
-    def execute_batch_operation(self, query, items, template=None, return_results=False, log_summary=True):
+    def execute_batch_operation(
+        self, query, items, template=None, return_results=False, log_summary=True, *, conn=None
+    ):
         raise NotImplementedError  # always patched in tests
+
+    @_contextmanager
+    def transaction(self):
+        """Default no-op transaction stub — tests that exercise rollback
+        semantics override this on the instance."""
+        yield None
 
     def _get_cursor_factory(self):
         return dict
