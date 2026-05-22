@@ -61,7 +61,7 @@ describe("getClubs", () => {
             expect(dto.imageUrl).toBe(
                 "https://cdn.example.com/Funny Bones.jpg",
             );
-            expect(typeof dto.active_comedian_count).toBe("number");
+            expect(typeof dto.activeComedianCount).toBe("number");
         });
 
         it("returns an empty array when the DB returns no rows", async () => {
@@ -100,7 +100,7 @@ describe("getClubs", () => {
         });
     });
 
-    describe("active_comedian_count — unique comedians across shows", () => {
+    describe("activeComedianCount — unique comedians across shows", () => {
         it("counts unique comedian IDs across all shows within the 30-day window", async () => {
             const row = makeClubRow({
                 shows: [
@@ -112,7 +112,7 @@ describe("getClubs", () => {
 
             const result = await getClubs();
             // IDs 1, 2, 3 — comedian 2 appears in two shows but is counted once
-            expect(result[0].active_comedian_count).toBe(3);
+            expect(result[0].activeComedianCount).toBe(3);
         });
 
         it("returns 0 when a club has no shows", async () => {
@@ -120,7 +120,7 @@ describe("getClubs", () => {
                 makeClubRow({ shows: [] }),
             ] as never);
             const result = await getClubs();
-            expect(result[0].active_comedian_count).toBe(0);
+            expect(result[0].activeComedianCount).toBe(0);
         });
 
         it("returns 0 when shows have no lineup items", async () => {
@@ -129,7 +129,7 @@ describe("getClubs", () => {
             });
             mockFindMany.mockResolvedValue([row] as never);
             const result = await getClubs();
-            expect(result[0].active_comedian_count).toBe(0);
+            expect(result[0].activeComedianCount).toBe(0);
         });
 
         it("deduplicates the same comedian appearing in multiple shows", async () => {
@@ -142,7 +142,7 @@ describe("getClubs", () => {
             });
             mockFindMany.mockResolvedValue([row] as never);
             const result = await getClubs();
-            expect(result[0].active_comedian_count).toBe(1);
+            expect(result[0].activeComedianCount).toBe(1);
         });
 
         it("computes independent counts per club", async () => {
@@ -162,8 +162,8 @@ describe("getClubs", () => {
             ];
             mockFindMany.mockResolvedValue(rows as never);
             const result = await getClubs();
-            expect(result[0].active_comedian_count).toBe(2);
-            expect(result[1].active_comedian_count).toBe(1);
+            expect(result[0].activeComedianCount).toBe(2);
+            expect(result[1].activeComedianCount).toBe(1);
         });
     });
 

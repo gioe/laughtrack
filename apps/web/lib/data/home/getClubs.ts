@@ -56,7 +56,7 @@ export async function getClubs(
                 name: club.name,
                 zipCode: club.zipCode,
                 imageUrl: buildClubImageUrl(club.name, club.hasImage),
-                active_comedian_count: new Set(
+                activeComedianCount: new Set(
                     club.shows.flatMap((show) =>
                         show.lineupItems.map((item) => item.comedianId),
                     ),

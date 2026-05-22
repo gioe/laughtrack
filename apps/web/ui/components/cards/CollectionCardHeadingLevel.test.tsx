@@ -90,7 +90,7 @@ const club: ClubDTO = {
     city: "New York",
     state: "NY",
     zipCode: "10001",
-    show_count: 12,
+    showCount: 12,
 };
 
 const comedian: ComedianDTO = {

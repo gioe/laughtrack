@@ -37,8 +37,8 @@ export function buildClubJsonLd(club: ClubDTO): object {
         };
     }
 
-    if (club.phone_number) {
-        jsonLd.telephone = club.phone_number;
+    if (club.phoneNumber) {
+        jsonLd.telephone = club.phoneNumber;
     }
 
     if (
