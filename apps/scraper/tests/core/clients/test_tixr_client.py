@@ -1618,3 +1618,37 @@ class TestFetchGroupEvents:
             "Booth Seats",
         ]
         assert [t.sold_out for t in event.show.tickets] == [False, False, True]
+
+    def test_localize_for_weekday_math_returns_unchanged_when_no_timezone(self):
+        """A missing venue.timezone returns base_date unchanged.
+
+        The fallback path matters because a regression to the original
+        UTC-vs-local bug shows up only when the venue timezone is missing
+        or unresolvable — the live-API splitter test always passes a valid
+        timezone string.
+        """
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        assert TixrClient._localize_for_weekday_math(base, None) is base
+        assert TixrClient._localize_for_weekday_math(base, "") is base
+
+    def test_localize_for_weekday_math_returns_unchanged_when_timezone_invalid(self):
+        """An unresolvable timezone string returns base_date unchanged."""
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        assert TixrClient._localize_for_weekday_math(base, "Not/A_Real_Zone") is base
+
+    def test_localize_for_weekday_math_converts_to_venue_tz(self):
+        """A valid venue timezone returns the same instant in venue local time.
+
+        Anchors the contract the splitter relies on: a UTC ``base_date``
+        landing past midnight UTC must report the *previous* PT calendar
+        day so the tier "Friday 7:30pm" anchors on Friday-PT, not the
+        UTC Saturday that the same instant falls on.
+        """
+        from datetime import datetime
+        base = datetime(2026, 5, 23, 2, 30, tzinfo=pytz.UTC)
+        local = TixrClient._localize_for_weekday_math(base, "America/Los_Angeles")
+        assert (local.year, local.month, local.day) == (2026, 5, 22)
+        assert (local.hour, local.minute) == (19, 30)
+        assert local.weekday() == 4  # Friday

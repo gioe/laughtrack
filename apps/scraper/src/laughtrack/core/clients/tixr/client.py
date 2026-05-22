@@ -689,8 +689,23 @@ class TixrClient(BaseApiClient):
             return None
 
     def _create_show_from_data(self, data: JSONDict) -> Optional[Show]:
-        """Create a single Show from a Tixr event dict (no bundle splitting)."""
+        """Create a single Show from a Tixr event dict.
+
+        Single-show callers (e.g. ``get_event_detail`` on the direct JSON API)
+        get the first emitted Show — when the source event is a bundled
+        multi-performance container, the trailing N-1 occurrences are dropped.
+        The remaining single-show paths only run on already-split content
+        (JSON-LD detail page, individual event API), so the drop is currently
+        inert; logged here so a future caller that hits a bundled response on
+        this path can be discovered before silently losing performances.
+        """
         shows = self._create_shows_from_data(data)
+        if len(shows) > 1:
+            self.log_warning(
+                f"Tixr event {data.get('id', '?')!r} returned "
+                f"{len(shows)} performances on the single-show path — "
+                f"dropping {len(shows) - 1}; use fetch_group_events for bundled events"
+            )
         return shows[0] if shows else None
 
     def _create_shows_from_data(self, data: JSONDict) -> List[Show]:
@@ -999,6 +1014,11 @@ class TixrClient(BaseApiClient):
             hour += 12
         elif match.group("ampm").lower() == "am" and hour == 12:
             hour = 0
-        start_of_week = base_date - timedelta(days=base_date.weekday())
-        perf_date = start_of_week + timedelta(days=weekday_idx)
+        # Resolve to the named weekday on-or-after base_date so each tier
+        # lands in the future relative to the event start. Tixr bundles
+        # always anchor on the earliest performance, so later weekdays
+        # belong to the same calendar week (and a tier naming the same
+        # weekday as base_date maps to base_date itself).
+        delta_days = (weekday_idx - base_date.weekday()) % 7
+        perf_date = base_date + timedelta(days=delta_days)
         return perf_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
