@@ -1700,3 +1700,69 @@ class TestFetchGroupEvents:
         assert (local.year, local.month, local.day) == (2026, 5, 22)
         assert (local.hour, local.minute) == (19, 30)
         assert local.weekday() == 4  # Friday
+
+    def test_strip_performance_time_suffix_strips_matching_suffix(self):
+        """A tier name whose suffix matches the show's performance time is
+        stripped down to its base name."""
+        from datetime import datetime
+        # Friday 2026-05-22 19:30 PT — weekday=4, hour=19, minute=30.
+        perf = datetime(2026, 5, 22, 19, 30)
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 7:30pm", perf
+            )
+            == "Golden Circle"
+        )
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "General Admission - Fri 7:30pm", perf
+            )
+            == "General Admission"
+        )
+
+    def test_strip_performance_time_suffix_preserves_when_no_suffix(self):
+        """A tier name without a recognizable suffix is returned unchanged."""
+        from datetime import datetime
+        perf = datetime(2026, 5, 22, 19, 30)
+        assert (
+            TixrClient._strip_performance_time_suffix("General Admission", perf)
+            == "General Admission"
+        )
+        assert (
+            TixrClient._strip_performance_time_suffix("VIP - Premium Seating", perf)
+            == "VIP - Premium Seating"
+        )
+
+    def test_strip_performance_time_suffix_preserves_when_suffix_mismatches(self):
+        """Defensive guard: a tier carrying a parseable suffix that does NOT
+        match the host show's (weekday, hour, minute) keeps its original name.
+
+        This is what protects unexpected tier shapes — e.g. a tier that ends
+        up in the base-date catch-all bucket but happens to carry a different
+        weekday/time suffix — from being silently mangled.
+        """
+        from datetime import datetime
+        # Performance is Friday 7:30pm PT.
+        perf = datetime(2026, 5, 22, 19, 30)
+
+        # Wrong weekday — Saturday suffix vs Friday show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Saturday 7:30pm", perf
+            )
+            == "Golden Circle - Saturday 7:30pm"
+        )
+        # Wrong hour — 9:30pm suffix vs 7:30pm show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 9:30pm", perf
+            )
+            == "Golden Circle - Friday 9:30pm"
+        )
+        # Wrong minute — 7:00pm suffix vs 7:30pm show.
+        assert (
+            TixrClient._strip_performance_time_suffix(
+                "Golden Circle - Friday 7pm", perf
+            )
+            == "Golden Circle - Friday 7pm"
+        )
