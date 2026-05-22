@@ -26,7 +26,7 @@ export interface ClubDTO {
     zipCode: string | null;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
-    is_Favorite?: boolean;
+    isFavorite?: boolean;
     show_count?: number;
     active_comedian_count?: number;
     phone_number?: string;

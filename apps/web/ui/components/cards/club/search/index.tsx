@@ -26,7 +26,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
     const clubId = club.id;
     const canFavorite = typeof clubId === "number" && clubId > 0;
     const { isFavorite, handleFavoriteClick, isAuthenticated } = useFavorite({
-        initialState: club.is_Favorite ?? false,
+        initialState: club.isFavorite ?? false,
         entityId: canFavorite ? String(clubId) : "0",
         entityType: "club",
     });

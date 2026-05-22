@@ -17,6 +17,32 @@ interface FavoritesTabProps {
 
 const FAVORITE_SHOWS_PAGE_SIZE = 50;
 
+interface FavoritePodcastApiItem {
+    id: number;
+    slug: string;
+    title: string;
+    author_name: string | null;
+    website_url: string | null;
+    feed_url: string | null;
+    image_url: string | null;
+    description: string | null;
+    episode_count: number;
+    isFavorite?: boolean;
+}
+
+const toPodcastDTO = (item: FavoritePodcastApiItem): PodcastDTO => ({
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    authorName: item.author_name,
+    websiteUrl: item.website_url,
+    feedUrl: item.feed_url,
+    imageUrl: item.image_url,
+    description: item.description,
+    episodeCount: item.episode_count,
+    isFavorite: item.isFavorite ?? true,
+});
+
 const comedianMatches = (comedian: ComedianDTO, q: string): boolean =>
     !!comedian.name && comedian.name.toLowerCase().includes(q);
 
@@ -95,10 +121,11 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
         };
         const loadPodcasts = async () => {
             try {
-                const body = await fetchJson<PodcastDTO[]>(
+                const body = await fetchJson<FavoritePodcastApiItem[]>(
                     "/api/v1/favorite-podcasts",
                 );
-                if (!cancelled) setPodcasts(body.data ?? []);
+                if (!cancelled)
+                    setPodcasts((body.data ?? []).map(toPodcastDTO));
             } catch {
                 if (!cancelled)
                     setPodcastError("Failed to load favorite podcasts.");
@@ -168,7 +195,7 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 searchPlaceholder="Search saved comedians"
                 matchesQuery={comedianMatches}
                 renderItem={renderComedian}
-                itemKey={(c) => c.uuid ?? c.id ?? c.name ?? ""}
+                itemKey={(c) => c.uuid ?? `comedian-${c.id ?? c.name}`}
                 gridClassName="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
                 queryKey="comediansPage"
             />
@@ -182,7 +209,7 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 searchPlaceholder="Search saved clubs"
                 matchesQuery={clubMatches}
                 renderItem={renderClub}
-                itemKey={(c) => c.id ?? c.name ?? ""}
+                itemKey={(c) => c.id ?? `club-${c.name}`}
                 gridClassName="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
                 queryKey="clubsPage"
             />

@@ -65,7 +65,7 @@ export class Club implements ClubInterface {
             : undefined;
 
         // Initialize flags and counts
-        this.isFavorite = input.is_Favorite ?? false;
+        this.isFavorite = input.isFavorite ?? false;
         this.showCount = input.show_count;
         this.activeComedianCount = input.active_comedian_count;
     }
