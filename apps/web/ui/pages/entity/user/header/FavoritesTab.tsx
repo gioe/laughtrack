@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
@@ -15,7 +16,8 @@ interface FavoritesTabProps {
     userId: string;
 }
 
-const FAVORITE_SHOWS_PAGE_SIZE = 50;
+const FAVORITE_SHOWS_PAGE_SIZE = 20;
+const FAVORITE_SHOWS_PAGE_KEY = "showsPage";
 
 interface FavoritePodcastApiItem {
     id: number;
@@ -70,6 +72,15 @@ const showMatches = (show: ShowDTO, q: string): boolean => {
 };
 
 const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
+    const searchParams = useSearchParams();
+    const showsPage = Math.max(
+        1,
+        Number.parseInt(
+            searchParams?.get(FAVORITE_SHOWS_PAGE_KEY) ?? "1",
+            10,
+        ) || 1,
+    );
+
     const [comedians, setComedians] = useState<ComedianDTO[]>([]);
     const [clubs, setClubs] = useState<ClubDTO[]>([]);
     const [podcasts, setPodcasts] = useState<PodcastDTO[]>([]);
@@ -133,34 +144,52 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 if (!cancelled) setLoadingPodcasts(false);
             }
         };
-        const loadShows = async () => {
-            try {
-                const body = await fetchJson<ShowDTO[]>(
-                    `/api/v1/favorite-shows?size=${FAVORITE_SHOWS_PAGE_SIZE}`,
-                );
-                if (!cancelled) {
-                    setShows(body.data ?? []);
-                    setShowsTotal(body.total ?? 0);
-                }
-            } catch {
-                if (!cancelled)
-                    setShowError("Failed to load upcoming shows.");
-            } finally {
-                if (!cancelled) setLoadingShows(false);
-            }
-        };
 
-        void Promise.all([
-            loadComedians(),
-            loadClubs(),
-            loadPodcasts(),
-            loadShows(),
-        ]);
+        void Promise.all([loadComedians(), loadClubs(), loadPodcasts()]);
 
         return () => {
             cancelled = true;
         };
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        setLoadingShows(true);
+        setShowError(null);
+
+        const loadShows = async () => {
+            try {
+                const res = await fetch(
+                    `/api/v1/favorite-shows?page=${showsPage}&size=${FAVORITE_SHOWS_PAGE_SIZE}`,
+                    { credentials: "same-origin" },
+                );
+                if (!res.ok) {
+                    throw new Error(`Request failed: ${res.status}`);
+                }
+                const body = (await res.json()) as {
+                    data?: ShowDTO[];
+                    total?: number;
+                };
+                if (!cancelled) {
+                    setShows(body.data ?? []);
+                    setShowsTotal(body.total ?? 0);
+                }
+            } catch {
+                if (!cancelled) {
+                    setShows([]);
+                    setShowError("Failed to load upcoming shows.");
+                }
+            } finally {
+                if (!cancelled) setLoadingShows(false);
+            }
+        };
+
+        void loadShows();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [showsPage]);
 
     const renderComedian = useCallback(
         (comedian: ComedianDTO) => <ComedianGridCard entity={comedian} />,
@@ -180,8 +209,8 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
     );
 
     const showsHeaderNote =
-        !loadingShows && showsTotal > shows.length
-            ? `Showing the next ${shows.length} of ${showsTotal} upcoming shows`
+        !loadingShows && showsTotal > 0
+            ? `${showsTotal} upcoming show${showsTotal === 1 ? "" : "s"} from your favorites`
             : undefined;
 
     return (
@@ -239,8 +268,13 @@ const FavoritesTab = ({ userId: _userId }: FavoritesTabProps) => {
                 renderItem={renderShow}
                 itemKey={(s) => s.id}
                 gridClassName="grid grid-cols-1 gap-4"
-                queryKey="showsPage"
+                queryKey={FAVORITE_SHOWS_PAGE_KEY}
                 headerNote={showsHeaderNote}
+                serverPageInfo={{
+                    currentPage: showsPage,
+                    pageSize: FAVORITE_SHOWS_PAGE_SIZE,
+                    totalItems: showsTotal,
+                }}
             />
         </div>
     );

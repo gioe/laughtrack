@@ -7,6 +7,12 @@ import PagedControls from "@/ui/components/ui/pagedControls";
 
 export const PAGE_SIZE = 20;
 
+export interface ServerPageInfo {
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+}
+
 export interface FavoriteSearchableSectionProps<T> {
     title: string;
     items: T[];
@@ -20,6 +26,7 @@ export interface FavoriteSearchableSectionProps<T> {
     gridClassName: string;
     queryKey: string;
     headerNote?: React.ReactNode;
+    serverPageInfo?: ServerPageInfo;
 }
 
 function FavoriteSearchableSection<T>({
@@ -35,6 +42,7 @@ function FavoriteSearchableSection<T>({
     gridClassName,
     queryKey,
     headerNote,
+    serverPageInfo,
 }: FavoriteSearchableSectionProps<T>) {
     const [search, setSearch] = React.useState("");
     const searchParams = useSearchParams();
@@ -49,12 +57,29 @@ function FavoriteSearchableSection<T>({
         return items.filter((item) => matchesQuery(item, normalizedQuery));
     }, [items, normalizedQuery, matchesQuery]);
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    const currentPage = Math.min(pageFromUrl, totalPages);
-    const pagedItems = filtered.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE,
-    );
+    let totalPages: number;
+    let currentPage: number;
+    let pagedItems: T[];
+    if (serverPageInfo) {
+        // Server already returned a single page; only filter within that page.
+        const pageSize = serverPageInfo.pageSize;
+        totalPages = Math.max(
+            1,
+            Math.ceil(serverPageInfo.totalItems / pageSize),
+        );
+        currentPage = Math.min(
+            Math.max(1, serverPageInfo.currentPage),
+            totalPages,
+        );
+        pagedItems = filtered;
+    } else {
+        totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        currentPage = Math.min(pageFromUrl, totalPages);
+        pagedItems = filtered.slice(
+            (currentPage - 1) * PAGE_SIZE,
+            currentPage * PAGE_SIZE,
+        );
+    }
 
     return (
         <section className="space-y-4">
