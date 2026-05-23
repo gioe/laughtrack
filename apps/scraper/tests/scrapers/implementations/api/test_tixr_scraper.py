@@ -35,6 +35,7 @@ from laughtrack.scrapers.implementations.api.tixr.scraper import (
 
 ST_MARKS_CALENDAR_URL = "https://www.stmarkscomedyclub.com/calendar"
 ST_MARKS_TIXR_URL = "https://www.tixr.com/groups/stmarks/events/comedy-night-12345"
+ST_MARKS_MISMATCHED_TIXR_URL = "https://www.tixr.com/groups/stmarks/events/other-show-54321"
 
 IMPROV_ASYLUM_TIXR_URL = "https://www.tixr.com/groups/improvasylum"
 IMPROV_ASYLUM_PIXL_API_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
@@ -91,6 +92,44 @@ def _improv_asylum_club() -> Club:
 def _st_marks_card_html() -> str:
     """Webflow-style card from St. Marks' /calendar page with full event data."""
     return f"""<html><body>
+<div class="event-item w-dyn-item" role="listitem">
+  <a class="ticket-links grid w-inline-block" href="{ST_MARKS_TIXR_URL}">
+    <div class="text-block-35">St. Marks Comedy Night</div>
+    <div class="event-card grid">
+      <div class="date-info grid">
+        <div class="month grid date">Wed</div>
+        <div class="month grid">Jun</div>
+        <div class="month grid custom-filter">Jun</div>
+        <div class="month day grid">10</div>
+        <div class="month day time">7:30 pm</div>
+      </div>
+    </div>
+  </a>
+</div>
+</body></html>"""
+
+
+def _st_marks_card_html_with_jsonld_offer(
+    *,
+    offer_url: str = ST_MARKS_TIXR_URL,
+    price: str | None = "25.00",
+) -> str:
+    price_field = "" if price is None else f'"price": "{price}",'
+    return f"""<html><head>
+<script type="application/ld+json">
+{{
+  "@context": "https://schema.org",
+  "@type": "Event",
+  "name": "St. Marks Comedy Night",
+  "offers": {{
+    "@type": "Offer",
+    {price_field}
+    "priceCurrency": "USD",
+    "url": "{offer_url}"
+  }}
+}}
+</script>
+</head><body>
 <div class="event-item w-dyn-item" role="listitem">
   <a class="ticket-links grid w-inline-block" href="{ST_MARKS_TIXR_URL}">
     <div class="text-block-35">St. Marks Comedy Night</div>
@@ -186,6 +225,55 @@ async def test_st_marks_uses_generic_tixr_path(monkeypatch):
     assert event.show.date.hour == 19
     assert event.show.date.minute == 30
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_st_marks_webflow_jsonld_offer_price_is_emitted(monkeypatch):
+    scraper = TixrPublicCardScraper(_st_marks_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _st_marks_card_html_with_jsonld_offer(price="25.00")
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(ST_MARKS_CALENDAR_URL)
+
+    assert result is not None
+    ticket = result.event_list[0].show.tickets[0]
+    assert ticket.purchase_url == ST_MARKS_TIXR_URL
+    assert ticket.price == 25.0
+
+
+@pytest.mark.asyncio
+async def test_st_marks_webflow_jsonld_missing_offer_price_preserves_none(monkeypatch):
+    scraper = TixrPublicCardScraper(_st_marks_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _st_marks_card_html_with_jsonld_offer(price=None)
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(ST_MARKS_CALENDAR_URL)
+
+    assert result is not None
+    assert result.event_list[0].show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_st_marks_webflow_jsonld_url_mismatch_keeps_price_none(monkeypatch):
+    scraper = TixrPublicCardScraper(_st_marks_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _st_marks_card_html_with_jsonld_offer(offer_url=ST_MARKS_MISMATCHED_TIXR_URL, price="30.00")
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(ST_MARKS_CALENDAR_URL)
+
+    assert result is not None
+    ticket = result.event_list[0].show.tickets[0]
+    assert ticket.purchase_url == ST_MARKS_TIXR_URL
+    assert ticket.price is None
 
 
 # ---------------------------------------------------------------------------
