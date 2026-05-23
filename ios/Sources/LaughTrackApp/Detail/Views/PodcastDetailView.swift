@@ -119,6 +119,23 @@ struct PodcastDetailView: View {
         return ""
     }
 
+    private var podcastFavoriteState: DetailFavoriteState? {
+        guard case .success(let response) = model.phase else { return nil }
+        let podcast = response.podcast
+        let isFavorite = podcastFavorites.value(for: podcast.id)
+        return DetailFavoriteState(
+            isFavorite: isFavorite,
+            isPending: podcastFavorites.isPending(podcast.id),
+            action: {
+                await toggleFavorite(
+                    podcastID: podcast.id,
+                    title: podcast.title,
+                    currentValue: isFavorite
+                )
+            }
+        )
+    }
+
     var body: some View {
         Group {
             switch model.phase {
@@ -133,7 +150,6 @@ struct PodcastDetailView: View {
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let response):
-                let isFavorite = podcastFavorites.value(for: response.podcast.id)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         DetailHero(
@@ -142,17 +158,6 @@ struct PodcastDetailView: View {
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
                             openURL: { url in openURL(url) },
-                            favoriteState: DetailHeroFavoriteState(
-                                isFavorite: isFavorite,
-                                isPending: podcastFavorites.isPending(response.podcast.id),
-                                action: {
-                                    await toggleFavorite(
-                                        podcastID: response.podcast.id,
-                                        title: response.podcast.title,
-                                        currentValue: isFavorite
-                                    )
-                                }
-                            ),
                             fallbackSystemImage: "headphones"
                         )
                         .ignoresSafeArea(.container, edges: .top)
@@ -182,7 +187,11 @@ struct PodcastDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier("laughtrack.podcast-detail-screen")
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .modifier(EntityDetailNavigationChrome(entity: .podcast, title: navigationTitle))
+        .modifier(EntityDetailNavigationChrome(
+            entity: .podcast,
+            title: navigationTitle,
+            favoriteState: podcastFavoriteState
+        ))
         .task {
             await model.loadIfNeeded()
         }

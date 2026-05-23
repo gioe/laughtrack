@@ -25,15 +25,27 @@ enum DetailNavigationChrome {
     }
 }
 
+struct DetailFavoriteState {
+    let isFavorite: Bool
+    let isPending: Bool
+    let action: () async -> Void
+}
+
 struct EntityDetailNavigationChrome: ViewModifier {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     let entity: DetailNavigationChrome.Entity
     let title: String?
+    let favoriteState: DetailFavoriteState?
 
-    init(entity: DetailNavigationChrome.Entity, title: String? = nil) {
+    init(
+        entity: DetailNavigationChrome.Entity,
+        title: String? = nil,
+        favoriteState: DetailFavoriteState? = nil
+    ) {
         self.entity = entity
         self.title = title
+        self.favoriteState = favoriteState
     }
 
     func body(content: Content) -> some View {
@@ -50,6 +62,11 @@ struct EntityDetailNavigationChrome: ViewModifier {
                 }
                 ToolbarItem(placement: .principal) {
                     DetailNavigationTitle(text: resolvedTitle)
+                }
+                if let favoriteState {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        DetailFavoriteToolbarButton(state: favoriteState)
+                    }
                 }
             }
         #else
@@ -106,5 +123,42 @@ struct DetailBackButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Back")
+    }
+}
+
+private struct DetailFavoriteToolbarButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let state: DetailFavoriteState
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button {
+            Task { await state.action() }
+        } label: {
+            ZStack {
+                Circle()
+                    .fill(laughTrack.colors.surface.opacity(0.94))
+                    .overlay(
+                        Circle()
+                            .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                    )
+
+                if state.isPending {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .tint(laughTrack.colors.accent)
+                } else {
+                    Image(systemName: state.isFavorite ? "heart.fill" : "heart")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(state.isFavorite ? laughTrack.colors.accentStrong : laughTrack.colors.textPrimary)
+                }
+            }
+            .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.plain)
+        .disabled(state.isPending)
+        .accessibilityLabel(state.isFavorite ? "Remove favorite" : "Add favorite")
     }
 }

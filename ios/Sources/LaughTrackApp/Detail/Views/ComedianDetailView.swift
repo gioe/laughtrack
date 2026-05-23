@@ -43,7 +43,6 @@ struct ComedianDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let comedian = content.comedian
-                let isFavorite = favorites.value(for: comedian.uuid)
                 let stats = ComedianStatsPresentation.stats(for: comedian, runs: content.upcomingRuns)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -53,13 +52,6 @@ struct ComedianDetailView: View {
                             badges: [],
                             actions: comedianHeroActions(socialData: comedian.socialData),
                             openURL: { url in openURL(url) },
-                            favoriteState: DetailHeroFavoriteState(
-                                isFavorite: isFavorite,
-                                isPending: favorites.isPending(comedian.uuid),
-                                action: {
-                                    await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
-                                }
-                            ),
                             fallbackSystemImage: "music.mic"
                         )
                         .ignoresSafeArea(.container, edges: .top)
@@ -119,7 +111,11 @@ struct ComedianDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
-        .modifier(EntityDetailNavigationChrome(entity: .comedian, title: navigationTitle))
+        .modifier(EntityDetailNavigationChrome(
+            entity: .comedian,
+            title: navigationTitle,
+            favoriteState: comedianFavoriteState
+        ))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
@@ -137,6 +133,19 @@ struct ComedianDetailView: View {
             return content.comedian.name
         }
         return ""
+    }
+
+    private var comedianFavoriteState: DetailFavoriteState? {
+        guard case .success(let content) = model.phase else { return nil }
+        let comedian = content.comedian
+        let isFavorite = favorites.value(for: comedian.uuid)
+        return DetailFavoriteState(
+            isFavorite: isFavorite,
+            isPending: favorites.isPending(comedian.uuid),
+            action: {
+                await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+            }
+        )
     }
 
     private var tabSelectionBinding: Binding<ComedianDetailTab> {

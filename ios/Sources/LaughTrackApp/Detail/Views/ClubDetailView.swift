@@ -39,7 +39,6 @@ struct ClubDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let content):
                 let club = content.club
-                let isFavorite = clubFavorites.value(for: club.id)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                     DetailHero(
@@ -50,17 +49,6 @@ struct ClubDetailView: View {
                         openURL: { url in
                             openURL(url)
                         },
-                        favoriteState: DetailHeroFavoriteState(
-                            isFavorite: isFavorite,
-                            isPending: clubFavorites.isPending(club.id),
-                            action: {
-                                await toggleFavorite(
-                                    clubId: club.id,
-                                    name: club.name,
-                                    currentValue: isFavorite
-                                )
-                            }
-                        ),
                         fallbackSystemImage: "building.2.fill"
                     )
                     .ignoresSafeArea(.container, edges: .top)
@@ -81,7 +69,11 @@ struct ClubDetailView: View {
         .ignoresSafeArea(.container, edges: .top)
         .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
-        .modifier(EntityDetailNavigationChrome(entity: .club, title: navigationTitle))
+        .modifier(EntityDetailNavigationChrome(
+            entity: .club,
+            title: navigationTitle,
+            favoriteState: clubFavoriteState
+        ))
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
         }
@@ -121,6 +113,23 @@ struct ClubDetailView: View {
             return content.club.name
         }
         return ""
+    }
+
+    private var clubFavoriteState: DetailFavoriteState? {
+        guard case .success(let content) = model.phase else { return nil }
+        let club = content.club
+        let isFavorite = clubFavorites.value(for: club.id)
+        return DetailFavoriteState(
+            isFavorite: isFavorite,
+            isPending: clubFavorites.isPending(club.id),
+            action: {
+                await toggleFavorite(
+                    clubId: club.id,
+                    name: club.name,
+                    currentValue: isFavorite
+                )
+            }
+        )
     }
 }
 
