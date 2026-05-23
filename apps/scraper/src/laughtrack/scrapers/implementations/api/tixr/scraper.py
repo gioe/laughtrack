@@ -50,6 +50,7 @@ from .webflow_day_card import (
 
 _MAX_DISCOVERY_PAGES = 12
 _IMPROV_ASYLUM_PIXL_EVENTS_URL = "https://calendar.improvasylum.com/api/events/improv-asylum"
+_PIXL_CALENDAR_API_METADATA_KEY = "pixl_calendar_api_url"
 _GROUP_EVENTS_API_FLAG = "TIXR_GROUP_EVENTS_API_FALLBACK"
 _MONTH_FORMATS = ("%b", "%B")
 _TIME_FORMATS = ("%I:%M %p", "%I %p")
@@ -92,6 +93,9 @@ class TixrScraper(BaseScraper):
         url = self.club.scraping_url
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
+
+        if self._is_pixl_calendar_api_url(url):
+            return [URLUtils.normalize_url(url)]
 
         pending = [url]
         seen: set[str] = set()
@@ -144,6 +148,17 @@ class TixrScraper(BaseScraper):
             TixrPageData containing resolved TixrEvent objects, or None if no events found
         """
         try:
+            if self._is_pixl_calendar_api_url(url):
+                pixl_events = await self._fetch_pixl_calendar_events(url)
+                if pixl_events:
+                    Logger.info(
+                        f"{self._log_prefix}: Parsed {len(pixl_events)} events from Pixl Calendar API {url}",
+                        self.logger_context,
+                    )
+                    return TixrPageData(event_list=pixl_events)
+                Logger.info(f"{self._log_prefix}: No events parsed from Pixl Calendar API {url}", self.logger_context)
+                return None
+
             html_content = await self._fetch_calendar_html(url)
 
             if not html_content:
@@ -156,10 +171,10 @@ class TixrScraper(BaseScraper):
                     )
                     return TixrPageData(event_list=fallback_events)
 
-                fallback_events = await self._fetch_improv_asylum_pixl_events(url)
+                fallback_events = await self._fetch_pixl_calendar_events(url)
                 if fallback_events:
                     Logger.info(
-                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Improv Asylum Pixl Calendar "
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Pixl Calendar "
                         "fallback after Tixr group-page fetch returned no HTML",
                         self.logger_context,
                     )
@@ -180,10 +195,10 @@ class TixrScraper(BaseScraper):
                     )
                     return TixrPageData(event_list=fallback_events)
 
-                fallback_events = await self._fetch_improv_asylum_pixl_events(url)
+                fallback_events = await self._fetch_pixl_calendar_events(url)
                 if fallback_events:
                     Logger.info(
-                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Improv Asylum Pixl Calendar "
+                        f"{self._log_prefix}: Parsed {len(fallback_events)} events from Pixl Calendar "
                         "fallback after Tixr group-page extraction returned no URLs",
                         self.logger_context,
                     )
@@ -302,22 +317,44 @@ class TixrScraper(BaseScraper):
             return path.split("/", 1)[0]
         return None
 
-    async def _fetch_improv_asylum_pixl_events(self, url: str) -> List[TixrEvent]:
+    async def _fetch_pixl_calendar_events(self, url: str) -> List[TixrEvent]:
         """
-        Fetch Improv Asylum events from its venue-owned Pixl Calendar API.
+        Fetch events from a venue-owned Pixl Calendar API.
 
-        The active DB source still points at the Tixr group page, which is
-        DataDome-blocked in automation. The public Improv Asylum site links to
-        calendar.improvasylum.com, whose API exposes complete event/ticket data.
+        Pixl exposes complete event/ticket data with Tixr purchase URLs, so this
+        path avoids DataDome-sensitive Tixr detail pages.
         """
-        if not self._is_improv_asylum_tixr_source(url):
+        api_url = self._pixl_calendar_api_url_for(url)
+        if not api_url:
             return []
 
-        data = await self.fetch_json(_IMPROV_ASYLUM_PIXL_EVENTS_URL)
+        data = await self.fetch_json(api_url)
         if not isinstance(data, dict):
             return []
 
         return self._parse_pixl_calendar_events(data)
+
+    def _pixl_calendar_api_url_for(self, url: str) -> Optional[str]:
+        configured_url = (self.club.metadata_value(_PIXL_CALENDAR_API_METADATA_KEY) or "").strip()
+        if configured_url:
+            return URLUtils.normalize_url(configured_url)
+
+        normalized = URLUtils.normalize_url(url)
+        if self._is_pixl_calendar_api_url(normalized):
+            return normalized
+
+        if self._is_improv_asylum_tixr_source(url):
+            return _IMPROV_ASYLUM_PIXL_EVENTS_URL
+
+        return None
+
+    @staticmethod
+    def _is_pixl_calendar_api_url(url: str) -> bool:
+        parsed = urlparse(URLUtils.normalize_url(str(url)))
+        return parsed.path.startswith("/api/events/") and (
+            parsed.netloc.endswith("pixlcalendar.com")
+            or parsed.netloc.endswith("events.thecomicstrip.ca")
+        )
 
     def _is_improv_asylum_tixr_source(self, url: str) -> bool:
         normalized = URLUtils.normalize_url(url).lower()

@@ -27,6 +27,7 @@ from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 
 CALENDAR_URL = "https://www.hahacomedyclub.com/calendar"
 IMPROV_ASYLUM_TIXR_URL = "https://www.tixr.com/groups/improvasylum"
+COMIC_STRIP_EDMONTON_PIXL_API_URL = "https://www.pixlcalendar.com/api/events/comic-strip-edmonton"
 STAND_SCRAPING_URL = "thestandnyc.com"
 STAND_PUBLIC_SHOWS_URL = "https://thestandnyc.com/shows"
 STAND_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376"
@@ -43,6 +44,31 @@ def _club(scraping_url: str = CALENDAR_URL) -> Club:
 def _improv_asylum_club() -> Club:
     _c = Club(id=141, name='Improv Asylum', address='216 Hanover St', website='https://improvasylum.com', popularity=0, zip_code='02113', phone_number='', visible=True, timezone='America/New_York')
     _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='tixr', scraper_key='tixr', source_url=IMPROV_ASYLUM_TIXR_URL, external_id=None)
+    _c.scraping_sources = [_c.active_scraping_source]
+    return _c
+
+
+def _comic_strip_edmonton_club() -> Club:
+    _c = Club(
+        id=2488,
+        name="The Comic Strip West Edmonton Mall",
+        address="8882 170 St NW",
+        website="https://wem.thecomicstrip.ca",
+        popularity=0,
+        zip_code="T5T 4J2",
+        phone_number="",
+        visible=True,
+        timezone="America/Edmonton",
+    )
+    _c.active_scraping_source = ScrapingSource(
+        id=1,
+        club_id=_c.id,
+        platform="custom",
+        scraper_key="tixr",
+        source_url=COMIC_STRIP_EDMONTON_PIXL_API_URL,
+        external_id=None,
+        metadata={"pixl_calendar_api_url": COMIC_STRIP_EDMONTON_PIXL_API_URL},
+    )
     _c.scraping_sources = [_c.active_scraping_source]
     return _c
 
@@ -177,6 +203,39 @@ def _improv_asylum_pixl_response() -> dict:
                         "name": "Premium",
                         "currentPrice": 37.18,
                         "state": "OPEN",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+def _comic_strip_edmonton_pixl_response() -> dict:
+    return {
+        "events": [
+            {
+                "id": "1d8a36d3-f9d8-4ef6-9f4f-d27adfd273d2",
+                "title": "Sean Lecomber",
+                "description": "Headline comedy at West Edmonton Mall",
+                "start": "2026-06-13T03:30:00.000Z",
+                "end": "2026-06-13T05:00:00.000Z",
+                "price": 19.95,
+                "venue": "The Comic Strip",
+                "ticketUrl": "https://www.tixr.com/groups/comicstripedmonton/events/sean-lecomber-185406",
+                "status": "available",
+                "timezone": "America/Edmonton",
+                "sales": [
+                    {
+                        "id": 200001,
+                        "name": "General Admission",
+                        "currentPrice": 22.95,
+                        "state": "OPEN",
+                    },
+                    {
+                        "id": 200002,
+                        "name": "VIP",
+                        "currentPrice": 32.95,
+                        "state": "SOLD_OUT",
                     },
                 ],
             }
@@ -713,6 +772,44 @@ async def test_get_data_uses_improv_asylum_pixl_fallback_when_tixr_group_fetch_r
     event = result.event_list[0]
     assert event.title == "Improv Asylum's Main Stage Show"
     assert event.event_id == "169028"
+    scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_configured_pixl_calendar_api_without_tixr_detail_fetch(monkeypatch):
+    """Comic Strip Edmonton reads the full Pixl inventory instead of the Webflow card subset."""
+    scraper = TixrScraper(_comic_strip_edmonton_club())
+
+    async def fail_fetch_calendar_html(url):
+        raise AssertionError(f"Pixl Calendar source should not fetch HTML: {url}")
+
+    pixl_url_seen: list[str] = []
+
+    async def fake_fetch_json(url, **kwargs):
+        pixl_url_seen.append(url)
+        return _comic_strip_edmonton_pixl_response()
+
+    monkeypatch.setattr(scraper, "_fetch_calendar_html", fail_fetch_calendar_html)
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(
+        side_effect=AssertionError("Tixr detail pages should not be fetched for Pixl events")
+    )
+
+    assert await scraper.collect_scraping_targets() == [COMIC_STRIP_EDMONTON_PIXL_API_URL]
+
+    result = await scraper.get_data(COMIC_STRIP_EDMONTON_PIXL_API_URL)
+
+    assert pixl_url_seen == [COMIC_STRIP_EDMONTON_PIXL_API_URL]
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    event = result.event_list[0]
+    assert event.title == "Sean Lecomber"
+    assert event.event_id == "185406"
+    assert event.show.date.isoformat() == "2026-06-12T21:30:00-06:00"
+    assert event.show.show_page_url == "https://www.tixr.com/groups/comicstripedmonton/events/sean-lecomber-185406"
+    assert [ticket.type for ticket in event.show.tickets] == ["General Admission", "VIP"]
+    assert [ticket.price for ticket in event.show.tickets] == [22.95, 32.95]
+    assert [ticket.sold_out for ticket in event.show.tickets] == [False, True]
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
 
 

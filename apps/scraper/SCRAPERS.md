@@ -368,6 +368,7 @@ ORDER BY c.name;
 **When per-event Tixr fetches are blocked in CI:** Tixr's DataDome WAF can block GitHub Actions IP ranges even with curl_cffi impersonation. If a venue's calendar page already embeds all needed show data (name, date, time, performer, ticket URL), prefer `tixr_public_card` when the markup matches the shared public-card parser; otherwise build a custom scraper that extracts directly from the calendar HTML:
 - `haha_comedy_club`: Webflow calendar with JSON-LD Event blocks (name, date, performer, ticket URL) + time in `<div class="month day time">` — see `scrapers/implementations/venues/haha_comedy_club/`
 - `laugh_boston`: Pixl Calendar API response includes all show data (title, start, timezone, sales) — `LaughBostonEventExtractor.parse_events_from_pixl()` builds `TixrEvent` objects directly
+- `tixr` with `scraping_sources.metadata.pixl_calendar_api_url`: venue-owned Pixl Calendar API response is parsed directly into `TixrEvent` objects using `sales.currentPrice` tiers and Tixr `ticketUrl` values. Use this when a venue's Webflow/Tixr page exposes only a partial card subset or no prices, but Pixl exposes the full inventory.
 
 **Decision notes — should HAHA / Laugh Boston become `tixr_public_card`?**
 
@@ -406,7 +407,7 @@ The `--{id}` URL format (`/events/{slug}--{id}`) only embeds `window.pageSetup =
 
 **Detection signals:** Venue-owned Webflow homepage where each show is rendered as `<a class="day-card">` whose `href` points at a Tixr group URL (e.g. `tixr.com/groups/<slug>/events/...`). Selectors and date/time formats are identical across these venues; the only per-venue input is the Tixr group fragment used to filter foreign cards on shared homepages.
 
-**Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (Comic Strip Edmonton, House of Comedy BC, ...).
+**Why this is separate from `tixr_public_card`:** `tixr_public_card` parses St. Marks / House of Comedy Bloomington style cards that don't share `a.day-card` markup. The day-card path is its own card shape (House of Comedy BC, ...). Comic Strip Edmonton previously used this path, but now routes through the `tixr` Pixl Calendar API path because Pixl exposes the full inventory and sale-tier prices.
 
 **DB setup — fresh onboarding (no prior scraping_sources row):**
 ```sql
@@ -422,7 +423,7 @@ VALUES (
 );
 ```
 
-**DB setup — folding an existing per-venue wrapper onto the generic key:** match by the legacy `scraper_key` (not by `priority`, which would also pick up other platforms' rows). See `migrations/20260509161000_fold_webflow_day_card_venues_into_generic/migration.sql` for a worked example covering The Comic Strip Edmonton and House of Comedy BC.
+**DB setup — folding an existing per-venue wrapper onto the generic key:** match by the legacy `scraper_key` (not by `priority`, which would also pick up other platforms' rows). See `migrations/20260509161000_fold_webflow_day_card_venues_into_generic/migration.sql` for a worked example covering House of Comedy BC.
 
 **When NOT to use it:** If the venue's calendar page exposes JSON-LD `Event` blocks with the start time in adjacent visible HTML (e.g. `<div class="month day time">`), keep a custom scraper — `haha_comedy_club` is the canonical example. The day-card extractor relies on `a.day-card` markup; venues that don't follow that exact card structure won't match.
 
