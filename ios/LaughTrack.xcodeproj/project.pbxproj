@@ -120,6 +120,7 @@
 		9F699E60A40D89F8C4A837CF /* APIVersionPathMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */; };
 		A01CEE8E888E8443499CC503 /* LaughTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A24095B90BCF6912A7533AED /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 835B2849E1649BAD8DA6A0F9 /* APIClient */; };
+		A47EE303C57C08B27791E202 /* ClubFavoriteStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */; };
 		A5E71088D6210D447F8955B2 /* DateRangeFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23B9224C211F8ECAD8510E1A /* DateRangeFilter.swift */; };
 		A5F9E58A11CD1BCCC4CEB7A1 /* ZipLocationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561D473C1C08608F79C5271E /* ZipLocationResolver.swift */; };
 		A7FE5B69BD3BD476880ECE8A /* SharedKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3FBC80AB90A17D8FC359C686 /* SharedKit */; };
@@ -300,6 +301,7 @@
 		039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentMainPageCache.swift; sourceTree = "<group>"; };
 		04CFFD13E68CA73C10918B74 /* ComedianOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianOnboardingView.swift; sourceTree = "<group>"; };
 		05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModalPresenter.swift; sourceTree = "<group>"; };
+		0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStore.swift; sourceTree = "<group>"; };
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
 		0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
 		0E6C65B9D3165E104240C07E /* APIMockEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIMockEncoder.swift; sourceTree = "<group>"; };
@@ -662,6 +664,7 @@
 				B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */,
 				8510FB22DBE58FC68078455A /* AppBootstrap.swift */,
 				84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */,
+				0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */,
 				5B1037EF95781CD7B17928EB /* ComedianFavoriteStore.swift */,
 				30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */,
 				0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */,
@@ -1194,6 +1197,7 @@
 				03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */,
 				79980C10F2F4DC91F9EAED6E /* AuthRouteConfiguration.swift in Sources */,
 				E53D9089F62B10F23F0FEE0F /* AuthenticatedUser.swift in Sources */,
+				A47EE303C57C08B27791E202 /* ClubFavoriteStore.swift in Sources */,
 				34EBD60458D84264A2254D4D /* ComedianFavoriteStore.swift in Sources */,
 				F3010080CDE3E66A512F6423 /* CurrentLocationZipResolver.swift in Sources */,
 				2FDC04B26C9E078C0855E7FF /* LaughTrackCacheKey.swift in Sources */,
