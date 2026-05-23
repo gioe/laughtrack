@@ -8,6 +8,11 @@ struct TonightNearYouMatch: Equatable {
     let hostName: String
 }
 
+private struct TonightNearYouTaskID: Hashable {
+    let podcastID: Int
+    let zipCode: String?
+}
+
 struct PodcastTonightNearYouCard: View {
     let podcastID: Int
     let apiClient: Client
@@ -23,7 +28,7 @@ struct PodcastTonightNearYouCard: View {
                 card(for: match)
             }
         }
-        .task(id: podcastID) {
+        .task(id: TonightNearYouTaskID(podcastID: podcastID, zipCode: zipCode)) {
             match = await TonightNearYouLoader.load(
                 podcastID: podcastID,
                 apiClient: apiClient,

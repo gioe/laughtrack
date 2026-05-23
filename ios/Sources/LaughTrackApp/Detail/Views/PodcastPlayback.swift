@@ -329,6 +329,7 @@ final class PodcastPlaybackController: ObservableObject {
             if Task.isCancelled || sleepTimerEndsAt == nil { return }
             let level = Float(step) / Float(steps)
             audioEngine.setVolume(level)
+            if step == 0 { break }
             if stepDuration > 0 {
                 try? await Task.sleep(nanoseconds: UInt64(stepDuration * 1_000_000_000))
             }
