@@ -57,17 +57,62 @@ struct DetailTextCard: View {
     @Environment(\.appTheme) private var theme
 
     let eyebrow: String?
-    let title: String
+    let title: String?
     let text: String
+    var isCollapsible: Bool = false
+    var collapsedLineLimit: Int = 4
+
+    @State private var isExpanded = false
+
+    private var showsToggle: Bool {
+        isCollapsible && text.count > 220
+    }
 
     var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
         LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(eyebrow: eyebrow, title: title)
+                header
+
                 Text(text)
-                    .font(theme.laughTrackTokens.typography.body)
-                    .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(showsToggle && !isExpanded ? collapsedLineLimit : nil)
+                    .animation(.easeInOut(duration: 0.18), value: isExpanded)
+
+                if showsToggle {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            isExpanded.toggle()
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(isExpanded ? "Show less" : "Show more")
+                                .font(laughTrack.typography.metadata.weight(.semibold))
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(laughTrack.colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isExpanded ? "Collapse description" : "Expand description")
+                }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var header: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let title {
+            LaughTrackSectionHeader(eyebrow: eyebrow, title: title)
+        } else if let eyebrow {
+            Text(eyebrow)
+                .font(laughTrack.typography.eyebrow)
+                .foregroundStyle(laughTrack.colors.accent)
+                .textCase(.uppercase)
         }
     }
 }
