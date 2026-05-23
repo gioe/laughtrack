@@ -1,5 +1,4 @@
 import SwiftUI
-import AVFoundation
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -573,92 +572,6 @@ enum ComedianPodcastPresentation {
         default:
             return false
         }
-    }
-}
-
-protocol PodcastAudioEngine: AnyObject {
-    func load(url: URL, onFailure: @escaping @MainActor () -> Void)
-    func play()
-    func pause()
-    func stop()
-}
-
-final class AVPodcastAudioEngine: PodcastAudioEngine {
-    private var player: AVPlayer?
-    private var statusObservation: NSKeyValueObservation?
-
-    func load(url: URL, onFailure: @escaping @MainActor () -> Void) {
-        let item = AVPlayerItem(url: url)
-        statusObservation = item.observe(\.status, options: [.new]) { item, _ in
-            guard item.status == .failed else { return }
-            Task { @MainActor in onFailure() }
-        }
-        player = AVPlayer(playerItem: item)
-    }
-
-    func play() {
-        player?.play()
-    }
-
-    func pause() {
-        player?.pause()
-    }
-
-    func stop() {
-        player?.pause()
-        player = nil
-        statusObservation = nil
-    }
-}
-
-@MainActor
-final class PodcastPlaybackController: ObservableObject {
-    @Published private(set) var currentItem: PodcastPlaybackItem?
-    @Published private(set) var isPlaying = false
-
-    private let audioEngine: PodcastAudioEngine
-
-    init(audioEngine: PodcastAudioEngine = AVPodcastAudioEngine()) {
-        self.audioEngine = audioEngine
-    }
-
-    func start(_ item: PodcastPlaybackItem) {
-        currentItem = item
-        guard let audioURL = item.audioURL else {
-            audioEngine.stop()
-            isPlaying = false
-            return
-        }
-
-        audioEngine.load(url: audioURL) { [weak self] in
-            self?.markCurrentItemFailed()
-        }
-        audioEngine.play()
-        isPlaying = true
-    }
-
-    func pause() {
-        audioEngine.pause()
-        isPlaying = false
-    }
-
-    func resume() {
-        guard let item = currentItem, item.audioURL != nil else { return }
-        audioEngine.play()
-        isPlaying = true
-    }
-
-    func dismiss() {
-        audioEngine.stop()
-        currentItem = nil
-        isPlaying = false
-    }
-
-    func markCurrentItemFailed() {
-        guard let currentItem else { return }
-        audioEngine.stop()
-        self.currentItem = currentItem.markingAudioFailed()
-        isPlaying = false
     }
 }
 

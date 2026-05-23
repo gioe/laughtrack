@@ -673,12 +673,13 @@ struct ComedianDetailViewTests {
     }
 }
 
+@MainActor
 private final class RecordingPodcastAudioEngine: PodcastAudioEngine {
     private(set) var loadedURL: URL?
     private(set) var playCount = 0
     private(set) var pauseCount = 0
 
-    func load(url: URL, onFailure: @escaping @MainActor () -> Void) {
+    func load(url: URL, onFailure: @escaping () -> Void) {
         loadedURL = url
     }
 
