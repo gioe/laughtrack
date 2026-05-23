@@ -257,6 +257,7 @@ final class PodcastPlaybackController: ObservableObject {
         isPlaying = false
         currentTime = 0
         duration = 0
+        accentColorOverride = nil
         cancelSleepTimer()
         clearNowPlayingInfo()
     }
@@ -289,6 +290,7 @@ final class PodcastPlaybackController: ObservableObject {
         isPlaying = false
         currentTime = 0
         duration = 0
+        accentColorOverride = nil
         cancelSleepTimer()
         clearNowPlayingInfo()
     }
@@ -458,6 +460,7 @@ final class PodcastPlaybackController: ObservableObject {
     private func loadArtworkIfNeeded(for item: PodcastPlaybackItem) {
         artworkLoadToken = nil
         nowPlayingArtwork = nil
+        accentColorOverride = nil
         guard
             let raw = item.podcastImageURL?.trimmingCharacters(in: .whitespacesAndNewlines),
             !raw.isEmpty,
@@ -468,15 +471,18 @@ final class PodcastPlaybackController: ObservableObject {
         artworkLoadToken = token
         Task { [weak self] in
             guard let data = try? await URLSession.shared.data(from: url).0 else { return }
+            #if canImport(UIKit)
+            guard let image = UIImage(data: data) else { return }
+            let extractedColor = ArtworkDominantColor.extract(from: image)
             await MainActor.run {
                 guard let self, self.artworkLoadToken == token else { return }
-                #if canImport(UIKit)
-                if let image = UIImage(data: data) {
-                    self.nowPlayingArtwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
-                    self.updateNowPlayingInfo()
+                self.nowPlayingArtwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                self.updateNowPlayingInfo()
+                if let extractedColor {
+                    self.accentColorOverride = Color(extractedColor)
                 }
-                #endif
             }
+            #endif
         }
     }
 
