@@ -135,6 +135,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /home/feed`.
     /// - Remark: Generated from `#/paths//home/feed/get(getHomeFeed)`.
     func getHomeFeed(_ input: Operations.GetHomeFeed.Input) async throws -> Operations.GetHomeFeed.Output
+    /// Get podcast detail with recent episodes
+    ///
+    /// Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.
+    ///
+    /// - Remark: HTTP `GET /podcasts/{id}`.
+    /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)`.
+    func getPodcast(_ input: Operations.GetPodcast.Input) async throws -> Operations.GetPodcast.Output
     /// List the signed-in user’s saved favorite comedians
     ///
     /// - Remark: HTTP `GET /favorites`.
@@ -455,6 +462,21 @@ extension APIProtocol {
     ) async throws -> Operations.GetHomeFeed.Output {
         try await getHomeFeed(Operations.GetHomeFeed.Input(
             query: query,
+            headers: headers
+        ))
+    }
+    /// Get podcast detail with recent episodes
+    ///
+    /// Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.
+    ///
+    /// - Remark: HTTP `GET /podcasts/{id}`.
+    /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)`.
+    public func getPodcast(
+        path: Operations.GetPodcast.Input.Path,
+        headers: Operations.GetPodcast.Input.Headers = .init()
+    ) async throws -> Operations.GetPodcast.Output {
+        try await getPodcast(Operations.GetPodcast.Input(
+            path: path,
             headers: headers
         ))
     }
@@ -1039,6 +1061,200 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast`.
+        public struct PodcastDetailPodcast: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/authorName`.
+            public var authorName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/websiteUrl`.
+            public var websiteUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/feedUrl`.
+            public var feedUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/imageUrl`.
+            public var imageUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/episodeCount`.
+            public var episodeCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/isFavorite`.
+            public var isFavorite: Swift.Bool?
+            /// Creates a new `PodcastDetailPodcast`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - slug:
+            ///   - title:
+            ///   - authorName:
+            ///   - websiteUrl:
+            ///   - feedUrl:
+            ///   - imageUrl:
+            ///   - description:
+            ///   - episodeCount:
+            ///   - isFavorite:
+            public init(
+                id: Swift.Int,
+                slug: Swift.String,
+                title: Swift.String,
+                authorName: Swift.String? = nil,
+                websiteUrl: Swift.String? = nil,
+                feedUrl: Swift.String? = nil,
+                imageUrl: Swift.String? = nil,
+                description: Swift.String? = nil,
+                episodeCount: Swift.Int,
+                isFavorite: Swift.Bool? = nil
+            ) {
+                self.id = id
+                self.slug = slug
+                self.title = title
+                self.authorName = authorName
+                self.websiteUrl = websiteUrl
+                self.feedUrl = feedUrl
+                self.imageUrl = imageUrl
+                self.description = description
+                self.episodeCount = episodeCount
+                self.isFavorite = isFavorite
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case slug
+                case title
+                case authorName
+                case websiteUrl
+                case feedUrl
+                case imageUrl
+                case description
+                case episodeCount
+                case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance`.
+        public struct PodcastDetailEpisodeAppearance: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance/uuid`.
+            public var uuid: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance/imageUrl`.
+            public var imageUrl: Swift.String
+            /// Creates a new `PodcastDetailEpisodeAppearance`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - uuid:
+            ///   - name:
+            ///   - imageUrl:
+            public init(
+                id: Swift.Int,
+                uuid: Swift.String,
+                name: Swift.String,
+                imageUrl: Swift.String
+            ) {
+                self.id = id
+                self.uuid = uuid
+                self.name = name
+                self.imageUrl = imageUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case uuid
+                case name
+                case imageUrl
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode`.
+        public struct PodcastDetailEpisode: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/releaseDate`.
+            public var releaseDate: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/durationSeconds`.
+            public var durationSeconds: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/episodeUrl`.
+            public var episodeUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/audioUrl`.
+            public var audioUrl: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisode/appearances`.
+            public var appearances: [Components.Schemas.PodcastDetailEpisodeAppearance]
+            /// Creates a new `PodcastDetailEpisode`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - title:
+            ///   - description:
+            ///   - releaseDate:
+            ///   - durationSeconds:
+            ///   - episodeUrl:
+            ///   - audioUrl:
+            ///   - appearances:
+            public init(
+                id: Swift.Int,
+                title: Swift.String,
+                description: Swift.String? = nil,
+                releaseDate: Swift.String? = nil,
+                durationSeconds: Swift.Int? = nil,
+                episodeUrl: Swift.String? = nil,
+                audioUrl: Swift.String? = nil,
+                appearances: [Components.Schemas.PodcastDetailEpisodeAppearance]
+            ) {
+                self.id = id
+                self.title = title
+                self.description = description
+                self.releaseDate = releaseDate
+                self.durationSeconds = durationSeconds
+                self.episodeUrl = episodeUrl
+                self.audioUrl = audioUrl
+                self.appearances = appearances
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case description
+                case releaseDate
+                case durationSeconds
+                case episodeUrl
+                case audioUrl
+                case appearances
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDetailResponse`.
+        public struct PodcastDetailResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailResponse/podcast`.
+            public var podcast: Components.Schemas.PodcastDetailPodcast
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailResponse/episodes`.
+            public var episodes: [Components.Schemas.PodcastDetailEpisode]
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailResponse/relatedComedians`.
+            public var relatedComedians: [Components.Schemas.ComedianSearchItem]
+            /// Creates a new `PodcastDetailResponse`.
+            ///
+            /// - Parameters:
+            ///   - podcast:
+            ///   - episodes:
+            ///   - relatedComedians:
+            public init(
+                podcast: Components.Schemas.PodcastDetailPodcast,
+                episodes: [Components.Schemas.PodcastDetailEpisode],
+                relatedComedians: [Components.Schemas.ComedianSearchItem]
+            ) {
+                self.podcast = podcast
+                self.episodes = episodes
+                self.relatedComedians = relatedComedians
+            }
+            public enum CodingKeys: String, CodingKey {
+                case podcast
+                case episodes
+                case relatedComedians
             }
         }
         /// - Remark: Generated from `#/components/schemas/FavoriteShowListResponse`.
@@ -9157,6 +9373,342 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.GetHomeFeed.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get podcast detail with recent episodes
+    ///
+    /// Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.
+    ///
+    /// - Remark: HTTP `GET /podcasts/{id}`.
+    /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)`.
+    public enum GetPodcast {
+        public static let id: Swift.String = "getPodcast"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/podcasts/{id}/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// Podcast numeric id
+                ///
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/path/id`.
+                public var id: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id: Podcast numeric id
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.GetPodcast.Input.Path
+            /// - Remark: Generated from `#/paths/podcasts/{id}/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetPodcast.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetPodcast.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetPodcast.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetPodcast.Input.Path,
+                headers: Operations.GetPodcast.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.PodcastDetailResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.PodcastDetailResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcast.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcast.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Podcast detail payload
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetPodcast.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetPodcast.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcast.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcast.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid podcast id
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetPodcast.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.GetPodcast.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcast.Output.NotFound.Body
+                /// Creates a new `NotFound`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcast.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Podcast not found
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.GetPodcast.Output.NotFound)
+            /// The associated value of the enum case if `self` is `.notFound`.
+            ///
+            /// - Throws: An error if `self` is not `.notFound`.
+            /// - SeeAlso: `.notFound`.
+            public var notFound: Operations.GetPodcast.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcast.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcast.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetPodcast.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetPodcast.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/podcasts/{id}/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetPodcast.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetPodcast.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//podcasts/{id}/get(getPodcast)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetPodcast.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetPodcast.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

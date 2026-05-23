@@ -1414,6 +1414,65 @@
         }
       }
     },
+    "/podcasts/{id}": {
+      "get": {
+        "operationId": "getPodcast",
+        "summary": "Get podcast detail with recent episodes",
+        "description": "Returns podcast metadata, recent episodes, related comedians, and approved comedian appearances per episode.",
+        "tags": ["podcasts"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Podcast numeric id",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Podcast detail payload",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PodcastDetailResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid podcast id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Podcast not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/favorites": {
       "get": {
         "operationId": "getFavorites",
@@ -2301,6 +2360,64 @@
           "data": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/FavoritePodcastItem" }
+          }
+        }
+      },
+      "PodcastDetailPodcast": {
+        "type": "object",
+        "required": ["id", "slug", "title", "episodeCount"],
+        "properties": {
+          "id": { "type": "integer" },
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "authorName": { "type": ["string", "null"] },
+          "websiteUrl": { "type": ["string", "null"] },
+          "feedUrl": { "type": ["string", "null"] },
+          "imageUrl": { "type": ["string", "null"] },
+          "description": { "type": ["string", "null"] },
+          "episodeCount": { "type": "integer" },
+          "isFavorite": { "type": "boolean" }
+        }
+      },
+      "PodcastDetailEpisodeAppearance": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" }
+        }
+      },
+      "PodcastDetailEpisode": {
+        "type": "object",
+        "required": ["id", "title", "description", "releaseDate", "durationSeconds", "episodeUrl", "audioUrl", "appearances"],
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "releaseDate": { "type": ["string", "null"] },
+          "durationSeconds": { "type": ["integer", "null"] },
+          "episodeUrl": { "type": ["string", "null"] },
+          "audioUrl": { "type": ["string", "null"] },
+          "appearances": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastDetailEpisodeAppearance" }
+          }
+        }
+      },
+      "PodcastDetailResponse": {
+        "type": "object",
+        "required": ["podcast", "episodes", "relatedComedians"],
+        "properties": {
+          "podcast": { "$ref": "#/components/schemas/PodcastDetailPodcast" },
+          "episodes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastDetailEpisode" }
+          },
+          "relatedComedians": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
           }
         }
       },
