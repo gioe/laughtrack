@@ -506,10 +506,14 @@ private struct PodcastMiniPlayerView: View {
             }
             .onEnded { value in
                 if value.translation.height > Self.dismissThreshold {
-                    withAnimation(.easeOut(duration: 0.18)) {
-                        dragOffset = 0
+                    withAnimation(.easeIn(duration: 0.18)) {
+                        dragOffset = 240
                     }
-                    player.dismiss()
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 180_000_000)
+                        dragOffset = 0
+                        player.dismiss()
+                    }
                 } else {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) {
                         dragOffset = 0

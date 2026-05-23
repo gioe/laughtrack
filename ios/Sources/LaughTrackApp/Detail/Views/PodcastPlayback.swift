@@ -176,6 +176,7 @@ final class PodcastPlaybackController: ObservableObject {
         didSet { applyRateIfPlaying() }
     }
     @Published private(set) var sleepTimerEndsAt: Date?
+    @Published private(set) var sleepTimerInterval: TimeInterval?
 
     static let supportedRates: [Float] = [0.8, 1.0, 1.25, 1.5, 1.75, 2.0]
     static let skipBackInterval: TimeInterval = 15
@@ -287,6 +288,7 @@ final class PodcastPlaybackController: ObservableObject {
         isPlaying = false
         currentTime = 0
         duration = 0
+        cancelSleepTimer()
         clearNowPlayingInfo()
     }
 
@@ -297,6 +299,7 @@ final class PodcastPlaybackController: ObservableObject {
         guard let interval, interval > 0 else { return }
         let endsAt = Date().addingTimeInterval(interval)
         sleepTimerEndsAt = endsAt
+        sleepTimerInterval = interval
         sleepTimer = Task { [weak self] in
             let nanoseconds = UInt64(interval * 1_000_000_000)
             try? await Task.sleep(nanoseconds: nanoseconds)
@@ -304,6 +307,7 @@ final class PodcastPlaybackController: ObservableObject {
                 guard let self else { return }
                 guard !Task.isCancelled else { return }
                 self.sleepTimerEndsAt = nil
+                self.sleepTimerInterval = nil
                 self.pause()
             }
         }
@@ -313,6 +317,7 @@ final class PodcastPlaybackController: ObservableObject {
         sleepTimer?.cancel()
         sleepTimer = nil
         sleepTimerEndsAt = nil
+        sleepTimerInterval = nil
     }
 
     // MARK: - Engine bridge

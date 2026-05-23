@@ -309,11 +309,11 @@ struct NowPlayingView: View {
     }
 
     private func isCurrentSleep(_ seconds: TimeInterval?) -> Bool {
-        switch (seconds, player.sleepTimerEndsAt) {
+        switch (seconds, player.sleepTimerInterval) {
         case (nil, nil):
             return true
-        case (.some, .some):
-            return false
+        case (.some(let chosen), .some(let active)):
+            return abs(chosen - active) < 0.5
         default:
             return false
         }
@@ -332,10 +332,14 @@ struct NowPlayingView: View {
     }
 
     private func formatRate(_ rate: Float) -> String {
-        let trimmed = rate.truncatingRemainder(dividingBy: 1) == 0
-            ? String(format: "%.0fx", rate)
-            : String(format: "%.2gx", rate)
-        return trimmed
+        if rate.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0fx", rate)
+        }
+        let formatted = String(format: "%.2f", rate)
+        let trimmed = formatted
+            .replacingOccurrences(of: "0+$", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "\\.$", with: "", options: .regularExpression)
+        return "\(trimmed)x"
     }
 }
 
