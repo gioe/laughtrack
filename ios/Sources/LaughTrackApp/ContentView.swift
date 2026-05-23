@@ -308,7 +308,7 @@ struct ContentView: View {
         .environmentObject(podcastFavorites)
         .environmentObject(podcastPlayer)
         .safeAreaInset(edge: .bottom) {
-            PodcastMiniPlayerView(player: podcastPlayer)
+            PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
                 .padding(.horizontal, theme.spacing.md)
                 .padding(.bottom, theme.spacing.sm)
         }
@@ -321,6 +321,7 @@ struct ContentView: View {
 
 private struct PodcastMiniPlayerView: View {
     @ObservedObject var player: PodcastPlaybackController
+    let apiClient: Client
 
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
@@ -335,7 +336,7 @@ private struct PodcastMiniPlayerView: View {
                 .offset(y: dragOffset)
                 .gesture(dismissGesture)
                 .sheet(isPresented: $isExpanded) {
-                    NowPlayingView(player: player)
+                    NowPlayingView(player: player, apiClient: apiClient)
                         .presentationDetents([.large])
                 }
         }

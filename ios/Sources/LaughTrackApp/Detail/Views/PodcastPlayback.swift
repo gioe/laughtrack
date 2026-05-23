@@ -15,6 +15,7 @@ protocol PodcastAudioEngine: AnyObject {
 
     func seek(to seconds: TimeInterval)
     func setRate(_ rate: Float)
+    func setVolume(_ volume: Float)
 
     var currentTime: TimeInterval { get }
     var duration: TimeInterval { get }
@@ -27,6 +28,7 @@ protocol PodcastAudioEngine: AnyObject {
 extension PodcastAudioEngine {
     func seek(to seconds: TimeInterval) {}
     func setRate(_ rate: Float) {}
+    func setVolume(_ volume: Float) {}
     var currentTime: TimeInterval { 0 }
     var duration: TimeInterval { 0 }
     var rate: Float { 1 }
@@ -129,6 +131,10 @@ final class AVPodcastAudioEngine: PodcastAudioEngine {
         player?.rate = rate
     }
 
+    func setVolume(_ volume: Float) {
+        player?.volume = max(0, min(1, volume))
+    }
+
     func setObserver(_ handler: @escaping () -> Void) {
         stateObserver = handler
     }
@@ -182,6 +188,8 @@ final class PodcastPlaybackController: ObservableObject {
     static let supportedRates: [Float] = [0.8, 1.0, 1.25, 1.5, 1.75, 2.0]
     static let skipBackInterval: TimeInterval = 15
     static let skipForwardInterval: TimeInterval = 30
+    static let sleepTimerFadeWindow: TimeInterval = 10
+    private static let sleepTimerFadeStepCount = 20
 
     private let audioEngine: PodcastAudioEngine
     private let registersRemoteCommands: Bool
@@ -304,16 +312,32 @@ final class PodcastPlaybackController: ObservableObject {
         sleepTimerEndsAt = endsAt
         sleepTimerInterval = interval
         sleepTimer = Task { [weak self] in
-            let nanoseconds = UInt64(interval * 1_000_000_000)
-            try? await Task.sleep(nanoseconds: nanoseconds)
-            await MainActor.run {
-                guard let self else { return }
-                guard !Task.isCancelled else { return }
-                self.sleepTimerEndsAt = nil
-                self.sleepTimerInterval = nil
-                self.pause()
+            let fadeDuration = min(interval, Self.sleepTimerFadeWindow)
+            let preFadeDelay = max(0, interval - fadeDuration)
+            if preFadeDelay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(preFadeDelay * 1_000_000_000))
+            }
+            await self?.fadeOutAndStopForSleep(durationSeconds: fadeDuration)
+        }
+    }
+
+    private func fadeOutAndStopForSleep(durationSeconds: TimeInterval) async {
+        guard !Task.isCancelled, sleepTimerEndsAt != nil else { return }
+        let steps = Self.sleepTimerFadeStepCount
+        let stepDuration = durationSeconds / Double(steps)
+        for step in (0..<steps).reversed() {
+            if Task.isCancelled || sleepTimerEndsAt == nil { return }
+            let level = Float(step) / Float(steps)
+            audioEngine.setVolume(level)
+            if stepDuration > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(stepDuration * 1_000_000_000))
             }
         }
+        guard !Task.isCancelled, sleepTimerEndsAt != nil else { return }
+        sleepTimerEndsAt = nil
+        sleepTimerInterval = nil
+        pause()
+        audioEngine.setVolume(1)
     }
 
     private func cancelSleepTimer() {
@@ -321,6 +345,7 @@ final class PodcastPlaybackController: ObservableObject {
         sleepTimer = nil
         sleepTimerEndsAt = nil
         sleepTimerInterval = nil
+        audioEngine.setVolume(1)
     }
 
     // MARK: - Engine bridge
