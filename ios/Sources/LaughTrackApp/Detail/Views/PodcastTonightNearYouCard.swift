@@ -88,9 +88,10 @@ enum TonightNearYouLoader {
     static func load(
         podcastID: Int,
         apiClient: Client,
-        zipCode: String?
+        zipCode: String?,
+        urlSession: URLSession = .shared
     ) async -> TonightNearYouMatch? {
-        async let detailTask = fetchPodcastDetail(podcastID: podcastID)
+        async let detailTask = fetchPodcastDetail(podcastID: podcastID, urlSession: urlSession)
         async let feedTask = fetchHomeFeed(apiClient: apiClient, zipCode: zipCode)
 
         guard
@@ -106,7 +107,10 @@ enum TonightNearYouLoader {
         return TonightNearYouMatch(show: show, hostName: host.name)
     }
 
-    private static func fetchPodcastDetail(podcastID: Int) async -> PodcastDetailResponse? {
+    static func fetchPodcastDetail(
+        podcastID: Int,
+        urlSession: URLSession = .shared
+    ) async -> PodcastDetailResponse? {
         let url = AppConfiguration.apiBaseURL
             .appendingPathComponent("api")
             .appendingPathComponent("v1")
@@ -114,7 +118,7 @@ enum TonightNearYouLoader {
             .appendingPathComponent(String(podcastID))
 
         guard
-            let (data, _) = try? await URLSession.shared.data(from: url),
+            let (data, _) = try? await urlSession.data(from: url),
             let decoded = try? JSONDecoder().decode(PodcastDetailResponse.self, from: data)
         else { return nil }
         return decoded
