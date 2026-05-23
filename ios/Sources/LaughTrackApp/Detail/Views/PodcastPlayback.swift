@@ -177,6 +177,7 @@ final class PodcastPlaybackController: ObservableObject {
     }
     @Published private(set) var sleepTimerEndsAt: Date?
     @Published private(set) var sleepTimerInterval: TimeInterval?
+    @Published private(set) var accentColorOverride: Color?
 
     static let supportedRates: [Float] = [0.8, 1.0, 1.25, 1.5, 1.75, 2.0]
     static let skipBackInterval: TimeInterval = 15

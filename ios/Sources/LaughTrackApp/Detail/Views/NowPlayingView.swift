@@ -90,27 +90,36 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
         let imageURLString = player.currentItem?.podcastImageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolved = (imageURLString?.isEmpty ?? true) ? nil : imageURLString
+        let spotlightColor = player.accentColorOverride ?? laughTrack.colors.accent
 
         ZStack {
-            if let raw = resolved, let url = URL.normalizedExternalURL(raw) {
-                CachedAsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    artworkFallback
-                } error: { _ in
-                    artworkFallback
-                }
-            } else {
+            PodcastSpotlightView(isActive: player.isPlaying, color: spotlightColor)
+                .padding(-32)
+
+            artworkImage(resolved: resolved)
+                .frame(maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .shadowStyle(laughTrack.shadows.floating)
+        }
+        .padding(.horizontal, theme.spacing.md)
+    }
+
+    @ViewBuilder
+    private func artworkImage(resolved: String?) -> some View {
+        if let raw = resolved, let url = URL.normalizedExternalURL(raw) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                artworkFallback
+            } error: { _ in
                 artworkFallback
             }
+        } else {
+            artworkFallback
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadowStyle(laughTrack.shadows.floating)
-        .padding(.horizontal, theme.spacing.md)
     }
 
     private var artworkFallback: some View {
@@ -129,7 +138,7 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
         VStack(spacing: 6) {
             Text(player.currentItem?.episodeTitle ?? "")
-                .font(laughTrack.typography.screenTitle)
+                .font(.system(.title2, design: .serif, weight: .heavy))
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
