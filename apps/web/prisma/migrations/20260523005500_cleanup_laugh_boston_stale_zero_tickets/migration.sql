@@ -40,7 +40,7 @@ BEGIN
         FROM tickets paid
         WHERE paid.show_id = target.show_id
           AND paid.price > 0
-          AND paid.type <> 'General Admission'
+          AND paid.type = 'General Admisson'
     );
 
     IF stale_count <> 8 THEN
@@ -62,5 +62,5 @@ WHERE stale.show_id = target.show_id
       FROM tickets paid
       WHERE paid.show_id = target.show_id
         AND paid.price > 0
-        AND paid.type <> 'General Admission'
+        AND paid.type = 'General Admisson'
   );
