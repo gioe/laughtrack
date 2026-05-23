@@ -1,7 +1,12 @@
 """House of Comedy Bloomington scraper.
 
 The venue calendar embeds enough event data to avoid fetching individual Tixr
-event pages, which are currently blocked by Tixr's DataDome WAF.
+event pages, which are currently blocked by Tixr's DataDome WAF. Per-event
+ticket prices are backfilled from the Tixr group-events JSON API
+(``/api/groups/<tixr_group_id>/events``) when ``scraping_sources.metadata``
+carries a numeric ``tixr_group_id`` — that endpoint takes a different
+DataDome path than the rendered group pages and returns ``sales[].tiers[]``
+priced data through curl_cffi (or the residential proxy on fallback).
 """
 
 import re
@@ -17,6 +22,7 @@ from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.infrastructure.monitoring import create_monitored_tixr_client
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
@@ -44,6 +50,7 @@ class HouseOfComedyBloomingtonScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(TixrVenueEventTransformer(club))
+        self.tixr_client = create_monitored_tixr_client(club)
 
     async def collect_scraping_targets(self) -> list[str]:
         url = self.club.scraping_url
@@ -61,8 +68,64 @@ class HouseOfComedyBloomingtonScraper(BaseScraper):
             Logger.info(f"{self._log_prefix}: no direct calendar events found on {url}", self.logger_context)
             return None
 
+        await self._backfill_tier_prices(events)
+
         Logger.info(f"{self._log_prefix}: parsed {len(events)} direct calendar events", self.logger_context)
         return TixrPageData(event_list=events)
+
+    async def _backfill_tier_prices(self, events: list[TixrEvent]) -> None:
+        """Replace placeholder tickets with priced tier data from the group API.
+
+        The venue calendar HTML carries title/date/ticket-URL but no price,
+        so each event leaves ``_parse_events`` with a single
+        ``Ticket(price=None, ...)`` placeholder. The Tixr group-events JSON
+        API (``/api/groups/<numeric_id>/events``) exposes ``sales[].tiers[]``
+        with real tier prices; ``TixrClient.fetch_group_events`` resolves
+        those tiers into ``Ticket`` objects via ``_build_tickets_from_tiers``.
+
+        Join by event_id. Calendar-derived events that don't match any
+        API-side event keep their ``price=None`` placeholder so unknown
+        stays distinct from "proven free" (TASK-2405).
+        """
+        group_id = (self.club.metadata_value("tixr_group_id") or "").strip()
+        if not group_id:
+            Logger.info(
+                f"{self._log_prefix}: no tixr_group_id in scraping_sources.metadata; "
+                "skipping price backfill (tickets emit price=None — unknown)",
+                self.logger_context,
+            )
+            return
+
+        priced_events = await self.tixr_client.fetch_group_events(group_id)
+        if not priced_events:
+            Logger.warn(
+                f"{self._log_prefix}: Tixr group-events API returned no events for "
+                f"tixr_group_id={group_id!r} — leaving placeholder tickets with price=None",
+                self.logger_context,
+            )
+            return
+
+        tickets_by_event_id: dict[str, list[Ticket]] = {}
+        for priced in priced_events:
+            event_id = priced.event_id
+            if not event_id or not priced.show.tickets:
+                continue
+            tickets_by_event_id.setdefault(event_id, list(priced.show.tickets))
+
+        backfilled = 0
+        for event in events:
+            api_tickets = tickets_by_event_id.get(event.event_id)
+            if not api_tickets:
+                continue
+            event.show.tickets = api_tickets
+            backfilled += 1
+
+        Logger.info(
+            f"{self._log_prefix}: backfilled tier prices on {backfilled}/{len(events)} "
+            f"calendar events from Tixr group-events API "
+            f"(tixr_group_id={group_id!r}, api_events={len(priced_events)})",
+            self.logger_context,
+        )
 
     def _parse_events(self, html: str) -> list[TixrEvent]:
         soup = BeautifulSoup(html, "html.parser")
@@ -135,8 +198,9 @@ class HouseOfComedyBloomingtonScraper(BaseScraper):
             date=date,
             show_page_url=url,
             lineup=[],
-            # Listing page exposes no price — emit None (unknown) so the
-            # downstream Tixr detail fetch can fill in real per-event tiers.
+            # Listing page exposes no price — emit a None placeholder that
+            # `_backfill_tier_prices` overwrites with real tier data from
+            # the Tixr group-events API when tixr_group_id metadata is set.
             tickets=[Ticket(price=None, purchase_url=url, sold_out=False, type="General Admission")],
             supplied_tags=["event"],
             description=None,
