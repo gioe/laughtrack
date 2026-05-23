@@ -55,8 +55,8 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: tokens.spacing.sectionGap) {
                 profileHero
 
-                if let session = authManager.currentSession {
-                    accountCard(session: session)
+                if authManager.currentSession != nil {
+                    accountCard
                 } else {
                     if let signedOutMessage {
                         LaughTrackAuthMessageCard(message: signedOutMessage)
@@ -127,7 +127,7 @@ struct ProfileView: View {
         let laughTrack = theme.laughTrackTokens
         let isSignedIn = authManager.currentSession != nil
 
-        return LaughTrackCard(tone: .accent, density: .compact) {
+        return LaughTrackCard(tone: isSignedIn ? .accent : .muted, density: .compact) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
                 HStack(alignment: .center, spacing: theme.spacing.md) {
                     LaughTrackAvatar(
@@ -139,14 +139,14 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: theme.spacing.xs) {
                         Text(heroTitle)
                             .font(laughTrack.typography.sectionTitle)
-                            .foregroundStyle(laughTrack.colors.textInverse)
+                            .foregroundStyle(heroTitleColor)
                             .lineLimit(1)
                             .minimumScaleFactor(0.86)
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text(heroSubtitle)
                             .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.86))
+                            .foregroundStyle(heroSubtitleColor)
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -171,6 +171,16 @@ struct ProfileView: View {
             }
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileHero)
+    }
+
+    private var heroTitleColor: Color {
+        let laughTrack = theme.laughTrackTokens
+        return authManager.currentSession == nil ? laughTrack.colors.textPrimary : laughTrack.colors.textInverse
+    }
+
+    private var heroSubtitleColor: Color {
+        let laughTrack = theme.laughTrackTokens
+        return authManager.currentSession == nil ? laughTrack.colors.textSecondary : laughTrack.colors.textInverse.opacity(0.86)
     }
 
     private var heroTitle: String {
@@ -227,54 +237,17 @@ struct ProfileView: View {
         settingsModel.replaceServerBackedPreference(from: user)
     }
 
-    @ViewBuilder
-    private func accountCard(session: AuthSessionMetadata) -> some View {
+    private var accountCard: some View {
         let laughTrack = theme.laughTrackTokens
-        let user = authManager.currentUser
-        let providerSymbol = session.provider?.symbolName ?? "person.crop.circle"
-        let providerName = session.provider?.displayName ?? "Saved session"
-        let primaryName: String = {
-            if let displayName = user?.displayName, !displayName.isEmpty {
-                return displayName
-            }
-            return providerName
-        }()
 
-        LaughTrackCard(tone: .standard) {
+        return LaughTrackCard(tone: .standard) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
                 LaughTrackSectionHeader(
                     eyebrow: "Account",
-                    title: "Signed-in profile",
-                    subtitle: "Your app session and provider details.",
+                    title: "Account actions",
+                    subtitle: "Sign out or permanently remove your account.",
                     density: .compact
                 )
-
-                HStack(alignment: .top, spacing: laughTrack.spacing.itemGap) {
-                    LaughTrackAvatar(
-                        style: .url(user?.avatarURL, fallback: providerSymbol),
-                        highlighted: true
-                    )
-
-                    VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
-                        Text(primaryName)
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-
-                        if let email = user?.email {
-                            Text(email)
-                                .font(laughTrack.typography.body)
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-                        } else {
-                            Text(
-                                session.expiresAt.map {
-                                    "Session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
-                                } ?? "Session expiration is not available."
-                            )
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                        }
-                    }
-                }
 
                 LaughTrackButton(
                     Self.signOutButtonTitle,
