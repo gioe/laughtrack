@@ -164,7 +164,7 @@ struct PodcastDetailView: View {
 
                         VStack(alignment: .leading, spacing: 20) {
                             if let description = response.podcast.description?.nonEmpty {
-                                DetailTextCard(eyebrow: "Podcast", title: "About the show", text: description)
+                                DetailTextCard(eyebrow: "About", title: nil, text: description, isCollapsible: true)
                             }
 
                             PodcastEpisodeListSection(
@@ -327,12 +327,15 @@ enum PodcastDetailPresentation {
 }
 
 private struct PodcastEpisodeListSection: View {
+    static let pageSize = 10
+
     let podcast: PodcastDetail
     let episodes: [PodcastDetailEpisode]
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @State private var currentPage = 0
 
     var body: some View {
         let playableEntries: [(item: PodcastPlaybackItem, metadata: String, lineup: [LineupAvatarItem])] = episodes.compactMap { episode in
@@ -346,6 +349,12 @@ private struct PodcastEpisodeListSection: View {
             )
         }
 
+        let pageCount = max(1, (playableEntries.count + Self.pageSize - 1) / Self.pageSize)
+        let safePage = min(currentPage, pageCount - 1)
+        let startIndex = safePage * Self.pageSize
+        let endIndex = min(startIndex + Self.pageSize, playableEntries.count)
+        let visibleEntries = playableEntries.isEmpty ? [] : Array(playableEntries[startIndex..<endIndex])
+
         VStack(alignment: .leading, spacing: 12) {
             LaughTrackSectionHeader(title: "Episodes")
 
@@ -355,7 +364,7 @@ private struct PodcastEpisodeListSection: View {
                     message: "LaughTrack has not matched this podcast with playable episodes yet."
                 )
             } else {
-                ForEach(playableEntries, id: \.item.id) { entry in
+                ForEach(visibleEntries, id: \.item.id) { entry in
                     PodcastAppearanceRow(
                         item: entry.item,
                         isCurrent: podcastPlayer.currentItem?.id == entry.item.id,
@@ -367,8 +376,64 @@ private struct PodcastEpisodeListSection: View {
                         coordinator.open(.comedian(comedianID))
                     }
                 }
+
+                if pageCount > 1 {
+                    pager(currentPage: safePage, pageCount: pageCount, totalCount: playableEntries.count)
+                }
             }
         }
+        .onChange(of: episodes.count) { _ in
+            currentPage = 0
+        }
+    }
+
+    @ViewBuilder
+    private func pager(currentPage: Int, pageCount: Int, totalCount: Int) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        let canGoBack = currentPage > 0
+        let canGoForward = currentPage < pageCount - 1
+
+        HStack(spacing: theme.spacing.md) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    self.currentPage = max(0, currentPage - 1)
+                }
+            } label: {
+                Label("Previous", systemImage: "chevron.left")
+                    .labelStyle(.titleAndIcon)
+                    .font(laughTrack.typography.metadata.weight(.semibold))
+                    .foregroundStyle(canGoBack ? laughTrack.colors.accent : laughTrack.colors.textSecondary.opacity(0.5))
+            }
+            .buttonStyle(.plain)
+            .disabled(!canGoBack)
+            .accessibilityLabel("Previous page")
+
+            Spacer(minLength: 0)
+
+            Text("Page \(currentPage + 1) of \(pageCount)")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .accessibilityLabel("Page \(currentPage + 1) of \(pageCount), \(totalCount) episodes total")
+
+            Spacer(minLength: 0)
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    self.currentPage = min(pageCount - 1, currentPage + 1)
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Next")
+                    Image(systemName: "chevron.right")
+                }
+                .font(laughTrack.typography.metadata.weight(.semibold))
+                .foregroundStyle(canGoForward ? laughTrack.colors.accent : laughTrack.colors.textSecondary.opacity(0.5))
+            }
+            .buttonStyle(.plain)
+            .disabled(!canGoForward)
+            .accessibilityLabel("Next page")
+        }
+        .padding(.top, theme.spacing.xs)
     }
 }
 
