@@ -704,7 +704,6 @@ struct ComedianPodcastPanel: View {
     @ViewBuilder
     private func appearanceEpisodeRow(item: PodcastPlaybackItem) -> some View {
         let laughTrack = theme.laughTrackTokens
-        let isCurrent = podcastPlayer.currentItem?.id == item.id
         let releaseLabel = ComedianPodcastPresentation.formattedReleaseDate(item.releaseDate)
 
         Button {
@@ -731,13 +730,6 @@ struct ComedianPodcastPanel: View {
                 }
 
                 Spacer(minLength: 0)
-
-                if isCurrent {
-                    Image(systemName: "waveform")
-                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accent)
-                        .accessibilityLabel("Now playing")
-                }
             }
             .padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -907,12 +899,7 @@ struct PodcastAppearanceRow: View {
 
                 Spacer(minLength: 0)
 
-                if isCurrent {
-                    Image(systemName: "waveform")
-                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.accent)
-                        .accessibilityLabel("Now playing")
-                } else if showsDisclosureIndicator {
+                if showsDisclosureIndicator {
                     Image(systemName: "chevron.right")
                         .font(.system(size: theme.iconSizes.sm, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.textSecondary)
