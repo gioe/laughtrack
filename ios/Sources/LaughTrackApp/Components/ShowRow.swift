@@ -4,6 +4,7 @@ import LaughTrackBridge
 
 struct ShowRow: View {
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     let show: Components.Schemas.Show
     var nearbyRadiusMiles: Double?
@@ -52,7 +53,11 @@ struct ShowRow: View {
             }
 
             if !lineup.isEmpty {
-                lineupTiles(lineup, isSoldOut: isSoldOut)
+                LineupAvatarStrip(
+                    comedians: lineup.map(LineupAvatarItem.init(comedian:)),
+                    isDimmed: isSoldOut,
+                    openComedian: { coordinator.open(.comedian($0)) }
+                )
             }
         }
         .frame(maxWidth: .infinity, minHeight: isOpenMic ? 56 : 86, alignment: .leading)
@@ -172,61 +177,6 @@ struct ShowRow: View {
                     )
             }
         }
-    }
-
-    @ViewBuilder
-    private func lineupTiles(_ lineup: [Components.Schemas.ComedianLineup], isSoldOut: Bool) -> some View {
-        let laughTrack = theme.laughTrackTokens
-
-        HStack(alignment: .top, spacing: theme.spacing.sm) {
-            ForEach(lineup, id: \.id) { comedian in
-                VStack(spacing: 4) {
-                    lineupAvatar(for: comedian, isSoldOut: isSoldOut)
-                    Text(comedian.name)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .padding(.top, theme.spacing.xxs)
-    }
-
-    @ViewBuilder
-    private func lineupAvatar(for comedian: Components.Schemas.ComedianLineup, isSoldOut: Bool) -> some View {
-        let laughTrack = theme.laughTrackTokens
-        let trimmed = Self.effectiveComedian(comedian).imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        let normalized = trimmed.isEmpty ? nil : trimmed
-
-        Group {
-            if let url = URL.normalizedExternalURL(normalized) {
-                CachedAsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
-                    Circle().fill(laughTrack.colors.surfaceMuted)
-                } error: { _ in
-                    Circle()
-                        .fill(laughTrack.colors.surfaceMuted)
-                        .overlay {
-                            Image(systemName: "person.fill")
-                                .foregroundStyle(laughTrack.colors.accentStrong)
-                        }
-                }
-            } else {
-                Circle()
-                    .fill(laughTrack.colors.surfaceMuted)
-                    .overlay {
-                        Image(systemName: "person.fill")
-                            .foregroundStyle(laughTrack.colors.accentStrong)
-                    }
-            }
-        }
-        .frame(width: 44, height: 44)
-        .clipShape(Circle())
-        .saturation(isSoldOut ? 0 : 1)
-        .opacity(isSoldOut ? 0.6 : 1)
     }
 
     private var isWithinNearbyRadius: Bool {

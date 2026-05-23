@@ -911,86 +911,94 @@ struct ComedianPodcastPanel: View {
 struct PodcastAppearanceRow: View {
     let item: PodcastPlaybackItem
     let isCurrent: Bool
+    var lineup: [LineupAvatarItem] = []
     var showsRoleBadge = true
     var showsArtworkActionIcon = true
     var showsDisclosureIndicator = false
     var subtitleOverride: String?
     let onSelect: () -> Void
     var onOpenPodcast: (() -> Void)?
+    var onOpenComedian: ((Int) -> Void)?
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .top, spacing: theme.spacing.md) {
-            Button(action: onSelect) {
-                artwork
-                    .overlay(alignment: .bottomTrailing) {
-                        if showsArtworkActionIcon {
-                            Image(systemName: artworkActionIconSystemName)
-                                .font(.system(size: 18, weight: .semibold))
-                                .symbolRenderingMode(.palette)
-                                .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
-                                .offset(x: 5, y: 5)
-                        }
-                    }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(selectionAccessibilityLabel)
-
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
                 Button(action: onSelect) {
-                    Text(item.episodeTitle)
-                        .font(laughTrack.typography.body.weight(.semibold))
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    artwork
+                        .overlay(alignment: .bottomTrailing) {
+                            if showsArtworkActionIcon {
+                                Image(systemName: artworkActionIconSystemName)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .symbolRenderingMode(.palette)
+                                    .foregroundStyle(laughTrack.colors.accentStrong, laughTrack.colors.surfaceElevated)
+                                    .offset(x: 5, y: 5)
+                            }
+                        }
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(selectionAccessibilityLabel)
 
-                if let subtitleOverride {
-                    Text(subtitleOverride)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .lineLimit(1)
-                } else {
-                    HStack(spacing: 8) {
-                        if let onOpenPodcast {
-                            Button(action: onOpenPodcast) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Button(action: onSelect) {
+                        Text(item.episodeTitle)
+                            .font(laughTrack.typography.body.weight(.semibold))
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+
+                    if let subtitleOverride {
+                        Text(subtitleOverride)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .lineLimit(1)
+                    } else {
+                        HStack(spacing: 8) {
+                            if let onOpenPodcast {
+                                Button(action: onOpenPodcast) {
+                                    Text(item.podcastName)
+                                        .font(laughTrack.typography.metadata)
+                                        .foregroundStyle(laughTrack.colors.accentStrong)
+                                        .lineLimit(1)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Open \(item.podcastName)")
+                            } else {
                                 Text(item.podcastName)
                                     .font(laughTrack.typography.metadata)
-                                    .foregroundStyle(laughTrack.colors.accentStrong)
+                                    .foregroundStyle(laughTrack.colors.textSecondary)
                                     .lineLimit(1)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Open \(item.podcastName)")
-                        } else {
-                            Text(item.podcastName)
-                                .font(laughTrack.typography.metadata)
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-                                .lineLimit(1)
-                        }
 
-                        if showsRoleBadge {
-                            PodcastAppearanceRoleBadge(title: item.displayRole)
+                            if showsRoleBadge {
+                                PodcastAppearanceRoleBadge(title: item.displayRole)
+                            }
                         }
                     }
                 }
+
+                Spacer(minLength: 0)
+
+                if isCurrent {
+                    Image(systemName: "waveform")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accent)
+                        .accessibilityLabel("Now playing")
+                } else if showsDisclosureIndicator {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
             }
 
-            Spacer(minLength: 0)
-
-            if isCurrent {
-                Image(systemName: "waveform")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accent)
-                    .accessibilityLabel("Now playing")
-            } else if showsDisclosureIndicator {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+            if !lineup.isEmpty, let onOpenComedian {
+                LineupAvatarStrip(comedians: lineup, openComedian: onOpenComedian)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
@@ -1148,4 +1156,5 @@ private struct PodcastAppearanceRoleBadge: View {
     }
     .background(LaughTrackTheme().laughTrackTokens.colors.canvas)
     .environment(\.appTheme, LaughTrackTheme())
+    .environmentObject(NavigationCoordinator<AppRoute>())
 }

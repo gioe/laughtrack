@@ -23,6 +23,7 @@ struct PodcastDetailViewTests {
 
         #expect(content.podcast.title == "The Laugh Track Pod")
         #expect(content.episodes.map(\.title) == ["Comedy Cellar Stories"])
+        #expect(content.episodes[0].appearances.map(\.name) == ["Mark Normand"])
         #expect(content.relatedComedians.map(\.name) == ["Mark Normand"])
     }
 
@@ -101,7 +102,15 @@ struct PodcastDetailViewTests {
                     releaseDate: "2026-03-01T00:00:00.000Z",
                     durationSeconds: 3_720,
                     episodeUrl: "https://podcasts.example.com/cellar",
-                    audioUrl: "https://cdn.example.com/cellar.mp3"
+                    audioUrl: "https://cdn.example.com/cellar.mp3",
+                    appearances: [
+                        PodcastDetailEpisodeAppearance(
+                            id: 101,
+                            uuid: "demo-comedian-101",
+                            name: "Mark Normand",
+                            imageUrl: "https://cdn.example.com/mark.jpg"
+                        )
+                    ]
                 )
             ],
             relatedComedians: [

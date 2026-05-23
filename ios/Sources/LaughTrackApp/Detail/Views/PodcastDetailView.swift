@@ -28,6 +28,24 @@ struct PodcastDetailEpisode: Decodable, Identifiable, Equatable {
     let durationSeconds: Int?
     let episodeUrl: String?
     let audioUrl: String?
+    let appearances: [PodcastDetailEpisodeAppearance]
+}
+
+struct PodcastDetailEpisodeAppearance: Decodable, Identifiable, Equatable {
+    let id: Int
+    let uuid: String
+    let name: String
+    let imageUrl: String?
+}
+
+extension LineupAvatarItem {
+    init(appearance: PodcastDetailEpisodeAppearance) {
+        self.init(
+            id: appearance.id,
+            name: appearance.name,
+            imageUrl: appearance.imageUrl
+        )
+    }
 }
 
 struct PodcastRelatedComedian: Decodable, Identifiable, Equatable {
@@ -305,13 +323,18 @@ private struct PodcastEpisodeListSection: View {
     @ObservedObject var podcastPlayer: PodcastPlaybackController
 
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
-        let playableEntries: [(item: PodcastPlaybackItem, metadata: String)] = episodes.compactMap { episode in
+        let playableEntries: [(item: PodcastPlaybackItem, metadata: String, lineup: [LineupAvatarItem])] = episodes.compactMap { episode in
             guard let item = PodcastDetailPresentation.playbackItem(podcast: podcast, episode: episode) else {
                 return nil
             }
-            return (item, PodcastDetailPresentation.episodeMetadata(for: episode))
+            return (
+                item,
+                PodcastDetailPresentation.episodeMetadata(for: episode),
+                episode.appearances.map(LineupAvatarItem.init(appearance:))
+            )
         }
 
         VStack(alignment: .leading, spacing: 12) {
@@ -327,9 +350,12 @@ private struct PodcastEpisodeListSection: View {
                     PodcastAppearanceRow(
                         item: entry.item,
                         isCurrent: podcastPlayer.currentItem?.id == entry.item.id,
+                        lineup: entry.lineup,
                         subtitleOverride: entry.metadata
                     ) {
                         podcastPlayer.start(entry.item)
+                    } onOpenComedian: { comedianID in
+                        coordinator.open(.comedian(comedianID))
                     }
                 }
             }
