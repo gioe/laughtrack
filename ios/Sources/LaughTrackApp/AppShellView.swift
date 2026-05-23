@@ -109,6 +109,7 @@ struct AppShellView: View {
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
+    @State private var didApplyInitialTab = false
 
     init(
         apiClient: Client,
@@ -175,7 +176,9 @@ struct AppShellView: View {
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             shellState.selectTab(.search)
         }
-        .task(id: initialTab) {
+        .task {
+            guard !didApplyInitialTab else { return }
+            didApplyInitialTab = true
             shellState.selectTab(initialTab)
         }
         .task(id: authManager.currentSession == nil) {
