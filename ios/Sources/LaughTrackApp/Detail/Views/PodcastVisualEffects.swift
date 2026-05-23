@@ -153,7 +153,7 @@ enum ArtworkDominantColor {
     }
 }
 
-private extension UIColor {
+extension UIColor {
     /// Push muddy artwork averages toward a saturated, readable chrome accent so the
     /// tab-bar tint doesn't decay into beige. Floors saturation and clamps lightness
     /// to a midtone band.
