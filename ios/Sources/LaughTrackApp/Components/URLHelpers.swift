@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackCore
 
 extension String {
     var nonEmpty: String? {
@@ -14,6 +15,10 @@ extension String {
 extension URL {
     static func normalizedExternalURL(_ rawValue: String?) -> URL? {
         guard let rawValue, !rawValue.isEmpty else { return nil }
+        if rawValue.hasPrefix("/") {
+            return URL(string: rawValue, relativeTo: AppConfiguration.apiBaseURL)?
+                .absoluteURL
+        }
         if let direct = URL(string: rawValue), direct.scheme != nil {
             return direct
         }
