@@ -143,5 +143,16 @@
   "baseline_min_sample_size": 10,
   "path_test_commands": {
     "ios/**": "cd ios && swift build --build-tests"
-  }
+  },
+  "retro": {
+    "auto_apply": false,
+    "auto_apply_max_chars": 200
+  },
+  "worktree": {
+    "symlink_files": [
+      "apps/scraper/.env",
+      "apps/web/.env"
+    ]
+  },
+  "report_tusk_issue_footer": "_Filed via /report-tusk-issue from a Claude Code session._"
 }

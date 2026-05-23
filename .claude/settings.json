@@ -27,6 +27,14 @@
             "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null); [ -z \"$R\" ] && exit 0; exec \"$R/.claude/hooks/inject-task-context.sh\"'"
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/surface-skill-patches.sh"
+          }
+        ]
       }
     ],
     "PreToolUse": [
