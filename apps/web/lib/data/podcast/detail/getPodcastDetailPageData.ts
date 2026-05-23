@@ -8,6 +8,7 @@ import {
     ACCEPTED_PODCAST_HOST_WHERE,
     PUBLIC_PODCAST_ACCEPTED_ATTRIBUTION_WHERE,
 } from "@/lib/data/podcast/publicWhere";
+import { buildComedianImageUrl } from "@/util/imageUtil";
 
 function plainText(value: string | null): string | null {
     if (!value) return null;
@@ -26,6 +27,14 @@ function mapEpisode(episode: {
     durationSeconds: number | null;
     episodeUrl: string | null;
     audioUrl: string | null;
+    appearances: {
+        comedian: {
+            id: number;
+            uuid: string;
+            name: string;
+            hasImage: boolean | null;
+        };
+    }[];
 }): PodcastEpisodeDTO {
     return {
         id: episode.id,
@@ -35,6 +44,15 @@ function mapEpisode(episode: {
         durationSeconds: episode.durationSeconds,
         episodeUrl: episode.episodeUrl,
         audioUrl: episode.audioUrl,
+        appearances: episode.appearances.map(({ comedian }) => ({
+            id: comedian.id,
+            uuid: comedian.uuid,
+            name: comedian.name,
+            imageUrl: buildComedianImageUrl(
+                comedian.name,
+                Boolean(comedian.hasImage),
+            ),
+        })),
     };
 }
 

@@ -67,6 +67,14 @@ describe("GET /api/v1/podcasts/[id]", () => {
                     durationSeconds: 3_720,
                     episodeUrl: "https://podcasts.example.com/cellar",
                     audioUrl: "https://cdn.example.com/cellar.mp3",
+                    appearances: [
+                        {
+                            id: 101,
+                            uuid: "demo-comedian-101",
+                            name: "Mark Normand",
+                            imageUrl: "/images/comedians/mark-normand.jpg",
+                        },
+                    ],
                 },
             ],
             relatedComedians: [
@@ -125,6 +133,14 @@ describe("GET /api/v1/podcasts/[id]", () => {
         expect(body.episodes[0].audioUrl).toBe(
             "https://cdn.example.com/cellar.mp3",
         );
+        expect(body.episodes[0].appearances).toEqual([
+            {
+                id: 101,
+                uuid: "demo-comedian-101",
+                name: "Mark Normand",
+                imageUrl: "/images/comedians/mark-normand.jpg",
+            },
+        ]);
         expect(body.relatedComedians[0].socialData.popularity).toBeNull();
         expect(body.relatedComedians[0].showCount).toBe(0);
     });

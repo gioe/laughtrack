@@ -9,6 +9,14 @@ export interface PodcastEpisodeDTO {
     durationSeconds: number | null;
     episodeUrl: string | null;
     audioUrl: string | null;
+    appearances: PodcastEpisodeAppearanceDTO[];
+}
+
+export interface PodcastEpisodeAppearanceDTO {
+    id: number;
+    uuid: string;
+    name: string;
+    imageUrl: string;
 }
 
 export interface PodcastDTO {

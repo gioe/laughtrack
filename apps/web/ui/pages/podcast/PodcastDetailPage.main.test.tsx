@@ -77,6 +77,7 @@ const episodes: PodcastEpisodeDTO[] = [
         durationSeconds: 1800,
         episodeUrl: "https://example.com/ep/1",
         audioUrl: "https://cdn.example.com/ep1.mp3",
+        appearances: [],
     },
 ];
 

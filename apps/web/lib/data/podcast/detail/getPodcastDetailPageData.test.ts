@@ -139,6 +139,66 @@ describe("getPodcastDetailPageData", () => {
         );
     });
 
+    it("maps only accepted episode appearances into episode comedian payloads", async () => {
+        mockFindFirst.mockResolvedValue({
+            id: 42,
+            slug: "jane-show",
+            title: "The Jane Show",
+            authorName: "Jane Comic",
+            websiteUrl: "https://pod.example",
+            feedUrl: "https://pod.example/feed.xml",
+            imageUrl: null,
+            description: "Comedy",
+            episodes: [
+                {
+                    id: 501,
+                    title: "Comedy Cellar Stories",
+                    description: "<p>A set recap.</p>",
+                    releaseDate: new Date("2026-03-01T00:00:00.000Z"),
+                    durationSeconds: 3_720,
+                    episodeUrl: "https://pod.example/cellar",
+                    audioUrl: "https://cdn.example.com/cellar.mp3",
+                    appearances: [
+                        {
+                            comedian: {
+                                id: 101,
+                                uuid: "demo-comedian-101",
+                                name: "Mark Normand",
+                                hasImage: true,
+                            },
+                        },
+                    ],
+                },
+            ],
+            comedianPodcasts: [],
+            _count: { episodes: 1 },
+        });
+
+        const result = await getPodcastDetailPageData("jane-show");
+
+        expect(mockFindFirst).toHaveBeenCalledWith(
+            expect.objectContaining({
+                select: expect.objectContaining({
+                    episodes: expect.objectContaining({
+                        select: expect.objectContaining({
+                            appearances: expect.objectContaining({
+                                where: { reviewStatus: "accepted" },
+                            }),
+                        }),
+                    }),
+                }),
+            }),
+        );
+        expect(result.episodes[0].appearances).toEqual([
+            {
+                id: 101,
+                uuid: "demo-comedian-101",
+                name: "Mark Normand",
+                imageUrl: "https://test.b-cdn.net/comedians/Mark%20Normand.png",
+            },
+        ]);
+    });
+
     it("attaches hosts ahead of co-hosts on detail pages", async () => {
         mockFindFirst.mockResolvedValue({
             id: 42,
