@@ -639,7 +639,7 @@ lookup-bandsintown-ids:
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.lookup_bandsintown_ids $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) -v
 
 # Run a one-off Python script from the repo root using the scraper venv
-run-script:
+run-script: check-env
 	@echo "🐍 Running script with scraper venv:"
 	@echo "   Usage: make run-script SCRIPT=path/to/script.py [ARGS='...']"
 	@echo "   Example: make run-script SCRIPT=audit_seatengine_classic_ids.py"
