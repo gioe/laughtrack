@@ -87,15 +87,6 @@ class LaughBostonEventExtractor:
                 ticket_type = sale.get("name", "General Admission")
                 tickets.append(Ticket(price=price, purchase_url=ticket_url, sold_out=sold_out, type=ticket_type))
 
-            if not tickets:
-                # Fallback: use top-level price and status fields
-                price_val = LaughBostonEventExtractor._parse_price(event.get("price"))
-                status = event.get("status", "available")
-                sold_out = status.lower() not in ("available", "open")
-                tickets.append(
-                    Ticket(price=price_val, purchase_url=ticket_url, sold_out=sold_out, type="General Admission")
-                )
-
             # Extract Tixr event ID from ticketUrl
             event_id = URLUtils.extract_id_from_url(ticket_url, ["/events/"]) or ""
 

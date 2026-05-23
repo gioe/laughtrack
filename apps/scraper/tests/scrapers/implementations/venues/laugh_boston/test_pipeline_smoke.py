@@ -86,8 +86,8 @@ def test_pixl_sale_missing_or_null_current_price_emits_unknown_price(sale):
     assert events[0].show.tickets[0].price is None
 
 
-def test_pixl_empty_sales_and_empty_top_level_price_emits_unknown_price():
-    """The Pixl fallback ticket keeps empty top-level prices as unknown."""
+def test_pixl_empty_sales_emits_no_fallback_ticket():
+    """Empty Pixl sales are unknown inventory, not a General Admission placeholder."""
     data = _pixl_response()
     data["events"][0]["sales"] = []
     data["events"][0]["price"] = ""
@@ -95,7 +95,27 @@ def test_pixl_empty_sales_and_empty_top_level_price_emits_unknown_price():
     events = LaughBostonEventExtractor.parse_events_from_pixl(data, _club())
 
     assert len(events) == 1
-    assert events[0].show.tickets[0].price is None
+    assert events[0].show.tickets == []
+
+
+def test_pixl_empty_sales_then_populated_sales_leaves_only_real_tier():
+    """A later priced Pixl tier must not coexist with an earlier fallback row."""
+    empty_sales = _pixl_response()
+    empty_sales["events"][0]["sales"] = []
+    empty_sales["events"][0]["price"] = ""
+
+    populated_sales = _pixl_response()
+    populated_sales["events"][0]["sales"] = [
+        {"name": "General Admisson", "currentPrice": 33, "state": "OPEN"}
+    ]
+
+    first_scrape = LaughBostonEventExtractor.parse_events_from_pixl(empty_sales, _club())
+    second_scrape = LaughBostonEventExtractor.parse_events_from_pixl(populated_sales, _club())
+
+    assert first_scrape[0].show.tickets == []
+    assert [(ticket.type, ticket.price) for ticket in second_scrape[0].show.tickets] == [
+        ("General Admisson", 33.0)
+    ]
 
 
 # ---------------------------------------------------------------------------
