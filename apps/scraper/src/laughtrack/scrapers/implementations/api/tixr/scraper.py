@@ -18,9 +18,10 @@ Pipeline:
 
 from datetime import datetime
 import html
+import json
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 from urllib.parse import urlparse
 
 import pytz
@@ -483,6 +484,7 @@ class TixrScraper(BaseScraper):
     def _parse_webflow_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
         events: List[TixrEvent] = []
         seen_ids: set[str] = set()
+        jsonld_offer_prices = self._extract_jsonld_offer_prices_by_url(soup)
 
         for item in soup.select(".event-item"):
             link = item.select_one('a.ticket-links[href*="tixr.com"]')
@@ -524,7 +526,7 @@ class TixrScraper(BaseScraper):
                 lineup=[],
                 tickets=[
                     Ticket(
-                        price=None,
+                        price=jsonld_offer_prices.get(ticket_url),
                         purchase_url=ticket_url,
                         sold_out=False,
                         type="General Admission",
@@ -538,6 +540,47 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    def _extract_jsonld_offer_prices_by_url(self, soup: BeautifulSoup) -> Dict[str, Optional[float]]:
+        prices_by_url: Dict[str, Optional[float]] = {}
+        for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+            raw_json = script.string or script.get_text()
+            if not raw_json:
+                continue
+
+            try:
+                payload = json.loads(raw_json)
+            except json.JSONDecodeError:
+                continue
+
+            for event in self._iter_jsonld_events(payload):
+                offers = event.get("offers")
+                for offer in self._iter_jsonld_objects(offers):
+                    offer_url = str(offer.get("url") or "").strip()
+                    if not offer_url:
+                        continue
+                    prices_by_url[offer_url] = self._parse_price(offer.get("price"))
+
+        return prices_by_url
+
+    def _iter_jsonld_events(self, value: Any) -> Iterator[Dict[str, Any]]:
+        for obj in self._iter_jsonld_objects(value):
+            node_type = obj.get("@type")
+            types = node_type if isinstance(node_type, list) else [node_type]
+            if "Event" in types:
+                yield obj
+            graph = obj.get("@graph")
+            if graph is not None:
+                yield from self._iter_jsonld_events(graph)
+
+    @staticmethod
+    def _iter_jsonld_objects(value: Any) -> Iterator[Dict[str, Any]]:
+        if isinstance(value, dict):
+            yield value
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    yield item
 
     def _parse_stand_public_cards(self, soup: BeautifulSoup) -> List[TixrEvent]:
         """Parse The Stand NYC's Bootstrap-style ``.show_row`` cards.
