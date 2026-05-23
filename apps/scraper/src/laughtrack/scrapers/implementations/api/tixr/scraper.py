@@ -544,6 +544,7 @@ class TixrScraper(BaseScraper):
 
             room_el = row.select_one(".list-show-room") or row.select_one(".list-show-room-new")
             room = room_el.get_text(" ", strip=True) if room_el else ""
+            ticket_price = self._extract_stand_ticket_price(row, buy_btn)
 
             show = Show(
                 name=title,
@@ -553,7 +554,7 @@ class TixrScraper(BaseScraper):
                 lineup=[],
                 tickets=[
                     Ticket(
-                        price=None,
+                        price=ticket_price,
                         purchase_url=ticket_url,
                         sold_out=False,
                         type="General Admission",
@@ -567,6 +568,33 @@ class TixrScraper(BaseScraper):
             events.append(TixrEvent.from_tixr_show(show=show, source_url=ticket_url, event_id=event_id))
 
         return events
+
+    def _extract_stand_ticket_price(self, row: Any, buy_btn: Any) -> Optional[float]:
+        ticket_container = buy_btn.find_parent("div", class_="text-uppercase") or row
+        text_parts: List[str] = []
+        for descendant in ticket_container.descendants:
+            if descendant is buy_btn or getattr(descendant, "parent", None) is buy_btn:
+                continue
+            if isinstance(descendant, str):
+                text = descendant.strip()
+                if text:
+                    text_parts.append(text)
+        return self._parse_stand_ticket_price_text(" ".join(text_parts))
+
+    @staticmethod
+    def _parse_stand_ticket_price_text(text: str) -> Optional[float]:
+        normalized = " ".join(text.split())
+        if not normalized:
+            return None
+
+        price_match = re.search(r"\$\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)", normalized)
+        if price_match:
+            return float(price_match.group(1).replace(",", ""))
+
+        if re.search(r"\bfree\b", normalized, re.IGNORECASE):
+            return 0.0
+
+        return None
 
     def _parse_stand_show_datetime(self, href: str) -> Optional[datetime]:
         """Extract a localized datetime from The Stand's `/shows/show/<id>/<YYYY-MM-DD>-<HHMMSS>-...` path."""

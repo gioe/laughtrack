@@ -30,6 +30,7 @@ IMPROV_ASYLUM_TIXR_URL = "https://www.tixr.com/groups/improvasylum"
 STAND_SCRAPING_URL = "thestandnyc.com"
 STAND_PUBLIC_SHOWS_URL = "https://thestandnyc.com/shows"
 STAND_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376"
+STAND_FREE_TIXR_URL = "https://www.tixr.com/groups/thestandnyc/events/free-comedy-night--187377"
 
 
 def _club(scraping_url: str = CALENDAR_URL) -> Club:
@@ -195,6 +196,7 @@ def _stand_public_card_html() -> str:
   <h2 class="showtitle"><a href="https://thestandnyc.com//shows/show/12964/2026-05-08-190000-the-stand-presents-josh-ocean-thomas">The Stand Presents: Josh Ocean Thomas</a></h2>
   <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">7:00 PM</span> <span class="list-show-room">Upstairs</span></h3>
   <div class="text-uppercase">
+    <div class="show-price">$32.50</div>
     <a href="https://www.tixr.com/groups/thestandnyc/events/the-stand-presents-josh-ocean-thomas--187376" class="btn btn-stand">Buy Tickets</a>
   </div>
 </div>
@@ -203,6 +205,31 @@ def _stand_public_card_html() -> str:
   <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">8:00 PM</span> <span class="list-show-room">Main Room</span></h3>
   <div class="text-uppercase">
     <span class="btn btn-outline-danger">Sold Out</span>
+  </div>
+</div>
+</body></html>"""
+
+
+def _stand_public_card_html_with_free_ticket() -> str:
+    return """<html><body>
+<div class="row show_row ">
+  <h2 class="showtitle"><a href="/shows/show/12966/2026-05-08-213000-free-comedy-night">Free Comedy Night</a></h2>
+  <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">9:30 PM</span> <span class="list-show-room">Upstairs</span></h3>
+  <div class="text-uppercase">
+    <div class="show-price">FREE!</div>
+    <a href="https://www.tixr.com/groups/thestandnyc/events/free-comedy-night--187377" class="btn btn-stand">Buy Tickets</a>
+  </div>
+</div>
+</body></html>"""
+
+
+def _stand_public_card_html_with_free_title_and_missing_ticket_text() -> str:
+    return """<html><body>
+<div class="row show_row ">
+  <h2 class="showtitle"><a href="/shows/show/12967/2026-05-08-220000-free-comedy-night">Free Comedy Night</a></h2>
+  <h3 class="showinfo"><span class="show_date">May 8</span> | <span class="show_date">10:00 PM</span> <span class="list-show-room">Upstairs</span></h3>
+  <div class="text-uppercase">
+    <a href="https://www.tixr.com/groups/thestandnyc/events/free-comedy-night--187378" class="btn btn-stand">Buy Tickets</a>
   </div>
 </div>
 </body></html>"""
@@ -556,6 +583,65 @@ async def test_public_card_scraper_avoids_blocked_detail_fetch(monkeypatch):
     assert event.show.date.hour == 19
     assert event.show.date.minute == 0
     scraper.tixr_client.get_event_detail_from_url.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_parses_stand_paid_ticket_prices(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    assert result.event_list[0].show.tickets[0].price == 32.5
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_parses_stand_free_ticket_prices(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+    html_by_url = {
+        STAND_PUBLIC_SHOWS_URL: _stand_public_card_html_with_free_ticket(),
+        f"{STAND_PUBLIC_SHOWS_URL}?missing-ticket-text": (
+            _stand_public_card_html_with_free_title_and_missing_ticket_text()
+        ),
+    }
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return html_by_url[url]
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    ticket = result.event_list[0].show.tickets[0]
+    assert ticket.purchase_url == STAND_FREE_TIXR_URL
+    assert ticket.price == 0.0
+
+    missing_text_result = await scraper.get_data(f"{STAND_PUBLIC_SHOWS_URL}?missing-ticket-text")
+
+    assert missing_text_result is not None
+    assert missing_text_result.event_list[0].show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_skips_stand_sold_out_cards(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    assert result.get_event_count() == 1
+    assert [event.title for event in result.event_list] == ["The Stand Presents: Josh Ocean Thomas"]
 
 
 @pytest.mark.asyncio
