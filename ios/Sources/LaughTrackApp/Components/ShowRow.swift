@@ -12,12 +12,13 @@ struct ShowRow: View {
         let laughTrack = theme.laughTrackTokens
         let isOpenMic = Self.isOpenMic(show)
         let isSoldOut = show.soldOut == true
-        let lineup = isOpenMic ? [] : Self.topLineup(for: show, limit: 3)
+        let artworkComedian = isOpenMic ? nil : Self.artworkComedian(for: show)
+        let lineup = isOpenMic ? [] : Self.topLineup(for: show, limit: 3, excluding: artworkComedian)
         let metadata = Self.metadata(for: show)
 
         return VStack(alignment: .leading, spacing: theme.spacing.sm) {
             HStack(alignment: .top, spacing: theme.spacing.md) {
-                rowArtwork(isSoldOut: isSoldOut)
+                artworkColumn(isSoldOut: isSoldOut, caption: artworkComedian?.name)
 
                 VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                     Text(Self.listTitle(for: show))
@@ -64,6 +65,23 @@ struct ShowRow: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
+    }
+
+    @ViewBuilder
+    private func artworkColumn(isSoldOut: Bool, caption: String?) -> some View {
+        let laughTrack = theme.laughTrackTokens
+        VStack(spacing: 4) {
+            rowArtwork(isSoldOut: isSoldOut)
+            if let caption, !caption.isEmpty {
+                Text(caption)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                    .frame(width: LaughTrackEntityRowDesign.searchCard.artworkSize)
+                    .opacity(isSoldOut ? 0.6 : 1)
+            }
+        }
     }
 
     @ViewBuilder
@@ -231,8 +249,13 @@ struct ShowRow: View {
     }
 
     static func artworkImageURL(for show: Components.Schemas.Show) -> String? {
-        let imageURL = featuredComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
-        return imageURL?.isEmpty == false ? imageURL : nil
+        artworkComedian(for: show)?.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines).nonEmpty
+    }
+
+    static func artworkComedian(for show: Components.Schemas.Show) -> Components.Schemas.ComedianLineup? {
+        guard let featured = featuredComedian(for: show) else { return nil }
+        let trimmed = featured.imageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : featured
     }
 
     static func metadata(for show: Components.Schemas.Show) -> [String] {
@@ -259,16 +282,26 @@ struct ShowRow: View {
         ShowFormatting.isOpenMic(show.name)
     }
 
-    static func topLineup(for show: Components.Schemas.Show, limit: Int = 3) -> [Components.Schemas.ComedianLineup] {
+    static func topLineup(
+        for show: Components.Schemas.Show,
+        limit: Int = 3,
+        excluding excluded: Components.Schemas.ComedianLineup? = nil
+    ) -> [Components.Schemas.ComedianLineup] {
         guard let lineup = show.lineup, !lineup.isEmpty else { return [] }
 
         let resolved = lineup.map(Self.effectiveComedian)
-        let counts = resolved.compactMap(\.showCount)
+        let filtered: [Components.Schemas.ComedianLineup]
+        if let excluded {
+            filtered = resolved.filter { $0.id != excluded.id }
+        } else {
+            filtered = resolved
+        }
+        let counts = filtered.compactMap(\.showCount)
         let ordered: [Components.Schemas.ComedianLineup]
         if counts.isEmpty {
-            ordered = resolved
+            ordered = filtered
         } else {
-            ordered = resolved.sorted { ($0.showCount ?? 0) > ($1.showCount ?? 0) }
+            ordered = filtered.sorted { ($0.showCount ?? 0) > ($1.showCount ?? 0) }
         }
 
         return Array(ordered.prefix(limit))

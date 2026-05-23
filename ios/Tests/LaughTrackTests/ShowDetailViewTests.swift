@@ -77,7 +77,7 @@ struct ShowDetailViewTests {
 
         #expect(loaded.data.lineup == nil)
         #expect(loaded.relatedShows.isEmpty)
-        #expect(ShowDetailPresentation.summaryFacts(for: loaded.data).first { $0.label == "Tickets" }?.value == "Unavailable")
+        #expect(ShowDetailPresentation.summaryFacts(for: loaded.data).first { $0.label == "Tickets" }?.value == "Price unavailable")
         #expect(ShowDetailPresentation.primaryTicketURL(for: loaded.data) == nil)
     }
 
@@ -214,7 +214,7 @@ struct ShowDetailViewTests {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
         #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
-        #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
+        #expect(facts.first { $0.label == "Tickets" }?.value == "Price unavailable")
     }
 
     @Test("show detail ticket cell targets ticket purchase URL")

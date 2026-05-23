@@ -17,7 +17,7 @@ enum ShowPricePresentation {
 
         let prices = (show.tickets ?? []).compactMap(\.price)
         guard let lowest = prices.min() else {
-            return "Unavailable"
+            return "Price unavailable"
         }
 
         if lowest <= 0 {
@@ -27,8 +27,14 @@ enum ShowPricePresentation {
         return currencyFormatter.string(from: NSNumber(value: lowest)) ?? "$\(lowest)"
     }
 
+    static func detailTicketPriceUnavailable(_ summary: String) -> Bool {
+        summary == "Price unavailable"
+    }
+
+    static let priceUnavailableExplanation = "Price of these tickets was not made available to us by the venue."
+
     // Rows stay compact for scannable lists and expose ranges/strikethrough
-    // context. Detail shows a single summary fact and preserves Unavailable.
+    // context. Detail shows a single summary fact and preserves "Price unavailable".
     private static func priceRangeLabel(
         from tickets: [Components.Schemas.Ticket]?,
         includeSoldOut: Bool

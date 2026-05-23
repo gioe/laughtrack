@@ -83,7 +83,7 @@ struct DetailHeroLayoutTests {
         let facts = ShowDetailPresentation.summaryFacts(for: show)
 
         #expect(facts.map(\.label) == ["When", "Venue", "Tickets"])
-        #expect(facts.first { $0.label == "Tickets" }?.value == "Unavailable")
+        #expect(facts.first { $0.label == "Tickets" }?.value == "Price unavailable")
     }
 
     @Test("show detail ticket cell targets ticket purchase URL")

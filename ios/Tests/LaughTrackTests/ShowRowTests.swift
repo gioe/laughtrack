@@ -166,6 +166,30 @@ struct ShowRowTests {
         #expect(top.map(\.name) == ["Headliner", "Feature", "Opener"])
     }
 
+    @Test("top lineup excludes the artwork comedian to avoid duplicate avatars")
+    func topLineupExcludesArtworkComedian() {
+        let show = makeShow(lineup: [
+            lineup(name: "Opener", imageURL: "https://example.com/opener.jpg", showCount: 3),
+            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
+            lineup(name: "Filler", imageURL: "https://example.com/filler.jpg", showCount: 1),
+        ])
+
+        let artwork = ShowRow.artworkComedian(for: show)
+        #expect(artwork?.name == "Headliner")
+        #expect(ShowRow.topLineup(for: show, excluding: artwork).map(\.name) == ["Feature", "Opener", "Filler"])
+    }
+
+    @Test("artwork comedian is nil when the most popular performer has no image")
+    func artworkComedianNilWhenFeaturedImageMissing() {
+        let show = makeShow(lineup: [
+            lineup(name: "Headliner", imageURL: "   ", showCount: 50),
+            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 10),
+        ])
+
+        #expect(ShowRow.artworkComedian(for: show) == nil)
+    }
+
     @Test("top lineup preserves order when show counts are absent")
     func topLineupPreservesOrderWhenCountsAbsent() {
         let show = makeShow(lineup: [

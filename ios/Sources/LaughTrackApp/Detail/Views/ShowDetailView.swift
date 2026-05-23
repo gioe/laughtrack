@@ -212,17 +212,25 @@ private struct ShowSummarySection: View {
                             }
                             .buttonStyle(.plain)
                             .accessibilityHint("Adds this show to your phone calendar")
-                        } else if fact.label == "Tickets", let ticketURL {
-                            Button {
-                                openTicketURL(ticketURL)
-                            } label: {
-                                ShowSummaryFactTile(
-                                    fact: fact,
-                                    action: .init(systemImage: "arrow.up.right", label: "Buy tickets")
-                                )
+                        } else if fact.label == "Tickets" {
+                            let infoMessage = ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
+                                ? ShowPricePresentation.priceUnavailableExplanation
+                                : nil
+                            if let ticketURL {
+                                Button {
+                                    openTicketURL(ticketURL)
+                                } label: {
+                                    ShowSummaryFactTile(
+                                        fact: fact,
+                                        action: .init(systemImage: "arrow.up.right", label: "Buy tickets"),
+                                        infoMessage: infoMessage
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityHint("Opens the ticket purchase page")
+                            } else {
+                                ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityHint("Opens the ticket purchase page")
                         } else if fact.label == "Venue" {
                             Button(action: openClub) {
                                 ShowSummaryFactTile(
@@ -257,6 +265,9 @@ private struct ShowSummaryFactTile: View {
 
     let fact: ShowDetailFact
     var action: ActionAffordance?
+    var infoMessage: String?
+
+    @State private var showingInfo = false
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -277,10 +288,26 @@ private struct ShowSummaryFactTile: View {
                     .font(laughTrack.typography.metadata)
                     .foregroundStyle(laughTrack.colors.textSecondary)
                     .textCase(.uppercase)
-                Text(fact.value)
-                    .font(laughTrack.typography.body.weight(.semibold))
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 6) {
+                    Text(fact.value)
+                        .font(laughTrack.typography.body.weight(.semibold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if infoMessage != nil {
+                        Button {
+                            showingInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .padding(4)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("More information")
+                        .accessibilityHint("Shows why this value is unavailable")
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -293,6 +320,13 @@ private struct ShowSummaryFactTile: View {
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
+        .alert(fact.label, isPresented: $showingInfo) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let infoMessage {
+                Text(infoMessage)
+            }
+        }
     }
 
     private var leadingSymbol: String {
