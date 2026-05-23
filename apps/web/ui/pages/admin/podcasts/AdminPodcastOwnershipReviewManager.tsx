@@ -45,8 +45,11 @@ type ReviewView = "podcast" | "comedian";
 type ReviewSort =
     | "name-asc"
     | "name-desc"
+    | "episode-count-desc"
+    | "episode-count-asc"
     | "popularity-desc"
     | "popularity-asc";
+type ReviewSortOption = { value: ReviewSort; label: string };
 
 type PodcastReviewGroup = {
     key: string;
@@ -182,10 +185,7 @@ function groupByComedian(
     const podcastGroupById = new Map(
         podcastGroups.map((group) => [group.podcast.id, group]),
     );
-    const byComedian = new Map<
-        number,
-        AdminPodcastHostshipReviewCandidate[]
-    >();
+    const byComedian = new Map<number, AdminPodcastHostshipReviewCandidate[]>();
     for (const candidate of candidates) {
         if (!candidate.podcast) continue;
         const rows = byComedian.get(candidate.comedian.id) ?? [];
@@ -225,6 +225,16 @@ function sortPodcastGroups(groups: PodcastReviewGroup[], sort: ReviewSort) {
         switch (sort) {
             case "name-desc":
                 return compareText(b.podcast.title, a.podcast.title);
+            case "episode-count-desc":
+                return (
+                    b.podcast.episodeCount - a.podcast.episodeCount ||
+                    compareText(a.podcast.title, b.podcast.title)
+                );
+            case "episode-count-asc":
+                return (
+                    a.podcast.episodeCount - b.podcast.episodeCount ||
+                    compareText(a.podcast.title, b.podcast.title)
+                );
             case "popularity-desc":
                 return (
                     b.popularity - a.popularity ||
@@ -350,10 +360,44 @@ export default function AdminPodcastHostshipReviewManager({
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
     const activeQuery = queries[activeView];
+    const sortOptions: ReviewSortOption[] =
+        activeView === "podcast"
+            ? [
+                  { value: "episode-count-desc", label: "Most Episodes" },
+                  { value: "episode-count-asc", label: "Fewest Episodes" },
+                  { value: "name-asc", label: "Name A-Z" },
+                  { value: "name-desc", label: "Name Z-A" },
+                  {
+                      value: "popularity-desc",
+                      label: "Popularity high-low",
+                  },
+                  {
+                      value: "popularity-asc",
+                      label: "Popularity low-high",
+                  },
+              ]
+            : [
+                  { value: "name-asc", label: "Name A-Z" },
+                  { value: "name-desc", label: "Name Z-A" },
+                  {
+                      value: "popularity-desc",
+                      label: "Popularity high-low",
+                  },
+                  {
+                      value: "popularity-asc",
+                      label: "Popularity low-high",
+                  },
+              ];
 
     useEffect(() => {
         setPage(1);
     }, [activeView, activeQuery, sort, pageSize]);
+
+    useEffect(() => {
+        if (activeView === "comedian" && sort.startsWith("episode-count-")) {
+            setSort("name-asc");
+        }
+    }, [activeView, sort]);
 
     function updateActiveQuery(value: string) {
         setQueries((current) => ({
@@ -606,18 +650,7 @@ export default function AdminPodcastHostshipReviewManager({
                     label="Sort"
                     value={sort}
                     onChange={setSort}
-                    options={[
-                        { value: "name-asc", label: "Name A-Z" },
-                        { value: "name-desc", label: "Name Z-A" },
-                        {
-                            value: "popularity-desc",
-                            label: "Popularity high-low",
-                        },
-                        {
-                            value: "popularity-asc",
-                            label: "Popularity low-high",
-                        },
-                    ]}
+                    options={sortOptions}
                 />
             </AdminToolbar>
             <AdminPagination
@@ -635,13 +668,10 @@ export default function AdminPodcastHostshipReviewManager({
                     ? pagedPodcastGroups.map((group) => {
                           const noteId = `podcast-review-note-${group.key}`;
                           const searchId = `podcast-host-search-${group.key}`;
-                          const selectedHost =
-                              selectedHosts[group.key] ?? null;
+                          const selectedHost = selectedHosts[group.key] ?? null;
                           const selectedGroupCohosts =
                               selectedCohosts[group.key] ?? [];
-                          const isDenied = Boolean(
-                              group.podcast.denyListEntry,
-                          );
+                          const isDenied = Boolean(group.podcast.denyListEntry);
                           const disabled = isPending || pendingKey !== null;
                           const resultRows = searchResults[group.key] ?? [];
                           const frameKey = `podcast-${group.key}`;
@@ -671,7 +701,7 @@ export default function AdminPodcastHostshipReviewManager({
                                                           ? "bg-green-50 text-green-800"
                                                           : isDenied
                                                             ? "bg-red-50 text-red-800"
-                                                          : "bg-red-50 text-red-800"
+                                                            : "bg-red-50 text-red-800"
                                                   }`}
                                               >
                                                   {selectedHost
@@ -692,8 +722,7 @@ export default function AdminPodcastHostshipReviewManager({
                                           <div className="mt-3 flex flex-wrap gap-2">
                                               {selectedHost ? (
                                                   <span className="inline-flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-green-900">
-                                                      Host:{" "}
-                                                      {selectedHost.name}
+                                                      Host: {selectedHost.name}
                                                       <button
                                                           type="button"
                                                           onClick={() =>
@@ -727,8 +756,7 @@ export default function AdminPodcastHostshipReviewManager({
                                                           key={cohost.id}
                                                           className="inline-flex items-center gap-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 font-dmSans text-sm font-semibold text-blue-900"
                                                       >
-                                                          Co-host:{" "}
-                                                          {cohost.name}
+                                                          Co-host: {cohost.name}
                                                           <button
                                                               type="button"
                                                               onClick={() =>
@@ -891,7 +919,9 @@ export default function AdminPodcastHostshipReviewManager({
                                                               );
                                                           return (
                                                               <button
-                                                                  key={option.id}
+                                                                  key={
+                                                                      option.id
+                                                                  }
                                                                   type="button"
                                                                   onClick={() =>
                                                                       setSelectedCohosts(
@@ -1267,7 +1297,7 @@ export default function AdminPodcastHostshipReviewManager({
                                                                           ? "bg-green-50 text-green-800"
                                                                           : isDenied
                                                                             ? "bg-red-50 text-red-800"
-                                                                          : "bg-red-50 text-red-800"
+                                                                            : "bg-red-50 text-red-800"
                                                                   }`}
                                                               >
                                                                   {selectedHost

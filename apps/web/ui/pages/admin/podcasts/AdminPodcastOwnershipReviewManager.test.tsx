@@ -40,6 +40,7 @@ const candidate: AdminPodcastHostshipReviewCandidate = {
         slug: "jane-show",
         title: "The Jane Show",
         authorName: "Jane Comic",
+        episodeCount: 12,
         imageUrl: null,
         websiteUrl: "https://pod.example",
         feedUrl: "https://pod.example/feed.xml",
@@ -234,6 +235,53 @@ describe("AdminPodcastHostshipReviewManager", () => {
         expect(screen.getAllByText("1-1 of 1 podcasts").length).toBe(2);
     });
 
+    it("sorts the podcast view by most and fewest episodes", () => {
+        const smallPodcastCandidate: AdminPodcastHostshipReviewCandidate = {
+            ...candidate,
+            id: 13,
+            podcast: {
+                ...candidate.podcast!,
+                id: 100,
+                slug: "small-podcast",
+                title: "Alpha Small Podcast",
+                episodeCount: 3,
+            },
+        };
+        const largePodcastCandidate: AdminPodcastHostshipReviewCandidate = {
+            ...candidate,
+            id: 14,
+            podcast: {
+                ...candidate.podcast!,
+                id: 101,
+                slug: "large-podcast",
+                title: "Zeta Large Podcast",
+                episodeCount: 42,
+            },
+        };
+
+        render(
+            <AdminPodcastHostshipReviewManager
+                candidates={[smallPodcastCandidate, largePodcastCandidate]}
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "episode-count-desc" },
+        });
+
+        expect(
+            screen.getAllByRole("button", { name: /Podcast/ })[0].textContent,
+        ).toContain("Zeta Large Podcast");
+
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "episode-count-asc" },
+        });
+
+        expect(
+            screen.getAllByRole("button", { name: /Podcast/ })[0].textContent,
+        ).toContain("Alpha Small Podcast");
+    });
+
     it("filters the comedian view by comedian name", () => {
         const otherCandidate: AdminPodcastHostshipReviewCandidate = {
             ...candidate,
@@ -356,7 +404,9 @@ describe("AdminPodcastHostshipReviewManager", () => {
         );
 
         openGroup(/The Jane Show/);
-        fireEvent.click(screen.getByRole("button", { name: "Co-host: Co Host" }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Co-host: Co Host" }),
+        );
         fireEvent.click(
             screen.getByRole("button", { name: "Save The Jane Show" }),
         );

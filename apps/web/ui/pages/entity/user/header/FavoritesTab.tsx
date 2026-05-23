@@ -38,6 +38,7 @@ const toPodcastDTO = (item: FavoritePodcastApiItem): PodcastDTO => ({
     imageUrl: item.imageUrl,
     description: item.description,
     episodeCount: item.episodeCount,
+    hosts: [],
     isFavorite: item.isFavorite ?? true,
 });
 

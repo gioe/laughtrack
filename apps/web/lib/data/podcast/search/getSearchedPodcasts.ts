@@ -165,6 +165,7 @@ export async function getSearchedPodcasts(params: {
             imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
+            hosts: [],
             isFavorite: Boolean(
                 (podcast as typeof podcast & { favorites?: { id: number }[] })
                     .favorites?.length,

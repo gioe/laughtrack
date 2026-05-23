@@ -90,6 +90,7 @@ const podcast: PodcastDTO = {
     imageUrl: null,
     description: null,
     episodeCount: 0,
+    hosts: [],
 };
 
 describe("detail page related-content tablists", () => {
@@ -171,5 +172,34 @@ describe("detail page related-content tablists", () => {
         ).toBeTruthy();
         expect(screen.getByRole("tab", { name: /episodes/i })).toBeTruthy();
         expect(screen.getByRole("tab", { name: /comedians/i })).toBeTruthy();
+    });
+
+    it("renders podcast detail host identity without author prefix or episode count", () => {
+        render(
+            <PodcastDetail
+                podcast={{
+                    ...podcast,
+                    authorName: "Feed Author",
+                    episodeCount: 100,
+                    hosts: [
+                        {
+                            id: 10,
+                            uuid: "host-10",
+                            name: "Actual Host",
+                            imageUrl:
+                                "https://test.b-cdn.net/comedians/Actual%20Host.png",
+                        },
+                    ],
+                }}
+                episodes={[]}
+                relatedComedians={[]}
+            />,
+        );
+
+        expect(screen.getByText("Actual Host")).toBeTruthy();
+        expect(screen.getByRole("img", { name: "Actual Host" })).toBeTruthy();
+        expect(screen.queryByText(/Hosted by/i)).toBeNull();
+        expect(screen.queryByText(/100 episodes/i)).toBeNull();
+        expect(screen.queryByText("Feed Author")).toBeNull();
     });
 });

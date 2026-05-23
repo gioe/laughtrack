@@ -19,6 +19,13 @@ export interface PodcastEpisodeAppearanceDTO {
     imageUrl: string;
 }
 
+export interface PodcastHostDTO {
+    id: number;
+    uuid: string;
+    name: string;
+    imageUrl: string;
+}
+
 export interface PodcastDTO {
     id: number;
     slug: string;
@@ -29,6 +36,7 @@ export interface PodcastDTO {
     imageUrl: string | null;
     description: string | null;
     episodeCount: number;
+    hosts: PodcastHostDTO[];
     isFavorite?: boolean;
 }
 

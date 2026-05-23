@@ -151,5 +151,6 @@ export async function getTrendingPodcasts(
         imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
         description: plainText(podcast.description),
         episodeCount: podcast._count.episodes,
+        hosts: [],
     }));
 }

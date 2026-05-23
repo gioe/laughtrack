@@ -253,6 +253,7 @@ describe("GET /api/v1/home/feed", () => {
                     imageUrl: "https://cdn.example.com/good-one.jpg",
                     description: "Comedy interviews",
                     episodeCount: 12,
+                    hosts: [],
                 },
             ]);
 
@@ -271,6 +272,7 @@ describe("GET /api/v1/home/feed", () => {
                     imageUrl: "https://cdn.example.com/good-one.jpg",
                     description: "Comedy interviews",
                     episodeCount: 12,
+                    hosts: [],
                 },
             ]);
             expect(mockGetTrendingPodcasts).toHaveBeenCalledWith(null);

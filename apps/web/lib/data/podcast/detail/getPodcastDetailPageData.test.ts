@@ -237,7 +237,7 @@ describe("getPodcastDetailPageData", () => {
                         id: 8,
                         uuid: "uuid-8",
                         name: "Main Host",
-                        hasImage: false,
+                        hasImage: true,
                         bio: null,
                         linktree: null,
                         instagramAccount: null,
@@ -257,9 +257,17 @@ describe("getPodcastDetailPageData", () => {
 
         const result = await getPodcastDetailPageData("jane-show");
 
-        expect(result.relatedComedians.map((comedian) => comedian.name)).toEqual(
-            ["Main Host"],
-        );
+        expect(
+            result.relatedComedians.map((comedian) => comedian.name),
+        ).toEqual(["Main Host"]);
+        expect(result.podcast.hosts).toEqual([
+            {
+                id: 8,
+                uuid: "uuid-8",
+                name: "Main Host",
+                imageUrl: "https://test.b-cdn.net/comedians/Main%20Host.png",
+            },
+        ]);
     });
 
     it("attaches every co-host when no host exists on detail pages", async () => {
@@ -320,8 +328,8 @@ describe("getPodcastDetailPageData", () => {
 
         const result = await getPodcastDetailPageData("jane-show");
 
-        expect(result.relatedComedians.map((comedian) => comedian.name)).toEqual(
-            ["Co Host A", "Co Host B"],
-        );
+        expect(
+            result.relatedComedians.map((comedian) => comedian.name),
+        ).toEqual(["Co Host A", "Co Host B"]);
     });
 });

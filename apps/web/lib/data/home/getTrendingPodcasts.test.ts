@@ -198,6 +198,7 @@ describe("getTrendingPodcasts", () => {
                     "/api/v1/podcast-artwork?url=https%3A%2F%2Fcdn.example.com%2Fgood-one.jpg",
                 description: "Comedy interviews",
                 episodeCount: 12,
+                hosts: [],
             },
         ]);
     });

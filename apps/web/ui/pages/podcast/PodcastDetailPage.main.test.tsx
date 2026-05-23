@@ -66,6 +66,7 @@ const podcast: PodcastDTO = {
     imageUrl: null,
     description: "A delightful podcast.",
     episodeCount: 2,
+    hosts: [],
 };
 
 const episodes: PodcastEpisodeDTO[] = [

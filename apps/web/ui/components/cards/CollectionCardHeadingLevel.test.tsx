@@ -137,6 +137,7 @@ const podcast: PodcastDTO = {
     imageUrl: null,
     description: null,
     episodeCount: 10,
+    hosts: [],
 };
 
 describe("collection card heading levels", () => {

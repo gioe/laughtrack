@@ -49,6 +49,7 @@ const podcast: PodcastDTO = {
     imageUrl: null,
     description: "Comedy interviews.",
     episodeCount: 0,
+    hosts: [],
     isFavorite: false,
 };
 

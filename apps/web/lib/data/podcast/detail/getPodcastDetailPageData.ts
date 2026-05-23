@@ -1,6 +1,10 @@
 import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
-import type { PodcastDetailResponse, PodcastEpisodeDTO } from "../interface";
+import type {
+    PodcastDetailResponse,
+    PodcastEpisodeDTO,
+    PodcastHostDTO,
+} from "../interface";
 import type { SocialDataDTO } from "@/objects/class/socialData/socialData.interface";
 import { buildPodcastArtworkUrl } from "@/lib/data/podcast/imageUrl";
 import {
@@ -183,6 +187,19 @@ async function getPodcastDetailPageDataByWhere(
         attributedLinks.map((link) => [link.comedian.id, link.comedian]),
     );
 
+    const hosts: PodcastHostDTO[] = attributedLinks
+        .map((link) => link.comedian)
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((comedian) => ({
+            id: comedian.id,
+            uuid: comedian.uuid,
+            name: comedian.name,
+            imageUrl: buildComedianImageUrl(
+                comedian.name,
+                Boolean(comedian.hasImage),
+            ),
+        }));
+
     const relatedComedians = Array.from(comedianById.values())
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((comedian) => {
@@ -221,6 +238,7 @@ async function getPodcastDetailPageDataByWhere(
             imageUrl: buildPodcastArtworkUrl(podcast.imageUrl),
             description: plainText(podcast.description),
             episodeCount: podcast._count.episodes,
+            hosts,
             isFavorite: Boolean(
                 (podcast as typeof podcast & { favorites?: { id: number }[] })
                     .favorites?.length,

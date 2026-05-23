@@ -31,7 +31,9 @@ import {
     RATE_LIMIT_SENTINEL_VALUE,
 } from "@/test/rateLimitSentinel";
 
-const mockGetPodcastDetailPageDataById = vi.mocked(getPodcastDetailPageDataById);
+const mockGetPodcastDetailPageDataById = vi.mocked(
+    getPodcastDetailPageDataById,
+);
 const mockRateLimitHeaders = vi.mocked(rateLimitHeaders);
 const mockResolveAuth = vi.mocked(resolveAuth);
 
@@ -57,6 +59,7 @@ describe("GET /api/v1/podcasts/[id]", () => {
                 imageUrl: "https://cdn.example.com/podcast.jpg",
                 description: "Comedy conversations.",
                 episodeCount: 12,
+                hosts: [],
             },
             episodes: [
                 {
@@ -123,9 +126,7 @@ describe("GET /api/v1/podcasts/[id]", () => {
             "https://cdn.example.com/podcast.jpg",
         );
         expect(body.podcast.episodeCount).toBe(12);
-        expect(body.podcast.websiteUrl).toBe(
-            "https://podcasts.example.com",
-        );
+        expect(body.podcast.websiteUrl).toBe("https://podcasts.example.com");
         expect(body.podcast.feedUrl).toBe(
             "https://podcasts.example.com/feed.xml",
         );
@@ -162,6 +163,7 @@ describe("GET /api/v1/podcasts/[id]", () => {
                 imageUrl: null,
                 description: null,
                 episodeCount: 12,
+                hosts: [],
                 isFavorite: true,
             },
             episodes: [],

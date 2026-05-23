@@ -53,6 +53,7 @@ const podcast: PodcastDTO = {
     imageUrl: "https://cdn.example.com/good-one.jpg",
     description: null,
     episodeCount: 10,
+    hosts: [],
     isFavorite: true,
 };
 

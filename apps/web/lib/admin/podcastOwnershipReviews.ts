@@ -23,6 +23,9 @@ type CandidateRow = {
         slug: string;
         title: string;
         authorName: string | null;
+        _count: {
+            episodes: number;
+        };
         imageUrl: string | null;
         websiteUrl: string | null;
         feedUrl: string | null;
@@ -74,6 +77,7 @@ export type AdminPodcastOwnershipReviewCandidate = {
         slug: string;
         title: string;
         authorName: string | null;
+        episodeCount: number;
         imageUrl: string | null;
         websiteUrl: string | null;
         feedUrl: string | null;
@@ -126,6 +130,7 @@ function serializeCandidate(
                   slug: candidate.podcast.slug,
                   title: candidate.podcast.title,
                   authorName: candidate.podcast.authorName,
+                  episodeCount: candidate.podcast._count.episodes,
                   imageUrl: candidate.podcast.imageUrl,
                   websiteUrl: candidate.podcast.websiteUrl,
                   feedUrl: candidate.podcast.feedUrl,
@@ -184,6 +189,11 @@ export async function listPodcastOwnershipReviews(): Promise<
                     slug: true,
                     title: true,
                     authorName: true,
+                    _count: {
+                        select: {
+                            episodes: true,
+                        },
+                    },
                     imageUrl: true,
                     websiteUrl: true,
                     feedUrl: true,

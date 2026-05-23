@@ -14,6 +14,7 @@ import {
 import type {
     PodcastDTO,
     PodcastEpisodeDTO,
+    PodcastHostDTO,
 } from "@/lib/data/podcast/interface";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import DetailTabs, { DetailTab } from "@/ui/pages/entity/detailTabs";
@@ -72,6 +73,36 @@ function PodcastArtwork({
                 <Podcast size={42} aria-hidden="true" />
             )}
         </span>
+    );
+}
+
+function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
+    if (hosts.length === 0) return null;
+
+    return (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+            {hosts.map((host) => (
+                <span
+                    key={host.id}
+                    className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 font-dmSans text-sm font-semibold text-foreground shadow-sm ring-1 ring-gray-200"
+                >
+                    <span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-copper/10 text-xs font-bold text-copper">
+                        {host.imageUrl ? (
+                            <Image
+                                src={host.imageUrl}
+                                alt={host.name}
+                                fill
+                                sizes="28px"
+                                className="object-cover"
+                            />
+                        ) : (
+                            host.name.charAt(0)
+                        )}
+                    </span>
+                    <span className="min-w-0 truncate">{host.name}</span>
+                </span>
+            ))}
+        </div>
     );
 }
 
@@ -285,11 +316,7 @@ export default function PodcastDetail({
                     <h1 className="mt-2 font-gilroy-bold text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-h1">
                         {podcast.title}
                     </h1>
-                    {podcast.authorName ? (
-                        <p className="mt-2 font-dmSans text-lg text-gray-600">
-                            Hosted by {podcast.authorName}
-                        </p>
-                    ) : null}
+                    <PodcastHosts hosts={podcast.hosts} />
                     {podcast.description ? (
                         <p className="mt-4 max-w-3xl font-dmSans text-body leading-relaxed text-gray-700 line-clamp-4">
                             {podcast.description}
@@ -319,8 +346,8 @@ export default function PodcastDetail({
                         </Button>
                         <PodcastPrimaryCta podcast={podcast} />
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                        {podcast.websiteUrl && podcast.feedUrl ? (
+                    {podcast.websiteUrl && podcast.feedUrl ? (
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
                             <a
                                 href={podcast.feedUrl}
                                 target="_blank"
@@ -330,11 +357,8 @@ export default function PodcastDetail({
                                 RSS
                                 <Rss size={16} aria-hidden="true" />
                             </a>
-                        ) : null}
-                        <span className="font-dmSans text-sm text-gray-600">
-                            {podcast.episodeCount} episodes
-                        </span>
-                    </div>
+                        </div>
+                    ) : null}
                 </div>
             </section>
 
