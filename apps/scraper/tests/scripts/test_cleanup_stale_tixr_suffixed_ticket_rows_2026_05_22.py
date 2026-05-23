@@ -43,6 +43,8 @@ def test_task_2402_suffix_regex_matches_tixr_day_time_tiers():
     assert pattern.search("VIP Seating — Thursday 10 PM")
     assert not pattern.search("General Admission")
     assert not pattern.search("Friday Night General Admission")
+    assert not pattern.search("General Admission - Friday 13pm")
+    assert not pattern.search("General Admission - Friday 7:99pm")
 
 
 def test_task_2402_delete_sql_requires_same_show_bare_replacement():

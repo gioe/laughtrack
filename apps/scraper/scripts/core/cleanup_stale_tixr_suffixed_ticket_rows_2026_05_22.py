@@ -54,7 +54,7 @@ PERFORMANCE_TIME_SUFFIX_SQL_RE = (
     r"\s+[-–—]\s*"
     r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday"
     r"|mon|tues|tue|wed|thurs|thur|thu|fri|sat|sun)"
-    r"\s+[0-9]{1,2}(:[0-9]{2})?"
+    r"\s+(0?[1-9]|1[0-2])(:[0-5][0-9])?"
     r"\s*(am|pm)\s*$"
 )
 
