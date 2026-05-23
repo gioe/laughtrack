@@ -282,6 +282,22 @@ def _stand_public_card_html_with_free_ticket() -> str:
 </body></html>"""
 
 
+def _stand_public_card_html_with_ticket_container_price() -> str:
+    return """<html><body>
+<div class="row show_row ">
+  <h2 class="showtitle"><a href="/shows/show/12968/2026-05-23-170000-laughing-buddha-comedy">Laughing Buddha Comedy</a></h2>
+  <h3 class="showinfo"><span class="show_date">May 23</span> | <span class="show_date">5:00 PM</span> <span class="list-show-room-new">Upstairs</span></h3>
+  <div class="col-12 col-sm-9 offset-sm-3 col-md-2 offset-md-0 ticket">
+    $30.00
+    <div class="text-uppercase d-grid d-block gap-2">More Info</div>
+    <div class="text-uppercase d-grid d-block gap-2">
+      <a href="https://www.tixr.com/groups/thestandnyc/events/laughing-buddha-comedy-187320" class="btn btn-stand">Buy Tickets</a>
+    </div>
+  </div>
+</div>
+</body></html>"""
+
+
 def _stand_public_card_html_with_free_title_and_missing_ticket_text() -> str:
     return """<html><body>
 <div class="row show_row ">
@@ -657,6 +673,23 @@ async def test_public_card_scraper_parses_stand_paid_ticket_prices(monkeypatch):
 
     assert result is not None
     assert result.event_list[0].show.tickets[0].price == 32.5
+
+
+@pytest.mark.asyncio
+async def test_public_card_scraper_parses_stand_current_ticket_container_prices(monkeypatch):
+    scraper = TixrPublicCardScraper(_stand_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _stand_public_card_html_with_ticket_container_price()
+
+    monkeypatch.setattr(TixrPublicCardScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(STAND_PUBLIC_SHOWS_URL)
+
+    assert result is not None
+    assert result.event_list[0].title == "Laughing Buddha Comedy"
+    assert result.event_list[0].show.room == "Upstairs"
+    assert result.event_list[0].show.tickets[0].price == 30.0
 
 
 @pytest.mark.asyncio

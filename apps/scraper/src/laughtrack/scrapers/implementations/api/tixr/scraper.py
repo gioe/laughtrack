@@ -650,7 +650,11 @@ class TixrScraper(BaseScraper):
         return events
 
     def _extract_stand_ticket_price(self, row: Any, buy_btn: Any) -> Optional[float]:
-        ticket_container = buy_btn.find_parent("div", class_="text-uppercase") or row
+        ticket_container = (
+            buy_btn.find_parent("div", class_="ticket")
+            or buy_btn.find_parent("div", class_="text-uppercase")
+            or row
+        )
         text_parts: List[str] = []
         for descendant in ticket_container.descendants:
             if descendant is buy_btn or getattr(descendant, "parent", None) is buy_btn:

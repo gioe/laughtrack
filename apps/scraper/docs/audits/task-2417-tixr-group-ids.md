@@ -77,16 +77,17 @@ current public-card route is not broadly price-blind.
 
 Current strategy: `tixr_public_card` over `https://thestandnyc.com/shows`.
 
-Price need: The Stand does need another price route if price coverage is the
-goal. The Stand branch of the public-card parser reads `.show_row` cards,
-extracts date/time from the venue show URL slug, and extracts the Tixr purchase
-URL from `a.btn-stand`, but the current live venue page does not expose price
-text in that card surface.
+Price need: The Stand can remain on the venue-owned public-card route for
+prices after the follow-up parser fix in TASK-2417. The Stand branch reads
+`.show_row` cards, extracts date/time from the venue show URL slug, extracts
+the Tixr purchase URL from `a.btn-stand`, and now reads price text from the
+outer `div.ticket` container used by the current live page.
 
-Live parser check on 2026-05-23 returned 18 events / 18 tickets:
+Live parser check after the parser fix on 2026-05-23 returned 18 events / 18
+tickets:
 
-- `positive_prices`: 0
-- `null_prices`: 18
+- `positive_prices`: 17
+- `null_prices`: 0
 - `zero_prices`: 0
 
 Bounded checks:
@@ -95,13 +96,16 @@ Bounded checks:
 - `make probe-tixr GROUP=thestandnyc LIMIT=2` attempted
   `/api/groups/thestandnyc/events?page=1`; the direct request returned HTTP 400
   and the fallback path returned a DataDome bot-block page.
+- User-provided Chrome NetLog
+  `/Users/mattgioe/Desktop/chrome-net-export-log.json` showed
+  `https://www.tixr.com/api/groups/2072` and
+  `https://www.tixr.com/api/groups/2072/events?page=1`.
+- `make probe-tixr GROUP=2072 LIMIT=2` returned The Stand events with priced
+  `sales[].tiers[].price` values.
 
-Disposition: no `tixr_group_id` was safely resolved by this task, but The Stand
-is the one scoped venue where a numeric id remains useful. A user-captured
-NetLog or DevTools network trace from opening
-`https://www.tixr.com/groups/thestandnyc` should look for
-`/api/groups/<numeric-id>` and then verify the candidate with
-`make probe-tixr GROUP=<id> LIMIT=2`.
+Disposition: do not stamp `tixr_group_id` as part of this task because the
+current venue-page parser now captures prices directly. If The Stand later
+needs Tixr group-events API backfill, use verified numeric group id `2072`.
 
 ## Conclusion
 
@@ -112,14 +116,13 @@ No metadata changes are made by TASK-2417:
   tiers.
 - St. Marks Comedy Club is a venue-page public-card source with mostly complete
   JSON-LD offer price coverage from the venue page itself.
-- The Stand is a venue-page public-card source for event discovery, but live
-  price coverage is currently 0/18. Its numeric Tixr group id remains worth
-  discovering through a user browser NetLog / DevTools capture, because the
-  slug `thestandnyc` is not accepted by the group-events API from the scraper
-  environment.
+- The Stand is a venue-page public-card source for event discovery and price
+  extraction after the parser fix that reads the current `div.ticket` price
+  container. Its verified numeric Tixr group id is `2072`, but stamping that id
+  is optional while the venue page provides prices.
 
-Because no ids were resolved and no metadata is being changed, there is no
-one-shot disposition script for this task.
+Because no metadata is being changed, there is no one-shot disposition script
+for this task.
 
 ## Evidence Commands
 
@@ -216,6 +219,13 @@ The Stand group-events slug probe:
 ```bash
 cd apps/scraper
 make probe-tixr GROUP=thestandnyc LIMIT=2
+```
+
+The Stand numeric group-events probe:
+
+```bash
+cd apps/scraper
+make probe-tixr GROUP=2072 LIMIT=2
 ```
 
 Improv Asylum Tixr group-page bounded fetch:
