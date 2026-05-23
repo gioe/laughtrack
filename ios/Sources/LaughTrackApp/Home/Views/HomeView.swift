@@ -924,7 +924,7 @@ private struct HomeTrendingComediansRail: View {
 
             switch model.phase {
             case .idle, .loading:
-                ComediansListSkeleton()
+                HomeTrendingComediansGridSkeleton(gridColumns: gridColumns)
             case .failure(let failure):
                 FailureCard(
                     failure: failure,
@@ -979,6 +979,41 @@ private struct HomeTrendingComediansRail: View {
             GridItem(.flexible(), spacing: theme.spacing.sm),
             GridItem(.flexible(), spacing: theme.spacing.sm),
         ]
+    }
+}
+
+private struct HomeTrendingComediansGridSkeleton: View {
+    @Environment(\.appTheme) private var theme
+
+    let gridColumns: [GridItem]
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let block = laughTrack.colors.surfaceMuted
+
+        LazyVGrid(columns: gridColumns, spacing: theme.spacing.sm) {
+            ForEach(0..<4, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(block)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 112)
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        RoundedRectangle(cornerRadius: 4).fill(block).frame(height: 14)
+                        RoundedRectangle(cornerRadius: 4).fill(block).frame(width: 84, height: 11)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(theme.spacing.sm)
+                .frame(maxWidth: .infinity, minHeight: 172, alignment: .topLeading)
+                .background(laughTrack.colors.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+        }
+        .detailSkeletonShimmer()
+        .accessibilityLabel("Loading trending comedians")
+        .accessibilityAddTraits(.isImage)
     }
 }
 
