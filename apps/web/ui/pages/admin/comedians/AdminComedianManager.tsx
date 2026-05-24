@@ -73,7 +73,11 @@ type ImageDiscoveryState = {
 type ManualImageUrls = {
     headshot: string;
     hero: string;
+    headshotFile: File | null;
+    heroFile: File | null;
 };
+
+type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
 
 function formatDate(iso: string | null) {
     if (!iso) return null;
@@ -89,11 +93,13 @@ function legacyComedianImageUrl(row: AdminComedianListItem) {
 }
 
 function currentAvatarUrl(row: AdminComedianListItem) {
-    return row.activeImageAsset?.avatarUrl ?? legacyComedianImageUrl(row);
+    if (row.activeImageAsset) return row.activeImageAsset.avatarUrl ?? "";
+    return row.hasImage ? legacyComedianImageUrl(row) : "";
 }
 
 function currentHeroUrl(row: AdminComedianListItem) {
-    return row.activeImageAsset?.heroUrl ?? legacyComedianImageUrl(row);
+    if (row.activeImageAsset) return row.activeImageAsset.heroUrl ?? "";
+    return row.hasImage ? legacyComedianImageUrl(row) : "";
 }
 
 function emptyImageDiscoveryState(): ImageDiscoveryState {
@@ -169,6 +175,12 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [manualImageUrls, setManualImageUrls] = useState<
         Record<number, ManualImageUrls>
     >({});
+    const [podcastFeedEdits, setPodcastFeedEdits] = useState<
+        Record<string, string>
+    >({});
+    const [manualPodcastFeedUrls, setManualPodcastFeedUrls] = useState<
+        Record<number, string>
+    >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
@@ -186,6 +198,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                     row.parent?.name ?? "",
                     row.blockReason ?? "",
                     row.blockAddedBy ?? "",
+                    ...row.attributedPodcasts.flatMap((podcast) => [
+                        podcast.title,
+                        podcast.feedUrl ?? "",
+                    ]),
                 ]
                     .join(" ")
                     .toLowerCase()
@@ -514,6 +530,8 @@ export default function AdminComedianManager({ comedians }: Props) {
             manualImageUrls[row.id] ?? {
                 headshot: currentAvatarUrl(row),
                 hero: currentHeroUrl(row),
+                headshotFile: null,
+                heroFile: null,
             }
         );
     }
@@ -527,9 +545,196 @@ export default function AdminComedianManager({ comedians }: Props) {
             [row.id]: {
                 headshot: manualImageUrlValue(row).headshot,
                 hero: manualImageUrlValue(row).hero,
+                headshotFile: manualImageUrlValue(row).headshotFile,
+                heroFile: manualImageUrlValue(row).heroFile,
                 ...patch,
             },
         }));
+    }
+
+    function imageSlotHasInput(
+        row: AdminComedianListItem,
+        slot: "headshot" | "hero",
+    ) {
+        const inputs = manualImageUrlValue(row);
+        if (slot === "headshot") {
+            return Boolean(
+                inputs.headshotFile ||
+                    (inputs.headshot.trim() &&
+                        inputs.headshot.trim() !== currentAvatarUrl(row)),
+            );
+        }
+        return Boolean(
+            inputs.heroFile ||
+                (inputs.hero.trim() &&
+                    inputs.hero.trim() !== currentHeroUrl(row)),
+        );
+    }
+
+    function podcastFeedEditKey(
+        row: AdminComedianListItem,
+        podcast: AttributedPodcast,
+    ) {
+        return `${row.id}:${podcast.id}`;
+    }
+
+    function podcastFeedValue(
+        row: AdminComedianListItem,
+        podcast: AttributedPodcast,
+    ) {
+        const key = podcastFeedEditKey(row, podcast);
+        return Object.hasOwn(podcastFeedEdits, key)
+            ? podcastFeedEdits[key]
+            : (podcast.feedUrl ?? "");
+    }
+
+    function updatePodcastFeedValue(
+        row: AdminComedianListItem,
+        podcast: AttributedPodcast,
+        value: string,
+    ) {
+        setPodcastFeedEdits((current) => ({
+            ...current,
+            [podcastFeedEditKey(row, podcast)]: value,
+        }));
+    }
+
+    function manualPodcastFeedValue(row: AdminComedianListItem) {
+        return manualPodcastFeedUrls[row.id] ?? "";
+    }
+
+    function replacePodcastForRow(rowId: number, podcast: AttributedPodcast) {
+        setRows((current) =>
+            current.map((row) => {
+                if (row.id !== rowId) return row;
+                const found = row.attributedPodcasts.some(
+                    (currentPodcast) => currentPodcast.id === podcast.id,
+                );
+                return {
+                    ...row,
+                    attributedPodcasts: found
+                        ? row.attributedPodcasts.map((currentPodcast) =>
+                              currentPodcast.id === podcast.id
+                                  ? podcast
+                                  : currentPodcast,
+                          )
+                        : [...row.attributedPodcasts, podcast],
+                };
+            }),
+        );
+    }
+
+    async function savePodcastFeedUrl(
+        row: AdminComedianListItem,
+        podcast: AttributedPodcast,
+        feedUrl: string | null,
+    ) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians/podcasts", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    podcastId: podcast.id,
+                    feedUrl,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        replacePodcastForRow(row.id, body.podcast as AttributedPodcast);
+        setPodcastFeedEdits((current) => {
+            const next = { ...current };
+            delete next[podcastFeedEditKey(row, podcast)];
+            return next;
+        });
+        setStatus({ kind: "ok", message: `${podcast.title} RSS saved.` });
+        startTransition(() => router.refresh());
+    }
+
+    async function addManualPodcastFeed(row: AdminComedianListItem) {
+        const feedUrl = manualPodcastFeedValue(row).trim();
+        if (!feedUrl) return;
+
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/podcast-ownership-reviews", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    feedUrl,
+                    reason: `Manual RSS feed added from comedian admin for ${row.name}`,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        const podcast = body.podcast as {
+            id: number;
+            slug: string;
+            title: string;
+            feedUrl: string | null;
+        };
+        replacePodcastForRow(row.id, {
+            id: podcast.id,
+            slug: podcast.slug,
+            title: podcast.title,
+            feedUrl: podcast.feedUrl,
+            websiteUrl: null,
+            associationType: "host",
+            source: "manual_rss",
+            reviewStatus: "accepted",
+            confidence: 1,
+        });
+        setManualPodcastFeedUrls((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
+        setStatus({ kind: "ok", message: `${podcast.title} RSS added.` });
+        startTransition(() => router.refresh());
     }
 
     function updateImageState(
@@ -542,110 +747,65 @@ export default function AdminComedianManager({ comedians }: Props) {
         }));
     }
 
-    async function previewImage(
+    async function publishImage(
         row: AdminComedianListItem,
-        candidate: ImageCandidate,
+        slot?: "headshot" | "hero",
     ) {
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-        updateImageState(row.id, (current) => ({
-            ...current,
-            selectedCandidate: candidate,
-            preview: null,
-            error: undefined,
-        }));
-
-        let res: Response;
-        try {
-            res = await fetch("/api/admin/comedians/images/preview", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    comedianId: row.id,
-                    imageUrl: candidate.imageUrl,
-                    ...(candidate.heroImageUrl
-                        ? { heroImageUrl: candidate.heroImageUrl }
-                        : {}),
-                    ...(candidate.sourcePage
-                        ? { sourcePageUrl: candidate.sourcePage }
-                        : {}),
-                }),
-            });
-        } catch (error) {
-            setPendingId(null);
-            updateImageState(row.id, (current) => ({
-                ...current,
-                kind: "error",
-                error: error instanceof Error ? error.message : "Network error",
-            }));
-            return;
-        }
-
-        setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            updateImageState(row.id, (current) => ({
-                ...current,
-                kind: "error",
-                error: body.error ?? `Request failed (${res.status})`,
-            }));
-            return;
-        }
-
-        updateImageState(row.id, (current) => ({
-            ...current,
-            kind: "ready",
-            selectedCandidate: candidate,
-            preview: {
-                avatarDataUrl: body.avatarDataUrl,
-                heroDataUrl: body.heroDataUrl,
-                warnings: body.warnings ?? [],
-            },
-        }));
-    }
-
-    async function validateManualImage(row: AdminComedianListItem) {
-        const manualUrls = manualImageUrlValue(row);
-        const imageUrl = manualUrls.headshot.trim();
-        const heroImageUrl = manualUrls.hero.trim();
-        if (!imageUrl || !heroImageUrl) return;
-
-        await previewImage(row, {
-            imageUrl,
-            heroImageUrl,
-            sourcePage: null,
-            width: null,
-            height: null,
-            mimeType: null,
-            score: 0,
-            reasons: ["manual URL"],
-        });
-    }
-
-    async function publishImage(row: AdminComedianListItem) {
-        const state = imageState(row.id);
-        const candidate = state.selectedCandidate;
-        if (!candidate || !state.preview) return;
+        const inputs = manualImageUrlValue(row);
+        const includeHeadshot =
+            slot === "headshot" ||
+            (!slot && imageSlotHasInput(row, "headshot"));
+        const includeHero =
+            slot === "hero" || (!slot && imageSlotHasInput(row, "hero"));
+        if (!includeHeadshot && !includeHero) return;
 
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
         let res: Response;
         try {
-            res = await fetch("/api/admin/comedians/images/publish", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    comedianId: row.id,
-                    imageUrl: candidate.imageUrl,
-                    ...(candidate.heroImageUrl
-                        ? { heroImageUrl: candidate.heroImageUrl }
-                        : {}),
-                    ...(candidate.sourcePage
-                        ? { sourcePageUrl: candidate.sourcePage }
-                        : {}),
-                }),
-            });
+            const hasFile =
+                (includeHeadshot && inputs.headshotFile) ||
+                (includeHero && inputs.heroFile);
+            if (hasFile) {
+                const formData = new FormData();
+                formData.set("comedianId", String(row.id));
+                if (includeHeadshot) {
+                    if (inputs.headshotFile) {
+                        formData.set("headshotFile", inputs.headshotFile);
+                    } else if (inputs.headshot.trim()) {
+                        formData.set(
+                            "headshotImageUrl",
+                            inputs.headshot.trim(),
+                        );
+                    }
+                }
+                if (includeHero) {
+                    if (inputs.heroFile) {
+                        formData.set("heroFile", inputs.heroFile);
+                    } else if (inputs.hero.trim()) {
+                        formData.set("heroImageUrl", inputs.hero.trim());
+                    }
+                }
+                res = await fetch("/api/admin/comedians/images/publish", {
+                    method: "POST",
+                    body: formData,
+                });
+            } else {
+                res = await fetch("/api/admin/comedians/images/publish", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        comedianId: row.id,
+                        ...(includeHeadshot && inputs.headshot.trim()
+                            ? { headshotImageUrl: inputs.headshot.trim() }
+                            : {}),
+                        ...(includeHero && inputs.hero.trim()
+                            ? { heroImageUrl: inputs.hero.trim() }
+                            : {}),
+                    }),
+                });
+            }
         } catch (error) {
             setPendingId(null);
             setStatus({
@@ -687,12 +847,22 @@ export default function AdminComedianManager({ comedians }: Props) {
                     : currentRow,
             ),
         );
+        setManualImageUrls((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
         updateImageState(row.id, (current) => ({
             ...current,
             selectedCandidate: null,
             preview: null,
         }));
-        setStatus({ kind: "ok", message: `${row.name} image published.` });
+        setStatus({
+            kind: "ok",
+            message: `${row.name} ${
+                slot ? `${slot} image` : "images"
+            } published.`,
+        });
         startTransition(() => router.refresh());
     }
 
@@ -969,6 +1139,175 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             podcasts
                                         </span>
                                     </div>
+                                    <div className="space-y-3 rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
+                                        <div className="text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                            Podcast RSS
+                                        </div>
+                                        {row.attributedPodcasts.length > 0 ? (
+                                            row.attributedPodcasts.map(
+                                                (podcast) => {
+                                                    const feedValue =
+                                                        podcastFeedValue(
+                                                            row,
+                                                            podcast,
+                                                        );
+                                                    const feedDirty =
+                                                        feedValue.trim() !==
+                                                        (podcast.feedUrl ?? "");
+                                                    return (
+                                                        <div
+                                                            key={podcast.id}
+                                                            className="space-y-2 rounded-md border border-copper/15 bg-white/70 p-3"
+                                                        >
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <div className="font-semibold text-cedar">
+                                                                    {
+                                                                        podcast.title
+                                                                    }
+                                                                </div>
+                                                                <a
+                                                                    href={`/podcast/${podcast.slug}`}
+                                                                    target="_blank"
+                                                                    className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                >
+                                                                    Public
+                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                </a>
+                                                                {podcast.feedUrl && (
+                                                                    <a
+                                                                        href={
+                                                                            podcast.feedUrl
+                                                                        }
+                                                                        target="_blank"
+                                                                        rel="noreferrer"
+                                                                        className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                    >
+                                                                        RSS
+                                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                RSS feed for{" "}
+                                                                {podcast.title}
+                                                                <input
+                                                                    aria-label={`RSS feed for ${podcast.title}`}
+                                                                    type="url"
+                                                                    value={
+                                                                        feedValue
+                                                                    }
+                                                                    onChange={(
+                                                                        event,
+                                                                    ) =>
+                                                                        updatePodcastFeedValue(
+                                                                            row,
+                                                                            podcast,
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                    }
+                                                                    placeholder="https://example.com/rss.xml"
+                                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                />
+                                                            </label>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id ||
+                                                                        !feedDirty ||
+                                                                        !feedValue.trim()
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void savePodcastFeedUrl(
+                                                                            row,
+                                                                            podcast,
+                                                                            feedValue.trim(),
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Save className="h-4 w-4" />
+                                                                    Save RSS
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id ||
+                                                                        !podcast.feedUrl
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void savePodcastFeedUrl(
+                                                                            row,
+                                                                            podcast,
+                                                                            null,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                    Remove RSS
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                },
+                                            )
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    RSS feed URL
+                                                    <input
+                                                        aria-label={`RSS feed URL for ${row.name}`}
+                                                        type="url"
+                                                        value={manualPodcastFeedValue(
+                                                            row,
+                                                        )}
+                                                        onChange={(event) =>
+                                                            setManualPodcastFeedUrls(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    [row.id]:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        placeholder="https://example.com/rss.xml"
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                </label>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id ||
+                                                        !manualPodcastFeedValue(
+                                                            row,
+                                                        ).trim()
+                                                    }
+                                                    onClick={() =>
+                                                        void addManualPodcastFeed(
+                                                            row,
+                                                        )
+                                                    }
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    Save RSS
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                     {row.latestTicketPurchase ? (
                                         <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
                                             <a
@@ -1113,131 +1452,240 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                         </div>
 
-                                        <div className="mb-3 grid gap-2">
-                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Headshot image URL
-                                                <input
-                                                    aria-label="Headshot image URL"
-                                                    type="url"
-                                                    value={
-                                                        manualImageUrlValue(row)
-                                                            .headshot
-                                                    }
-                                                    onChange={(event) =>
-                                                        updateManualImageUrls(
+                                        <div className="grid gap-3 lg:grid-cols-2">
+                                            <div className="space-y-3 rounded-md border border-copper/15 bg-white/80 p-3">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Headshot
+                                                    </div>
+                                                    {currentAvatar ? (
+                                                        <a
+                                                            href={currentAvatar}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                                                        >
+                                                            Open
+                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                        </a>
+                                                    ) : null}
+                                                </div>
+                                                {currentAvatar ? (
+                                                    <img
+                                                        src={currentAvatar}
+                                                        alt={`${row.name} current headshot image`}
+                                                        className="h-24 w-24 rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                        Empty
+                                                    </div>
+                                                )}
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Headshot image URL
+                                                    <input
+                                                        aria-label="Headshot image URL"
+                                                        type="url"
+                                                        value={
+                                                            manualImageUrlValue(
+                                                                row,
+                                                            ).headshot
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateManualImageUrls(
+                                                                row,
+                                                                {
+                                                                    headshot:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    headshotFile:
+                                                                        null,
+                                                                },
+                                                            )
+                                                        }
+                                                        placeholder="https://example.com/headshot.jpg"
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                </label>
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Upload headshot file
+                                                    <input
+                                                        aria-label="Upload headshot file"
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                        onChange={(event) =>
+                                                            updateManualImageUrls(
+                                                                row,
+                                                                {
+                                                                    headshotFile:
+                                                                        event
+                                                                            .target
+                                                                            .files?.[0] ??
+                                                                        null,
+                                                                },
+                                                            )
+                                                        }
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
+                                                    />
+                                                </label>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id ||
+                                                        !imageSlotHasInput(
                                                             row,
-                                                            {
-                                                                headshot:
-                                                                    event.target
+                                                            "headshot",
+                                                        )
+                                                    }
+                                                    onClick={() =>
+                                                        void publishImage(
+                                                            row,
+                                                            "headshot",
+                                                        )
+                                                    }
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Upload headshot
+                                                </Button>
+                                            </div>
+
+                                            <div className="space-y-3 rounded-md border border-copper/15 bg-white/80 p-3">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Hero
+                                                    </div>
+                                                    {currentHero ? (
+                                                        <a
+                                                            href={currentHero}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1 font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                                                        >
+                                                            Open
+                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                        </a>
+                                                    ) : null}
+                                                </div>
+                                                {currentHero ? (
+                                                    <img
+                                                        src={currentHero}
+                                                        alt={`${row.name} current hero image`}
+                                                        className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
+                                                        Empty
+                                                    </div>
+                                                )}
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Hero image URL
+                                                    <input
+                                                        aria-label="Hero image URL"
+                                                        type="url"
+                                                        value={
+                                                            manualImageUrlValue(
+                                                                row,
+                                                            ).hero
+                                                        }
+                                                        onChange={(event) =>
+                                                            updateManualImageUrls(
+                                                                row,
+                                                                {
+                                                                    hero: event
+                                                                        .target
                                                                         .value,
-                                                            },
-                                                        )
-                                                    }
-                                                    placeholder="https://example.com/headshot.jpg"
-                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                />
-                                            </label>
-                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Hero image URL
-                                                <input
-                                                    aria-label="Hero image URL"
-                                                    type="url"
-                                                    value={
-                                                        manualImageUrlValue(row)
-                                                            .hero
-                                                    }
-                                                    onChange={(event) =>
-                                                        updateManualImageUrls(
+                                                                    heroFile:
+                                                                        null,
+                                                                },
+                                                            )
+                                                        }
+                                                        placeholder="https://example.com/hero.jpg"
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                </label>
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Upload hero file
+                                                    <input
+                                                        aria-label="Upload hero file"
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                        onChange={(event) =>
+                                                            updateManualImageUrls(
+                                                                row,
+                                                                {
+                                                                    heroFile:
+                                                                        event
+                                                                            .target
+                                                                            .files?.[0] ??
+                                                                        null,
+                                                                },
+                                                            )
+                                                        }
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
+                                                    />
+                                                </label>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id ||
+                                                        !imageSlotHasInput(
                                                             row,
-                                                            {
-                                                                hero: event
-                                                                    .target
-                                                                    .value,
-                                                            },
+                                                            "hero",
                                                         )
                                                     }
-                                                    placeholder="https://example.com/hero.jpg"
-                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                />
-                                            </label>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="w-fit gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                disabled={
-                                                    disabled ||
-                                                    !manualImageUrlValue(
-                                                        row,
-                                                    ).headshot.trim() ||
-                                                    !manualImageUrlValue(
-                                                        row,
-                                                    ).hero.trim()
-                                                }
-                                                onClick={() =>
-                                                    void validateManualImage(
-                                                        row,
-                                                    )
-                                                }
-                                            >
-                                                <ShieldCheck className="h-4 w-4" />
-                                                Validate image URLs
-                                            </Button>
+                                                    onClick={() =>
+                                                        void publishImage(
+                                                            row,
+                                                            "hero",
+                                                        )
+                                                    }
+                                                >
+                                                    <Upload className="h-4 w-4" />
+                                                    Upload hero
+                                                </Button>
+                                            </div>
                                         </div>
 
-                                        {currentAvatar || currentHero ? (
-                                            <div className="flex flex-wrap items-start gap-3">
-                                                {currentAvatar ? (
-                                                    <div className="space-y-2">
-                                                        <img
-                                                            src={currentAvatar}
-                                                            alt={`${row.name} current headshot image`}
-                                                            className="h-24 w-24 rounded-md border border-copper/20 object-cover"
-                                                        />
-                                                        <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
-                                                            Headshot
-                                                        </div>
-                                                    </div>
-                                                ) : null}
-                                                {currentHero ? (
-                                                    <div className="space-y-2">
-                                                        <img
-                                                            src={currentHero}
-                                                            alt={`${row.name} current hero image`}
-                                                            className="h-24 w-40 rounded-md border border-copper/20 object-cover"
-                                                        />
-                                                        <div className="flex items-center gap-2 font-dmSans text-caption font-semibold text-soft-charcoal">
-                                                            Hero
-                                                            <a
-                                                                href={
-                                                                    currentHero
-                                                                }
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
-                                                            >
-                                                                Open
-                                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                ) : null}
-                                                {row.activeImageAsset ? (
-                                                    <div className="basis-full font-dmSans text-caption text-soft-charcoal">
-                                                        Source{" "}
-                                                        {formatDimensions(
-                                                            row.activeImageAsset
-                                                                .width,
-                                                            row.activeImageAsset
-                                                                .height,
-                                                        )}
-                                                    </div>
-                                                ) : null}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="mt-3 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            disabled={
+                                                disabled ||
+                                                pendingId === row.id ||
+                                                (!imageSlotHasInput(
+                                                    row,
+                                                    "headshot",
+                                                ) &&
+                                                    !imageSlotHasInput(
+                                                        row,
+                                                        "hero",
+                                                    ))
+                                            }
+                                            onClick={() =>
+                                                void publishImage(row)
+                                            }
+                                        >
+                                            <Upload className="h-4 w-4" />
+                                            Upload changed images
+                                        </Button>
+
+                                        {row.activeImageAsset ? (
+                                            <div className="mt-3 font-dmSans text-caption text-soft-charcoal">
+                                                Source{" "}
+                                                {formatDimensions(
+                                                    row.activeImageAsset.width,
+                                                    row.activeImageAsset.height,
+                                                )}
                                             </div>
-                                        ) : (
-                                            <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
-                                                No current image
-                                            </div>
-                                        )}
+                                        ) : null}
 
                                         {legacyAvatar && (
                                             <div className="mt-3 border-t border-copper/15 pt-3">

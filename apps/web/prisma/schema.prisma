@@ -252,8 +252,8 @@ model ComedianImageAsset {
   comedianId     Int      @map("comedian_id")
   sourceImageUrl String   @map("source_image_url")
   originalPath   String   @map("original_path")
-  avatarPath     String   @map("avatar_path")
-  heroPath       String   @map("hero_path")
+  avatarPath     String?  @map("avatar_path")
+  heroPath       String?  @map("hero_path")
   mimeType       String?  @map("mime_type")
   width          Int?
   height         Int?

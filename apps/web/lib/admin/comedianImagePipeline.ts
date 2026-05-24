@@ -127,6 +127,26 @@ export function validateComedianImageAspectRatios({
     }
 }
 
+export function validateComedianHeadshotAspectRatio(
+    headshot: DownloadedComedianImage,
+) {
+    if (!isWithinAspectRatio(headshot, 1)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Headshot source ${headshot.width}x${headshot.height} must be close to a square 1:1 ratio`,
+        );
+    }
+}
+
+export function validateComedianHeroAspectRatio(hero: DownloadedComedianImage) {
+    if (!isWithinAspectRatio(hero, HERO_WIDTH / HERO_HEIGHT)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Hero source ${hero.width}x${hero.height} must be close to a 16:9 ratio`,
+        );
+    }
+}
+
 export function validateClubImageAspectRatios({
     icon,
     hero,
@@ -403,6 +423,83 @@ export async function downloadComedianImage(
 
     return {
         sourceUrl: url.toString(),
+        buffer,
+        mimeType: decodedMime,
+        width,
+        height,
+    };
+}
+
+export async function readUploadedComedianImage(
+    file: File,
+): Promise<DownloadedComedianImage> {
+    const declaredContentType = file.type.trim().toLowerCase();
+    if (!ALLOWED_MIME_TYPES.has(declaredContentType)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_MIME",
+            `Unsupported content type: ${declaredContentType || "<missing>"}`,
+        );
+    }
+    if (file.size > MAX_DOWNLOAD_BYTES) {
+        throw new ComedianImageDownloadError(
+            "TOO_LARGE",
+            `Image body ${file.size} bytes exceeds limit of ${MAX_DOWNLOAD_BYTES}`,
+        );
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    let metadata: sharp.Metadata;
+    try {
+        metadata = await sharp(buffer).metadata();
+    } catch {
+        throw new ComedianImageDownloadError(
+            "DECODE_FAILED",
+            "Image could not be decoded",
+        );
+    }
+
+    const width = metadata.width ?? 0;
+    const height = metadata.height ?? 0;
+    if (width === 0 || height === 0) {
+        throw new ComedianImageDownloadError(
+            "DECODE_FAILED",
+            "Image has no decodable dimensions",
+        );
+    }
+    if (width < MIN_SOURCE_DIMENSION || height < MIN_SOURCE_DIMENSION) {
+        throw new ComedianImageDownloadError(
+            "TOO_SMALL",
+            `Image is ${width}x${height}; must be at least ${MIN_SOURCE_DIMENSION}x${MIN_SOURCE_DIMENSION}`,
+        );
+    }
+
+    const decodedFormat = metadata.format ?? "";
+    const decodedMime = SHARP_FORMAT_MIME[decodedFormat] ?? null;
+    if (!decodedMime) {
+        throw new ComedianImageDownloadError(
+            "DECODE_FAILED",
+            `Image decoded to unsupported format "${decodedFormat || "<unknown>"}"`,
+        );
+    }
+    const declaredMimeNormalized =
+        declaredContentType === "image/jpg"
+            ? "image/jpeg"
+            : declaredContentType;
+    if (decodedMime !== declaredMimeNormalized) {
+        throw new ComedianImageDownloadError(
+            "INVALID_MIME",
+            `Declared content-type ${declaredContentType} does not match decoded format ${decodedFormat}`,
+        );
+    }
+    if ((metadata.pages ?? 1) > 1) {
+        throw new ComedianImageDownloadError(
+            "ANIMATED_NOT_SUPPORTED",
+            `Animated source images are not supported (${metadata.pages} frames detected)`,
+        );
+    }
+
+    return {
+        sourceUrl: `upload:${file.name || "image"}`,
         buffer,
         mimeType: decodedMime,
         width,

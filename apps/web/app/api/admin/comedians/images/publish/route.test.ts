@@ -44,6 +44,7 @@ vi.mock("@/lib/admin/comedianImagePipeline", async () => {
     return {
         ...actual,
         downloadComedianImage: vi.fn(),
+        readUploadedComedianImage: vi.fn(),
         generateComedianImageVariants: vi.fn(),
     };
 });
@@ -60,6 +61,7 @@ import {
     ComedianImageDownloadError,
     downloadComedianImage,
     generateComedianImageVariants,
+    readUploadedComedianImage,
 } from "@/lib/admin/comedianImagePipeline";
 import {
     deleteFromBunnyStorage,
@@ -73,6 +75,7 @@ const mockFindComedian = vi.mocked(db.comedian.findUnique);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockRevalidateTag = vi.mocked(revalidateTag);
 const mockDownload = vi.mocked(downloadComedianImage);
+const mockReadUploaded = vi.mocked(readUploadedComedianImage);
 const mockGenerateVariants = vi.mocked(generateComedianImageVariants);
 const mockUpload = vi.mocked(uploadToBunnyStorage);
 const mockDelete = vi.mocked(deleteFromBunnyStorage);
@@ -100,6 +103,16 @@ function makeRequest(body: unknown) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
+        },
+    );
+}
+
+function makeFormRequest(formData: FormData) {
+    return new NextRequest(
+        "http://localhost/api/admin/comedians/images/publish",
+        {
+            method: "POST",
+            body: formData,
         },
     );
 }
@@ -148,6 +161,13 @@ beforeEach(() => {
         width: 2400,
         height: 2400,
     });
+    mockReadUploaded.mockResolvedValue({
+        sourceUrl: "upload:headshot.jpg",
+        buffer: Buffer.from("uploaded-original-bytes"),
+        mimeType: "image/jpeg",
+        width: 2400,
+        height: 2400,
+    });
     mockGenerateVariants.mockResolvedValue({
         avatarBuffer: Buffer.from("avatar-bytes"),
         heroBuffer: Buffer.from("hero-bytes"),
@@ -161,8 +181,8 @@ beforeEach(() => {
             comedianId: number;
             sourceImageUrl: string;
             originalPath: string;
-            avatarPath: string;
-            heroPath: string;
+            avatarPath: string | null;
+            heroPath: string | null;
             mimeType: string | null;
             width: number | null;
             height: number | null;
@@ -317,12 +337,14 @@ describe("POST /api/admin/comedians/images/publish", () => {
             "https://example.com/hero.jpg",
         );
 
+        expect(mockUpload).toHaveBeenCalledTimes(4);
         const calls = mockUpload.mock.calls.map((call) => call[0]);
         expect(Buffer.from(calls[0].body).toString()).toBe("headshot-original");
         expect(Buffer.from(calls[1].body).toString()).toBe(
             "avatar-from-headshot",
         );
-        expect(Buffer.from(calls[2].body).toString()).toBe(
+        expect(Buffer.from(calls[2].body).toString()).toBe("hero-original");
+        expect(Buffer.from(calls[3].body).toString()).toBe(
             "hero-from-hero-source",
         );
 
@@ -336,6 +358,99 @@ describe("POST /api/admin/comedians/images/publish", () => {
         expect(metadata.heroSourceImageUrl).toBe(
             "https://example.com/hero.jpg",
         );
+    });
+
+    it("can publish only a headshot URL without requiring a hero", async () => {
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                headshotImageUrl: "https://example.com/headshot.jpg",
+            }),
+        );
+        expect(res.status).toBe(200);
+        expect(mockUpload).toHaveBeenCalledTimes(2);
+
+        const calls = mockUpload.mock.calls.map((call) => call[0]);
+        expectOriginalPathPattern(calls[0].path, 7, "jpg");
+        expectAvatarPathPattern(calls[1].path, 7);
+
+        const createArgs = mockTxCreate.mock.calls[0][0] as {
+            data: Record<string, unknown>;
+        };
+        expectAvatarPathPattern(createArgs.data.avatarPath as string, 7);
+        expect(createArgs.data.heroPath).toBeNull();
+    });
+
+    it("can publish only a hero URL while preserving an existing headshot", async () => {
+        mockDownload.mockResolvedValueOnce({
+            sourceUrl: "https://example.com/hero.jpg",
+            buffer: Buffer.from("hero-original"),
+            mimeType: "image/jpeg",
+            width: 2400,
+            height: 1350,
+        });
+        mockGenerateVariants.mockResolvedValueOnce({
+            avatarBuffer: Buffer.from("unused-avatar"),
+            heroBuffer: Buffer.from("hero-from-url"),
+        });
+        mockTxFindMany.mockResolvedValueOnce([
+            {
+                id: 11,
+                sourceImageUrl: "https://old.example.com/headshot.jpg",
+                originalPath: "comedian-images/7/old-slug/original.jpg",
+                avatarPath: "comedian-images/7/old-slug/avatar.jpg",
+                heroPath: null,
+                mimeType: "image/jpeg",
+                width: 1800,
+                height: 1800,
+            },
+        ]);
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        expect(res.status).toBe(200);
+        expect(mockUpload).toHaveBeenCalledTimes(2);
+
+        const calls = mockUpload.mock.calls.map((call) => call[0]);
+        expectOriginalPathPattern(calls[0].path, 7, "jpg");
+        expectHeroPathPattern(calls[1].path, 7);
+
+        const createArgs = mockTxCreate.mock.calls[0][0] as {
+            data: Record<string, unknown>;
+        };
+        expect(createArgs.data.avatarPath).toBe(
+            "comedian-images/7/old-slug/avatar.jpg",
+        );
+        expectHeroPathPattern(createArgs.data.heroPath as string, 7);
+    });
+
+    it("can publish a headshot from an uploaded file", async () => {
+        const formData = new FormData();
+        formData.set("comedianId", "7");
+        formData.set(
+            "headshotFile",
+            new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
+                type: "image/jpeg",
+            }),
+        );
+
+        const res = await POST(makeFormRequest(formData));
+        expect(res.status).toBe(200);
+
+        expect(mockReadUploaded).toHaveBeenCalledTimes(1);
+        expect(mockReadUploaded.mock.calls[0][0].name).toBe("headshot.jpg");
+        expect(mockUpload).toHaveBeenCalledTimes(2);
+
+        const createArgs = mockTxCreate.mock.calls[0][0] as {
+            data: Record<string, unknown>;
+        };
+        expect(createArgs.data.sourceImageUrl).toBe("upload:headshot.jpg");
+        expectAvatarPathPattern(createArgs.data.avatarPath as string, 7);
+        expect(createArgs.data.heroPath).toBeNull();
     });
 
     it("rejects invalid source aspect ratios before uploading to Bunny", async () => {

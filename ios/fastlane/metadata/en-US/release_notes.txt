@@ -1,0 +1,2 @@
+Improvements
+• Drop iPad support from LaughTrack app target

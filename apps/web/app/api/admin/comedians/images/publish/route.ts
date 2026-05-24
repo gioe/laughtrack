@@ -8,7 +8,11 @@ import {
     buildComedianAssetPaths,
     downloadComedianImage,
     generateComedianImageVariants,
-    validateComedianImageAspectRatios,
+    getMimeExtension,
+    readUploadedComedianImage,
+    validateComedianHeadshotAspectRatio,
+    validateComedianHeroAspectRatio,
+    type DownloadedComedianImage,
 } from "@/lib/admin/comedianImagePipeline";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
@@ -22,13 +26,31 @@ import { z } from "zod";
 const requestSchema = z
     .object({
         comedianId: z.number().int().positive(),
-        imageUrl: z.string().url().max(2048),
+        imageUrl: z.string().url().max(2048).optional(),
+        headshotImageUrl: z.string().url().max(2048).optional(),
         heroImageUrl: z.string().url().max(2048).optional(),
         sourcePageUrl: z.string().url().max(2048).optional(),
     })
     .strict();
 
-async function readBody(req: NextRequest) {
+type ImageSlot = "headshot" | "hero";
+
+type NormalizedRequest = {
+    comedianId: number;
+    sourcePageUrl?: string;
+    legacyCombined: boolean;
+    headshotImageUrl?: string;
+    heroImageUrl?: string;
+    headshotFile?: File;
+    heroFile?: File;
+};
+
+type ProcessedSlot = {
+    image: DownloadedComedianImage;
+    variants: Awaited<ReturnType<typeof generateComedianImageVariants>>;
+};
+
+async function readJsonBody(req: NextRequest) {
     try {
         return await req.json();
     } catch {
@@ -36,12 +58,105 @@ async function readBody(req: NextRequest) {
     }
 }
 
+function getOptionalFormString(formData: FormData, key: string) {
+    const value = formData.get(key);
+    return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function getOptionalFormFile(formData: FormData, key: string) {
+    const value = formData.get(key);
+    return value instanceof File && value.size > 0 ? value : undefined;
+}
+
+async function normalizeRequest(req: NextRequest) {
+    const contentType = req.headers.get("content-type") ?? "";
+    if (contentType.includes("multipart/form-data")) {
+        const formData = await req.formData();
+        const comedianId = Number(
+            getOptionalFormString(formData, "comedianId"),
+        );
+        if (!Number.isInteger(comedianId) || comedianId <= 0) {
+            return { error: "Invalid payload", status: 400 } as const;
+        }
+        return {
+            data: {
+                comedianId,
+                sourcePageUrl: getOptionalFormString(formData, "sourcePageUrl"),
+                legacyCombined: false,
+                headshotImageUrl: getOptionalFormString(
+                    formData,
+                    "headshotImageUrl",
+                ),
+                heroImageUrl: getOptionalFormString(formData, "heroImageUrl"),
+                headshotFile: getOptionalFormFile(formData, "headshotFile"),
+                heroFile: getOptionalFormFile(formData, "heroFile"),
+            } satisfies NormalizedRequest,
+        } as const;
+    }
+
+    const parsed = requestSchema.safeParse(await readJsonBody(req));
+    if (!parsed.success) {
+        return {
+            error: "Invalid payload",
+            issues: parsed.error.issues,
+            status: 400,
+        } as const;
+    }
+    return {
+        data: {
+            comedianId: parsed.data.comedianId,
+            sourcePageUrl: parsed.data.sourcePageUrl,
+            legacyCombined:
+                Boolean(parsed.data.imageUrl) &&
+                !parsed.data.headshotImageUrl &&
+                !parsed.data.heroImageUrl,
+            headshotImageUrl:
+                parsed.data.headshotImageUrl ?? parsed.data.imageUrl,
+            heroImageUrl: parsed.data.heroImageUrl ?? parsed.data.imageUrl,
+        } satisfies NormalizedRequest,
+    } as const;
+}
+
+function getSlotInputs(data: NormalizedRequest, slot: ImageSlot) {
+    if (slot === "headshot") {
+        return {
+            url: data.headshotImageUrl,
+            file: data.headshotFile,
+        };
+    }
+    return {
+        url: data.heroImageUrl,
+        file: data.heroFile,
+    };
+}
+
+function validateRequestSlots(data: NormalizedRequest) {
+    const slots: ImageSlot[] = [];
+    for (const slot of ["headshot", "hero"] as const) {
+        const { url, file } = getSlotInputs(data, slot);
+        if (url && file) {
+            return {
+                error: `Provide either a ${slot} URL or ${slot} file, not both`,
+                slots,
+            };
+        }
+        if (url || file) slots.push(slot);
+    }
+    if (slots.length === 0) {
+        return {
+            error: "Provide a headshot or hero image to upload",
+            slots,
+        };
+    }
+    return { slots };
+}
+
 function serializeAsset(asset: {
     id: number;
     sourceImageUrl: string;
     originalPath: string;
-    avatarPath: string;
-    heroPath: string;
+    avatarPath: string | null;
+    heroPath: string | null;
     mimeType: string | null;
     width: number | null;
     height: number | null;
@@ -52,8 +167,12 @@ function serializeAsset(asset: {
         originalPath: asset.originalPath,
         avatarPath: asset.avatarPath,
         heroPath: asset.heroPath,
-        avatarUrl: buildComedianImageAssetUrl(asset.avatarPath),
-        heroUrl: buildComedianImageAssetUrl(asset.heroPath),
+        avatarUrl: asset.avatarPath
+            ? buildComedianImageAssetUrl(asset.avatarPath)
+            : null,
+        heroUrl: asset.heroPath
+            ? buildComedianImageAssetUrl(asset.heroPath)
+            : null,
         mimeType: asset.mimeType,
         width: asset.width,
         height: asset.height,
@@ -65,16 +184,30 @@ export async function POST(req: NextRequest) {
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
 
-    const parsed = requestSchema.safeParse(await readBody(req));
-    if (!parsed.success) {
+    const normalized = await normalizeRequest(req);
+    if ("error" in normalized) {
         return NextResponse.json(
-            { error: "Invalid payload", issues: parsed.error.issues },
+            {
+                error: normalized.error,
+                ...("issues" in normalized
+                    ? { issues: normalized.issues }
+                    : {}),
+            },
+            { status: normalized.status },
+        );
+    }
+    const { data } = normalized;
+    const slotValidation = validateRequestSlots(data);
+    if (slotValidation.error) {
+        return NextResponse.json(
+            { error: slotValidation.error },
             { status: 400 },
         );
     }
+    const slots = slotValidation.slots;
 
     const comedian = await db.comedian.findUnique({
-        where: { id: parsed.data.comedianId },
+        where: { id: data.comedianId },
         select: { id: true, name: true, hasImage: true },
     });
     if (!comedian) {
@@ -84,23 +217,31 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    let downloaded;
-    let variants;
-    let heroDownloaded;
-    let heroVariants;
+    const processed: Partial<Record<ImageSlot, ProcessedSlot>> = {};
     try {
-        downloaded = await downloadComedianImage(parsed.data.imageUrl);
-        heroDownloaded = parsed.data.heroImageUrl
-            ? await downloadComedianImage(parsed.data.heroImageUrl)
-            : downloaded;
-        validateComedianImageAspectRatios({
-            headshot: downloaded,
-            ...(parsed.data.heroImageUrl ? { hero: heroDownloaded } : {}),
-        });
-        variants = await generateComedianImageVariants(downloaded);
-        heroVariants = parsed.data.heroImageUrl
-            ? await generateComedianImageVariants(heroDownloaded)
-            : variants;
+        if (data.legacyCombined && data.headshotImageUrl) {
+            const image = await downloadComedianImage(data.headshotImageUrl);
+            validateComedianHeadshotAspectRatio(image);
+            const variants = await generateComedianImageVariants(image);
+            processed.headshot = { image, variants };
+            processed.hero = { image, variants };
+        } else {
+            for (const slot of slots) {
+                const { url, file } = getSlotInputs(data, slot);
+                const image = file
+                    ? await readUploadedComedianImage(file)
+                    : await downloadComedianImage(url!);
+                if (slot === "headshot") {
+                    validateComedianHeadshotAspectRatio(image);
+                } else {
+                    validateComedianHeroAspectRatio(image);
+                }
+                processed[slot] = {
+                    image,
+                    variants: await generateComedianImageVariants(image),
+                };
+            }
+        }
     } catch (error) {
         if (error instanceof ComedianImageDownloadError) {
             return NextResponse.json(
@@ -119,11 +260,27 @@ export async function POST(req: NextRequest) {
     }
 
     const assetSlug = crypto.randomUUID();
+    const primaryImage =
+        processed.headshot?.image ?? processed.hero?.image ?? null;
+    if (!primaryImage) {
+        return NextResponse.json(
+            { error: "Provide a headshot or hero image to upload" },
+            { status: 400 },
+        );
+    }
     const paths = buildComedianAssetPaths(
         comedian.id,
         assetSlug,
-        downloaded.mimeType,
+        primaryImage.mimeType,
     );
+    const heroOriginalPath =
+        processed.hero &&
+        processed.headshot &&
+        processed.headshot.image !== processed.hero.image
+            ? `comedian-images/${comedian.id}/${assetSlug}/hero-original.${getMimeExtension(
+                  processed.hero.image.mimeType,
+              )}`
+            : paths.original;
 
     const uploadedPaths: string[] = [];
     async function cleanupUploads(reason: string) {
@@ -141,24 +298,36 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        await uploadToBunnyStorage({
-            path: paths.original,
-            body: downloaded.buffer,
-            contentType: downloaded.mimeType,
-        });
-        uploadedPaths.push(paths.original);
-        await uploadToBunnyStorage({
-            path: paths.avatar,
-            body: variants.avatarBuffer,
-            contentType: "image/jpeg",
-        });
-        uploadedPaths.push(paths.avatar);
-        await uploadToBunnyStorage({
-            path: paths.hero,
-            body: heroVariants.heroBuffer,
-            contentType: "image/jpeg",
-        });
-        uploadedPaths.push(paths.hero);
+        if (processed.headshot) {
+            await uploadToBunnyStorage({
+                path: paths.original,
+                body: processed.headshot.image.buffer,
+                contentType: processed.headshot.image.mimeType,
+            });
+            uploadedPaths.push(paths.original);
+            await uploadToBunnyStorage({
+                path: paths.avatar,
+                body: processed.headshot.variants.avatarBuffer,
+                contentType: "image/jpeg",
+            });
+            uploadedPaths.push(paths.avatar);
+        }
+        if (processed.hero) {
+            if (!processed.headshot || heroOriginalPath !== paths.original) {
+                await uploadToBunnyStorage({
+                    path: heroOriginalPath,
+                    body: processed.hero.image.buffer,
+                    contentType: processed.hero.image.mimeType,
+                });
+                uploadedPaths.push(heroOriginalPath);
+            }
+            await uploadToBunnyStorage({
+                path: paths.hero,
+                body: processed.hero.variants.heroBuffer,
+                contentType: "image/jpeg",
+            });
+            uploadedPaths.push(paths.hero);
+        }
     } catch (error) {
         console.error(
             "Admin comedian image publish: bunny upload failed:",
@@ -194,24 +363,39 @@ export async function POST(req: NextRequest) {
                 });
             }
 
+            const previousAsset = previousActive[0] ?? null;
+            const avatarPath = processed.headshot
+                ? paths.avatar
+                : (previousAsset?.avatarPath ?? null);
+            const heroPath = processed.hero
+                ? paths.hero
+                : (previousAsset?.heroPath ?? null);
             const created = await tx.comedianImageAsset.create({
                 data: {
                     comedianId: comedian.id,
-                    sourceImageUrl: downloaded.sourceUrl,
-                    originalPath: paths.original,
-                    avatarPath: paths.avatar,
-                    heroPath: paths.hero,
-                    mimeType: downloaded.mimeType,
-                    width: downloaded.width,
-                    height: downloaded.height,
+                    sourceImageUrl: primaryImage.sourceUrl,
+                    originalPath: processed.headshot
+                        ? paths.original
+                        : heroOriginalPath,
+                    avatarPath,
+                    heroPath,
+                    mimeType: primaryImage.mimeType,
+                    width: primaryImage.width,
+                    height: primaryImage.height,
                     isActive: true,
                     metadata: {
                         assetSlug,
-                        sourcePageUrl: parsed.data.sourcePageUrl ?? null,
+                        sourcePageUrl: data.sourcePageUrl ?? null,
+                        headshotSourceImageUrl:
+                            processed.headshot?.image.sourceUrl ?? null,
                         heroSourceImageUrl:
-                            heroDownloaded.sourceUrl === downloaded.sourceUrl
-                                ? null
-                                : heroDownloaded.sourceUrl,
+                            processed.hero?.image.sourceUrl ?? null,
+                        preservedAvatarPath: processed.headshot
+                            ? null
+                            : (previousAsset?.avatarPath ?? null),
+                        preservedHeroPath: processed.hero
+                            ? null
+                            : (previousAsset?.heroPath ?? null),
                     } as Prisma.InputJsonValue,
                 },
             });
@@ -237,11 +421,10 @@ export async function POST(req: NextRequest) {
                 after: {
                     hasImage: true,
                     activeAsset: serializeAsset(created),
-                    sourcePageUrl: parsed.data.sourcePageUrl ?? null,
-                    heroSourceImageUrl:
-                        heroDownloaded.sourceUrl === downloaded.sourceUrl
-                            ? null
-                            : heroDownloaded.sourceUrl,
+                    sourcePageUrl: data.sourcePageUrl ?? null,
+                    headshotSourceImageUrl:
+                        processed.headshot?.image.sourceUrl ?? null,
+                    heroSourceImageUrl: processed.hero?.image.sourceUrl ?? null,
                 },
             });
 

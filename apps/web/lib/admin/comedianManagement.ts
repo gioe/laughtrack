@@ -22,10 +22,10 @@ export type AdminComedianListItem = {
     activeImageAsset: {
         id: number;
         sourceImageUrl: string;
-        avatarPath: string;
-        heroPath: string;
-        avatarUrl: string;
-        heroUrl: string;
+        avatarPath: string | null;
+        heroPath: string | null;
+        avatarUrl: string | null;
+        heroUrl: string | null;
         mimeType: string | null;
         width: number | null;
         height: number | null;
@@ -222,12 +222,16 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 activeImageAsset: activeImageAsset
                     ? {
                           ...activeImageAsset,
-                          avatarUrl: buildComedianImageAssetUrl(
-                              activeImageAsset.avatarPath,
-                          ),
-                          heroUrl: buildComedianImageAssetUrl(
-                              activeImageAsset.heroPath,
-                          ),
+                          avatarUrl: activeImageAsset.avatarPath
+                              ? buildComedianImageAssetUrl(
+                                    activeImageAsset.avatarPath,
+                                )
+                              : null,
+                          heroUrl: activeImageAsset.heroPath
+                              ? buildComedianImageAssetUrl(
+                                    activeImageAsset.heroPath,
+                                )
+                              : null,
                       }
                     : null,
                 legacyImageUrl: imageUrls.imageUrl,

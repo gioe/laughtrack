@@ -23,10 +23,10 @@ type ComedianSnapshot = {
     imageAssets: Array<{
         id: number;
         sourceImageUrl: string;
-        avatarPath: string;
-        heroPath: string;
-        avatarUrl?: string;
-        heroUrl?: string;
+        avatarPath: string | null;
+        heroPath: string | null;
+        avatarUrl?: string | null;
+        heroUrl?: string | null;
         mimeType: string | null;
         width: number | null;
         height: number | null;
@@ -192,10 +192,18 @@ function serializeComedian(
                   ...activeImageAsset,
                   avatarUrl:
                       activeImageAsset.avatarUrl ??
-                      buildComedianImageAssetUrl(activeImageAsset.avatarPath),
+                      (activeImageAsset.avatarPath
+                          ? buildComedianImageAssetUrl(
+                                activeImageAsset.avatarPath,
+                            )
+                          : null),
                   heroUrl:
                       activeImageAsset.heroUrl ??
-                      buildComedianImageAssetUrl(activeImageAsset.heroPath),
+                      (activeImageAsset.heroPath
+                          ? buildComedianImageAssetUrl(
+                                activeImageAsset.heroPath,
+                            )
+                          : null),
               }
             : null,
         legacyImageUrl,
