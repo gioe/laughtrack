@@ -1,3 +1,4 @@
+import net from "node:net";
 import sharp from "sharp";
 
 export type ComedianImageDiscoveryInput = {
@@ -48,6 +49,15 @@ const IMAGE_SIGNAL_RE = /\b(headshot|press|photo|portrait|media|publicity)\b/i;
 const POSTER_RE = /\b(poster|flyer|tour|show|event|banner)\b/i;
 const LOGO_RE = /\b(logo|icon|favicon|brand|wordmark)\b/i;
 
+const ipv6BlockList = (() => {
+    const list = new net.BlockList();
+    list.addAddress("::1", "ipv6");
+    list.addSubnet("fc00::", 7, "ipv6");
+    list.addSubnet("fe80::", 10, "ipv6");
+    list.addSubnet("::ffff:0:0", 96, "ipv6");
+    return list;
+})();
+
 function normalizeUrl(value: string | null | undefined) {
     const trimmed = value?.trim();
     if (!trimmed) return null;
@@ -94,10 +104,18 @@ function resolveUrl(value: string, baseUrl: string) {
 
 function isBlockedHostname(hostname: string) {
     const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+    if (!host) return true;
     if (host === "localhost" || host.endsWith(".localhost")) return true;
-    if (host === "::1" || host === "0:0:0:0:0:0:0:1") return true;
+
+    if (net.isIPv6(host)) {
+        if (ipv6BlockList.check(host, "ipv6")) return true;
+        return false;
+    }
+
     if (host === "0.0.0.0") return true;
 
+    // WHATWG URL parsing canonicalizes integer/octal/hex IPv4 forms before
+    // this check, so valid IPv4 hosts are dotted-decimal here.
     const octets = host.split(".").map((part) => Number(part));
     if (
         octets.length !== 4 ||
@@ -303,6 +321,7 @@ async function defaultInspectImage(
         headers: {
             accept: "image/avif,image/webp,image/png,image/jpeg,image/*",
         },
+        redirect: "error",
     });
     if (!response.ok) return null;
 
@@ -349,6 +368,7 @@ export async function discoverComedianImageCandidates(
         try {
             const response = await fetchImpl(pageUrl, {
                 headers: { accept: "text/html,application/xhtml+xml" },
+                redirect: "error",
             });
             const contentType = response.headers.get("content-type") ?? "";
             if (!response.ok || !contentType.toLowerCase().includes("html")) {

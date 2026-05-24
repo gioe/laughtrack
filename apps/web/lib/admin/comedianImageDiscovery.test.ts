@@ -37,6 +37,62 @@ describe("discoverComedianImageCandidates", () => {
         expect(fetchMock).not.toHaveBeenCalled();
     });
 
+    it.each([
+        "http://[::ffff:127.0.0.1]/admin",
+        "http://[fc00::1]/admin",
+        "http://[fd12:3456:789a::1]/admin",
+        "http://[fe80::1]/admin",
+        "http://[feb0::1]/admin",
+    ])("ignores private IPv6 seed URL %s", async (website) => {
+        const fetchMock = vi.fn();
+
+        const result = await discoverComedianImageCandidates(
+            {
+                comedianName: "Alex Example",
+                website,
+                websiteScrapingUrl: null,
+            },
+            { fetch: fetchMock },
+        );
+
+        expect(result).toEqual({
+            seedPages: [],
+            crawledPages: [],
+            candidates: [],
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("passes redirect:'error' to page and image fetches", async () => {
+        const fetchMock = vi.fn(
+            async (input: string | URL | Request, init?: RequestInit) => {
+                expect(init?.redirect).toBe("error");
+                const url = input.toString();
+                if (url === "https://comic.example/") {
+                    return htmlResponse(`
+                        <img src="/images/headshot.jpg" alt="Alex Example headshot">
+                    `);
+                }
+                if (url === "https://comic.example/images/headshot.jpg") {
+                    throw new TypeError("redirect mode set to error");
+                }
+                throw new Error(`unexpected fetch ${url}`);
+            },
+        );
+
+        const result = await discoverComedianImageCandidates(
+            {
+                comedianName: "Alex Example",
+                website: "https://comic.example/",
+                websiteScrapingUrl: null,
+            },
+            { fetch: fetchMock },
+        );
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(result.candidates).toEqual([]);
+    });
+
     it("only crawls official-site seed pages and same-origin discovery links", async () => {
         const fetchMock = vi.fn(async (input: string | URL | Request) => {
             const url = input.toString();
