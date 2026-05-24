@@ -93,6 +93,10 @@ function formatPopularity(value: number) {
     });
 }
 
+function formatAssociationType(value?: string | null) {
+    return value ? `Suggested: ${value}` : "Suggested role unknown";
+}
+
 function formatDate(iso: string) {
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
@@ -415,6 +419,49 @@ export default function AdminPodcastHostshipReviewManager({
             ...current,
             [groupKey]: !(current[groupKey] ?? true),
         }));
+    }
+
+    function selectHost(groupKey: string, option: ComedianOption) {
+        setSelectedHosts((prev) => ({
+            ...prev,
+            [groupKey]: option,
+        }));
+        setSelectedCohosts((prev) => ({
+            ...prev,
+            [groupKey]: (prev[groupKey] ?? []).filter(
+                (cohost) => cohost.id !== option.id,
+            ),
+        }));
+    }
+
+    function toggleCohost(
+        groupKey: string,
+        option: ComedianOption,
+        isCohost: boolean,
+    ) {
+        setSelectedCohosts((prev) => {
+            const current = prev[groupKey] ?? [];
+            const next = isCohost
+                ? current.filter((cohost) => cohost.id !== option.id)
+                : [
+                      ...current.filter((cohost) => cohost.id !== option.id),
+                      option,
+                  ];
+            return {
+                ...prev,
+                [groupKey]: next,
+            };
+        });
+        if (!isCohost) {
+            setSelectedHosts((prev) =>
+                prev[groupKey]?.id === option.id
+                    ? {
+                          ...prev,
+                          [groupKey]: null,
+                      }
+                    : prev,
+            );
+        }
     }
 
     async function searchComedians(groupKey: string) {
@@ -865,52 +912,14 @@ export default function AdminPodcastHostshipReviewManager({
                                       <div className="grid gap-3">
                                           <div className="grid gap-2">
                                               <p className="font-dmSans text-sm font-semibold text-cedar">
-                                                  Host candidates
+                                                  Candidates
                                               </p>
-                                              <div className="flex flex-wrap gap-2">
-                                                  {group.comedianOptions.map(
-                                                      (option) => (
-                                                          <button
-                                                              key={option.id}
-                                                              type="button"
-                                                              onClick={() =>
-                                                                  setSelectedHosts(
-                                                                      (
-                                                                          prev,
-                                                                      ) => ({
-                                                                          ...prev,
-                                                                          [group.key]:
-                                                                              option,
-                                                                      }),
-                                                                  )
-                                                              }
-                                                              className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-dmSans text-sm font-semibold ${
-                                                                  selectedHost?.id ===
-                                                                  option.id
-                                                                      ? "border-green-500 bg-green-50 text-green-900"
-                                                                      : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
-                                                              }`}
-                                                          >
-                                                              <Plus
-                                                                  className="h-3.5 w-3.5"
-                                                                  aria-hidden="true"
-                                                              />
-                                                              {option.name}
-                                                              {option.confidence !==
-                                                                  undefined && (
-                                                                  <span className="font-normal text-soft-charcoal">
-                                                                      {formatPercent(
-                                                                          option.confidence,
-                                                                      )}
-                                                                  </span>
-                                                              )}
-                                                          </button>
-                                                      ),
-                                                  )}
-                                              </div>
-                                              <div className="flex flex-wrap gap-2">
+                                              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                                   {group.comedianOptions.map(
                                                       (option) => {
+                                                          const isHost =
+                                                              selectedHost?.id ===
+                                                              option.id;
                                                           const isCohost =
                                                               selectedGroupCohosts.some(
                                                                   (cohost) =>
@@ -918,62 +927,86 @@ export default function AdminPodcastHostshipReviewManager({
                                                                       option.id,
                                                               );
                                                           return (
-                                                              <button
+                                                              <div
                                                                   key={
                                                                       option.id
                                                                   }
-                                                                  type="button"
-                                                                  onClick={() =>
-                                                                      setSelectedCohosts(
-                                                                          (
-                                                                              prev,
-                                                                          ) => {
-                                                                              const current =
-                                                                                  prev[
-                                                                                      group
-                                                                                          .key
-                                                                                  ] ??
-                                                                                  [];
-                                                                              const next =
-                                                                                  isCohost
-                                                                                      ? current.filter(
-                                                                                            (
-                                                                                                cohost,
-                                                                                            ) =>
-                                                                                                cohost.id !==
-                                                                                                option.id,
-                                                                                        )
-                                                                                      : [
-                                                                                            ...current.filter(
-                                                                                                (
-                                                                                                    cohost,
-                                                                                                ) =>
-                                                                                                    cohost.id !==
-                                                                                                    option.id,
-                                                                                            ),
-                                                                                            option,
-                                                                                        ];
-                                                                              return {
-                                                                                  ...prev,
-                                                                                  [group.key]:
-                                                                                      next,
-                                                                              };
-                                                                          },
-                                                                      )
-                                                                  }
-                                                                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 font-dmSans text-sm font-semibold ${
-                                                                      isCohost
-                                                                          ? "border-blue-500 bg-blue-50 text-blue-900"
-                                                                          : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                                  className={`grid gap-2 rounded-md border p-3 font-dmSans ${
+                                                                      isHost
+                                                                          ? "border-green-500 bg-green-50"
+                                                                          : isCohost
+                                                                            ? "border-blue-500 bg-blue-50"
+                                                                            : "border-gray-300 bg-white"
                                                                   }`}
                                                               >
-                                                                  <Plus
-                                                                      className="h-3.5 w-3.5"
-                                                                      aria-hidden="true"
-                                                                  />
-                                                                  Co-host:{" "}
-                                                                  {option.name}
-                                                              </button>
+                                                                  <div className="grid gap-1">
+                                                                      <div className="flex flex-wrap items-center gap-2">
+                                                                          <span className="font-semibold text-cedar">
+                                                                              {
+                                                                                  option.name
+                                                                              }
+                                                                          </span>
+                                                                          {option.confidence !==
+                                                                              undefined && (
+                                                                              <span className="text-caption font-normal text-soft-charcoal">
+                                                                                  {formatPercent(
+                                                                                      option.confidence,
+                                                                                  )}
+                                                                              </span>
+                                                                          )}
+                                                                      </div>
+                                                                      <span className="text-caption font-semibold text-soft-charcoal">
+                                                                          {formatAssociationType(
+                                                                              option.associationType,
+                                                                          )}
+                                                                      </span>
+                                                                  </div>
+                                                                  <div className="flex flex-wrap gap-2">
+                                                                      <button
+                                                                          type="button"
+                                                                          onClick={() =>
+                                                                              selectHost(
+                                                                                  group.key,
+                                                                                  option,
+                                                                              )
+                                                                          }
+                                                                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
+                                                                              isHost
+                                                                                  ? "border-green-500 bg-green-600 text-white"
+                                                                                  : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                                          }`}
+                                                                          aria-label={`Set ${option.name} as host`}
+                                                                      >
+                                                                          <Plus
+                                                                              className="h-3.5 w-3.5"
+                                                                              aria-hidden="true"
+                                                                          />
+                                                                          Host
+                                                                      </button>
+                                                                      <button
+                                                                          type="button"
+                                                                          onClick={() =>
+                                                                              toggleCohost(
+                                                                                  group.key,
+                                                                                  option,
+                                                                                  isCohost,
+                                                                              )
+                                                                          }
+                                                                          className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-sm font-semibold ${
+                                                                              isCohost
+                                                                                  ? "border-blue-500 bg-blue-600 text-white"
+                                                                                  : "border-gray-300 bg-white text-cedar hover:border-copper-dark"
+                                                                          }`}
+                                                                          aria-label={`Set ${option.name} as co-host`}
+                                                                      >
+                                                                          <Plus
+                                                                              className="h-3.5 w-3.5"
+                                                                              aria-hidden="true"
+                                                                          />
+                                                                          Co-host
+                                                                      </button>
+                                                                  </div>
+                                                              </div>
                                                           );
                                                       },
                                                   )}
