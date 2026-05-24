@@ -82,11 +82,12 @@ def _episode(
     host_ids: list[int] | None = None,
     host_types: list[str] | None = None,
     source_payload: dict[str, Any] | None = None,
+    source: str = "podcast_index",
 ) -> mod.PodcastEpisodeCandidateInput:
     return mod.PodcastEpisodeCandidateInput(
         episode_id=episode_id,
         podcast_id=podcast_id,
-        source="podcast_index",
+        source=source,
         source_episode_id=f"ep-{episode_id}",
         podcast_title="Comedy Talk",
         podcast_author=podcast_author,
@@ -394,3 +395,66 @@ def test_detect_passes_comedian_limit_and_matching_options(monkeypatch):
     assert calls["episodes"] == {"episode_ids": None, "sources": None, "limit": None}
     assert calls["candidates"][0].matched_name == "Ari Shaffir"
     assert calls["candidates"][0].status == "pending"
+
+
+def test_detector_processes_episodes_from_multiple_sources_and_preserves_source_on_writes(monkeypatch):
+    comedian = mod.MatchComedian(12, "Ari Shaffir", [])
+    rows = mod.detect_episode_candidates(
+        [comedian],
+        [
+            _episode(
+                episode_id=101,
+                title="Ari Shaffir on the road",
+                source="podcast_index",
+            ),
+            _episode(
+                episode_id=202,
+                title="Ari Shaffir on the road",
+                source="itunes",
+            ),
+        ],
+    )
+
+    assert [(c.episode_id, c.source, c.role_guess, c.status) for c in rows] == [
+        (101, "podcast_index", "guest", "accepted"),
+        (202, "itunes", "guest", "accepted"),
+    ]
+    for candidate in rows:
+        assert candidate.confidence >= mod._AUTO_ACCEPT_TITLE_CONFIDENCE
+        assert candidate.evidence["auto_acceptance"]["rule_id"] == "high_confidence_title_name"
+
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+    _capture_execute_values(monkeypatch)
+
+    summary = mod.persist_candidates(rows, dry_run=False)
+
+    assert summary.auto_accepted == 2
+    review_sources = sorted(params[2] for params in conn.review_writes)
+    appearance_sources = sorted(params[2] for params in conn.appearance_writes)
+    assert review_sources == ["itunes", "podcast_index"]
+    assert appearance_sources == ["itunes", "podcast_index"]
+
+
+def test_load_episode_inputs_default_query_omits_source_filter_and_binds_no_params(monkeypatch):
+    conn = _FakeConn(episode_rows=[])
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    mod.load_episode_inputs()
+
+    sql, params = conn.executed[0]
+    assert "p.source = %s" not in sql
+    assert "pe.source = %s" not in sql
+    assert params is None
+
+
+def test_load_episode_inputs_source_filter_binds_array_params_for_each_source_column(monkeypatch):
+    conn = _FakeConn(episode_rows=[])
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    mod.load_episode_inputs(sources=["itunes", "podcast_index"])
+
+    sql, params = conn.executed[0]
+    assert "AND p.source = ANY(%s::text[])" in sql
+    assert "AND pe.source = ANY(%s::text[])" in sql
+    assert params == (["itunes", "podcast_index"], ["itunes", "podcast_index"])
