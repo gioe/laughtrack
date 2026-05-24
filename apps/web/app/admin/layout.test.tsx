@@ -8,6 +8,15 @@ const mocks = vi.hoisted(() => ({
     notFound: vi.fn(() => {
         throw new Error("NEXT_NOT_FOUND");
     }),
+    usePathname: vi.fn(() => "/admin"),
+    useRouter: vi.fn(() => ({
+        refresh: vi.fn(),
+        push: vi.fn(),
+        replace: vi.fn(),
+        back: vi.fn(),
+        forward: vi.fn(),
+        prefetch: vi.fn(),
+    })),
 }));
 
 vi.mock("@/auth", () => ({
@@ -24,6 +33,8 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("next/navigation", () => ({
     notFound: mocks.notFound,
+    usePathname: mocks.usePathname,
+    useRouter: mocks.useRouter,
 }));
 
 import AdminLayout from "./layout";
