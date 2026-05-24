@@ -242,12 +242,7 @@ private func makeHomeFeedJSON(showsTonight: [LoaderTestShow]) -> String {
         popularClubs: []
     )
     let envelope = Components.Schemas.HomeFeedResponse(data: feed)
-    let encoder = JSONEncoder()
-    encoder.dateEncodingStrategy = .custom { date, encoder in
-        var container = encoder.singleValueContainer()
-        try container.encode(try LaughTrackFlexibleISO8601DateTranscoder().encode(date))
-    }
-    let data = try! encoder.encode(envelope)
+    let data = try! APIMockEncoder.make().encode(envelope)
     return String(decoding: data, as: UTF8.self)
 }
 

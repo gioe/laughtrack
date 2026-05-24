@@ -281,12 +281,7 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
     // field to HomeFeed can't silently break decoding here (TASK-2307, TASK-2442).
     private func homeFeedJSON(_ feed: Components.Schemas.HomeFeed) throws -> String {
         let envelope = Components.Schemas.HomeFeedResponse(data: feed)
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(try LaughTrackFlexibleISO8601DateTranscoder().encode(date))
-        }
-        let data = try encoder.encode(envelope)
+        let data = try APIMockEncoder.make().encode(envelope)
         return String(decoding: data, as: UTF8.self)
     }
 }
