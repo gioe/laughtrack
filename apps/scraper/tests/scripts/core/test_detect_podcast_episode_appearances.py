@@ -391,6 +391,6 @@ def test_detect_passes_comedian_limit_and_matching_options(monkeypatch):
 
     assert summary.candidates == 1
     assert calls["comedians"] == {"comedian_ids": None, "comedian_names": None, "limit": 1000}
-    assert calls["episodes"] == {"episode_ids": None, "limit": None}
+    assert calls["episodes"] == {"episode_ids": None, "sources": None, "limit": None}
     assert calls["candidates"][0].matched_name == "Ari Shaffir"
     assert calls["candidates"][0].status == "pending"

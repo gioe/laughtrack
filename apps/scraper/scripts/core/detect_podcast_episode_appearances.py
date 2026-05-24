@@ -26,7 +26,6 @@ from laughtrack.core.podcast_appearance_auto_acceptance import (
     normalize_match_text,
 )
 
-_SOURCE = "podcast_index"
 _AUTO_ACCEPT_TITLE_CONFIDENCE = 0.95
 _HOST_ASSOCIATION_TYPES = frozenset({"host", "cohost"})
 
@@ -85,9 +84,7 @@ _GET_EPISODES_SQL = """
     LEFT JOIN comedian_podcasts cp ON cp.podcast_id = p.id
         AND cp.review_status = 'accepted'
         AND cp.association_type IN ('host', 'cohost', 'owner')
-    WHERE p.source = %s
-      AND pe.source = %s
-      AND EXISTS (
+    WHERE EXISTS (
           SELECT 1
           FROM comedian_podcasts accepted_cp
           WHERE accepted_cp.podcast_id = p.id
@@ -688,20 +685,29 @@ def load_match_comedians_from_conn(
 def load_episode_inputs(
     *,
     episode_ids: Optional[list[int]] = None,
+    sources: Optional[list[str]] = None,
     limit: Optional[int] = None,
 ) -> list[PodcastEpisodeCandidateInput]:
     with get_connection() as conn:
-        return load_episode_inputs_from_conn(conn, episode_ids=episode_ids, limit=limit)
+        return load_episode_inputs_from_conn(
+            conn, episode_ids=episode_ids, sources=sources, limit=limit
+        )
 
 
 def load_episode_inputs_from_conn(
     conn: Any,
     *,
     episode_ids: Optional[list[int]] = None,
+    sources: Optional[list[str]] = None,
     limit: Optional[int] = None,
 ) -> list[PodcastEpisodeCandidateInput]:
     filters: list[str] = []
-    params: list[Any] = [_SOURCE, _SOURCE]
+    params: list[Any] = []
+    if sources:
+        filters.append("AND p.source = ANY(%s::text[])")
+        filters.append("AND pe.source = ANY(%s::text[])")
+        params.append(sources)
+        params.append(sources)
     if episode_ids:
         filters.append("AND pe.id = ANY(%s::int[])")
         params.append(episode_ids)
@@ -710,7 +716,7 @@ def load_episode_inputs_from_conn(
         query += "\n    LIMIT %s"
         params.append(int(limit))
     with conn.cursor() as cur:
-        cur.execute(query, tuple(params))
+        cur.execute(query, tuple(params) if params else None)
         return [
             PodcastEpisodeCandidateInput(
                 episode_id=int(row[0]),
@@ -823,13 +829,16 @@ def detect_podcast_episode_appearances(
     comedian_limit: Optional[int],
     include_aliases: bool,
     auto_accept: bool,
+    sources: Optional[list[str]] = None,
 ) -> DetectSummary:
     comedians = load_match_comedians(
         comedian_ids=comedian_ids,
         comedian_names=comedian_names,
         limit=comedian_limit,
     )
-    episodes = load_episode_inputs(episode_ids=episode_ids, limit=episode_limit)
+    episodes = load_episode_inputs(
+        episode_ids=episode_ids, sources=sources, limit=episode_limit
+    )
     candidates = detect_episode_candidates(
         comedians,
         episodes,
@@ -848,6 +857,13 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--episode-limit", type=int, default=None)
     parser.add_argument("--limit", dest="episode_limit", type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--comedian-limit", type=int, default=None)
+    parser.add_argument(
+        "--source",
+        dest="sources",
+        action="append",
+        default=None,
+        help="Filter to a specific podcast source (e.g. podcast_index, itunes). Repeatable. Default: all sources.",
+    )
     parser.add_argument("--no-aliases", action="store_true")
     parser.add_argument(
         "--review-only",
@@ -868,6 +884,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         comedian_limit=args.comedian_limit,
         include_aliases=not args.no_aliases,
         auto_accept=not args.review_only,
+        sources=args.sources,
     )
     print(
         {
