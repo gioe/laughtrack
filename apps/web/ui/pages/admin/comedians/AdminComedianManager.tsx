@@ -43,7 +43,8 @@ type WebsiteEdit = {
 
 type ImageCandidate = {
     imageUrl: string;
-    sourcePage: string;
+    heroImageUrl?: string | null;
+    sourcePage: string | null;
     width: number | null;
     height: number | null;
     mimeType: string | null;
@@ -63,6 +64,11 @@ type ImageDiscoveryState = {
     selectedCandidate: ImageCandidate | null;
     preview: ImagePreview | null;
     error?: string;
+};
+
+type ManualImageUrls = {
+    headshot: string;
+    hero: string;
 };
 
 function formatDate(iso: string | null) {
@@ -139,6 +145,9 @@ export default function AdminComedianManager({ comedians }: Props) {
     );
     const [imageDiscovery, setImageDiscovery] = useState<
         Record<number, ImageDiscoveryState>
+    >({});
+    const [manualImageUrls, setManualImageUrls] = useState<
+        Record<number, ManualImageUrls>
     >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -476,6 +485,24 @@ export default function AdminComedianManager({ comedians }: Props) {
         return imageDiscovery[rowId] ?? emptyImageDiscoveryState();
     }
 
+    function manualImageUrlValue(row: AdminComedianListItem) {
+        return manualImageUrls[row.id] ?? { headshot: "", hero: "" };
+    }
+
+    function updateManualImageUrls(
+        row: AdminComedianListItem,
+        patch: Partial<ManualImageUrls>,
+    ) {
+        setManualImageUrls((current) => ({
+            ...current,
+            [row.id]: {
+                headshot: manualImageUrlValue(row).headshot,
+                hero: manualImageUrlValue(row).hero,
+                ...patch,
+            },
+        }));
+    }
+
     function updateImageState(
         rowId: number,
         updater: (current: ImageDiscoveryState) => ImageDiscoveryState,
@@ -506,8 +533,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             updateImageState(row.id, (current) => ({
                 ...current,
                 kind: "error",
-                error:
-                    error instanceof Error ? error.message : "Network error",
+                error: error instanceof Error ? error.message : "Network error",
             }));
             return;
         }
@@ -552,7 +578,12 @@ export default function AdminComedianManager({ comedians }: Props) {
                 body: JSON.stringify({
                     comedianId: row.id,
                     imageUrl: candidate.imageUrl,
-                    sourcePageUrl: candidate.sourcePage,
+                    ...(candidate.heroImageUrl
+                        ? { heroImageUrl: candidate.heroImageUrl }
+                        : {}),
+                    ...(candidate.sourcePage
+                        ? { sourcePageUrl: candidate.sourcePage }
+                        : {}),
                 }),
             });
         } catch (error) {
@@ -560,8 +591,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             updateImageState(row.id, (current) => ({
                 ...current,
                 kind: "error",
-                error:
-                    error instanceof Error ? error.message : "Network error",
+                error: error instanceof Error ? error.message : "Network error",
             }));
             return;
         }
@@ -589,6 +619,24 @@ export default function AdminComedianManager({ comedians }: Props) {
         }));
     }
 
+    async function previewManualImage(row: AdminComedianListItem) {
+        const manualUrls = manualImageUrlValue(row);
+        const imageUrl = manualUrls.headshot.trim();
+        const heroImageUrl = manualUrls.hero.trim();
+        if (!imageUrl) return;
+
+        await previewImage(row, {
+            imageUrl,
+            heroImageUrl: heroImageUrl || null,
+            sourcePage: null,
+            width: null,
+            height: null,
+            mimeType: null,
+            score: 0,
+            reasons: ["manual URL"],
+        });
+    }
+
     async function publishImage(row: AdminComedianListItem) {
         const state = imageState(row.id);
         const candidate = state.selectedCandidate;
@@ -605,7 +653,12 @@ export default function AdminComedianManager({ comedians }: Props) {
                 body: JSON.stringify({
                     comedianId: row.id,
                     imageUrl: candidate.imageUrl,
-                    sourcePageUrl: candidate.sourcePage,
+                    ...(candidate.heroImageUrl
+                        ? { heroImageUrl: candidate.heroImageUrl }
+                        : {}),
+                    ...(candidate.sourcePage
+                        ? { sourcePageUrl: candidate.sourcePage }
+                        : {}),
                 }),
             });
         } catch (error) {
@@ -983,6 +1036,72 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </Button>
                                         </div>
 
+                                        <div className="mb-3 grid gap-2">
+                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Headshot image URL
+                                                <input
+                                                    aria-label="Headshot image URL"
+                                                    type="url"
+                                                    value={
+                                                        manualImageUrlValue(row)
+                                                            .headshot
+                                                    }
+                                                    onChange={(event) =>
+                                                        updateManualImageUrls(
+                                                            row,
+                                                            {
+                                                                headshot:
+                                                                    event.target
+                                                                        .value,
+                                                            },
+                                                        )
+                                                    }
+                                                    placeholder="https://example.com/headshot.jpg"
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                            </label>
+                                            <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Hero image URL
+                                                <input
+                                                    aria-label="Hero image URL"
+                                                    type="url"
+                                                    value={
+                                                        manualImageUrlValue(row)
+                                                            .hero
+                                                    }
+                                                    onChange={(event) =>
+                                                        updateManualImageUrls(
+                                                            row,
+                                                            {
+                                                                hero: event
+                                                                    .target
+                                                                    .value,
+                                                            },
+                                                        )
+                                                    }
+                                                    placeholder="https://example.com/hero.jpg"
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                            </label>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="w-fit gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    !manualImageUrlValue(
+                                                        row,
+                                                    ).headshot.trim()
+                                                }
+                                                onClick={() =>
+                                                    void previewManualImage(row)
+                                                }
+                                            >
+                                                <ImagePlus className="h-4 w-4" />
+                                                Preview image URLs
+                                            </Button>
+                                        </div>
+
                                         {currentAvatar ? (
                                             <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
                                                 <img
@@ -1097,9 +1216,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                     </span>
                                                                 </span>
                                                                 <span className="block truncate text-caption text-copper-dark">
-                                                                    {
-                                                                        candidate.sourcePage
-                                                                    }
+                                                                    {candidate.sourcePage ??
+                                                                        candidate.imageUrl}
                                                                 </span>
                                                                 <span className="flex flex-wrap gap-1">
                                                                     {candidate.reasons.map(

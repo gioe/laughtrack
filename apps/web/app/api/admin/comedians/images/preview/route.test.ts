@@ -175,6 +175,61 @@ describe("POST /api/admin/comedians/images/preview", () => {
         expect(mockComedianImageAssetUpdateMany).not.toHaveBeenCalled();
     });
 
+    it("uses a separate hero image url when one is provided", async () => {
+        mockDownload
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/headshot.jpg",
+                buffer: Buffer.from("headshot"),
+                mimeType: "image/jpeg",
+                width: 2400,
+                height: 2400,
+            })
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/hero.jpg",
+                buffer: Buffer.from("hero-source"),
+                mimeType: "image/jpeg",
+                width: 2400,
+                height: 1350,
+            });
+        mockGenerateVariants
+            .mockResolvedValueOnce({
+                avatarBuffer: Buffer.from("avatar-from-headshot"),
+                heroBuffer: Buffer.from("unused-hero-from-headshot"),
+            })
+            .mockResolvedValueOnce({
+                avatarBuffer: Buffer.from("unused-avatar-from-hero"),
+                heroBuffer: Buffer.from("hero-from-hero-source"),
+            });
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/headshot.jpg",
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        expect(res.status).toBe(200);
+        const body = await res.json();
+
+        expect(mockDownload).toHaveBeenNthCalledWith(
+            1,
+            "https://example.com/headshot.jpg",
+        );
+        expect(mockDownload).toHaveBeenNthCalledWith(
+            2,
+            "https://example.com/hero.jpg",
+        );
+        expect(body.source.imageUrl).toBe("https://example.com/headshot.jpg");
+        expect(body.source.heroImageUrl).toBe("https://example.com/hero.jpg");
+        expect(body.avatarDataUrl).toBe(
+            `data:image/jpeg;base64,${Buffer.from("avatar-from-headshot").toString("base64")}`,
+        );
+        expect(body.heroDataUrl).toBe(
+            `data:image/jpeg;base64,${Buffer.from("hero-from-hero-source").toString("base64")}`,
+        );
+        expect(body.warnings).toEqual([]);
+    });
+
     it("surfaces a low-resolution warning when source is below preferred hero size", async () => {
         mockDownload.mockResolvedValue({
             sourceUrl: "https://example.com/small.jpg",

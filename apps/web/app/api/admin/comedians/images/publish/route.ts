@@ -22,6 +22,7 @@ const requestSchema = z
     .object({
         comedianId: z.number().int().positive(),
         imageUrl: z.string().url().max(2048),
+        heroImageUrl: z.string().url().max(2048).optional(),
         sourcePageUrl: z.string().url().max(2048).optional(),
     })
     .strict();
@@ -84,9 +85,17 @@ export async function POST(req: NextRequest) {
 
     let downloaded;
     let variants;
+    let heroDownloaded;
+    let heroVariants;
     try {
         downloaded = await downloadComedianImage(parsed.data.imageUrl);
         variants = await generateComedianImageVariants(downloaded);
+        heroDownloaded = parsed.data.heroImageUrl
+            ? await downloadComedianImage(parsed.data.heroImageUrl)
+            : downloaded;
+        heroVariants = parsed.data.heroImageUrl
+            ? await generateComedianImageVariants(heroDownloaded)
+            : variants;
     } catch (error) {
         if (error instanceof ComedianImageDownloadError) {
             return NextResponse.json(
@@ -141,7 +150,7 @@ export async function POST(req: NextRequest) {
         uploadedPaths.push(paths.avatar);
         await uploadToBunnyStorage({
             path: paths.hero,
-            body: variants.heroBuffer,
+            body: heroVariants.heroBuffer,
             contentType: "image/jpeg",
         });
         uploadedPaths.push(paths.hero);
@@ -194,6 +203,10 @@ export async function POST(req: NextRequest) {
                     metadata: {
                         assetSlug,
                         sourcePageUrl: parsed.data.sourcePageUrl ?? null,
+                        heroSourceImageUrl:
+                            heroDownloaded.sourceUrl === downloaded.sourceUrl
+                                ? null
+                                : heroDownloaded.sourceUrl,
                     } as Prisma.InputJsonValue,
                 },
             });
@@ -220,6 +233,10 @@ export async function POST(req: NextRequest) {
                     hasImage: true,
                     activeAsset: serializeAsset(created),
                     sourcePageUrl: parsed.data.sourcePageUrl ?? null,
+                    heroSourceImageUrl:
+                        heroDownloaded.sourceUrl === downloaded.sourceUrl
+                            ? null
+                            : heroDownloaded.sourceUrl,
                 },
             });
 

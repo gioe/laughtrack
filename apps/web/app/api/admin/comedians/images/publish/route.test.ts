@@ -113,9 +113,7 @@ function expectAvatarPathPattern(path: string, comedianId: number) {
 }
 function expectHeroPathPattern(path: string, comedianId: number) {
     expect(path).toMatch(
-        new RegExp(
-            `^comedian-images/${comedianId}/[0-9a-f-]{36}/hero\\.jpg$`,
-        ),
+        new RegExp(`^comedian-images/${comedianId}/[0-9a-f-]{36}/hero\\.jpg$`),
     );
 }
 function expectOriginalPathPattern(
@@ -273,6 +271,71 @@ describe("POST /api/admin/comedians/images/publish", () => {
         const slug = originalCall.path.split("/")[2];
         expect(avatarCall.path).toContain(`/${slug}/`);
         expect(heroCall.path).toContain(`/${slug}/`);
+    });
+
+    it("uses a separate hero image url for the uploaded hero variant", async () => {
+        mockDownload
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/headshot.jpg",
+                buffer: Buffer.from("headshot-original"),
+                mimeType: "image/jpeg",
+                width: 2400,
+                height: 2400,
+            })
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/hero.jpg",
+                buffer: Buffer.from("hero-original"),
+                mimeType: "image/jpeg",
+                width: 2400,
+                height: 1350,
+            });
+        mockGenerateVariants
+            .mockResolvedValueOnce({
+                avatarBuffer: Buffer.from("avatar-from-headshot"),
+                heroBuffer: Buffer.from("unused-hero-from-headshot"),
+            })
+            .mockResolvedValueOnce({
+                avatarBuffer: Buffer.from("unused-avatar-from-hero"),
+                heroBuffer: Buffer.from("hero-from-hero-source"),
+            });
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/headshot.jpg",
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        expect(res.status).toBe(200);
+
+        expect(mockDownload).toHaveBeenNthCalledWith(
+            1,
+            "https://example.com/headshot.jpg",
+        );
+        expect(mockDownload).toHaveBeenNthCalledWith(
+            2,
+            "https://example.com/hero.jpg",
+        );
+
+        const calls = mockUpload.mock.calls.map((call) => call[0]);
+        expect(Buffer.from(calls[0].body).toString()).toBe("headshot-original");
+        expect(Buffer.from(calls[1].body).toString()).toBe(
+            "avatar-from-headshot",
+        );
+        expect(Buffer.from(calls[2].body).toString()).toBe(
+            "hero-from-hero-source",
+        );
+
+        const createArgs = mockTxCreate.mock.calls[0][0] as {
+            data: Record<string, unknown>;
+        };
+        const metadata = createArgs.data.metadata as Record<string, unknown>;
+        expect(createArgs.data.sourceImageUrl).toBe(
+            "https://example.com/headshot.jpg",
+        );
+        expect(metadata.heroSourceImageUrl).toBe(
+            "https://example.com/hero.jpg",
+        );
     });
 
     it("returns 502 when bunny upload fails and never mutates DB", async () => {

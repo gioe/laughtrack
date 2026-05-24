@@ -14,6 +14,7 @@ const requestSchema = z
     .object({
         comedianId: z.number().int().positive(),
         imageUrl: z.string().url().max(2048),
+        heroImageUrl: z.string().url().max(2048).optional(),
         sourcePageUrl: z.string().url().max(2048).optional(),
     })
     .strict();
@@ -52,11 +53,20 @@ export async function POST(req: NextRequest) {
     try {
         const downloaded = await downloadComedianImage(parsed.data.imageUrl);
         const variants = await generateComedianImageVariants(downloaded);
+        const heroDownloaded = parsed.data.heroImageUrl
+            ? await downloadComedianImage(parsed.data.heroImageUrl)
+            : downloaded;
+        const heroVariants = parsed.data.heroImageUrl
+            ? await generateComedianImageVariants(heroDownloaded)
+            : variants;
 
         const warnings: string[] = [];
-        if (downloaded.width < HERO_WIDTH || downloaded.height < HERO_HEIGHT) {
+        if (
+            heroDownloaded.width < HERO_WIDTH ||
+            heroDownloaded.height < HERO_HEIGHT
+        ) {
             warnings.push(
-                `Source ${downloaded.width}x${downloaded.height} is below preferred hero ${HERO_WIDTH}x${HERO_HEIGHT}; hero crop may be lower quality`,
+                `Hero source ${heroDownloaded.width}x${heroDownloaded.height} is below preferred hero ${HERO_WIDTH}x${HERO_HEIGHT}; hero crop may be lower quality`,
             );
         }
 
@@ -65,13 +75,16 @@ export async function POST(req: NextRequest) {
             comedianId: comedian.id,
             source: {
                 imageUrl: downloaded.sourceUrl,
+                ...(heroDownloaded.sourceUrl === downloaded.sourceUrl
+                    ? {}
+                    : { heroImageUrl: heroDownloaded.sourceUrl }),
                 sourcePageUrl: parsed.data.sourcePageUrl ?? null,
                 mimeType: downloaded.mimeType,
                 width: downloaded.width,
                 height: downloaded.height,
             },
             avatarDataUrl: `data:image/jpeg;base64,${variants.avatarBuffer.toString("base64")}`,
-            heroDataUrl: `data:image/jpeg;base64,${variants.heroBuffer.toString("base64")}`,
+            heroDataUrl: `data:image/jpeg;base64,${heroVariants.heroBuffer.toString("base64")}`,
             warnings,
         });
     } catch (error) {

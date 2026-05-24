@@ -251,6 +251,99 @@ describe("AdminComedianManager", () => {
         expect(screen.getByText("hero crop may be lower quality")).toBeTruthy();
     });
 
+    it("previews and publishes manually entered headshot and hero image urls", async () => {
+        vi.mocked(global.fetch)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    comedianId: 2,
+                    source: {
+                        imageUrl: "https://alias.example.com/headshot.jpg",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
+                        sourcePageUrl: null,
+                        mimeType: "image/jpeg",
+                        width: 1200,
+                        height: 1600,
+                    },
+                    avatarDataUrl: "data:image/jpeg;base64,avatar",
+                    heroDataUrl: "data:image/jpeg;base64,hero",
+                    warnings: [],
+                }),
+            } as never)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    comedianId: 2,
+                    asset: {
+                        id: 202,
+                        sourceImageUrl:
+                            "https://alias.example.com/headshot.jpg",
+                        originalPath: "comedian-images/2/original.jpg",
+                        avatarPath: "comedian-images/2/avatar.jpg",
+                        heroPath: "comedian-images/2/hero.jpg",
+                        avatarUrl:
+                            "https://test.b-cdn.net/comedian-images/2/avatar.jpg",
+                        heroUrl:
+                            "https://test.b-cdn.net/comedian-images/2/hero.jpg",
+                        mimeType: "image/jpeg",
+                        width: 1200,
+                        height: 1600,
+                    },
+                }),
+            } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+
+        fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
+            target: { value: "https://alias.example.com/headshot.jpg" },
+        });
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
+            target: { value: "https://alias.example.com/hero.jpg" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Preview image URLs" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/comedians/images/preview",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        comedianId: 2,
+                        imageUrl: "https://alias.example.com/headshot.jpg",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
+                    }),
+                }),
+            );
+        });
+        expect(
+            screen
+                .getByAltText("Alias Comic avatar crop preview")
+                .getAttribute("src"),
+        ).toBe("data:image/jpeg;base64,avatar");
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Publish selected image" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/comedians/images/publish",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        comedianId: 2,
+                        imageUrl: "https://alias.example.com/headshot.jpg",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
+                    }),
+                }),
+            );
+        });
+        expect(screen.getByText("Alias Comic image published.")).toBeTruthy();
+    });
+
     it("updates row preview after publish without losing other comedian edits", async () => {
         vi.mocked(global.fetch)
             .mockResolvedValueOnce({
