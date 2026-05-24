@@ -270,47 +270,23 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
         case .success(let feed):
             return (
                 HTTPResponse(status: .ok, headerFields: [.contentType: "application/json"]),
-                HTTPBody(homeFeedJSON(feed))
+                HTTPBody(try homeFeedJSON(feed))
             )
         case .failure(let error):
             throw error
         }
     }
 
-    private func homeFeedJSON(_ feed: Components.Schemas.HomeFeed) -> String {
-        let show = feed.showsTonight[0]
-        let name = show.name ?? "Cached Show \(show.id)"
-        let clubName = show.clubName ?? "New York Comedy Club"
-        return """
-        {
-          "data": {
-            "hero": {
-              "zipCode": "\(feed.hero.zipCode ?? "")",
-              "city": "\(feed.hero.city ?? "")",
-              "state": "\(feed.hero.state ?? "")",
-              "shows": []
-            },
-            "trendingComedians": [],
-            "comediansNearYou": [],
-            "showsTonight": [
-              {
-                "id": \(show.id),
-                "clubId": \(show.clubId),
-                "date": "2026-04-29T00:00:00.000Z",
-                "name": "\(name)",
-                "clubName": "\(clubName)",
-                "imageUrl": "\(show.imageUrl)",
-                "soldOut": false,
-                "lineup": [],
-                "tickets": []
-              }
-            ],
-            "moreNearYou": [],
-            "trendingThisWeek": [],
-            "trendingPodcasts": [],
-            "popularClubs": []
-          }
+    // Derive the response body from the struct fixture so adding a non-optional
+    // field to HomeFeed can't silently break decoding here (TASK-2307, TASK-2442).
+    private func homeFeedJSON(_ feed: Components.Schemas.HomeFeed) throws -> String {
+        let envelope = Components.Schemas.HomeFeedResponse(data: feed)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var container = encoder.singleValueContainer()
+            try container.encode(try LaughTrackFlexibleISO8601DateTranscoder().encode(date))
         }
-        """
+        let data = try encoder.encode(envelope)
+        return String(decoding: data, as: UTF8.self)
     }
 }
