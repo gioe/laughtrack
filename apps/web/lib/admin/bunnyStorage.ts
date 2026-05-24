@@ -53,3 +53,27 @@ export const uploadToBunnyStorage: BunnyStorageUploader = async ({
         );
     }
 };
+
+export type BunnyStorageDeleter = (path: string) => Promise<void>;
+
+// Best-effort cleanup used after a successful Bunny upload when a subsequent
+// step fails (next upload throws, DB transaction rolls back). Callers should
+// log-and-swallow errors so a failed cleanup never overrides the original
+// failure response surfaced to the client.
+export const deleteFromBunnyStorage: BunnyStorageDeleter = async (path) => {
+    const { host, zone, accessKey } = readEnv();
+    const cleanPath = path.replace(/^\/+/, "");
+    const url = `https://${host}/${zone}/${cleanPath}`;
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: { AccessKey: accessKey },
+    });
+    // Bunny returns 404 for already-absent objects — treat as success since
+    // cleanup is idempotent and only ever called as a best-effort.
+    if (!response.ok && response.status !== 404) {
+        throw new BunnyStorageError(
+            `Bunny storage delete failed for ${cleanPath}: HTTP ${response.status}`,
+            response.status,
+        );
+    }
+};

@@ -50,6 +50,7 @@ vi.mock("@/lib/admin/comedianImagePipeline", async () => {
 
 vi.mock("@/lib/admin/bunnyStorage", () => ({
     uploadToBunnyStorage: vi.fn(),
+    deleteFromBunnyStorage: vi.fn(),
 }));
 
 import { auth } from "@/auth";
@@ -60,7 +61,10 @@ import {
     downloadComedianImage,
     generateComedianImageVariants,
 } from "@/lib/admin/comedianImagePipeline";
-import { uploadToBunnyStorage } from "@/lib/admin/bunnyStorage";
+import {
+    deleteFromBunnyStorage,
+    uploadToBunnyStorage,
+} from "@/lib/admin/bunnyStorage";
 import { POST } from "./route";
 
 const mockAuth = vi.mocked(auth);
@@ -71,6 +75,7 @@ const mockRevalidateTag = vi.mocked(revalidateTag);
 const mockDownload = vi.mocked(downloadComedianImage);
 const mockGenerateVariants = vi.mocked(generateComedianImageVariants);
 const mockUpload = vi.mocked(uploadToBunnyStorage);
+const mockDelete = vi.mocked(deleteFromBunnyStorage);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const txClient: any = (db as any).__txClient;
@@ -150,6 +155,7 @@ beforeEach(() => {
         heroBuffer: Buffer.from("hero-bytes"),
     });
     mockUpload.mockResolvedValue();
+    mockDelete.mockResolvedValue();
     mockTxFindMany.mockResolvedValue([]);
     mockTxUpdateMany.mockResolvedValue({ count: 0 });
     mockTxCreate.mockImplementation(async (args: { data: unknown }) => {
@@ -279,6 +285,59 @@ describe("POST /api/admin/comedians/images/publish", () => {
         );
         expect(res.status).toBe(502);
         expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it("cleans up the original upload when the avatar PUT fails mid-flight", async () => {
+        // First upload (original) succeeds, second (avatar) throws.
+        mockUpload
+            .mockResolvedValueOnce()
+            .mockRejectedValueOnce(new Error("avatar PUT failed"));
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/h.jpg",
+            }),
+        );
+        expect(res.status).toBe(502);
+        // Only the original was uploaded → only it should be cleaned up.
+        expect(mockDelete).toHaveBeenCalledTimes(1);
+        expectOriginalPathPattern(mockDelete.mock.calls[0][0], 7, "jpg");
+    });
+
+    it("cleans up all three uploads when the DB transaction fails", async () => {
+        mockTransaction.mockRejectedValueOnce(new Error("db unavailable"));
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/h.jpg",
+            }),
+        );
+        expect(res.status).toBe(500);
+        expect(mockDelete).toHaveBeenCalledTimes(3);
+        const deletedPaths = mockDelete.mock.calls
+            .map((c) => c[0] as string)
+            .sort();
+        // Sort to make assertion order-independent; we already cover ordering
+        // in the upload-path tests.
+        expect(deletedPaths.some((p) => p.endsWith("/original.jpg"))).toBe(
+            true,
+        );
+        expect(deletedPaths.some((p) => p.endsWith("/avatar.jpg"))).toBe(true);
+        expect(deletedPaths.some((p) => p.endsWith("/hero.jpg"))).toBe(true);
+    });
+
+    it("swallows cleanup failures so the original error remains the response", async () => {
+        mockTransaction.mockRejectedValueOnce(new Error("db unavailable"));
+        mockDelete.mockRejectedValue(new Error("bunny delete failed"));
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/h.jpg",
+            }),
+        );
+        expect(res.status).toBe(500);
+        const body = await res.json();
+        expect(body.error).toBe("Publish failed during DB update");
     });
 
     it("marks prior active assets inactive, activates the new asset, sets hasImage, audits, and revalidates", async () => {

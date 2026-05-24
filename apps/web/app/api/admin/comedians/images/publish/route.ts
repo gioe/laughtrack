@@ -1,5 +1,8 @@
 import { writeAdminActionAudit } from "@/lib/admin/audit";
-import { uploadToBunnyStorage } from "@/lib/admin/bunnyStorage";
+import {
+    deleteFromBunnyStorage,
+    uploadToBunnyStorage,
+} from "@/lib/admin/bunnyStorage";
 import {
     ComedianImageDownloadError,
     buildComedianAssetPaths,
@@ -105,27 +108,46 @@ export async function POST(req: NextRequest) {
         downloaded.mimeType,
     );
 
+    const uploadedPaths: string[] = [];
+    async function cleanupUploads(reason: string) {
+        if (uploadedPaths.length === 0) return;
+        for (const path of uploadedPaths) {
+            try {
+                await deleteFromBunnyStorage(path);
+            } catch (cleanupError) {
+                console.error(
+                    `Admin comedian image publish: bunny cleanup of ${path} after ${reason} failed:`,
+                    cleanupError,
+                );
+            }
+        }
+    }
+
     try {
         await uploadToBunnyStorage({
             path: paths.original,
             body: downloaded.buffer,
             contentType: downloaded.mimeType,
         });
+        uploadedPaths.push(paths.original);
         await uploadToBunnyStorage({
             path: paths.avatar,
             body: variants.avatarBuffer,
             contentType: "image/jpeg",
         });
+        uploadedPaths.push(paths.avatar);
         await uploadToBunnyStorage({
             path: paths.hero,
             body: variants.heroBuffer,
             contentType: "image/jpeg",
         });
+        uploadedPaths.push(paths.hero);
     } catch (error) {
         console.error(
             "Admin comedian image publish: bunny upload failed:",
             error,
         );
+        await cleanupUploads("partial upload");
         return NextResponse.json(
             { error: "Bunny storage upload failed" },
             { status: 502 },
@@ -216,6 +238,7 @@ export async function POST(req: NextRequest) {
             "Admin comedian image publish: DB transaction failed:",
             error,
         );
+        await cleanupUploads("DB transaction failure");
         return NextResponse.json(
             { error: "Publish failed during DB update" },
             { status: 500 },
