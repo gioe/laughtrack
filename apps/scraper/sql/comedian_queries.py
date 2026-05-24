@@ -34,7 +34,7 @@ class ComedianQueries:
         INSERT INTO comedians (uuid, name, sold_out_shows, total_shows)
         VALUES %s
         ON CONFLICT (uuid) DO NOTHING
-        RETURNING uuid
+        RETURNING id, uuid, name
     '''
 
     # Recomputes sold_out_shows and total_shows for each comedian across ALL shows

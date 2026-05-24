@@ -32,6 +32,22 @@ _SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
 _CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("SOCIAL_CIRCUIT_BREAKER", "10"))
 
 
+def _itunes_on_insert_enabled() -> bool:
+    return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_ENABLED", "1") != "0"
+
+
+def _itunes_on_insert_min_confidence() -> float:
+    return float(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "0.8"))
+
+
+def _itunes_on_insert_max_results() -> int:
+    return int(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_MAX_RESULTS", "10"))
+
+
+def _itunes_on_insert_country() -> str:
+    return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_COUNTRY", "US")
+
+
 def _normalize_deny_list_name(name: str) -> str:
     return re.sub(r"\s+", " ", name.replace("\xa0", " ")).strip().lower()
 
@@ -97,10 +113,102 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 f"insert_comedians: {inserted_count} inserted, {skipped_count} already existed (skipped)"
             )
 
+            # Fire iTunes podcast discovery for newly inserted comedians. Non-blocking
+            # by design — failures are logged inside the helper and never raised so
+            # ingestion succeeds even when iTunes is unreachable.
+            #
+            # Scope note: this covers all Python insertion paths (lineup ingestion is
+            # the only current call site; future scraper-side inserts inherit the
+            # trigger). The web admin POST flow (apps/web/app/api/admin/comedians)
+            # writes via Prisma in TypeScript and does NOT invoke this hook —
+            # cross-language invocation isn't justified for the low admin-create
+            # volume; the periodic backfill CLI (scripts/core/search_itunes_podcasts.py)
+            # covers any admin-created comedians on its next run.
+            self._trigger_itunes_discovery_for_inserted(results or [])
+
             return results or []
         except Exception as e:
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
+
+    def _trigger_itunes_discovery_for_inserted(self, inserted_rows: List[DictRow]) -> int:
+        """Run iTunes podcast discovery for newly inserted comedians.
+
+        Non-blocking — any failure (network, DB, missing dependency) is logged but
+        never raised, so comedian insertion succeeds even when iTunes is unreachable.
+
+        Returns the number of PodcastCandidateReview rows upserted (0 on early
+        return or failure).
+        """
+        if not inserted_rows or not _itunes_on_insert_enabled():
+            return 0
+
+        try:
+            from laughtrack.core.itunes_podcast_discovery import (
+                PodcastDiscoveryComedian,
+                candidate_is_denied,
+                discover_candidates_for_comedians,
+                load_active_deny_list,
+                upsert_candidate_with_conn,
+            )
+        except Exception as e:
+            Logger.warn(f"itunes_on_insert: adapter import failed, skipping: {e}")
+            return 0
+
+        discovery_comedians: List = []
+        for row in inserted_rows:
+            try:
+                comedian_id = row["id"]
+                name = row["name"]
+            except (KeyError, IndexError, TypeError):
+                continue
+            if comedian_id is None or not name:
+                continue
+            discovery_comedians.append(
+                PodcastDiscoveryComedian(comedian_id=int(comedian_id), name=str(name), aliases=[])
+            )
+
+        if not discovery_comedians:
+            return 0
+
+        try:
+            candidates, failed = discover_candidates_for_comedians(
+                discovery_comedians,
+                max_results=_itunes_on_insert_max_results(),
+                country=_itunes_on_insert_country(),
+            )
+        except Exception as e:
+            Logger.warn(f"itunes_on_insert: discovery failed for {len(discovery_comedians)} new comedians: {e}")
+            return 0
+
+        min_confidence = _itunes_on_insert_min_confidence()
+        eligible = [c for c in candidates if c.confidence >= min_confidence]
+        if not eligible:
+            Logger.info(
+                f"itunes_on_insert: {len(discovery_comedians)} new comedians searched, "
+                f"{len(candidates)} candidates, 0 at or above confidence {min_confidence:.2f}"
+            )
+            return 0
+
+        written = 0
+        try:
+            with self.transaction() as conn:
+                with conn.cursor() as cur:
+                    deny_keys, deny_urls = load_active_deny_list(cur)
+                for candidate in eligible:
+                    if candidate_is_denied(candidate, deny_keys, deny_urls):
+                        continue
+                    upsert_candidate_with_conn(conn, candidate)
+                    written += 1
+        except Exception as e:
+            Logger.warn(f"itunes_on_insert: persistence failed after discovery: {e}")
+            return 0
+
+        Logger.info(
+            f"itunes_on_insert: {len(discovery_comedians)} new comedians searched, "
+            f"{written} candidate review rows upserted, {failed} search failures"
+        )
+        return written
 
     def _filter_false_positive_comedians(self, comedians: List[Comedian]) -> List[Comedian]:
         """Return comedians whose names are NOT false positives (placeholder, structural, etc.).
