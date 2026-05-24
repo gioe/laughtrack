@@ -16,6 +16,7 @@ import {
     ExternalLink,
     Save,
     ShieldCheck,
+    Trash2,
     Upload,
     X,
 } from "lucide-react";
@@ -26,7 +27,13 @@ type Props = {
     comedians: AdminComedianListItem[];
 };
 
-type SortMode = "name-asc" | "name-desc" | "popularity-desc" | "popularity-asc";
+type SortMode =
+    | "name-asc"
+    | "name-desc"
+    | "created-desc"
+    | "created-asc"
+    | "popularity-desc"
+    | "popularity-asc";
 
 type Status = {
     kind: "idle" | "ok" | "error";
@@ -105,6 +112,22 @@ function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
 function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
     return [...rows].sort((a, b) => {
         if (sort === "name-desc") return compareByName(b, a);
+        if (sort === "created-desc") {
+            return (
+                new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime() ||
+                b.id - a.id ||
+                compareByName(a, b)
+            );
+        }
+        if (sort === "created-asc") {
+            return (
+                new Date(a.createdAt).getTime() -
+                    new Date(b.createdAt).getTime() ||
+                a.id - b.id ||
+                compareByName(a, b)
+            );
+        }
         if (sort === "popularity-desc") {
             return b.popularity - a.popularity || compareByName(a, b);
         }
@@ -673,6 +696,59 @@ export default function AdminComedianManager({ comedians }: Props) {
         startTransition(() => router.refresh());
     }
 
+    async function removeImage(row: AdminComedianListItem) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians/images", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comedianId: row.id }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.id === row.id
+                    ? {
+                          ...currentRow,
+                          hasImage: false,
+                          activeImageAsset: null,
+                          legacyImageUrl: "",
+                      }
+                    : currentRow,
+            ),
+        );
+        setManualImageUrls((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
+        updateImageState(row.id, () => emptyImageDiscoveryState());
+        setStatus({ kind: "ok", message: `${row.name} images removed.` });
+        startTransition(() => router.refresh());
+    }
+
     return (
         <div className="space-y-4">
             <AdminToolbar>
@@ -689,6 +765,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                     options={[
                         { value: "name-asc", label: "Name A-Z" },
                         { value: "name-desc", label: "Name Z-A" },
+                        { value: "created-desc", label: "Newest added" },
+                        { value: "created-asc", label: "Oldest added" },
                         {
                             value: "popularity-desc",
                             label: "Popularity high-low",
@@ -1172,6 +1250,23 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     className="h-[56px] w-[56px] rounded-md border border-copper/20 object-cover"
                                                 />
                                             </div>
+                                        )}
+                                        {row.hasImage && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="mt-3 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === row.id
+                                                }
+                                                onClick={() =>
+                                                    void removeImage(row)
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                Remove headshot & hero
+                                            </Button>
                                         )}
                                     </div>
 

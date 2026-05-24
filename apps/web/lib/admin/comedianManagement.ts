@@ -14,6 +14,7 @@ type DenyListRow = {
 export type AdminComedianListItem = {
     id: number;
     uuid: string;
+    createdAt: string;
     name: string;
     website: string | null;
     websiteScrapingUrl: string | null;
@@ -83,6 +84,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
             select: {
                 id: true,
                 uuid: true,
+                createdAt: true,
                 name: true,
                 website: true,
                 websiteScrapingUrl: true,
@@ -212,6 +214,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
             return {
                 id: comedian.id,
                 uuid: comedian.uuid,
+                createdAt: comedian.createdAt.toISOString(),
                 name: comedian.name,
                 website: comedian.website,
                 websiteScrapingUrl: comedian.websiteScrapingUrl,

@@ -15,6 +15,7 @@ import { z } from "zod";
 type ComedianSnapshot = {
     id: number;
     uuid: string;
+    createdAt: Date;
     name: string;
     website: string | null;
     websiteScrapingUrl: string | null;
@@ -153,6 +154,7 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
     return {
         id: comedian.id,
         uuid: comedian.uuid,
+        createdAt: comedian.createdAt.toISOString(),
         name: comedian.name,
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
@@ -180,6 +182,7 @@ function serializeComedian(
     return {
         id: comedian.id,
         uuid: comedian.uuid,
+        createdAt: comedian.createdAt.toISOString(),
         name: comedian.name,
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
@@ -233,6 +236,7 @@ function serializeComedian(
 const comedianSnapshotSelect = {
     id: true,
     uuid: true,
+    createdAt: true,
     name: true,
     website: true,
     websiteScrapingUrl: true,

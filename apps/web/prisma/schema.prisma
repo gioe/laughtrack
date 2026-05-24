@@ -207,6 +207,7 @@ model Comedian {
   youtubeAccount                       String?                       @map("youtube_account")
   youtubeFollowers                     Int?                          @map("youtube_followers")
   uuid                                 String                        @unique
+  createdAt                            DateTime                      @default(now()) @map("created_at") @db.Timestamptz
   totalShows                           Int                           @default(0) @map("total_shows")
   soldOutShows                         Int                           @default(0) @map("sold_out_shows")
   linktree                             String?

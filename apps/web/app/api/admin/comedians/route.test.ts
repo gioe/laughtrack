@@ -46,9 +46,12 @@ function makeComedian(overrides: Record<string, unknown> = {}) {
     return {
         id: 2,
         uuid: "uuid-2",
+        createdAt: new Date("2026-05-01T12:00:00.000Z"),
         name: "Alias Comic",
         website: null,
         websiteScrapingUrl: null,
+        hasImage: false,
+        imageAssets: [],
         popularity: 12,
         totalShows: 1,
         parentComedianId: null,

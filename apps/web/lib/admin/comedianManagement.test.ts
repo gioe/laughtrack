@@ -30,6 +30,7 @@ function comedianRow(name: string) {
     return {
         id: 1,
         uuid: "uuid-1",
+        createdAt: new Date("2026-05-01T12:00:00.000Z"),
         name,
         website: null,
         websiteScrapingUrl: null,
@@ -66,6 +67,7 @@ describe("listAdminComedians", () => {
 
         expect(result.comedians[0]).toMatchObject({
             name: "🔥👀\u00a0TEASE ME TUESDAYS…👀🔥",
+            createdAt: "2026-05-01T12:00:00.000Z",
             isBlocked: true,
             blockReason: "not a comic",
         });

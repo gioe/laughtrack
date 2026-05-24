@@ -27,6 +27,7 @@ const comedians: AdminComedianListItem[] = [
     {
         id: 1,
         uuid: "uuid-1",
+        createdAt: "2026-05-01T12:00:00.000Z",
         name: "Parent Comic",
         website: "https://parent.example.com",
         websiteScrapingUrl: "https://parent.example.com/tour",
@@ -75,6 +76,7 @@ const comedians: AdminComedianListItem[] = [
     {
         id: 2,
         uuid: "uuid-2",
+        createdAt: "2026-05-02T12:00:00.000Z",
         name: "Alias Comic",
         website: null,
         websiteScrapingUrl: null,
@@ -254,6 +256,39 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+    });
+
+    it("removes existing headshot and hero images", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedianId: 1,
+                hasImage: false,
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Remove headshot & hero" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians/images",
+                expect.objectContaining({
+                    method: "DELETE",
+                    body: JSON.stringify({ comedianId: 1 }),
+                }),
+            );
+        });
+        expect(screen.getByText("Parent Comic images removed.")).toBeTruthy();
+        expect(
+            screen.queryByAltText("Parent Comic current headshot image"),
+        ).toBeNull();
+        expect(
+            screen.queryByAltText("Parent Comic current hero image"),
+        ).toBeNull();
     });
 
     it("surfaces ratio validation errors for manual image urls", async () => {
@@ -480,6 +515,26 @@ describe("AdminComedianManager", () => {
         const headings = screen.getAllByRole("heading", { level: 2 });
         expect(headings[0].textContent).toBe("Alias Comic");
         expect(headings[1].textContent).toBe("Parent Comic");
+    });
+
+    it("sorts comedians by database insertion date", () => {
+        render(<AdminComedianManager comedians={comedians} />);
+
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "created-desc" },
+        });
+
+        let headings = screen.getAllByRole("heading", { level: 2 });
+        expect(headings[0].textContent).toBe("Alias Comic");
+        expect(headings[1].textContent).toBe("Parent Comic");
+
+        fireEvent.change(screen.getByLabelText("Sort"), {
+            target: { value: "created-asc" },
+        });
+
+        headings = screen.getAllByRole("heading", { level: 2 });
+        expect(headings[0].textContent).toBe("Parent Comic");
+        expect(headings[1].textContent).toBe("Alias Comic");
     });
 
     it("saves a parent relationship", async () => {

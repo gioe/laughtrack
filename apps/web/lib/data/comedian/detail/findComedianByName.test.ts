@@ -31,6 +31,7 @@ function makeComedianRow(
     overrides: Partial<{
         id: number;
         uuid: string;
+        createdAt: Date;
         name: string;
         bio: string | null;
         linktree: string | null;
@@ -107,6 +108,7 @@ function makeComedianRow(
     return {
         id: 1,
         uuid: "uuid-1",
+        createdAt: new Date("2026-05-01T12:00:00.000Z"),
         name: "Alice Smith",
         bio: null,
         linktree: null,
