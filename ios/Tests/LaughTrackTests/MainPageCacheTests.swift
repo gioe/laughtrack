@@ -307,6 +307,7 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
             ],
             "moreNearYou": [],
             "trendingThisWeek": [],
+            "trendingPodcasts": [],
             "popularClubs": []
           }
         }
