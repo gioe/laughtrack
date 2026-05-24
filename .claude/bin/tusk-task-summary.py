@@ -433,6 +433,32 @@ def _summarize_commit_files(commit_files: dict) -> dict:
     }
 
 
+def _emit_recovery_tier_diagnostic(tier_name: str) -> None:
+    """Print a single-line stderr note naming the recovery tier that produced commits.
+
+    Gated identically to ``bin/tusk``'s ``maybe_warn_cross_repo_drift`` /
+    ``maybe_warn_source_repo_stale`` precedent (issue #850): silent when
+    stderr is not a TTY (agent callers, piped/captured stderr, CI logs),
+    silenced unconditionally by ``TUSK_QUIET=1``, force-emitted in non-TTY
+    contexts by ``TUSK_FORCE_WARN=1``.
+
+    The TTY gate keeps agent transcripts and CI logs clean — these are
+    downstream-consumed by LLMs and humans who can't act on the note; the
+    diagnostic only helps an operator watching the terminal of a one-off
+    ``tusk task-summary`` invocation.
+    """
+    if os.environ.get("TUSK_QUIET"):
+        return
+    if not os.environ.get("TUSK_FORCE_WARN") and not sys.stderr.isatty():
+        return
+    print(
+        f"tusk: note — task-summary recovered diff via {tier_name} "
+        f"(refresh-fetch / criterion-hash / fsck-unreachable). "
+        f"(TUSK_QUIET=1 to silence)",
+        file=sys.stderr,
+    )
+
+
 def _try_fetch_default_branch(repo_root: str) -> None:
     """Best-effort ``git fetch origin <default>`` to refresh ``refs/remotes/origin/<default>``.
 
@@ -464,6 +490,93 @@ def _try_fetch_default_branch(repo_root: str) -> None:
         )
     except (OSError, subprocess.SubprocessError):
         pass
+
+
+def _unreachable_task_commits(task_id: int, repo_root: str) -> tuple[dict, dict]:
+    """Last-resort recovery: find [TASK-<id>] commits unreachable from any ref.
+
+    Catches the post-no-checkout-push state where every other recovery path
+    has failed (issue #845):
+      * ``refs/remotes/origin/<default>`` was never advanced (or was deleted)
+      * the best-effort ``git fetch`` retry above failed silently (broken
+        remote URL, no network, no remote configured)
+      * the criterion-hash fallback turned up nothing — criteria were closed
+        via ``tusk task-done --force`` (so commit_hash is NULL), or the
+        recorded commit_hash points to a pre-rebase SHA that's been GC'd
+
+    The commit object is still in the local object store: tusk merge's
+    no-checkout fast-forward push deposits it before removing the sibling
+    worktree, and ``git worktree remove`` does NOT prune objects from the
+    shared ``.git/objects`` directory. We just need to scan unreachable
+    objects and filter by the [TASK-<id>] commit-message prefix.
+
+    Gated on the prior fallbacks producing nothing — ``git fsck`` walks the
+    full object store and is O(objects), so paying this cost on the common
+    path would penalize every well-merged task. Silent on every error:
+    fsck failures, no candidates, and grep failures all return empty so
+    fetch_diff continues with zeros rather than aborting the summary.
+    """
+    try:
+        fsck = subprocess.run(
+            ["git", "fsck", "--unreachable", "--no-reflogs"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=repo_root,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {}, {}
+    if fsck.returncode != 0:
+        return {}, {}
+
+    candidates = [
+        parts[2]
+        for parts in (line.split() for line in fsck.stdout.splitlines())
+        if len(parts) >= 3 and parts[0] == "unreachable" and parts[1] == "commit"
+    ]
+    if not candidates:
+        return {}, {}
+
+    # Single ``git log --no-walk`` filters candidates by the [TASK-<id>] grep
+    # without spawning a subprocess per SHA. ``task_grep_arg`` returns a BRE
+    # pattern (brackets escaped), so do NOT pass ``--fixed-strings``.
+    try:
+        filter_res = subprocess.run(
+            ["git", "log", "--no-walk", task_grep_arg(task_id), "--format=%H"]
+            + candidates,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=repo_root,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {}, {}
+    if filter_res.returncode != 0:
+        return {}, {}
+
+    matching = [line.strip() for line in filter_res.stdout.splitlines() if line.strip()]
+    if not matching:
+        return {}, {}
+
+    commit_files: dict[str, list[tuple[str, str, str]]] = {}
+    commit_parents: dict[str, list[str]] = {}
+    for sha in matching:
+        try:
+            show_res = subprocess.run(
+                ["git", "show", "--numstat", "--format=__COMMIT__ %H %P", sha],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                cwd=repo_root,
+            )
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if show_res.returncode != 0:
+            continue
+        files, parents = _parse_numstat_blocks(show_res.stdout)
+        commit_files.update(files)
+        commit_parents.update(parents)
+    return commit_files, commit_parents
 
 
 def fetch_diff(
@@ -517,8 +630,27 @@ def fetch_diff(
     The fetch is gated to the empty-scan case, so the common-path overhead is
     zero. The existing ``_criterion_hash_numstats`` fallback still fires after
     the retry if both attempts come up empty.
+
+    **Unreachable-object recovery** (issue #845): when the fetch retry AND
+    the criterion-hash fallback both come up empty, ``_unreachable_task_commits``
+    enumerates unreachable commits in the local object store via
+    ``git fsck --unreachable --no-reflogs`` and filters by the [TASK-<id>]
+    grep. This catches the manual ``tusk task-done --reason completed``
+    closeout path when (a) the local remote-tracking ref is stale, (b) the
+    fetch retry fails silently because the remote is unreachable, and
+    (c) the criteria were closed without a commit_hash (``--force`` close, or
+    a stale pre-rebase SHA that was GC'd). The commit object is still in the
+    shared ``.git/objects`` directory because no-checkout pushes deposit it
+    before ``git worktree remove`` tears the sibling worktree down — fsck is
+    the only local-only mechanism that finds it.
     """
-    zero = {"commits": 0, "files_changed": 0, "lines_added": 0, "lines_removed": 0}
+    zero = {
+        "commits": 0,
+        "files_changed": 0,
+        "lines_added": 0,
+        "lines_removed": 0,
+        "recovered_via": None,
+    }
     cmd = [
         "git", "log", "--all",
         task_grep_arg(task_id),
@@ -555,6 +687,11 @@ def fetch_diff(
     # into topological blocks before applying the file-overlap filter.
     commit_files, commit_parents = _parse_numstat_blocks(stdout)
 
+    # Track which recovery tier produced the final non-empty result so a single
+    # TTY-gated diagnostic can be emitted below (issue #850). The cheap path
+    # leaves this None and never emits.
+    recovered_via: str | None = None
+
     # No-checkout fast-forward recovery: when the initial scan is empty, refresh
     # refs/remotes/origin/<default> and retry. Cheap when there's nothing to
     # catch (no commits to summarize anyway); high value when the remote-tracking
@@ -564,9 +701,25 @@ def fetch_diff(
         stdout = _run_scan()
         if stdout is not None:
             commit_files, commit_parents = _parse_numstat_blocks(stdout)
+            if commit_files:
+                recovered_via = "refresh-fetch"
 
     if conn is not None and not commit_files:
         commit_files, commit_parents = _criterion_hash_numstats(task_id, repo_root, conn)
+        if commit_files:
+            recovered_via = "criterion-hash"
+
+    # Unreachable-object recovery (issue #845): last-resort scan when every
+    # ref-based and criterion-hash lookup has come up empty. Gated tightly so
+    # the fsck cost only lands on the pathological path documented in
+    # _unreachable_task_commits.
+    if not commit_files:
+        commit_files, commit_parents = _unreachable_task_commits(task_id, repo_root)
+        if commit_files:
+            recovered_via = "fsck-unreachable"
+
+    if recovered_via is not None:
+        _emit_recovery_tier_diagnostic(recovered_via)
 
     # Apply prefix-collision file-overlap heuristic (issue #656) at the
     # block level (issue #663). A "block" is a connected component on the
@@ -585,7 +738,14 @@ def fetch_diff(
                 commit_files, commit_parents, task_paths, task_basenames
             )
 
-    return _summarize_commit_files(commit_files)
+    result = _summarize_commit_files(commit_files)
+    # Surface the recovery tier to JSON consumers (issue #852). The stderr
+    # diagnostic above is TTY-gated and invisible to agent callers that capture
+    # stderr; this field is the machine-readable equivalent so /tusk Step 12
+    # and /address-issue Step 10 can answer "why are my stats zero" from the
+    # JSON output alone. None on the cheap path (initial scan succeeded).
+    result["recovered_via"] = recovered_via
+    return result
 
 
 def fetch_criteria(conn: sqlite3.Connection, task_id: int) -> dict:
@@ -744,6 +904,11 @@ def render_markdown(data: dict) -> str:
         )
         + (f" · {crit['deferred']} deferred" if crit["deferred"] else ""),
     ]
+    if diff.get("recovered_via"):
+        lines.append(
+            f"- **Note:** diff stats recovered via `{diff['recovered_via']}` tier "
+            f"(initial scan empty; surfaced from fallback)"
+        )
     for d in crit.get("deferred_details", []):
         reason = d.get("deferred_reason") or "no reason given"
         lines.append(f"  - _Deferred #{d['id']} ({reason}):_ {d['criterion']}")
