@@ -54,16 +54,18 @@ struct LaughTrackApp: App {
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
         defaults.removeObject(forKey: FirstEntryAuthChoiceStore.storageKey)
-        defaults.removeObject(forKey: AdultContentAcknowledgmentStore.storageKey)
     }
 
     /// In mock mode, pre-populate the saved nearby preference to Hollywood (90028)
     /// so the Near Me screen renders LA shows deterministically. Without this seed,
     /// the discovery rails fall back to IP-based geolocation which leaks the
-    /// developer's home location into App Store screenshots.
+    /// developer's home location into App Store screenshots. Also pre-record the
+    /// first-entry guest-browsing choice so the screenshot lane doesn't capture
+    /// the "Pick up where you left off" auth gate as its first frame.
     private static func applyMockModeSeedData(container: ServiceContainer) {
         let store = container.resolve(NearbyPreferenceStore.self)
         store.setManualZip("90028", distanceMiles: 25, city: "Los Angeles", state: "CA")
+        UserDefaults.standard.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
     }
 }
 #endif
