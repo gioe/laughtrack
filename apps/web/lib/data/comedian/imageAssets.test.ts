@@ -92,4 +92,13 @@ describe("comedian image asset URLs", () => {
             "https://cdn.example.com/comedians/42/hero.webp",
         );
     });
+
+    it("rejects absolute asset paths that would escape the CDN host", () => {
+        expect(() =>
+            buildComedianImageAssetUrl("https://images.example.com/hero.webp"),
+        ).toThrow("Comedian image asset path must be CDN-relative");
+        expect(() =>
+            buildComedianImageAssetUrl("//images.example.com/hero.webp"),
+        ).toThrow("Comedian image asset path must be CDN-relative");
+    });
 });

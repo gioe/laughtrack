@@ -24,6 +24,10 @@ if (!cdnHost) {
 }
 
 export function buildComedianImageAssetUrl(path: string): string {
+    if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(path)) {
+        throw new Error("Comedian image asset path must be CDN-relative");
+    }
+
     return new URL(path.replace(/^\/+/, ""), `https://${cdnHost}/`).toString();
 }
 
