@@ -107,9 +107,9 @@ enum TonightNearYouLoader {
         return TonightNearYouMatch(show: show, hostName: host.name)
     }
 
-    static func fetchPodcastDetail(
+    private static func fetchPodcastDetail(
         podcastID: Int,
-        urlSession: URLSession = .shared
+        urlSession: URLSession
     ) async -> PodcastDetailResponse? {
         let url = AppConfiguration.apiBaseURL
             .appendingPathComponent("api")

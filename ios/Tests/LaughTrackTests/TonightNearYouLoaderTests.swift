@@ -28,6 +28,33 @@ struct TonightNearYouLoaderTests {
         #expect(match?.hostName == "Mark Normand")
         #expect(match?.show.id == 701)
         #expect(match?.show.clubName == "Comedy Cellar")
+
+        let requestedPath = StubURLProtocol.lastRequest?.url?.path
+        #expect(requestedPath == "/api/v1/podcasts/42")
+    }
+
+    @Test("only the first related comedian is considered the host")
+    func onlyFirstRelatedComedianIsHost() async {
+        let session = StubURLProtocol.makeSession(
+            json: makeDetailJSON(relatedComedians: [
+                (id: 999, name: "Other Host"),
+                (id: 101, name: "Mark Normand"),
+            ])
+        )
+        let client = makeClient(
+            homeFeedJSON: makeHomeFeedJSON(showsTonight: [
+                .init(id: 701, clubName: "Comedy Cellar", lineupIDs: [101]),
+            ])
+        )
+
+        let match = await TonightNearYouLoader.load(
+            podcastID: 42,
+            apiClient: client,
+            zipCode: "10012",
+            urlSession: session
+        )
+
+        #expect(match == nil)
     }
 
     @Test("returns nil when no show contains the host")
@@ -200,8 +227,10 @@ private func makeClient(homeFeedJSON: String) -> Client {
 /// before issuing its load, so the handler stays bound to that test's payload.
 private final class StubURLProtocol: URLProtocol {
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> (HTTPURLResponse, Data))?
+    nonisolated(unsafe) static var lastRequest: URLRequest?
 
     static func makeSession(json: String) -> URLSession {
+        lastRequest = nil
         handler = { request in
             let url = request.url ?? URL(string: "https://stub.invalid")!
             let response = HTTPURLResponse(
@@ -221,6 +250,7 @@ private final class StubURLProtocol: URLProtocol {
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
+        Self.lastRequest = request
         guard let handler = Self.handler else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
