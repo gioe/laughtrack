@@ -51,7 +51,8 @@ async function findEntry(
     const rows = await tx.$queryRaw<DenyListRow[]>`
         SELECT name, reason, added_by, deleted_at
         FROM comedian_deny_list
-        WHERE lower(name) = lower(${name})
+        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+              lower(btrim(regexp_replace(replace(${name}, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
         LIMIT 1
     `;
     return rows[0] ?? null;

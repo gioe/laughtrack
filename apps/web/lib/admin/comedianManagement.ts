@@ -74,7 +74,7 @@ function serializeDate(value: Date | string | null | undefined) {
 }
 
 function normalizeDenyListName(name: string) {
-    return name.trim().toLowerCase();
+    return name.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 export async function listAdminComedians(): Promise<AdminComedianListResult> {

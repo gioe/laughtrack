@@ -563,3 +563,25 @@ class TestFilterFalsePositiveComedians:
             result = handler._filter_false_positive_comedians([])
         assert result == []
         mock_logger.warn.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# _filter_denied_comedians
+# ---------------------------------------------------------------------------
+
+class TestFilterDeniedComedians:
+    def test_internal_nbsp_matches_space_normalized_deny_list_name(self):
+        handler = _make_handler()
+        blocked = _make_stub("🔥👀\u00a0TEASE ME TUESDAYS…👀🔥")
+        allowed = _make_stub("Dave Chappelle")
+        handler.execute_with_cursor.return_value = [
+            {"name": "🔥👀 TEASE ME TUESDAYS…👀🔥"},
+        ]
+
+        with patch.object(_comedian_handler_mod, "Logger"):
+            result = handler._filter_denied_comedians([blocked, allowed])
+
+        assert result == [allowed]
+        args = handler.execute_with_cursor.call_args[0]
+        assert args[0] == ComedianQueries.GET_DENIED_NAMES
+        assert args[1] == (["🔥👀 tease me tuesdays…👀🔥", "dave chappelle"],)

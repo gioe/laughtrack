@@ -151,7 +151,9 @@ class ComedianQueries:
 
     # Check which names in a given list are on the deny list.
     GET_DENIED_NAMES = '''
-        SELECT name FROM comedian_deny_list WHERE name = ANY(%s)
+        SELECT name
+        FROM comedian_deny_list
+        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) = ANY(%s)
     '''
 
     BATCH_SET_HAS_IMAGE_TRUE = '''

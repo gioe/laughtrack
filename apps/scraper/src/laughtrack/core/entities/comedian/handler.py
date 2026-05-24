@@ -32,6 +32,10 @@ _SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
 _CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("SOCIAL_CIRCUIT_BREAKER", "10"))
 
 
+def _normalize_deny_list_name(name: str) -> str:
+    return re.sub(r"\s+", " ", name.replace("\xa0", " ")).strip().lower()
+
+
 class ComedianHandler(BaseDatabaseHandler[Comedian]):
     """Handler for comedian database operations."""
 
@@ -118,7 +122,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         Names that are denied are logged at warn level and excluded from the result.
         """
-        names = [c.name for c in comedians]
+        names = [_normalize_deny_list_name(c.name) for c in comedians]
         try:
             rows = self.execute_with_cursor(
                 ComedianQueries.GET_DENIED_NAMES, (names,), return_results=True
@@ -129,11 +133,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.warn(f"_filter_denied_comedians: deny-list query failed, skipping filter: {e}")
             return comedians
 
-        denied = {row["name"].strip() for row in rows}
+        denied = {_normalize_deny_list_name(row["name"]) for row in rows}
         if not denied:
             return comedians
 
-        allowed = [c for c in comedians if c.name.strip() not in denied]
+        allowed = [
+            c for c in comedians if _normalize_deny_list_name(c.name) not in denied
+        ]
         for name in denied:
             Logger.warn(f"lineup_filter: skipping deny-listed name '{name}'")
         return allowed

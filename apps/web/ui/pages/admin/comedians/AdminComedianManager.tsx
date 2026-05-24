@@ -487,7 +487,12 @@ export default function AdminComedianManager({ comedians }: Props) {
     }
 
     function manualImageUrlValue(row: AdminComedianListItem) {
-        return manualImageUrls[row.id] ?? { headshot: "", hero: "" };
+        return (
+            manualImageUrls[row.id] ?? {
+                headshot: currentAvatarUrl(row),
+                hero: currentHeroUrl(row),
+            }
+        );
     }
 
     function updateManualImageUrls(

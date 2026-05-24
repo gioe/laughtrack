@@ -208,6 +208,54 @@ describe("AdminComedianManager", () => {
         ).toBe("data:image/jpeg;base64,hero");
     });
 
+    it("uses current image urls when only one existing comedian image url is overwritten", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedianId: 1,
+                source: {
+                    imageUrl:
+                        "https://test.b-cdn.net/comedian-images/1/avatar.jpg",
+                    heroImageUrl: "https://new.example.com/hero.jpg",
+                    sourcePageUrl: null,
+                    mimeType: "image/jpeg",
+                    width: 1600,
+                    height: 1600,
+                },
+                avatarDataUrl: "data:image/jpeg;base64,avatar",
+                heroDataUrl: "data:image/jpeg;base64,hero",
+                warnings: [],
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[1], {
+            target: { value: "https://new.example.com/hero.jpg" },
+        });
+        const validateButton = screen.getAllByRole("button", {
+            name: "Validate image URLs",
+        })[1];
+
+        expect(validateButton.hasAttribute("disabled")).toBe(false);
+        fireEvent.click(validateButton);
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians/images/preview",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        comedianId: 1,
+                        imageUrl:
+                            "https://test.b-cdn.net/comedian-images/1/avatar.jpg",
+                        heroImageUrl: "https://new.example.com/hero.jpg",
+                    }),
+                }),
+            );
+        });
+    });
+
     it("surfaces ratio validation errors for manual image urls", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: false,

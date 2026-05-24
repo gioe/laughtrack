@@ -357,7 +357,8 @@ async function findDenyListEntry(
     const rows = await tx.$queryRaw<DenyListRow[]>`
         SELECT name, reason, added_by, deleted_at
         FROM comedian_deny_list
-        WHERE lower(btrim(name)) = lower(btrim(${name}))
+        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+              lower(btrim(regexp_replace(replace(${name}, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
         LIMIT 1
     `;
     return rows[0] ?? null;
@@ -497,7 +498,8 @@ export async function PATCH(req: NextRequest) {
 
                     const deletedRows = await tx.$queryRaw<DenyListRow[]>`
                         DELETE FROM comedian_deny_list
-                        WHERE lower(btrim(name)) = lower(btrim(${before.name}))
+                        WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) =
+                              lower(btrim(regexp_replace(replace(${before.name}, chr(160), ' '), '[[:space:]]+', ' ', 'g')))
                         RETURNING name, reason, added_by, deleted_at
                     `;
                     const deletedEntry = deletedRows[0] ?? beforeDenyListEntry;
