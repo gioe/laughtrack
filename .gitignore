@@ -68,6 +68,11 @@ ios/fastlane/README.md
 ios/fastlane/test_output/
 ios/vendor/bundle/
 ios/.bundle/
+# Fastlane secrets (ASC API key, signing config). NEVER commit — fastlane
+# auto-loads `ios/fastlane/.env` for env vars referenced by ENV.fetch in Fastfile.
+ios/fastlane/.env
+ios/fastlane/.env.*
+!ios/fastlane/.env.example
 
 # superpowers runtime artifacts (pid files, brainstorm HTML, server state)
 .superpowers/
