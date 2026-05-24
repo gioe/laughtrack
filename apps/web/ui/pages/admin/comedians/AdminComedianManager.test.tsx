@@ -780,7 +780,7 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByText("No ticket purchase link found.")).toBeNull();
     });
 
-    it("filters by blocked status", () => {
+    it("filters to blocked comedians with a checkbox", () => {
         render(
             <AdminComedianManager
                 comedians={[
@@ -796,18 +796,41 @@ describe("AdminComedianManager", () => {
             />,
         );
 
-        fireEvent.change(screen.getByLabelText("Blocked status"), {
-            target: { value: "blocked" },
-        });
+        expect(
+            screen.queryByRole("combobox", { name: "Blocked status" }),
+        ).toBeNull();
+
+        fireEvent.click(
+            screen.getByRole("checkbox", { name: "Blocked status" }),
+        );
 
         expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.queryByText("Parent Comic")).toBeNull();
 
-        fireEvent.change(screen.getByLabelText("Blocked status"), {
-            target: { value: "unblocked" },
-        });
+        fireEvent.click(
+            screen.getByRole("checkbox", { name: "Blocked status" }),
+        );
 
-        expect(screen.queryByText("Alias Comic")).toBeNull();
+        expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.getByText("Parent Comic")).toBeTruthy();
+    });
+
+    it("filters to parent comedians with a checkbox", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        parent: { id: 1, name: "Parent Comic" },
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("checkbox", { name: "Is Parent" }));
+
+        expect(screen.getByText("Parent Comic")).toBeTruthy();
+        expect(screen.queryByText("Alias Comic")).toBeNull();
     });
 });

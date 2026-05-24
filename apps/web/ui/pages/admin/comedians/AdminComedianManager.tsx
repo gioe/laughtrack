@@ -29,7 +29,6 @@ type Props = {
 };
 
 type SortMode = "name-asc" | "name-desc" | "popularity-desc" | "popularity-asc";
-type BlockedStatusFilter = "all" | "blocked" | "unblocked";
 
 type Status = {
     kind: "idle" | "ok" | "error";
@@ -123,8 +122,8 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [rows, setRows] = useState(comedians);
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
-    const [blockedStatus, setBlockedStatus] =
-        useState<BlockedStatusFilter>("all");
+    const [blockedOnly, setBlockedOnly] = useState(false);
+    const [parentOnly, setParentOnly] = useState(false);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [parentSearches, setParentSearches] = useState<
@@ -156,8 +155,8 @@ export default function AdminComedianManager({ comedians }: Props) {
     const visibleRows = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
         const filtered = rows.filter((row) => {
-            if (blockedStatus === "blocked" && !row.isBlocked) return false;
-            if (blockedStatus === "unblocked" && row.isBlocked) return false;
+            if (blockedOnly && !row.isBlocked) return false;
+            if (parentOnly && row.parent !== null) return false;
             if (normalizedQuery) {
                 return [
                     row.name,
@@ -174,7 +173,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             return true;
         });
         return sortRows(filtered, sort);
-    }, [blockedStatus, query, rows, sort]);
+    }, [blockedOnly, parentOnly, query, rows, sort]);
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
@@ -182,7 +181,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [blockedStatus, query, sort, pageSize]);
+    }, [blockedOnly, parentOnly, query, sort, pageSize]);
 
     function parentValue(row: AdminComedianListItem) {
         return Object.hasOwn(selectedParents, row.id)
@@ -741,16 +740,30 @@ export default function AdminComedianManager({ comedians }: Props) {
                         },
                     ]}
                 />
-                <AdminSelectField
-                    label="Blocked status"
-                    value={blockedStatus}
-                    onChange={setBlockedStatus}
-                    options={[
-                        { value: "all", label: "All statuses" },
-                        { value: "blocked", label: "Blocked only" },
-                        { value: "unblocked", label: "Unblocked only" },
-                    ]}
-                />
+                <div className="flex flex-wrap items-center gap-3 self-end">
+                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
+                        <input
+                            type="checkbox"
+                            checked={blockedOnly}
+                            onChange={(event) =>
+                                setBlockedOnly(event.target.checked)
+                            }
+                            className="h-4 w-4 accent-copper-dark"
+                        />
+                        Blocked status
+                    </label>
+                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
+                        <input
+                            type="checkbox"
+                            checked={parentOnly}
+                            onChange={(event) =>
+                                setParentOnly(event.target.checked)
+                            }
+                            className="h-4 w-4 accent-copper-dark"
+                        />
+                        Is Parent
+                    </label>
+                </div>
             </AdminToolbar>
 
             {status.kind === "ok" && (
