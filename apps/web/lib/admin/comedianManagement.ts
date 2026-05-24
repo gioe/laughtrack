@@ -13,6 +13,16 @@ export type AdminComedianListItem = {
     name: string;
     website: string | null;
     websiteScrapingUrl: string | null;
+    hasImage: boolean;
+    activeImageAsset: {
+        id: number;
+        sourceImageUrl: string;
+        avatarPath: string;
+        heroPath: string;
+        mimeType: string | null;
+        width: number | null;
+        height: number | null;
+    } | null;
     popularity: number;
     totalShows: number;
     parent: {
@@ -69,6 +79,21 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 name: true,
                 website: true,
                 websiteScrapingUrl: true,
+                hasImage: true,
+                imageAssets: {
+                    where: { isActive: true },
+                    select: {
+                        id: true,
+                        sourceImageUrl: true,
+                        avatarPath: true,
+                        heroPath: true,
+                        mimeType: true,
+                        width: true,
+                        height: true,
+                    },
+                    orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+                    take: 1,
+                },
                 popularity: true,
                 totalShows: true,
                 parentComedian: {
@@ -177,6 +202,8 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 name: comedian.name,
                 website: comedian.website,
                 websiteScrapingUrl: comedian.websiteScrapingUrl,
+                hasImage: comedian.hasImage,
+                activeImageAsset: comedian.imageAssets[0] ?? null,
                 popularity: comedian.popularity,
                 totalShows: comedian.totalShows,
                 parent: comedian.parentComedian,

@@ -14,8 +14,11 @@ import {
     ChevronDown,
     ChevronRight,
     ExternalLink,
+    ImagePlus,
+    RefreshCw,
     Save,
     ShieldCheck,
+    Upload,
     X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,9 +40,70 @@ type WebsiteEdit = {
     websiteScrapingUrl: string;
 };
 
+type ImageCandidate = {
+    imageUrl: string;
+    sourcePage: string;
+    width: number | null;
+    height: number | null;
+    mimeType: string | null;
+    score: number;
+    reasons: string[];
+};
+
+type ImagePreview = {
+    avatarDataUrl: string;
+    heroDataUrl: string;
+    warnings: string[];
+};
+
+type ImageDiscoveryState = {
+    kind: "idle" | "loading" | "ready" | "error";
+    candidates: ImageCandidate[];
+    selectedCandidate: ImageCandidate | null;
+    preview: ImagePreview | null;
+    error?: string;
+};
+
 function formatDate(iso: string | null) {
     if (!iso) return null;
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+}
+
+function formatDimensions(width: number | null, height: number | null) {
+    return width && height ? `${width}x${height}` : "Unknown size";
+}
+
+function cdnUrl(path: string) {
+    return new URL(
+        path.replace(/^\/+/, ""),
+        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+    ).toString();
+}
+
+function legacyComedianImageUrl(row: AdminComedianListItem) {
+    if (!row.hasImage) return "";
+    return cdnUrl(`/comedians/${encodeURIComponent(row.name)}.png`);
+}
+
+function currentAvatarUrl(row: AdminComedianListItem) {
+    return row.activeImageAsset?.avatarPath
+        ? cdnUrl(row.activeImageAsset.avatarPath)
+        : legacyComedianImageUrl(row);
+}
+
+function currentHeroUrl(row: AdminComedianListItem) {
+    return row.activeImageAsset?.heroPath
+        ? cdnUrl(row.activeImageAsset.heroPath)
+        : legacyComedianImageUrl(row);
+}
+
+function emptyImageDiscoveryState(): ImageDiscoveryState {
+    return {
+        kind: "idle",
+        candidates: [],
+        selectedCandidate: null,
+        preview: null,
+    };
 }
 
 function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
@@ -82,6 +146,9 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [openPodcastRows, setOpenPodcastRows] = useState<Set<number>>(
         new Set(),
     );
+    const [imageDiscovery, setImageDiscovery] = useState<
+        Record<number, ImageDiscoveryState>
+    >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
@@ -411,6 +478,190 @@ export default function AdminComedianManager({ comedians }: Props) {
         startTransition(() => router.refresh());
     }
 
+    function imageState(rowId: number) {
+        return imageDiscovery[rowId] ?? emptyImageDiscoveryState();
+    }
+
+    function updateImageState(
+        rowId: number,
+        updater: (current: ImageDiscoveryState) => ImageDiscoveryState,
+    ) {
+        setImageDiscovery((current) => ({
+            ...current,
+            [rowId]: updater(current[rowId] ?? emptyImageDiscoveryState()),
+        }));
+    }
+
+    async function discoverImages(row: AdminComedianListItem) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+        updateImageState(row.id, () => ({
+            ...emptyImageDiscoveryState(),
+            kind: "loading",
+        }));
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians/images/discover", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comedianId: row.id }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            updateImageState(row.id, (current) => ({
+                ...current,
+                kind: "error",
+                error:
+                    error instanceof Error ? error.message : "Network error",
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            updateImageState(row.id, (current) => ({
+                ...current,
+                kind: "error",
+                error: body.error ?? `Request failed (${res.status})`,
+            }));
+            return;
+        }
+
+        updateImageState(row.id, () => ({
+            kind: "ready",
+            candidates: body.candidates ?? [],
+            selectedCandidate: null,
+            preview: null,
+        }));
+    }
+
+    async function previewImage(
+        row: AdminComedianListItem,
+        candidate: ImageCandidate,
+    ) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+        updateImageState(row.id, (current) => ({
+            ...current,
+            selectedCandidate: candidate,
+            preview: null,
+            error: undefined,
+        }));
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians/images/preview", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    imageUrl: candidate.imageUrl,
+                    sourcePageUrl: candidate.sourcePage,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            updateImageState(row.id, (current) => ({
+                ...current,
+                kind: "error",
+                error:
+                    error instanceof Error ? error.message : "Network error",
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            updateImageState(row.id, (current) => ({
+                ...current,
+                kind: "error",
+                error: body.error ?? `Request failed (${res.status})`,
+            }));
+            return;
+        }
+
+        updateImageState(row.id, (current) => ({
+            ...current,
+            kind: "ready",
+            selectedCandidate: candidate,
+            preview: {
+                avatarDataUrl: body.avatarDataUrl,
+                heroDataUrl: body.heroDataUrl,
+                warnings: body.warnings ?? [],
+            },
+        }));
+    }
+
+    async function publishImage(row: AdminComedianListItem) {
+        const state = imageState(row.id);
+        const candidate = state.selectedCandidate;
+        if (!candidate || !state.preview) return;
+
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians/images/publish", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    comedianId: row.id,
+                    imageUrl: candidate.imageUrl,
+                    sourcePageUrl: candidate.sourcePage,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.id === row.id
+                    ? {
+                          ...currentRow,
+                          hasImage: true,
+                          activeImageAsset: {
+                              id: body.asset.id,
+                              sourceImageUrl: body.asset.sourceImageUrl,
+                              avatarPath: body.asset.avatarPath,
+                              heroPath: body.asset.heroPath,
+                              mimeType: body.asset.mimeType,
+                              width: body.asset.width,
+                              height: body.asset.height,
+                          },
+                      }
+                    : currentRow,
+            ),
+        );
+        updateImageState(row.id, (current) => ({
+            ...current,
+            selectedCandidate: null,
+            preview: null,
+        }));
+        setStatus({ kind: "ok", message: `${row.name} image published.` });
+        startTransition(() => router.refresh());
+    }
+
     return (
         <div className="space-y-4">
             <AdminToolbar>
@@ -461,8 +712,9 @@ export default function AdminComedianManager({ comedians }: Props) {
                 onPageSizeChange={setPageSize}
             />
             <div className="overflow-x-auto rounded-md border border-copper/25 bg-white">
-                <div className="grid min-w-[1120px] grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)] gap-6 border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
+                <div className="grid min-w-[1500px] grid-cols-[minmax(340px,1.05fr)_minmax(360px,1fr)_minmax(300px,0.9fr)_minmax(280px,0.75fr)] gap-6 border-b border-copper/20 bg-cedar px-4 py-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-coconut-cream">
                     <div>Comedian</div>
+                    <div>Images</div>
                     <div>Parent relationship</div>
                     <div>Blocklist</div>
                 </div>
@@ -472,11 +724,15 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const candidates = parentCandidates(row);
                         const disabled = pendingId !== null || isPending;
                         const podcastsOpen = openPodcastRows.has(row.id);
+                        const rowImageState = imageState(row.id);
+                        const currentAvatar = currentAvatarUrl(row);
+                        const currentHero = currentHeroUrl(row);
+                        const legacyAvatar = legacyComedianImageUrl(row);
 
                         return (
                             <li
                                 key={row.id}
-                                className="grid min-w-[1120px] items-start gap-x-6 gap-y-4 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
+                                className="grid min-w-[1500px] items-start gap-x-6 gap-y-4 px-4 py-5 lg:grid-cols-[minmax(340px,1.05fr)_minmax(360px,1fr)_minmax(300px,0.9fr)_minmax(280px,0.75fr)]"
                             >
                                 <div className="min-w-0 space-y-4">
                                     <div className="space-y-2">
@@ -640,6 +896,245 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         )}
                                         Podcasts attributed
                                     </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <div>
+                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Current image
+                                                </div>
+                                                <div className="mt-1 font-dmSans text-body font-semibold text-cedar">
+                                                    {row.activeImageAsset
+                                                        ? "Active asset"
+                                                        : row.hasImage
+                                                          ? "Legacy fallback"
+                                                          : "No current image"}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={disabled}
+                                                onClick={() =>
+                                                    void discoverImages(row)
+                                                }
+                                            >
+                                                {rowImageState.kind ===
+                                                "loading" ? (
+                                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <ImagePlus className="h-4 w-4" />
+                                                )}
+                                                Discover images
+                                            </Button>
+                                        </div>
+
+                                        {currentAvatar ? (
+                                            <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
+                                                <img
+                                                    src={currentAvatar}
+                                                    alt={`${row.name} current avatar preview`}
+                                                    className="h-[72px] w-[72px] rounded-md border border-copper/20 object-cover"
+                                                />
+                                                <div className="min-w-0 space-y-2 font-dmSans text-caption text-soft-charcoal">
+                                                    {currentHero && (
+                                                        <a
+                                                            href={currentHero}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1 font-semibold text-copper-dark hover:underline"
+                                                        >
+                                                            Hero preview
+                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                        </a>
+                                                    )}
+                                                    {row.activeImageAsset && (
+                                                        <div>
+                                                            {formatDimensions(
+                                                                row
+                                                                    .activeImageAsset
+                                                                    .width,
+                                                                row
+                                                                    .activeImageAsset
+                                                                    .height,
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
+                                                No current image
+                                            </div>
+                                        )}
+
+                                        {legacyAvatar && (
+                                            <div className="mt-3 border-t border-copper/15 pt-3">
+                                                <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Legacy fallback
+                                                </div>
+                                                <img
+                                                    src={legacyAvatar}
+                                                    alt={`${row.name} legacy fallback preview`}
+                                                    className="h-[56px] w-[56px] rounded-md border border-copper/20 object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {rowImageState.kind === "error" && (
+                                        <div className="rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption text-red-900">
+                                            {rowImageState.error ??
+                                                "Image request failed"}
+                                        </div>
+                                    )}
+
+                                    {rowImageState.candidates.length > 0 && (
+                                        <div className="space-y-3 rounded-md border border-copper/20 bg-white p-3">
+                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Ranked candidates
+                                            </div>
+                                            {rowImageState.candidates.map(
+                                                (candidate, index) => {
+                                                    const selected =
+                                                        rowImageState
+                                                            .selectedCandidate
+                                                            ?.imageUrl ===
+                                                        candidate.imageUrl;
+                                                    return (
+                                                        <button
+                                                            key={
+                                                                candidate.imageUrl
+                                                            }
+                                                            type="button"
+                                                            aria-label={`Select image candidate ${index + 1}`}
+                                                            onClick={() =>
+                                                                void previewImage(
+                                                                    row,
+                                                                    candidate,
+                                                                )
+                                                            }
+                                                            className={`grid w-full grid-cols-[64px_minmax(0,1fr)] gap-3 rounded-md border p-2 text-left font-dmSans ${
+                                                                selected
+                                                                    ? "border-copper bg-coconut-cream"
+                                                                    : "border-copper/20 bg-white hover:bg-coconut-cream/40"
+                                                            }`}
+                                                        >
+                                                            <img
+                                                                src={
+                                                                    candidate.imageUrl
+                                                                }
+                                                                alt=""
+                                                                className="h-16 w-16 rounded-md object-cover"
+                                                            />
+                                                            <span className="min-w-0 space-y-1">
+                                                                <span className="flex flex-wrap gap-2 text-caption font-semibold text-cedar">
+                                                                    <span>
+                                                                        Score{" "}
+                                                                        {
+                                                                            candidate.score
+                                                                        }
+                                                                    </span>
+                                                                    <span>
+                                                                        {formatDimensions(
+                                                                            candidate.width,
+                                                                            candidate.height,
+                                                                        )}
+                                                                    </span>
+                                                                </span>
+                                                                <span className="block truncate text-caption text-copper-dark">
+                                                                    {
+                                                                        candidate.sourcePage
+                                                                    }
+                                                                </span>
+                                                                <span className="flex flex-wrap gap-1">
+                                                                    {candidate.reasons.map(
+                                                                        (
+                                                                            reason,
+                                                                        ) => (
+                                                                            <span
+                                                                                key={
+                                                                                    reason
+                                                                                }
+                                                                                className="rounded-full border border-copper/20 bg-coconut-cream/50 px-2 py-0.5 text-caption text-soft-charcoal"
+                                                                            >
+                                                                                {
+                                                                                    reason
+                                                                                }
+                                                                            </span>
+                                                                        ),
+                                                                    )}
+                                                                </span>
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {rowImageState.preview && (
+                                        <div className="space-y-3 rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Crop preview
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <img
+                                                        src={
+                                                            rowImageState
+                                                                .preview
+                                                                .avatarDataUrl
+                                                        }
+                                                        alt={`${row.name} avatar crop preview`}
+                                                        className="aspect-square w-full rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                    <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                        Avatar
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <img
+                                                        src={
+                                                            rowImageState
+                                                                .preview
+                                                                .heroDataUrl
+                                                        }
+                                                        alt={`${row.name} hero crop preview`}
+                                                        className="aspect-[16/9] w-full rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                    <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                        Hero
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {rowImageState.preview.warnings.map(
+                                                (warning) => (
+                                                    <div
+                                                        key={warning}
+                                                        className="rounded-md border border-yellow-700/30 bg-yellow-50 px-3 py-2 font-dmSans text-caption text-yellow-950"
+                                                    >
+                                                        {warning}
+                                                    </div>
+                                                ),
+                                            )}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={disabled}
+                                                onClick={() =>
+                                                    void publishImage(row)
+                                                }
+                                            >
+                                                <Upload className="h-4 w-4" />
+                                                Publish selected image
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-4">
@@ -815,7 +1310,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                 <div
                                     id={`comedian-podcasts-${row.id}`}
                                     hidden={!podcastsOpen}
-                                    className={`lg:col-span-3 ${
+                                    className={`lg:col-span-4 ${
                                         podcastsOpen ? "" : "hidden"
                                     }`}
                                 >
