@@ -212,38 +212,43 @@ private func makeDetailJSON(relatedComedians: [(id: Int, name: String)]) -> Stri
     """
 }
 
+// Derive the response body from the struct fixture so adding a non-optional
+// field to HomeFeed can't silently break decoding here (TASK-2307, TASK-2442).
 private func makeHomeFeedJSON(showsTonight: [LoaderTestShow]) -> String {
-    let shows = showsTonight.map { show in
-        let lineup = show.lineupIDs.map { id in
-            """
-            {"name":"Comic \(id)","imageUrl":"https://example.com/c\(id).jpg","uuid":"comic-\(id)","id":\(id)}
-            """
-        }.joined(separator: ",")
-        return """
-        {
-          "id": \(show.id),
-          "clubId": 301,
-          "clubName": "\(show.clubName)",
-          "date": "2026-05-23T20:00:00.000Z",
-          "imageUrl": "https://example.com/show-\(show.id).png",
-          "lineup": [\(lineup)]
-        }
-        """
-    }.joined(separator: ",")
-    return """
-    {
-      "data": {
-        "hero": { "zipCode": "10012", "city": "NYC", "state": "NY", "shows": [] },
-        "trendingComedians": [],
-        "comediansNearYou": [],
-        "showsTonight": [\(shows)],
-        "moreNearYou": [],
-        "trendingThisWeek": [],
-        "trendingPodcasts": [],
-        "popularClubs": []
-      }
+    let feed = Components.Schemas.HomeFeed(
+        hero: .init(zipCode: "10012", city: "NYC", state: "NY", shows: []),
+        trendingComedians: [],
+        comediansNearYou: [],
+        showsTonight: showsTonight.map { show in
+            .init(
+                id: show.id,
+                clubId: 301,
+                clubName: show.clubName,
+                date: Date().addingTimeInterval(60 * 60),
+                lineup: show.lineupIDs.map { id in
+                    .init(
+                        name: "Comic \(id)",
+                        imageUrl: "https://example.com/c\(id).jpg",
+                        uuid: "comic-\(id)",
+                        id: id
+                    )
+                },
+                imageUrl: "https://example.com/show-\(show.id).png"
+            )
+        },
+        moreNearYou: [],
+        trendingThisWeek: [],
+        trendingPodcasts: [],
+        popularClubs: []
+    )
+    let envelope = Components.Schemas.HomeFeedResponse(data: feed)
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .custom { date, encoder in
+        var container = encoder.singleValueContainer()
+        try container.encode(try LaughTrackFlexibleISO8601DateTranscoder().encode(date))
     }
-    """
+    let data = try! encoder.encode(envelope)
+    return String(decoding: data, as: UTF8.self)
 }
 
 private func makeClient(homeFeedJSON: String) -> Client {
