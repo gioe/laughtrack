@@ -96,6 +96,46 @@ struct TonightNearYouLoaderTests {
         #expect(match == nil)
     }
 
+    @Test("returns nil when podcast detail request fails")
+    func returnsNilWhenPodcastDetailRequestFails() async {
+        let session = StubURLProtocol.makeFailingSession()
+        let client = makeClient(
+            homeFeedJSON: makeHomeFeedJSON(showsTonight: [
+                .init(id: 701, clubName: "Comedy Cellar", lineupIDs: [101]),
+            ])
+        )
+
+        let match = await TonightNearYouLoader.load(
+            podcastID: 42,
+            apiClient: client,
+            zipCode: "10012",
+            urlSession: session
+        )
+
+        #expect(match == nil)
+    }
+
+    @Test("returns nil when home feed request fails")
+    func returnsNilWhenHomeFeedRequestFails() async {
+        let session = StubURLProtocol.makeSession(
+            json: makeDetailJSON(relatedComedians: [(id: 101, name: "Mark Normand")])
+        )
+        let client = Client(
+            serverURL: URL(string: "https://test.example.com")!,
+            configuration: .laughTrack,
+            transport: StubClientTransport.alwaysFails()
+        )
+
+        let match = await TonightNearYouLoader.load(
+            podcastID: 42,
+            apiClient: client,
+            zipCode: "10012",
+            urlSession: session
+        )
+
+        #expect(match == nil)
+    }
+
     @Test("returns nil when the podcast detail has no related comedians")
     func returnsNilWhenDetailHasNoRelatedComedians() async {
         let session = StubURLProtocol.makeSession(
@@ -228,9 +268,11 @@ private func makeClient(homeFeedJSON: String) -> Client {
 private final class StubURLProtocol: URLProtocol {
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> (HTTPURLResponse, Data))?
     nonisolated(unsafe) static var lastRequest: URLRequest?
+    nonisolated(unsafe) static var failureError: Error?
 
     static func makeSession(json: String) -> URLSession {
         lastRequest = nil
+        failureError = nil
         handler = { request in
             let url = request.url ?? URL(string: "https://stub.invalid")!
             let response = HTTPURLResponse(
@@ -241,6 +283,17 @@ private final class StubURLProtocol: URLProtocol {
             )!
             return (response, Data(json.utf8))
         }
+        return makeSession()
+    }
+
+    static func makeFailingSession(error: Error = URLError(.notConnectedToInternet)) -> URLSession {
+        lastRequest = nil
+        failureError = error
+        handler = nil
+        return makeSession()
+    }
+
+    private static func makeSession() -> URLSession {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StubURLProtocol.self]
         return URLSession(configuration: configuration)
@@ -251,6 +304,10 @@ private final class StubURLProtocol: URLProtocol {
 
     override func startLoading() {
         Self.lastRequest = request
+        if let failureError = Self.failureError {
+            client?.urlProtocol(self, didFailWithError: failureError)
+            return
+        }
         guard let handler = Self.handler else {
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
             return
