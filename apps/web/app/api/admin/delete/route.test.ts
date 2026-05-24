@@ -141,7 +141,6 @@ function buildTx(overrides: Record<string, unknown> = {}) {
         },
         favoriteComedian: { count: vi.fn().mockResolvedValue(0) },
         taggedComedian: { count: vi.fn().mockResolvedValue(0) },
-        comedianPodcastIdentityLink: { count: vi.fn().mockResolvedValue(0) },
         comedianPodcast: { count: vi.fn().mockResolvedValue(0) },
         podcastCandidateReview: { count: vi.fn().mockResolvedValue(0) },
         podcast: {

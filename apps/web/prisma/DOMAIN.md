@@ -19,11 +19,6 @@ Individual comedian. Has social media stats, popularity, alternate names (aliase
 ### ComedianImageAsset
 Published image assets for a comedian from the official-site image pipeline. Rows preserve the source image URL, Bunny storage paths for original/avatar/hero variants, image metadata, and whether the row is the active public asset. `Comedian.hasImage` remains the migration-era public compatibility flag; URL builders prefer the active stable asset paths when present and fall back to the legacy name-based PNG path while older assets are still in use.
 
-### ComedianPodcastIdentityLink
-Reviewed source identity links between a comedian and an external podcast feed. For Podcast Index, `source = "podcast_index"` and `sourceFeedId` stores the feed identity returned by the provider. `reviewStatus` has three meanings: `verified` feeds are trusted for future backfills, `ambiguous` feeds require more review before they can be promoted by identity alone, and `rejected` feeds are known false positives that must be suppressed before writing episode appearance rows. This table is deliberately separate from `EpisodeAppearance` so a reviewed feed relationship is not conflated with an episode appearance.
-
-Legacy compatibility table for source feed links. New PodcastIndex-backed discovery should prefer `Podcast`, `ComedianPodcast`, and `PodcastCandidateReview` so candidate decisions can point at canonical podcast rows and preserve accepted/rejected review history. Keep this table for existing callers until the source identity workflow is moved onto the normalized graph.
-
 ### Podcast
 Canonical podcast/feed identity. A row is source-scoped by `source` and `sourcePodcastId`, preserving PodcastIndex feed ids, feed URLs, external ids, provider payloads, and discovery evidence without tying identity to any one comedian.
 

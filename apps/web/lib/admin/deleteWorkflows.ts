@@ -200,7 +200,6 @@ async function previewComedian(
         lineupItems,
         taggedComedians,
         sentNotifications,
-        podcastIdentityLinks,
         comedianPodcasts,
         podcastCandidateReviews,
         episodeAppearances,
@@ -211,9 +210,6 @@ async function previewComedian(
         tx.lineupItem.count({ where: { comedianId: comedian.uuid } }),
         tx.taggedComedian.count({ where: { comedianId: comedian.uuid } }),
         tx.sentNotification.count({ where: { comedianId: comedian.uuid } }),
-        tx.comedianPodcastIdentityLink.count({
-            where: { comedianId: entityId },
-        }),
         tx.comedianPodcast.count({ where: { comedianId: entityId } }),
         tx.podcastCandidateReview.count({ where: { comedianId: entityId } }),
         tx.episodeAppearance.count({ where: { comedianId: entityId } }),
@@ -238,11 +234,6 @@ async function previewComedian(
                 "sentNotifications",
                 "Sent notifications",
                 sentNotifications,
-            ),
-            dependency(
-                "podcastIdentityLinks",
-                "Podcast identity links",
-                podcastIdentityLinks,
             ),
             dependency("comedianPodcasts", "Podcast links", comedianPodcasts),
             dependency(

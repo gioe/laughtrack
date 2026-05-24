@@ -235,7 +235,6 @@ model Comedian {
   lineupItems                          LineupItem[]
   taggedComedians                      TaggedComedian[]
   sentNotifications                    SentNotification[]
-  podcastIdentityLinks                 ComedianPodcastIdentityLink[]
   comedianPodcasts                     ComedianPodcast[]
   podcastCandidateReviews              PodcastCandidateReview[]
   episodeAppearances                   EpisodeAppearance[]
@@ -266,28 +265,6 @@ model ComedianImageAsset {
   @@index([comedianId])
   @@index([isActive])
   @@map("comedian_image_assets")
-}
-
-model ComedianPodcastIdentityLink {
-  id             Int      @id @default(autoincrement())
-  comedianId     Int      @map("comedian_id")
-  source         String
-  sourceFeedId   String   @map("source_feed_id")
-  sourceFeedUrl  String?  @map("source_feed_url")
-  sourceFeedName String?  @map("source_feed_name")
-  reviewStatus   String   @map("review_status")
-  reviewEvidence Json     @default("{}") @map("review_evidence")
-  reviewedAt     DateTime @default(now()) @map("reviewed_at") @db.Timestamptz
-  reviewedBy     String?  @map("reviewed_by")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
-  comedian       Comedian @relation(fields: [comedianId], references: [id], onDelete: Cascade)
-
-  @@unique([comedianId, source, sourceFeedId])
-  @@index([comedianId])
-  @@index([source, sourceFeedId])
-  @@index([reviewStatus])
-  @@map("comedian_podcast_identity_links")
 }
 
 model Podcast {
