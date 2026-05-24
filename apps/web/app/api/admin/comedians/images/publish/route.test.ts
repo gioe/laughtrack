@@ -338,6 +338,31 @@ describe("POST /api/admin/comedians/images/publish", () => {
         );
     });
 
+    it("rejects invalid source aspect ratios before uploading to Bunny", async () => {
+        mockDownload.mockResolvedValueOnce({
+            sourceUrl: "https://example.com/headshot.jpg",
+            buffer: Buffer.from("headshot"),
+            mimeType: "image/jpeg",
+            width: 1200,
+            height: 1600,
+        });
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/headshot.jpg",
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.code).toBe("INVALID_ASPECT_RATIO");
+        expect(body.error).toMatch(/Headshot source/);
+        expect(mockUpload).not.toHaveBeenCalled();
+        expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
     it("returns 502 when bunny upload fails and never mutates DB", async () => {
         mockUpload.mockRejectedValueOnce(new Error("network down"));
         const res = await POST(

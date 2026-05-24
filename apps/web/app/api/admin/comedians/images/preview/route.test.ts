@@ -230,13 +230,69 @@ describe("POST /api/admin/comedians/images/preview", () => {
         expect(body.warnings).toEqual([]);
     });
 
+    it("rejects a non-square headshot source", async () => {
+        mockDownload.mockResolvedValueOnce({
+            sourceUrl: "https://example.com/headshot.jpg",
+            buffer: Buffer.from("headshot"),
+            mimeType: "image/jpeg",
+            width: 1200,
+            height: 1600,
+        });
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/headshot.jpg",
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.code).toBe("INVALID_ASPECT_RATIO");
+        expect(body.error).toMatch(/Headshot source/);
+        expect(mockGenerateVariants).not.toHaveBeenCalled();
+    });
+
+    it("rejects a hero source that is not close to 16:9", async () => {
+        mockDownload
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/headshot.jpg",
+                buffer: Buffer.from("headshot"),
+                mimeType: "image/jpeg",
+                width: 1600,
+                height: 1600,
+            })
+            .mockResolvedValueOnce({
+                sourceUrl: "https://example.com/hero.jpg",
+                buffer: Buffer.from("hero"),
+                mimeType: "image/jpeg",
+                width: 1200,
+                height: 1200,
+            });
+
+        const res = await POST(
+            makeRequest({
+                comedianId: 7,
+                imageUrl: "https://example.com/headshot.jpg",
+                heroImageUrl: "https://example.com/hero.jpg",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.code).toBe("INVALID_ASPECT_RATIO");
+        expect(body.error).toMatch(/Hero source/);
+        expect(mockGenerateVariants).not.toHaveBeenCalled();
+    });
+
     it("surfaces a low-resolution warning when source is below preferred hero size", async () => {
         mockDownload.mockResolvedValue({
             sourceUrl: "https://example.com/small.jpg",
             buffer: Buffer.from([1, 2, 3]),
             mimeType: "image/jpeg",
             width: 1200,
-            height: 800,
+            height: 1200,
         });
         const res = await POST(
             makeRequest({

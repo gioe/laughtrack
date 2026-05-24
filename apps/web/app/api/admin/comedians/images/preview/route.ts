@@ -4,6 +4,7 @@ import {
     HERO_WIDTH,
     downloadComedianImage,
     generateComedianImageVariants,
+    validateComedianImageAspectRatios,
 } from "@/lib/admin/comedianImagePipeline";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
@@ -52,10 +53,14 @@ export async function POST(req: NextRequest) {
 
     try {
         const downloaded = await downloadComedianImage(parsed.data.imageUrl);
-        const variants = await generateComedianImageVariants(downloaded);
         const heroDownloaded = parsed.data.heroImageUrl
             ? await downloadComedianImage(parsed.data.heroImageUrl)
             : downloaded;
+        validateComedianImageAspectRatios({
+            headshot: downloaded,
+            ...(parsed.data.heroImageUrl ? { hero: heroDownloaded } : {}),
+        });
+        const variants = await generateComedianImageVariants(downloaded);
         const heroVariants = parsed.data.heroImageUrl
             ? await generateComedianImageVariants(heroDownloaded)
             : variants;

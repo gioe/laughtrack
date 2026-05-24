@@ -8,6 +8,7 @@ export const HERO_WIDTH = 2000;
 export const HERO_HEIGHT = 1125;
 export const JPEG_QUALITY = 85;
 export const DOWNLOAD_TIMEOUT_MS = 15_000;
+const ASPECT_RATIO_TOLERANCE = 0.05;
 
 const ALLOWED_MIME_TYPES = new Set([
     "image/jpeg",
@@ -61,7 +62,8 @@ export type ComedianImageDownloadCode =
     | "TOO_LARGE"
     | "DECODE_FAILED"
     | "TOO_SMALL"
-    | "ANIMATED_NOT_SUPPORTED";
+    | "ANIMATED_NOT_SUPPORTED"
+    | "INVALID_ASPECT_RATIO";
 
 export class ComedianImageDownloadError extends Error {
     public readonly code: ComedianImageDownloadCode;
@@ -89,6 +91,36 @@ export type ComedianImageVariants = {
 export type DownloadComedianImageOptions = {
     fetch?: typeof fetch;
 };
+
+function isWithinAspectRatio(
+    image: Pick<DownloadedComedianImage, "width" | "height">,
+    expectedRatio: number,
+) {
+    const actualRatio = image.width / image.height;
+    return Math.abs(actualRatio - expectedRatio) <= ASPECT_RATIO_TOLERANCE;
+}
+
+export function validateComedianImageAspectRatios({
+    headshot,
+    hero,
+}: {
+    headshot: DownloadedComedianImage;
+    hero?: DownloadedComedianImage;
+}) {
+    if (!isWithinAspectRatio(headshot, 1)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Headshot source ${headshot.width}x${headshot.height} must be close to a square 1:1 ratio`,
+        );
+    }
+
+    if (hero && !isWithinAspectRatio(hero, HERO_WIDTH / HERO_HEIGHT)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Hero source ${hero.width}x${hero.height} must be close to a 16:9 ratio`,
+        );
+    }
+}
 
 function isBlockedHostname(hostname: string): boolean {
     const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
@@ -321,7 +353,9 @@ export async function downloadComedianImage(
         );
     }
     const declaredMimeNormalized =
-        declaredContentType === "image/jpg" ? "image/jpeg" : declaredContentType;
+        declaredContentType === "image/jpg"
+            ? "image/jpeg"
+            : declaredContentType;
     if (decodedMime !== declaredMimeNormalized) {
         throw new ComedianImageDownloadError(
             "INVALID_MIME",

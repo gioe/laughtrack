@@ -14,8 +14,6 @@ import {
     ChevronDown,
     ChevronRight,
     ExternalLink,
-    ImagePlus,
-    RefreshCw,
     Save,
     ShieldCheck,
     Upload,
@@ -516,50 +514,6 @@ export default function AdminComedianManager({ comedians }: Props) {
         }));
     }
 
-    async function discoverImages(row: AdminComedianListItem) {
-        setStatus({ kind: "idle" });
-        setPendingId(row.id);
-        updateImageState(row.id, () => ({
-            ...emptyImageDiscoveryState(),
-            kind: "loading",
-        }));
-
-        let res: Response;
-        try {
-            res = await fetch("/api/admin/comedians/images/discover", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comedianId: row.id }),
-            });
-        } catch (error) {
-            setPendingId(null);
-            updateImageState(row.id, (current) => ({
-                ...current,
-                kind: "error",
-                error: error instanceof Error ? error.message : "Network error",
-            }));
-            return;
-        }
-
-        setPendingId(null);
-        const body = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            updateImageState(row.id, (current) => ({
-                ...current,
-                kind: "error",
-                error: body.error ?? `Request failed (${res.status})`,
-            }));
-            return;
-        }
-
-        updateImageState(row.id, () => ({
-            kind: "ready",
-            candidates: body.candidates ?? [],
-            selectedCandidate: null,
-            preview: null,
-        }));
-    }
-
     async function previewImage(
         row: AdminComedianListItem,
         candidate: ImageCandidate,
@@ -622,15 +576,15 @@ export default function AdminComedianManager({ comedians }: Props) {
         }));
     }
 
-    async function previewManualImage(row: AdminComedianListItem) {
+    async function validateManualImage(row: AdminComedianListItem) {
         const manualUrls = manualImageUrlValue(row);
         const imageUrl = manualUrls.headshot.trim();
         const heroImageUrl = manualUrls.hero.trim();
-        if (!imageUrl) return;
+        if (!imageUrl || !heroImageUrl) return;
 
         await previewImage(row, {
             imageUrl,
-            heroImageUrl: heroImageUrl || null,
+            heroImageUrl,
             sourcePage: null,
             width: null,
             height: null,
@@ -1061,7 +1015,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
                                 <div className="space-y-4">
                                     <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                        <div className="mb-3">
                                             <div>
                                                 <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Current image
@@ -1074,23 +1028,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                           : "No current image"}
                                                 </div>
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                disabled={disabled}
-                                                onClick={() =>
-                                                    void discoverImages(row)
-                                                }
-                                            >
-                                                {rowImageState.kind ===
-                                                "loading" ? (
-                                                    <RefreshCw className="h-4 w-4 animate-spin" />
-                                                ) : (
-                                                    <ImagePlus className="h-4 w-4" />
-                                                )}
-                                                Discover images
-                                            </Button>
                                         </div>
 
                                         <div className="mb-3 grid gap-2">
@@ -1148,49 +1085,70 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     disabled ||
                                                     !manualImageUrlValue(
                                                         row,
-                                                    ).headshot.trim()
+                                                    ).headshot.trim() ||
+                                                    !manualImageUrlValue(
+                                                        row,
+                                                    ).hero.trim()
                                                 }
                                                 onClick={() =>
-                                                    void previewManualImage(row)
+                                                    void validateManualImage(
+                                                        row,
+                                                    )
                                                 }
                                             >
-                                                <ImagePlus className="h-4 w-4" />
-                                                Preview image URLs
+                                                <ShieldCheck className="h-4 w-4" />
+                                                Validate image URLs
                                             </Button>
                                         </div>
 
-                                        {currentAvatar ? (
-                                            <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
-                                                <img
-                                                    src={currentAvatar}
-                                                    alt={`${row.name} current avatar preview`}
-                                                    className="h-[72px] w-[72px] rounded-md border border-copper/20 object-cover"
-                                                />
-                                                <div className="min-w-0 space-y-2 font-dmSans text-caption text-soft-charcoal">
-                                                    {currentHero && (
-                                                        <a
-                                                            href={currentHero}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="inline-flex items-center gap-1 font-semibold text-copper-dark hover:underline"
-                                                        >
-                                                            Hero preview
-                                                            <ExternalLink className="h-3.5 w-3.5" />
-                                                        </a>
-                                                    )}
-                                                    {row.activeImageAsset && (
-                                                        <div>
-                                                            {formatDimensions(
-                                                                row
-                                                                    .activeImageAsset
-                                                                    .width,
-                                                                row
-                                                                    .activeImageAsset
-                                                                    .height,
-                                                            )}
+                                        {currentAvatar || currentHero ? (
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                {currentAvatar ? (
+                                                    <div className="space-y-2">
+                                                        <img
+                                                            src={currentAvatar}
+                                                            alt={`${row.name} current headshot image`}
+                                                            className="aspect-square w-full rounded-md border border-copper/20 object-cover"
+                                                        />
+                                                        <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                            Headshot
                                                         </div>
-                                                    )}
-                                                </div>
+                                                    </div>
+                                                ) : null}
+                                                {currentHero ? (
+                                                    <div className="space-y-2">
+                                                        <img
+                                                            src={currentHero}
+                                                            alt={`${row.name} current hero image`}
+                                                            className="aspect-[16/9] w-full rounded-md border border-copper/20 object-cover"
+                                                        />
+                                                        <div className="flex items-center gap-2 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                            Hero
+                                                            <a
+                                                                href={
+                                                                    currentHero
+                                                                }
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                            >
+                                                                Open
+                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                                {row.activeImageAsset ? (
+                                                    <div className="font-dmSans text-caption text-soft-charcoal sm:col-span-2">
+                                                        Source{" "}
+                                                        {formatDimensions(
+                                                            row.activeImageAsset
+                                                                .width,
+                                                            row.activeImageAsset
+                                                                .height,
+                                                        )}
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         ) : (
                                             <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
@@ -1216,89 +1174,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         <div className="rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption text-red-900">
                                             {rowImageState.error ??
                                                 "Image request failed"}
-                                        </div>
-                                    )}
-
-                                    {rowImageState.candidates.length > 0 && (
-                                        <div className="space-y-3 rounded-md border border-copper/20 bg-white p-3">
-                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Ranked candidates
-                                            </div>
-                                            {rowImageState.candidates.map(
-                                                (candidate, index) => {
-                                                    const selected =
-                                                        rowImageState
-                                                            .selectedCandidate
-                                                            ?.imageUrl ===
-                                                        candidate.imageUrl;
-                                                    return (
-                                                        <button
-                                                            key={
-                                                                candidate.imageUrl
-                                                            }
-                                                            type="button"
-                                                            aria-label={`Select image candidate ${index + 1}`}
-                                                            onClick={() =>
-                                                                void previewImage(
-                                                                    row,
-                                                                    candidate,
-                                                                )
-                                                            }
-                                                            className={`grid w-full grid-cols-[64px_minmax(0,1fr)] gap-3 rounded-md border p-2 text-left font-dmSans ${
-                                                                selected
-                                                                    ? "border-copper bg-coconut-cream"
-                                                                    : "border-copper/20 bg-white hover:bg-coconut-cream/40"
-                                                            }`}
-                                                        >
-                                                            <img
-                                                                src={
-                                                                    candidate.imageUrl
-                                                                }
-                                                                alt=""
-                                                                className="h-16 w-16 rounded-md object-cover"
-                                                            />
-                                                            <span className="min-w-0 space-y-1">
-                                                                <span className="flex flex-wrap gap-2 text-caption font-semibold text-cedar">
-                                                                    <span>
-                                                                        Score{" "}
-                                                                        {
-                                                                            candidate.score
-                                                                        }
-                                                                    </span>
-                                                                    <span>
-                                                                        {formatDimensions(
-                                                                            candidate.width,
-                                                                            candidate.height,
-                                                                        )}
-                                                                    </span>
-                                                                </span>
-                                                                <span className="block truncate text-caption text-copper-dark">
-                                                                    {candidate.sourcePage ??
-                                                                        candidate.imageUrl}
-                                                                </span>
-                                                                <span className="flex flex-wrap gap-1">
-                                                                    {candidate.reasons.map(
-                                                                        (
-                                                                            reason,
-                                                                        ) => (
-                                                                            <span
-                                                                                key={
-                                                                                    reason
-                                                                                }
-                                                                                className="rounded-full border border-copper/20 bg-coconut-cream/50 px-2 py-0.5 text-caption text-soft-charcoal"
-                                                                            >
-                                                                                {
-                                                                                    reason
-                                                                                }
-                                                                            </span>
-                                                                        ),
-                                                                    )}
-                                                                </span>
-                                                            </span>
-                                                        </button>
-                                                    );
-                                                },
-                                            )}
                                         </div>
                                     )}
 
@@ -1357,7 +1232,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 }
                                             >
                                                 <Upload className="h-4 w-4" />
-                                                Publish selected image
+                                                Upload to Bunny CDN
                                             </Button>
                                         </div>
                                     )}

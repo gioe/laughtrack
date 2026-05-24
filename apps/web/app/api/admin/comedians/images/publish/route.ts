@@ -8,6 +8,7 @@ import {
     buildComedianAssetPaths,
     downloadComedianImage,
     generateComedianImageVariants,
+    validateComedianImageAspectRatios,
 } from "@/lib/admin/comedianImagePipeline";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
@@ -89,10 +90,14 @@ export async function POST(req: NextRequest) {
     let heroVariants;
     try {
         downloaded = await downloadComedianImage(parsed.data.imageUrl);
-        variants = await generateComedianImageVariants(downloaded);
         heroDownloaded = parsed.data.heroImageUrl
             ? await downloadComedianImage(parsed.data.heroImageUrl)
             : downloaded;
+        validateComedianImageAspectRatios({
+            headshot: downloaded,
+            ...(parsed.data.heroImageUrl ? { hero: heroDownloaded } : {}),
+        });
+        variants = await generateComedianImageVariants(downloaded);
         heroVariants = parsed.data.heroImageUrl
             ? await generateComedianImageVariants(heroDownloaded)
             : variants;

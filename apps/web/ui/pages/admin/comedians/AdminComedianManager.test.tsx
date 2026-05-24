@@ -123,10 +123,18 @@ describe("AdminComedianManager", () => {
             0,
         );
         expect(
+            screen.queryByRole("button", { name: "Discover images" }),
+        ).toBeNull();
+        expect(
             screen
-                .getByAltText("Parent Comic current avatar preview")
+                .getByAltText("Parent Comic current headshot image")
                 .getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/1/avatar.jpg");
+        expect(
+            screen
+                .getByAltText("Parent Comic current hero image")
+                .getAttribute("src"),
+        ).toBe("https://test.b-cdn.net/comedian-images/1/hero.jpg");
         expect(
             screen
                 .getByAltText("Parent Comic legacy fallback preview")
@@ -134,106 +142,46 @@ describe("AdminComedianManager", () => {
         ).toBe("https://test.b-cdn.net/comedians/Parent%20Comic.png");
     });
 
-    it("displays ranked discovery candidates with score, dimensions, and reasons", async () => {
+    it("validates manually entered image urls before upload", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
                 ok: true,
                 comedianId: 2,
-                seedPages: ["https://alias.example.com"],
-                crawledPages: ["https://alias.example.com/press"],
-                candidates: [
-                    {
-                        imageUrl: "https://alias.example.com/headshot.jpg",
-                        sourcePage: "https://alias.example.com/press",
-                        width: 1200,
-                        height: 1600,
-                        mimeType: "image/jpeg",
-                        score: 145,
-                        reasons: ["headshot signal", "large portrait"],
-                    },
-                ],
+                source: {
+                    imageUrl: "https://alias.example.com/headshot.jpg",
+                    heroImageUrl: "https://alias.example.com/hero.jpg",
+                    sourcePageUrl: null,
+                    mimeType: "image/jpeg",
+                    width: 1600,
+                    height: 1600,
+                },
+                avatarDataUrl: "data:image/jpeg;base64,avatar",
+                heroDataUrl: "data:image/jpeg;base64,hero",
+                warnings: [],
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
 
+        fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
+            target: { value: "https://alias.example.com/headshot.jpg" },
+        });
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
+            target: { value: "https://alias.example.com/hero.jpg" },
+        });
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Discover images" })[0],
+            screen.getAllByRole("button", { name: "Validate image URLs" })[0],
         );
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians/images/discover",
-                expect.objectContaining({
-                    method: "POST",
-                    body: JSON.stringify({ comedianId: 2 }),
-                }),
-            );
-        });
-        expect(screen.getByText("Score 145")).toBeTruthy();
-        expect(screen.getAllByText("1200x1600").length).toBeGreaterThan(0);
-        expect(screen.getByText("headshot signal")).toBeTruthy();
-        expect(screen.getByText("large portrait")).toBeTruthy();
-    });
-
-    it("previews avatar and hero crops after selecting a candidate", async () => {
-        vi.mocked(global.fetch)
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedianId: 2,
-                    seedPages: ["https://alias.example.com"],
-                    crawledPages: ["https://alias.example.com/press"],
-                    candidates: [
-                        {
-                            imageUrl: "https://alias.example.com/headshot.jpg",
-                            sourcePage: "https://alias.example.com/press",
-                            width: 1200,
-                            height: 1600,
-                            mimeType: "image/jpeg",
-                            score: 145,
-                            reasons: ["headshot signal"],
-                        },
-                    ],
-                }),
-            } as never)
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedianId: 2,
-                    source: {
-                        imageUrl: "https://alias.example.com/headshot.jpg",
-                        sourcePageUrl: "https://alias.example.com/press",
-                        mimeType: "image/jpeg",
-                        width: 1200,
-                        height: 1600,
-                    },
-                    avatarDataUrl: "data:image/jpeg;base64,avatar",
-                    heroDataUrl: "data:image/jpeg;base64,hero",
-                    warnings: ["hero crop may be lower quality"],
-                }),
-            } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Discover images" })[0],
-        );
-        const candidate = await screen.findByRole("button", {
-            name: "Select image candidate 1",
-        });
-        fireEvent.click(candidate);
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenLastCalledWith(
                 "/api/admin/comedians/images/preview",
                 expect.objectContaining({
                     method: "POST",
                     body: JSON.stringify({
                         comedianId: 2,
                         imageUrl: "https://alias.example.com/headshot.jpg",
-                        sourcePageUrl: "https://alias.example.com/press",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
                     }),
                 }),
             );
@@ -248,10 +196,40 @@ describe("AdminComedianManager", () => {
                 .getByAltText("Alias Comic hero crop preview")
                 .getAttribute("src"),
         ).toBe("data:image/jpeg;base64,hero");
-        expect(screen.getByText("hero crop may be lower quality")).toBeTruthy();
     });
 
-    it("previews and publishes manually entered headshot and hero image urls", async () => {
+    it("surfaces ratio validation errors for manual image urls", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: false,
+            status: 400,
+            json: async () => ({
+                error: "Hero source 1200x1200 must be close to a 16:9 ratio",
+                code: "INVALID_ASPECT_RATIO",
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+
+        fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
+            target: { value: "https://alias.example.com/headshot.jpg" },
+        });
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
+            target: { value: "https://alias.example.com/hero.jpg" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Validate image URLs" })[0],
+        );
+
+        expect(
+            await screen.findByText(
+                "Hero source 1200x1200 must be close to a 16:9 ratio",
+            ),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("button", { name: "Upload to Bunny CDN" }),
+        ).toBeNull();
+    });
+
+    it("uploads manually entered headshot and hero image urls to Bunny CDN", async () => {
         vi.mocked(global.fetch)
             .mockResolvedValueOnce({
                 ok: true,
@@ -302,7 +280,7 @@ describe("AdminComedianManager", () => {
             target: { value: "https://alias.example.com/hero.jpg" },
         });
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Preview image URLs" })[0],
+            screen.getAllByRole("button", { name: "Validate image URLs" })[0],
         );
 
         await waitFor(() => {
@@ -325,7 +303,7 @@ describe("AdminComedianManager", () => {
         ).toBe("data:image/jpeg;base64,avatar");
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Publish selected image" }),
+            screen.getByRole("button", { name: "Upload to Bunny CDN" }),
         );
 
         await waitFor(() => {
@@ -351,31 +329,12 @@ describe("AdminComedianManager", () => {
                 json: async () => ({
                     ok: true,
                     comedianId: 2,
-                    seedPages: ["https://alias.example.com"],
-                    crawledPages: ["https://alias.example.com/press"],
-                    candidates: [
-                        {
-                            imageUrl: "https://alias.example.com/headshot.jpg",
-                            sourcePage: "https://alias.example.com/press",
-                            width: 1200,
-                            height: 1600,
-                            mimeType: "image/jpeg",
-                            score: 145,
-                            reasons: ["headshot signal"],
-                        },
-                    ],
-                }),
-            } as never)
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({
-                    ok: true,
-                    comedianId: 2,
                     source: {
                         imageUrl: "https://alias.example.com/headshot.jpg",
-                        sourcePageUrl: "https://alias.example.com/press",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
+                        sourcePageUrl: null,
                         mimeType: "image/jpeg",
-                        width: 1200,
+                        width: 1600,
                         height: 1600,
                     },
                     avatarDataUrl: "data:image/jpeg;base64,avatar",
@@ -411,18 +370,17 @@ describe("AdminComedianManager", () => {
         fireEvent.change(websiteInput, {
             target: { value: "https://alias.example.com" },
         });
+        fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
+            target: { value: "https://alias.example.com/headshot.jpg" },
+        });
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
+            target: { value: "https://alias.example.com/hero.jpg" },
+        });
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Discover images" })[0],
+            screen.getAllByRole("button", { name: "Validate image URLs" })[0],
         );
         fireEvent.click(
-            await screen.findByRole("button", {
-                name: "Select image candidate 1",
-            }),
-        );
-        fireEvent.click(
-            await screen.findByRole("button", {
-                name: "Publish selected image",
-            }),
+            await screen.findByRole("button", { name: "Upload to Bunny CDN" }),
         );
 
         await waitFor(() => {
@@ -433,16 +391,21 @@ describe("AdminComedianManager", () => {
                     body: JSON.stringify({
                         comedianId: 2,
                         imageUrl: "https://alias.example.com/headshot.jpg",
-                        sourcePageUrl: "https://alias.example.com/press",
+                        heroImageUrl: "https://alias.example.com/hero.jpg",
                     }),
                 }),
             );
         });
         expect(
             screen
-                .getByAltText("Alias Comic current avatar preview")
+                .getByAltText("Alias Comic current headshot image")
                 .getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/2/avatar.jpg");
+        expect(
+            screen
+                .getByAltText("Alias Comic current hero image")
+                .getAttribute("src"),
+        ).toBe("https://test.b-cdn.net/comedian-images/2/hero.jpg");
         expect(screen.getByDisplayValue("https://alias.example.com")).toBe(
             websiteInput,
         );
