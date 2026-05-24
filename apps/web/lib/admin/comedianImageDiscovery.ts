@@ -57,6 +57,9 @@ function normalizeUrl(value: string | null | undefined) {
         if (url.protocol !== "http:" && url.protocol !== "https:") {
             return null;
         }
+        if (isBlockedHostname(url.hostname)) {
+            return null;
+        }
         url.hash = "";
         return url.toString();
     } catch {
@@ -79,11 +82,40 @@ function resolveUrl(value: string, baseUrl: string) {
         if (url.protocol !== "http:" && url.protocol !== "https:") {
             return null;
         }
+        if (isBlockedHostname(url.hostname)) {
+            return null;
+        }
         url.hash = "";
         return url.toString();
     } catch {
         return null;
     }
+}
+
+function isBlockedHostname(hostname: string) {
+    const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+    if (host === "localhost" || host.endsWith(".localhost")) return true;
+    if (host === "::1" || host === "0:0:0:0:0:0:0:1") return true;
+    if (host === "0.0.0.0") return true;
+
+    const octets = host.split(".").map((part) => Number(part));
+    if (
+        octets.length !== 4 ||
+        octets.some(
+            (octet) => !Number.isInteger(octet) || octet < 0 || octet > 255,
+        )
+    ) {
+        return false;
+    }
+
+    const [a, b] = octets;
+    return (
+        a === 10 ||
+        a === 127 ||
+        (a === 169 && b === 254) ||
+        (a === 172 && b >= 16 && b <= 31) ||
+        (a === 192 && b === 168)
+    );
 }
 
 function sameOrigin(url: string, origins: Set<string>) {

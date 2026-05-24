@@ -17,6 +17,26 @@ function imageResponse(contentType = "image/jpeg") {
 }
 
 describe("discoverComedianImageCandidates", () => {
+    it("ignores private-network and localhost seed URLs", async () => {
+        const fetchMock = vi.fn();
+
+        const result = await discoverComedianImageCandidates(
+            {
+                comedianName: "Alex Example",
+                website: "http://127.0.0.1:3000/admin",
+                websiteScrapingUrl: "http://localhost/press",
+            },
+            { fetch: fetchMock },
+        );
+
+        expect(result).toEqual({
+            seedPages: [],
+            crawledPages: [],
+            candidates: [],
+        });
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it("only crawls official-site seed pages and same-origin discovery links", async () => {
         const fetchMock = vi.fn(async (input: string | URL | Request) => {
             const url = input.toString();
