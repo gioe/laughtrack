@@ -69,5 +69,22 @@ final class AppStoreScreenshotTests: BaseAppStoreScreenshotTests {
         tap(x: 220, y: 525)
         sleep(3)
         snapshot("07_ComedianDetail")
+
+        // Back to comedians list, then switch to Podcasts pill (the 4th pivot,
+        // only rendered on the Search tab — geo-scoped tabs show only 3).
+        // With 4 pills the row is Shows ~105, Comedians ~188, Clubs ~270,
+        // Podcasts ~342 at y~69 (extrapolated from the 82pt cadence; Podcasts
+        // is wider than Clubs, so its center sits slightly closer than +82).
+        tap(x: 35, y: 75)
+        sleep(2)
+        tap(x: 342, y: 69)
+        sleep(3)
+        snapshot("08_SearchPodcasts")
+
+        // Tap the first podcast row. Mirrors the comedian/club row offset on
+        // the search list (~y=525 below the search header + sort/filter row).
+        tap(x: 220, y: 525)
+        sleep(3)
+        snapshot("09_PodcastDetail")
     }
 }

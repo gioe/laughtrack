@@ -7,7 +7,7 @@ devices([
 
 languages(["en-US"])
 
-ios_version("18.3")
+ios_version("18.3.1")
 
 scheme("LaughTrack")
 

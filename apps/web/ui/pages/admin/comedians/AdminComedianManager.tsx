@@ -272,8 +272,12 @@ export default function AdminComedianManager({ comedians }: Props) {
             .slice(0, 8);
     }
 
-    async function saveParent(row: AdminComedianListItem) {
-        const parent = parentValue(row);
+    async function saveParent(
+        row: AdminComedianListItem,
+        parentOverride?: AdminComedianListItem["parent"],
+    ) {
+        const parent =
+            parentOverride === undefined ? parentValue(row) : parentOverride;
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
@@ -828,6 +832,46 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     >
                                         <ShieldCheck className="h-4 w-4" />
                                         Remove from blocklist
+                                    </Button>
+                                </li>
+                            );
+                        }
+
+                        if (row.parent) {
+                            return (
+                                <li
+                                    key={row.id}
+                                    className="grid min-w-[1120px] items-start gap-x-6 gap-y-4 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
+                                >
+                                    <div className="min-w-0 space-y-2">
+                                        <h2 className="break-words font-gilroy-bold text-h3 text-cedar">
+                                            {row.name}
+                                        </h2>
+                                        <span className="inline-flex w-fit rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
+                                            Child
+                                        </span>
+                                    </div>
+                                    <div className="rounded-md border border-blue-800/25 bg-blue-50 p-3 font-dmSans text-body text-blue-950">
+                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-blue-900">
+                                            Current parent
+                                        </div>
+                                        <div className="mt-1 font-semibold">
+                                            {row.parent.name}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-fit gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                        disabled={
+                                            disabled || pendingId === row.id
+                                        }
+                                        onClick={() =>
+                                            void saveParent(row, null)
+                                        }
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Remove parent relationship
                                     </Button>
                                 </li>
                             );

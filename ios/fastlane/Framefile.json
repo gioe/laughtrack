@@ -76,6 +76,24 @@
       "title": {
         "text": "Track your favorite comics"
       }
+    },
+    {
+      "filter": "08_SearchPodcasts",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Discover comedy podcasts"
+      }
+    },
+    {
+      "filter": "09_PodcastDetail",
+      "keyword": {
+        "text": "LAUGHTRACK"
+      },
+      "title": {
+        "text": "Listen to every episode"
+      }
     }
   ]
 }
