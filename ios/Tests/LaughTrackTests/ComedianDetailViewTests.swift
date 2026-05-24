@@ -303,6 +303,168 @@ struct ComedianDetailViewTests {
         #expect(player.currentItem?.requiresExternalFallback == true)
     }
 
+    @Test("seek clamps targets below zero to zero")
+    func seekClampsTargetsBelowZero() throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        let seekCountBefore = engine.seekTargets.count
+
+        player.seek(to: -42)
+
+        #expect(engine.seekTargets.count == seekCountBefore + 1)
+        #expect(engine.seekTargets.last == 0)
+        #expect(player.currentTime == 0)
+    }
+
+    @Test("seek clamps targets beyond duration to duration")
+    func seekClampsTargetsAboveDuration() throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        engine.stubbedDuration = 100
+        engine.fireObserver()
+        #expect(player.duration == 100)
+
+        player.seek(to: 999)
+
+        #expect(engine.seekTargets.last == 100)
+        #expect(player.currentTime == 100)
+    }
+
+    @Test("skipBack and skipForward seek using the documented intervals")
+    func skipBackAndSkipForwardUseDocumentedIntervals() throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        engine.stubbedDuration = 600
+        engine.stubbedCurrentTime = 120
+        engine.fireObserver()
+
+        player.skipBack()
+        #expect(engine.seekTargets.last == 120 - PodcastPlaybackController.skipBackInterval)
+        #expect(player.currentTime == 105)
+
+        // skipForward should derive from the controller's already-advanced currentTime.
+        player.skipForward()
+        #expect(engine.seekTargets.last == 105 + PodcastPlaybackController.skipForwardInterval)
+    }
+
+    @Test("setSleepTimer publishes endsAt and interval then pauses when it elapses")
+    func setSleepTimerPausesWhenElapsed() async throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        #expect(player.isPlaying == true)
+
+        player.setSleepTimer(0.1)
+        #expect(player.sleepTimerInterval == 0.1)
+        #expect(player.sleepTimerEndsAt != nil)
+
+        try await Task.sleep(nanoseconds: 300_000_000)
+
+        #expect(player.sleepTimerInterval == nil)
+        #expect(player.sleepTimerEndsAt == nil)
+        #expect(player.isPlaying == false)
+        #expect(engine.pauseCount == 1)
+    }
+
+    @Test("setSleepTimer(nil) clears an active timer without pausing")
+    func setSleepTimerNilClearsWithoutPause() async throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        player.setSleepTimer(60)
+        #expect(player.sleepTimerInterval == 60)
+        #expect(player.sleepTimerEndsAt != nil)
+
+        player.setSleepTimer(nil)
+
+        #expect(player.sleepTimerInterval == nil)
+        #expect(player.sleepTimerEndsAt == nil)
+        // A cancelled timer must not still fire pause when its scheduler wakes up.
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(player.isPlaying == true)
+        #expect(engine.pauseCount == 0)
+    }
+
+    @Test("dismiss cancels an active sleep timer")
+    func dismissCancelsActiveSleepTimer() async throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        player.setSleepTimer(60)
+
+        player.dismiss()
+
+        #expect(player.sleepTimerInterval == nil)
+        #expect(player.sleepTimerEndsAt == nil)
+        // Wait long enough for the cancelled timer task to reach its guard and bail.
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(engine.pauseCount == 0)
+    }
+
+    @Test("markCurrentItemFailed cancels an active sleep timer")
+    func markCurrentItemFailedCancelsActiveSleepTimer() async throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        player.setSleepTimer(60)
+
+        player.markCurrentItemFailed()
+
+        #expect(player.sleepTimerInterval == nil)
+        #expect(player.sleepTimerEndsAt == nil)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(engine.pauseCount == 0)
+    }
+
+    @Test("preferredRate didSet forwards to the engine only while playing")
+    func preferredRateDidSetGatedOnIsPlaying() throws {
+        let engine = RecordingPodcastAudioEngine()
+        let player = PodcastPlaybackController(audioEngine: engine)
+
+        // Rate changes before playback start are buffered on the controller only.
+        player.setRate(1.5)
+        #expect(engine.setRateCalls.isEmpty)
+
+        let item = try #require(ComedianPodcastPresentation.playbackItem(
+            for: makePodcastAppearance(audioURL: "https://cdn.example.com/episode.mp3")
+        ))
+        player.start(item)
+        // start() unconditionally forwards the buffered preferredRate to the engine.
+        #expect(engine.setRateCalls == [1.5])
+
+        player.setRate(0.8)
+        #expect(engine.setRateCalls == [1.5, 0.8])
+
+        player.pause()
+        player.setRate(2.0)
+        // Rate changes while paused must not reach the engine.
+        #expect(engine.setRateCalls == [1.5, 0.8])
+    }
+
     @Test("loadPastShowsIfNeeded surfaces the first page on success")
     func loadPastShowsIfNeededReturnsFirstPage() async throws {
         let model = ComedianDetailModel(comedianID: 101)
@@ -678,6 +840,21 @@ private final class RecordingPodcastAudioEngine: PodcastAudioEngine {
     private(set) var loadedURL: URL?
     private(set) var playCount = 0
     private(set) var pauseCount = 0
+    private(set) var stopCount = 0
+    private(set) var seekTargets: [TimeInterval] = []
+    private(set) var setRateCalls: [Float] = []
+
+    var stubbedCurrentTime: TimeInterval = 0
+    var stubbedDuration: TimeInterval = 0
+    var stubbedRate: Float = 0
+    var stubbedIsBuffering: Bool = false
+
+    var currentTime: TimeInterval { stubbedCurrentTime }
+    var duration: TimeInterval { stubbedDuration }
+    var rate: Float { stubbedRate }
+    var isBuffering: Bool { stubbedIsBuffering }
+
+    private var observer: (() -> Void)?
 
     func load(url: URL, onFailure: @escaping () -> Void) {
         loadedURL = url
@@ -685,14 +862,37 @@ private final class RecordingPodcastAudioEngine: PodcastAudioEngine {
 
     func play() {
         playCount += 1
+        stubbedRate = 1.0
     }
 
     func pause() {
         pauseCount += 1
+        stubbedRate = 0
     }
 
     func stop() {
+        stopCount += 1
         loadedURL = nil
+        stubbedRate = 0
+    }
+
+    func seek(to seconds: TimeInterval) {
+        seekTargets.append(seconds)
+    }
+
+    func setRate(_ rate: Float) {
+        setRateCalls.append(rate)
+        if stubbedRate > 0 {
+            stubbedRate = rate
+        }
+    }
+
+    func setObserver(_ handler: @escaping () -> Void) {
+        observer = handler
+    }
+
+    func fireObserver() {
+        observer?()
     }
 }
 

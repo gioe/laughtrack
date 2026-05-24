@@ -108,6 +108,7 @@ struct AppShellView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
     @State private var didApplyInitialTab = false
 
@@ -172,7 +173,8 @@ struct AppShellView: View {
                 .tag(AppTab.favorites)
         }
         .environmentObject(favorites)
-        .tint(theme.colors.primary)
+        .tint(podcastPlayer.accentColorOverride ?? theme.colors.primary)
+        .animation(.easeInOut(duration: 0.55), value: podcastPlayer.accentColorOverride)
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             shellState.selectTab(.search)
         }

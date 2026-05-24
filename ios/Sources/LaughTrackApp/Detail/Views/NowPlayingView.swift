@@ -1,5 +1,7 @@
 import SwiftUI
+import LaughTrackAPIClient
 import LaughTrackBridge
+import LaughTrackCore
 #if canImport(UIKit)
 import UIKit
 import AVKit
@@ -7,11 +9,19 @@ import AVKit
 
 struct NowPlayingView: View {
     @ObservedObject var player: PodcastPlaybackController
+    let apiClient: Client?
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appTheme) private var theme
+    @Environment(\.serviceContainer) private var serviceContainer
 
     @State private var isScrubbing = false
     @State private var scrubValue: Double = 0
+
+    init(player: PodcastPlaybackController, apiClient: Client? = nil) {
+        self.player = player
+        self.apiClient = apiClient
+    }
 
     private static let sleepIntervals: [(label: String, seconds: TimeInterval?)] = [
         ("Off", nil),
@@ -38,6 +48,7 @@ struct NowPlayingView: View {
                 transport
                 routeAndSpeed
                 sleepTimer
+                tonightNearYouCard
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, theme.spacing.lg)
@@ -90,27 +101,36 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
         let imageURLString = player.currentItem?.podcastImageURL?.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolved = (imageURLString?.isEmpty ?? true) ? nil : imageURLString
+        let spotlightColor = player.accentColorOverride ?? laughTrack.colors.accent
 
         ZStack {
-            if let raw = resolved, let url = URL.normalizedExternalURL(raw) {
-                CachedAsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    artworkFallback
-                } error: { _ in
-                    artworkFallback
-                }
-            } else {
+            PodcastSpotlightView(isActive: player.isPlaying, color: spotlightColor)
+                .padding(-32)
+
+            artworkImage(resolved: resolved)
+                .frame(maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .shadowStyle(laughTrack.shadows.floating)
+        }
+        .padding(.horizontal, theme.spacing.md)
+    }
+
+    @ViewBuilder
+    private func artworkImage(resolved: String?) -> some View {
+        if let raw = resolved, let url = URL.normalizedExternalURL(raw) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                artworkFallback
+            } error: { _ in
                 artworkFallback
             }
+        } else {
+            artworkFallback
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadowStyle(laughTrack.shadows.floating)
-        .padding(.horizontal, theme.spacing.md)
     }
 
     private var artworkFallback: some View {
@@ -129,7 +149,7 @@ struct NowPlayingView: View {
         let laughTrack = theme.laughTrackTokens
         VStack(spacing: 6) {
             Text(player.currentItem?.episodeTitle ?? "")
-                .font(laughTrack.typography.screenTitle)
+                .font(.system(.title2, design: .serif, weight: .heavy))
                 .foregroundStyle(laughTrack.colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
@@ -300,6 +320,21 @@ struct NowPlayingView: View {
             .clipShape(Capsule())
         }
         .accessibilityLabel("Sleep timer \(sleepLabel)")
+    }
+
+    @ViewBuilder
+    private var tonightNearYouCard: some View {
+        if
+            let apiClient,
+            let podcastID = player.currentItem?.podcastID
+        {
+            PodcastTonightNearYouCard(
+                podcastID: podcastID,
+                apiClient: apiClient,
+                zipCode: serviceContainer.resolve(NearbyLocationController.self).preference?.zipCode
+            )
+            .padding(.horizontal, theme.spacing.sm)
+        }
     }
 
     private var sleepLabel: String {

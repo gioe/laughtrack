@@ -240,9 +240,32 @@ model Comedian {
   podcastCandidateReviews              PodcastCandidateReview[]
   episodeAppearances                   EpisodeAppearance[]
   episodeAppearanceReviews             EpisodeAppearanceReview[]
+  imageAssets                          ComedianImageAsset[]
 
   @@index([parentComedianId])
   @@map("comedians")
+}
+
+model ComedianImageAsset {
+  id             Int      @id @default(autoincrement())
+  comedianId     Int      @map("comedian_id")
+  sourceImageUrl String   @map("source_image_url")
+  originalPath   String   @map("original_path")
+  avatarPath     String   @map("avatar_path")
+  heroPath       String   @map("hero_path")
+  mimeType       String?  @map("mime_type")
+  width          Int?
+  height         Int?
+  isActive       Boolean  @default(true) @map("is_active")
+  metadata       Json     @default("{}")
+  publishedAt    DateTime @default(now()) @map("published_at") @db.Timestamptz
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  comedian       Comedian @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+
+  @@index([comedianId])
+  @@index([isActive])
+  @@map("comedian_image_assets")
 }
 
 model ComedianPodcastAppearance {
