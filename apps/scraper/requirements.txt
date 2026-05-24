@@ -1,5 +1,6 @@
 # Core Dependencies
-requests>=2.31.0       # HTTP library for synchronous requests
+requests>=2.33.1       # HTTP library for synchronous requests
+urllib3>=2.7.0         # HTTP backend for requests; floor pinned to patch CVEs (decompression bomb, redirect header forwarding)
 curl-cffi>=0.5.0       # Async HTTP client with Chrome TLS/JA3 fingerprinting
 asynciolimiter>=1.0.0  # Async rate limiting for HTTP requests
 beautifulsoup4>=4.12.0 # HTML/XML parsing for web scraping
@@ -14,7 +15,7 @@ python-dotenv>=1.0.0   # Environment variable loading from .env files
 playwright>=1.40.0     # Headless browser for JS-rendered pages
 
 # Web Scraping & Data Processing
-Pillow>=10.0.0         # Image processing
+Pillow>=12.2.0         # Image processing; floor pinned to patch PSD OOB-write and FITS GZIP decompression-bomb CVEs
 PyYAML>=6.0            # YAML file parsing for configuration
 python-dateutil>=2.8.0 # Date parsing and manipulation utilities
 
