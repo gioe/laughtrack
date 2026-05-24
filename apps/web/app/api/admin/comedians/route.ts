@@ -2,6 +2,10 @@ import { writeAdminActionAudit } from "@/lib/admin/audit";
 import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
+import {
+    buildComedianImageAssetUrl,
+    buildComedianImageUrls,
+} from "@/lib/data/comedian/imageAssets";
 import type { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
@@ -20,6 +24,8 @@ type ComedianSnapshot = {
         sourceImageUrl: string;
         avatarPath: string;
         heroPath: string;
+        avatarUrl?: string;
+        heroUrl?: string;
         mimeType: string | null;
         width: number | null;
         height: number | null;
@@ -158,6 +164,13 @@ function serializeComedian(
     comedian: ComedianSnapshot,
     denyListEntry: DenyListRow | null,
 ): AdminComedianListItem {
+    const activeImageAsset = comedian.imageAssets?.[0] ?? null;
+    const legacyImageUrl = buildComedianImageUrls({
+        name: comedian.name,
+        hasImage: Boolean(comedian.hasImage),
+        activeAsset: null,
+    }).imageUrl;
+
     return {
         id: comedian.id,
         uuid: comedian.uuid,
@@ -165,7 +178,18 @@ function serializeComedian(
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
         hasImage: Boolean(comedian.hasImage),
-        activeImageAsset: comedian.imageAssets?.[0] ?? null,
+        activeImageAsset: activeImageAsset
+            ? {
+                  ...activeImageAsset,
+                  avatarUrl:
+                      activeImageAsset.avatarUrl ??
+                      buildComedianImageAssetUrl(activeImageAsset.avatarPath),
+                  heroUrl:
+                      activeImageAsset.heroUrl ??
+                      buildComedianImageAssetUrl(activeImageAsset.heroPath),
+              }
+            : null,
+        legacyImageUrl,
         popularity: comedian.popularity,
         totalShows: comedian.totalShows,
         parent: comedian.parentComedian,

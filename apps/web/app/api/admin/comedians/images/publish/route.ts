@@ -11,6 +11,7 @@ import {
 } from "@/lib/admin/comedianImagePipeline";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
+import { buildComedianImageAssetUrl } from "@/lib/data/comedian/imageAssets";
 import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 import { revalidateTag } from "next/cache";
@@ -49,6 +50,8 @@ function serializeAsset(asset: {
         originalPath: asset.originalPath,
         avatarPath: asset.avatarPath,
         heroPath: asset.heroPath,
+        avatarUrl: buildComedianImageAssetUrl(asset.avatarPath),
+        heroUrl: buildComedianImageAssetUrl(asset.heroPath),
         mimeType: asset.mimeType,
         width: asset.width,
         height: asset.height,

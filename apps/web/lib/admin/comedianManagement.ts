@@ -1,4 +1,8 @@
 import { db } from "@/lib/db";
+import {
+    buildComedianImageAssetUrl,
+    buildComedianImageUrls,
+} from "@/lib/data/comedian/imageAssets";
 
 type DenyListRow = {
     name: string;
@@ -19,10 +23,13 @@ export type AdminComedianListItem = {
         sourceImageUrl: string;
         avatarPath: string;
         heroPath: string;
+        avatarUrl: string;
+        heroUrl: string;
         mimeType: string | null;
         width: number | null;
         height: number | null;
     } | null;
+    legacyImageUrl: string;
     popularity: number;
     totalShows: number;
     parent: {
@@ -196,6 +203,12 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
             const latestTicketShow = comedian.lineupItems[0]?.show ?? null;
             const latestTicketUrl =
                 latestTicketShow?.tickets[0]?.purchaseUrl ?? null;
+            const activeImageAsset = comedian.imageAssets[0] ?? null;
+            const imageUrls = buildComedianImageUrls({
+                name: comedian.name,
+                hasImage: comedian.hasImage,
+                activeAsset: null,
+            });
             return {
                 id: comedian.id,
                 uuid: comedian.uuid,
@@ -203,7 +216,18 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 website: comedian.website,
                 websiteScrapingUrl: comedian.websiteScrapingUrl,
                 hasImage: comedian.hasImage,
-                activeImageAsset: comedian.imageAssets[0] ?? null,
+                activeImageAsset: activeImageAsset
+                    ? {
+                          ...activeImageAsset,
+                          avatarUrl: buildComedianImageAssetUrl(
+                              activeImageAsset.avatarPath,
+                          ),
+                          heroUrl: buildComedianImageAssetUrl(
+                              activeImageAsset.heroPath,
+                          ),
+                      }
+                    : null,
+                legacyImageUrl: imageUrls.imageUrl,
                 popularity: comedian.popularity,
                 totalShows: comedian.totalShows,
                 parent: comedian.parentComedian,

@@ -73,28 +73,16 @@ function formatDimensions(width: number | null, height: number | null) {
     return width && height ? `${width}x${height}` : "Unknown size";
 }
 
-function cdnUrl(path: string) {
-    return new URL(
-        path.replace(/^\/+/, ""),
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-    ).toString();
-}
-
 function legacyComedianImageUrl(row: AdminComedianListItem) {
-    if (!row.hasImage) return "";
-    return cdnUrl(`/comedians/${encodeURIComponent(row.name)}.png`);
+    return row.legacyImageUrl;
 }
 
 function currentAvatarUrl(row: AdminComedianListItem) {
-    return row.activeImageAsset?.avatarPath
-        ? cdnUrl(row.activeImageAsset.avatarPath)
-        : legacyComedianImageUrl(row);
+    return row.activeImageAsset?.avatarUrl ?? legacyComedianImageUrl(row);
 }
 
 function currentHeroUrl(row: AdminComedianListItem) {
-    return row.activeImageAsset?.heroPath
-        ? cdnUrl(row.activeImageAsset.heroPath)
-        : legacyComedianImageUrl(row);
+    return row.activeImageAsset?.heroUrl ?? legacyComedianImageUrl(row);
 }
 
 function emptyImageDiscoveryState(): ImageDiscoveryState {
@@ -645,6 +633,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                               sourceImageUrl: body.asset.sourceImageUrl,
                               avatarPath: body.asset.avatarPath,
                               heroPath: body.asset.heroPath,
+                              avatarUrl: body.asset.avatarUrl,
+                              heroUrl: body.asset.heroUrl,
                               mimeType: body.asset.mimeType,
                               width: body.asset.width,
                               height: body.asset.height,
