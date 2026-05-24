@@ -98,7 +98,9 @@ final class SpotlightBreathingDriver: ObservableObject {
 
     deinit {
         #if canImport(UIKit)
-        displayLink?.invalidate()
+        MainActor.assumeIsolated {
+            displayLink?.invalidate()
+        }
         #endif
     }
 }
