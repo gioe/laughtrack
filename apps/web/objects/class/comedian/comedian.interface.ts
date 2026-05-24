@@ -2,7 +2,7 @@ import { Favoritable, Entity } from "../../interface";
 import { SocialDataDTO } from "../socialData/socialData.interface";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianLineupItemDTO } from "./comedianLineup.interface";
-import { ComedianPodcastAppearanceDTO } from "./podcastAppearance.interface";
+import { PodcastAppearanceDTO } from "./podcastAppearance.interface";
 
 export type { ComedianLineupDTO } from "./comedianLineup.interface";
 
@@ -26,7 +26,7 @@ export interface ComedianDTO {
     parentComedian?: ComedianDTO;
     lineupItems?: ComedianLineupItemDTO[];
     bio?: string | null;
-    podcastAppearances?: ComedianPodcastAppearanceDTO[];
+    podcastAppearances?: PodcastAppearanceDTO[];
 }
 
 export interface UpdateComedianDTO {

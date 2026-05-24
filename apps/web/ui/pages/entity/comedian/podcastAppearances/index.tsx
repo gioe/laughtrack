@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { AudioWaveform, Play, Podcast } from "lucide-react";
-import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 import {
     startPodcastEpisode,
@@ -12,7 +12,7 @@ import {
 import EntityCard from "@/ui/components/cards/entity";
 
 interface PodcastAppearancesSectionProps {
-    appearances: ComedianPodcastAppearanceDTO[];
+    appearances: PodcastAppearanceDTO[];
 }
 
 type PodcastSegment = "guest" | "host";
@@ -64,12 +64,12 @@ function formatAppearanceRole(role: string): "Host" | "Cohost" | "Guest" {
     }
 }
 
-type PlayablePodcastAppearance = ComedianPodcastAppearanceDTO & {
+type PlayablePodcastAppearance = PodcastAppearanceDTO & {
     audioUrl: string;
 };
 
 function isPlayableAppearance(
-    appearance: ComedianPodcastAppearanceDTO,
+    appearance: PodcastAppearanceDTO,
 ): appearance is PlayablePodcastAppearance {
     return Boolean(appearance.audioUrl);
 }

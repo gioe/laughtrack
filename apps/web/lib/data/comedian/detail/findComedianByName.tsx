@@ -4,7 +4,7 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
-import { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
 
 function buildComedianSelect() {
@@ -97,8 +97,8 @@ function buildComedianSelect() {
 }
 
 function sortPodcastAppearances(
-    appearances: ComedianPodcastAppearanceDTO[],
-): ComedianPodcastAppearanceDTO[] {
+    appearances: PodcastAppearanceDTO[],
+): PodcastAppearanceDTO[] {
     return [...appearances].sort((a, b) => {
         if (!a.releaseDate && !b.releaseDate) {
             return b.id - a.id;
@@ -133,7 +133,7 @@ type AcceptedEpisodeAppearance = {
 
 function mapEpisodeAppearances(
     appearances: AcceptedEpisodeAppearance[],
-): ComedianPodcastAppearanceDTO[] {
+): PodcastAppearanceDTO[] {
     return appearances.map((appearance) => ({
         id: appearance.id,
         podcastName: appearance.episode.podcast.title,

@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import ComedianDetailTabs from "./index";
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import type { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
 
 let pastMountCount = 0;
@@ -38,7 +38,7 @@ vi.mock("@/ui/pages/entity/comedian/podcastAppearances", () => ({
     default: function MockPodcastAppearancesSection({
         appearances,
     }: {
-        appearances: ComedianPodcastAppearanceDTO[];
+        appearances: PodcastAppearanceDTO[];
     }) {
         useEffect(() => {
             podcastMountCount += 1;
@@ -53,8 +53,8 @@ vi.mock("@/ui/pages/entity/comedian/podcastAppearances", () => ({
 }));
 
 function makeAppearance(
-    over: Partial<ComedianPodcastAppearanceDTO> = {},
-): ComedianPodcastAppearanceDTO {
+    over: Partial<PodcastAppearanceDTO> = {},
+): PodcastAppearanceDTO {
     return {
         id: 1,
         podcastName: "Good Podcast",
@@ -71,7 +71,7 @@ function makeAppearance(
     };
 }
 
-const renderTabs = (podcastAppearances: ComedianPodcastAppearanceDTO[] = []) =>
+const renderTabs = (podcastAppearances: PodcastAppearanceDTO[] = []) =>
     render(
         <ComedianDetailTabs
             shows={[{ id: 1 } as ShowDTO]}

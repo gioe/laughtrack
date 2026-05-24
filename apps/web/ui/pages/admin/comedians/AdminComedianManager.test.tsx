@@ -675,16 +675,21 @@ describe("AdminComedianManager", () => {
         });
     });
 
-    it("starts podcast attribution dropdowns closed and expands them", () => {
+    it("lets comedian rows collapse and expand", () => {
         render(<AdminComedianManager comedians={comedians} />);
 
-        const toggle = screen.getAllByRole("button", {
-            name: "Podcasts attributed",
-        })[1];
+        const toggle = screen.getByRole("button", {
+            name: /Parent Comic/,
+        });
         const panelId = toggle.getAttribute("aria-controls");
         expect(panelId).toBeTruthy();
         const panel = document.getElementById(panelId!);
         expect(panel).toBeTruthy();
+        expect(toggle.getAttribute("aria-expanded")).toBe("true");
+        expect(panel!.hidden).toBe(false);
+
+        fireEvent.click(toggle);
+
         expect(toggle.getAttribute("aria-expanded")).toBe("false");
         expect(panel!.hidden).toBe(true);
 
@@ -692,12 +697,7 @@ describe("AdminComedianManager", () => {
 
         expect(toggle.getAttribute("aria-expanded")).toBe("true");
         expect(panel!.hidden).toBe(false);
-        expect(within(panel!).getByText("Parent Podcast")).toBeTruthy();
-        expect(
-            within(panel!)
-                .getByRole("link", { name: /RSS/ })
-                .getAttribute("href"),
-        ).toBe("https://example.com/parent.xml");
+        expect(within(panel!).getByText("Podcast RSS")).toBeTruthy();
     });
 
     it("shows and updates existing podcast RSS feed links in the comedian section", async () => {

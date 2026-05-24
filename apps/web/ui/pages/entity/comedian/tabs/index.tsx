@@ -1,5 +1,5 @@
 import type { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import type { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
 import type { FilterDTO } from "@/objects/interface";
 import { SearchVariant } from "@/objects/enum/searchVariant";
@@ -16,7 +16,7 @@ interface ComedianDetailTabsProps {
     filters: FilterDTO[];
     comedianName: string;
     relatedComedians: ComedianDTO[];
-    podcastAppearances: ComedianPodcastAppearanceDTO[];
+    podcastAppearances: PodcastAppearanceDTO[];
 }
 
 const panelClasses = "max-w-7xl mx-auto pt-6";

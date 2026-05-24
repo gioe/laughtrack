@@ -1,4 +1,4 @@
-export interface ComedianPodcastAppearanceDTO {
+export interface PodcastAppearanceDTO {
     id: number;
     podcastName: string;
     podcastImageUrl: string | null;

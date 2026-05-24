@@ -5,7 +5,7 @@ import React from "react";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import PodcastAppearancesSection from "./index";
-import type { ComedianPodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
+import type { PodcastAppearanceDTO } from "@/objects/class/comedian/podcastAppearance.interface";
 import { usePodcastPlayer } from "@/hooks/usePodcastPlayer";
 
 vi.mock("next/image", () => ({
@@ -29,8 +29,8 @@ vi.mock("@/hooks", () => ({
 }));
 
 function makeAppearance(
-    over: Partial<ComedianPodcastAppearanceDTO> = {},
-): ComedianPodcastAppearanceDTO {
+    over: Partial<PodcastAppearanceDTO> = {},
+): PodcastAppearanceDTO {
     return {
         id: 1,
         podcastName: "Good Podcast",
