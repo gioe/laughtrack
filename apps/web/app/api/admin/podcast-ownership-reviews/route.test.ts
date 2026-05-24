@@ -120,6 +120,7 @@ describe("GET /api/admin/podcast-hostship-reviews", () => {
                     slug: "jane-show",
                     title: "The Jane Show",
                     authorName: "Jane Comic",
+                    _count: { episodes: 8 },
                     imageUrl: "https://img.example/jane.jpg",
                     websiteUrl: "https://pod.example",
                     feedUrl: "https://pod.example/feed.xml",

@@ -59,9 +59,11 @@ describe("AdminPodcastHostshipReviewPage", () => {
                     slug: "jane-show",
                     title: "The Jane Show",
                     authorName: "Jane Comic",
+                    _count: { episodes: 12 },
                     imageUrl: null,
                     websiteUrl: null,
                     feedUrl: null,
+                    denyListEntries: [],
                 },
             },
             {
@@ -87,9 +89,11 @@ describe("AdminPodcastHostshipReviewPage", () => {
                     slug: "other-show",
                     title: "Other Show",
                     authorName: "Other Comic",
+                    _count: { episodes: 0 },
                     imageUrl: null,
                     websiteUrl: null,
                     feedUrl: null,
+                    denyListEntries: [],
                 },
             },
         ]);
