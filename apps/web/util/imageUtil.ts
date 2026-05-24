@@ -25,3 +25,16 @@ export const buildClubImageUrl = (clubName: string, hasImage = true) => {
         return CLUB_PLACEHOLDER;
     }
 };
+
+export const buildClubHeroImageUrl = (clubName: string, hasImage = true) => {
+    if (!hasImage) return "";
+    const cdnBase = `https://${cdnHost}/`;
+    try {
+        return new URL(
+            `/clubs/${encodeURIComponent(clubName)}-hero.jpg`,
+            cdnBase,
+        ).toString();
+    } catch {
+        return "";
+    }
+};

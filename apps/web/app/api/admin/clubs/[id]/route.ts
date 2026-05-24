@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
+import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
@@ -77,6 +78,7 @@ function serializeClubForAdmin(club: {
     city: string | null;
     state: string | null;
     website: string;
+    hasImage: boolean;
     visible: boolean | null;
     status: string;
     clubType: string;
@@ -108,6 +110,9 @@ function serializeClubForAdmin(club: {
         city: club.city,
         state: club.state,
         website: club.website,
+        hasImage: club.hasImage,
+        iconUrl: buildClubImageUrl(club.name, club.hasImage),
+        heroUrl: buildClubHeroImageUrl(club.name, club.hasImage),
         visible: club.visible ?? true,
         status: club.status,
         clubType: club.clubType,
@@ -127,6 +132,7 @@ const adminClubSelect = {
     city: true,
     state: true,
     website: true,
+    hasImage: true,
     visible: true,
     status: true,
     clubType: true,
@@ -201,6 +207,7 @@ export async function PATCH(
                     city: true,
                     state: true,
                     website: true,
+                    hasImage: true,
                     visible: true,
                     status: true,
                     clubType: true,

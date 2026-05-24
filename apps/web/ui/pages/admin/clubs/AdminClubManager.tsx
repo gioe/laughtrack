@@ -12,7 +12,14 @@ import {
     AdminToolbar,
     clampAdminPage,
 } from "@/ui/pages/admin/shared/AdminControls";
-import { ChevronDown, ChevronRight, ExternalLink, Save } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronRight,
+    ExternalLink,
+    Save,
+    ShieldCheck,
+    UploadCloud,
+} from "lucide-react";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -38,6 +45,24 @@ type Draft = {
 
 type Status = {
     kind: "idle" | "ok" | "error";
+    message?: string;
+};
+
+type ClubImageUrls = {
+    iconImageUrl: string;
+    heroImageUrl: string;
+};
+
+type ClubImagePreview = {
+    iconDataUrl: string;
+    heroDataUrl: string;
+    warnings: string[];
+};
+
+type ClubImageState = {
+    kind: "idle" | "loading" | "ready" | "error";
+    preview?: ClubImagePreview;
+    source?: ClubImageUrls;
     message?: string;
 };
 
@@ -242,6 +267,12 @@ export default function AdminClubManager({ groups }: Props) {
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
     const [pendingId, setPendingId] = useState<number | null>(null);
     const [status, setStatus] = useState<Status>({ kind: "idle" });
+    const [clubImageUrls, setClubImageUrls] = useState<
+        Record<number, ClubImageUrls>
+    >({});
+    const [clubImageStates, setClubImageStates] = useState<
+        Record<number, ClubImageState>
+    >({});
     const [collapsedGroups, setCollapsedGroups] = useState<
         Record<string, boolean>
     >(() => initialCollapsedGroups(groups));
@@ -332,6 +363,36 @@ export default function AdminClubManager({ groups }: Props) {
                 ...draftFor(club),
                 ...patch,
             },
+        }));
+    }
+
+    function imageUrlsFor(club: AdminClubListItem): ClubImageUrls {
+        return (
+            clubImageUrls[club.id] ?? {
+                iconImageUrl: club.hasImage ? club.iconUrl : "",
+                heroImageUrl: club.heroUrl,
+            }
+        );
+    }
+
+    function imageStateFor(club: AdminClubListItem): ClubImageState {
+        return clubImageStates[club.id] ?? { kind: "idle" };
+    }
+
+    function updateClubImageUrls(
+        club: AdminClubListItem,
+        patch: Partial<ClubImageUrls>,
+    ) {
+        setClubImageUrls((current) => ({
+            ...current,
+            [club.id]: {
+                ...imageUrlsFor(club),
+                ...patch,
+            },
+        }));
+        setClubImageStates((current) => ({
+            ...current,
+            [club.id]: { kind: "idle" },
         }));
     }
 
@@ -518,6 +579,156 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "ok", message: `${club.name} renamed.` });
     }
 
+    async function validateClubImages(club: AdminClubListItem) {
+        const urls = imageUrlsFor(club);
+        if (!urls.iconImageUrl.trim() || !urls.heroImageUrl.trim()) {
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    kind: "error",
+                    message: "Icon and hero image URLs are required.",
+                },
+            }));
+            return;
+        }
+
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+        setClubImageStates((current) => ({
+            ...current,
+            [club.id]: { kind: "loading", source: urls },
+        }));
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/clubs/images/preview", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clubId: club.id,
+                    iconImageUrl: urls.iconImageUrl.trim(),
+                    heroImageUrl: urls.heroImageUrl.trim(),
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    kind: "error",
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : "Network error",
+                },
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    kind: "error",
+                    message: body.error ?? `Request failed (${res.status})`,
+                },
+            }));
+            return;
+        }
+
+        setClubImageStates((current) => ({
+            ...current,
+            [club.id]: {
+                kind: "ready",
+                source: {
+                    iconImageUrl: urls.iconImageUrl.trim(),
+                    heroImageUrl: urls.heroImageUrl.trim(),
+                },
+                preview: {
+                    iconDataUrl: body.iconDataUrl,
+                    heroDataUrl: body.heroDataUrl,
+                    warnings: body.warnings ?? [],
+                },
+            },
+        }));
+    }
+
+    async function publishClubImages(club: AdminClubListItem) {
+        const imageState = imageStateFor(club);
+        const urls = imageState.source ?? imageUrlsFor(club);
+        if (imageState.kind !== "ready") {
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    kind: "error",
+                    message: "Validate the image URLs before uploading.",
+                },
+            }));
+            return;
+        }
+
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/clubs/images/publish", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clubId: club.id,
+                    iconImageUrl: urls.iconImageUrl.trim(),
+                    heroImageUrl: urls.heroImageUrl.trim(),
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...imageState,
+                    kind: "error",
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : "Network error",
+                },
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setClubImageStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...imageState,
+                    kind: "error",
+                    message: body.error ?? `Request failed (${res.status})`,
+                },
+            }));
+            return;
+        }
+
+        const updated = body.club as AdminClubListItem;
+        replaceClub(updated);
+        setClubImageUrls((current) => ({
+            ...current,
+            [updated.id]: {
+                iconImageUrl: updated.iconUrl,
+                heroImageUrl: updated.heroUrl,
+            },
+        }));
+        setClubImageStates((current) => ({
+            ...current,
+            [updated.id]: { kind: "idle" },
+        }));
+        setStatus({ kind: "ok", message: `${updated.name} images published.` });
+    }
+
     return (
         <div className="space-y-5">
             <AdminToolbar>
@@ -588,6 +799,11 @@ export default function AdminClubManager({ groups }: Props) {
                         normalizedClubName={normalizedClubName}
                         saveClubName={saveClubName}
                         saveClub={saveClub}
+                        imageUrlsFor={imageUrlsFor}
+                        imageStateFor={imageStateFor}
+                        updateClubImageUrls={updateClubImageUrls}
+                        validateClubImages={validateClubImages}
+                        publishClubImages={publishClubImages}
                     />
                 ))}
             </div>
@@ -624,6 +840,11 @@ function ChainGroupSection({
     normalizedClubName,
     saveClubName,
     saveClub,
+    imageUrlsFor,
+    imageStateFor,
+    updateClubImageUrls,
+    validateClubImages,
+    publishClubImages,
 }: {
     group: DisplayClubGroup;
     collapsed: boolean;
@@ -643,6 +864,14 @@ function ChainGroupSection({
     normalizedClubName: (name: string) => string;
     saveClubName: (club: AdminClubListItem) => Promise<void>;
     saveClub: (club: AdminClubListItem) => Promise<void>;
+    imageUrlsFor: (club: AdminClubListItem) => ClubImageUrls;
+    imageStateFor: (club: AdminClubListItem) => ClubImageState;
+    updateClubImageUrls: (
+        club: AdminClubListItem,
+        patch: Partial<ClubImageUrls>,
+    ) => void;
+    validateClubImages: (club: AdminClubListItem) => Promise<void>;
+    publishClubImages: (club: AdminClubListItem) => Promise<void>;
 }) {
     const groupName = group.title;
 
@@ -812,10 +1041,15 @@ function ChainGroupSection({
                         const draft = draftFor(club);
                         const dirty = isDirty(club, draft);
                         const disabled = pendingId !== null;
+                        const imageUrls = imageUrlsFor(club);
+                        const imageState = imageStateFor(club);
+                        const canValidateImages =
+                            imageUrls.iconImageUrl.trim().length > 0 &&
+                            imageUrls.heroImageUrl.trim().length > 0;
                         return (
                             <li
                                 key={club.id}
-                                className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(280px,1fr)_minmax(260px,380px)_minmax(320px,460px)]"
+                                className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(260px,0.95fr)_minmax(240px,320px)_minmax(300px,380px)_minmax(300px,420px)]"
                             >
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
@@ -950,6 +1184,163 @@ function ChainGroupSection({
                                             )
                                         )}
                                     </div>
+                                </div>
+
+                                <div className="space-y-3 font-dmSans text-body text-soft-charcoal">
+                                    <div className="font-semibold text-cedar">
+                                        Images
+                                    </div>
+                                    <div className="flex flex-wrap gap-3">
+                                        {club.hasImage && club.iconUrl ? (
+                                            <div>
+                                                <div className="mb-1 text-caption font-semibold uppercase text-soft-charcoal">
+                                                    Icon
+                                                </div>
+                                                <img
+                                                    src={club.iconUrl}
+                                                    alt={`${club.name} current icon image`}
+                                                    className="h-24 w-24 rounded-md border border-copper/20 object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-coconut-cream/50 text-center text-caption font-semibold text-soft-charcoal">
+                                                No icon
+                                            </div>
+                                        )}
+                                        {club.hasImage && club.heroUrl ? (
+                                            <div>
+                                                <div className="mb-1 text-caption font-semibold uppercase text-soft-charcoal">
+                                                    Hero
+                                                </div>
+                                                <img
+                                                    src={club.heroUrl}
+                                                    alt={`${club.name} current hero image`}
+                                                    className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-coconut-cream/50 text-center text-caption font-semibold text-soft-charcoal">
+                                                No hero
+                                            </div>
+                                        )}
+                                    </div>
+                                    <label className="grid gap-1 font-semibold text-cedar">
+                                        Icon image URL
+                                        <input
+                                            aria-label="Icon image URL"
+                                            type="url"
+                                            value={imageUrls.iconImageUrl}
+                                            onChange={(event) =>
+                                                updateClubImageUrls(club, {
+                                                    iconImageUrl:
+                                                        event.target.value,
+                                                })
+                                            }
+                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            placeholder="https://example.com/icon.png"
+                                        />
+                                    </label>
+                                    <label className="grid gap-1 font-semibold text-cedar">
+                                        Hero image URL
+                                        <input
+                                            aria-label="Hero image URL"
+                                            type="url"
+                                            value={imageUrls.heroImageUrl}
+                                            onChange={(event) =>
+                                                updateClubImageUrls(club, {
+                                                    heroImageUrl:
+                                                        event.target.value,
+                                                })
+                                            }
+                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                            placeholder="https://example.com/hero.jpg"
+                                        />
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                            disabled={
+                                                disabled ||
+                                                pendingId === club.id ||
+                                                !canValidateImages
+                                            }
+                                            onClick={() =>
+                                                void validateClubImages(club)
+                                            }
+                                        >
+                                            <ShieldCheck className="h-4 w-4" />
+                                            Validate image URLs
+                                        </Button>
+                                        {imageState.kind === "ready" && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-copper-dark bg-white text-copper-dark hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === club.id
+                                                }
+                                                onClick={() =>
+                                                    void publishClubImages(club)
+                                                }
+                                            >
+                                                <UploadCloud className="h-4 w-4" />
+                                                Upload to Bunny CDN
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {imageState.kind === "loading" && (
+                                        <p className="text-caption font-semibold text-soft-charcoal">
+                                            Validating images...
+                                        </p>
+                                    )}
+                                    {imageState.kind === "error" &&
+                                        imageState.message && (
+                                            <p className="rounded-md border border-red-700/30 bg-red-50 px-2 py-1 text-caption font-semibold text-red-900">
+                                                {imageState.message}
+                                            </p>
+                                        )}
+                                    {imageState.kind === "ready" &&
+                                        imageState.preview && (
+                                            <div className="space-y-2">
+                                                <div className="flex flex-wrap gap-3">
+                                                    <img
+                                                        src={
+                                                            imageState.preview
+                                                                .iconDataUrl
+                                                        }
+                                                        alt={`${club.name} icon preview`}
+                                                        className="h-24 w-24 rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                    <img
+                                                        src={
+                                                            imageState.preview
+                                                                .heroDataUrl
+                                                        }
+                                                        alt={`${club.name} hero preview`}
+                                                        className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                    />
+                                                </div>
+                                                {imageState.preview.warnings
+                                                    .length > 0 && (
+                                                    <ul className="space-y-1 text-caption font-semibold text-amber-900">
+                                                        {imageState.preview.warnings.map(
+                                                            (warning) => (
+                                                                <li
+                                                                    key={
+                                                                        warning
+                                                                    }
+                                                                >
+                                                                    {warning}
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        )}
                                 </div>
 
                                 <div className="grid gap-3 md:grid-cols-2">

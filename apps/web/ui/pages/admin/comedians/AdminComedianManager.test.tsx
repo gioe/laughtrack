@@ -132,9 +132,19 @@ describe("AdminComedianManager", () => {
         ).toBe("https://test.b-cdn.net/comedian-images/1/avatar.jpg");
         expect(
             screen
+                .getByAltText("Parent Comic current headshot image")
+                .className.includes("h-24"),
+        ).toBe(true);
+        expect(
+            screen
                 .getByAltText("Parent Comic current hero image")
                 .getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/1/hero.jpg");
+        expect(
+            screen
+                .getByAltText("Parent Comic current hero image")
+                .className.includes("w-40"),
+        ).toBe(true);
         expect(
             screen
                 .getByAltText("Parent Comic legacy fallback preview")

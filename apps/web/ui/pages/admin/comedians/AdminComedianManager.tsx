@@ -1102,13 +1102,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         </div>
 
                                         {currentAvatar || currentHero ? (
-                                            <div className="grid gap-3 sm:grid-cols-2">
+                                            <div className="flex flex-wrap items-start gap-3">
                                                 {currentAvatar ? (
                                                     <div className="space-y-2">
                                                         <img
                                                             src={currentAvatar}
                                                             alt={`${row.name} current headshot image`}
-                                                            className="aspect-square w-full rounded-md border border-copper/20 object-cover"
+                                                            className="h-24 w-24 rounded-md border border-copper/20 object-cover"
                                                         />
                                                         <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
                                                             Headshot
@@ -1120,7 +1120,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         <img
                                                             src={currentHero}
                                                             alt={`${row.name} current hero image`}
-                                                            className="aspect-[16/9] w-full rounded-md border border-copper/20 object-cover"
+                                                            className="h-24 w-40 rounded-md border border-copper/20 object-cover"
                                                         />
                                                         <div className="flex items-center gap-2 font-dmSans text-caption font-semibold text-soft-charcoal">
                                                             Hero
@@ -1139,7 +1139,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     </div>
                                                 ) : null}
                                                 {row.activeImageAsset ? (
-                                                    <div className="font-dmSans text-caption text-soft-charcoal sm:col-span-2">
+                                                    <div className="basis-full font-dmSans text-caption text-soft-charcoal">
                                                         Source{" "}
                                                         {formatDimensions(
                                                             row.activeImageAsset
@@ -1182,7 +1182,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                 Crop preview
                                             </div>
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="flex flex-wrap items-start gap-3">
                                                 <div className="space-y-1">
                                                     <img
                                                         src={
@@ -1191,7 +1191,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                 .avatarDataUrl
                                                         }
                                                         alt={`${row.name} avatar crop preview`}
-                                                        className="aspect-square w-full rounded-md border border-copper/20 object-cover"
+                                                        className="h-24 w-24 rounded-md border border-copper/20 object-cover"
                                                     />
                                                     <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
                                                         Avatar
@@ -1205,7 +1205,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                 .heroDataUrl
                                                         }
                                                         alt={`${row.name} hero crop preview`}
-                                                        className="aspect-[16/9] w-full rounded-md border border-copper/20 object-cover"
+                                                        className="h-24 w-40 rounded-md border border-copper/20 object-cover"
                                                     />
                                                     <div className="font-dmSans text-caption font-semibold text-soft-charcoal">
                                                         Hero

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 
 export type AdminClubListItem = {
     id: number;
@@ -6,6 +7,9 @@ export type AdminClubListItem = {
     city: string | null;
     state: string | null;
     website: string;
+    hasImage: boolean;
+    iconUrl: string;
+    heroUrl: string;
     visible: boolean;
     status: string;
     clubType: string;
@@ -99,6 +103,7 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
             city: true,
             state: true,
             website: true,
+            hasImage: true,
             visible: true,
             status: true,
             clubType: true,
@@ -148,6 +153,9 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
                 city: club.city,
                 state: club.state,
                 website: club.website,
+                hasImage: club.hasImage,
+                iconUrl: buildClubImageUrl(club.name, club.hasImage),
+                heroUrl: buildClubHeroImageUrl(club.name, club.hasImage),
                 visible: club.visible ?? true,
                 status: club.status,
                 clubType: club.clubType,

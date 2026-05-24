@@ -35,6 +35,10 @@ const groups: AdminClubGroup[] = [
                 city: "Albany",
                 state: "NY",
                 website: "https://example.com/albany",
+                hasImage: true,
+                iconUrl: "https://cdn.test/clubs/Funny%20Bone%20Albany.png",
+                heroUrl:
+                    "https://cdn.test/clubs/Funny%20Bone%20Albany-hero.jpg",
                 visible: true,
                 status: "active",
                 clubType: "club",
@@ -65,6 +69,9 @@ const groups: AdminClubGroup[] = [
                 city: "Boston",
                 state: "MA",
                 website: "https://example.com/boston",
+                hasImage: false,
+                iconUrl: "/placeholders/club-placeholder.svg",
+                heroUrl: "",
                 visible: false,
                 status: "closed",
                 clubType: "venue",
@@ -118,6 +125,96 @@ describe("AdminClubManager", () => {
         );
         expect(screen.getAllByText("8").length).toBeGreaterThan(0);
         expect(screen.getAllByText(/seatengine/).length).toBeGreaterThan(0);
+        expect(
+            screen
+                .getByAltText("Funny Bone Albany current icon image")
+                .getAttribute("src"),
+        ).toBe("https://cdn.test/clubs/Funny%20Bone%20Albany.png");
+        expect(
+            screen
+                .getByAltText("Funny Bone Albany current hero image")
+                .getAttribute("src"),
+        ).toBe("https://cdn.test/clubs/Funny%20Bone%20Albany-hero.jpg");
+    });
+
+    it("validates and uploads club icon and hero image urls", async () => {
+        vi.mocked(global.fetch)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    clubId: 10,
+                    iconDataUrl: "data:image/png;base64,icon",
+                    heroDataUrl: "data:image/jpeg;base64,hero",
+                    warnings: [],
+                }),
+            } as never)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    club: {
+                        ...groups[0].clubs[0],
+                        hasImage: true,
+                        iconUrl:
+                            "https://cdn.test/clubs/Funny%20Bone%20Albany.png",
+                        heroUrl:
+                            "https://cdn.test/clubs/Funny%20Bone%20Albany-hero.jpg",
+                    },
+                }),
+            } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.change(screen.getAllByLabelText("Icon image URL")[0], {
+            target: { value: "https://example.com/icon.png" },
+        });
+        fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
+            target: { value: "https://example.com/hero.jpg" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Validate image URLs" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/clubs/images/preview",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        clubId: 10,
+                        iconImageUrl: "https://example.com/icon.png",
+                        heroImageUrl: "https://example.com/hero.jpg",
+                    }),
+                }),
+            );
+        });
+        expect(
+            screen
+                .getByAltText("Funny Bone Albany icon preview")
+                .getAttribute("src"),
+        ).toBe("data:image/png;base64,icon");
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Upload to Bunny CDN" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/clubs/images/publish",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        clubId: 10,
+                        iconImageUrl: "https://example.com/icon.png",
+                        heroImageUrl: "https://example.com/hero.jpg",
+                    }),
+                }),
+            );
+        });
+        expect(
+            screen.getByText("Funny Bone Albany images published."),
+        ).toBeTruthy();
     });
 
     it("filters clubs within chain groups", () => {

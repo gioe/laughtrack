@@ -88,6 +88,11 @@ export type ComedianImageVariants = {
     heroBuffer: Buffer;
 };
 
+export type ClubImageVariants = {
+    iconBuffer: Buffer;
+    heroBuffer: Buffer;
+};
+
 export type DownloadComedianImageOptions = {
     fetch?: typeof fetch;
 };
@@ -115,6 +120,28 @@ export function validateComedianImageAspectRatios({
     }
 
     if (hero && !isWithinAspectRatio(hero, HERO_WIDTH / HERO_HEIGHT)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Hero source ${hero.width}x${hero.height} must be close to a 16:9 ratio`,
+        );
+    }
+}
+
+export function validateClubImageAspectRatios({
+    icon,
+    hero,
+}: {
+    icon: DownloadedComedianImage;
+    hero: DownloadedComedianImage;
+}) {
+    if (!isWithinAspectRatio(icon, 1)) {
+        throw new ComedianImageDownloadError(
+            "INVALID_ASPECT_RATIO",
+            `Icon source ${icon.width}x${icon.height} must be close to a square 1:1 ratio`,
+        );
+    }
+
+    if (!isWithinAspectRatio(hero, HERO_WIDTH / HERO_HEIGHT)) {
         throw new ComedianImageDownloadError(
             "INVALID_ASPECT_RATIO",
             `Hero source ${hero.width}x${hero.height} must be close to a 16:9 ratio`,
@@ -401,6 +428,30 @@ export async function generateComedianImageVariants(
         .jpeg({ quality: JPEG_QUALITY, progressive: true })
         .toBuffer();
     return { avatarBuffer, heroBuffer };
+}
+
+export async function generateClubImageVariants({
+    icon,
+    hero,
+}: {
+    icon: DownloadedComedianImage;
+    hero: DownloadedComedianImage;
+}): Promise<ClubImageVariants> {
+    const iconBuffer = await sharp(icon.buffer)
+        .resize(AVATAR_SIZE, AVATAR_SIZE, {
+            fit: "cover",
+            position: sharp.strategy.attention,
+        })
+        .png()
+        .toBuffer();
+    const heroBuffer = await sharp(hero.buffer)
+        .resize(HERO_WIDTH, HERO_HEIGHT, {
+            fit: "cover",
+            position: sharp.strategy.attention,
+        })
+        .jpeg({ quality: JPEG_QUALITY, progressive: true })
+        .toBuffer();
+    return { iconBuffer, heroBuffer };
 }
 
 export function buildComedianAssetPaths(
