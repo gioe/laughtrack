@@ -115,11 +115,6 @@ targets:
           UIColorName: LaunchBackground
           UIImageName: LaunchLogo
           UIImageRespectsSafeAreaInsets: false
-        UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
         UISupportedInterfaceOrientations~iphone:
           - UIInterfaceOrientationPortrait
     dependencies:
@@ -150,6 +145,13 @@ targets:
         MARKETING_VERSION: "1.1"
         CURRENT_PROJECT_VERSION: "4"
         SWIFT_EMIT_LOC_STRINGS: "YES"
+        # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
+        # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad
+        # screenshots before accepting a submission for review. The app has no
+        # iPad-specific UI and just renders the iPhone layout scaled on iPad,
+        # so we ship iPhone-only and iPad users still install via the iPhone
+        # App Store with the standard scaled-iPhone-app treatment.
+        TARGETED_DEVICE_FAMILY: "1"
     scheme:
       testTargets:
         - LaughTrackTests
