@@ -30,23 +30,6 @@ const BASE_SCHEMA_SQL = `
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL
     );
-
-    CREATE TABLE comedian_podcast_appearances (
-        id SERIAL PRIMARY KEY,
-        comedian_id INTEGER NOT NULL REFERENCES comedians(id) ON DELETE CASCADE,
-        source TEXT NOT NULL,
-        source_episode_id TEXT NOT NULL,
-        podcast_name TEXT NOT NULL,
-        episode_title TEXT NOT NULL,
-        release_date TIMESTAMPTZ,
-        episode_url TEXT NOT NULL,
-        match_confidence DOUBLE PRECISION NOT NULL,
-        match_evidence JSONB NOT NULL,
-        match_reviewed_at TIMESTAMPTZ,
-        match_reviewed_by TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
 `;
 
 async function expectRejects(db: PGlite, sql: string, params: unknown[] = []) {
@@ -75,7 +58,6 @@ describe("podcast graph migration", () => {
                 comedian_podcasts,
                 podcast_episodes,
                 podcasts,
-                comedian_podcast_appearances,
                 comedians
             RESTART IDENTITY CASCADE
         `);
@@ -186,22 +168,20 @@ describe("podcast graph migration", () => {
         const podcastStatuses = await db.query<{ candidate_status: string }>(
             "SELECT candidate_status FROM podcast_candidate_reviews ORDER BY id",
         );
-        expect(podcastStatuses.rows.map((row) => row.candidate_status)).toEqual([
-            "accepted",
-            "rejected",
-        ]);
+        expect(podcastStatuses.rows.map((row) => row.candidate_status)).toEqual(
+            ["accepted", "rejected"],
+        );
 
         const episodeStatuses = await db.query<{ candidate_status: string }>(
             "SELECT candidate_status FROM episode_appearance_reviews ORDER BY id",
         );
-        expect(episodeStatuses.rows.map((row) => row.candidate_status)).toEqual([
-            "accepted",
-            "rejected",
-        ]);
+        expect(episodeStatuses.rows.map((row) => row.candidate_status)).toEqual(
+            ["accepted", "rejected"],
+        );
     });
 
-    it("enforces graph constraints while preserving the legacy appearance table", async () => {
-        await db.exec("INSERT INTO comedians (name) VALUES ('Legacy')");
+    it("enforces uniqueness on podcasts, episodes, and episode review status", async () => {
+        await db.exec("INSERT INTO comedians (name) VALUES ('Constraint')");
         const podcast = await db.query<{ id: number }>(
             `
                 INSERT INTO podcasts (source, source_podcast_id, title, evidence)
@@ -237,17 +217,5 @@ describe("podcast graph migration", () => {
             `,
             [episode.rows[0].id],
         );
-
-        await db.query(
-            `
-                INSERT INTO comedian_podcast_appearances
-                    (comedian_id, source, source_episode_id, podcast_name, episode_title, episode_url, match_confidence, match_evidence)
-                VALUES (1, 'podcast_index', 'legacy-episode', 'Legacy Pod', 'Legacy Episode', 'https://example.com/legacy', 0.75, '{}')
-            `,
-        );
-        const legacy = await db.query<{ count: string }>(
-            "SELECT COUNT(*) FROM comedian_podcast_appearances",
-        );
-        expect(Number(legacy.rows[0].count)).toBe(1);
     });
 });
