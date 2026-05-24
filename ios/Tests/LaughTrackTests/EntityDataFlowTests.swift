@@ -547,44 +547,7 @@ private struct RawShowRailTransport: ClientTransport {
     ) async throws -> (HTTPResponse, HTTPBody?) {
         switch operationID {
         case "getHomeFeed":
-            return jsonResponse(
-                """
-                {
-                  "data": {
-                    "hero": {
-                      "zipCode": "10012",
-                      "city": "New York",
-                      "state": "NY",
-                      "shows": []
-                    },
-                    "trendingComedians": [],
-                    "comediansNearYou": [],
-                    "showsTonight": [
-                      {
-                        "id": 101,
-                        "clubId": 301,
-                        "date": "2026-04-29T00:00:00.000Z",
-                        "name": "Tonight Show",
-                        "clubName": "New York Comedy Club",
-                        "imageUrl": "https://example.com/show.png",
-                        "lineup": [],
-                        "tickets": [
-                          {
-                            "price": 9.0,
-                            "purchaseUrl": "https://example.com/tickets",
-                            "type": "General Admission",
-                            "soldOut": false
-                          }
-                        ]
-                      }
-                    ],
-                    "moreNearYou": [],
-                    "trendingThisWeek": [],
-                    "popularClubs": []
-                  }
-                }
-                """
-            )
+            return jsonResponse(try homeFeedJSON())
         case "searchShows":
             return jsonResponse(
                 """
@@ -621,6 +584,52 @@ private struct RawShowRailTransport: ClientTransport {
             HTTPResponse(status: status, headerFields: [.contentType: "application/json"]),
             HTTPBody(body)
         )
+    }
+
+    // Derive the response body from the struct fixture so adding a non-optional
+    // field to HomeFeed can't silently break decoding here (TASK-2307, TASK-2442).
+    private func homeFeedJSON() throws -> String {
+        let feed = Components.Schemas.HomeFeed(
+            hero: .init(
+                zipCode: "10012",
+                city: "New York",
+                state: "NY",
+                shows: []
+            ),
+            trendingComedians: [],
+            comediansNearYou: [],
+            showsTonight: [
+                .init(
+                    id: 101,
+                    clubId: 301,
+                    clubName: "New York Comedy Club",
+                    date: Date().addingTimeInterval(60 * 60),
+                    tickets: [
+                        .init(
+                            price: 9.0,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            _type: "General Admission"
+                        )
+                    ],
+                    name: "Tonight Show",
+                    lineup: [],
+                    imageUrl: "https://example.com/show.png"
+                )
+            ],
+            moreNearYou: [],
+            trendingThisWeek: [],
+            trendingPodcasts: [],
+            popularClubs: []
+        )
+        let envelope = Components.Schemas.HomeFeedResponse(data: feed)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .custom { date, encoder in
+            var container = encoder.singleValueContainer()
+            try container.encode(try LaughTrackFlexibleISO8601DateTranscoder().encode(date))
+        }
+        let data = try encoder.encode(envelope)
+        return String(decoding: data, as: UTF8.self)
     }
 }
 
