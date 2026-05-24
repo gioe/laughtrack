@@ -18,7 +18,7 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
-import { PATCH, PUT } from "./route";
+import { PATCH, POST, PUT } from "./route";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 
@@ -224,6 +224,73 @@ describe("PATCH /api/admin/comedians", () => {
                 }),
             }),
         );
+    });
+});
+
+describe("POST /api/admin/comedians", () => {
+    it("creates a comedian with the required name and writes an audit entry", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const auditCreate = vi.fn();
+        const create = vi.fn().mockResolvedValue(
+            makeComedian({
+                id: 7,
+                name: "New Comic",
+                uuid: "a9c922c2baff2c5e9ac9b607ddb34c65",
+            }),
+        );
+        const findUnique = vi.fn().mockResolvedValueOnce(null);
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { create, findUnique },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await POST(makeRequest({ name: " New   Comic " }));
+        const body = await res.json();
+
+        expect(res.status).toBe(201);
+        expect(create).toHaveBeenCalledWith({
+            data: {
+                name: "New Comic",
+                uuid: "a9c922c2baff2c5e9ac9b607ddb34c65",
+            },
+            select: expect.any(Object),
+        });
+        expect(body.comedian.name).toBe("New Comic");
+        expect(auditCreate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    action: "comedian.create",
+                    entityType: "comedian",
+                    entityId: "7",
+                }),
+            }),
+        );
+    });
+
+    it("rejects comedian creation when the generated uuid already exists", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const create = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce({ id: 4, name: "New Comic" });
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { create, findUnique },
+                $queryRaw: vi.fn(),
+                adminActionAudit: { create: vi.fn() },
+            } as never),
+        );
+
+        const res = await POST(makeRequest({ name: "New Comic" }));
+        const body = await res.json();
+
+        expect(res.status).toBe(409);
+        expect(body.error).toContain("Generated UUID already belongs to");
+        expect(create).not.toHaveBeenCalled();
     });
 });
 

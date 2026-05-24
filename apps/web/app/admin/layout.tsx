@@ -3,6 +3,7 @@ import { BadgeCheck, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminCreateButton from "./AdminCreateButton";
 import AdminNavigationMenu from "./AdminNavigationMenu";
 
 export const dynamic = "force-dynamic";
@@ -52,6 +53,7 @@ export default async function AdminLayout({
             >
                 {children}
             </main>
+            <AdminCreateButton />
             <footer className="mx-auto flex max-w-7xl items-center gap-2 px-4 pb-8 font-dmSans text-caption text-soft-charcoal md:px-8">
                 <span>LaughTrack operations</span>
                 <ChevronRight className="h-4 w-4 text-copper-dark" />

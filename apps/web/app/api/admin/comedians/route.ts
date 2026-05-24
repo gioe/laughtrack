@@ -113,6 +113,12 @@ const putSchema = z
     })
     .strict();
 
+const postSchema = z
+    .object({
+        name: z.string().trim().min(1).max(255),
+    })
+    .strict();
+
 function serializeDate(value: Date | string | null | undefined) {
     if (!value) return null;
     return value instanceof Date
@@ -224,6 +230,108 @@ function serializeComedian(
     };
 }
 
+const comedianSnapshotSelect = {
+    id: true,
+    uuid: true,
+    name: true,
+    website: true,
+    websiteScrapingUrl: true,
+    hasImage: true,
+    imageAssets: {
+        where: { isActive: true },
+        select: {
+            id: true,
+            sourceImageUrl: true,
+            avatarPath: true,
+            heroPath: true,
+            mimeType: true,
+            width: true,
+            height: true,
+        },
+        orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
+        take: 1,
+    },
+    popularity: true,
+    totalShows: true,
+    parentComedianId: true,
+    parentComedian: {
+        select: {
+            id: true,
+            name: true,
+        },
+    },
+    comedianPodcasts: {
+        select: {
+            associationType: true,
+            source: true,
+            reviewStatus: true,
+            confidence: true,
+            podcast: {
+                select: {
+                    id: true,
+                    slug: true,
+                    title: true,
+                    feedUrl: true,
+                    websiteUrl: true,
+                },
+            },
+        },
+        orderBy: [
+            { reviewStatus: "asc" },
+            { confidence: "desc" },
+            { podcast: { title: "asc" } },
+        ],
+    },
+    lineupItems: {
+        where: {
+            show: {
+                tickets: {
+                    some: {
+                        AND: [
+                            { purchaseUrl: { not: null } },
+                            { purchaseUrl: { not: "" } },
+                        ],
+                    },
+                },
+            },
+        },
+        select: {
+            show: {
+                select: {
+                    id: true,
+                    name: true,
+                    date: true,
+                    club: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    tickets: {
+                        where: {
+                            AND: [
+                                { purchaseUrl: { not: null } },
+                                { purchaseUrl: { not: "" } },
+                            ],
+                        },
+                        select: {
+                            purchaseUrl: true,
+                        },
+                        orderBy: [{ soldOut: "asc" }, { id: "asc" }],
+                        take: 1,
+                    },
+                },
+            },
+        },
+        orderBy: [{ show: { date: "desc" } }],
+        take: 1,
+    },
+    _count: {
+        select: {
+            alternativeNames: true,
+        },
+    },
+} as const satisfies Prisma.ComedianSelect;
+
 async function readBody(req: NextRequest) {
     try {
         return await req.json();
@@ -238,107 +346,7 @@ async function findComedianSnapshot(
 ) {
     return tx.comedian.findUnique({
         where: { id: comedianId },
-        select: {
-            id: true,
-            uuid: true,
-            name: true,
-            website: true,
-            websiteScrapingUrl: true,
-            hasImage: true,
-            imageAssets: {
-                where: { isActive: true },
-                select: {
-                    id: true,
-                    sourceImageUrl: true,
-                    avatarPath: true,
-                    heroPath: true,
-                    mimeType: true,
-                    width: true,
-                    height: true,
-                },
-                orderBy: [{ publishedAt: "desc" }, { id: "desc" }],
-                take: 1,
-            },
-            popularity: true,
-            totalShows: true,
-            parentComedianId: true,
-            parentComedian: {
-                select: {
-                    id: true,
-                    name: true,
-                },
-            },
-            comedianPodcasts: {
-                select: {
-                    associationType: true,
-                    source: true,
-                    reviewStatus: true,
-                    confidence: true,
-                    podcast: {
-                        select: {
-                            id: true,
-                            slug: true,
-                            title: true,
-                            feedUrl: true,
-                            websiteUrl: true,
-                        },
-                    },
-                },
-                orderBy: [
-                    { reviewStatus: "asc" },
-                    { confidence: "desc" },
-                    { podcast: { title: "asc" } },
-                ],
-            },
-            lineupItems: {
-                where: {
-                    show: {
-                        tickets: {
-                            some: {
-                                AND: [
-                                    { purchaseUrl: { not: null } },
-                                    { purchaseUrl: { not: "" } },
-                                ],
-                            },
-                        },
-                    },
-                },
-                select: {
-                    show: {
-                        select: {
-                            id: true,
-                            name: true,
-                            date: true,
-                            club: {
-                                select: {
-                                    name: true,
-                                },
-                            },
-                            tickets: {
-                                where: {
-                                    AND: [
-                                        { purchaseUrl: { not: null } },
-                                        { purchaseUrl: { not: "" } },
-                                    ],
-                                },
-                                select: {
-                                    purchaseUrl: true,
-                                },
-                                orderBy: [{ soldOut: "asc" }, { id: "asc" }],
-                                take: 1,
-                            },
-                        },
-                    },
-                },
-                orderBy: [{ show: { date: "desc" } }],
-                take: 1,
-            },
-            _count: {
-                select: {
-                    alternativeNames: true,
-                },
-            },
-        },
+        select: comedianSnapshotSelect,
     });
 }
 
@@ -573,6 +581,80 @@ export async function PATCH(req: NextRequest) {
     } catch (error) {
         console.error("Admin comedians PATCH failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    }
+}
+
+export async function POST(req: NextRequest) {
+    const gate = await requireAdminForApi();
+    if (!gate.ok) return gate.response;
+    const { profileId } = gate.context;
+
+    const parsed = postSchema.safeParse(await readBody(req));
+    if (!parsed.success) {
+        return NextResponse.json(
+            { error: "Invalid payload", issues: parsed.error.issues },
+            { status: 400 },
+        );
+    }
+
+    const name = normalizeName(parsed.data.name);
+    const uuid = generateComedianUuid(name);
+
+    try {
+        const result = await db.$transaction(
+            async (tx: ComedianAdminWriter) => {
+                const conflictingComedian = await tx.comedian.findUnique({
+                    where: { uuid },
+                    select: { id: true, name: true },
+                });
+                if (conflictingComedian) {
+                    return {
+                        error: `Generated UUID already belongs to ${conflictingComedian.name}`,
+                        status: 409,
+                    };
+                }
+
+                const created = await tx.comedian.create({
+                    data: {
+                        name,
+                        uuid,
+                    },
+                    select: comedianSnapshotSelect,
+                });
+
+                await writeAdminActionAudit(tx, {
+                    actorProfileId: profileId,
+                    action: "comedian.create",
+                    entityType: "comedian",
+                    entityId: created.id,
+                    reason: null,
+                    before: {},
+                    after: snapshotForAudit(created),
+                });
+
+                const denyListEntry = await findDenyListEntry(tx, created.name);
+                return {
+                    comedian: serializeComedian(created, denyListEntry),
+                    name: created.name,
+                };
+            },
+        );
+
+        if ("error" in result) {
+            return NextResponse.json(
+                { error: result.error },
+                { status: result.status },
+            );
+        }
+
+        revalidateComedianSurfaces(result.name);
+        return NextResponse.json(
+            { ok: true, comedian: result.comedian },
+            { status: 201 },
+        );
+    } catch (error) {
+        console.error("Admin comedians POST failed:", error);
+        return NextResponse.json({ error: "Create failed" }, { status: 500 });
     }
 }
 
