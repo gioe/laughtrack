@@ -106,6 +106,8 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true
+        UIBackgroundModes:
+          - audio
         NSLocationWhenInUseUsageDescription: LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.
         NSCalendarsUsageDescription: LaughTrack adds comedy shows you choose to your calendar.
         NSCalendarsWriteOnlyAccessUsageDescription: LaughTrack adds comedy shows you choose to your calendar.
