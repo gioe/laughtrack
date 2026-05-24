@@ -16,6 +16,9 @@ Verified alternate venue names that resolve to one canonical Club before scraper
 ### Comedian
 Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
 
+### ComedianImageAsset
+Published image assets for a comedian from the official-site image pipeline. Rows preserve the source image URL, Bunny storage paths for original/avatar/hero variants, image metadata, and whether the row is the active public asset. `Comedian.hasImage` remains the migration-era public compatibility flag; URL builders prefer the active stable asset paths when present and fall back to the legacy name-based PNG path while older assets are still in use.
+
 ### ComedianPodcastAppearance
 Episode-level evidence that a comedian appeared on a podcast episode. Rows are source-scoped by `source` and `sourceEpisodeId` and should only describe an appearance on a specific episode.
 
