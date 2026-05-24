@@ -579,4 +579,67 @@ describe("AdminComedianManager", () => {
             );
         });
     });
+
+    it("shows blocked comedians as a minimal row with unblock available", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    {
+                        ...comedians[1],
+                        isBlocked: true,
+                        blockReason: "Venue, not a person",
+                        blockAddedBy: "profile-1",
+                        blockAddedAt: "2026-05-19T12:00:00.000Z",
+                    },
+                ]}
+            />,
+        );
+
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeTruthy();
+        expect(screen.getByText("Blocked")).toBeTruthy();
+        expect(screen.getByText("Venue, not a person")).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: "Remove from blocklist" }),
+        ).toBeTruthy();
+        expect(screen.queryByLabelText("Comedian name")).toBeNull();
+        expect(screen.queryByLabelText("Comedian website")).toBeNull();
+        expect(screen.queryByPlaceholderText("Search parent name")).toBeNull();
+        expect(
+            screen.queryByRole("button", { name: "Podcasts attributed" }),
+        ).toBeNull();
+        expect(screen.queryByText("No ticket purchase link found.")).toBeNull();
+    });
+
+    it("filters by blocked status", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    comedians[0],
+                    {
+                        ...comedians[1],
+                        isBlocked: true,
+                        blockReason: "Venue, not a person",
+                        blockAddedBy: "profile-1",
+                        blockAddedAt: "2026-05-19T12:00:00.000Z",
+                    },
+                ]}
+            />,
+        );
+
+        fireEvent.change(screen.getByLabelText("Blocked status"), {
+            target: { value: "blocked" },
+        });
+
+        expect(screen.getByText("Alias Comic")).toBeTruthy();
+        expect(screen.queryByText("Parent Comic")).toBeNull();
+
+        fireEvent.change(screen.getByLabelText("Blocked status"), {
+            target: { value: "unblocked" },
+        });
+
+        expect(screen.queryByText("Alias Comic")).toBeNull();
+        expect(screen.getByText("Parent Comic")).toBeTruthy();
+    });
 });

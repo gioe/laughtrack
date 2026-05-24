@@ -29,6 +29,7 @@ type Props = {
 };
 
 type SortMode = "name-asc" | "name-desc" | "popularity-desc" | "popularity-asc";
+type BlockedStatusFilter = "all" | "blocked" | "unblocked";
 
 type Status = {
     kind: "idle" | "ok" | "error";
@@ -116,6 +117,8 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [rows, setRows] = useState(comedians);
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
+    const [blockedStatus, setBlockedStatus] =
+        useState<BlockedStatusFilter>("all");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [parentSearches, setParentSearches] = useState<
@@ -143,23 +146,26 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     const visibleRows = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
-        const filtered = normalizedQuery
-            ? rows.filter((row) => {
-                  return [
-                      row.name,
-                      row.website ?? "",
-                      row.websiteScrapingUrl ?? "",
-                      row.parent?.name ?? "",
-                      row.blockReason ?? "",
-                      row.blockAddedBy ?? "",
-                  ]
-                      .join(" ")
-                      .toLowerCase()
-                      .includes(normalizedQuery);
-              })
-            : rows;
+        const filtered = rows.filter((row) => {
+            if (blockedStatus === "blocked" && !row.isBlocked) return false;
+            if (blockedStatus === "unblocked" && row.isBlocked) return false;
+            if (normalizedQuery) {
+                return [
+                    row.name,
+                    row.website ?? "",
+                    row.websiteScrapingUrl ?? "",
+                    row.parent?.name ?? "",
+                    row.blockReason ?? "",
+                    row.blockAddedBy ?? "",
+                ]
+                    .join(" ")
+                    .toLowerCase()
+                    .includes(normalizedQuery);
+            }
+            return true;
+        });
         return sortRows(filtered, sort);
-    }, [query, rows, sort]);
+    }, [blockedStatus, query, rows, sort]);
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
@@ -167,7 +173,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [query, sort, pageSize]);
+    }, [blockedStatus, query, sort, pageSize]);
 
     function parentValue(row: AdminComedianListItem) {
         return Object.hasOwn(selectedParents, row.id)
@@ -678,6 +684,16 @@ export default function AdminComedianManager({ comedians }: Props) {
                         },
                     ]}
                 />
+                <AdminSelectField
+                    label="Blocked status"
+                    value={blockedStatus}
+                    onChange={setBlockedStatus}
+                    options={[
+                        { value: "all", label: "All statuses" },
+                        { value: "blocked", label: "Blocked only" },
+                        { value: "unblocked", label: "Unblocked only" },
+                    ]}
+                />
             </AdminToolbar>
 
             {status.kind === "ok" && (
@@ -718,6 +734,51 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const currentAvatar = currentAvatarUrl(row);
                         const currentHero = currentHeroUrl(row);
                         const legacyAvatar = legacyComedianImageUrl(row);
+
+                        if (row.isBlocked) {
+                            return (
+                                <li
+                                    key={row.id}
+                                    className="grid min-w-[1120px] items-start gap-x-6 gap-y-4 px-4 py-5 lg:grid-cols-[minmax(360px,1.15fr)_minmax(320px,0.95fr)_minmax(300px,0.8fr)]"
+                                >
+                                    <div className="min-w-0 space-y-2">
+                                        <h2 className="break-words font-gilroy-bold text-h3 text-cedar">
+                                            {row.name}
+                                        </h2>
+                                        <span className="inline-flex w-fit rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                            Blocked
+                                        </span>
+                                    </div>
+                                    <div className="rounded-md border border-red-700/25 bg-red-50 p-3 font-dmSans text-body text-red-950">
+                                        <div className="font-semibold">
+                                            {row.blockReason ??
+                                                "Blocked comedian"}
+                                        </div>
+                                        <div className="mt-1 text-caption text-red-900">
+                                            {row.blockAddedBy ??
+                                                "Unknown admin"}
+                                            {row.blockAddedAt
+                                                ? ` · ${formatDate(row.blockAddedAt)}`
+                                                : ""}
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-fit gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                        disabled={
+                                            disabled || pendingId === row.id
+                                        }
+                                        onClick={() =>
+                                            void unblockComedian(row)
+                                        }
+                                    >
+                                        <ShieldCheck className="h-4 w-4" />
+                                        Remove from blocklist
+                                    </Button>
+                                </li>
+                            );
+                        }
 
                         return (
                             <li
