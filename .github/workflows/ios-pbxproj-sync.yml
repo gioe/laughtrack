@@ -7,6 +7,8 @@ on:
       - "ios/Sources/**/*.swift"
       - "ios/Tests/**/*.swift"
       - "ios/LaughTrack.xcodeproj/project.pbxproj"
+      - "ios/Sources/LaughTrackApp/Info.plist"
+      - "ios/project.yml"
       - "ios/bin/check-pbxproj-sync.sh"
       - ".github/workflows/ios-pbxproj-sync.yml"
   pull_request:
@@ -15,6 +17,8 @@ on:
       - "ios/Sources/**/*.swift"
       - "ios/Tests/**/*.swift"
       - "ios/LaughTrack.xcodeproj/project.pbxproj"
+      - "ios/Sources/LaughTrackApp/Info.plist"
+      - "ios/project.yml"
       - "ios/bin/check-pbxproj-sync.sh"
       - ".github/workflows/ios-pbxproj-sync.yml"
 
@@ -24,6 +28,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "6.0"
+
+      - name: Install XcodeGen
+        run: |
+          git clone --branch 2.45.4 --depth 1 https://github.com/yonaskolb/XcodeGen.git /tmp/XcodeGen
+          swift build -c release --package-path /tmp/XcodeGen
+          sudo install -m 0755 /tmp/XcodeGen/.build/release/xcodegen /usr/local/bin/xcodegen
+          sudo mkdir -p /usr/local/share/xcodegen
+          sudo cp -R /tmp/XcodeGen/.build/release/XcodeGen_XcodeGenKit.resources/SettingPresets /usr/local/share/xcodegen/
 
       - name: Verify every ios/Sources/**/*.swift and ios/Tests/**/*.swift is wired into project.pbxproj
         run: ios/bin/check-pbxproj-sync.sh
