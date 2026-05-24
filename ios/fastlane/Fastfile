@@ -192,8 +192,32 @@ platform :ios do
     )
   end
 
+  # simctl lists the installed iOS-18 simulator runtime as "iOS 18.3" but
+  # its underlying build is "18.3.1 - 22D8075" (verify: `xcrun simctl list
+  # runtimes`). xcodebuild's -destination matcher requires the build's
+  # patch version ("OS:18.3.1" appears in `xcodebuild -showdestinations`),
+  # so snapshot's auto-built destination of OS=18.3 (sourced from simctl)
+  # errors out with "Unable to find a device matching the provided
+  # destination specifier" on every retry. Rewrite the destination string
+  # immediately before xcodebuild runs. Drop this when fastlane snapshot
+  # reads the build version from xcodebuild instead of simctl, or when the
+  # next installed runtime's simctl name and build version agree again.
+  def patch_snapshot_destination_for_18_3_1
+    require 'snapshot/test_command_generator'
+    sclass = Snapshot::TestCommandGenerator.singleton_class
+    return if sclass.method_defined?(:__destination_unpatched) ||
+              sclass.private_method_defined?(:__destination_unpatched)
+    sclass.class_eval do
+      alias_method :__destination_unpatched, :destination
+      define_method(:destination) do |devices|
+        __destination_unpatched(devices).map { |arg| arg.gsub("OS=18.3'", "OS=18.3.1'") }
+      end
+    end
+  end
+
   desc "Capture App Store screenshots on all devices"
   lane :screenshots do
+    patch_snapshot_destination_for_18_3_1
     capture_screenshots
   end
 

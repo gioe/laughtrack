@@ -7,7 +7,12 @@ devices([
 
 languages(["en-US"])
 
-ios_version("18.3.1")
+# Don't pin ios_version: snapshot normalizes "18.3.1" → "18.3" before passing
+# it to xcodebuild (which strictly requires the patch version "18.3.1" the
+# installed runtime reports). Omitting it lets snapshot leave OS= off the
+# destination so xcodebuild auto-selects the only installed iOS 18.x runtime.
+# The CI test lane (Fastfile :test) pins TEST_IOS_VERSION = "18.3.1" through
+# run_tests directly, so it isn't affected by this snapshot quirk.
 
 scheme("LaughTrack")
 
