@@ -168,7 +168,7 @@ function groupCandidates(
             acceptedHost: acceptedHost ?? null,
             acceptedCohosts,
             initialHost: acceptedHost ?? suggestedHost ?? null,
-            initialCohosts: acceptedHost ? acceptedCohosts : [],
+            initialCohosts: acceptedCohosts,
             popularity: Math.max(
                 0,
                 ...rows.map((candidate) => candidate.comedian.popularity),
