@@ -185,24 +185,22 @@ if ! command -v xcodegen >/dev/null 2>&1; then
 else
     plist_snapshot="$(mktemp)"
     pbxproj_snapshot="$(mktemp)"
+    xcodegen_log="$(mktemp)"
     cp "$INFO_PLIST" "$plist_snapshot"
     cp "$PBXPROJ" "$pbxproj_snapshot"
 
     restore_snapshots() {
         cp "$plist_snapshot" "$INFO_PLIST"
         cp "$pbxproj_snapshot" "$PBXPROJ"
-        rm -f "$plist_snapshot" "$pbxproj_snapshot"
+        rm -f "$plist_snapshot" "$pbxproj_snapshot" "$xcodegen_log"
     }
     trap restore_snapshots EXIT
 
-    xcodegen_log="$(mktemp)"
     if ! (cd "$IOS_DIR" && xcodegen generate) >"$xcodegen_log" 2>&1; then
         echo "ERROR: xcodegen generate failed while running Info.plist drift check:" >&2
         sed 's/^/  /' "$xcodegen_log" >&2
-        rm -f "$xcodegen_log"
         fail_rc=1
     else
-        rm -f "$xcodegen_log"
         if ! diff -q "$plist_snapshot" "$INFO_PLIST" >/dev/null; then
             echo "ERROR: Info.plist drift between ios/project.yml info.properties and ios/Sources/LaughTrackApp/Info.plist:" >&2
             # Show xcodegen output on the LEFT and on-disk on the RIGHT so '+' lines
