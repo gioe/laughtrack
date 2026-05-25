@@ -36,9 +36,17 @@ function resolveZipCodes(zipCode: string, radius?: number): string[] {
     }
 }
 
+interface GetComediansByZipOptions {
+    // "popularity" (default) ranks by the stored popularity score — used by the
+    // mobile home feed. "upcomingShows" ranks by how many upcoming shows the
+    // comedian has near the zip — used by the web "On the rise near you" rail.
+    sortBy?: "popularity" | "upcomingShows";
+}
+
 export async function getComediansByZip(
     zipCode: string,
     radius?: number,
+    options?: GetComediansByZipOptions,
 ): Promise<ComedianDTO[]> {
     if (!zipCode) return [];
 
@@ -47,6 +55,10 @@ export async function getComediansByZip(
 
     const now = new Date();
     const nearbyZips = resolveZipCodes(zipCode, radius);
+    const orderByClause =
+        options?.sortBy === "upcomingShows"
+            ? Prisma.sql`ORDER BY has_image DESC, show_count DESC, popularity DESC`
+            : Prisma.sql`ORDER BY popularity DESC`;
 
     const rows = await db.$queryRaw<NearYouComedianRow[]>`
         WITH comedian_counts AS (
@@ -84,7 +96,7 @@ export async function getComediansByZip(
         )
         SELECT *
         FROM comedian_counts
-        ORDER BY popularity DESC
+        ${orderByClause}
         LIMIT 8
     `;
 

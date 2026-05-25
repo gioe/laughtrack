@@ -5,16 +5,27 @@ import Link from "next/link";
 
 interface TrendingComedianGridProps {
     comedians: ComedianDTO[];
+    // When set, the rail is scoped to the viewer's area and titled accordingly.
+    // Omitted (no resolved location) falls back to the global on-the-rise list.
+    zipCode?: string;
 }
-const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
+const TrendingComedianGrid = ({
+    comedians,
+    zipCode,
+}: TrendingComedianGridProps) => {
+    const title = zipCode ? "On the rise near you" : "Comics on the rise";
+    const subtitle = zipCode
+        ? `Comedians showing up on the most lineups near ${zipCode} right now.`
+        : "Catch the comedians showing up on more lineups right now.";
+
     return (
         <div className="max-w-7xl w-full mx-auto py-14 px-4 sm:px-6">
             <div className="mb-8 animate-fadeIn">
                 <h2 className="text-3xl sm:text-4xl font-bold font-gilroy-bold mb-3 text-foreground">
-                    Comics on the rise this week
+                    {title}
                 </h2>
                 <p className="text-gray-600 font-dmSans text-base sm:text-lg max-w-2xl">
-                    Catch the comedians showing up on more lineups right now.
+                    {subtitle}
                 </p>
             </div>
 

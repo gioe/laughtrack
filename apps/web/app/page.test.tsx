@@ -58,9 +58,6 @@ vi.mock("@/ui/pages/home/hero", () => ({
 vi.mock("@/ui/pages/home/comedians", () => ({
     default: () => <section data-testid="trending-comedians" />,
 }));
-vi.mock("@/ui/pages/home/comedians-near-you", () => ({
-    default: () => <section data-testid="comedians-near-you" />,
-}));
 vi.mock("@/ui/pages/home/clubs", () => ({
     default: () => <section data-testid="trending-clubs" />,
 }));
@@ -139,7 +136,9 @@ describe("HomePage favorite comedian rail", () => {
 
         expect(mocks.getShowsTonight).toHaveBeenCalledWith("UTC", "10801", 25);
         expect(mocks.getShowsNearZip).toHaveBeenCalledWith("10801", 25);
-        expect(mocks.getComediansByZip).toHaveBeenCalledWith("10801", 25);
+        expect(mocks.getComediansByZip).toHaveBeenCalledWith("10801", 25, {
+            sortBy: "upcomingShows",
+        });
     });
 
     it("renders the personalized rail above trending comedians for signed-in users with favorite shows", async () => {

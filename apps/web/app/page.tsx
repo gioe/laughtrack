@@ -18,7 +18,6 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
-import ComedianNearYouSection from "@/ui/pages/home/comedians-near-you";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import ShowDiscoverySection from "@/ui/pages/home/shows";
 import FooterComponent from "@/ui/pages/home/footer";
@@ -98,9 +97,9 @@ export default async function HomePage() {
     ] = await Promise.all([
         getCachedHomePageData(),
         zipCode
-            ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
-                  () => [],
-              )
+            ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES, {
+                  sortBy: "upcomingShows",
+              }).catch(() => [])
             : Promise.resolve([]),
         zipCode
             ? getShowsTonight(
@@ -126,6 +125,11 @@ export default async function HomePage() {
     ).slice(0, 6);
     const remainingNearYou = showsNearYou.slice(6);
 
+    // Single "on the rise" comedian rail: scoped to the viewer's area when we
+    // have local results, otherwise the global on-the-rise list.
+    const onTheRiseLocal = Boolean(zipCode && nearYouComedians.length > 0);
+    const onTheRiseComedians = onTheRiseLocal ? nearYouComedians : comedians;
+
     return (
         <main id="main-content" className="min-h-screen w-full">
             <JsonLd data={buildWebSiteJsonLd()} />
@@ -148,16 +152,11 @@ export default async function HomePage() {
                 </section>
             )}
             <section className="w-full bg-coconut-cream">
-                <TrendingComedianGrid comedians={comedians} />
+                <TrendingComedianGrid
+                    comedians={onTheRiseComedians}
+                    zipCode={onTheRiseLocal && zipCode ? zipCode : undefined}
+                />
             </section>
-            {zipCode && nearYouComedians.length > 0 && (
-                <section className="w-full bg-coconut-cream">
-                    <ComedianNearYouSection
-                        comedians={nearYouComedians}
-                        zipCode={zipCode}
-                    />
-                </section>
-            )}
             {showsTonight.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
