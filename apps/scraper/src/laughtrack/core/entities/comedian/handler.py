@@ -1,6 +1,7 @@
 """Comedian database handler for comedian-specific operations."""
 
-import itertools
+import atexit
+import concurrent.futures
 import os
 import re
 import threading
@@ -50,7 +51,112 @@ def _itunes_on_insert_country() -> str:
     return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_COUNTRY", "US")
 
 
-_itunes_thread_counter = itertools.count(1)
+def _itunes_on_insert_max_workers() -> int:
+    """Upper bound on concurrent iTunes discovery workers.
+
+    Each worker opens its own Neon connection inside the discovery
+    transaction, so this directly caps how many connections the on-insert
+    trigger can hold at once. ``insert_comedians`` fires once per show batch
+    in ``update_show_lineups``; without a cap a scraper run could spawn
+    O(batches) connection-holding threads simultaneously. Defaults to 4;
+    values below 1 are clamped to 1, and a malformed value falls back to 4.
+    """
+    try:
+        return max(1, int(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS", "4")))
+    except ValueError:
+        return 4
+
+
+def _itunes_on_insert_inflight_warn_threshold() -> int:
+    """In-flight worker count above which a saturation warning is logged.
+
+    "In flight" counts workers submitted but not yet finished (running plus
+    queued). Once the queue holds work the bounded pool can't immediately run,
+    insert batches are backing up — the warning surfaces that before it bites
+    under load. Defaults to twice the pool size; ``0`` disables the warning and
+    a malformed value falls back to the default.
+    """
+    raw = os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_INFLIGHT_WARN")
+    if raw is not None:
+        try:
+            return max(0, int(raw))
+        except ValueError:
+            pass
+    return _itunes_on_insert_max_workers() * 2
+
+
+# Process-wide bounded pool + in-flight bookkeeping for iTunes discovery
+# workers. Lazily created (see _get_itunes_executor) and shared across every
+# ComedianHandler instance so worst-case concurrency is capped regardless of
+# how many handlers or batches are in play.
+_ITUNES_EXECUTOR_LOCK = threading.Lock()
+_itunes_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+_itunes_inflight_lock = threading.Lock()
+_itunes_inflight = 0
+
+
+def _get_itunes_executor() -> concurrent.futures.ThreadPoolExecutor:
+    """Return the process-wide bounded pool for iTunes discovery workers.
+
+    Created lazily on first dispatch and shared across all handler instances so
+    a scraper run can never hold more than ``LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS``
+    discovery workers (and Neon connections) at once — excess work queues rather
+    than spawning unbounded threads. ``max_workers`` is read once at creation.
+
+    Daemon-thread parity: the original design used daemon threads so process
+    exit never blocked on discovery, but ThreadPoolExecutor joins all pending
+    work at interpreter exit. The registered atexit hook cancels queued-but-
+    unstarted futures (``cancel_futures``) and returns without waiting, so exit
+    blocks only on the at-most-``max_workers`` workers already running; dropped
+    queued work is covered by the periodic backfill CLI.
+    """
+    global _itunes_executor
+    with _ITUNES_EXECUTOR_LOCK:
+        if _itunes_executor is None:
+            executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=_itunes_on_insert_max_workers(),
+                thread_name_prefix="itunes-discovery",
+            )
+            atexit.register(executor.shutdown, wait=False, cancel_futures=True)
+            _itunes_executor = executor
+        return _itunes_executor
+
+
+def _on_itunes_worker_done(_future: concurrent.futures.Future) -> None:
+    """Decrement the in-flight counter when a discovery worker completes."""
+    global _itunes_inflight
+    with _itunes_inflight_lock:
+        _itunes_inflight -= 1
+
+
+def _submit_itunes_worker(
+    target: Callable, *args
+) -> concurrent.futures.Future:
+    """Submit a discovery worker to the bounded pool, tracking in-flight depth.
+
+    Increments the shared in-flight counter, logs a warning when it crosses the
+    configured threshold (pool saturated / batches queuing), then submits. On a
+    submit failure the increment is rolled back so the counter never drifts.
+    """
+    global _itunes_inflight
+    executor = _get_itunes_executor()
+    with _itunes_inflight_lock:
+        _itunes_inflight += 1
+        inflight = _itunes_inflight
+    threshold = _itunes_on_insert_inflight_warn_threshold()
+    if threshold and inflight > threshold:
+        Logger.warn(
+            f"itunes_on_insert: {inflight} discovery workers in flight "
+            f"(threshold {threshold}) — bounded pool saturated, insert batches are queuing"
+        )
+    try:
+        future = executor.submit(target, *args)
+    except Exception:
+        with _itunes_inflight_lock:
+            _itunes_inflight -= 1
+        raise
+    future.add_done_callback(_on_itunes_worker_done)
+    return future
 
 
 def _itunes_on_insert_background() -> bool:
@@ -203,13 +309,18 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
     def _trigger_itunes_discovery_for_inserted(
         self, inserted_rows: List[DictRow]
-    ) -> Optional[threading.Thread]:
+    ) -> Optional[concurrent.futures.Future]:
         """Schedule iTunes podcast discovery for newly inserted comedians.
 
-        Background mode (default): spawns a daemon thread and returns it without
-        waiting, so the lineup ingestion hot path is unblocked. Process exit
-        terminates any still-running threads; the periodic backfill CLI
-        (scripts/core/search_itunes_podcasts.py) covers any losses.
+        Background mode (default): submits the worker to a process-wide bounded
+        ThreadPoolExecutor and returns its Future without waiting, so the lineup
+        ingestion hot path is unblocked. The pool caps worst-case concurrency
+        (and therefore concurrent Neon connections) at
+        ``LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS`` no matter how many insert
+        batches dispatch at once; excess work queues. Dispatch failures are
+        logged and swallowed so insertion never fails because of iTunes; the
+        periodic backfill CLI (scripts/core/search_itunes_podcasts.py) covers
+        any losses.
 
         Sync mode (``LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND=0``): runs the worker
         inline and returns ``None``. Useful for deterministic tests and scripts.
@@ -221,17 +332,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             self._run_itunes_discovery_for_inserted(inserted_rows)
             return None
 
-        # Counter suffix keeps thread names unique across calls so logs/stack
-        # traces stay greppable when multiple workers are alive at once.
-        thread_seq = next(_itunes_thread_counter)
-        thread = threading.Thread(
-            target=self._run_itunes_discovery_for_inserted,
-            args=(inserted_rows,),
-            name=f"itunes-discovery-{thread_seq}-n{len(inserted_rows)}",
-            daemon=True,
-        )
-        thread.start()
-        return thread
+        try:
+            return _submit_itunes_worker(self._run_itunes_discovery_for_inserted, inserted_rows)
+        except Exception as e:
+            Logger.warn(f"itunes_on_insert: failed to dispatch discovery worker, skipping: {e}")
+            return None
 
     def _run_itunes_discovery_for_inserted(self, inserted_rows: List[DictRow]) -> int:
         """Worker that runs iTunes discovery + persistence for the given rows.

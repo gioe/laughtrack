@@ -3,9 +3,10 @@
 Run with: pytest tests/ -k itunes_trigger -q
 """
 
+import concurrent.futures
 import sys
 from contextlib import contextmanager
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -132,6 +133,25 @@ def _clear_deny_list_cache():
     _comedian_handler_mod._deny_list_cache.clear()
     yield
     _comedian_handler_mod._deny_list_cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_itunes_pool_state():
+    """Reset the module-level bounded pool + in-flight counter around every test.
+
+    The executor is created lazily once and reused process-wide, and the
+    in-flight counter is a module global. Without a reset, a pool built with one
+    test's MAX_WORKERS would serve the next, and a leaked in-flight count would
+    skew saturation-warning assertions.
+    """
+    _comedian_handler_mod._itunes_executor = None
+    _comedian_handler_mod._itunes_inflight = 0
+    yield
+    ex = _comedian_handler_mod._itunes_executor
+    if ex is not None:
+        ex.shutdown(wait=False, cancel_futures=True)
+    _comedian_handler_mod._itunes_executor = None
+    _comedian_handler_mod._itunes_inflight = 0
 
 
 def _candidate(itunes_module, *, comedian_id=1, confidence=0.95, source_podcast_id="abc"):
@@ -283,88 +303,100 @@ class TestItunesTriggerOnInsert:
         itunes_module.discover.assert_not_called()
 
 
-class TestItunesTriggerBackgroundDispatch:
-    """Verify the trigger dispatches discovery to a daemon thread off the hot path."""
+class _NeverDoneFuture:
+    """Stand-in Future that never completes, so its done-callback never fires.
 
-    def test_background_mode_dispatches_to_daemon_thread_without_blocking(
+    Lets a test grow the module's in-flight counter deterministically: each
+    submission increments it and nothing decrements it back down.
+    """
+
+    def add_done_callback(self, fn):
+        self._cb = fn
+
+
+class _RecordingExecutor:
+    """Fake bounded pool that records submissions without running them."""
+
+    def __init__(self):
+        self.submissions: list = []
+
+    def submit(self, target, *args):
+        self.submissions.append((target, args))
+        return _NeverDoneFuture()
+
+
+class TestItunesTriggerBackgroundDispatch:
+    """Verify the trigger dispatches discovery to the bounded pool off the hot path."""
+
+    def test_background_mode_submits_to_pool_without_blocking(
         self, itunes_module, monkeypatch
     ):
-        """With backgrounding enabled, insert_comedians spawns a daemon thread and
-        returns before discover() is invoked synchronously."""
+        """With backgrounding enabled, insert_comedians submits the worker to the
+        bounded pool and returns before discover() is invoked synchronously."""
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
 
-        captured: dict = {}
-
-        class FakeThread:
-            def __init__(self, *, target, args, name, daemon):
-                captured["target"] = target
-                captured["args"] = args
-                captured["name"] = name
-                captured["daemon"] = daemon
-                captured["started"] = False
-
-            def start(self):
-                captured["started"] = True
-
-        monkeypatch.setattr(_comedian_handler_mod.threading, "Thread", FakeThread)
+        recorder = _RecordingExecutor()
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: recorder)
 
         inserted_row = {"id": 4242, "uuid": "uuid-bg", "name": "Background Comic"}
         handler = _make_handler_with_inserted_row(inserted_row)
 
         result = handler.insert_comedians([_make_stub_comedian("Background Comic", "uuid-bg")])
 
-        # insert_comedians returned the inserted row immediately; the worker
-        # has been handed to the daemon thread but the test thread never ran it.
+        # insert_comedians returned the inserted row immediately; the worker was
+        # handed to the pool but the recorder never executed it.
         assert result == [inserted_row]
-        assert captured["started"] is True
-        assert captured["daemon"] is True
-        assert captured["target"] == handler._run_itunes_discovery_for_inserted
-        assert captured["args"] == ([inserted_row],)
+        assert len(recorder.submissions) == 1
+        target, args = recorder.submissions[0]
+        assert target == handler._run_itunes_discovery_for_inserted
+        assert args == ([inserted_row],)
         itunes_module.discover.assert_not_called()
 
-    def test_background_thread_actually_runs_discovery_end_to_end(
+    def test_background_pool_actually_runs_discovery_end_to_end(
         self, itunes_module, monkeypatch
     ):
-        """End-to-end: with a real daemon thread, the worker eventually invokes
+        """End-to-end: with the real bounded pool, the worker eventually invokes
         the iTunes adapter — the hot path simply doesn't wait on it."""
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
+
+        executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=2, thread_name_prefix="test-itunes"
+        )
+        # Capture the Future the dispatcher creates so the test can wait on it.
+        submitted: list = []
+        real_submit = executor.submit
+
+        def capturing_submit(*args, **kwargs):
+            fut = real_submit(*args, **kwargs)
+            submitted.append(fut)
+            return fut
+
+        executor.submit = capturing_submit
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: executor)
 
         inserted_row = {"id": 5151, "uuid": "uuid-bg-real", "name": "Real BG Comic"}
         handler = _make_handler_with_inserted_row(inserted_row)
 
-        # Capture the thread the dispatcher creates so we can join on it.
-        spawned: list = []
-        real_thread_cls = _comedian_handler_mod.threading.Thread
+        try:
+            result = handler.insert_comedians([_make_stub_comedian("Real BG Comic", "uuid-bg-real")])
 
-        def capturing_thread(*args, **kwargs):
-            t = real_thread_cls(*args, **kwargs)
-            spawned.append(t)
-            return t
+            assert result == [inserted_row]
+            assert len(submitted) == 1
+            submitted[0].result(timeout=5)
+            assert itunes_module.discover.call_count == 1
+            called_comedians = itunes_module.discover.call_args[0][0]
+            assert called_comedians[0].comedian_id == 5151
+        finally:
+            executor.shutdown(wait=True)
 
-        monkeypatch.setattr(_comedian_handler_mod.threading, "Thread", capturing_thread)
-
-        result = handler.insert_comedians([_make_stub_comedian("Real BG Comic", "uuid-bg-real")])
-
-        assert result == [inserted_row]
-        assert len(spawned) == 1
-        spawned[0].join(timeout=5)
-        assert not spawned[0].is_alive(), "background worker did not finish within timeout"
-        assert itunes_module.discover.call_count == 1
-        called_comedians = itunes_module.discover.call_args[0][0]
-        assert called_comedians[0].comedian_id == 5151
-
-    def test_background_mode_skips_thread_when_disabled(self, itunes_module, monkeypatch):
-        """Kill-switch precedence: ENABLED=0 means no thread, regardless of
+    def test_background_mode_skips_pool_when_disabled(self, itunes_module, monkeypatch):
+        """Kill-switch precedence: ENABLED=0 means no submission, regardless of
         BACKGROUND."""
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_ENABLED", "0")
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
 
-        thread_calls: list = []
-        monkeypatch.setattr(
-            _comedian_handler_mod.threading,
-            "Thread",
-            lambda *a, **kw: thread_calls.append((a, kw)) or MagicMock(),
-        )
+        recorder = _RecordingExecutor()
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: recorder)
 
         inserted_row = {"id": 6262, "uuid": "uuid-killed", "name": "Killed"}
         handler = _make_handler_with_inserted_row(inserted_row)
@@ -372,8 +404,83 @@ class TestItunesTriggerBackgroundDispatch:
         result = handler.insert_comedians([_make_stub_comedian("Killed", "uuid-killed")])
 
         assert result == [inserted_row]
-        assert thread_calls == []
+        assert recorder.submissions == []
         itunes_module.discover.assert_not_called()
+
+    def test_dispatch_failure_does_not_block_insertion(self, itunes_module, monkeypatch):
+        """A raise from pool submission is logged and swallowed — insertion still
+        returns the inserted rows."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
+
+        class _BoomExecutor:
+            def submit(self, *a, **kw):
+                raise RuntimeError("pool is shut down")
+
+        monkeypatch.setattr(
+            _comedian_handler_mod, "_get_itunes_executor", lambda: _BoomExecutor()
+        )
+
+        inserted_row = {"id": 7373, "uuid": "uuid-boom", "name": "Boom"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        result = handler.insert_comedians([_make_stub_comedian("Boom", "uuid-boom")])
+
+        # Submission failed, but the insert succeeded and the in-flight counter
+        # was rolled back (no permanent drift toward a false saturation warning).
+        assert result == [inserted_row]
+        assert _comedian_handler_mod._itunes_inflight == 0
+
+
+class TestBoundedPoolConcurrencyCap:
+    """Verify the module-level pool is a shared singleton sized by env config."""
+
+    def test_executor_is_singleton(self, monkeypatch):
+        """_get_itunes_executor returns the same pool across calls (and handlers)."""
+        first = _comedian_handler_mod._get_itunes_executor()
+        second = _comedian_handler_mod._get_itunes_executor()
+        assert first is second
+
+    def test_executor_respects_max_workers_env(self, monkeypatch):
+        """The pool is sized from LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS", "3")
+        executor = _comedian_handler_mod._get_itunes_executor()
+        assert executor._max_workers == 3
+
+    def test_max_workers_clamped_and_default_on_bad_value(self, monkeypatch):
+        """Values < 1 clamp to 1; a non-integer falls back to the default of 4."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS", "0")
+        assert _comedian_handler_mod._itunes_on_insert_max_workers() == 1
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_MAX_WORKERS", "not-an-int")
+        assert _comedian_handler_mod._itunes_on_insert_max_workers() == 4
+
+    def test_inflight_warning_logged_when_threshold_exceeded(self, monkeypatch):
+        """Submitting past the threshold logs a saturation warning; staying at or
+        below it does not."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_INFLIGHT_WARN", "1")
+
+        recorder = _RecordingExecutor()
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: recorder)
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            # First submission: in-flight rises to 1 (== threshold) — no warning.
+            _comedian_handler_mod._submit_itunes_worker(lambda: None)
+            mock_logger.warn.assert_not_called()
+            # Second submission: in-flight rises to 2 (> threshold) — warning fires.
+            _comedian_handler_mod._submit_itunes_worker(lambda: None)
+            assert mock_logger.warn.call_count == 1
+            assert "in flight" in mock_logger.warn.call_args[0][0]
+
+    def test_inflight_warning_disabled_when_threshold_zero(self, monkeypatch):
+        """Threshold 0 disables the saturation warning entirely."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_INFLIGHT_WARN", "0")
+
+        recorder = _RecordingExecutor()
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: recorder)
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            for _ in range(5):
+                _comedian_handler_mod._submit_itunes_worker(lambda: None)
+            mock_logger.warn.assert_not_called()
 
 
 class TestDenyListCache:
