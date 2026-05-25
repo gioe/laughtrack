@@ -122,6 +122,18 @@ def itunes_module(monkeypatch):
     )()
 
 
+@pytest.fixture(autouse=True)
+def _clear_deny_list_cache():
+    """Reset the process-wide deny-list cache around every test.
+
+    The cache is a module-level singleton, so without this a value populated by
+    one test would leak into the next and skew load_active_deny_list call counts.
+    """
+    _comedian_handler_mod._deny_list_cache.clear()
+    yield
+    _comedian_handler_mod._deny_list_cache.clear()
+
+
 def _candidate(itunes_module, *, comedian_id=1, confidence=0.95, source_podcast_id="abc"):
     return itunes_module.Candidate(
         comedian_id=comedian_id,
@@ -252,6 +264,7 @@ class TestItunesTriggerOnInsert:
         [
             ("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "not-a-float"),
             ("LAUGHTRACK_ITUNES_ON_INSERT_MAX_RESULTS", "ten"),
+            ("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "soon"),
         ],
     )
     def test_malformed_env_var_does_not_break_insertion(
@@ -361,3 +374,54 @@ class TestItunesTriggerBackgroundDispatch:
         assert result == [inserted_row]
         assert thread_calls == []
         itunes_module.discover.assert_not_called()
+
+
+class TestDenyListCache:
+    """Verify the active podcast deny list is cached across insert batches.
+
+    The persistence path is only reached when at least one eligible (>= min
+    confidence) candidate exists, so each test seeds discover with a high-
+    confidence candidate to force the deny-list lookup to run.
+    """
+
+    def _insert(self, handler_id: int, itunes_module) -> None:
+        """Run one insert batch that produces a single high-confidence candidate."""
+        cand = _candidate(
+            itunes_module, comedian_id=handler_id, source_podcast_id=f"pod-{handler_id}", confidence=0.95
+        )
+        itunes_module.discover.return_value = ([cand], 0)
+        inserted_row = {"id": handler_id, "uuid": f"uuid-{handler_id}", "name": f"Comic {handler_id}"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+        handler.insert_comedians([_make_stub_comedian(f"Comic {handler_id}", f"uuid-{handler_id}")])
+
+    def test_deny_list_queried_once_within_ttl(self, itunes_module, monkeypatch):
+        """Two insert batches inside the TTL window hit the DB for the deny list once."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "60")
+
+        self._insert(1, itunes_module)
+        self._insert(2, itunes_module)
+
+        # Both batches reached the persistence path (2 upserts) but the deny
+        # list was loaded from the DB only once — the second read was cached.
+        assert itunes_module.upsert.call_count == 2
+        assert itunes_module.load_deny.call_count == 1
+
+    def test_deny_list_requeried_after_ttl_expires(self, itunes_module, monkeypatch):
+        """TTL=0 disables caching: every batch re-queries the deny list."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "0")
+
+        self._insert(1, itunes_module)
+        self._insert(2, itunes_module)
+
+        assert itunes_module.upsert.call_count == 2
+        assert itunes_module.load_deny.call_count == 2
+
+    def test_cache_shared_across_handler_instances(self, itunes_module, monkeypatch):
+        """The cache is process-wide: a value loaded by one handler serves another."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "60")
+
+        # Two distinct handler instances (separate inserted rows / handlers).
+        self._insert(10, itunes_module)
+        self._insert(20, itunes_module)
+
+        assert itunes_module.load_deny.call_count == 1

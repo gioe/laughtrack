@@ -5,7 +5,7 @@ import os
 import re
 import threading
 import time
-from typing import List, Optional
+from typing import Callable, List, Optional, Tuple
 
 import requests
 from psycopg2.extras import DictRow
@@ -61,6 +61,59 @@ def _itunes_on_insert_background() -> bool:
     counts before exit.
     """
     return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1") != "0"
+
+
+def _itunes_on_insert_deny_list_ttl() -> float:
+    """Seconds to cache the active podcast deny list across discovery batches.
+
+    ``load_active_deny_list`` scans the full ``podcast_deny_list`` table on every
+    call. During a heavy scraper run, ``insert_comedians`` fires iTunes discovery
+    per insert batch, each re-querying the deny list through a fresh transaction.
+    The deny list rarely changes mid-scrape, so we memoize it briefly. ``0``
+    disables caching (every batch re-queries).
+    """
+    return float(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "60"))
+
+
+_DenyList = Tuple[set, set]
+
+
+class _DenyListCache:
+    """Process-wide TTL cache for the active podcast deny list.
+
+    Shared across all ``ComedianHandler`` instances because the deny list is
+    global, and guarded by a lock because discovery runs in background daemon
+    threads. On a cache miss the loader runs *outside* the lock: a slow DB call
+    must not pin every discovery thread, and a redundant query at the TTL
+    boundary is cheaper than serializing all threads through the database.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._value: Optional[_DenyList] = None
+        self._expires_at: float = 0.0
+
+    def get(self, loader: Callable[[], _DenyList], ttl: float) -> _DenyList:
+        now = time.monotonic()
+        with self._lock:
+            if self._value is not None and now < self._expires_at:
+                return self._value
+        value = loader()
+        with self._lock:
+            self._value = value
+            self._expires_at = time.monotonic() + ttl
+        return value
+
+    def clear(self) -> None:
+        with self._lock:
+            self._value = None
+            self._expires_at = 0.0
+
+
+# Module-level so the deny-list query is deduplicated across every
+# ComedianHandler instance (show handler, comedian service, scrapers) for the
+# duration of the TTL — not just within a single handler.
+_deny_list_cache = _DenyListCache()
 
 
 def _normalize_deny_list_name(name: str) -> str:
@@ -207,6 +260,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             min_confidence = _itunes_on_insert_min_confidence()
             max_results = _itunes_on_insert_max_results()
             country = _itunes_on_insert_country()
+            deny_list_ttl = _itunes_on_insert_deny_list_ttl()
         except Exception as e:
             Logger.warn(f"itunes_on_insert: setup failed (import or config parse), skipping: {e}")
             return 0
@@ -248,8 +302,16 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         written = 0
         try:
             with self.transaction() as conn:
-                with conn.cursor() as cur:
-                    deny_keys, deny_urls = load_active_deny_list(cur)
+                # Memoize the deny list across insert batches with a short TTL —
+                # it rarely changes mid-scrape, so re-scanning the full
+                # podcast_deny_list table on every batch is wasteful. On a hit
+                # this skips the SELECT entirely; the transaction stays open for
+                # the candidate upserts below regardless.
+                def _load_deny_list() -> Tuple[set, set]:
+                    with conn.cursor() as cur:
+                        return load_active_deny_list(cur)
+
+                deny_keys, deny_urls = _deny_list_cache.get(_load_deny_list, deny_list_ttl)
                 for candidate in eligible:
                     if candidate_is_denied(candidate, deny_keys, deny_urls):
                         continue
