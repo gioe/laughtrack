@@ -1,5 +1,6 @@
 """Comedian database handler for comedian-specific operations."""
 
+import itertools
 import os
 import re
 import threading
@@ -47,6 +48,9 @@ def _itunes_on_insert_max_results() -> int:
 
 def _itunes_on_insert_country() -> str:
     return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_COUNTRY", "US")
+
+
+_itunes_thread_counter = itertools.count(1)
 
 
 def _itunes_on_insert_background() -> bool:
@@ -164,10 +168,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             self._run_itunes_discovery_for_inserted(inserted_rows)
             return None
 
+        # Counter suffix keeps thread names unique across calls so logs/stack
+        # traces stay greppable when multiple workers are alive at once.
+        thread_seq = next(_itunes_thread_counter)
         thread = threading.Thread(
             target=self._run_itunes_discovery_for_inserted,
             args=(inserted_rows,),
-            name=f"itunes-discovery-{len(inserted_rows)}",
+            name=f"itunes-discovery-{thread_seq}-n{len(inserted_rows)}",
             daemon=True,
         )
         thread.start()
@@ -181,6 +188,8 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         iTunes is unreachable. Returns the number of PodcastCandidateReview
         rows upserted (0 on early return or failure).
         """
+        # Defense-in-depth: the dispatcher already filters empty inputs, but
+        # this worker is also called inline from tests, so we re-check here.
         if not inserted_rows:
             return 0
 
