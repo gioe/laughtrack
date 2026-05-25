@@ -1100,6 +1100,226 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         rowOpen ? "" : "hidden"
                                     }`}
                                 >
+                                    <div className="col-span-full flex flex-wrap gap-x-6 gap-y-1 border-b border-copper/15 pb-4 font-dmSans text-body text-soft-charcoal">
+                                        <span>ID {row.id}</span>
+                                        <span>
+                                            Popularity{" "}
+                                            {row.popularity.toLocaleString()}
+                                        </span>
+                                        <span>
+                                            {row.totalShows.toLocaleString()}{" "}
+                                            shows
+                                        </span>
+                                        <span>
+                                            {row.childCount.toLocaleString()}{" "}
+                                            children
+                                        </span>
+                                        <span>
+                                            {row.attributedPodcasts.length.toLocaleString()}{" "}
+                                            podcasts
+                                        </span>
+                                    </div>
+                                    <div className="col-span-full grid items-start gap-5 xl:grid-cols-2">
+                                        <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
+                                            <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Display name
+                                            </label>
+                                            <div className="mt-1 flex items-center gap-2">
+                                                <input
+                                                    aria-label="Comedian name"
+                                                    type="text"
+                                                    value={nameValue(row)}
+                                                    onChange={(event) =>
+                                                        setNameEdits(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [row.id]:
+                                                                    event.target
+                                                                        .value,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id ||
+                                                        !isRecordDirty(row) ||
+                                                        !normalizedAdminName(
+                                                            nameValue(row),
+                                                        )
+                                                    }
+                                                    onClick={() =>
+                                                        void saveComedianRecord(
+                                                            row,
+                                                        )
+                                                    }
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    Save record
+                                                </Button>
+                                            </div>
+                                            <div className="mt-3 grid gap-3">
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Website
+                                                    <input
+                                                        aria-label="Comedian website"
+                                                        type="url"
+                                                        value={websiteValue(
+                                                            row,
+                                                        )}
+                                                        onChange={(event) =>
+                                                            updateWebsiteEdit(
+                                                                row,
+                                                                {
+                                                                    website:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                },
+                                                            )
+                                                        }
+                                                        placeholder="https://example.com"
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                </label>
+                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Tour scrape URL
+                                                    <input
+                                                        aria-label="Comedian website scraping URL"
+                                                        type="url"
+                                                        value={websiteScrapingUrlValue(
+                                                            row,
+                                                        )}
+                                                        onChange={(event) =>
+                                                            updateWebsiteEdit(
+                                                                row,
+                                                                {
+                                                                    websiteScrapingUrl:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                },
+                                                            )
+                                                        }
+                                                        placeholder="https://example.com/tour"
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Current parent
+                                                </div>
+                                                {parent ? (
+                                                    <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
+                                                        <span className="min-w-0 truncate">
+                                                            {parent.name}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setSelectedParents(
+                                                                    (
+                                                                        current,
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        [row.id]:
+                                                                            null,
+                                                                    }),
+                                                                )
+                                                            }
+                                                            className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
+                                                            aria-label={`Clear parent for ${row.name}`}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
+                                                        No parent assigned
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                                Find parent
+                                                <input
+                                                    type="search"
+                                                    value={
+                                                        parentSearches[
+                                                            row.id
+                                                        ] ?? ""
+                                                    }
+                                                    onChange={(event) =>
+                                                        setParentSearches(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [row.id]:
+                                                                    event.target
+                                                                        .value,
+                                                            }),
+                                                        )
+                                                    }
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    placeholder="Search parent name"
+                                                />
+                                            </label>
+                                            {candidates.length > 0 && (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {candidates.map(
+                                                        (candidate) => (
+                                                            <button
+                                                                key={
+                                                                    candidate.id
+                                                                }
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setSelectedParents(
+                                                                        (
+                                                                            current,
+                                                                        ) => ({
+                                                                            ...current,
+                                                                            [row.id]:
+                                                                                {
+                                                                                    id: candidate.id,
+                                                                                    name: candidate.name,
+                                                                                },
+                                                                        }),
+                                                                    )
+                                                                }
+                                                                className="rounded-md border border-copper/40 bg-coconut-cream px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
+                                                            >
+                                                                {candidate.name}
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    !isParentDirty(row) ||
+                                                    pendingId === row.id
+                                                }
+                                                onClick={() =>
+                                                    void saveParent(row)
+                                                }
+                                            >
+                                                <Save className="h-4 w-4" />
+                                                Save relationship
+                                            </Button>
+                                        </div>
+                                    </div>
                                     <div className="min-w-0 space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex flex-wrap gap-2">
@@ -1114,25 +1334,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-dmSans text-body text-soft-charcoal">
-                                            <span>ID {row.id}</span>
-                                            <span>
-                                                Popularity{" "}
-                                                {row.popularity.toLocaleString()}
-                                            </span>
-                                            <span>
-                                                {row.totalShows.toLocaleString()}{" "}
-                                                shows
-                                            </span>
-                                            <span>
-                                                {row.childCount.toLocaleString()}{" "}
-                                                children
-                                            </span>
-                                            <span>
-                                                {row.attributedPodcasts.length.toLocaleString()}{" "}
-                                                podcasts
-                                            </span>
                                         </div>
                                         <div className="space-y-3 rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
                                             <div className="text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
@@ -1346,98 +1547,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 No ticket purchase link found.
                                             </div>
                                         )}
-                                        <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                            <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Display name
-                                            </label>
-                                            <div className="mt-1 flex items-center gap-2">
-                                                <input
-                                                    aria-label="Comedian name"
-                                                    type="text"
-                                                    value={nameValue(row)}
-                                                    onChange={(event) =>
-                                                        setNameEdits(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.id]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id ||
-                                                        !isRecordDirty(row) ||
-                                                        !normalizedAdminName(
-                                                            nameValue(row),
-                                                        )
-                                                    }
-                                                    onClick={() =>
-                                                        void saveComedianRecord(
-                                                            row,
-                                                        )
-                                                    }
-                                                >
-                                                    <Save className="h-4 w-4" />
-                                                    Save record
-                                                </Button>
-                                            </div>
-                                            <div className="mt-3 grid gap-3">
-                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Website
-                                                    <input
-                                                        aria-label="Comedian website"
-                                                        type="url"
-                                                        value={websiteValue(
-                                                            row,
-                                                        )}
-                                                        onChange={(event) =>
-                                                            updateWebsiteEdit(
-                                                                row,
-                                                                {
-                                                                    website:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                },
-                                                            )
-                                                        }
-                                                        placeholder="https://example.com"
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                    />
-                                                </label>
-                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Tour scrape URL
-                                                    <input
-                                                        aria-label="Comedian website scraping URL"
-                                                        type="url"
-                                                        value={websiteScrapingUrlValue(
-                                                            row,
-                                                        )}
-                                                        onChange={(event) =>
-                                                            updateWebsiteEdit(
-                                                                row,
-                                                                {
-                                                                    websiteScrapingUrl:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                },
-                                                            )
-                                                        }
-                                                        placeholder="https://example.com/tour"
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                    />
-                                                </label>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div className="space-y-4">
@@ -1730,101 +1839,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </Button>
                                             )}
                                         </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Current parent
-                                            </div>
-                                            {parent ? (
-                                                <div className="flex max-w-full items-center gap-2 rounded-md border border-green-700/40 bg-green-50 px-3 py-2 font-dmSans text-body font-semibold text-green-950">
-                                                    <span className="min-w-0 truncate">
-                                                        {parent.name}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setSelectedParents(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    [row.id]:
-                                                                        null,
-                                                                }),
-                                                            )
-                                                        }
-                                                        className="ml-auto shrink-0 rounded-sm p-1 text-green-950 hover:bg-green-100"
-                                                        aria-label={`Clear parent for ${row.name}`}
-                                                    >
-                                                        <X className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-body text-soft-charcoal">
-                                                    No parent assigned
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                                            Find parent
-                                            <input
-                                                type="search"
-                                                value={
-                                                    parentSearches[row.id] ?? ""
-                                                }
-                                                onChange={(event) =>
-                                                    setParentSearches(
-                                                        (current) => ({
-                                                            ...current,
-                                                            [row.id]:
-                                                                event.target
-                                                                    .value,
-                                                        }),
-                                                    )
-                                                }
-                                                className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                placeholder="Search parent name"
-                                            />
-                                        </label>
-                                        {candidates.length > 0 && (
-                                            <div className="flex flex-wrap gap-2">
-                                                {candidates.map((candidate) => (
-                                                    <button
-                                                        key={candidate.id}
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setSelectedParents(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    [row.id]: {
-                                                                        id: candidate.id,
-                                                                        name: candidate.name,
-                                                                    },
-                                                                }),
-                                                            )
-                                                        }
-                                                        className="rounded-md border border-copper/40 bg-coconut-cream px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
-                                                    >
-                                                        {candidate.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                            disabled={
-                                                disabled ||
-                                                !isParentDirty(row) ||
-                                                pendingId === row.id
-                                            }
-                                            onClick={() => void saveParent(row)}
-                                        >
-                                            <Save className="h-4 w-4" />
-                                            Save relationship
-                                        </Button>
                                     </div>
 
                                     <div className="space-y-4">
