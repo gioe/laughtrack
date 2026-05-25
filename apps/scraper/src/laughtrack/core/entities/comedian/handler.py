@@ -143,6 +143,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         if not inserted_rows or not _itunes_on_insert_enabled():
             return 0
 
+        # Resolve all configuration up front, inside the swallow-all guard, so
+        # malformed env vars (e.g. LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE="not-a-float")
+        # cannot escape into insert_comedians' outer raise.
         try:
             from laughtrack.core.itunes_podcast_discovery import (
                 PodcastDiscoveryComedian,
@@ -151,8 +154,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 load_active_deny_list,
                 upsert_candidate_with_conn,
             )
+            min_confidence = _itunes_on_insert_min_confidence()
+            max_results = _itunes_on_insert_max_results()
+            country = _itunes_on_insert_country()
         except Exception as e:
-            Logger.warn(f"itunes_on_insert: adapter import failed, skipping: {e}")
+            Logger.warn(f"itunes_on_insert: setup failed (import or config parse), skipping: {e}")
             return 0
 
         discovery_comedians: List = []
@@ -174,14 +180,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         try:
             candidates, failed = discover_candidates_for_comedians(
                 discovery_comedians,
-                max_results=_itunes_on_insert_max_results(),
-                country=_itunes_on_insert_country(),
+                max_results=max_results,
+                country=country,
             )
         except Exception as e:
             Logger.warn(f"itunes_on_insert: discovery failed for {len(discovery_comedians)} new comedians: {e}")
             return 0
 
-        min_confidence = _itunes_on_insert_min_confidence()
         eligible = [c for c in candidates if c.confidence >= min_confidence]
         if not eligible:
             Logger.info(

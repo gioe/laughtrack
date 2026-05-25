@@ -243,3 +243,25 @@ class TestItunesTriggerOnInsert:
 
         assert result == [{"uuid": "uuid-thin-row"}]
         itunes_module.discover.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "env_var,bad_value",
+        [
+            ("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "not-a-float"),
+            ("LAUGHTRACK_ITUNES_ON_INSERT_MAX_RESULTS", "ten"),
+        ],
+    )
+    def test_malformed_env_var_does_not_break_insertion(
+        self, itunes_module, monkeypatch, env_var, bad_value
+    ):
+        """A malformed config env var must not escape the swallow-all guarantee."""
+        monkeypatch.setenv(env_var, bad_value)
+
+        inserted_row = {"id": 999, "uuid": "uuid-bad-env", "name": "Bad Env"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        result = handler.insert_comedians([_make_stub_comedian("Bad Env", "uuid-bad-env")])
+
+        # Insertion succeeded; the config parse error was logged and swallowed.
+        assert result == [inserted_row]
+        itunes_module.discover.assert_not_called()
