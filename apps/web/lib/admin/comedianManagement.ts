@@ -158,6 +158,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                     ],
                 },
                 podcastCandidateReviews: {
+                    where: { candidateStatus: "pending" },
                     select: {
                         id: true,
                         source: true,

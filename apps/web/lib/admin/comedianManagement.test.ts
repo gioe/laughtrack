@@ -40,6 +40,7 @@ function comedianRow(name: string) {
         totalShows: 0,
         parentComedian: null,
         comedianPodcasts: [],
+        podcastCandidateReviews: [],
         lineupItems: [],
         _count: { alternativeNames: 0 },
     };
@@ -71,5 +72,24 @@ describe("listAdminComedians", () => {
             isBlocked: true,
             blockReason: "not a comic",
         });
+    });
+
+    it("only requests pending podcast candidate reviews", async () => {
+        mockFindMany.mockResolvedValueOnce([
+            comedianRow("Pending Comic"),
+        ] as never);
+        mockQueryRaw.mockResolvedValueOnce([] as never);
+
+        await listAdminComedians();
+
+        expect(mockFindMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+                select: expect.objectContaining({
+                    podcastCandidateReviews: expect.objectContaining({
+                        where: { candidateStatus: "pending" },
+                    }),
+                }),
+            }),
+        );
     });
 });

@@ -382,6 +382,7 @@ const comedianSnapshotSelect = {
         ],
     },
     podcastCandidateReviews: {
+        where: { candidateStatus: "pending" },
         select: {
             id: true,
             source: true,

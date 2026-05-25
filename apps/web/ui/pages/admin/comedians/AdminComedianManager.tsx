@@ -973,7 +973,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                             }
                             className="h-4 w-4 accent-copper-dark"
                         />
-                        Blocked status
+                        Blocked
                     </label>
                     <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
                         <input
@@ -984,7 +984,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                             }
                             className="h-4 w-4 accent-copper-dark"
                         />
-                        Is Parent
+                        Parent
                     </label>
                 </div>
             </AdminToolbar>
@@ -1023,6 +1023,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const currentAvatar = currentAvatarUrl(row);
                         const currentHero = currentHeroUrl(row);
                         const legacyAvatar = legacyComedianImageUrl(row);
+                        const pendingPodcastCandidateReviews =
+                            row.podcastCandidateReviews.filter(
+                                (review) =>
+                                    review.candidateStatus === "pending",
+                            );
 
                         if (row.isBlocked) {
                             return (
@@ -1633,23 +1638,17 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </div>
                                             )}
                                         </div>
-                                        {row.podcastCandidateReviews.length >
+                                        {pendingPodcastCandidateReviews.length >
                                             0 && (
                                             <div className="mt-5 border-t border-copper/15 pt-4">
                                                 <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Podcast host reviews
                                                 </div>
                                                 <div className="grid gap-3">
-                                                    {row.podcastCandidateReviews.map(
+                                                    {pendingPodcastCandidateReviews.map(
                                                         (review) => {
                                                             const podcast =
                                                                 review.podcast;
-                                                            const isAccepted =
-                                                                review.candidateStatus ===
-                                                                "accepted";
-                                                            const isRejected =
-                                                                review.candidateStatus ===
-                                                                "rejected";
                                                             const isBlocked =
                                                                 Boolean(
                                                                     podcast?.denyListEntry,
@@ -1743,81 +1742,52 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                                                                        {!isAccepted && (
-                                                                            <Button
-                                                                                type="button"
-                                                                                variant="outline"
-                                                                                className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                disabled={
-                                                                                    disabled ||
-                                                                                    pendingId ===
-                                                                                        row.id ||
-                                                                                    isBlocked
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    void reviewPodcastCandidate(
-                                                                                        row,
-                                                                                        review,
-                                                                                        "podcast-review-accept-host",
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <Save className="h-4 w-4" />
-                                                                                Accept
-                                                                                as
-                                                                                host
-                                                                            </Button>
-                                                                        )}
-                                                                        {!isRejected &&
-                                                                            !isAccepted && (
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="outline"
-                                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id ||
-                                                                                        isBlocked
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        void reviewPodcastCandidate(
-                                                                                            row,
-                                                                                            review,
-                                                                                            "podcast-review-reject-host",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                    Reject
-                                                                                    as
-                                                                                    host
-                                                                                </Button>
-                                                                            )}
-                                                                        {isRejected &&
-                                                                            !isBlocked && (
-                                                                                <Button
-                                                                                    type="button"
-                                                                                    variant="outline"
-                                                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                                    disabled={
-                                                                                        disabled ||
-                                                                                        pendingId ===
-                                                                                            row.id
-                                                                                    }
-                                                                                    onClick={() =>
-                                                                                        void reviewPodcastCandidate(
-                                                                                            row,
-                                                                                            review,
-                                                                                            "podcast-review-block-podcast",
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <Ban className="h-4 w-4" />
-                                                                                    Block
-                                                                                    podcast
-                                                                                </Button>
-                                                                            )}
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id ||
+                                                                                isBlocked
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void reviewPodcastCandidate(
+                                                                                    row,
+                                                                                    review,
+                                                                                    "podcast-review-accept-host",
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Save className="h-4 w-4" />
+                                                                            Accept
+                                                                            as
+                                                                            host
+                                                                        </Button>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id ||
+                                                                                isBlocked
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void reviewPodcastCandidate(
+                                                                                    row,
+                                                                                    review,
+                                                                                    "podcast-review-reject-host",
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <X className="h-4 w-4" />
+                                                                            Reject
+                                                                            as
+                                                                            host
+                                                                        </Button>
                                                                     </div>
                                                                 </div>
                                                             );

@@ -892,13 +892,7 @@ describe("AdminComedianManager", () => {
                 ok: true,
                 comedian: {
                     ...comedians[0],
-                    podcastCandidateReviews: [
-                        {
-                            ...comedians[0].podcastCandidateReviews[0],
-                            candidateStatus: "accepted",
-                            associationType: "host",
-                        },
-                    ],
+                    podcastCandidateReviews: [],
                 },
             }),
         } as never);
@@ -927,17 +921,14 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
+        expect(screen.queryByText("Podcast host reviews")).toBeNull();
+        expect(screen.queryByText("Candidate Podcast")).toBeNull();
     });
 
-    it("only shows podcast blocking after a host candidate is rejected", async () => {
+    it("removes a host candidate after rejection", async () => {
         const rejectedComedian = {
             ...comedians[0],
-            podcastCandidateReviews: [
-                {
-                    ...comedians[0].podcastCandidateReviews[0],
-                    candidateStatus: "rejected",
-                },
-            ],
+            podcastCandidateReviews: [],
         };
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
@@ -955,10 +946,12 @@ describe("AdminComedianManager", () => {
         fireEvent.click(screen.getByRole("button", { name: "Reject as host" }));
 
         await waitFor(() => {
-            expect(
-                screen.getByRole("button", { name: "Block podcast" }),
-            ).toBeTruthy();
+            expect(screen.queryByText("Podcast host reviews")).toBeNull();
         });
+        expect(screen.queryByText("Candidate Podcast")).toBeNull();
+        expect(
+            screen.queryByRole("button", { name: "Block podcast" }),
+        ).toBeNull();
     });
 
     it("links to the latest ticket purchase url", () => {
@@ -1082,7 +1075,7 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
         ).toBeTruthy();
-        expect(screen.getByText("Blocked")).toBeTruthy();
+        expect(screen.getAllByText("Blocked").length).toBeGreaterThan(1);
         expect(screen.getByText("Venue, not a person")).toBeTruthy();
         expect(
             screen.getByRole("button", { name: "Remove from blocklist" }),
@@ -1113,20 +1106,14 @@ describe("AdminComedianManager", () => {
         );
         expandAllRows();
 
-        expect(
-            screen.queryByRole("combobox", { name: "Blocked status" }),
-        ).toBeNull();
+        expect(screen.queryByRole("combobox", { name: "Blocked" })).toBeNull();
 
-        fireEvent.click(
-            screen.getByRole("checkbox", { name: "Blocked status" }),
-        );
+        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
         expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.queryByText("Parent Comic")).toBeNull();
 
-        fireEvent.click(
-            screen.getByRole("checkbox", { name: "Blocked status" }),
-        );
+        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
         expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.getByText("Parent Comic")).toBeTruthy();
@@ -1145,7 +1132,7 @@ describe("AdminComedianManager", () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Is Parent" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
 
         expect(screen.getByText("Parent Comic")).toBeTruthy();
         expect(screen.queryByText("Alias Comic")).toBeNull();
