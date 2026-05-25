@@ -48,7 +48,10 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          python -m scripts.core.sync_podcast_episodes_from_rss --confirm
+          # The driver orders by last_synced_at ASC NULLS FIRST. A bounded
+          # batch keeps the scheduled workflow inside its timeout while still
+          # rotating through the full feed set across repeated runs.
+          python -m scripts.core.sync_podcast_episodes_from_rss --confirm --limit 500
 
       - name: Detect podcast episode appearances
         id: detect_appearances
