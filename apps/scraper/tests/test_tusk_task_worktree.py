@@ -144,6 +144,63 @@ def test_link_gitignored_files_returns_empty_when_names_is_empty(tmp_path):
     assert module._link_gitignored_files(str(primary), str(workspace), []) == []
 
 
+def test_link_gitignored_files_leaves_broken_symlink_at_destination_alone(tmp_path):
+    module = _load_module()
+    primary = tmp_path / "primary"
+    source_venv = primary / "apps" / "scraper" / ".venv"
+    source_venv.mkdir(parents=True)
+    workspace = tmp_path / "workspace"
+    dst_parent = workspace / "apps" / "scraper"
+    dst_parent.mkdir(parents=True)
+    broken_target = workspace / "does-not-exist"
+    broken_symlink = dst_parent / ".venv"
+    broken_symlink.symlink_to(broken_target)
+    assert broken_symlink.is_symlink()
+    assert not broken_symlink.exists()  # confirm it is broken
+
+    created = module._link_gitignored_files(str(primary), str(workspace), [".venv"])
+
+    assert created == []
+    assert broken_symlink.is_symlink()
+    assert broken_symlink.readlink() == broken_target
+
+
+def test_link_gitignored_files_does_not_recurse_into_symlinked_directory(tmp_path):
+    module = _load_module()
+    primary = tmp_path / "primary"
+    outer_venv = primary / "apps" / "scraper" / ".venv"
+    # A nested directory whose basename also matches names — if the walk
+    # descended into the outer match it would create a second symlink under
+    # the just-linked tree.
+    (outer_venv / "nested" / ".venv").mkdir(parents=True)
+    workspace = tmp_path / "workspace"
+    (workspace / "apps" / "scraper").mkdir(parents=True)
+
+    created = module._link_gitignored_files(str(primary), str(workspace), [".venv"])
+
+    linked_outer = workspace / "apps" / "scraper" / ".venv"
+    assert linked_outer.is_symlink()
+    assert linked_outer.resolve() == outer_venv
+    assert len(created) == 1
+    assert created[0]["dst"] == str(linked_outer)
+
+
+def test_link_gitignored_files_creates_missing_parent_directories(tmp_path):
+    module = _load_module()
+    primary = tmp_path / "primary"
+    source_venv = primary / "apps" / "scraper" / ".venv"
+    source_venv.mkdir(parents=True)
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()  # bare — no apps/scraper subtree
+
+    created = module._link_gitignored_files(str(primary), str(workspace), [".venv"])
+
+    linked_venv = workspace / "apps" / "scraper" / ".venv"
+    assert linked_venv.is_symlink()
+    assert linked_venv.resolve() == source_venv
+    assert created == [{"src": str(source_venv), "dst": str(linked_venv)}]
+
+
 def test_load_symlink_files_parses_worktree_config(tmp_path):
     module = _load_module()
     config_path = tmp_path / "config.json"
