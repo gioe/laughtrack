@@ -2,6 +2,7 @@
 
 import os
 import re
+import threading
 import time
 from typing import List, Optional
 
@@ -46,6 +47,16 @@ def _itunes_on_insert_max_results() -> int:
 
 def _itunes_on_insert_country() -> str:
     return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_COUNTRY", "US")
+
+
+def _itunes_on_insert_background() -> bool:
+    """Run discovery in a daemon thread so it never blocks lineup ingestion.
+
+    Default ``"1"`` (background). Set to ``"0"`` to run inline — useful for
+    deterministic tests and one-shot scripts that want to observe candidate
+    counts before exit.
+    """
+    return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1") != "0"
 
 
 def _normalize_deny_list_name(name: str) -> str:
@@ -113,9 +124,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 f"insert_comedians: {inserted_count} inserted, {skipped_count} already existed (skipped)"
             )
 
-            # Fire iTunes podcast discovery for newly inserted comedians. Non-blocking
-            # by design — failures are logged inside the helper and never raised so
-            # ingestion succeeds even when iTunes is unreachable.
+            # Dispatch iTunes podcast discovery for newly inserted comedians off the
+            # lineup ingestion hot path. By default the work runs in a daemon thread
+            # so insert_comedians returns immediately; failures inside the worker
+            # are logged and never raised. Set
+            # LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND=0 to run inline.
             #
             # Scope note: this covers all Python insertion paths (lineup ingestion is
             # the only current call site; future scraper-side inserts inherit the
@@ -131,16 +144,44 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
 
-    def _trigger_itunes_discovery_for_inserted(self, inserted_rows: List[DictRow]) -> int:
-        """Run iTunes podcast discovery for newly inserted comedians.
+    def _trigger_itunes_discovery_for_inserted(
+        self, inserted_rows: List[DictRow]
+    ) -> Optional[threading.Thread]:
+        """Schedule iTunes podcast discovery for newly inserted comedians.
 
-        Non-blocking — any failure (network, DB, missing dependency) is logged but
-        never raised, so comedian insertion succeeds even when iTunes is unreachable.
+        Background mode (default): spawns a daemon thread and returns it without
+        waiting, so the lineup ingestion hot path is unblocked. Process exit
+        terminates any still-running threads; the periodic backfill CLI
+        (scripts/core/search_itunes_podcasts.py) covers any losses.
 
-        Returns the number of PodcastCandidateReview rows upserted (0 on early
-        return or failure).
+        Sync mode (``LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND=0``): runs the worker
+        inline and returns ``None``. Useful for deterministic tests and scripts.
         """
         if not inserted_rows or not _itunes_on_insert_enabled():
+            return None
+
+        if not _itunes_on_insert_background():
+            self._run_itunes_discovery_for_inserted(inserted_rows)
+            return None
+
+        thread = threading.Thread(
+            target=self._run_itunes_discovery_for_inserted,
+            args=(inserted_rows,),
+            name=f"itunes-discovery-{len(inserted_rows)}",
+            daemon=True,
+        )
+        thread.start()
+        return thread
+
+    def _run_itunes_discovery_for_inserted(self, inserted_rows: List[DictRow]) -> int:
+        """Worker that runs iTunes discovery + persistence for the given rows.
+
+        Any failure (network, DB, missing dependency, malformed env var) is
+        logged but never raised, so comedian insertion succeeds even when
+        iTunes is unreachable. Returns the number of PodcastCandidateReview
+        rows upserted (0 on early return or failure).
+        """
+        if not inserted_rows:
             return 0
 
         # Resolve all configuration up front, inside the swallow-all guard, so

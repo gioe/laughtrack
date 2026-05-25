@@ -91,6 +91,9 @@ def itunes_module(monkeypatch):
     MagicMocks for each entry point the trigger calls.
     """
     monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_ENABLED", "1")
+    # Force inline execution so per-test mock assertions are deterministic;
+    # the background-dispatch path is exercised separately below.
+    monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "0")
 
     import laughtrack.core.itunes_podcast_discovery as itunes_mod
 
@@ -264,4 +267,97 @@ class TestItunesTriggerOnInsert:
 
         # Insertion succeeded; the config parse error was logged and swallowed.
         assert result == [inserted_row]
+        itunes_module.discover.assert_not_called()
+
+
+class TestItunesTriggerBackgroundDispatch:
+    """Verify the trigger dispatches discovery to a daemon thread off the hot path."""
+
+    def test_background_mode_dispatches_to_daemon_thread_without_blocking(
+        self, itunes_module, monkeypatch
+    ):
+        """With backgrounding enabled, insert_comedians spawns a daemon thread and
+        returns before discover() is invoked synchronously."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
+
+        captured: dict = {}
+
+        class FakeThread:
+            def __init__(self, *, target, args, name, daemon):
+                captured["target"] = target
+                captured["args"] = args
+                captured["name"] = name
+                captured["daemon"] = daemon
+                captured["started"] = False
+
+            def start(self):
+                captured["started"] = True
+
+        monkeypatch.setattr(_comedian_handler_mod.threading, "Thread", FakeThread)
+
+        inserted_row = {"id": 4242, "uuid": "uuid-bg", "name": "Background Comic"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        result = handler.insert_comedians([_make_stub_comedian("Background Comic", "uuid-bg")])
+
+        # insert_comedians returned the inserted row immediately; the worker
+        # has been handed to the daemon thread but the test thread never ran it.
+        assert result == [inserted_row]
+        assert captured["started"] is True
+        assert captured["daemon"] is True
+        assert captured["target"] == handler._run_itunes_discovery_for_inserted
+        assert captured["args"] == ([inserted_row],)
+        itunes_module.discover.assert_not_called()
+
+    def test_background_thread_actually_runs_discovery_end_to_end(
+        self, itunes_module, monkeypatch
+    ):
+        """End-to-end: with a real daemon thread, the worker eventually invokes
+        the iTunes adapter — the hot path simply doesn't wait on it."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
+
+        inserted_row = {"id": 5151, "uuid": "uuid-bg-real", "name": "Real BG Comic"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        # Capture the thread the dispatcher creates so we can join on it.
+        spawned: list = []
+        real_thread_cls = _comedian_handler_mod.threading.Thread
+
+        def capturing_thread(*args, **kwargs):
+            t = real_thread_cls(*args, **kwargs)
+            spawned.append(t)
+            return t
+
+        monkeypatch.setattr(_comedian_handler_mod.threading, "Thread", capturing_thread)
+
+        result = handler.insert_comedians([_make_stub_comedian("Real BG Comic", "uuid-bg-real")])
+
+        assert result == [inserted_row]
+        assert len(spawned) == 1
+        spawned[0].join(timeout=5)
+        assert not spawned[0].is_alive(), "background worker did not finish within timeout"
+        assert itunes_module.discover.call_count == 1
+        called_comedians = itunes_module.discover.call_args[0][0]
+        assert called_comedians[0].comedian_id == 5151
+
+    def test_background_mode_skips_thread_when_disabled(self, itunes_module, monkeypatch):
+        """Kill-switch precedence: ENABLED=0 means no thread, regardless of
+        BACKGROUND."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_ENABLED", "0")
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_BACKGROUND", "1")
+
+        thread_calls: list = []
+        monkeypatch.setattr(
+            _comedian_handler_mod.threading,
+            "Thread",
+            lambda *a, **kw: thread_calls.append((a, kw)) or MagicMock(),
+        )
+
+        inserted_row = {"id": 6262, "uuid": "uuid-killed", "name": "Killed"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        result = handler.insert_comedians([_make_stub_comedian("Killed", "uuid-killed")])
+
+        assert result == [inserted_row]
+        assert thread_calls == []
         itunes_module.discover.assert_not_called()
