@@ -155,17 +155,11 @@ export default async function ClubDetailPage(props: {
         <>
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
-            <ClubDetailHeader club={data} />
+            <ClubDetailHeader club={data} siblings={siblings} />
             {isFestival && shows.length > 0 && (
                 <FestivalDateRange shows={shows} />
             )}
-            <ClubDetailTabs
-                chainName={data.chainName ?? null}
-                total={total}
-                filters={filters}
-                shows={shows}
-                siblings={siblings}
-            />
+            <ClubDetailTabs total={total} filters={filters} shows={shows} />
         </>
     );
 }

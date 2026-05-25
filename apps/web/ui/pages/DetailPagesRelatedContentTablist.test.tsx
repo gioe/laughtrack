@@ -44,10 +44,6 @@ vi.mock("@/ui/pages/entity/club/showRooms", () => ({
     default: () => <div data-testid="club-show-rooms" />,
 }));
 
-vi.mock("@/ui/pages/entity/club/siblings", () => ({
-    default: () => <div data-testid="sibling-locations" />,
-}));
-
 vi.mock("@/ui/pages/entity/comedian/pastShows", () => ({
     default: () => <div data-testid="past-shows" />,
 }));
@@ -117,29 +113,15 @@ describe("detail page related-content tablists", () => {
         expect(screen.getByRole("tab", { name: /podcasts/i })).toBeTruthy();
     });
 
-    it("renders the club detail tablist when shows and sibling locations are both present", () => {
-        render(
-            <ClubDetailTabs
-                chainName="Laugh Factory"
-                filters={[]}
-                shows={[show]}
-                siblings={[
-                    {
-                        name: "Laugh Factory Chicago",
-                        city: "Chicago",
-                        state: "IL",
-                        imageUrl: "https://example.com/club.jpg",
-                    },
-                ]}
-                total={1}
-            />,
-        );
+    it("renders the club detail shows panel without a tablist (locations moved to the header dropdown)", () => {
+        render(<ClubDetailTabs filters={[]} shows={[show]} total={1} />);
 
+        expect(screen.getByTestId("filter-bar")).toBeTruthy();
+        expect(screen.getByTestId("club-show-rooms")).toBeTruthy();
         expect(
-            screen.getByRole("tablist", { name: /club detail sections/i }),
-        ).toBeTruthy();
-        expect(screen.getByRole("tab", { name: /shows/i })).toBeTruthy();
-        expect(screen.getByRole("tab", { name: /locations/i })).toBeTruthy();
+            screen.queryByRole("tablist", { name: /club detail sections/i }),
+        ).toBeNull();
+        expect(screen.queryByRole("tab", { name: /locations/i })).toBeNull();
     });
 
     it("renders the show detail tablist when lineup and related shows are both present", () => {

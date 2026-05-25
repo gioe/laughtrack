@@ -5,18 +5,55 @@ import { MapPin, CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import type { SiblingClubDTO } from "@/lib/data/club/detail/findSiblingClubs";
 import ClubDataColumn from "../social";
+import ChainLocationDropdown, {
+    ChainLocation,
+} from "@/ui/pages/entity/club/chainLocations";
 import { useMotionProps } from "@/hooks";
 import { motion } from "framer-motion";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
+const locationLabelFor = (
+    city?: string | null,
+    state?: string | null,
+): string | null =>
+    city && state ? `${city}, ${state}` : city || state || null;
+
 interface ClubDetailHeaderProps {
     club: ClubDTO;
+    siblings?: SiblingClubDTO[];
 }
 
-const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
+const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
+    club,
+    siblings = [],
+}) => {
     const parsedClub = new Club(club);
+
+    // Build the chain location list (current club + siblings) for the switcher.
+    const chainLocations: ChainLocation[] =
+        club.chainName && siblings.length > 0
+            ? [
+                  {
+                      name: parsedClub.name,
+                      locationLabel: locationLabelFor(
+                          parsedClub.city,
+                          parsedClub.state,
+                      ),
+                      isCurrent: true,
+                  },
+                  ...siblings.map((sibling) => ({
+                      name: sibling.name,
+                      locationLabel: locationLabelFor(
+                          sibling.city,
+                          sibling.state,
+                      ),
+                      isCurrent: false,
+                  })),
+              ].sort((a, b) => a.name.localeCompare(b.name))
+            : [];
     const { mv, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -117,6 +154,15 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                     </motion.div>
                 </div>
             </motion.div>
+
+            {chainLocations.length > 1 && club.chainName && (
+                <div className="px-6 pt-6">
+                    <ChainLocationDropdown
+                        chainName={club.chainName}
+                        locations={chainLocations}
+                    />
+                </div>
+            )}
 
             {parsedClub.description !== "" && (
                 <motion.p
