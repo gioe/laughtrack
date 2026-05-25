@@ -150,10 +150,10 @@
   },
   "worktree": {
     "symlink_files": [
-      "apps/scraper/.env",
-      "apps/scraper/.venv",
-      "apps/web/.env",
-      "apps/web/node_modules"
+      ".env",
+      ".env.local",
+      ".venv",
+      "node_modules"
     ]
   },
   "report_tusk_issue_footer": "_Filed via /report-tusk-issue from a Claude Code session._"
