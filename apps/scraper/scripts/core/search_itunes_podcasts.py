@@ -22,8 +22,10 @@ from laughtrack.core.itunes_podcast_discovery import (
     ItunesPodcastCandidate,
     PodcastDiscoveryComedian,
     candidate_is_denied,
-    discover_candidates_for_comedians,
+    discovery_attempt_status,
+    discover_candidates_for_comedian,
     load_active_deny_list,
+    record_discovery_attempt,
     upsert_candidate_with_conn,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -38,9 +40,12 @@ class PodcastSnapshot:
 @dataclass(frozen=True)
 class SearchSummary:
     processed: int
+    attempted: int
     candidates: int
     written: int
     failed: int
+    blocked: int
+    stopped_early: bool = False
 
 
 _GET_DISCOVERY_COMEDIANS_SQL = """
@@ -91,6 +96,7 @@ def load_target_comedians(
     comedian_names: Optional[list[str]],
     limit: Optional[int],
     include_reviewed: bool,
+    retry_attempted: bool = False,
 ) -> list[PodcastDiscoveryComedian]:
     filters: list[str] = []
     params: list[Any] = []
@@ -115,6 +121,16 @@ def load_target_comedians(
           WHERE r.comedian_id = c.id
       )""",
             ]
+        )
+    if not retry_attempted:
+        filters.append(
+            """AND NOT EXISTS (
+          SELECT 1
+          FROM comedian_podcast_discovery_attempts a
+          WHERE a.comedian_id = c.id
+            AND a.source = 'itunes'
+            AND a.status IN ('candidates_found', 'no_candidates')
+      )"""
         )
 
     sql = _GET_DISCOVERY_COMEDIANS_SQL.format(extra_filter="\n      ".join(filters))
@@ -162,6 +178,9 @@ def search_itunes_podcasts(
     request_delay: float,
     include_reviewed: bool,
     min_confidence: float,
+    retry_attempted: bool,
+    max_consecutive_403: int,
+    progress_interval: int,
 ) -> SearchSummary:
     if dry_run == confirm:
         raise ValueError("choose exactly one of dry_run or confirm")
@@ -172,67 +191,127 @@ def search_itunes_podcasts(
         comedian_names=comedian_names,
         limit=limit,
         include_reviewed=include_reviewed,
+        retry_attempted=retry_attempted,
     )
     if not comedians:
         print("No comedians matched.")
-        return SearchSummary(processed=0, candidates=0, written=0, failed=0)
-
-    candidates, failed = discover_candidates_for_comedians(
-        comedians,
-        max_results=max_results,
-        country=country,
-        request_delay=request_delay,
-    )
-    candidates = [candidate for candidate in candidates if candidate.confidence >= min_confidence]
+        return SearchSummary(processed=0, attempted=0, candidates=0, written=0, failed=0, blocked=0)
 
     with get_connection(autocommit=False) as conn:
         before = load_snapshot(conn)
         _print_snapshot("BEFORE", before)
-        written = 0
-        try:
-            with conn.cursor() as cur:
-                deny_keys, deny_urls = load_active_deny_list(cur)
-            eligible_candidates = []
-            for candidate in candidates:
-                denied = candidate_is_denied(candidate, deny_keys, deny_urls)
-                if denied:
-                    Logger.info(
-                        f"[itunes-podcasts] skipping deny-listed feed for comedian "
-                        f"{candidate.comedian_id} collection_id={candidate.source_podcast_id} "
-                        f"feed_url={candidate.feed_url}"
-                    )
-                    continue
-                eligible_candidates.append(candidate)
+        with conn.cursor() as cur:
+            deny_keys, deny_urls = load_active_deny_list(cur)
 
-            for candidate in eligible_candidates:
-                if dry_run:
-                    _print_candidate(candidate)
-                    continue
-                result = upsert_candidate_with_conn(conn, candidate)
-                written += 1
+    processed = 0
+    attempted = 0
+    candidate_count = 0
+    written = 0
+    failed = 0
+    blocked = 0
+    planned = 0
+    consecutive_403 = 0
+    stopped_early = False
+
+    for comedian in comedians:
+        processed += 1
+        attempted += 1
+        candidates, failures = discover_candidates_for_comedian(
+            comedian,
+            max_results=max_results,
+            country=country,
+            request_delay=request_delay,
+        )
+        candidates = [candidate for candidate in candidates if candidate.confidence >= min_confidence]
+        eligible_candidates = []
+        for candidate in candidates:
+            denied = candidate_is_denied(candidate, deny_keys, deny_urls)
+            if denied:
                 Logger.info(
-                    f"[itunes-podcasts] {result.action} comedian_id={candidate.comedian_id} "
-                    f"podcast_id={result.podcast_id} collection_id={candidate.source_podcast_id}"
+                    f"[itunes-podcasts] skipping deny-listed feed for comedian "
+                    f"{candidate.comedian_id} collection_id={candidate.source_podcast_id} "
+                    f"feed_url={candidate.feed_url}"
                 )
+                continue
+            eligible_candidates.append(candidate)
 
-            if dry_run:
-                print(f"\n--dry-run: {len(eligible_candidates)} writes planned (none applied).")
-            else:
-                conn.commit()
-        except Exception:
-            if not dry_run:
-                conn.rollback()
-            raise
+        candidate_count += len(eligible_candidates)
+        failure_count = len(failures)
+        blocked_count = sum(1 for failure in failures if failure.status_code == 403)
+        failed += failure_count
+        blocked += blocked_count
+        if blocked_count and not eligible_candidates:
+            consecutive_403 += 1
+        else:
+            consecutive_403 = 0
 
+        last_error = failures[-1].message if failures else None
+        status = discovery_attempt_status(len(eligible_candidates), failure_count, blocked_count)
+        evidence = {
+            "comedian_name": comedian.name,
+            "aliases": comedian.aliases,
+            "max_results": max_results,
+            "country": country,
+            "min_confidence": min_confidence,
+            "failures": [failure.__dict__ for failure in failures],
+        }
+
+        if dry_run:
+            for candidate in eligible_candidates:
+                _print_candidate(candidate)
+            planned += len(eligible_candidates)
+        else:
+            with get_connection(autocommit=False) as conn:
+                try:
+                    record_discovery_attempt(
+                        conn,
+                        comedian,
+                        status=status,
+                        candidates_found=len(eligible_candidates),
+                        error_count=failure_count,
+                        last_error=last_error,
+                        evidence=evidence,
+                    )
+                    for candidate in eligible_candidates:
+                        result = upsert_candidate_with_conn(conn, candidate)
+                        written += 1
+                        Logger.info(
+                            f"[itunes-podcasts] {result.action} comedian_id={candidate.comedian_id} "
+                            f"podcast_id={result.podcast_id} collection_id={candidate.source_podcast_id}"
+                        )
+                    conn.commit()
+                except Exception:
+                    conn.rollback()
+                    raise
+
+        if progress_interval > 0 and (processed % progress_interval == 0 or processed == len(comedians)):
+            print(
+                f"progress: {processed}/{len(comedians)} processed, {candidate_count} candidates, "
+                f"{written if not dry_run else planned} {'written' if not dry_run else 'planned'}, "
+                f"{failed} failures, {blocked} blocked"
+            )
+
+        if max_consecutive_403 > 0 and consecutive_403 >= max_consecutive_403:
+            stopped_early = True
+            print(f"stopping early after {consecutive_403} consecutive iTunes 403 failures")
+            break
+
+    with get_connection(autocommit=False) as conn:
         after = before if dry_run else load_snapshot(conn)
         print()
         _print_snapshot("AFTER", after)
 
+    if dry_run:
+        print(f"\n--dry-run: {planned} writes planned (none applied).")
+
     return SearchSummary(
-        processed=len(comedians),
-        candidates=len(eligible_candidates),
+        processed=processed,
+        attempted=attempted,
+        candidates=candidate_count,
         written=written,
         failed=failed,
+        blocked=blocked,
+        stopped_early=stopped_early,
     )
 
 
@@ -248,7 +327,12 @@ def main() -> int:
     parser.add_argument("--comedian-names", nargs="*", default=None)
     parser.add_argument("--max-results", type=int, default=10, help="Max iTunes results per search term")
     parser.add_argument("--country", default="US", help="iTunes storefront country")
-    parser.add_argument("--request-delay", type=float, default=0.25, help="Delay between iTunes requests")
+    parser.add_argument(
+        "--request-delay",
+        type=float,
+        default=3.2,
+        help="Delay between iTunes requests; Apple documents roughly 20 Search API calls/minute",
+    )
     parser.add_argument(
         "--min-confidence",
         type=float,
@@ -259,6 +343,23 @@ def main() -> int:
         "--include-reviewed",
         action="store_true",
         help="Include comedians that already have accepted podcast links or review history",
+    )
+    parser.add_argument(
+        "--retry-attempted",
+        action="store_true",
+        help="Include comedians already attempted by this iTunes discovery backfill",
+    )
+    parser.add_argument(
+        "--max-consecutive-403",
+        type=int,
+        default=5,
+        help="Stop early after this many consecutive comedians hit iTunes 403 failures; 0 disables",
+    )
+    parser.add_argument(
+        "--progress-interval",
+        type=int,
+        default=25,
+        help="Print progress every N comedians; 0 disables progress output",
     )
     args = parser.parse_args()
 
@@ -277,6 +378,9 @@ def main() -> int:
             request_delay=args.request_delay,
             include_reviewed=args.include_reviewed,
             min_confidence=args.min_confidence,
+            retry_attempted=args.retry_attempted,
+            max_consecutive_403=args.max_consecutive_403,
+            progress_interval=args.progress_interval,
         )
     except ValueError as exc:
         parser.error(str(exc))

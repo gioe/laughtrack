@@ -11,6 +11,7 @@ for _p in (str(_src_path), str(_repo_root)):
         sys.path.insert(0, _p)
 
 from laughtrack.core.itunes_podcast_discovery import (  # noqa: E402
+    ItunesSearchFailure,
     ItunesPodcastCandidate,
     PodcastDiscoveryComedian,
     UpsertResult,
@@ -37,6 +38,9 @@ class _FakeCursor:
             self._last = [(2, 3)]
         elif "FROM comedians c" in normalized:
             self._last = self.conn.comedian_rows
+        elif normalized.startswith("INSERT INTO comedian_podcast_discovery_attempts"):
+            self.conn.attempt_upserts.append(params)
+            self._last = []
         else:
             self._last = []
 
@@ -51,6 +55,7 @@ class _FakeConn:
     def __init__(self) -> None:
         self.comedian_rows = [(12, "Taylor Comic", ["Taylor C"])]
         self.executed: list[tuple[str, tuple[Any, ...] | None]] = []
+        self.attempt_upserts: list[tuple[Any, ...] | None] = []
         self.commits = 0
         self.rollbacks = 0
 
@@ -158,6 +163,8 @@ def test_load_target_comedians_defaults_to_missing_accepted_links_and_review_his
     assert "FROM comedian_podcasts cp" in query
     assert "cp.review_status = 'accepted'" in query
     assert "FROM podcast_candidate_reviews r" in query
+    assert "FROM comedian_podcast_discovery_attempts a" in query
+    assert "a.status IN ('candidates_found', 'no_candidates')" in query
     assert rows == [PodcastDiscoveryComedian(12, "Taylor Comic", ["Taylor C"])]
     assert params == ([12], 5)
 
@@ -176,7 +183,24 @@ def test_load_target_comedians_can_include_previous_review_history(monkeypatch) 
     query, params = conn.executed[0]
     assert "FROM podcast_candidate_reviews r" not in query
     assert "FROM comedian_podcasts cp" not in query
+    assert "FROM comedian_podcast_discovery_attempts a" in query
     assert params == (["Taylor Comic"],)
+
+
+def test_load_target_comedians_can_retry_previous_itunes_attempts(monkeypatch) -> None:
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda *_, **__: conn)
+
+    mod.load_target_comedians(
+        comedian_ids=None,
+        comedian_names=None,
+        limit=None,
+        include_reviewed=False,
+        retry_attempted=True,
+    )
+
+    query, _params = conn.executed[0]
+    assert "FROM comedian_podcast_discovery_attempts a" not in query
 
 
 def test_backfill_dry_run_prints_before_after_and_writes_nothing(monkeypatch, capsys) -> None:
@@ -184,7 +208,7 @@ def test_backfill_dry_run_prints_before_after_and_writes_nothing(monkeypatch, ca
     upserts: list[Any] = []
 
     monkeypatch.setattr(mod, "get_connection", lambda *_, **__: conn)
-    monkeypatch.setattr(mod, "discover_candidates_for_comedians", lambda *_, **__: ([_candidate()], 0))
+    monkeypatch.setattr(mod, "discover_candidates_for_comedian", lambda *_, **__: ([_candidate()], []))
     monkeypatch.setattr(
         mod,
         "upsert_candidate_with_conn",
@@ -202,6 +226,9 @@ def test_backfill_dry_run_prints_before_after_and_writes_nothing(monkeypatch, ca
         request_delay=0,
         include_reviewed=False,
         min_confidence=0.8,
+        retry_attempted=False,
+        max_consecutive_403=5,
+        progress_interval=100,
     )
 
     output = capsys.readouterr().out
@@ -209,7 +236,15 @@ def test_backfill_dry_run_prints_before_after_and_writes_nothing(monkeypatch, ca
     assert "=== AFTER ===" in output
     assert "--dry-run: 1 writes planned (none applied)." in output
     assert "candidate comedian_id=12 podcast='Taylor Comic Podcast'" in output
-    assert summary == mod.SearchSummary(processed=1, candidates=1, written=0, failed=0)
+    assert summary == mod.SearchSummary(
+        processed=1,
+        attempted=1,
+        candidates=1,
+        written=0,
+        failed=0,
+        blocked=0,
+        stopped_early=False,
+    )
     assert upserts == []
     assert conn.commits == 0
     assert conn.rollbacks == 0
@@ -220,7 +255,7 @@ def test_backfill_confirm_upserts_candidate_reviews(monkeypatch) -> None:
     upserts: list[ItunesPodcastCandidate] = []
 
     monkeypatch.setattr(mod, "get_connection", lambda *_, **__: conn)
-    monkeypatch.setattr(mod, "discover_candidates_for_comedians", lambda *_, **__: ([_candidate()], 0))
+    monkeypatch.setattr(mod, "discover_candidates_for_comedian", lambda *_, **__: ([_candidate()], []))
 
     def fake_upsert(_conn: Any, candidate: ItunesPodcastCandidate) -> UpsertResult:
         upserts.append(candidate)
@@ -239,12 +274,98 @@ def test_backfill_confirm_upserts_candidate_reviews(monkeypatch) -> None:
         request_delay=0,
         include_reviewed=False,
         min_confidence=0.8,
+        retry_attempted=False,
+        max_consecutive_403=5,
+        progress_interval=100,
     )
 
     assert summary.written == 1
+    assert summary.attempted == 1
     assert upserts == [_candidate()]
+    assert len(conn.attempt_upserts) == 1
+    assert conn.attempt_upserts[0] is not None
+    assert conn.attempt_upserts[0][:6] == (12, "itunes", "candidates_found", 1, 0, None)
     assert conn.commits == 1
     assert conn.rollbacks == 0
+
+
+def test_backfill_confirm_records_no_candidate_attempt(monkeypatch) -> None:
+    conn = _FakeConn()
+
+    monkeypatch.setattr(mod, "get_connection", lambda *_, **__: conn)
+    monkeypatch.setattr(mod, "discover_candidates_for_comedian", lambda *_, **__: ([], []))
+
+    summary = mod.search_itunes_podcasts(
+        dry_run=False,
+        confirm=True,
+        limit=1,
+        comedian_ids=None,
+        comedian_names=None,
+        max_results=5,
+        country="US",
+        request_delay=0,
+        include_reviewed=False,
+        min_confidence=0.8,
+        retry_attempted=False,
+        max_consecutive_403=5,
+        progress_interval=100,
+    )
+
+    assert summary == mod.SearchSummary(
+        processed=1,
+        attempted=1,
+        candidates=0,
+        written=0,
+        failed=0,
+        blocked=0,
+        stopped_early=False,
+    )
+    assert len(conn.attempt_upserts) == 1
+    assert conn.attempt_upserts[0] is not None
+    assert conn.attempt_upserts[0][:6] == (12, "itunes", "no_candidates", 0, 0, None)
+
+
+def test_backfill_stops_after_consecutive_403_failures(monkeypatch, capsys) -> None:
+    conn = _FakeConn()
+    conn.comedian_rows = [
+        (12, "Taylor Comic", []),
+        (13, "Jordan Comic", []),
+        (14, "Casey Comic", []),
+    ]
+
+    monkeypatch.setattr(mod, "get_connection", lambda *_, **__: conn)
+    monkeypatch.setattr(
+        mod,
+        "discover_candidates_for_comedian",
+        lambda *_args, **_kwargs: (
+            [],
+            [ItunesSearchFailure(search_term="x", status_code=403, message="iTunes HTTP 403")],
+        ),
+    )
+
+    summary = mod.search_itunes_podcasts(
+        dry_run=False,
+        confirm=True,
+        limit=3,
+        comedian_ids=None,
+        comedian_names=None,
+        max_results=5,
+        country="US",
+        request_delay=0,
+        include_reviewed=False,
+        min_confidence=0.8,
+        retry_attempted=False,
+        max_consecutive_403=2,
+        progress_interval=1,
+    )
+
+    assert summary.processed == 2
+    assert summary.attempted == 2
+    assert summary.failed == 2
+    assert summary.blocked == 2
+    assert summary.stopped_early is True
+    assert len(conn.attempt_upserts) == 2
+    assert "stopping early after 2 consecutive iTunes 403 failures" in capsys.readouterr().out
 
 
 def test_cli_requires_exactly_one_mode(monkeypatch, capsys) -> None:
@@ -265,7 +386,7 @@ def test_cli_passes_filters(monkeypatch) -> None:
 
     def fake_search(**kwargs: Any) -> mod.SearchSummary:
         calls.append(kwargs)
-        return mod.SearchSummary(processed=0, candidates=0, written=0, failed=0)
+        return mod.SearchSummary(processed=0, attempted=0, candidates=0, written=0, failed=0, blocked=0)
 
     monkeypatch.setattr(mod, "search_itunes_podcasts", fake_search)
     monkeypatch.setattr(
@@ -306,5 +427,8 @@ def test_cli_passes_filters(monkeypatch) -> None:
             "request_delay": 0.2,
             "include_reviewed": True,
             "min_confidence": 0.7,
+            "retry_attempted": False,
+            "max_consecutive_403": 5,
+            "progress_interval": 25,
         }
     ]

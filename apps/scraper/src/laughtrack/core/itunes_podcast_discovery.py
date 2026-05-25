@@ -11,6 +11,7 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+import feedparser
 from curl_cffi import requests
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -26,6 +27,11 @@ _TIMEOUT_SECONDS = 30
 
 _FALSE_POSITIVE_TITLE_RE = re.compile(
     r"\b(best|top|roundup|calendar|tickets?|shows?|events?|open mic|stand[- ]?up)\b",
+    re.IGNORECASE,
+)
+_OWNER_DESCRIPTION_RE = re.compile(
+    r"\b(host(?:ed|s|ing)?|comedian|actor|actress|creator|introduc(?:e|es|ing)|"
+    r"from .{0,80} brings?|join(?:s)? .{0,80} conversation)\b",
     re.IGNORECASE,
 )
 
@@ -58,9 +64,22 @@ class ItunesPodcastCandidate:
 
 
 @dataclass(frozen=True)
+class ItunesSearchFailure:
+    search_term: str
+    status_code: Optional[int]
+    message: str
+
+
+@dataclass(frozen=True)
 class UpsertResult:
     podcast_id: int
     action: str
+
+
+class ItunesRequestError(RuntimeError):
+    def __init__(self, message: str, *, status_code: Optional[int] = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
 
 
 _FIND_PODCAST_BY_FEED_URL_SQL = """
@@ -139,6 +158,28 @@ _GET_ACTIVE_DENY_LIST_SQL = """
     WHERE restored_at IS NULL
 """
 
+_UPSERT_DISCOVERY_ATTEMPT_SQL = """
+    INSERT INTO comedian_podcast_discovery_attempts (
+        comedian_id,
+        source,
+        status,
+        candidates_found,
+        error_count,
+        last_error,
+        evidence,
+        searched_at
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, NOW())
+    ON CONFLICT (comedian_id, source) DO UPDATE SET
+        status = EXCLUDED.status,
+        candidates_found = EXCLUDED.candidates_found,
+        error_count = EXCLUDED.error_count,
+        last_error = EXCLUDED.last_error,
+        evidence = EXCLUDED.evidence,
+        searched_at = NOW(),
+        updated_at = NOW()
+"""
+
 
 def normalize_match_text(value: str) -> str:
     unescaped = html.unescape(value or "")
@@ -204,11 +245,14 @@ def _request_json_with_retries(
 
         if response.status_code in (429, 500, 502, 503, 504):
             if attempt + 1 >= _MAX_RETRIES:
-                raise RuntimeError(f"iTunes HTTP {response.status_code} for {url} after {_MAX_RETRIES} attempts")
+                raise ItunesRequestError(
+                    f"iTunes HTTP {response.status_code} for {url} after {_MAX_RETRIES} attempts",
+                    status_code=response.status_code,
+                )
             sleep(_retry_after_seconds(response.headers, attempt))
             continue
         if response.status_code >= 400:
-            raise RuntimeError(f"iTunes HTTP {response.status_code} for {url}")
+            raise ItunesRequestError(f"iTunes HTTP {response.status_code} for {url}", status_code=response.status_code)
         try:
             return response.json()
         except Exception as exc:
@@ -216,23 +260,37 @@ def _request_json_with_retries(
     return {}
 
 
+def _fetch_feed_description(feed_url: str, *, session: Any | None = None) -> Optional[str]:
+    client = session or requests
+    response = client.get(feed_url, timeout=_TIMEOUT_SECONDS)
+    if response.status_code >= 400:
+        raise ItunesRequestError(f"RSS HTTP {response.status_code} for {feed_url}", status_code=response.status_code)
+    parsed = feedparser.parse(response.content)
+    feed = parsed.get("feed") or {}
+    return _string_or_none(feed.get("summary") or feed.get("subtitle") or feed.get("description"))
+
+
 def search_itunes_podcasts(
     term: str,
     *,
     limit: int = _DEFAULT_MAX_RESULTS,
     country: str = "US",
+    attribute: Optional[str] = None,
     session: Any | None = None,
     sleep: Callable[[float], None] = time.sleep,
 ) -> list[dict[str, Any]]:
+    params: dict[str, Any] = {
+        "media": "podcast",
+        "entity": "podcast",
+        "term": term,
+        "limit": limit,
+        "country": country,
+    }
+    if attribute:
+        params["attribute"] = attribute
     payload = _request_json_with_retries(
         _ITUNES_SEARCH_URL,
-        params={
-            "media": "podcast",
-            "entity": "podcast",
-            "term": term,
-            "limit": limit,
-            "country": country,
-        },
+        params=params,
         session=session,
         sleep=sleep,
     )
@@ -281,6 +339,8 @@ def _score_result(
         return 0.86, "title_contains", "title"
     if search and search in author:
         return 0.82, "author_contains", "author"
+    if search and search in description and _OWNER_DESCRIPTION_RE.search(str(result.get("description") or "")):
+        return 0.84, "owner_description_contains", "description"
     if search and search in description:
         return 0.48, "description_contains", "description"
     if _FALSE_POSITIVE_TITLE_RE.search(str(result.get("collectionName") or "")):
@@ -328,6 +388,7 @@ def candidate_from_itunes_result(
             "primary_genre_name": result.get("primaryGenreName"),
             "genre_ids": result.get("genreIds"),
             "genres": result.get("genres"),
+            "rss_description_enriched": bool(result.get("rssDescriptionEnriched")),
         },
     }
     return ItunesPodcastCandidate(
@@ -346,6 +407,25 @@ def candidate_from_itunes_result(
     )
 
 
+def _enrich_result_from_feed(result: dict[str, Any], *, session: Any | None = None) -> dict[str, Any]:
+    if _string_or_none(result.get("description")):
+        return result
+    feed_url = _string_or_none(result.get("feedUrl"))
+    if not feed_url:
+        return result
+    try:
+        description = _fetch_feed_description(feed_url, session=session)
+    except Exception as exc:
+        Logger.warn(f"[itunes-podcasts] RSS metadata fetch failed for {feed_url}: {exc}")
+        return result
+    if not description:
+        return result
+    enriched = dict(result)
+    enriched["description"] = description
+    enriched["rssDescriptionEnriched"] = True
+    return enriched
+
+
 def discover_candidates_for_comedians(
     comedians: list[PodcastDiscoveryComedian],
     *,
@@ -360,32 +440,61 @@ def discover_candidates_for_comedians(
     for comedian_index, comedian in enumerate(comedians, start=1):
         if comedian_index > 1 and request_delay > 0:
             sleep(request_delay)
-        seen_ids: set[str] = set()
-        for term_index, search_term in enumerate(build_search_terms(comedian), start=1):
-            if term_index > 1 and request_delay > 0:
-                sleep(request_delay)
-            try:
-                results = search_itunes_podcasts(
-                    search_term,
-                    limit=max_results,
-                    country=country,
-                    session=session,
-                    sleep=sleep,
-                )
-            except Exception as exc:
-                failed += 1
-                Logger.warn(
-                    f"[itunes-podcasts] search failed for comedian {comedian.comedian_id} "
-                    f"'{comedian.name}' term '{search_term}': {exc}"
-                )
-                continue
-            for rank, result in enumerate(results, start=1):
-                candidate = candidate_from_itunes_result(comedian, result, search_term=search_term, rank=rank)
-                if candidate is None or candidate.source_podcast_id in seen_ids:
-                    continue
-                seen_ids.add(candidate.source_podcast_id)
-                candidates.append(candidate)
+        comedian_candidates, failures = discover_candidates_for_comedian(
+            comedian,
+            max_results=max_results,
+            country=country,
+            request_delay=request_delay,
+            session=session,
+            sleep=sleep,
+        )
+        candidates.extend(comedian_candidates)
+        failed += len(failures)
     return candidates, failed
+
+
+def discover_candidates_for_comedian(
+    comedian: PodcastDiscoveryComedian,
+    *,
+    max_results: int,
+    country: str,
+    request_delay: float = _DEFAULT_REQUEST_DELAY_S,
+    session: Any | None = None,
+    sleep: Callable[[float], None] = time.sleep,
+) -> tuple[list[ItunesPodcastCandidate], list[ItunesSearchFailure]]:
+    candidates: list[ItunesPodcastCandidate] = []
+    failures: list[ItunesSearchFailure] = []
+    seen_ids: set[str] = set()
+    for term_index, search_term in enumerate(build_search_terms(comedian), start=1):
+        if term_index > 1 and request_delay > 0:
+            sleep(request_delay)
+        try:
+            results = search_itunes_podcasts(
+                search_term,
+                limit=max_results,
+                country=country,
+                session=session,
+                sleep=sleep,
+            )
+        except Exception as exc:
+            status_code = exc.status_code if isinstance(exc, ItunesRequestError) else None
+            failures.append(ItunesSearchFailure(search_term=search_term, status_code=status_code, message=str(exc)))
+            Logger.warn(
+                f"[itunes-podcasts] search failed for comedian {comedian.comedian_id} "
+                f"'{comedian.name}' term '{search_term}': {exc}"
+            )
+            continue
+        for rank, result in enumerate(results, start=1):
+            candidate = candidate_from_itunes_result(comedian, result, search_term=search_term, rank=rank)
+            if candidate is not None and candidate.confidence < 0.8:
+                enriched = _enrich_result_from_feed(result, session=session)
+                if enriched is not result:
+                    candidate = candidate_from_itunes_result(comedian, enriched, search_term=search_term, rank=rank)
+            if candidate is None or candidate.source_podcast_id in seen_ids:
+                continue
+            seen_ids.add(candidate.source_podcast_id)
+            candidates.append(candidate)
+    return candidates, failures
 
 
 def _json_mapping(raw: Any) -> dict[str, Any]:
@@ -411,6 +520,41 @@ def load_active_deny_list(cur: Any) -> tuple[set[tuple[str, str]], set[str]]:
         if feed_url:
             deny_urls.add(str(feed_url))
     return deny_keys, deny_urls
+
+
+def discovery_attempt_status(candidate_count: int, failure_count: int, blocked_count: int) -> str:
+    if candidate_count > 0:
+        return "candidates_found"
+    if blocked_count > 0:
+        return "blocked"
+    if failure_count > 0:
+        return "failed"
+    return "no_candidates"
+
+
+def record_discovery_attempt(
+    conn: Any,
+    comedian: PodcastDiscoveryComedian,
+    *,
+    status: str,
+    candidates_found: int,
+    error_count: int,
+    last_error: Optional[str],
+    evidence: dict[str, Any],
+) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            _UPSERT_DISCOVERY_ATTEMPT_SQL,
+            (
+                comedian.comedian_id,
+                _SOURCE,
+                status,
+                candidates_found,
+                error_count,
+                last_error,
+                json.dumps(evidence, sort_keys=True),
+            ),
+        )
 
 
 def candidate_is_denied(

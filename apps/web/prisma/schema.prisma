@@ -237,12 +237,33 @@ model Comedian {
   sentNotifications                    SentNotification[]
   comedianPodcasts                     ComedianPodcast[]
   podcastCandidateReviews              PodcastCandidateReview[]
+  podcastDiscoveryAttempts             ComedianPodcastDiscoveryAttempt[]
   episodeAppearances                   EpisodeAppearance[]
   episodeAppearanceReviews             EpisodeAppearanceReview[]
   imageAssets                          ComedianImageAsset[]
 
   @@index([parentComedianId])
   @@map("comedians")
+}
+
+model ComedianPodcastDiscoveryAttempt {
+  id              Int      @id @default(autoincrement())
+  comedianId      Int      @map("comedian_id")
+  source          String
+  status          String
+  candidatesFound Int      @default(0) @map("candidates_found")
+  errorCount      Int      @default(0) @map("error_count")
+  lastError       String?  @map("last_error")
+  evidence        Json     @default("{}")
+  searchedAt      DateTime @default(now()) @map("searched_at") @db.Timestamptz
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  comedian        Comedian @relation(fields: [comedianId], references: [id], onDelete: Cascade)
+
+  @@unique([comedianId, source])
+  @@index([source, status])
+  @@index([searchedAt])
+  @@map("comedian_podcast_discovery_attempts")
 }
 
 model ComedianImageAsset {

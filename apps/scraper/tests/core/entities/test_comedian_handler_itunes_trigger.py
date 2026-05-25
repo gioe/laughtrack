@@ -98,13 +98,15 @@ def itunes_module(monkeypatch):
 
     import laughtrack.core.itunes_podcast_discovery as itunes_mod
 
-    discover_mock = MagicMock(return_value=([], 0))
+    discover_mock = MagicMock(return_value=([], []))
     upsert_mock = MagicMock(return_value=None)
+    record_attempt_mock = MagicMock(return_value=None)
     load_deny_mock = MagicMock(return_value=(set(), set()))
     denied_mock = MagicMock(return_value=False)
 
-    monkeypatch.setattr(itunes_mod, "discover_candidates_for_comedians", discover_mock)
+    monkeypatch.setattr(itunes_mod, "discover_candidates_for_comedian", discover_mock)
     monkeypatch.setattr(itunes_mod, "upsert_candidate_with_conn", upsert_mock)
+    monkeypatch.setattr(itunes_mod, "record_discovery_attempt", record_attempt_mock)
     monkeypatch.setattr(itunes_mod, "load_active_deny_list", load_deny_mock)
     monkeypatch.setattr(itunes_mod, "candidate_is_denied", denied_mock)
 
@@ -115,10 +117,12 @@ def itunes_module(monkeypatch):
             "module": itunes_mod,
             "discover": discover_mock,
             "upsert": upsert_mock,
+            "record_attempt": record_attempt_mock,
             "load_deny": load_deny_mock,
             "denied": denied_mock,
             "Candidate": itunes_mod.ItunesPodcastCandidate,
             "DiscoveryComedian": itunes_mod.PodcastDiscoveryComedian,
+            "Failure": itunes_mod.ItunesSearchFailure,
         },
     )()
 
@@ -190,10 +194,11 @@ class TestItunesTriggerOnInsert:
 
         assert result == [inserted_row]
         assert itunes_module.discover.call_count == 1
-        called_comedians = itunes_module.discover.call_args[0][0]
-        assert len(called_comedians) == 1
-        assert called_comedians[0].comedian_id == 7777
-        assert called_comedians[0].name == "Stub Comedian"
+        called_comedian = itunes_module.discover.call_args[0][0]
+        assert called_comedian.comedian_id == 7777
+        assert called_comedian.name == "Stub Comedian"
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "no_candidates"
 
     def test_no_inserted_rows_skips_trigger(self, itunes_module):
         """When insert returns no rows (all existed), the adapter is not called."""
@@ -217,12 +222,14 @@ class TestItunesTriggerOnInsert:
 
         assert result == [inserted_row]
         itunes_module.discover.assert_called_once()
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "failed"
         itunes_module.upsert.assert_not_called()
 
     def test_persistence_failure_does_not_block_insertion(self, itunes_module):
         """A raise from upsert_candidate_with_conn is logged and swallowed."""
         cand = _candidate(itunes_module, comedian_id=42, source_podcast_id="abc", confidence=0.99)
-        itunes_module.discover.return_value = ([cand], 0)
+        itunes_module.discover.return_value = ([cand], [])
         itunes_module.upsert.side_effect = RuntimeError("DB exploded")
 
         inserted_row = {"id": 42, "uuid": "uuid-db-fail", "name": "DB Fail"}
@@ -232,12 +239,14 @@ class TestItunesTriggerOnInsert:
 
         assert result == [inserted_row]
         itunes_module.discover.assert_called_once()
+        assert itunes_module.record_attempt.call_count == 2
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "failed"
 
     def test_low_confidence_candidates_filtered_out(self, itunes_module, monkeypatch):
         """Candidates below the min-confidence threshold are dropped, not persisted."""
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "0.8")
         low = _candidate(itunes_module, comedian_id=1, source_podcast_id="low", confidence=0.5)
-        itunes_module.discover.return_value = ([low], 0)
+        itunes_module.discover.return_value = ([low], [])
 
         inserted_row = {"id": 1, "uuid": "uuid-low", "name": "Low Confidence"}
         handler = _make_handler_with_inserted_row(inserted_row)
@@ -245,12 +254,14 @@ class TestItunesTriggerOnInsert:
         handler.insert_comedians([_make_stub_comedian("Low Confidence", "uuid-low")])
 
         itunes_module.upsert.assert_not_called()
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "no_candidates"
 
     def test_high_confidence_candidates_persisted(self, itunes_module, monkeypatch):
         """Candidates at or above the min-confidence threshold are upserted."""
         monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "0.8")
         high = _candidate(itunes_module, comedian_id=2, source_podcast_id="high", confidence=0.95)
-        itunes_module.discover.return_value = ([high], 0)
+        itunes_module.discover.return_value = ([high], [])
 
         inserted_row = {"id": 2, "uuid": "uuid-high", "name": "High Confidence"}
         handler = _make_handler_with_inserted_row(inserted_row)
@@ -258,6 +269,45 @@ class TestItunesTriggerOnInsert:
         handler.insert_comedians([_make_stub_comedian("High Confidence", "uuid-high")])
 
         assert itunes_module.upsert.call_count == 1
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "candidates_found"
+        assert itunes_module.record_attempt.call_args.kwargs["candidates_found"] == 1
+
+    def test_search_failure_records_failed_attempt(self, itunes_module):
+        """A per-term iTunes failure records a failed discovery attempt."""
+        failure = itunes_module.Failure(
+            search_term="Search Fail",
+            status_code=500,
+            message="iTunes HTTP 500",
+        )
+        itunes_module.discover.return_value = ([], [failure])
+
+        inserted_row = {"id": 43, "uuid": "uuid-search-fail", "name": "Search Fail"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        handler.insert_comedians([_make_stub_comedian("Search Fail", "uuid-search-fail")])
+
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "failed"
+        assert itunes_module.record_attempt.call_args.kwargs["error_count"] == 1
+
+    def test_403_search_failure_records_blocked_attempt(self, itunes_module):
+        """A 403 without eligible candidates records a blocked discovery attempt."""
+        failure = itunes_module.Failure(
+            search_term="Blocked Search",
+            status_code=403,
+            message="iTunes HTTP 403",
+        )
+        itunes_module.discover.return_value = ([], [failure])
+
+        inserted_row = {"id": 44, "uuid": "uuid-blocked", "name": "Blocked Search"}
+        handler = _make_handler_with_inserted_row(inserted_row)
+
+        handler.insert_comedians([_make_stub_comedian("Blocked Search", "uuid-blocked")])
+
+        itunes_module.record_attempt.assert_called_once()
+        assert itunes_module.record_attempt.call_args.kwargs["status"] == "blocked"
+        assert itunes_module.record_attempt.call_args.kwargs["error_count"] == 1
 
     def test_env_disable_skips_trigger(self, itunes_module, monkeypatch):
         """Setting LAUGHTRACK_ITUNES_ON_INSERT_ENABLED=0 fully disables the trigger."""
@@ -286,6 +336,7 @@ class TestItunesTriggerOnInsert:
         [
             ("LAUGHTRACK_ITUNES_ON_INSERT_MIN_CONFIDENCE", "not-a-float"),
             ("LAUGHTRACK_ITUNES_ON_INSERT_MAX_RESULTS", "ten"),
+            ("LAUGHTRACK_ITUNES_ON_INSERT_REQUEST_DELAY", "fast"),
             ("LAUGHTRACK_ITUNES_ON_INSERT_DENY_LIST_TTL", "soon"),
         ],
     )
@@ -386,8 +437,8 @@ class TestItunesTriggerBackgroundDispatch:
             assert len(submitted) == 1
             submitted[0].result(timeout=5)
             assert itunes_module.discover.call_count == 1
-            called_comedians = itunes_module.discover.call_args[0][0]
-            assert called_comedians[0].comedian_id == 5151
+            called_comedian = itunes_module.discover.call_args[0][0]
+            assert called_comedian.comedian_id == 5151
         finally:
             executor.shutdown(wait=True)
 
@@ -523,7 +574,7 @@ class TestDenyListCache:
         cand = _candidate(
             itunes_module, comedian_id=handler_id, source_podcast_id=f"pod-{handler_id}", confidence=0.95
         )
-        itunes_module.discover.return_value = ([cand], 0)
+        itunes_module.discover.return_value = ([cand], [])
         inserted_row = {"id": handler_id, "uuid": f"uuid-{handler_id}", "name": f"Comic {handler_id}"}
         handler = _make_handler_with_inserted_row(inserted_row)
         handler.insert_comedians([_make_stub_comedian(f"Comic {handler_id}", f"uuid-{handler_id}")])

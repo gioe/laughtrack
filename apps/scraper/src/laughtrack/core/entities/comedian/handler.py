@@ -47,6 +47,10 @@ def _itunes_on_insert_max_results() -> int:
     return int(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_MAX_RESULTS", "10"))
 
 
+def _itunes_on_insert_request_delay() -> float:
+    return float(os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_REQUEST_DELAY", "3.2"))
+
+
 def _itunes_on_insert_country() -> str:
     return os.environ.get("LAUGHTRACK_ITUNES_ON_INSERT_COUNTRY", "US")
 
@@ -375,12 +379,15 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             from laughtrack.core.itunes_podcast_discovery import (
                 PodcastDiscoveryComedian,
                 candidate_is_denied,
-                discover_candidates_for_comedians,
+                discovery_attempt_status,
+                discover_candidates_for_comedian,
                 load_active_deny_list,
+                record_discovery_attempt,
                 upsert_candidate_with_conn,
             )
             min_confidence = _itunes_on_insert_min_confidence()
             max_results = _itunes_on_insert_max_results()
+            request_delay = _itunes_on_insert_request_delay()
             country = _itunes_on_insert_country()
             deny_list_ttl = _itunes_on_insert_deny_list_ttl()
         except Exception as e:
@@ -403,49 +410,120 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         if not discovery_comedians:
             return 0
 
-        try:
-            candidates, failed = discover_candidates_for_comedians(
-                discovery_comedians,
-                max_results=max_results,
-                country=country,
-            )
-        except Exception as e:
-            Logger.warn(f"itunes_on_insert: discovery failed for {len(discovery_comedians)} new comedians: {e}")
-            return 0
-
-        eligible = [c for c in candidates if c.confidence >= min_confidence]
-        if not eligible:
-            Logger.info(
-                f"itunes_on_insert: {len(discovery_comedians)} new comedians searched, "
-                f"{len(candidates)} candidates, 0 at or above confidence {min_confidence:.2f}"
-            )
-            return 0
-
         written = 0
-        try:
-            with self.transaction() as conn:
-                # Memoize the deny list across insert batches with a short TTL —
-                # it rarely changes mid-scrape, so re-scanning the full
-                # podcast_deny_list table on every batch is wasteful. On a hit
-                # this skips the SELECT entirely; the transaction stays open for
-                # the candidate upserts below regardless.
-                def _load_deny_list() -> Tuple[set, set]:
-                    with conn.cursor() as cur:
-                        return load_active_deny_list(cur)
+        total_candidates = 0
+        total_failures = 0
+        for comedian in discovery_comedians:
+            try:
+                candidates, failures = discover_candidates_for_comedian(
+                    comedian,
+                    max_results=max_results,
+                    country=country,
+                    request_delay=request_delay,
+                )
+            except Exception as e:
+                Logger.warn(f"itunes_on_insert: discovery failed for comedian {comedian.comedian_id}: {e}")
+                try:
+                    with self.transaction() as conn:
+                        record_discovery_attempt(
+                            conn,
+                            comedian,
+                            status="failed",
+                            candidates_found=0,
+                            error_count=1,
+                            last_error=str(e),
+                            evidence={
+                                "comedian_name": comedian.name,
+                                "aliases": comedian.aliases,
+                                "max_results": max_results,
+                                "country": country,
+                                "min_confidence": min_confidence,
+                                "failures": [{"message": str(e), "status_code": None}],
+                            },
+                        )
+                except Exception as persist_error:
+                    Logger.warn(
+                        f"itunes_on_insert: failed to record discovery failure for "
+                        f"comedian {comedian.comedian_id}: {persist_error}"
+                    )
+                continue
 
-                deny_keys, deny_urls = _deny_list_cache.get(_load_deny_list, deny_list_ttl)
-                for candidate in eligible:
-                    if candidate_is_denied(candidate, deny_keys, deny_urls):
-                        continue
-                    upsert_candidate_with_conn(conn, candidate)
-                    written += 1
-        except Exception as e:
-            Logger.warn(f"itunes_on_insert: persistence failed after discovery: {e}")
-            return 0
+            eligible = [c for c in candidates if c.confidence >= min_confidence]
+            failure_count = len(failures)
+            blocked_count = sum(1 for failure in failures if failure.status_code == 403)
+            total_candidates += len(eligible)
+            total_failures += failure_count
+
+            try:
+                with self.transaction() as conn:
+                    # Memoize the deny list across insert batches with a short TTL —
+                    # it rarely changes mid-scrape, so re-scanning the full
+                    # podcast_deny_list table on every batch is wasteful. On a hit
+                    # this skips the SELECT entirely; the transaction stays open for
+                    # the candidate upserts below regardless.
+                    def _load_deny_list() -> Tuple[set, set]:
+                        with conn.cursor() as cur:
+                            return load_active_deny_list(cur)
+
+                    deny_keys, deny_urls = _deny_list_cache.get(_load_deny_list, deny_list_ttl)
+                    eligible_candidates = []
+                    for candidate in eligible:
+                        if candidate_is_denied(candidate, deny_keys, deny_urls):
+                            continue
+                        eligible_candidates.append(candidate)
+
+                    record_discovery_attempt(
+                        conn,
+                        comedian,
+                        status=discovery_attempt_status(
+                            len(eligible_candidates), failure_count, blocked_count
+                        ),
+                        candidates_found=len(eligible_candidates),
+                        error_count=failure_count,
+                        last_error=failures[-1].message if failures else None,
+                        evidence={
+                            "comedian_name": comedian.name,
+                            "aliases": comedian.aliases,
+                            "max_results": max_results,
+                            "country": country,
+                            "min_confidence": min_confidence,
+                            "failures": [failure.__dict__ for failure in failures],
+                        },
+                    )
+                    for candidate in eligible_candidates:
+                        upsert_candidate_with_conn(conn, candidate)
+                        written += 1
+            except Exception as e:
+                Logger.warn(f"itunes_on_insert: persistence failed after discovery: {e}")
+                try:
+                    with self.transaction() as conn:
+                        record_discovery_attempt(
+                            conn,
+                            comedian,
+                            status="failed",
+                            candidates_found=0,
+                            error_count=1,
+                            last_error=str(e),
+                            evidence={
+                                "comedian_name": comedian.name,
+                                "aliases": comedian.aliases,
+                                "max_results": max_results,
+                                "country": country,
+                                "min_confidence": min_confidence,
+                                "failures": [{"message": str(e), "status_code": None}],
+                            },
+                        )
+                except Exception as persist_error:
+                    Logger.warn(
+                        f"itunes_on_insert: failed to record persistence failure for "
+                        f"comedian {comedian.comedian_id}: {persist_error}"
+                    )
+                continue
 
         Logger.info(
             f"itunes_on_insert: {len(discovery_comedians)} new comedians searched, "
-            f"{written} candidate review rows upserted, {failed} search failures"
+            f"{total_candidates} eligible candidates, {written} candidate review rows upserted, "
+            f"{total_failures} search failures"
         )
         return written
 

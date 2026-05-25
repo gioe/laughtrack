@@ -12,10 +12,12 @@ class _FakeResponse:
         *,
         status_code: int = 200,
         payload: dict[str, Any] | None = None,
+        content: bytes | None = None,
         headers: dict[str, str] | None = None,
     ) -> None:
         self.status_code = status_code
         self._payload = payload or {}
+        self.content = content or b""
         self.headers = headers or {}
 
     def json(self) -> dict[str, Any]:
@@ -130,6 +132,19 @@ def test_search_podcasts_uses_itunes_podcast_search_shape() -> None:
     ]
 
 
+def test_search_podcasts_can_scope_to_attribute() -> None:
+    session = _FakeSession([_FakeResponse(payload={"results": []})])
+
+    mod.search_itunes_podcasts(
+        "Taylor Comic",
+        attribute="authorTerm",
+        session=session,
+        sleep=lambda _seconds: None,
+    )
+
+    assert session.calls[0]["params"]["attribute"] == "authorTerm"
+
+
 def test_lookup_podcast_uses_collection_id() -> None:
     session = _FakeSession(
         [
@@ -199,6 +214,76 @@ def test_candidate_from_result_normalizes_itunes_payload() -> None:
     assert candidate.confidence == 0.99
     assert candidate.evidence["confidence_band"] == "title_exact"
     assert candidate.evidence["source_fields"]["collection_id"] == 12345
+
+
+def test_owner_style_feed_description_scores_above_threshold() -> None:
+    comedian = mod.PodcastDiscoveryComedian(223960, "Jess Hilarious", [])
+
+    candidate = mod.candidate_from_itunes_result(
+        comedian,
+        {
+            "collectionId": 1539709257,
+            "collectionName": "Carefully Reckless",
+            "artistName": "The Black Effect Podcast Network and iHeartPodcasts",
+            "feedUrl": "https://feeds.example.com/carefully-reckless.xml",
+            "description": (
+                "Comedian and Actress Jessica Jess Hilarious Moore is now taking her no hold bar "
+                "topics to The Black Effect Network introducing Carefully Reckless."
+            ),
+        },
+        search_term="Jess Hilarious",
+        rank=1,
+    )
+
+    assert candidate is not None
+    assert candidate.confidence == 0.84
+    assert candidate.evidence["confidence_band"] == "owner_description_contains"
+    assert candidate.evidence["match_field"] == "description"
+
+
+def test_discovery_enriches_missing_description_from_rss_feed() -> None:
+    comedian = mod.PodcastDiscoveryComedian(223960, "Jess Hilarious", [])
+    rss = b"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>Carefully Reckless</title>
+<description>Comedian and Actress Jessica Jess Hilarious Moore is now taking her topics to The Black Effect Network introducing Carefully Reckless.</description>
+</channel></rss>"""
+    session = _FakeSession(
+        [
+            _FakeResponse(
+                payload={
+                    "results": [
+                        {
+                            "collectionId": 1539709257,
+                            "collectionName": "Carefully Reckless",
+                            "artistName": "The Black Effect Podcast Network and iHeartPodcasts",
+                            "feedUrl": "https://feeds.example.com/carefully-reckless.xml",
+                        }
+                    ]
+                }
+            ),
+            _FakeResponse(content=rss),
+        ]
+    )
+
+    candidates, failures = mod.discover_candidates_for_comedian(
+        comedian,
+        max_results=5,
+        country="US",
+        request_delay=0,
+        session=session,
+        sleep=lambda _seconds: None,
+    )
+
+    assert failures == []
+    assert len(candidates) == 1
+    assert candidates[0].confidence == 0.84
+    assert candidates[0].description is not None
+    assert candidates[0].evidence["source_fields"]["rss_description_enriched"] is True
+    assert [call["url"] for call in session.calls] == [
+        mod._ITUNES_SEARCH_URL,
+        "https://feeds.example.com/carefully-reckless.xml",
+    ]
 
 
 def test_upsert_candidate_merges_itunes_id_into_existing_feed_url_match() -> None:
