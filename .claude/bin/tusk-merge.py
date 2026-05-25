@@ -55,6 +55,8 @@ task_grep_arg = _git_helpers.task_grep_arg
 find_task_commits = _git_helpers.find_task_commits
 commit_changed_files = _git_helpers.commit_changed_files
 task_referenced_paths = _git_helpers.task_referenced_paths
+task_referenced_basenames = _git_helpers.task_referenced_basenames
+filter_commits_by_block_overlap = _git_helpers.filter_commits_by_block_overlap
 iter_branch_auto_stashes = _git_helpers.iter_branch_auto_stashes
 _GENERATED_LOCKFILES = _git_helpers.GENERATED_LOCKFILES
 
@@ -84,6 +86,48 @@ def _run_tusk_subcommand(tusk_bin: str, args: list[str]) -> subprocess.Completed
             return subprocess.CompletedProcess(cmd, 127, stdout="", stderr=message)
 
 
+_MIGRATE_REGISTRY_RE = re.compile(r"^\s*\((\d+),\s*migrate_\d+\)", re.MULTILINE)
+
+
+def _bin_supports_schema(tusk_bin: str, required_version: int) -> bool:
+    """Return True iff <tusk_bin>'s sibling tusk-migrate.py knows about >= required_version.
+
+    Mirrors bin/tusk's ``preflight_schema_version`` logic in Python so
+    ``_resolve_stable_tusk_bin`` can avoid handing back a binary that bin/tusk's
+    preflight would reject (issue #866). Returns True when no tusk-migrate.py
+    exists next to ``tusk_bin`` or when the registry has no parseable entries —
+    bash's preflight returns 0 in those cases too, so there is no schema-grounds
+    reason to disqualify the binary.
+    """
+    migrate_py = os.path.join(os.path.dirname(tusk_bin), "tusk-migrate.py")
+    if not os.path.isfile(migrate_py):
+        return True
+    try:
+        with open(migrate_py, encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return True
+    versions = [int(m) for m in _MIGRATE_REGISTRY_RE.findall(text)]
+    if not versions:
+        return True
+    return max(versions) >= required_version
+
+
+def _db_user_version(db_path: str) -> int | None:
+    """Read ``PRAGMA user_version``. Returns None on any sqlite error or empty result."""
+    try:
+        conn = sqlite3.connect(db_path)
+        try:
+            row = conn.execute("PRAGMA user_version").fetchone()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return None
+    if not row or row[0] is None:
+        return None
+    return int(row[0])
+
+
 def _resolve_stable_tusk_bin(db_path: str, fallback: str) -> str:
     """Resolve a primary-install tusk binary that survives task-worktree cleanup.
 
@@ -104,20 +148,53 @@ def _resolve_stable_tusk_bin(db_path: str, fallback: str) -> str:
     — otherwise the schema preflight reads the stale ``.claude/bin/tusk-migrate.py``
     and refuses the post-push session-close / task-done subprocess calls with a
     misleading "Run 'tusk upgrade' to update" diagnostic.
+
+    Schema-aware fallback (issue #866): the no-checkout fast-forward path pushes
+    to ``origin/<default>`` without advancing local ``<default>``, so primary's
+    ``bin/tusk-migrate.py`` can stay at vN even after a worktree authored
+    migration N+1. ``_maybe_fall_back_on_schema_mismatch`` interposes one extra
+    check: if the chosen primary binary's ``tusk-migrate.py`` does not know
+    about the DB's current ``PRAGMA user_version`` AND ``fallback``'s does, use
+    ``fallback`` (typically the worktree-local ``bin/tusk`` that just authored
+    the migration). The worktree's binary is alive during the post-push
+    session-close / task-done calls — only post-merge cleanup risks removing
+    it, and that runs strictly after these subprocess calls (issue #846).
     """
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
     source_repo_bin = os.path.join(repo_root, "bin", "tusk")
     source_repo_migrate = os.path.join(repo_root, "bin", "tusk-migrate.py")
     if os.path.exists(source_repo_bin) and os.path.exists(source_repo_migrate):
         if os.path.realpath(source_repo_bin) != os.path.realpath(fallback):
-            return source_repo_bin
+            return _maybe_fall_back_on_schema_mismatch(source_repo_bin, fallback, db_path)
         return fallback
     for candidate in (
         os.path.join(repo_root, ".claude", "bin", "tusk"),
         os.path.join(repo_root, "tusk", "bin", "tusk"),
     ):
         if os.path.exists(candidate) and os.path.realpath(candidate) != os.path.realpath(fallback):
-            return candidate
+            return _maybe_fall_back_on_schema_mismatch(candidate, fallback, db_path)
+    return fallback
+
+
+def _maybe_fall_back_on_schema_mismatch(primary: str, fallback: str, db_path: str) -> str:
+    """Return ``fallback`` when ``primary``'s tusk-migrate.py is behind the DB schema
+    and ``fallback``'s is not. See ``_resolve_stable_tusk_bin`` for the issue #866
+    context. Emits a single stderr line when the fallback path fires so the operator
+    can correlate the behavior with a pending migration.
+    """
+    required = _db_user_version(db_path)
+    if required is None:
+        return primary
+    if _bin_supports_schema(primary, required):
+        return primary
+    if not _bin_supports_schema(fallback, required):
+        return primary
+    print(
+        f"tusk: primary install binary {primary} does not support DB schema "
+        f"v{required}; using worktree-local binary {fallback} for post-merge "
+        "subprocess calls (issue #866).",
+        file=sys.stderr,
+    )
     return fallback
 
 
@@ -179,6 +256,60 @@ def _worktree_path_for_branch(branch: str) -> str | None:
                 continue
             return listed_path
     return None
+
+
+def _rebase_in_feature_worktree(
+    worktree_path: str,
+    branch_name: str,
+    rebase_target: str,
+    task_id: int,
+    did_stash: bool,
+) -> int:
+    """Rebase ``branch_name`` onto ``rebase_target`` from inside its linked worktree.
+
+    Used when the feature branch lives in a task worktree (the normal /tusk
+    flow). The primary checkout cannot ``git checkout`` the feature branch in
+    that case — git refuses with "is already used by worktree at <path>"
+    (issue #858). Running the rebase via ``git -C <worktree_path>`` updates
+    refs/heads/<branch_name> in place; the primary checkout's HEAD stays on
+    the default branch, so no checkout dance is needed.
+
+    Returns 0 on a clean rebase, 2 on rebase failure. On failure the recovery
+    hint surfaces the feature worktree path so the operator knows where to
+    ``cd`` to resolve conflicts (the rebase-in-progress state lives there,
+    not in the primary checkout).
+    """
+    rebase_result = run(
+        ["git", "-C", worktree_path, "rebase", rebase_target], check=False
+    )
+    if rebase_result.returncode == 0:
+        return 0
+    if rebase_result.stderr.strip():
+        print(rebase_result.stderr.strip(), file=sys.stderr)
+    stash_note = ""
+    if did_stash:
+        stash_note = (
+            f"\nNote: your pre-merge working-tree changes are saved in stash "
+            f"entry 'tusk-merge: auto-stash for TASK-{task_id}' in the primary "
+            "checkout. Restore them with `git stash list` + `git stash pop <ref>` "
+            "after the rebase completes."
+        )
+    print(
+        f"Error: git -C {worktree_path} rebase {rebase_target} failed — "
+        "conflicts must be resolved manually.\n"
+        f"The rebase-in-progress state lives in the feature worktree, NOT the "
+        f"primary checkout. To finish:\n"
+        f"  1. cd {worktree_path}\n"
+        "  2. Fix the conflicting files (git status lists them)\n"
+        "  3. git add <resolved files>\n"
+        "  4. git rebase --continue\n"
+        "  5. Repeat steps 2–4 until the rebase completes\n"
+        f"  6. Re-run: tusk merge {task_id} --rebase\n"
+        "To abort the rebase and return to the pre-rebase state:\n"
+        f"  cd {worktree_path} && git rebase --abort{stash_note}",
+        file=sys.stderr,
+    )
+    return 2
 
 
 def _local_default_unpushed_commits(default_branch: str) -> list[tuple[str, str]] | None:
@@ -557,9 +688,288 @@ def _detect_id_gaps(db_path: str, task_id: int) -> list[int]:
         return []
 
 
+def _maybe_refresh_deployed_bin(db_path: str, tusk_bin: str) -> bool:
+    """Auto-refresh the primary's .claude/bin/ when it has drifted from bin/.
+
+    Source-repo only: silent no-op unless both `bin/tusk-*.py` and the deployed
+    cache at `.claude/bin/` exist in the primary checkout. The gate is content
+    drift between matching pairs, not what the just-completed merge touched —
+    this is self-healing (catches any stale state, not only this merge's) and
+    works regardless of which merge path ran (ff, rebase, PR squash, no-checkout).
+
+    Returns True when drift was detected and `tusk dev-sync` was invoked
+    (regardless of dev-sync's exit code — a failed refresh still emitted a
+    stderr advisory, which is what the no-checkout caller routes on to avoid
+    a contradictory follow-up). Returns False on silent no-op paths (env-var
+    disable, missing layout, no drift).
+
+    Disable explicitly with TUSK_NO_DEPLOYED_BIN_REFRESH=1.
+    """
+    if os.environ.get("TUSK_NO_DEPLOYED_BIN_REFRESH") == "1":
+        return False
+    from pathlib import Path
+    primary_root = Path(os.path.dirname(os.path.dirname(os.path.abspath(db_path))))
+    src_bin = primary_root / "bin"
+    dst_bin = primary_root / ".claude" / "bin"
+    if not src_bin.is_dir() or not dst_bin.is_dir():
+        return False
+    drifted = []
+    try:
+        for src_file in sorted(src_bin.glob("tusk-*.py")):
+            dst_file = dst_bin / src_file.name
+            if not dst_file.is_file() or src_file.read_bytes() != dst_file.read_bytes():
+                drifted.append(src_file.name)
+        src_wrapper = src_bin / "tusk"
+        dst_wrapper = dst_bin / "tusk"
+        if (src_wrapper.is_file() and dst_wrapper.is_file()
+                and src_wrapper.read_bytes() != dst_wrapper.read_bytes()):
+            drifted.append("tusk")
+    except OSError:
+        return False
+    if not drifted:
+        return False
+    result = subprocess.run(
+        [tusk_bin, "dev-sync"],
+        cwd=str(primary_root),
+        capture_output=True, text=True, encoding="utf-8", check=False,
+    )
+    if result.returncode == 0:
+        print(
+            f"tusk: auto-refreshed .claude/bin/ — {len(drifted)} file(s) drifted "
+            f"({', '.join(drifted[:3])}{'...' if len(drifted) > 3 else ''})",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            f"tusk: auto-refresh of .claude/bin/ failed ({len(drifted)} file(s) drifted) — "
+            f"run `tusk dev-sync` manually. stderr: {result.stderr.strip()[:200]}",
+            file=sys.stderr,
+        )
+    return True
+
+
+def _maybe_advise_stale_deployed_bin(
+    db_path: str, refresh_fired: bool = False,
+) -> None:
+    """Advise the operator that .claude/bin/ may be stale after a no-checkout merge.
+
+    The no-checkout fast-forward path pushes to origin/<default> without updating
+    primary's working tree, so _maybe_refresh_deployed_bin sees zero drift between
+    primary's bin/ and primary's .claude/bin/ — both stay at primary's pre-merge
+    content. The deployed cache remains stale relative to origin/<default> until
+    the operator pulls primary (issue #865).
+
+    When ``refresh_fired`` is True, the auto-refresh helper just announced that
+    it synced .claude/bin/ from primary's bin/. Keeping the original
+    ".claude/bin/ may be stale ... run tusk dev-sync" wording immediately after
+    that line reads as a contradiction (issue #869); reframe the message around
+    primary's working tree being behind origin (the actual remaining state) so
+    the two lines are coherent. The recovery command is unchanged — after the
+    user pulls, primary's bin/ moves ahead of .claude/bin/ again and dev-sync
+    re-deploys.
+
+    Emits a single stderr line naming the recovery command. Wording adapts to
+    primary's working-tree state: clean → plain `git pull && tusk dev-sync`;
+    dirty → add a stash-first note. Gated identically to _maybe_refresh_deployed_bin
+    (source-repo layout — both bin/ and .claude/bin/ must exist in primary; honors
+    TUSK_NO_DEPLOYED_BIN_REFRESH=1 as the single off-switch).
+    """
+    if os.environ.get("TUSK_NO_DEPLOYED_BIN_REFRESH") == "1":
+        return
+    from pathlib import Path
+    primary_root = Path(os.path.dirname(os.path.dirname(os.path.abspath(db_path))))
+    src_bin = primary_root / "bin"
+    dst_bin = primary_root / ".claude" / "bin"
+    if not src_bin.is_dir() or not dst_bin.is_dir():
+        return
+    status = run(
+        ["git", "-C", str(primary_root), "status", "--porcelain"], check=False,
+    )
+    if status.returncode != 0:
+        return
+    working_tree_clean = not status.stdout.strip()
+    if refresh_fired:
+        if working_tree_clean:
+            print(
+                "tusk: primary's working tree is behind origin — this no-checkout "
+                f"merge updated the remote only. Run `git pull && tusk dev-sync` in {primary_root} "
+                "when convenient.",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                "tusk: primary's working tree is behind origin — this no-checkout "
+                "merge updated the remote only. Stash or commit local changes in "
+                f"{primary_root}, then run `git pull && tusk dev-sync`.",
+                file=sys.stderr,
+            )
+    elif working_tree_clean:
+        print(
+            "tusk: .claude/bin/ may be stale — primary's working tree was not "
+            "updated by this no-checkout merge. Run `git pull && tusk dev-sync` "
+            f"in {primary_root} when convenient.",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            "tusk: .claude/bin/ may be stale — primary's working tree was not "
+            "updated by this no-checkout merge. Stash or commit local changes in "
+            f"{primary_root}, then run `git pull && tusk dev-sync`.",
+            file=sys.stderr,
+        )
+
+
+def _stamp_merge_commit_sha(
+    db_path: str, task_id: int, merge_commit_sha: str | None,
+    merge_base_sha: str | None = None,
+) -> None:
+    """Best-effort write of the merge commit (and base) SHA onto the tasks row.
+
+    Consumed by ``bin/tusk-task-summary.py``'s ``fetch_diff`` fast-path so the
+    3-tier ref/criterion-hash/fsck recovery chain (issues #757/#797/#812/#816/
+    #820/#822/#827/#845) is unneeded for tasks closed via merge after
+    migration 70. Legacy tasks without a stamped SHA fall through to the
+    existing recovery chain. Issue #849.
+
+    ``merge_base_sha`` (migration 72, TASK-452) is stamped alongside the tip
+    SHA for fast-forward and no-checkout fast-forward push paths so the
+    fast-path can run ``git log --first-parent --numstat <base>..<tip>``
+    instead of ``git show --numstat <tip>``. Without it, multi-commit ff
+    merges only reported the tip commit's numstat (TASK-451 closeout
+    surfaced this against TASK-454's own merge stats). PR squash callers
+    leave ``merge_base_sha`` as None — the squash flattens everything to
+    one commit, so ``git show`` already gives correct stats.
+
+    Best-effort by design: any write failure emits a single stderr warning
+    and returns; never aborts the merge close-out path. Pre-migration DBs
+    lacking the column (defensive — ``tusk merge`` runs ``tusk migrate``
+    first so this branch is unreachable in practice) skip silently.
+    """
+    if not merge_commit_sha:
+        return
+    try:
+        conn = get_connection(db_path)
+    except sqlite3.Error as exc:
+        print(
+            f"Warning: could not open DB to stamp tasks.merge_commit_sha for "
+            f"TASK-{task_id}: {exc}",
+            file=sys.stderr,
+        )
+        return
+    try:
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(tasks)").fetchall()}
+        if "merge_commit_sha" not in cols:
+            return
+        if "merge_base_sha" in cols:
+            conn.execute(
+                "UPDATE tasks SET merge_commit_sha = ?, merge_base_sha = ? "
+                "WHERE id = ?",
+                (merge_commit_sha, merge_base_sha, task_id),
+            )
+        else:
+            # Pre-migration-72 DB: stamp only the tip. Defensive — tusk
+            # merge runs tusk migrate first so this branch is unreachable
+            # in practice. Caller's merge_base_sha is silently dropped.
+            conn.execute(
+                "UPDATE tasks SET merge_commit_sha = ? WHERE id = ?",
+                (merge_commit_sha, task_id),
+            )
+        conn.commit()
+    except sqlite3.Error as exc:
+        print(
+            f"Warning: failed to stamp tasks.merge_commit_sha for "
+            f"TASK-{task_id} ({merge_commit_sha[:7]}): {exc}",
+            file=sys.stderr,
+        )
+    finally:
+        conn.close()
+
+
+def _resolve_merge_commit_sha_pr(pr_number: int) -> str | None:
+    """Query ``gh pr view <pr> --json mergeCommit`` for the squash SHA.
+
+    Returns the full 40-char SHA or None if gh is missing, the call fails,
+    or the response lacks a mergeCommit oid (e.g. the PR is not yet merged
+    on GitHub's side at the time we query). Best-effort — the stamp itself
+    is best-effort too, so any failure here just leaves the column NULL
+    and ``fetch_diff`` falls through to the existing recovery chain.
+    """
+    try:
+        result = subprocess.run(
+            ["gh", "pr", "view", str(pr_number), "--json", "mergeCommit"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0:
+        return None
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+    merge_commit = payload.get("mergeCommit") or {}
+    oid = merge_commit.get("oid")
+    if isinstance(oid, str) and oid:
+        return oid
+    return None
+
+
+def _resolve_local_ref_sha(ref: str) -> str | None:
+    """Return ``git rev-parse <ref>`` output, or None on any failure.
+
+    Used by the merge-close paths to capture the SHA that lands on the
+    default branch (HEAD after ff-merge; branch_name tip for the
+    no-checkout push since that path doesn't switch HEAD).
+    """
+    result = run(["git", "rev-parse", ref], check=False)
+    if result.returncode != 0:
+        return None
+    sha = result.stdout.strip()
+    return sha or None
+
+
+def _resolve_merge_base(feature_branch: str, default_branch: str) -> str | None:
+    """Return the merge-base of ``feature_branch`` and origin/<default_branch>.
+
+    Captured **before** the merge so the fast-forward and no-checkout push
+    paths can stamp the parent of the first task commit on the feature
+    branch — the base for the range-aware ``git log <base>..<tip>``
+    fast-path consumed by ``bin/tusk-task-summary.py``. Migration 72
+    follow-up to TASK-451 (issue #849).
+
+    Tries ``origin/<default_branch>`` first because that's the actual ref
+    the merge will fast-forward against; falls back to the local
+    ``<default_branch>`` ref when origin isn't reachable (the no-checkout
+    push path already issues a ``git fetch origin`` so the remote ref is
+    fresh in that flow). Returns None on any failure — caller stamps NULL
+    base and ``fetch_diff`` falls through to ``git show <tip>`` for that
+    row (correct for single-commit task work; understates multi-commit).
+    """
+    for ref in (f"origin/{default_branch}", default_branch):
+        result = run(["git", "merge-base", ref, feature_branch], check=False)
+        if result.returncode == 0:
+            sha = result.stdout.strip()
+            if sha:
+                return sha
+    return None
+
+
 def _close_completed_task(
-    tusk_bin: str, task_id: int, db_path: str, session_was_closed: bool
+    tusk_bin: str, task_id: int, db_path: str, session_was_closed: bool,
+    merge_commit_sha: str | None = None,
+    merge_base_sha: str | None = None,
 ) -> int:
+    # Stamp the merge SHAs before task-done flips the row to Done. The stamp
+    # is best-effort: a write failure logs a warning but does NOT abort the
+    # close-out, so the existing fetch_diff recovery chain still handles
+    # diff retrieval for tasks whose stamp didn't land (issue #849).
+    # merge_base_sha is set by the ff and no-checkout paths so the fast-path
+    # can run a range query; PR squash passes None (the single squash SHA
+    # is sufficient for git show). Migration 72, TASK-452.
+    _stamp_merge_commit_sha(db_path, task_id, merge_commit_sha, merge_base_sha)
     # Pass --force up front so task-done emits "Warning:" (not "Error:") for
     # criteria that legitimately lack a commit hash. The user has explicitly
     # chosen to ship the merge, so implicit --force on close is consistent with
@@ -754,6 +1164,18 @@ def _complete_no_checkout_fast_forward(
             if did_stash:
                 _try_pop_stash(task_id)
             return 2
+    # Capture the merge-base BEFORE the push. After the push, git updates
+    # refs/remotes/origin/<default_branch> to branch_name's tip, which
+    # would collapse the merge-base to the tip and lose the range. The
+    # local <default_branch> ref is unchanged by the no-checkout flow
+    # (that's the whole reason we're here — the worktree holding default
+    # is locked) so it remains a stable pre-push base reference if the
+    # remote-tracking ref is stale or origin-relative resolution fails.
+    # In --rebase mode this runs after the rebase, so branch_name now
+    # descends directly from origin/<default_branch>'s tip and the
+    # merge-base equals that tip (= parent of the first task commit on
+    # the rebased branch). Migration 72, TASK-452.
+    pre_push_merge_base_sha = _resolve_merge_base(branch_name, default_branch)
     if _origin_already_contains(branch_name, default_branch):
         print(
             f"Note: origin/{default_branch} already contains {branch_name}'s "
@@ -825,8 +1247,39 @@ def _complete_no_checkout_fast_forward(
     # under the still-pending subprocess invocation and the task stays In
     # Progress with a "Missing executable" diagnostic. The cleanup itself
     # (issue #765) still runs on success; only the ordering is reversed.
-    rc = _close_completed_task(tusk_bin, task_id, db_path, session_was_closed)
+    # Capture the SHA that landed on origin/<default_branch> before the
+    # feature branch is deleted by _cleanup_no_checkout_workspace below.
+    # branch_name's tip equals the SHA the push deposited on the destination
+    # ref (no-checkout pushes don't rewrite SHAs; the local branch is the
+    # source of truth). Issue #849.
+    merge_commit_sha = _resolve_local_ref_sha(branch_name)
+    # Use the pre-push merge-base captured above. Re-resolving here would
+    # collapse to the tip because origin/<default_branch> got advanced by
+    # the push. Migration 72, TASK-452.
+    rc = _close_completed_task(
+        tusk_bin, task_id, db_path, session_was_closed,
+        merge_commit_sha=merge_commit_sha,
+        merge_base_sha=pre_push_merge_base_sha,
+    )
+    # Refresh BEFORE cleanup: dev-sync shells out via tusk_bin, which may
+    # resolve to the worktree's own bin/ in source-repo layouts where neither
+    # primary's .claude/bin/tusk nor tusk/bin/tusk exists; cleanup removes that
+    # worktree and would invalidate the path mid-call.
+    # Gate on rc == 0 to preserve original behavior: the refresh used to live
+    # inside _close_completed_task's success branches only, never on the
+    # task-done error path.
+    refreshed = False
+    if rc == 0:
+        refreshed = _maybe_refresh_deployed_bin(db_path, tusk_bin)
     _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
+    # The auto-refresh above compares primary's bin/ against primary's
+    # .claude/bin/, but the no-checkout path never updates primary's working
+    # tree — so any drift here was pre-existing, not caused by this merge.
+    # When refresh fired, the advisory below reframes around primary's working
+    # tree being behind origin (issue #869) instead of repeating the
+    # ".claude/bin/ may be stale, run dev-sync" line that the refresh has
+    # already addressed.
+    _maybe_advise_stale_deployed_bin(db_path, refresh_fired=refreshed)
     return rc
 
 
@@ -1677,6 +2130,20 @@ def main(argv: list[str]) -> int:
                 _try_pop_stash(task_id)
             return 2
 
+    # Captured at each merge path; passed to _close_completed_task so the
+    # tasks.merge_commit_sha column gets stamped before task-done flips the
+    # row to Done. Best-effort — None falls through to the existing
+    # fetch_diff recovery chain (issue #849).
+    merge_commit_sha: str | None = None
+    # merge_base_sha is set only on the ff path (and the no-checkout path
+    # captures its own pre-push value inline) so fetch_diff can run
+    # `git log --first-parent --numstat <base>..<tip>` across all N task
+    # commits instead of `git show --numstat <tip>` which only sees the
+    # last commit. PR squash leaves base None — the squash flattens
+    # everything to one commit, so the single-SHA path is already
+    # correct. Migration 72, TASK-452.
+    merge_base_sha: str | None = None
+
     if use_pr:
         # PR mode: delegate to gh pr merge
         print(f"Merging PR #{pr_number} via gh...", file=sys.stderr)
@@ -1689,6 +2156,10 @@ def main(argv: list[str]) -> int:
             return 2
         if result.stdout.strip():
             print(result.stdout.strip(), file=sys.stderr)
+        # Query gh for the squash SHA created on the default branch. The
+        # local repo doesn't reflect this commit (gh does the merge on the
+        # GitHub side); querying gh is the only deterministic source.
+        merge_commit_sha = _resolve_merge_commit_sha_pr(pr_number)
     else:
         # Local mode: ff-only merge
         if default_branch is None:
@@ -1902,16 +2373,39 @@ def main(argv: list[str]) -> int:
                 )
                 task_on_default = False
             else:
-                _matched_files = commit_changed_files(
-                    _matched_default_commits, _repo_root
-                )
+                # Centralized scope-filter (issue #855): the binary
+                # "any matched commit in scope?" decision is invariant to
+                # block grouping, so we pass a singleton-block parent map
+                # and per-commit files (preserves the existing mockable
+                # commit_changed_files surface in tests). fallthrough=False
+                # opts into "empty kept → override" semantics; the helper
+                # still returns commits unchanged when the task has no
+                # scope signal, so the high-confidence path fires there.
+                # Pass a populated task_basenames set so descriptions that
+                # name a touched file by bare basename (issue #670) still
+                # land in the high-confidence path — passing set() here
+                # would silently suppress the basename leg of the match.
+                _commit_files = {
+                    sha: commit_changed_files([sha], _repo_root)
+                    for sha in _matched_default_commits
+                }
+                _commit_parents = {sha: [] for sha in _matched_default_commits}
                 _conn = get_connection(_db_path)
                 try:
                     _task_paths = set(task_referenced_paths(task_id, _conn))
+                    _task_basenames = set(task_referenced_basenames(task_id, _conn))
+                    _kept = filter_commits_by_block_overlap(
+                        _matched_default_commits, task_id, _repo_root, _conn,
+                        commit_files=_commit_files,
+                        commit_parents=_commit_parents,
+                        task_paths=_task_paths,
+                        task_basenames=_task_basenames,
+                        fallthrough=False,
+                    )
                 finally:
                     _conn.close()
                 _sha_list = " ".join(s[:7] for s in _matched_default_commits)
-                if _task_paths and not (_task_paths & _matched_files):
+                if not _kept:
                     print(
                         f"Note: TASK-{task_id} — matched [TASK-{task_id}] commits "
                         f"on {default_branch} ({_sha_list}) don't overlap with this "
@@ -1952,70 +2446,107 @@ def main(argv: list[str]) -> int:
                     if did_stash:
                         _try_pop_stash(task_id)
                     return 2
-            print(f"Rebasing {branch_name} onto {rebase_target}...", file=sys.stderr)
-            # Switch to feature branch — move db files aside first (same pattern as above)
-            for src, dst in zip(db_siblings, db_tmp):
-                if os.path.exists(src):
-                    os.rename(src, dst)
-            co_result = run(["git", "checkout", branch_name], check=False)
-            for src, dst in zip(db_siblings, db_tmp):
-                if os.path.exists(dst):
-                    os.rename(dst, src)
-            if co_result.returncode != 0:
+            # Issue #858: when the feature branch lives in a task worktree (the
+            # normal /tusk flow), git refuses to check it out in the primary repo
+            # ("is already used by worktree at <path>"). _worktree_path_for_branch
+            # already enumerates linked worktrees for the ff-only path — consult it
+            # before swapping HEAD and, when a path is returned, rebase via
+            # `git -C <worktree_path>` instead. The primary checkout stays on
+            # default; the feature branch's ref is still updated, so the
+            # subsequent ff-only merge picks up the new tip without any
+            # checkout dance.
+            feature_worktree_path = _worktree_path_for_branch(branch_name)
+            if feature_worktree_path:
                 print(
-                    f"Error: git checkout {branch_name} failed:\n{co_result.stderr.strip()}",
+                    f"Rebasing {branch_name} onto {rebase_target} from worktree "
+                    f"{feature_worktree_path} (issue #858)...",
                     file=sys.stderr,
                 )
-                run(["git", "checkout", default_branch], check=False)
-                if did_stash:
-                    _try_pop_stash(task_id)
-                return 2
-
-            rebase_result = run(["git", "rebase", rebase_target], check=False)
-            if rebase_result.returncode != 0:
-                if rebase_result.stderr.strip():
-                    print(rebase_result.stderr.strip(), file=sys.stderr)
-                stash_note = ""
-                if did_stash:
-                    stash_note = (
-                        f"\nNote: your pre-merge working-tree changes are saved in stash "
-                        f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
-                        "Restore them with `git stash list` + `git stash pop <ref>` "
-                        "after the rebase completes."
+                worktree_rebase_rc = _rebase_in_feature_worktree(
+                    feature_worktree_path,
+                    branch_name,
+                    rebase_target,
+                    task_id,
+                    did_stash,
+                )
+                if worktree_rebase_rc != 0:
+                    if did_stash:
+                        _try_pop_stash(task_id)
+                    return worktree_rebase_rc
+                # Skip the checkout/in-place-rebase/checkout-back dance entirely
+                # and fall through to the ff-only merge below.
+            else:
+                print(f"Rebasing {branch_name} onto {rebase_target}...", file=sys.stderr)
+                # Switch to feature branch — move db files aside first (same pattern as above)
+                for src, dst in zip(db_siblings, db_tmp):
+                    if os.path.exists(src):
+                        os.rename(src, dst)
+                co_result = run(["git", "checkout", branch_name], check=False)
+                for src, dst in zip(db_siblings, db_tmp):
+                    if os.path.exists(dst):
+                        os.rename(dst, src)
+                if co_result.returncode != 0:
+                    print(
+                        f"Error: git checkout {branch_name} failed:\n{co_result.stderr.strip()}",
+                        file=sys.stderr,
                     )
-                print(
-                    f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
-                    f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
-                    "  1. Fix the conflicting files (git status lists them)\n"
-                    "  2. git add <resolved files>\n"
-                    "  3. git rebase --continue\n"
-                    "  4. Repeat steps 1–3 until the rebase completes\n"
-                    f"  5. Re-run: tusk merge {task_id}\n"
-                    "To abort the rebase and return to the pre-rebase state:\n"
-                    f"  git rebase --abort{stash_note}",
-                    file=sys.stderr,
-                )
-                return 2
+                    run(["git", "checkout", default_branch], check=False)
+                    if did_stash:
+                        _try_pop_stash(task_id)
+                    return 2
 
-            # Rebase succeeded — switch back to default branch for ff-only merge
-            for src, dst in zip(db_siblings, db_tmp):
-                if os.path.exists(src):
-                    os.rename(src, dst)
-            co_back = run(["git", "checkout", default_branch], check=False)
-            for src, dst in zip(db_siblings, db_tmp):
-                if os.path.exists(dst):
-                    os.rename(dst, src)
-            if co_back.returncode != 0:
-                print(
-                    f"Error: git checkout {default_branch} failed after rebase:\n{co_back.stderr.strip()}",
-                    file=sys.stderr,
-                )
-                if did_stash:
-                    _try_pop_stash(task_id)
-                return 2
+                rebase_result = run(["git", "rebase", rebase_target], check=False)
+                if rebase_result.returncode != 0:
+                    if rebase_result.stderr.strip():
+                        print(rebase_result.stderr.strip(), file=sys.stderr)
+                    stash_note = ""
+                    if did_stash:
+                        stash_note = (
+                            f"\nNote: your pre-merge working-tree changes are saved in stash "
+                            f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
+                            "Restore them with `git stash list` + `git stash pop <ref>` "
+                            "after the rebase completes."
+                        )
+                    print(
+                        f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
+                        f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
+                        "  1. Fix the conflicting files (git status lists them)\n"
+                        "  2. git add <resolved files>\n"
+                        "  3. git rebase --continue\n"
+                        "  4. Repeat steps 1–3 until the rebase completes\n"
+                        f"  5. Re-run: tusk merge {task_id}\n"
+                        "To abort the rebase and return to the pre-rebase state:\n"
+                        f"  git rebase --abort{stash_note}",
+                        file=sys.stderr,
+                    )
+                    return 2
+
+                # Rebase succeeded — switch back to default branch for ff-only merge
+                for src, dst in zip(db_siblings, db_tmp):
+                    if os.path.exists(src):
+                        os.rename(src, dst)
+                co_back = run(["git", "checkout", default_branch], check=False)
+                for src, dst in zip(db_siblings, db_tmp):
+                    if os.path.exists(dst):
+                        os.rename(dst, src)
+                if co_back.returncode != 0:
+                    print(
+                        f"Error: git checkout {default_branch} failed after rebase:\n{co_back.stderr.strip()}",
+                        file=sys.stderr,
+                    )
+                    if did_stash:
+                        _try_pop_stash(task_id)
+                    return 2
 
         # Step 4 (cont): Fast-forward merge (skipped when task commit already on default)
         if not task_on_default:
+            # Capture the merge-base BEFORE the merge — afterwards
+            # default_branch and branch_name point at the same SHA, which
+            # would collapse merge-base to the tip and erase the range.
+            # In --rebase mode the rebase moved branch_name onto
+            # origin/<default>, so the merge-base equals origin/<default>'s
+            # tip = parent of the first (rebased) task commit. Migration 72.
+            merge_base_sha = _resolve_merge_base(branch_name, default_branch)
             result = _run_with_index_lock_retry(
                 ["git", "merge", "--ff-only", branch_name],
                 f"git merge --ff-only {branch_name}",
@@ -2034,6 +2565,12 @@ def main(argv: list[str]) -> int:
                 if did_stash:
                     _try_pop_stash(task_id)
                 return 2
+            # HEAD now points at the feature-branch tip on the default
+            # branch — that's the SHA fetch_diff will fast-path against.
+            # task_on_default short-circuits leave merge_commit_sha None and
+            # fall through to the existing recovery chain (the [TASK-N]
+            # commit is already reachable from default by definition).
+            merge_commit_sha = _resolve_local_ref_sha("HEAD")
 
         # Step 5: Push (skip when no remote is configured or unreachable)
         if has_origin:
@@ -2131,7 +2668,14 @@ def main(argv: list[str]) -> int:
     # explicit manual restore/drop commands.
     _warn_branch_auto_stash(task_id)
 
-    return _close_completed_task(tusk_bin, task_id, _db_path, session_was_closed)
+    rc = _close_completed_task(
+        tusk_bin, task_id, _db_path, session_was_closed,
+        merge_commit_sha=merge_commit_sha,
+        merge_base_sha=merge_base_sha,
+    )
+    if rc == 0:
+        _maybe_refresh_deployed_bin(_db_path, tusk_bin)
+    return rc
 
 
 if __name__ == "__main__":

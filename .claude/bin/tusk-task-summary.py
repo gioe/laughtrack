@@ -91,8 +91,7 @@ dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
 task_grep_arg = _git_helpers.task_grep_arg
 commit_changed_files = _git_helpers.commit_changed_files
-task_referenced_paths = _git_helpers.task_referenced_paths
-task_referenced_basenames = _git_helpers.task_referenced_basenames
+filter_commits_by_block_overlap = _git_helpers.filter_commits_by_block_overlap
 
 
 def _resolve_task_id(raw: str) -> int:
@@ -266,74 +265,6 @@ def fetch_duration(conn: sqlite3.Connection, task_id: int, identity: dict) -> di
     }
 
 
-def _filter_blocks_by_overlap(
-    commit_files: dict,
-    commit_parents: dict,
-    task_paths: set,
-    task_basenames: set | None = None,
-) -> dict:
-    """Group commits into connected components by parent chain, then keep
-    blocks whose aggregate file set overlaps ``task_paths`` (full-path
-    equality) or whose aggregate basename set overlaps ``task_basenames``
-    (issue #670).
-
-    Two grep-matched commits join the same block if one is a parent of the
-    other (i.e. they're contiguous in git history with no non-matched commit
-    between them). A block survives the filter when *any* of its commits
-    touches a path named in the task's scope signal — which means a VERSION
-    bump or new-file commit rides along on the back of the in-block commit
-    that actually names a referenced path. Genuine prefix collisions land in
-    their own block (no parent-child link to the legitimate work) and drop
-    out when their files don't overlap the scope signal.
-
-    Basename-level matching covers descriptions that name a file by bare
-    basename (e.g. ``FULL-RETRO.md`` instead of ``skills/retro/FULL-RETRO.md``)
-    — the strict full-path filter would otherwise drop every block when the
-    description happens to also name a sibling file by full path.
-    """
-    matched = set(commit_files.keys())
-    if not matched:
-        return commit_files
-
-    basenames = task_basenames or set()
-
-    parent: dict[str, str] = {sha: sha for sha in matched}
-
-    def find(x: str) -> str:
-        while parent[x] != x:
-            parent[x] = parent[parent[x]]
-            x = parent[x]
-        return x
-
-    def union(a: str, b: str) -> None:
-        ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[ra] = rb
-
-    for sha, parents in commit_parents.items():
-        if sha not in matched:
-            continue
-        for p in parents:
-            if p in matched:
-                union(sha, p)
-
-    blocks: dict[str, list[str]] = {}
-    for sha in matched:
-        blocks.setdefault(find(sha), []).append(sha)
-
-    kept: set[str] = set()
-    for block_shas in blocks.values():
-        block_files: set[str] = set()
-        for sha in block_shas:
-            for _, _, path in commit_files[sha]:
-                block_files.add(path)
-        block_basenames = {os.path.basename(p) for p in block_files}
-        if (block_files & task_paths) or (block_basenames & basenames):
-            kept.update(block_shas)
-
-    return {sha: rows for sha, rows in commit_files.items() if sha in kept}
-
-
 def _parse_numstat_blocks(stdout: str) -> tuple[dict, dict]:
     """Parse git numstat output emitted with ``--format=__COMMIT__ %H %P``."""
     commit_files: dict[str, list[tuple[str, str, str]]] = {}
@@ -460,36 +391,17 @@ def _emit_recovery_tier_diagnostic(tier_name: str) -> None:
 
 
 def _try_fetch_default_branch(repo_root: str) -> None:
-    """Best-effort ``git fetch origin <default>`` to refresh ``refs/remotes/origin/<default>``.
+    """Thin wrapper around ``tusk-git-helpers.try_fetch_default_branch``.
 
-    Used by ``fetch_diff`` when the initial ``git log --all --grep`` scan returns
-    nothing: after a no-checkout fast-forward push (``tusk merge`` from a sibling
-    worktree while the default branch is locked in the primary), the local
-    feature branch is deleted and the local default branch never advances. The
-    remote-tracking ref ``refs/remotes/origin/<default>`` SHOULD have been
-    advanced by the push, but several real-world environments report the
-    summarizing checkout still seeing the pre-push tip — collapsing diff stats
-    to ``0 commits / 0 files`` even though the commits exist on origin.
-
-    Silent on failure: a missing remote, network outage, or unknown default
-    branch must not abort the summary — we just continue with what we already
-    have. A 10s timeout guards against a hanging remote.
+    Kept as a module-level function (not an alias) so existing monkeypatch
+    points in ``tests/integration/test_task_summary_nocheckout_recovery.py``
+    continue to work — those tests do ``monkeypatch.setattr(mod,
+    "_try_fetch_default_branch", _spy)`` and the wrapper preserves the
+    module-attribute lookup that makes the rebind effective from within
+    ``fetch_diff`` (issue #848: the actual fetch logic is now shared with
+    ``tusk task-done`` via ``find_task_commits_with_recovery``).
     """
-    try:
-        default = _git_helpers.default_branch(repo_root)
-    except Exception:
-        return
-    try:
-        subprocess.run(
-            ["git", "fetch", "origin", default],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            cwd=repo_root,
-            timeout=10,
-        )
-    except (OSError, subprocess.SubprocessError):
-        pass
+    _git_helpers.try_fetch_default_branch(repo_root)
 
 
 def _unreachable_task_commits(task_id: int, repo_root: str) -> tuple[dict, dict]:
@@ -504,11 +416,10 @@ def _unreachable_task_commits(task_id: int, repo_root: str) -> tuple[dict, dict]
         via ``tusk task-done --force`` (so commit_hash is NULL), or the
         recorded commit_hash points to a pre-rebase SHA that's been GC'd
 
-    The commit object is still in the local object store: tusk merge's
-    no-checkout fast-forward push deposits it before removing the sibling
-    worktree, and ``git worktree remove`` does NOT prune objects from the
-    shared ``.git/objects`` directory. We just need to scan unreachable
-    objects and filter by the [TASK-<id>] commit-message prefix.
+    SHA discovery is delegated to ``find_unreachable_task_commits`` in
+    ``tusk-git-helpers.py`` (issue #848) so ``tusk task-done``'s auto-mark
+    can share the same fsck logic; the numstat fetch below stays here
+    because it is only meaningful for the diff-stats summary.
 
     Gated on the prior fallbacks producing nothing — ``git fsck`` walks the
     full object store and is O(objects), so paying this cost on the common
@@ -516,45 +427,7 @@ def _unreachable_task_commits(task_id: int, repo_root: str) -> tuple[dict, dict]
     fsck failures, no candidates, and grep failures all return empty so
     fetch_diff continues with zeros rather than aborting the summary.
     """
-    try:
-        fsck = subprocess.run(
-            ["git", "fsck", "--unreachable", "--no-reflogs"],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            cwd=repo_root,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return {}, {}
-    if fsck.returncode != 0:
-        return {}, {}
-
-    candidates = [
-        parts[2]
-        for parts in (line.split() for line in fsck.stdout.splitlines())
-        if len(parts) >= 3 and parts[0] == "unreachable" and parts[1] == "commit"
-    ]
-    if not candidates:
-        return {}, {}
-
-    # Single ``git log --no-walk`` filters candidates by the [TASK-<id>] grep
-    # without spawning a subprocess per SHA. ``task_grep_arg`` returns a BRE
-    # pattern (brackets escaped), so do NOT pass ``--fixed-strings``.
-    try:
-        filter_res = subprocess.run(
-            ["git", "log", "--no-walk", task_grep_arg(task_id), "--format=%H"]
-            + candidates,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            cwd=repo_root,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return {}, {}
-    if filter_res.returncode != 0:
-        return {}, {}
-
-    matching = [line.strip() for line in filter_res.stdout.splitlines() if line.strip()]
+    matching = _git_helpers.find_unreachable_task_commits(task_id, repo_root)
     if not matching:
         return {}, {}
 
@@ -577,6 +450,69 @@ def _unreachable_task_commits(task_id: int, repo_root: str) -> tuple[dict, dict]
         commit_files.update(files)
         commit_parents.update(parents)
     return commit_files, commit_parents
+
+
+def _fetch_diff_from_stamped_sha(
+    merge_commit_sha: str, repo_root: str,
+    merge_base_sha: str | None = None,
+) -> dict | None:
+    """Summarize the merge's numstat output from stamped SHAs.
+
+    Returns the same shape as ``_summarize_commit_files`` plus
+    ``recovered_via="stamped-sha"`` on success, or None when the git
+    invocation fails (missing object, corrupt repo). On None, the caller
+    falls through to the existing scan + recovery chain so the
+    stamped-but-unreachable case still produces stats. Issue #849.
+
+    Two modes, gated by whether ``merge_base_sha`` was stamped:
+
+    - **Range mode** (``merge_base_sha`` set and distinct from
+      ``merge_commit_sha``, migration 72, TASK-452): runs
+      ``git log --first-parent --numstat <base>..<tip>`` so a multi-commit
+      fast-forward or no-checkout fast-forward push reports cumulative
+      stats across every task commit on the branch — not just the tip
+      that ``tusk merge`` stamped as the "merge commit". Without this,
+      ``tusk task-summary`` understated multi-commit ff merges as 1
+      commit / last-commit numstat (TASK-451's own closeout flagged the
+      regression against TASK-454).
+
+    - **Single-SHA mode** (``merge_base_sha`` None, or equal to
+      ``merge_commit_sha``): runs ``git show --first-parent --numstat
+      <merge_commit_sha>`` — correct for PR squash merges (one commit
+      holds all task work) and for legacy pre-migration-72 rows where
+      only the tip was stamped. ``--first-parent`` ensures squash merges
+      don't double-count via the second parent.
+    """
+    if merge_base_sha and merge_base_sha != merge_commit_sha:
+        cmd = [
+            "git", "log", "--first-parent", "--numstat",
+            "--format=__COMMIT__ %H %P",
+            f"{merge_base_sha}..{merge_commit_sha}",
+        ]
+    else:
+        cmd = [
+            "git", "show", "--first-parent", "--numstat",
+            "--format=__COMMIT__ %H %P", merge_commit_sha,
+        ]
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            cwd=repo_root,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    commit_files, _ = _parse_numstat_blocks(result.stdout)
+    if not commit_files:
+        return None
+    summary = _summarize_commit_files(commit_files)
+    summary["recovered_via"] = "stamped-sha"
+    return summary
 
 
 def fetch_diff(
@@ -651,6 +587,45 @@ def fetch_diff(
         "lines_removed": 0,
         "recovered_via": None,
     }
+
+    # Fast-path: when ``tusk merge`` stamped tasks.merge_commit_sha at close
+    # time (migration 70, issue #849), short-circuit the ref/grep scan and
+    # the 3-tier recovery chain entirely. Migration 72 (TASK-452) added a
+    # companion ``merge_base_sha`` so the ff and no-checkout paths can run
+    # ``git log <base>..<tip>`` for cumulative multi-commit stats instead
+    # of ``git show <tip>`` (which only sees the last commit). PR squash
+    # rows continue to stamp base NULL and use the single-SHA path —
+    # one squash commit holds all task work, so ``git show`` is correct.
+    # Legacy pre-migration-70 tasks carry both NULLs and fall through to
+    # the existing scan + recovery chain unchanged.
+    if conn is not None:
+        try:
+            row = conn.execute(
+                "SELECT merge_commit_sha, merge_base_sha FROM tasks WHERE id = ?",
+                (task_id,),
+            ).fetchone()
+        except sqlite3.OperationalError:
+            # Pre-migration-72 DB: merge_base_sha column absent. Retry with
+            # the v70 column shape so the fast-path stays available; the
+            # absent base means single-SHA mode, identical to today.
+            try:
+                row = conn.execute(
+                    "SELECT merge_commit_sha FROM tasks WHERE id = ?",
+                    (task_id,),
+                ).fetchone()
+            except sqlite3.OperationalError:
+                row = None  # column absent on pre-migration-70 DBs
+        if row is not None:
+            keys = row.keys() if hasattr(row, "keys") else ()
+            stamped_sha = row["merge_commit_sha"] if "merge_commit_sha" in keys else row[0]
+            base_sha = row["merge_base_sha"] if "merge_base_sha" in keys else None
+            if stamped_sha:
+                fast_path = _fetch_diff_from_stamped_sha(
+                    stamped_sha, repo_root, merge_base_sha=base_sha,
+                )
+                if fast_path is not None:
+                    return fast_path
+
     cmd = [
         "git", "log", "--all",
         task_grep_arg(task_id),
@@ -722,21 +697,33 @@ def fetch_diff(
         _emit_recovery_tier_diagnostic(recovered_via)
 
     # Apply prefix-collision file-overlap heuristic (issue #656) at the
-    # block level (issue #663). A "block" is a connected component on the
-    # parent graph restricted to grep-matched commits — i.e. a contiguous
-    # run of [TASK-N] commits in git history. The block survives if any of
-    # its commits touch a referenced path.
+    # block level (issue #663) via the centralized helper (issue #855).
+    # A "block" is a connected component on the parent graph restricted to
+    # grep-matched commits — i.e. a contiguous run of [TASK-N] commits in
+    # git history. The block survives if any of its commits touch a
+    # referenced path (full path or basename, issue #670). Bare-basename
+    # tokens like ``FULL-RETRO.md`` are resolved inside the helper so they
+    # pull in commits touching e.g. skills/retro/FULL-RETRO.md. We pre-build
+    # a path-set view of ``commit_files`` (numstat tuples → paths) and pass
+    # the pre-fetched ``commit_parents`` so the helper does not re-issue
+    # the git log subprocess for parent resolution.
     if conn is not None and commit_files:
-        task_paths = set(task_referenced_paths(task_id, conn))
-        # Bare-basename tokens (issue #670) — descriptions like "FULL-RETRO.md"
-        # whose containing directory the author elided. Resolved at basename
-        # match level inside _filter_blocks_by_overlap so they pull in commits
-        # touching e.g. skills/retro/FULL-RETRO.md.
-        task_basenames = set(task_referenced_basenames(task_id, conn))
-        if task_paths or task_basenames:
-            commit_files = _filter_blocks_by_overlap(
-                commit_files, commit_parents, task_paths, task_basenames
-            )
+        commits = list(commit_files.keys())
+        cf_paths = {
+            sha: {path for (_a, _r, path) in rows}
+            for sha, rows in commit_files.items()
+        }
+        kept = filter_commits_by_block_overlap(
+            commits, task_id, repo_root, conn,
+            commit_files=cf_paths,
+            commit_parents=commit_parents,
+        )
+        kept_set = set(kept)
+        if kept_set != set(commits):
+            commit_files = {
+                sha: rows for sha, rows in commit_files.items()
+                if sha in kept_set
+            }
 
     result = _summarize_commit_files(commit_files)
     # Surface the recovery tier to JSON consumers (issue #852). The stderr

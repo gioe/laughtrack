@@ -3,11 +3,13 @@
 
 Given a task_id, determine the most meaningful git diff range for the review:
 
-    1. Primary range — ``origin/<default_branch>...HEAD`` when the
+    1. Primary range — ``origin/<default_branch>...<head_sha>`` when the
        remote-tracking default exists and is at least as current as the local
-       default, otherwise ``<default_branch>...HEAD``. The default branch name
-       is resolved by shelling out to ``tusk git-default-branch`` so the
+       default, otherwise ``<default_branch>...<head_sha>``. The default branch
+       name is resolved by shelling out to ``tusk git-default-branch`` so the
        remote-HEAD → gh → "main" detection stays in lockstep with the wrapper.
+       ``HEAD`` is resolved to its concrete commit SHA at stamp time so the
+       returned range is cwd-independent (issue #857).
     2. Fallback — if the primary range has an empty diff (e.g. the feature
        branch has already been merged into the default branch and deleted),
        scan ``git log`` for the 50 most recent commits whose message contains
@@ -28,7 +30,7 @@ Arguments received from tusk:
 
 Output JSON (stdout on success):
     {
-        "range": "<default>...HEAD" | "<sha>^..<sha>",
+        "range": "<default>...<head_sha>" | "<sha>^..<sha>",
         "diff_lines": <int>,
         "diff_lines_meaningful": <int>,
         "summary": "<first 120 chars of git diff output>",
@@ -74,8 +76,7 @@ _db_lib = tusk_loader.load("tusk-db-lib")
 dumps = _json_lib.dumps
 task_grep_arg = _git_helpers.task_grep_arg
 find_task_commits = _git_helpers.find_task_commits
-commit_changed_files = _git_helpers.commit_changed_files
-task_referenced_paths = _git_helpers.task_referenced_paths
+filter_commits_by_block_overlap = _git_helpers.filter_commits_by_block_overlap
 filter_lockfile_diff_sections = _git_helpers.filter_lockfile_diff_sections
 get_connection = _db_lib.get_connection
 
@@ -172,23 +173,45 @@ def primary_range(base: str, repo_root: str) -> str:
     return f"{base}...HEAD"
 
 
+def _resolve_head_sha(repo_root: str) -> str | None:
+    """Return ``HEAD``'s concrete commit SHA in *repo_root*, or ``None``."""
+    sha = _git_stdout(["rev-parse", "--verify", "HEAD"], repo_root)
+    return sha or None
+
+
+def _concretize_primary(primary: str, repo_root: str) -> str:
+    """Replace a trailing ``...HEAD`` in *primary* with the current HEAD SHA.
+
+    Issue #857: storing the symbolic ``origin/<base>...HEAD`` on
+    ``code_reviews.diff_range`` makes the validator's ``git diff`` cwd-
+    dependent — if ``tusk review begin`` runs in one checkout and
+    ``tusk review validate-comments`` in another, ``HEAD`` resolves to a
+    different commit and the stored range yields a different diff. Resolve
+    ``HEAD`` at stamp time so the returned range is cwd-independent. The
+    recovery path's ``<sha>^..<sha>`` form is already concrete and is not
+    routed through this helper. Falls back to the unmodified ``primary``
+    when ``rev-parse`` fails (e.g. detached-HEAD edge cases) — preserves
+    pre-fix behavior rather than failing the begin call.
+    """
+    if not primary.endswith("...HEAD"):
+        return primary
+    sha = _resolve_head_sha(repo_root)
+    if not sha:
+        return primary
+    return primary[: -len("HEAD")] + sha
+
+
 def _filter_commits_by_task_overlap(
     task_id: int, commits: list, repo_root: str, db_path: str | None
 ) -> list:
-    """Drop commits whose file diff doesn't overlap this task's referenced paths.
+    """Drop commits whose connected-component block doesn't overlap this task's scope signal.
 
-    Mirrors the prefix-collision file-overlap heuristic wired into
-    ``tusk merge`` (TASK-308) and ``tusk task-done`` (TASK-309). Without
-    the filter, a stray ``[TASK-<id>]``-tagged commit (recycled task ID
-    after a fresh DB init, fat-fingered commit message) would be folded
-    into the diff range and the reviewer agent would assess unrelated
-    code (issue #656).
-
-    Skipped when the task has no scope signal (no referenced paths), or
-    when the DB is unreachable — in either case there's no basis to
-    discriminate, so every commit is returned. Order is preserved so
-    callers can still take ``commits[0]`` as newest, ``commits[-1]`` as
-    oldest.
+    Thin caller-local wrapper around the shared
+    ``filter_commits_by_block_overlap`` helper in ``tusk-git-helpers.py``
+    (issue #855). Opens the DB connection here so the helper stays
+    connection-agnostic, then delegates the block-grouping + scope-match
+    logic to the centralized implementation. Returns *commits* unchanged
+    when the DB path is missing/unreachable.
     """
     if not commits or not db_path or not os.path.isfile(db_path):
         return list(commits)
@@ -197,12 +220,9 @@ def _filter_commits_by_task_overlap(
     except Exception:
         return list(commits)
     try:
-        task_paths = set(task_referenced_paths(task_id, conn))
+        return filter_commits_by_block_overlap(commits, task_id, repo_root, conn)
     finally:
         conn.close()
-    if not task_paths:
-        return list(commits)
-    return [sha for sha in commits if commit_changed_files([sha], repo_root) & task_paths]
 
 
 def _task_started_at(db_path: str | None, task_id: int) -> str | None:
@@ -341,7 +361,7 @@ def compute_range(
         )
         if primary_task_commits:
             return {
-                "range": primary,
+                "range": _concretize_primary(primary, repo_root),
                 "diff_lines": diff_lines,
                 "diff_lines_meaningful": _count_meaningful_lines(diff_out),
                 "summary": diff_out[:SUMMARY_CHARS],

@@ -2704,6 +2704,306 @@ def migrate_68(db_path: str, config_path: str, script_dir: str) -> None:
     _progress("  Migration 68: added task_workspaces table")
 
 
+def migrate_69(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add ``code_reviews.diff_range`` so the validator can reuse the
+    range resolved at review-begin time.
+
+    ``tusk review validate-comments`` previously re-derived the diff
+    range via ``compute_range``, which can drift from the range
+    ``tusk review begin`` recorded findings against (new commits land
+    between begin and validate; worktree-aware fallback resolves into a
+    different checkout). Valid findings on files in the original range
+    then got dismissed as fabrications via the ``(issue #783
+    fabrication guard)`` resolution note. Persisting the range on the
+    review row removes the drift entirely (issue #847).
+
+    Pre-migration rows stay NULL; the validator falls back to
+    ``compute_range`` only when ``diff_range IS NULL``, so historical
+    reviews keep their current behavior.
+    """
+    if get_version(db_path) >= 69:
+        _progress("  Migration 69: added code_reviews.diff_range column")
+        return
+
+    ddl_stmts = []
+    if not has_column(db_path, "code_reviews", "diff_range"):
+        ddl_stmts.append("ALTER TABLE code_reviews ADD COLUMN diff_range TEXT;")
+
+    script = "\n".join(ddl_stmts) + """
+        PRAGMA user_version = 69;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 69: added code_reviews.diff_range column")
+
+
+def migrate_70(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add ``tasks.merge_commit_sha`` and recreate tasks-dependent views.
+
+    ``tusk merge`` (default-branch ff, no-checkout fast-forward push, and
+    PR-squash paths) stamps the final merge commit SHA onto this column so
+    ``bin/tusk-task-summary.py``'s ``fetch_diff`` can fast-path to
+    ``git show --numstat <sha>`` instead of walking the 3-tier ref →
+    criterion-hash → fsck recovery chain (issues #757/#797/#812/#816/#820/
+    #822/#827/#845). The recovery chain still fires for legacy tasks closed
+    before this migration — ``merge_commit_sha`` stays NULL for those rows
+    and ``fetch_diff`` falls through unchanged. Issue #849.
+
+    Per the CLAUDE.md "Migrations" guidance: any ALTER TABLE tasks change
+    must also DROP+CREATE every view that projects ``t.*`` (column-list
+    freezing). The views recreated here mirror ``cmd_init``'s v70 shape
+    verbatim — that shape also carries ``WHERE t.bakeoff_shadow = 0``
+    introduced by migration 58.
+
+    Idempotent: column-add is guarded by ``has_column()``; view recreation
+    is DROP IF EXISTS + CREATE.
+    """
+    if get_version(db_path) >= 70:
+        _progress("  Migration 70: added tasks.merge_commit_sha and recreated tasks-dependent views")
+        return
+
+    if not has_column(db_path, "tasks", "merge_commit_sha"):
+        run_script(
+            db_path,
+            "ALTER TABLE tasks ADD COLUMN merge_commit_sha TEXT;",
+        )
+
+    script = """
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count,
+            (SELECT COUNT(*) FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status = 'To Do') as reopen_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        WHERE t.bakeoff_shadow = 0
+        GROUP BY t.id;
+
+        DROP VIEW IF EXISTS v_ready_tasks;
+        CREATE VIEW v_ready_tasks AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status = 'To Do'
+          AND t.bakeoff_shadow = 0
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_chain_heads;
+        CREATE VIEW v_chain_heads AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status <> 'Done'
+          AND t.bakeoff_shadow = 0
+          AND EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks downstream ON d.task_id = downstream.id
+            WHERE d.depends_on_id = t.id AND downstream.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_criteria_coverage;
+        CREATE VIEW v_criteria_coverage AS
+        SELECT t.id AS task_id,
+               t.summary,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) AS total_criteria,
+               COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS completed_criteria,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) - COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS remaining_criteria
+        FROM tasks t
+        LEFT JOIN acceptance_criteria ac ON ac.task_id = t.id
+        WHERE t.bakeoff_shadow = 0
+        GROUP BY t.id, t.summary;
+
+        PRAGMA user_version = 70;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 70: added tasks.merge_commit_sha and recreated tasks-dependent views")
+
+
+def migrate_71(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add ``plans`` table — flat subscription cost denominator for ROI.
+
+    Records the user's flat-rate subscription history (e.g. Claude Max,
+    ChatGPT Pro) so cost rollups can answer "what metered value did I
+    consume vs what I actually paid?". The companion time-windowed
+    metered rollup is issue #871; the dashboard ROI annotation is a
+    follow-up once both halves ship. Issue #873.
+
+    Multiple rows per ``name`` are allowed — repeated ``tusk plans set``
+    calls record subscription-cost changes over time. ``effective_from``
+    is required; ``effective_to`` NULL means the period is still open.
+    The ``(name, effective_from)`` index supports the date-range
+    selection helper that downstream ROI consumers will use.
+
+    Idempotent: table creation is guarded via ``sqlite_master`` lookup.
+    """
+    if get_version(db_path) >= 71:
+        _progress("  Migration 71: added plans table")
+        return
+
+    conn = sqlite3.connect(db_path)
+    try:
+        existing = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='plans'"
+        ).fetchone()
+    finally:
+        conn.close()
+
+    ddl_stmts = []
+    if not existing:
+        ddl_stmts.append(
+            """
+            CREATE TABLE plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                monthly_cost_dollars REAL NOT NULL CHECK (monthly_cost_dollars >= 0),
+                effective_from TEXT NOT NULL,
+                effective_to TEXT,
+                notes TEXT,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            CREATE INDEX idx_plans_name_effective ON plans(name, effective_from);
+            """
+        )
+
+    script = "\n".join(ddl_stmts) + """
+        PRAGMA user_version = 71;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 71: added plans table")
+
+
+def migrate_72(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add ``tasks.merge_base_sha`` and recreate tasks-dependent views.
+
+    Migration 70 stamped a single ``merge_commit_sha`` and gave
+    ``fetch_diff`` a fast-path of ``git show --numstat <sha>``. That works
+    for PR squash merges (one squash commit holds all task work) but
+    returns only the last commit's numstat for fast-forward and
+    no-checkout fast-forward push merges, where the stamp is the *tip* of
+    an N-commit feature branch. ``tusk merge`` now also captures the
+    pre-merge ``git merge-base`` and stamps it here; ``fetch_diff`` runs
+    ``git log --first-parent --numstat <merge_base_sha>..<merge_commit_sha>``
+    when both are present, so multi-commit ff merges report cumulative
+    stats. Legacy rows (NULL base) fall through to the single-SHA path
+    unchanged. PR squash continues to stamp NULL base — the existing
+    ``git show`` path is already correct for the single-commit case.
+    Issue #849 follow-up to TASK-451.
+
+    Per the CLAUDE.md "Migrations" guidance: any ALTER TABLE tasks change
+    must also DROP+CREATE every view that projects ``t.*`` (column-list
+    freezing under ALTER). The view shapes are unchanged from v71; we
+    just re-CREATE so the recreated views' column lists include the new
+    column on already-migrated DBs.
+
+    Idempotent: column-add is guarded by ``has_column()``; view
+    recreation is DROP IF EXISTS + CREATE.
+    """
+    if get_version(db_path) >= 72:
+        _progress("  Migration 72: added tasks.merge_base_sha and recreated tasks-dependent views")
+        return
+
+    if not has_column(db_path, "tasks", "merge_base_sha"):
+        run_script(
+            db_path,
+            "ALTER TABLE tasks ADD COLUMN merge_base_sha TEXT;",
+        )
+
+    script = """
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count,
+            (SELECT COUNT(*) FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status = 'To Do') as reopen_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        WHERE t.bakeoff_shadow = 0
+        GROUP BY t.id;
+
+        DROP VIEW IF EXISTS v_ready_tasks;
+        CREATE VIEW v_ready_tasks AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status = 'To Do'
+          AND t.bakeoff_shadow = 0
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_chain_heads;
+        CREATE VIEW v_chain_heads AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status <> 'Done'
+          AND t.bakeoff_shadow = 0
+          AND EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks downstream ON d.task_id = downstream.id
+            WHERE d.depends_on_id = t.id AND downstream.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_criteria_coverage;
+        CREATE VIEW v_criteria_coverage AS
+        SELECT t.id AS task_id,
+               t.summary,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) AS total_criteria,
+               COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS completed_criteria,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) - COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS remaining_criteria
+        FROM tasks t
+        LEFT JOIN acceptance_criteria ac ON ac.task_id = t.id
+        WHERE t.bakeoff_shadow = 0
+        GROUP BY t.id, t.summary;
+
+        PRAGMA user_version = 72;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 72: added tasks.merge_base_sha and recreated tasks-dependent views")
+
+
 # ── Migration registry ────────────────────────────────────────────────────────
 
 MIGRATIONS = [
@@ -2775,6 +3075,10 @@ MIGRATIONS = [
     (66, migrate_66),
     (67, migrate_67),
     (68, migrate_68),
+    (69, migrate_69),
+    (70, migrate_70),
+    (71, migrate_71),
+    (72, migrate_72),
 ]
 
 

@@ -17,6 +17,14 @@ get_connection = _db_lib.get_connection
 _json = tusk_loader.load("tusk-json-lib")
 dumps = _json.dumps
 
+# Canonical runtime artifacts auto-linked when `worktree.symlink_files` is
+# empty (issue #854). install.sh-only installs never run the project_type
+# auto-seed in `init-write-config`, leaving the list empty even for projects
+# that obviously need these files. The fallback links them anyway and prints
+# a stderr advisory pointing at /tusk-update so the implicit list can be made
+# explicit; `TUSK_NO_AUTO_SYMLINK=1` disables it.
+CANONICAL_RUNTIME_FILES = ["node_modules", ".venv", ".env", ".env.local"]
+
 
 def _list_workspaces(conn: sqlite3.Connection) -> list[dict]:
     return _list_workspaces_with_live_state(conn, {})
@@ -163,44 +171,90 @@ def _link_gitignored_files(
     worktree_path: str,
     names: list[str],
 ) -> list[dict]:
-    """Walk ``primary_root`` for files/dirs whose basename appears in ``names``
-    and create absolute-path symlinks at the corresponding paths under
-    ``worktree_path``. Skips ``.git``; skips entries whose worktree path
-    already exists; never follows symlinks during the walk.
+    """Symlink configured entries from ``primary_root`` into ``worktree_path``.
 
-    Returns a list of ``{"src": <primary_path>, "dst": <worktree_path>}``
-    entries for each symlink that was actually created.
+    Entries are partitioned by shape:
+
+    - **Bare basenames** (no ``/``) — walk ``primary_root`` for files/dirs
+      whose basename appears in the configured set. Every match is symlinked
+      at the corresponding relative path under ``worktree_path``. Skips
+      ``.git``; never follows symlinks during the walk. This is the original
+      behavior (issue #752).
+    - **Path-style entries** (contain ``/``) — treated as project-relative
+      paths. Exactly one symlink is created at ``worktree_path/<entry>``
+      pointing back to ``primary_root/<entry>`` iff the primary target exists.
+      No walking, no over-matching nested copies — gives monorepo users a way
+      to scope (e.g. ``apps/web/node_modules``) without linking every nested
+      ``node_modules`` (issue #867).
+
+    Path-style entries are validated: a leading ``/``, an empty segment (``//``
+    or trailing ``/``), or any ``.`` / ``..`` segment is rejected silently —
+    these could escape the primary checkout or yield ambiguous targets.
+
+    Skips entries whose worktree destination already exists.
+
+    Returns ``[{"src": <primary_path>, "dst": <worktree_path>}, ...]`` for
+    each symlink that was actually created.
     """
     if not names:
         return []
-    name_set = set(names)
+
+    basenames: list[str] = []
+    path_entries: list[str] = []
+    for name in names:
+        if "/" not in name:
+            basenames.append(name)
+            continue
+        if name.startswith("/"):
+            continue
+        parts = name.split("/")
+        if any(p in ("", ".", "..") for p in parts):
+            continue
+        path_entries.append(name)
+
     created: list[dict] = []
-    for root, dirs, files in os.walk(primary_root, followlinks=False):
-        if ".git" in dirs:
-            dirs.remove(".git")
-        # Capture matched dir names BEFORE we mutate `dirs` to control recursion.
-        matched_dirs = [d for d in dirs if d in name_set]
-        matched_files = [f for f in files if f in name_set]
-        for name in matched_dirs + matched_files:
-            src = os.path.join(root, name)
-            rel = os.path.relpath(src, primary_root)
-            dst = os.path.join(worktree_path, rel)
-            # Skip when the destination is already present (file, dir, or
-            # symlink, including a broken symlink — `lexists` catches all three).
-            if os.path.lexists(dst):
-                continue
-            try:
-                os.makedirs(os.path.dirname(dst), exist_ok=True)
-                os.symlink(src, dst)
-            except OSError:
-                # Best-effort: do not abort worktree creation on a single
-                # failed symlink (permission errors, race conditions, etc.).
-                continue
-            created.append({"src": src, "dst": dst})
-        # Prevent os.walk from descending INTO any directory we just symlinked
-        # — the symlink target already contains its full subtree.
-        for d in matched_dirs:
-            dirs.remove(d)
+
+    def _try_link(src: str, dst: str) -> None:
+        # `lexists` catches files, dirs, and symlinks (including broken).
+        if os.path.lexists(dst):
+            return
+        try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            os.symlink(src, dst)
+        except OSError:
+            # Best-effort: do not abort worktree creation on a single
+            # failed symlink (permission errors, race conditions, etc.).
+            return
+        created.append({"src": src, "dst": dst})
+
+    # Path-style entries first so a later bare-basename walk that would match
+    # the same leaf (e.g. ".venv" basename + "apps/scraper/.venv" path-style)
+    # sees the destination already present and skips it.
+    for rel in path_entries:
+        src = os.path.join(primary_root, rel)
+        if not os.path.lexists(src):
+            continue
+        dst = os.path.join(worktree_path, rel)
+        _try_link(src, dst)
+
+    if basenames:
+        name_set = set(basenames)
+        for root, dirs, files in os.walk(primary_root, followlinks=False):
+            if ".git" in dirs:
+                dirs.remove(".git")
+            # Capture matched dir names BEFORE we mutate `dirs` to control recursion.
+            matched_dirs = [d for d in dirs if d in name_set]
+            matched_files = [f for f in files if f in name_set]
+            for name in matched_dirs + matched_files:
+                src = os.path.join(root, name)
+                rel = os.path.relpath(src, primary_root)
+                dst = os.path.join(worktree_path, rel)
+                _try_link(src, dst)
+            # Prevent os.walk from descending INTO any directory we just symlinked
+            # — the symlink target already contains its full subtree.
+            for d in matched_dirs:
+                dirs.remove(d)
+
     return created
 
 
@@ -426,15 +480,32 @@ def cmd_create(
             (cur.lastrowid,),
         ).fetchone()
         # Seed gitignored runtime files (e.g. .venv, .env) from the primary
-        # repo per worktree.symlink_files config (issue #752). Opt-in: empty
-        # list (default) creates no symlinks. Best-effort: any individual
-        # symlink failure is swallowed inside _link_gitignored_files so a
-        # permissions or race issue does not abort the worktree creation we
-        # just recorded above.
+        # repo per worktree.symlink_files config (issue #752), or — when that
+        # list is empty and TUSK_NO_AUTO_SYMLINK is unset — fall back to the
+        # canonical name set so install.sh-only installs that never ran the
+        # init-write-config auto-seed still pick up node_modules / .venv /
+        # .env / .env.local (issue #854). Best-effort throughout: individual
+        # symlink failures are swallowed inside _link_gitignored_files.
         symlink_names = _load_symlink_files(config_path)
+        is_fallback = False
+        if not symlink_names and not os.environ.get("TUSK_NO_AUTO_SYMLINK"):
+            symlink_names = list(CANONICAL_RUNTIME_FILES)
+            is_fallback = True
         if symlink_names:
             primary_root = _primary_repo_root(repo_root)
-            _link_gitignored_files(primary_root, workspace_path, symlink_names)
+            created = _link_gitignored_files(
+                primary_root, workspace_path, symlink_names
+            )
+            if is_fallback and created:
+                linked_basenames = sorted({os.path.basename(c["dst"]) for c in created})
+                print(
+                    "Note: auto-linked "
+                    + ", ".join(linked_basenames)
+                    + " from primary (worktree.symlink_files is empty). "
+                    "Run /tusk-update to set the list explicitly, or "
+                    "TUSK_NO_AUTO_SYMLINK=1 to disable this fallback.",
+                    file=sys.stderr,
+                )
         print(dumps(_workspace_payload(row, created=True)))
         return 0
     except sqlite3.IntegrityError as exc:

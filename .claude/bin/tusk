@@ -599,6 +599,17 @@ CREATE TABLE tasks (
     updated_at TEXT DEFAULT (datetime('now')),
     started_at TEXT,
     closed_at TEXT,
+    -- merge_commit_sha: stamped by `tusk merge` for ff, no-checkout, and PR
+    -- paths; consumed by tusk-task-summary.py's fetch_diff fast-path so the
+    -- 3-tier ref/criterion-hash/fsck recovery chain is unneeded for tasks
+    -- closed via merge after migration 70 (issue #849).
+    merge_commit_sha TEXT,
+    -- merge_base_sha: stamped alongside merge_commit_sha for ff and no-checkout
+    -- paths (NULL for PR squash). When both columns are populated, fetch_diff
+    -- runs `git log --first-parent --numstat <base>..<tip>` instead of
+    -- `git show --numstat <tip>` so multi-commit ff merges report cumulative
+    -- stats rather than just the tip commit. Migration 72, TASK-452.
+    merge_base_sha TEXT,
     fixes_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
     bakeoff_id INTEGER,
     bakeoff_shadow INTEGER NOT NULL DEFAULT 0 CHECK (bakeoff_shadow IN (0, 1))
@@ -853,6 +864,7 @@ CREATE TABLE code_reviews (
         CHECK (status IN ('pending', 'in_progress', 'approved', 'changes_requested', 'superseded')),
     review_pass INTEGER DEFAULT 1,
     diff_summary TEXT,
+    diff_range TEXT,
     cost_dollars REAL,
     tokens_in INTEGER,
     tokens_out INTEGER,
@@ -1051,6 +1063,20 @@ CREATE TABLE glossary (
 );
 GLOSSARY_SCHEMA
 
+  # Plans (flat subscription cost rows — denominator for ROI rollups; issue #873)
+  sqlite3 "$DB_PATH" <<'PLANS_SCHEMA'
+CREATE TABLE plans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    monthly_cost_dollars REAL NOT NULL CHECK (monthly_cost_dollars >= 0),
+    effective_from TEXT NOT NULL,
+    effective_to TEXT,
+    notes TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX idx_plans_name_effective ON plans(name, effective_from);
+PLANS_SCHEMA
+
   # Test runs (per-repo successful test_command elapsed history; read by
   # tusk-commit.py to auto-scale test_command_timeout_sec from p95)
   sqlite3 "$DB_PATH" <<'TEST_RUNS_SCHEMA'
@@ -1088,7 +1114,7 @@ TEST_RUNS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 68;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 72;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -1175,7 +1201,7 @@ cmd_query() {
 import difflib, sys
 candidates = [
   'init','path','config','validate','sql-quote','typed-criteria-build','branch','commit',
-  'lint','lint-rule','dupes','conventions','pillars','glossary','criteria','dashboard','chain','blockers',
+  'lint','lint-rule','dupes','conventions','pillars','glossary','plans','criteria','dashboard','chain','blockers',
   'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-wait','review-check-perms','review-agent-cost',
   'deps','session-stats','session-recalc','session-close','skill-run','jot','jots','call-breakdown',
   'active-project','git-default-branch','branch-parse',
@@ -1185,7 +1211,7 @@ candidates = [
   'test-detect','test-precheck','add-lib','address-issue',
   'init-scan-codebase','init-scan-todos','init-fetch-bootstrap','init-write-config','init-write-manifest-files','init-wizard','init-scaffold',
   'loop','merge','abandon','bakeoff','progress','setup',
-  'token-audit','sync-skills','reconcile-skills','generate-manifest','uninstall-hooks','pricing-update','dev-sync','wsjf','shell',
+  'token-audit','sync-skills','sync-main','reconcile-skills','generate-manifest','uninstall-hooks','pricing-update','dev-sync','wsjf','shell',
   'version','version-bump','report-issue','changelog-add','migrate','update-gitignore','regen-triggers','upgrade',
 ]
 matches = difflib.get_close_matches(sys.argv[1], candidates, n=1, cutoff=0.6)
@@ -1610,7 +1636,7 @@ preflight_schema_version() {
     # are exactly what this preflight needs to guard.
     ""|init|path|config|version|version-bump|upgrade|migrate|regen-triggers|\
       sql-quote|typed-criteria-build|git-default-branch|branch-parse|report-issue|update-gitignore|\
-      sync-skills|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit)
+      sync-skills|sync-main|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit)
       return 0 ;;
   esac
   local user_version supported_max
@@ -1656,6 +1682,7 @@ case "${1:-}" in
   conventions) shift; exec python3 "$SCRIPT_DIR/tusk-conventions.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   pillars)     shift; exec python3 "$SCRIPT_DIR/tusk-pillars.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   glossary)    shift; exec python3 "$SCRIPT_DIR/tusk-glossary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  plans)       shift; exec python3 "$SCRIPT_DIR/tusk-plans.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   criteria) shift; exec python3 "$SCRIPT_DIR/tusk-criteria.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   dashboard) shift; exec python3 "$SCRIPT_DIR/tusk-dashboard.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   chain) shift; exec python3 "$SCRIPT_DIR/tusk-chain.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1720,6 +1747,7 @@ case "${1:-}" in
   setup) shift; exec python3 "$SCRIPT_DIR/tusk-setup.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   token-audit) shift; exec python3 "$SCRIPT_DIR/tusk-token-audit.py" "$REPO_ROOT" "$@" ;;
   sync-skills) shift; exec python3 "$SCRIPT_DIR/tusk-sync-skills.py" "$@" ;;
+  sync-main) shift; exec python3 "$SCRIPT_DIR/tusk-sync-main.py" "$REPO_ROOT" "$@" ;;
   reconcile-skills) shift; exec python3 "$SCRIPT_DIR/tusk-reconcile-skills.py" "$@" ;;
   generate-manifest) shift; exec python3 "$SCRIPT_DIR/tusk-generate-manifest.py" "$@" ;;
   uninstall-hooks) shift; exec python3 "$SCRIPT_DIR/tusk-uninstall-hooks.py" "$REPO_ROOT" "$@" ;;
