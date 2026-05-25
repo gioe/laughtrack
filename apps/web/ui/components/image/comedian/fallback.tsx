@@ -26,10 +26,12 @@ const ComedianAvatarFallback = ({
             role="img"
             aria-label={name}
             style={{
+                // Spotlit-from-above vignette over warm near-black — matches the
+                // show-card stage treatment rather than the old flat brown chip.
                 backgroundImage:
-                    "linear-gradient(180deg, #8B6F47 0%, #4A3426 100%)",
+                    "radial-gradient(ellipse 82% 56% at 50% 0%, rgba(247,231,206,0.22), transparent 56%), linear-gradient(180deg, #2a1d14 0%, #120c08 100%)",
             }}
-            className={`w-full h-full overflow-hidden ${shapeClass[variant]} ${className}`}
+            className={`w-full h-full overflow-hidden ring-1 ring-inset ring-copper/20 ${shapeClass[variant]} ${className}`}
         >
             <svg
                 viewBox="0 0 100 100"
@@ -38,7 +40,7 @@ const ComedianAvatarFallback = ({
                 className="block w-full h-full"
                 aria-hidden="true"
             >
-                <g fill="#ffffff" fillOpacity="0.14">
+                <g fill="#ffffff" fillOpacity="0.08">
                     <circle cx="50" cy="38" r="15" />
                     <ellipse cx="50" cy="86" rx="28" ry="22" />
                 </g>
@@ -51,7 +53,7 @@ const ComedianAvatarFallback = ({
                         fontFamily='"Gilroy-Bold", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif'
                         fontWeight="700"
                         fontSize={initials.length === 1 ? 46 : 38}
-                        fill="#ffffff"
+                        fill="#FAF6E0"
                         letterSpacing="1"
                     >
                         {initials}

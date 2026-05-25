@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Mic } from "lucide-react";
 import { Button } from "@/ui/components/ui/button";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
@@ -34,12 +35,24 @@ import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 // is acceptable and consistent with common list animation patterns.
 const seenShowIds = new Set<number>();
 const CLUB_PLACEHOLDER = "/placeholders/club-placeholder.svg";
-const ARTWORK_PLACEHOLDER_THEMES = [
-    "radial-gradient(circle at 20% 20%, rgba(246,205,166,0.36), transparent 28%), linear-gradient(135deg, #2f3a34 0%, #704932 55%, #c17f53 100%)",
-    "radial-gradient(circle at 78% 18%, rgba(255,244,214,0.3), transparent 30%), linear-gradient(135deg, #5a2430 0%, #8b5f3d 52%, #d39a64 100%)",
-    "radial-gradient(circle at 28% 74%, rgba(244,191,111,0.32), transparent 28%), linear-gradient(135deg, #263f48 0%, #79543f 58%, #d08a55 100%)",
-    "radial-gradient(circle at 72% 70%, rgba(255,225,184,0.34), transparent 30%), linear-gradient(135deg, #3c3145 0%, #76503f 54%, #ba724c 100%)",
-];
+
+// Faint exposed-brick texture for the card surface — two repeating-line layers
+// at low alpha read as masonry without competing with the content.
+const BRICK_TEXTURE =
+    "repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0px, rgba(255,255,255,0.045) 1px, transparent 1px, transparent 22px)," +
+    "repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 46px)";
+
+// Warm spotlight wash falling across the card from the upper-right (toward the
+// visual panel), so the whole card reads as a lit stage rather than a flat box.
+const CARD_SPOTLIGHT =
+    "radial-gradient(62% 70% at 80% -10%, rgba(247,231,206,0.12), rgba(184,115,51,0.05) 42%, transparent 72%)";
+
+// Backdrop for the visual panel: a single spotlight cone from above + a copper
+// floor pool below over a warm near-black, evoking a comedy-club stage.
+const STAGE_BACKDROP =
+    "radial-gradient(120% 82% at 50% -14%, rgba(247,231,206,0.20), rgba(247,231,206,0.05) 38%, transparent 66%)," +
+    "radial-gradient(72% 36% at 50% 106%, rgba(184,115,51,0.18), transparent 70%)," +
+    "linear-gradient(180deg, #1c140e 0%, #100b08 100%)";
 
 export type ShowCardContext = "default" | "comedian-detail";
 
@@ -82,21 +95,64 @@ const ShowCard: React.FC<ShowCardProps> = ({
         if (context === "comedian-detail" || parsedShow.lineup.length === 0) {
             return <ShowCardArtwork show={parsedShow} />;
         }
-        return <LineupGrid lineup={parsedShow.lineup} />;
+        return (
+            <div
+                className="relative overflow-hidden rounded-lg border border-copper/15 px-4 pt-3 pb-1 shadow-inner sm:px-5 sm:pt-4"
+                style={{ background: STAGE_BACKDROP }}
+            >
+                <div className="mb-2 flex items-center gap-2">
+                    <Mic
+                        size={13}
+                        aria-hidden="true"
+                        className="text-copper-bright"
+                    />
+                    <span className="font-oswald text-[11px] font-medium uppercase tracking-[0.22em] text-copper-bright">
+                        Lineup
+                    </span>
+                    <span className="h-px flex-1 bg-copper/20" />
+                </div>
+                <LineupGrid lineup={parsedShow.lineup} />
+            </div>
+        );
     };
 
     return (
         <EntityCard
             as="article"
-            chrome="warm"
+            chrome="stage"
             className={
                 isPast
-                    ? "relative p-4 sm:p-6 overflow-hidden w-full shadow-sm hover:shadow-md border-white/10 bg-gradient-to-br from-stone-50 to-coconut-cream/45"
-                    : "relative p-4 sm:p-6 overflow-hidden w-full hover:shadow-xl"
+                    ? "relative p-4 sm:p-6 overflow-hidden w-full shadow-sm hover:shadow-md border-copper/10 bg-[#141009] opacity-90"
+                    : "relative p-4 sm:p-6 overflow-hidden w-full hover:shadow-xl hover:shadow-black/50"
             }
             animateEntryY={isPast ? undefined : 20}
             alreadySeen={alreadySeen}
         >
+            {/* Decorative club-wall atmosphere: faint brick masonry + a warm
+                spotlight wash. Sits behind all content (first in DOM, no z-index)
+                and ignores pointer events so the stretched link still works. */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl"
+            >
+                <div
+                    className={
+                        isPast
+                            ? "absolute inset-0 opacity-[0.025]"
+                            : "absolute inset-0 opacity-[0.05]"
+                    }
+                    style={{ backgroundImage: BRICK_TEXTURE }}
+                />
+                <div
+                    className={
+                        isPast
+                            ? "absolute inset-0 opacity-40"
+                            : "absolute inset-0"
+                    }
+                    style={{ background: CARD_SPOTLIGHT }}
+                />
+            </div>
+
             {/* Stretched-link overlay: whole card navigates to the internal show detail.
                 Inner interactive elements (ticket button, lineup headshots) sit on top
                 via `relative z-[2]` so their clicks aren't swallowed. */}
@@ -121,7 +177,7 @@ const ShowCard: React.FC<ShowCardProps> = ({
                         </div>
 
                         {isPast ? (
-                            <p className="sm:self-start relative z-[2] rounded-full border border-copper/15 bg-white/55 px-3 py-1.5 text-sm font-dmSans text-gray-500">
+                            <p className="sm:self-start relative z-[2] rounded-full border border-copper/15 bg-black/30 px-3 py-1.5 text-sm font-dmSans text-foreground/60">
                                 Performed on{" "}
                                 {formatShowDate(
                                     parsedShow.date.toString(),
@@ -205,17 +261,12 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
     const altText = show.clubName
         ? `${show.clubName} venue artwork`
         : "Comedy venue artwork";
-    const dateForTheme = new Date(show.date);
-    const placeholderTheme =
-        ARTWORK_PLACEHOLDER_THEMES[
-            Math.abs(show.id + dateForTheme.getUTCDate()) %
-                ARTWORK_PLACEHOLDER_THEMES.length
-        ];
     const isSoldOut = show.soldOut === true;
 
     return (
         <div
-            className={`pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/10 bg-cedar text-coconut-cream shadow-inner sm:min-h-[220px] lg:min-h-[248px] ${isSoldOut ? "grayscale opacity-70" : ""}`}
+            className={`pointer-events-none relative min-h-[176px] overflow-hidden rounded-lg border border-copper/15 shadow-inner sm:min-h-[220px] lg:min-h-[248px] ${isSoldOut ? "grayscale opacity-70" : ""}`}
+            style={showImage ? undefined : { background: STAGE_BACKDROP }}
         >
             {showImage ? (
                 <Image
@@ -227,15 +278,23 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
                     sizes="(max-width: 1199px) 100vw, 65vw"
                 />
             ) : (
+                // No artwork: a lone mic caught in the spotlight on an empty stage.
                 <div
                     aria-label={altText}
-                    className="absolute inset-0"
+                    className="absolute inset-0 flex items-center justify-center"
                     role="img"
-                    style={{ background: placeholderTheme }}
-                />
+                >
+                    <Mic
+                        className="h-14 w-14 text-champagne/35 sm:h-20 sm:w-20"
+                        strokeWidth={1.25}
+                        aria-hidden="true"
+                    />
+                    {/* stage-floor line where the spotlight pools */}
+                    <span className="absolute inset-x-8 bottom-[30%] h-px bg-copper/20" />
+                </div>
             )}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-cedar/85 via-cedar/45 to-transparent p-4 sm:p-5">
-                <p className="font-dmSans text-sm font-semibold uppercase tracking-[0.12em] text-coconut-cream/80">
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-4 sm:p-5">
+                <p className="font-oswald text-sm font-medium uppercase tracking-[0.18em] text-copper-bright">
                     {formattedDate}
                 </p>
                 <p className="mt-1 font-gilroy-bold text-xl font-bold text-white sm:text-2xl">

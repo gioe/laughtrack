@@ -31,7 +31,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div
                 className={cn(
-                    "relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden",
+                    "relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden bg-[#241912] ring-1 ring-copper/25",
                     isSoldOut && "grayscale opacity-60",
                 )}
             >
@@ -66,21 +66,21 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     </h3>
                 )}
                 {!hideClubName && show.clubName && (
-                    <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1">
+                    <p className="text-base font-oswald font-medium uppercase tracking-[0.14em] text-foreground/85 mb-1">
                         {show.clubName}
                     </p>
                 )}
                 {show.room && (
-                    <p className="text-sm text-gray-500 font-dmSans mb-1">
+                    <p className="text-sm text-foreground/55 font-dmSans mb-1">
                         {show.room}
                     </p>
                 )}
-                <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans">
+                <p className="text-base sm:text-lg md:text-lead text-foreground/65 font-dmSans">
                     {formatShowDate(show.date.toString(), show.timezone)} ·{" "}
                     {`${show.address}`}
                 </p>
                 {distanceMiles != null && (
-                    <p className="flex items-center gap-1 text-sm text-copper font-dmSans mt-0.5">
+                    <p className="flex items-center gap-1 text-sm text-copper-bright font-dmSans mt-0.5">
                         <MapPin size={13} aria-hidden="true" />
                         {distanceMiles < 1
                             ? "< 1 mile away"
@@ -88,14 +88,14 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     </p>
                 )}
                 {!isPast && !isSoldOut && (
-                    <p className="text-lg sm:text-xl md:text-lead text-copper font-semibold mt-1 font-dmSans">
+                    <p className="text-lg sm:text-xl md:text-lead text-copper-bright font-semibold mt-1 font-dmSans">
                         {formatTicketString(
                             show.tickets.filter((ticket) => !ticket.soldOut),
                         )}
                     </p>
                 )}
                 {!isPast && isSoldOut && formatTicketString(show.tickets) && (
-                    <p className="text-lg sm:text-xl md:text-lead text-gray-500 line-through font-semibold mt-1 font-dmSans">
+                    <p className="text-lg sm:text-xl md:text-lead text-foreground/45 line-through font-semibold mt-1 font-dmSans">
                         {formatTicketString(show.tickets)}
                     </p>
                 )}

@@ -5,12 +5,15 @@ import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { cn } from "@/lib/utils";
 
-export type EntityCardChrome = "warm" | "coconut-hover" | "none";
+export type EntityCardChrome = "warm" | "coconut-hover" | "stage" | "none";
 
 const CHROME_CLASSES: Record<EntityCardChrome, string> = {
     warm: "rounded-xl shadow-md border border-white/20 bg-gradient-to-br from-white to-coconut-cream",
     "coconut-hover":
         "rounded-xl overflow-hidden shadow-sm border-b-2 border-transparent bg-gradient-to-b from-white to-coconut-cream/60 transition-all duration-300 hover:shadow-lg hover:border-copper",
+    // "stage": warm near-black club-wall surface with a copper hairline. Decorative
+    // brick + spotlight layers are composited inside the card by the consumer.
+    stage: "rounded-xl shadow-lg shadow-black/40 border border-copper/15 bg-[#181210] transition-shadow duration-300",
     none: "",
 };
 
