@@ -8,11 +8,8 @@ import {
     MusicalNoteIcon,
 } from "@heroicons/react/24/outline";
 
-// Navigation menu items.
-// Top-level "Search" in the nav points at /search — the cross-entity typeahead
-// for users who know what they're looking for. The per-entity dropdowns below
-// label their inner link "Browse all" to keep the role split visible: search
-// dispatches, browse collects.
+// Navigation menu items. Each per-entity dropdown links to that entity's
+// search/browse page ("Browse all").
 const MENU_ITEMS = {
     comedian: [
         {
@@ -58,11 +55,6 @@ export default function NavigationMenu({ pathname }: { pathname: string }) {
                 highlighted={pathname === "/"}
                 href="/"
                 title="Near Me"
-            />
-            <HeaderItem
-                highlighted={pathname === "/search"}
-                href="/search"
-                title="Search"
             />
 
             <PopoverGroup className="flex items-center space-x-12">

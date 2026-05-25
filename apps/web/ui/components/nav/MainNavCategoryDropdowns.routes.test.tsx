@@ -59,13 +59,14 @@ describe("Top-nav category dropdowns", () => {
         expect(buttons).toHaveLength(CATEGORY_LABELS.length);
 
         // The buttons must share a single parent (the PopoverGroup wrapper).
-        const parents = new Set(buttons.map((b) => b.parentElement?.parentElement));
+        const parents = new Set(
+            buttons.map((b) => b.parentElement?.parentElement),
+        );
         expect(parents.size).toBe(1);
         const wrapper = buttons[0].parentElement?.parentElement;
         expect(wrapper?.children.length).toBe(CATEGORY_LABELS.length);
 
         // Static items remain available outside the wrapper.
         expect(getByRole("link", { name: "Near Me" })).not.toBeNull();
-        expect(getByRole("link", { name: "Search" })).not.toBeNull();
     });
 });
