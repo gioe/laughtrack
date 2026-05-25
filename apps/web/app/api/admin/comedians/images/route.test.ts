@@ -9,6 +9,10 @@ vi.mock("next/cache", () => ({
     revalidateTag: vi.fn(),
 }));
 
+vi.mock("@/lib/admin/bunnyStorage", () => ({
+    deleteFromBunnyStorage: vi.fn(),
+}));
+
 vi.mock("@/lib/db", () => {
     const txClient = {
         comedianImageAsset: {
@@ -36,6 +40,7 @@ vi.mock("@/lib/db", () => {
 });
 
 import { auth } from "@/auth";
+import { deleteFromBunnyStorage } from "@/lib/admin/bunnyStorage";
 import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import { DELETE } from "./route";
@@ -45,6 +50,7 @@ const mockFindUserProfile = vi.mocked(db.userProfile.findFirst);
 const mockFindComedian = vi.mocked(db.comedian.findUnique);
 const mockTransaction = vi.mocked(db.$transaction);
 const mockRevalidateTag = vi.mocked(revalidateTag);
+const mockDelete = vi.mocked(deleteFromBunnyStorage);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const txClient: any = (db as any).__txClient;
@@ -93,6 +99,7 @@ beforeEach(() => {
     mockTxUpdateMany.mockResolvedValue({ count: 1 });
     mockTxUpdateComedian.mockResolvedValue({} as never);
     mockTxAuditCreate.mockResolvedValue({} as never);
+    mockDelete.mockResolvedValue(undefined);
     mockTransaction.mockImplementation(
         async (callback: (tx: typeof txClient) => unknown) =>
             callback(txClient),
@@ -125,12 +132,22 @@ describe("DELETE /api/admin/comedians/images", () => {
         expect(mockTransaction).not.toHaveBeenCalled();
     });
 
-    it("deactivates active image assets and clears hasImage", async () => {
+    it("deletes all active image files, deactivates assets, and clears hasImage", async () => {
         const res = await DELETE(makeRequest({ comedianId: 7 }));
         const body = await res.json();
 
         expect(res.status).toBe(200);
-        expect(body).toEqual({ ok: true, comedianId: 7, hasImage: false });
+        expect(body).toEqual({
+            ok: true,
+            comedianId: 7,
+            hasImage: false,
+            asset: null,
+        });
+        expect(mockDelete).toHaveBeenCalledWith(
+            "comedian-images/7/original.jpg",
+        );
+        expect(mockDelete).toHaveBeenCalledWith("comedian-images/7/avatar.jpg");
+        expect(mockDelete).toHaveBeenCalledWith("comedian-images/7/hero.jpg");
         expect(mockTxUpdateMany).toHaveBeenCalledWith({
             where: { comedianId: 7, isActive: true },
             data: { isActive: false },
@@ -152,5 +169,75 @@ describe("DELETE /api/admin/comedians/images", () => {
         expect(mockRevalidateTag).toHaveBeenCalledWith("comedian-detail-data");
         expect(mockRevalidateTag).toHaveBeenCalledWith("comedian-metadata");
         expect(mockRevalidateTag).toHaveBeenCalledWith("Alex Example");
+    });
+
+    it("deletes only the thumbnail file and keeps the hero active", async () => {
+        const res = await DELETE(
+            makeRequest({ comedianId: 7, slot: "thumbnail" }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toMatchObject({
+            ok: true,
+            comedianId: 7,
+            hasImage: true,
+            asset: {
+                id: 42,
+                avatarPath: null,
+                heroPath: "comedian-images/7/hero.jpg",
+            },
+        });
+        expect(mockDelete).toHaveBeenCalledTimes(1);
+        expect(mockDelete).toHaveBeenCalledWith("comedian-images/7/avatar.jpg");
+        expect(mockTxUpdateMany).toHaveBeenCalledWith({
+            where: { comedianId: 7, isActive: true },
+            data: { avatarPath: null },
+        });
+        expect(mockTxUpdateComedian).toHaveBeenCalledWith({
+            where: { id: 7 },
+            data: { hasImage: true },
+        });
+        expect(mockTxAuditCreate).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                action: "comedian_image.remove_thumbnail",
+            }),
+        });
+    });
+
+    it("deletes only the hero file and keeps the thumbnail active", async () => {
+        const res = await DELETE(makeRequest({ comedianId: 7, slot: "hero" }));
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(body).toMatchObject({
+            ok: true,
+            comedianId: 7,
+            hasImage: true,
+            asset: {
+                id: 42,
+                avatarPath: "comedian-images/7/avatar.jpg",
+                heroPath: null,
+            },
+        });
+        expect(mockDelete).toHaveBeenCalledTimes(1);
+        expect(mockDelete).toHaveBeenCalledWith("comedian-images/7/hero.jpg");
+        expect(mockTxUpdateMany).toHaveBeenCalledWith({
+            where: { comedianId: 7, isActive: true },
+            data: { heroPath: null },
+        });
+        expect(mockTxUpdateComedian).toHaveBeenCalledWith({
+            where: { id: 7 },
+            data: { hasImage: true },
+        });
+    });
+
+    it("does not mutate the database when Bunny deletion fails", async () => {
+        mockDelete.mockRejectedValueOnce(new Error("Bunny failed"));
+
+        const res = await DELETE(makeRequest({ comedianId: 7 }));
+
+        expect(res.status).toBe(500);
+        expect(mockTransaction).not.toHaveBeenCalled();
     });
 });

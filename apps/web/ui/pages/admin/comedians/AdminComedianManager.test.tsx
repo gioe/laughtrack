@@ -341,13 +341,14 @@ describe("AdminComedianManager", () => {
                 ok: true,
                 comedianId: 1,
                 hasImage: false,
+                asset: null,
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
 
         fireEvent.click(
-            screen.getByRole("button", { name: "Remove headshot & hero" }),
+            screen.getByRole("button", { name: "Remove all images" }),
         );
 
         await waitFor(() => {
@@ -355,7 +356,7 @@ describe("AdminComedianManager", () => {
                 "/api/admin/comedians/images",
                 expect.objectContaining({
                     method: "DELETE",
-                    body: JSON.stringify({ comedianId: 1 }),
+                    body: JSON.stringify({ comedianId: 1, slot: "all" }),
                 }),
             );
         });
@@ -366,6 +367,87 @@ describe("AdminComedianManager", () => {
         expect(
             screen.queryByAltText("Parent Comic current hero image"),
         ).toBeNull();
+    });
+
+    it("removes only the existing thumbnail image", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedianId: 1,
+                hasImage: true,
+                asset: {
+                    id: 101,
+                    avatarPath: null,
+                    heroPath: "comedian-images/1/hero.jpg",
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        fireEvent.click(
+            screen.getByRole("button", { name: "Remove thumbnail" }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians/images",
+                expect.objectContaining({
+                    method: "DELETE",
+                    body: JSON.stringify({
+                        comedianId: 1,
+                        slot: "thumbnail",
+                    }),
+                }),
+            );
+        });
+        expect(
+            screen.queryByAltText("Parent Comic current headshot image"),
+        ).toBeNull();
+        expect(
+            screen.getByAltText("Parent Comic current hero image"),
+        ).toBeTruthy();
+        expect(
+            screen.getByText("Parent Comic thumbnail removed."),
+        ).toBeTruthy();
+    });
+
+    it("removes only the existing hero image", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedianId: 1,
+                hasImage: true,
+                asset: {
+                    id: 101,
+                    avatarPath: "comedian-images/1/avatar.jpg",
+                    heroPath: null,
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        fireEvent.click(screen.getByRole("button", { name: "Remove hero" }));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians/images",
+                expect.objectContaining({
+                    method: "DELETE",
+                    body: JSON.stringify({ comedianId: 1, slot: "hero" }),
+                }),
+            );
+        });
+        expect(
+            screen.getByAltText("Parent Comic current headshot image"),
+        ).toBeTruthy();
+        expect(
+            screen.queryByAltText("Parent Comic current hero image"),
+        ).toBeNull();
+        expect(screen.getByText("Parent Comic hero removed.")).toBeTruthy();
     });
 
     it("surfaces ratio validation errors for manual image urls", async () => {

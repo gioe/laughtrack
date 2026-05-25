@@ -889,7 +889,10 @@ export default function AdminComedianManager({ comedians }: Props) {
         startTransition(() => router.refresh());
     }
 
-    async function removeImage(row: AdminComedianListItem) {
+    async function removeImage(
+        row: AdminComedianListItem,
+        slot: "all" | "thumbnail" | "hero" = "all",
+    ) {
         setStatus({ kind: "idle" });
         setPendingId(row.id);
 
@@ -898,7 +901,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             res = await fetch("/api/admin/comedians/images", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comedianId: row.id }),
+                body: JSON.stringify({ comedianId: row.id, slot }),
             });
         } catch (error) {
             setPendingId(null);
@@ -911,8 +914,8 @@ export default function AdminComedianManager({ comedians }: Props) {
         }
 
         setPendingId(null);
+        const body = await res.json().catch(() => ({}));
         if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
             setStatus({
                 kind: "error",
                 message: body.error ?? `Request failed (${res.status})`,
@@ -925,9 +928,37 @@ export default function AdminComedianManager({ comedians }: Props) {
                 currentRow.id === row.id
                     ? {
                           ...currentRow,
-                          hasImage: false,
-                          activeImageAsset: null,
-                          legacyImageUrl: "",
+                          hasImage: Boolean(body.hasImage),
+                          activeImageAsset: body.hasImage
+                              ? currentRow.activeImageAsset
+                                  ? {
+                                        ...currentRow.activeImageAsset,
+                                        avatarPath:
+                                            slot === "thumbnail"
+                                                ? null
+                                                : currentRow.activeImageAsset
+                                                      .avatarPath,
+                                        avatarUrl:
+                                            slot === "thumbnail"
+                                                ? null
+                                                : currentRow.activeImageAsset
+                                                      .avatarUrl,
+                                        heroPath:
+                                            slot === "hero"
+                                                ? null
+                                                : currentRow.activeImageAsset
+                                                      .heroPath,
+                                        heroUrl:
+                                            slot === "hero"
+                                                ? null
+                                                : currentRow.activeImageAsset
+                                                      .heroUrl,
+                                    }
+                                  : null
+                              : null,
+                          legacyImageUrl: body.hasImage
+                              ? currentRow.legacyImageUrl
+                              : "",
                       }
                     : currentRow,
             ),
@@ -937,7 +968,15 @@ export default function AdminComedianManager({ comedians }: Props) {
             delete next[row.id];
             return next;
         });
-        setStatus({ kind: "ok", message: `${row.name} images removed.` });
+        setStatus({
+            kind: "ok",
+            message:
+                slot === "thumbnail"
+                    ? `${row.name} thumbnail removed.`
+                    : slot === "hero"
+                      ? `${row.name} hero removed.`
+                      : `${row.name} images removed.`,
+        });
         startTransition(() => router.refresh());
     }
 
@@ -1923,6 +1962,28 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         <Upload className="h-4 w-4" />
                                                         Upload headshot
                                                     </Button>
+                                                    {row.activeImageAsset
+                                                        ?.avatarPath ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    row.id
+                                                            }
+                                                            onClick={() =>
+                                                                void removeImage(
+                                                                    row,
+                                                                    "thumbnail",
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Remove thumbnail
+                                                        </Button>
+                                                    ) : null}
                                                 </div>
 
                                                 <div className="min-w-0 space-y-3 rounded-md border border-copper/15 bg-white/80 p-3">
@@ -2025,6 +2086,28 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         <Upload className="h-4 w-4" />
                                                         Upload hero
                                                     </Button>
+                                                    {row.activeImageAsset
+                                                        ?.heroPath ? (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                            disabled={
+                                                                disabled ||
+                                                                pendingId ===
+                                                                    row.id
+                                                            }
+                                                            onClick={() =>
+                                                                void removeImage(
+                                                                    row,
+                                                                    "hero",
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            Remove hero
+                                                        </Button>
+                                                    ) : null}
                                                 </div>
                                             </div>
 
@@ -2086,11 +2169,14 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         pendingId === row.id
                                                     }
                                                     onClick={() =>
-                                                        void removeImage(row)
+                                                        void removeImage(
+                                                            row,
+                                                            "all",
+                                                        )
                                                     }
                                                 >
                                                     <Trash2 className="h-4 w-4" />
-                                                    Remove headshot & hero
+                                                    Remove all images
                                                 </Button>
                                             )}
                                         </div>
