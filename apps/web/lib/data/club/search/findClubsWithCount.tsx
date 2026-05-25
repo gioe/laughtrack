@@ -41,13 +41,80 @@ function buildClubSelect() {
     } as const;
 }
 
+interface ChainedClub {
+    id: number;
+    chainId: number | null;
+    name: string;
+    upcomingShows: number;
+}
+
+/**
+ * Pick one "flagship" club per chain to represent it in the default club-search
+ * grid (collapsing a multi-location chain to a single card). The flagship is the
+ * location with the most upcoming shows, tie-broken alphabetically by name.
+ * Returns the flagship ids and, keyed by flagship id, that chain's location count.
+ */
+export function selectChainFlagships(clubs: ChainedClub[]): {
+    flagshipIds: number[];
+    locationCountByFlagship: Map<number, number>;
+} {
+    const flagshipByChain = new Map<
+        number,
+        {
+            id: number;
+            name: string;
+            upcomingShows: number;
+            locationCount: number;
+        }
+    >();
+
+    for (const club of clubs) {
+        if (club.chainId == null) continue;
+        const current = flagshipByChain.get(club.chainId);
+        if (!current) {
+            flagshipByChain.set(club.chainId, {
+                id: club.id,
+                name: club.name,
+                upcomingShows: club.upcomingShows,
+                locationCount: 1,
+            });
+            continue;
+        }
+        current.locationCount += 1;
+        const isMoreActive =
+            club.upcomingShows > current.upcomingShows ||
+            (club.upcomingShows === current.upcomingShows &&
+                club.name.localeCompare(current.name) < 0);
+        if (isMoreActive) {
+            current.id = club.id;
+            current.name = club.name;
+            current.upcomingShows = club.upcomingShows;
+        }
+    }
+
+    const flagshipIds: number[] = [];
+    const locationCountByFlagship = new Map<number, number>();
+    for (const entry of flagshipByChain.values()) {
+        flagshipIds.push(entry.id);
+        locationCountByFlagship.set(entry.id, entry.locationCount);
+    }
+    return { flagshipIds, locationCountByFlagship };
+}
+
 export async function findClubsWithCount(
     queryHelper: QueryHelper,
 ): Promise<ClubsResponse> {
     try {
-        // Common where clause for both count and find
+        const now = new Date();
         const includeEmpty = queryHelper.params.includeEmpty === "true";
-        const whereClause: Prisma.ClubWhereInput = {
+        // Collapse multi-location chains to one flagship card in the default
+        // browse. Skipped when a specific chain is selected, so all of that
+        // chain's locations remain visible.
+        const dedupeChains = !queryHelper.params.chain;
+
+        // Base filters shared by the count, the page query, and (when deduping)
+        // the flagship lookup — so the flagship is chosen among matching clubs.
+        const baseWhere: Prisma.ClubWhereInput = {
             visible: true,
             status: "active",
             clubType: { not: "festival" },
@@ -55,9 +122,47 @@ export async function findClubsWithCount(
             ...queryHelper.getClubFiltersClause(),
             ...queryHelper.getChainClause(),
             ...(!includeEmpty && {
-                shows: { some: { date: { gt: new Date() } } },
+                shows: { some: { date: { gt: now } } },
             }),
         };
+
+        const chainLocationCountByFlagship = new Map<number, number>();
+        let whereClause: Prisma.ClubWhereInput = baseWhere;
+
+        if (dedupeChains) {
+            const chainedClubs = await db.club.findMany({
+                where: { AND: [baseWhere, { chainId: { not: null } }] },
+                select: {
+                    id: true,
+                    chainId: true,
+                    name: true,
+                    _count: {
+                        select: { shows: { where: { date: { gt: now } } } },
+                    },
+                },
+            });
+
+            const { flagshipIds, locationCountByFlagship } =
+                selectChainFlagships(
+                    chainedClubs.map((club) => ({
+                        id: club.id,
+                        chainId: club.chainId,
+                        name: club.name,
+                        upcomingShows: club._count.shows,
+                    })),
+                );
+            for (const [id, count] of locationCountByFlagship) {
+                chainLocationCountByFlagship.set(id, count);
+            }
+
+            // Keep standalone clubs (no chain) plus one flagship per chain.
+            whereClause = {
+                AND: [
+                    baseWhere,
+                    { OR: [{ chainId: null }, { id: { in: flagshipIds } }] },
+                ],
+            };
+        }
 
         // Get total count first
         const totalCount = await db.club.count({
@@ -104,6 +209,8 @@ export async function findClubsWithCount(
                 chainId: club.chainId ?? null,
                 chainName: club.chain?.name ?? null,
                 chainSlug: club.chain?.slug ?? null,
+                chainLocationCount:
+                    chainLocationCountByFlagship.get(club.id) ?? null,
             })),
             totalCount,
         };

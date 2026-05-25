@@ -36,6 +36,10 @@ export interface ClubDTO {
     chainId?: number | null;
     chainName?: string | null;
     chainSlug?: string | null;
+    // When this club represents a multi-location chain in the search grid (the
+    // chain's "flagship" card), the number of locations in that chain. Null for
+    // standalone clubs and for individual locations shown under a chain filter.
+    chainLocationCount?: number | null;
     clubType?: string;
 }
 

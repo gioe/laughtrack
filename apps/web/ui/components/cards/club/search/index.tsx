@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, MapPin } from "lucide-react";
+import { Building2, Heart, MapPin } from "lucide-react";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import Image from "next/image";
@@ -89,7 +89,14 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     </p>
                 )}
 
-                <div className="flex justify-center">
+                <div className="flex flex-wrap justify-center gap-1.5">
+                    {typeof club.chainLocationCount === "number" &&
+                        club.chainLocationCount > 1 && (
+                            <span className="inline-flex items-center gap-1 bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
+                                <Building2 size={11} aria-hidden="true" />
+                                {`${club.chainLocationCount} locations`}
+                            </span>
+                        )}
                     <span className="bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
                         {`${parsedClub.showCount ?? 0} upcoming shows`}
                     </span>
