@@ -93,6 +93,11 @@ _ITUNES_EXECUTOR_LOCK = threading.Lock()
 _itunes_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
 _itunes_inflight_lock = threading.Lock()
 _itunes_inflight = 0
+# Edge-trigger latch for the saturation warning: set when in-flight first
+# crosses the threshold, cleared once the backlog drains back to it. Guarded by
+# _itunes_inflight_lock so the warning fires once per saturation episode rather
+# than once per submit while saturated.
+_itunes_saturation_warned = False
 
 
 def _get_itunes_executor() -> concurrent.futures.ThreadPoolExecutor:
@@ -123,10 +128,17 @@ def _get_itunes_executor() -> concurrent.futures.ThreadPoolExecutor:
 
 
 def _on_itunes_worker_done(_future: concurrent.futures.Future) -> None:
-    """Decrement the in-flight counter when a discovery worker completes."""
-    global _itunes_inflight
+    """Decrement the in-flight counter when a discovery worker completes.
+
+    Also re-arms the saturation warning once the backlog drains back to the
+    threshold, so a subsequent saturation episode logs again rather than staying
+    silent for the rest of the process.
+    """
+    global _itunes_inflight, _itunes_saturation_warned
     with _itunes_inflight_lock:
         _itunes_inflight -= 1
+        if _itunes_saturation_warned and _itunes_inflight <= _itunes_on_insert_inflight_warn_threshold():
+            _itunes_saturation_warned = False
 
 
 def _submit_itunes_worker(
@@ -134,17 +146,22 @@ def _submit_itunes_worker(
 ) -> concurrent.futures.Future:
     """Submit a discovery worker to the bounded pool, tracking in-flight depth.
 
-    Increments the shared in-flight counter, logs a warning when it crosses the
-    configured threshold (pool saturated / batches queuing), then submits. On a
-    submit failure the increment is rolled back so the counter never drifts.
+    Increments the shared in-flight counter and, the first time it crosses the
+    configured threshold (pool saturated / batches queuing), logs one warning —
+    edge-triggered, so sustained saturation produces a single signal rather than
+    one WARN per submit. On a submit failure the increment is rolled back so the
+    counter never drifts.
     """
-    global _itunes_inflight
+    global _itunes_inflight, _itunes_saturation_warned
     executor = _get_itunes_executor()
+    threshold = _itunes_on_insert_inflight_warn_threshold()
     with _itunes_inflight_lock:
         _itunes_inflight += 1
         inflight = _itunes_inflight
-    threshold = _itunes_on_insert_inflight_warn_threshold()
-    if threshold and inflight > threshold:
+        should_warn = bool(threshold) and inflight > threshold and not _itunes_saturation_warned
+        if should_warn:
+            _itunes_saturation_warned = True
+    if should_warn:
         Logger.warn(
             f"itunes_on_insert: {inflight} discovery workers in flight "
             f"(threshold {threshold}) — bounded pool saturated, insert batches are queuing"

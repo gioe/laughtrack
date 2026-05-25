@@ -146,12 +146,14 @@ def _reset_itunes_pool_state():
     """
     _comedian_handler_mod._itunes_executor = None
     _comedian_handler_mod._itunes_inflight = 0
+    _comedian_handler_mod._itunes_saturation_warned = False
     yield
     ex = _comedian_handler_mod._itunes_executor
     if ex is not None:
         ex.shutdown(wait=False, cancel_futures=True)
     _comedian_handler_mod._itunes_executor = None
     _comedian_handler_mod._itunes_inflight = 0
+    _comedian_handler_mod._itunes_saturation_warned = False
 
 
 def _candidate(itunes_module, *, comedian_id=1, confidence=0.95, source_podcast_id="abc"):
@@ -469,6 +471,31 @@ class TestBoundedPoolConcurrencyCap:
             _comedian_handler_mod._submit_itunes_worker(lambda: None)
             assert mock_logger.warn.call_count == 1
             assert "in flight" in mock_logger.warn.call_args[0][0]
+
+    def test_inflight_warning_edge_triggered_and_rearms(self, monkeypatch):
+        """The warning fires once per saturation episode (not per submit) and
+        re-arms after the backlog drains back to the threshold."""
+        monkeypatch.setenv("LAUGHTRACK_ITUNES_ON_INSERT_INFLIGHT_WARN", "1")
+
+        recorder = _RecordingExecutor()
+        monkeypatch.setattr(_comedian_handler_mod, "_get_itunes_executor", lambda: recorder)
+        submit = _comedian_handler_mod._submit_itunes_worker
+        done = _comedian_handler_mod._on_itunes_worker_done
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            submit(lambda: None)  # in-flight 1 (== threshold) — no warning
+            submit(lambda: None)  # in-flight 2 (> threshold) — warning #1
+            submit(lambda: None)  # in-flight 3 (still saturated) — edge-triggered, no new warning
+            assert mock_logger.warn.call_count == 1
+
+            # Drain the backlog: in-flight 3 -> 2 -> 1 (re-arms at <= threshold) -> 0.
+            done(None)
+            done(None)
+            done(None)
+
+            submit(lambda: None)  # in-flight 1 (== threshold) — no warning
+            submit(lambda: None)  # in-flight 2 (> threshold) — warning #2 (re-armed)
+            assert mock_logger.warn.call_count == 2
 
     def test_inflight_warning_disabled_when_threshold_zero(self, monkeypatch):
         """Threshold 0 disables the saturation warning entirely."""
