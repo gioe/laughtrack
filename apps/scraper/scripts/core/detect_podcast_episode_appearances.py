@@ -424,11 +424,12 @@ def _host_relationship_candidate(
     role = next((value for value in relationship_types if value in _HOST_ASSOCIATION_TYPES), None)
     if role is None:
         return None
+    appearance_role = "host" if role == "cohost" else role
     evidence = {
         "matched_name": comedian.name,
         "normalized_match": normalize_match_text(comedian.name),
         "source_field": "podcast_relationship",
-        "role_guess": role,
+        "role_guess": appearance_role,
         "evidence_text": comedian.name,
         "podcast_title": episode.podcast_title,
         "episode_title": episode.title,
@@ -446,7 +447,7 @@ def _host_relationship_candidate(
             podcast_title=episode.podcast_title,
             podcast_author=episode.podcast_author,
             episode_title=episode.title,
-            role_guess=role,
+            role_guess=appearance_role,
             confidence=0.99,
             source=episode.source,
             source_field="podcast_relationship",
@@ -462,7 +463,7 @@ def _host_relationship_candidate(
         source_episode_id=episode.source_episode_id,
         matched_name=comedian.name,
         source_field="podcast_relationship",
-        role_guess=role,
+        role_guess=appearance_role,
         confidence=0.99,
         evidence_text=comedian.name,
         evidence=evidence,

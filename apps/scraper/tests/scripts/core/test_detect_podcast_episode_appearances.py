@@ -436,6 +436,32 @@ def test_detector_processes_episodes_from_multiple_sources_and_preserves_source_
     assert appearance_sources == ["itunes", "podcast_index"]
 
 
+def test_cohost_relationship_persists_as_host_role(monkeypatch):
+    comedian = mod.MatchComedian(12, "Ari Shaffir", [])
+    rows = mod.detect_episode_candidates(
+        [comedian],
+        [
+            _episode(
+                episode_id=303,
+                title="Ari Shaffir checks in",
+                host_ids=[12],
+                host_types=["cohost"],
+            ),
+        ],
+    )
+
+    assert [(c.role_guess, c.status) for c in rows] == [("host", "accepted")]
+
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+    _capture_execute_values(monkeypatch)
+
+    mod.persist_candidates(rows, dry_run=False)
+
+    assert conn.review_writes[0][5] == "host"
+    assert conn.appearance_writes[0][3] == "host"
+
+
 def test_load_episode_inputs_default_query_omits_source_filter_and_binds_no_params(monkeypatch):
     conn = _FakeConn(episode_rows=[])
     monkeypatch.setattr(mod, "get_connection", lambda: conn)
