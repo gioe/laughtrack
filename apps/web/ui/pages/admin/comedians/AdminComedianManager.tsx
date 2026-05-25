@@ -132,8 +132,10 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [websiteEdits, setWebsiteEdits] = useState<
         Record<number, WebsiteEdit>
     >({});
+    // Comedian rows default to collapsed; the operator expands the ones they
+    // want to work on. (Previously every row was seeded open.)
     const [openComedianRows, setOpenComedianRows] = useState<Set<number>>(
-        () => new Set(comedians.map((comedian) => comedian.id)),
+        () => new Set<number>(),
     );
     const [manualImageUrls, setManualImageUrls] = useState<
         Record<number, ManualImageUrls>
@@ -1119,101 +1121,106 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             podcasts
                                         </span>
                                     </div>
-                                    <div className="col-span-full grid items-start gap-5 xl:grid-cols-2">
-                                        <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
-                                            <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Display name
-                                            </label>
-                                            <div className="mt-1 flex items-center gap-2">
-                                                <input
-                                                    aria-label="Comedian name"
-                                                    type="text"
-                                                    value={nameValue(row)}
-                                                    onChange={(event) =>
-                                                        setNameEdits(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.id]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id ||
-                                                        !isRecordDirty(row) ||
-                                                        !normalizedAdminName(
-                                                            nameValue(row),
-                                                        )
-                                                    }
-                                                    onClick={() =>
-                                                        void saveComedianRecord(
-                                                            row,
-                                                        )
-                                                    }
-                                                >
-                                                    <Save className="h-4 w-4" />
-                                                    Save record
-                                                </Button>
-                                            </div>
-                                            <div className="mt-3 grid gap-3">
-                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Website
+                                    <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans">
+                                        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                                            <div className="min-w-0 space-y-3">
+                                                <label className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Display name
+                                                </label>
+                                                <div className="mt-1 flex flex-wrap items-center gap-2 sm:flex-nowrap">
                                                     <input
-                                                        aria-label="Comedian website"
-                                                        type="url"
-                                                        value={websiteValue(
-                                                            row,
-                                                        )}
+                                                        aria-label="Comedian name"
+                                                        type="text"
+                                                        value={nameValue(row)}
                                                         onChange={(event) =>
-                                                            updateWebsiteEdit(
-                                                                row,
-                                                                {
-                                                                    website:
+                                                            setNameEdits(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    [row.id]:
                                                                         event
                                                                             .target
                                                                             .value,
-                                                                },
+                                                                }),
                                                             )
                                                         }
-                                                        placeholder="https://example.com"
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        className="min-w-[220px] flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                     />
-                                                </label>
-                                                <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                    Tour scrape URL
-                                                    <input
-                                                        aria-label="Comedian website scraping URL"
-                                                        type="url"
-                                                        value={websiteScrapingUrlValue(
-                                                            row,
-                                                        )}
-                                                        onChange={(event) =>
-                                                            updateWebsiteEdit(
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                        disabled={
+                                                            disabled ||
+                                                            pendingId ===
+                                                                row.id ||
+                                                            !isRecordDirty(
                                                                 row,
-                                                                {
-                                                                    websiteScrapingUrl:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                },
+                                                            ) ||
+                                                            !normalizedAdminName(
+                                                                nameValue(row),
                                                             )
                                                         }
-                                                        placeholder="https://example.com/tour"
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                    />
-                                                </label>
+                                                        onClick={() =>
+                                                            void saveComedianRecord(
+                                                                row,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Save className="h-4 w-4" />
+                                                        Save record
+                                                    </Button>
+                                                </div>
+                                                <div className="grid gap-3">
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Website
+                                                        <input
+                                                            aria-label="Comedian website"
+                                                            type="url"
+                                                            value={websiteValue(
+                                                                row,
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateWebsiteEdit(
+                                                                    row,
+                                                                    {
+                                                                        website:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="https://example.com"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Tour scrape URL
+                                                        <input
+                                                            aria-label="Comedian website scraping URL"
+                                                            type="url"
+                                                            value={websiteScrapingUrlValue(
+                                                                row,
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateWebsiteEdit(
+                                                                    row,
+                                                                    {
+                                                                        websiteScrapingUrl:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="https://example.com/tour"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
+
+                                            <div className="min-w-0 space-y-3 border-t border-copper/15 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
                                                 <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                     Current parent
                                                 </div>
@@ -1246,223 +1253,217 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         No parent assigned
                                                     </div>
                                                 )}
-                                            </div>
 
-                                            <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                                                Find parent
-                                                <input
-                                                    type="search"
-                                                    value={
-                                                        parentSearches[
-                                                            row.id
-                                                        ] ?? ""
-                                                    }
-                                                    onChange={(event) =>
-                                                        setParentSearches(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.id]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                    placeholder="Search parent name"
-                                                />
-                                            </label>
-                                            {candidates.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {candidates.map(
-                                                        (candidate) => (
-                                                            <button
-                                                                key={
-                                                                    candidate.id
-                                                                }
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    setSelectedParents(
-                                                                        (
-                                                                            current,
-                                                                        ) => ({
-                                                                            ...current,
-                                                                            [row.id]:
-                                                                                {
-                                                                                    id: candidate.id,
-                                                                                    name: candidate.name,
-                                                                                },
-                                                                        }),
-                                                                    )
-                                                                }
-                                                                className="rounded-md border border-copper/40 bg-coconut-cream px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
-                                                            >
-                                                                {candidate.name}
-                                                            </button>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            )}
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                disabled={
-                                                    disabled ||
-                                                    !isParentDirty(row) ||
-                                                    pendingId === row.id
-                                                }
-                                                onClick={() =>
-                                                    void saveParent(row)
-                                                }
-                                            >
-                                                <Save className="h-4 w-4" />
-                                                Save relationship
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="min-w-0 space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="flex flex-wrap gap-2">
-                                                {row.isBlocked && (
-                                                    <span className="rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
-                                                        Blocked
-                                                    </span>
+                                                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                                    Find parent
+                                                    <input
+                                                        type="search"
+                                                        value={
+                                                            parentSearches[
+                                                                row.id
+                                                            ] ?? ""
+                                                        }
+                                                        onChange={(event) =>
+                                                            setParentSearches(
+                                                                (current) => ({
+                                                                    ...current,
+                                                                    [row.id]:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                }),
+                                                            )
+                                                        }
+                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        placeholder="Search parent name"
+                                                    />
+                                                </label>
+                                                {candidates.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {candidates.map(
+                                                            (candidate) => (
+                                                                <button
+                                                                    key={
+                                                                        candidate.id
+                                                                    }
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setSelectedParents(
+                                                                            (
+                                                                                current,
+                                                                            ) => ({
+                                                                                ...current,
+                                                                                [row.id]:
+                                                                                    {
+                                                                                        id: candidate.id,
+                                                                                        name: candidate.name,
+                                                                                    },
+                                                                            }),
+                                                                        )
+                                                                    }
+                                                                    className="rounded-md border border-copper/40 bg-white px-3 py-2 font-dmSans text-body font-semibold text-cedar hover:bg-copper/10"
+                                                                >
+                                                                    {
+                                                                        candidate.name
+                                                                    }
+                                                                </button>
+                                                            ),
+                                                        )}
+                                                    </div>
                                                 )}
-                                                {row.parent && (
-                                                    <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
-                                                        Child
-                                                    </span>
-                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        !isParentDirty(row) ||
+                                                        pendingId === row.id
+                                                    }
+                                                    onClick={() =>
+                                                        void saveParent(row)
+                                                    }
+                                                >
+                                                    <Save className="h-4 w-4" />
+                                                    Save relationship
+                                                </Button>
                                             </div>
                                         </div>
-                                        <div className="space-y-3 rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
-                                            <div className="text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+
+                                        <div className="mt-5 border-t border-copper/15 pt-4">
+                                            <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                 Podcast RSS
                                             </div>
                                             {row.attributedPodcasts.length >
                                             0 ? (
-                                                row.attributedPodcasts.map(
-                                                    (podcast) => {
-                                                        const feedValue =
-                                                            podcastFeedValue(
-                                                                row,
-                                                                podcast,
-                                                            );
-                                                        const feedDirty =
-                                                            feedValue.trim() !==
-                                                            (podcast.feedUrl ??
-                                                                "");
-                                                        return (
-                                                            <div
-                                                                key={podcast.id}
-                                                                className="space-y-2 rounded-md border border-copper/15 bg-white/70 p-3"
-                                                            >
-                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                    <div className="font-semibold text-cedar">
+                                                <div className="grid gap-3 lg:grid-cols-2">
+                                                    {row.attributedPodcasts.map(
+                                                        (podcast) => {
+                                                            const feedValue =
+                                                                podcastFeedValue(
+                                                                    row,
+                                                                    podcast,
+                                                                );
+                                                            const feedDirty =
+                                                                feedValue.trim() !==
+                                                                (podcast.feedUrl ??
+                                                                    "");
+                                                            return (
+                                                                <div
+                                                                    key={
+                                                                        podcast.id
+                                                                    }
+                                                                    className="space-y-2"
+                                                                >
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <div className="font-semibold text-cedar">
+                                                                            {
+                                                                                podcast.title
+                                                                            }
+                                                                        </div>
+                                                                        <a
+                                                                            href={`/podcast/${podcast.slug}`}
+                                                                            target="_blank"
+                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                        >
+                                                                            Public
+                                                                            <ExternalLink className="h-3.5 w-3.5" />
+                                                                        </a>
+                                                                        {podcast.feedUrl && (
+                                                                            <a
+                                                                                href={
+                                                                                    podcast.feedUrl
+                                                                                }
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                            >
+                                                                                RSS
+                                                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                    <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                        RSS feed
+                                                                        for{" "}
                                                                         {
                                                                             podcast.title
                                                                         }
-                                                                    </div>
-                                                                    <a
-                                                                        href={`/podcast/${podcast.slug}`}
-                                                                        target="_blank"
-                                                                        className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
-                                                                    >
-                                                                        Public
-                                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                                    </a>
-                                                                    {podcast.feedUrl && (
-                                                                        <a
-                                                                            href={
-                                                                                podcast.feedUrl
+                                                                        <input
+                                                                            aria-label={`RSS feed for ${podcast.title}`}
+                                                                            type="url"
+                                                                            value={
+                                                                                feedValue
                                                                             }
-                                                                            target="_blank"
-                                                                            rel="noreferrer"
-                                                                            className="inline-flex items-center gap-1 text-caption font-semibold text-copper-dark hover:underline"
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                updatePodcastFeedValue(
+                                                                                    row,
+                                                                                    podcast,
+                                                                                    event
+                                                                                        .target
+                                                                                        .value,
+                                                                                )
+                                                                            }
+                                                                            placeholder="https://example.com/rss.xml"
+                                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                                        />
+                                                                    </label>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id ||
+                                                                                !feedDirty ||
+                                                                                !feedValue.trim()
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void savePodcastFeedUrl(
+                                                                                    row,
+                                                                                    podcast,
+                                                                                    feedValue.trim(),
+                                                                                )
+                                                                            }
                                                                         >
+                                                                            <Save className="h-4 w-4" />
+                                                                            Save
                                                                             RSS
-                                                                            <ExternalLink className="h-3.5 w-3.5" />
-                                                                        </a>
-                                                                    )}
+                                                                        </Button>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                            disabled={
+                                                                                disabled ||
+                                                                                pendingId ===
+                                                                                    row.id ||
+                                                                                !podcast.feedUrl
+                                                                            }
+                                                                            onClick={() =>
+                                                                                void savePodcastFeedUrl(
+                                                                                    row,
+                                                                                    podcast,
+                                                                                    null,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <X className="h-4 w-4" />
+                                                                            Remove
+                                                                            RSS
+                                                                        </Button>
+                                                                    </div>
                                                                 </div>
-                                                                <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                                    RSS feed for{" "}
-                                                                    {
-                                                                        podcast.title
-                                                                    }
-                                                                    <input
-                                                                        aria-label={`RSS feed for ${podcast.title}`}
-                                                                        type="url"
-                                                                        value={
-                                                                            feedValue
-                                                                        }
-                                                                        onChange={(
-                                                                            event,
-                                                                        ) =>
-                                                                            updatePodcastFeedValue(
-                                                                                row,
-                                                                                podcast,
-                                                                                event
-                                                                                    .target
-                                                                                    .value,
-                                                                            )
-                                                                        }
-                                                                        placeholder="https://example.com/rss.xml"
-                                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                                    />
-                                                                </label>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                        disabled={
-                                                                            disabled ||
-                                                                            pendingId ===
-                                                                                row.id ||
-                                                                            !feedDirty ||
-                                                                            !feedValue.trim()
-                                                                        }
-                                                                        onClick={() =>
-                                                                            void savePodcastFeedUrl(
-                                                                                row,
-                                                                                podcast,
-                                                                                feedValue.trim(),
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Save className="h-4 w-4" />
-                                                                        Save RSS
-                                                                    </Button>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                                        disabled={
-                                                                            disabled ||
-                                                                            pendingId ===
-                                                                                row.id ||
-                                                                            !podcast.feedUrl
-                                                                        }
-                                                                        onClick={() =>
-                                                                            void savePodcastFeedUrl(
-                                                                                row,
-                                                                                podcast,
-                                                                                null,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <X className="h-4 w-4" />
-                                                                        Remove
-                                                                        RSS
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    },
-                                                )
+                                                            );
+                                                        },
+                                                    )}
+                                                </div>
                                             ) : (
-                                                <div className="space-y-2">
+                                                <div className="max-w-3xl space-y-2">
                                                     <label className="grid gap-1 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                         RSS feed URL
                                                         <input
@@ -1511,6 +1512,22 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                     </Button>
                                                 </div>
                                             )}
+                                        </div>
+                                    </div>
+                                    <div className="min-w-0 space-y-4">
+                                        <div className="space-y-2">
+                                            <div className="flex flex-wrap gap-2">
+                                                {row.isBlocked && (
+                                                    <span className="rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                                        Blocked
+                                                    </span>
+                                                )}
+                                                {row.parent && (
+                                                    <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
+                                                        Child
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         {row.latestTicketPurchase ? (
                                             <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">

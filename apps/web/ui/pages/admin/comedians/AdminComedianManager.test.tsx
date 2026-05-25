@@ -97,6 +97,16 @@ const comedians: AdminComedianListItem[] = [
     },
 ];
 
+// Comedian rows render collapsed by default. Most tests exercise the expanded
+// editor panel, so expand every row after rendering.
+function expandAllRows() {
+    document
+        .querySelectorAll<HTMLElement>(
+            '[aria-controls^="comedian-row-"][aria-expanded="false"]',
+        )
+        .forEach((toggle) => fireEvent.click(toggle));
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn().mockResolvedValue({
@@ -119,6 +129,7 @@ afterEach(() => {
 describe("AdminComedianManager", () => {
     it("renders current image state and legacy fallback previews", () => {
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         expect(screen.getByText("Active asset")).toBeTruthy();
         expect(screen.getByText("Legacy fallback")).toBeTruthy();
@@ -177,6 +188,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
@@ -230,6 +242,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
             type: "image/jpeg",
@@ -273,6 +286,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getAllByLabelText("Hero image URL")[1], {
             target: { value: "https://new.example.com/hero.jpg" },
@@ -308,6 +322,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove headshot & hero" }),
@@ -341,6 +356,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getAllByLabelText("Hero image URL")[0], {
             target: { value: "https://alias.example.com/hero.jpg" },
@@ -382,6 +398,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getAllByLabelText("Headshot image URL")[0], {
             target: { value: "https://alias.example.com/headshot.jpg" },
@@ -433,6 +450,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const websiteInput = screen.getAllByLabelText("Comedian website")[0];
         fireEvent.change(websiteInput, {
@@ -480,6 +498,7 @@ describe("AdminComedianManager", () => {
 
     it("sorts comedians by popularity", () => {
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getByLabelText("Sort"), {
             target: { value: "popularity-asc" },
@@ -492,6 +511,7 @@ describe("AdminComedianManager", () => {
 
     it("sorts comedians by database insertion date", () => {
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.change(screen.getByLabelText("Sort"), {
             target: { value: "created-desc" },
@@ -512,6 +532,7 @@ describe("AdminComedianManager", () => {
 
     it("saves a parent relationship", async () => {
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const parentInputs =
             screen.getAllByPlaceholderText("Search parent name");
@@ -552,6 +573,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         expect(
             screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
@@ -593,6 +615,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove parent relationship" }),
@@ -641,6 +664,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         const nameInputs = screen.getAllByLabelText("Comedian name");
         fireEvent.change(nameInputs[0], {
@@ -685,11 +709,7 @@ describe("AdminComedianManager", () => {
         expect(panelId).toBeTruthy();
         const panel = document.getElementById(panelId!);
         expect(panel).toBeTruthy();
-        expect(toggle.getAttribute("aria-expanded")).toBe("true");
-        expect(panel!.hidden).toBe(false);
-
-        fireEvent.click(toggle);
-
+        // Rows default to collapsed.
         expect(toggle.getAttribute("aria-expanded")).toBe("false");
         expect(panel!.hidden).toBe(true);
 
@@ -698,6 +718,11 @@ describe("AdminComedianManager", () => {
         expect(toggle.getAttribute("aria-expanded")).toBe("true");
         expect(panel!.hidden).toBe(false);
         expect(within(panel!).getByText("Podcast RSS")).toBeTruthy();
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute("aria-expanded")).toBe("false");
+        expect(panel!.hidden).toBe(true);
     });
 
     it("shows and updates existing podcast RSS feed links in the comedian section", async () => {
@@ -719,6 +744,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         expect(screen.getAllByText("Parent Podcast").length).toBeGreaterThan(0);
         expect(
@@ -772,6 +798,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         fireEvent.click(
             screen.getAllByRole("button", { name: "Remove RSS" })[0],
@@ -807,6 +834,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const input = screen.getByLabelText("RSS feed URL for Alias Comic");
         fireEvent.change(input, {
@@ -837,6 +865,7 @@ describe("AdminComedianManager", () => {
 
     it("links to the latest ticket purchase url", () => {
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const link = screen.getByRole("link", {
             name: /Latest ticket purchase/,
@@ -863,6 +892,7 @@ describe("AdminComedianManager", () => {
             }),
         } as never);
         render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
 
         const reasonInputs = screen.getAllByLabelText("Blocklist reason");
         fireEvent.change(reasonInputs[0], {
@@ -915,6 +945,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove from blocklist" }),
@@ -948,6 +979,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         expect(
             screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
@@ -981,6 +1013,7 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
 
         expect(
             screen.queryByRole("combobox", { name: "Blocked status" }),
