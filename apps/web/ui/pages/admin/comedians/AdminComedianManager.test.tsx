@@ -127,12 +127,12 @@ afterEach(() => {
 });
 
 describe("AdminComedianManager", () => {
-    it("renders current image state and legacy fallback previews", () => {
+    it("renders current image state and current image previews", () => {
         render(<AdminComedianManager comedians={comedians} />);
         expandAllRows();
 
         expect(screen.getByText("Active asset")).toBeTruthy();
-        expect(screen.getByText("Legacy fallback")).toBeTruthy();
+        expect(screen.getAllByText("Current image").length).toBeGreaterThan(0);
         expect(screen.getAllByText("No current image").length).toBeGreaterThan(
             0,
         );
@@ -161,7 +161,7 @@ describe("AdminComedianManager", () => {
         ).toBe(true);
         expect(
             screen
-                .getByAltText("Parent Comic legacy fallback preview")
+                .getByAltText("Parent Comic current image preview")
                 .getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedians/Parent%20Comic.png");
     });

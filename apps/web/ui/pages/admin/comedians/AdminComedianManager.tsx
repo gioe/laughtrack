@@ -1120,6 +1120,55 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             {row.attributedPodcasts.length.toLocaleString()}{" "}
                                             podcasts
                                         </span>
+                                        <span
+                                            className={
+                                                row.isBlocked
+                                                    ? "font-semibold text-red-900"
+                                                    : ""
+                                            }
+                                        >
+                                            {row.isBlocked
+                                                ? "Blocked"
+                                                : "Not blocked"}
+                                        </span>
+                                        {row.latestTicketPurchase ? (
+                                            <span className="inline-flex min-w-0 items-center gap-1">
+                                                <a
+                                                    href={
+                                                        row.latestTicketPurchase
+                                                            .url
+                                                    }
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex min-w-0 items-center gap-1 font-semibold text-copper-dark hover:underline"
+                                                >
+                                                    <span>
+                                                        Latest ticket purchase
+                                                    </span>
+                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                </a>
+                                                <span className="text-soft-charcoal">
+                                                    ·{" "}
+                                                    {row.latestTicketPurchase
+                                                        .showName ??
+                                                        "Untitled show"}{" "}
+                                                    ·{" "}
+                                                    {
+                                                        row.latestTicketPurchase
+                                                            .clubName
+                                                    }{" "}
+                                                    ·{" "}
+                                                    {formatDate(
+                                                        row.latestTicketPurchase
+                                                            .showDate,
+                                                    )}
+                                                </span>
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                No ticket purchase link found.
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans">
                                         <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
@@ -1514,59 +1563,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="min-w-0 space-y-4">
-                                        <div className="space-y-2">
-                                            <div className="flex flex-wrap gap-2">
-                                                {row.isBlocked && (
-                                                    <span className="rounded-full border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
-                                                        Blocked
-                                                    </span>
-                                                )}
-                                                {row.parent && (
-                                                    <span className="rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
-                                                        Child
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {row.latestTicketPurchase ? (
-                                            <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3 font-dmSans">
-                                                <a
-                                                    href={
-                                                        row.latestTicketPurchase
-                                                            .url
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="inline-flex items-center gap-2 text-body font-semibold text-copper-dark hover:underline"
-                                                >
-                                                    Latest ticket purchase
-                                                    <ExternalLink className="h-4 w-4" />
-                                                </a>
-                                                <div className="mt-1 text-caption text-soft-charcoal">
-                                                    {row.latestTicketPurchase
-                                                        .showName ??
-                                                        "Untitled show"}{" "}
-                                                    ·{" "}
-                                                    {
-                                                        row.latestTicketPurchase
-                                                            .clubName
-                                                    }{" "}
-                                                    ·{" "}
-                                                    {formatDate(
-                                                        row.latestTicketPurchase
-                                                            .showDate,
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-3 py-2 font-dmSans text-caption text-soft-charcoal">
-                                                No ticket purchase link found.
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-4">
+                                    <div className="col-span-full space-y-4">
                                         <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
                                             <div className="mb-3">
                                                 <div>
@@ -1577,7 +1574,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         {row.activeImageAsset
                                                             ? "Active asset"
                                                             : row.hasImage
-                                                              ? "Legacy fallback"
+                                                              ? "Image available"
                                                               : "No current image"}
                                                     </div>
                                                 </div>
@@ -1829,11 +1826,11 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             {legacyAvatar && (
                                                 <div className="mt-3 border-t border-copper/15 pt-3">
                                                     <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Legacy fallback
+                                                        Current image
                                                     </div>
                                                     <img
                                                         src={legacyAvatar}
-                                                        alt={`${row.name} legacy fallback preview`}
+                                                        alt={`${row.name} current image preview`}
                                                         className="h-[56px] w-[56px] rounded-md border border-copper/20 object-cover"
                                                     />
                                                 </div>
