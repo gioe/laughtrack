@@ -41,6 +41,22 @@ declare module "next-auth" {
 
 const adapter = PrismaAdapter(prisma);
 
+// Apple sign-in uses response_mode=form_post: appleid.apple.com POSTs the auth
+// response back to our callback as a cross-site POST. Browsers drop
+// SameSite=Lax cookies on cross-site POSTs, so Auth.js's default Lax
+// `callback-url` cookie is lost on the Apple round-trip — NextAuth then falls
+// back to baseUrl and the native iOS flow is stranded on the web home page
+// instead of redirecting to the `laughtrack://auth/callback` deep link
+// (manifested as "Apple sign-in logs me in on web but never returns to the
+// app"). Auth.js already sets the state & nonce cookies to SameSite=None for
+// exactly this reason; we extend the same treatment to the callbackUrl cookie
+// so the native callback target survives the POST. SameSite=None requires
+// Secure (HTTPS only), so dev over http keeps the Lax default. Google is
+// unaffected — its GET callback is a top-level navigation that carries Lax
+// cookies — but aligning the cookie is harmless for it.
+const useSecureCookies = process.env.NODE_ENV === "production";
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
 const _nextAuth = NextAuth({
     adapter,
     logger: {
@@ -91,6 +107,17 @@ const _nextAuth = NextAuth({
     session: {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
+    cookies: {
+        callbackUrl: {
+            name: `${cookiePrefix}authjs.callback-url`,
+            options: {
+                httpOnly: true,
+                sameSite: useSecureCookies ? "none" : "lax",
+                path: "/",
+                secure: useSecureCookies,
+            },
+        },
     },
     events: {
         createUser: async ({ user }) => {
