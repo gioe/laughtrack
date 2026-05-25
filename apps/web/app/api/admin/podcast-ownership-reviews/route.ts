@@ -438,16 +438,11 @@ export async function POST(req: NextRequest) {
                         reviewedBy: profileId,
                     },
                 });
-                await tx.comedianPodcast.updateMany({
+                await tx.comedianPodcast.deleteMany({
                     where: {
                         podcastId,
                         reviewStatus: "accepted",
                         associationType: { in: ["host", "cohost"] },
-                    },
-                    data: {
-                        reviewStatus: "rejected",
-                        reviewedAt,
-                        reviewedBy: profileId,
                     },
                 });
             } else {
@@ -462,16 +457,11 @@ export async function POST(req: NextRequest) {
                         reviewedBy: profileId,
                     },
                 });
-                await tx.comedianPodcast.updateMany({
+                await tx.comedianPodcast.deleteMany({
                     where: {
                         podcastId,
                         reviewStatus: "accepted",
                         associationType: { in: ["host", "cohost"] },
-                    },
-                    data: {
-                        reviewStatus: "rejected",
-                        reviewedAt,
-                        reviewedBy: profileId,
                     },
                 });
             }
@@ -769,18 +759,13 @@ export async function PUT(req: NextRequest) {
             });
 
             const reviewedAt = new Date();
-            await tx.comedianPodcast.updateMany({
+            await tx.comedianPodcast.deleteMany({
                 where: {
                     comedianId: comedian.id,
                     podcastId: podcast.id,
                     associationType: "host",
                     source: { not: source },
                     reviewStatus: "accepted",
-                },
-                data: {
-                    reviewStatus: "rejected",
-                    reviewedAt,
-                    reviewedBy: profileId,
                 },
             });
             await tx.comedianPodcast.upsert({

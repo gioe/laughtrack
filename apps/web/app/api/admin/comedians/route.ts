@@ -614,18 +614,13 @@ export async function PATCH(req: NextRequest) {
                                 reviewedBy: profileId,
                             },
                         });
-                        await tx.comedianPodcast.updateMany({
+                        await tx.comedianPodcast.deleteMany({
                             where: {
                                 comedianId: before.id,
                                 podcastId: review.podcastId,
                                 associationType: "host",
                                 source: { not: review.source },
                                 reviewStatus: "accepted",
-                            },
-                            data: {
-                                reviewStatus: "rejected",
-                                reviewedAt,
-                                reviewedBy: profileId,
                             },
                         });
                         await tx.comedianPodcast.upsert({

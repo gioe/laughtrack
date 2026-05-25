@@ -233,7 +233,7 @@ describe("PATCH /api/admin/comedians", () => {
         mockAuth.mockResolvedValue(adminSession as never);
         const auditCreate = vi.fn();
         const candidateUpdate = vi.fn();
-        const hostshipUpdateMany = vi.fn();
+        const hostshipDeleteMany = vi.fn();
         const hostshipUpsert = vi.fn();
         const findUnique = vi
             .fn()
@@ -281,7 +281,7 @@ describe("PATCH /api/admin/comedians", () => {
             callback({
                 comedian: { findUnique },
                 comedianPodcast: {
-                    updateMany: hostshipUpdateMany,
+                    deleteMany: hostshipDeleteMany,
                     upsert: hostshipUpsert,
                 },
                 podcastCandidateReview: {
@@ -303,7 +303,7 @@ describe("PATCH /api/admin/comedians", () => {
         );
 
         expect(res.status).toBe(200);
-        expect(hostshipUpdateMany).toHaveBeenCalledWith({
+        expect(hostshipDeleteMany).toHaveBeenCalledWith({
             where: {
                 comedianId: 2,
                 podcastId: 99,
@@ -311,10 +311,6 @@ describe("PATCH /api/admin/comedians", () => {
                 source: { not: "itunes" },
                 reviewStatus: "accepted",
             },
-            data: expect.objectContaining({
-                reviewStatus: "rejected",
-                reviewedBy: "profile-1",
-            }),
         });
         expect(hostshipUpsert).toHaveBeenCalledWith(
             expect.objectContaining({

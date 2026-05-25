@@ -301,7 +301,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         ]);
         const candidateUpdateMany = vi.fn();
         const hostshipFindMany = vi.fn().mockResolvedValue([]);
-        const hostshipUpdateMany = vi.fn();
+        const hostshipDeleteMany = vi.fn();
         const upsert = vi
             .fn()
             .mockResolvedValueOnce(upsertedHostship)
@@ -319,7 +319,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 },
                 comedianPodcast: {
                     findMany: hostshipFindMany,
-                    updateMany: hostshipUpdateMany,
+                    deleteMany: hostshipDeleteMany,
                     upsert,
                 },
                 podcastDenyList: {
@@ -376,17 +376,13 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 }),
             }),
         );
-        expect(hostshipUpdateMany).toHaveBeenCalledWith(
+        expect(hostshipDeleteMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
                     podcastId: 99,
                     reviewStatus: "accepted",
                     associationType: { in: ["host", "cohost"] },
                 },
-                data: expect.objectContaining({
-                    reviewStatus: "rejected",
-                    reviewedBy: "profile-1",
-                }),
             }),
         );
         expect(upsert).toHaveBeenCalledWith(
@@ -478,7 +474,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
         const candidateFindMany = vi.fn().mockResolvedValue([candidate]);
         const candidateUpdateMany = vi.fn();
         const hostshipFindMany = vi.fn().mockResolvedValue([]);
-        const hostshipUpdateMany = vi.fn();
+        const hostshipDeleteMany = vi.fn();
         const upsert = vi.fn();
         const denyListFindMany = vi.fn().mockResolvedValue([]);
         const denyListUpsert = vi.fn().mockResolvedValue({
@@ -502,7 +498,7 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 },
                 comedianPodcast: {
                     findMany: hostshipFindMany,
-                    updateMany: hostshipUpdateMany,
+                    deleteMany: hostshipDeleteMany,
                     upsert,
                 },
                 podcastDenyList: {
@@ -534,17 +530,13 @@ describe("POST /api/admin/podcast-hostship-reviews", () => {
                 }),
             }),
         );
-        expect(hostshipUpdateMany).toHaveBeenCalledWith(
+        expect(hostshipDeleteMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
                     podcastId: 99,
                     reviewStatus: "accepted",
                     associationType: { in: ["host", "cohost"] },
                 },
-                data: expect.objectContaining({
-                    reviewStatus: "rejected",
-                    reviewedBy: "profile-1",
-                }),
             }),
         );
         expect(upsert).not.toHaveBeenCalled();
@@ -612,7 +604,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         const auditCreate = vi.fn();
         const podcastUpsert = vi.fn().mockResolvedValue(podcast);
         const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
-        const comedianPodcastUpdateMany = vi.fn();
+        const comedianPodcastDeleteMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
@@ -620,7 +612,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: comedianFindUnique },
                 comedianPodcast: {
-                    updateMany: comedianPodcastUpdateMany,
+                    deleteMany: comedianPodcastDeleteMany,
                     upsert: comedianPodcastUpsert,
                 },
                 podcastEpisode: { upsert: episodeUpsert },
@@ -658,7 +650,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 }),
             }),
         );
-        expect(comedianPodcastUpdateMany).toHaveBeenCalledWith({
+        expect(comedianPodcastDeleteMany).toHaveBeenCalledWith({
             where: {
                 comedianId: 42,
                 podcastId: 99,
@@ -666,10 +658,6 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 source: { not: "manual_rss" },
                 reviewStatus: "accepted",
             },
-            data: expect.objectContaining({
-                reviewStatus: "rejected",
-                reviewedBy: "profile-1",
-            }),
         });
         expect(episodeUpsert).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -792,7 +780,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
             feedUrl: "https://feeds.example.com/restored.xml",
         };
         const podcastUpsert = vi.fn().mockResolvedValue(podcast);
-        const comedianPodcastUpdateMany = vi.fn();
+        const comedianPodcastDeleteMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
         const auditCreate = vi.fn();
@@ -802,7 +790,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: vi.fn().mockResolvedValue(comedian) },
                 comedianPodcast: {
-                    updateMany: comedianPodcastUpdateMany,
+                    deleteMany: comedianPodcastDeleteMany,
                     upsert: comedianPodcastUpsert,
                 },
                 podcastEpisode: { upsert: episodeUpsert },
