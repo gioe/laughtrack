@@ -15,6 +15,11 @@ import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
+// Subtle warm spotlight wash from the top edge — the compact echo of the
+// show-search card's Brick & Spotlight stage treatment.
+const CARD_SPOTLIGHT =
+    "radial-gradient(85% 65% at 50% -12%, rgba(247,231,206,0.10), rgba(184,115,51,0.04) 45%, transparent 70%)";
+
 interface CompactShowCardProps {
     show: ShowDTO;
 }
@@ -54,9 +59,17 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
     return (
         <EntityCard
             as="article"
-            chrome="warm"
-            className="relative flex flex-col gap-3 p-4 h-full"
+            chrome="stage"
+            className="relative h-full overflow-hidden p-4"
         >
+            {/* Warm spotlight wash behind the content (content sits in the
+                relative wrapper below so it paints above this layer). */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{ background: CARD_SPOTLIGHT }}
+            />
+
             {/* Stretched-link overlay: whole card navigates to /show/[id].
                 The ticket link below uses `relative z-[2]` so it still opens
                 the external ticketing URL in a new tab. */}
@@ -68,97 +81,99 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                 <span className="sr-only">View show details</span>
             </Link>
 
-            {/* Club header */}
-            <div className="flex items-center gap-3">
-                <div
-                    className={`relative w-10 h-10 rounded-full overflow-hidden flex-none ${isSoldOut ? "grayscale opacity-60" : ""}`}
-                >
-                    <Image
-                        src={imgError ? PLACEHOLDER : parsedShow.imageUrl}
-                        onError={() => setImgError(true)}
-                        alt={parsedShow.clubName ?? "Club"}
-                        fill
-                        className="object-cover"
-                        sizes="40px"
-                        aria-hidden="true"
-                    />
-                </div>
-                <div className="min-w-0">
-                    <p
-                        data-testid="compact-show-title"
-                        className="font-gilroy-bold font-bold text-foreground text-body leading-tight line-clamp-2"
+            <div className="relative flex h-full flex-col gap-3">
+                {/* Club header */}
+                <div className="flex items-center gap-3">
+                    <div
+                        className={`relative h-10 w-10 flex-none overflow-hidden rounded-full bg-[#241912] ring-1 ring-copper/25 ${isSoldOut ? "grayscale opacity-60" : ""}`}
                     >
-                        {parsedShow.name || "Untitled show"}
-                    </p>
-                    {parsedShow.clubName && (
+                        <Image
+                            src={imgError ? PLACEHOLDER : parsedShow.imageUrl}
+                            onError={() => setImgError(true)}
+                            alt={parsedShow.clubName ?? "Club"}
+                            fill
+                            className="object-cover"
+                            sizes="40px"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <div className="min-w-0">
                         <p
-                            data-testid="compact-show-club"
-                            className="text-xs text-gray-500 font-dmSans leading-snug line-clamp-2"
+                            data-testid="compact-show-title"
+                            className="font-gilroy-bold font-bold text-foreground text-body leading-tight line-clamp-2"
                         >
-                            {parsedShow.clubName}
+                            {parsedShow.name || "Untitled show"}
                         </p>
-                    )}
-                    {parsedShow.room && (
-                        <p className="text-xs text-gray-400 font-dmSans truncate">
-                            {parsedShow.room}
-                        </p>
+                        {parsedShow.clubName && (
+                            <p
+                                data-testid="compact-show-club"
+                                className="font-oswald text-[11px] font-medium uppercase tracking-[0.08em] text-copper-bright leading-snug line-clamp-2"
+                            >
+                                {parsedShow.clubName}
+                            </p>
+                        )}
+                        {parsedShow.room && (
+                            <p className="text-[11px] text-foreground/50 font-dmSans truncate">
+                                {parsedShow.room}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Date & address */}
+                <div className="text-caption text-foreground/65 font-dmSans space-y-0.5">
+                    <p>
+                        {formatShowDate(
+                            parsedShow.date.toString(),
+                            parsedShow.timezone,
+                        )}
+                    </p>
+                    {parsedShow.address && (
+                        <p className="truncate">{parsedShow.address}</p>
                     )}
                 </div>
-            </div>
 
-            {/* Date & address */}
-            <div className="text-caption text-gray-600 font-dmSans space-y-0.5">
-                <p>
-                    {formatShowDate(
-                        parsedShow.date.toString(),
-                        parsedShow.timezone,
-                    )}
-                </p>
-                {parsedShow.address && (
-                    <p className="truncate">{parsedShow.address}</p>
+                {/* Lineup */}
+                {lineupNames.length > 0 && (
+                    <p className="text-caption text-foreground/70 font-dmSans">
+                        w/ {displayNames}
+                        {extraCount > 0 && ` +${extraCount} more`}
+                    </p>
+                )}
+
+                {/* Ticket CTA */}
+                {parsedShow.tickets.length > 0 && (
+                    <div className="mt-auto pt-1 relative z-[2]">
+                        {buyUrl ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Link
+                                    href={buyUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={ticketAriaLabel}
+                                    className="inline-block text-caption font-semibold text-copper-bright font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                                >
+                                    {ticketLabel || "Get Tickets"}
+                                </Link>
+                                {hasUnknownPrice && (
+                                    <PriceUnavailableInfo className="h-7 w-7" />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                {struckPriceLabel && (
+                                    <span className="text-caption text-foreground/45 line-through font-dmSans">
+                                        {struckPriceLabel}
+                                    </span>
+                                )}
+                                <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
+                                    Sold Out
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
-
-            {/* Lineup */}
-            {lineupNames.length > 0 && (
-                <p className="text-caption text-gray-700 font-dmSans">
-                    w/ {displayNames}
-                    {extraCount > 0 && ` +${extraCount} more`}
-                </p>
-            )}
-
-            {/* Ticket CTA */}
-            {parsedShow.tickets.length > 0 && (
-                <div className="mt-auto pt-1 relative z-[2]">
-                    {buyUrl ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Link
-                                href={buyUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={ticketAriaLabel}
-                                className="inline-block text-caption font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-                            >
-                                {ticketLabel || "Get Tickets"}
-                            </Link>
-                            {hasUnknownPrice && (
-                                <PriceUnavailableInfo className="h-7 w-7" />
-                            )}
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            {struckPriceLabel && (
-                                <span className="text-caption text-gray-500 line-through font-dmSans">
-                                    {struckPriceLabel}
-                                </span>
-                            )}
-                            <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
-                                Sold Out
-                            </span>
-                        </div>
-                    )}
-                </div>
-            )}
         </EntityCard>
     );
 };
