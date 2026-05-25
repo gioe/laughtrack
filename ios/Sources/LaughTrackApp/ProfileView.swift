@@ -153,10 +153,7 @@ struct ProfileView: View {
                 }
 
                 if isSignedIn {
-                    HStack(spacing: theme.spacing.sm) {
-                        LaughTrackBadge("Sync on", systemImage: "checkmark.seal.fill", tone: .highlight)
-                        LaughTrackBadge(nearbySummary, systemImage: "location.fill", tone: .accent)
-                    }
+                    LaughTrackBadge(nearbySummary, systemImage: "location.fill", tone: .accent)
                 } else {
                     VStack(spacing: theme.spacing.sm) {
                         ForEach(Self.signedOutAuthOptions) { option in
