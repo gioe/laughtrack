@@ -48,6 +48,30 @@ type ComedianSnapshot = {
             websiteUrl: string | null;
         };
     }>;
+    podcastCandidateReviews: Array<{
+        id: number;
+        source: string;
+        sourcePodcastId: string;
+        candidateStatus: string;
+        associationType: string | null;
+        confidence: number;
+        createdAt: Date;
+        updatedAt: Date;
+        podcast: {
+            id: number;
+            slug: string;
+            title: string;
+            authorName: string | null;
+            feedUrl: string | null;
+            websiteUrl: string | null;
+            denyListEntries: Array<{
+                id: number;
+                reason: string | null;
+                deniedAt: Date;
+                deniedBy: string | null;
+            }>;
+        } | null;
+    }>;
     lineupItems: Array<{
         show: {
             id: number;
@@ -69,7 +93,12 @@ type DenyListRow = {
 
 type ComedianAdminWriter = Pick<
     Prisma.TransactionClient,
-    "$queryRaw" | "comedian"
+    | "$queryRaw"
+    | "comedian"
+    | "comedianPodcast"
+    | "podcast"
+    | "podcastCandidateReview"
+    | "podcastDenyList"
 > &
     Parameters<typeof writeAdminActionAudit>[0];
 
@@ -93,6 +122,30 @@ const mutationSchema = z.discriminatedUnion("action", [
         .object({
             action: z.literal("blocklist-remove"),
             comedianId: z.number().int().positive(),
+            reason: z.string().trim().max(1000).optional(),
+        })
+        .strict(),
+    z
+        .object({
+            action: z.literal("podcast-review-accept-host"),
+            comedianId: z.number().int().positive(),
+            candidateReviewId: z.number().int().positive(),
+            reason: z.string().trim().max(1000).optional(),
+        })
+        .strict(),
+    z
+        .object({
+            action: z.literal("podcast-review-reject-host"),
+            comedianId: z.number().int().positive(),
+            candidateReviewId: z.number().int().positive(),
+            reason: z.string().trim().max(1000).optional(),
+        })
+        .strict(),
+    z
+        .object({
+            action: z.literal("podcast-review-block-podcast"),
+            comedianId: z.number().int().positive(),
+            candidateReviewId: z.number().int().positive(),
             reason: z.string().trim().max(1000).optional(),
         })
         .strict(),
@@ -226,6 +279,40 @@ function serializeComedian(
             reviewStatus: link.reviewStatus,
             confidence: link.confidence,
         })),
+        podcastCandidateReviews: (comedian.podcastCandidateReviews ?? []).map(
+            (review) => ({
+                id: review.id,
+                source: review.source,
+                sourcePodcastId: review.sourcePodcastId,
+                candidateStatus: review.candidateStatus,
+                associationType: review.associationType,
+                confidence: review.confidence,
+                createdAt: review.createdAt.toISOString(),
+                updatedAt: review.updatedAt.toISOString(),
+                podcast: review.podcast
+                    ? {
+                          id: review.podcast.id,
+                          slug: review.podcast.slug,
+                          title: review.podcast.title,
+                          authorName: review.podcast.authorName,
+                          feedUrl: review.podcast.feedUrl,
+                          websiteUrl: review.podcast.websiteUrl,
+                          denyListEntry: review.podcast.denyListEntries?.[0]
+                              ? {
+                                    id: review.podcast.denyListEntries[0].id,
+                                    reason: review.podcast.denyListEntries[0]
+                                        .reason,
+                                    deniedAt:
+                                        review.podcast.denyListEntries[0].deniedAt.toISOString(),
+                                    deniedBy:
+                                        review.podcast.denyListEntries[0]
+                                            .deniedBy,
+                                }
+                              : null,
+                      }
+                    : null,
+            }),
+        ),
         latestTicketPurchase: (() => {
             const show = comedian.lineupItems[0]?.show ?? null;
             const url = show?.tickets[0]?.purchaseUrl ?? null;
@@ -292,6 +379,43 @@ const comedianSnapshotSelect = {
             { reviewStatus: "asc" },
             { confidence: "desc" },
             { podcast: { title: "asc" } },
+        ],
+    },
+    podcastCandidateReviews: {
+        select: {
+            id: true,
+            source: true,
+            sourcePodcastId: true,
+            candidateStatus: true,
+            associationType: true,
+            confidence: true,
+            createdAt: true,
+            updatedAt: true,
+            podcast: {
+                select: {
+                    id: true,
+                    slug: true,
+                    title: true,
+                    authorName: true,
+                    feedUrl: true,
+                    websiteUrl: true,
+                    denyListEntries: {
+                        where: { restoredAt: null },
+                        select: {
+                            id: true,
+                            reason: true,
+                            deniedAt: true,
+                            deniedBy: true,
+                        },
+                        take: 1,
+                    },
+                },
+            },
+        },
+        orderBy: [
+            { candidateStatus: "asc" },
+            { confidence: "desc" },
+            { updatedAt: "desc" },
         ],
     },
     lineupItems: {
@@ -430,6 +554,189 @@ export async function PATCH(req: NextRequest) {
                 if (!before)
                     return { error: "Comedian not found", status: 404 };
 
+                if (
+                    parsed.data.action === "podcast-review-accept-host" ||
+                    parsed.data.action === "podcast-review-reject-host" ||
+                    parsed.data.action === "podcast-review-block-podcast"
+                ) {
+                    const review = await tx.podcastCandidateReview.findUnique({
+                        where: { id: parsed.data.candidateReviewId },
+                        select: {
+                            id: true,
+                            comedianId: true,
+                            podcastId: true,
+                            source: true,
+                            sourcePodcastId: true,
+                            candidateStatus: true,
+                            associationType: true,
+                            confidence: true,
+                            evidence: true,
+                            podcast: {
+                                select: {
+                                    id: true,
+                                    slug: true,
+                                    title: true,
+                                    source: true,
+                                    sourcePodcastId: true,
+                                    feedUrl: true,
+                                },
+                            },
+                        },
+                    });
+                    if (!review || review.comedianId !== before.id) {
+                        return {
+                            error: "Podcast review not found",
+                            status: 404,
+                        };
+                    }
+                    if (!review.podcastId || !review.podcast) {
+                        return {
+                            error: "Podcast review is missing a podcast",
+                            status: 422,
+                        };
+                    }
+
+                    const reviewedAt = new Date();
+                    const reason =
+                        "reason" in parsed.data
+                            ? parsed.data.reason?.trim() || null
+                            : null;
+
+                    if (parsed.data.action === "podcast-review-accept-host") {
+                        await tx.podcastCandidateReview.update({
+                            where: { id: review.id },
+                            data: {
+                                candidateStatus: "accepted",
+                                associationType: "host",
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                        await tx.comedianPodcast.upsert({
+                            where: {
+                                comedianId_podcastId_associationType_source: {
+                                    comedianId: before.id,
+                                    podcastId: review.podcastId,
+                                    associationType: "host",
+                                    source: review.source,
+                                },
+                            },
+                            create: {
+                                comedianId: before.id,
+                                podcastId: review.podcastId,
+                                associationType: "host",
+                                source: review.source,
+                                reviewStatus: "accepted",
+                                confidence: review.confidence,
+                                evidence:
+                                    review.evidence === null
+                                        ? {}
+                                        : review.evidence,
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                            update: {
+                                reviewStatus: "accepted",
+                                confidence: review.confidence,
+                                evidence:
+                                    review.evidence === null
+                                        ? {}
+                                        : review.evidence,
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                    } else if (
+                        parsed.data.action === "podcast-review-reject-host"
+                    ) {
+                        await tx.podcastCandidateReview.update({
+                            where: { id: review.id },
+                            data: {
+                                candidateStatus: "rejected",
+                                associationType: "host",
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                    } else {
+                        if (review.candidateStatus !== "rejected") {
+                            return {
+                                error: "Reject this host review before blocking the podcast",
+                                status: 409,
+                            };
+                        }
+                        await tx.podcastDenyList.upsert({
+                            where: { podcastId: review.podcastId },
+                            create: {
+                                podcastId: review.podcastId,
+                                source: review.podcast.source,
+                                sourcePodcastId: review.podcast.sourcePodcastId,
+                                feedUrl: review.podcast.feedUrl,
+                                reason,
+                                deniedAt: reviewedAt,
+                                deniedBy: profileId,
+                            },
+                            update: {
+                                source: review.podcast.source,
+                                sourcePodcastId: review.podcast.sourcePodcastId,
+                                feedUrl: review.podcast.feedUrl,
+                                reason,
+                                deniedAt: reviewedAt,
+                                deniedBy: profileId,
+                                restoredAt: null,
+                                restoredBy: null,
+                            },
+                        });
+                        await tx.podcastCandidateReview.updateMany({
+                            where: {
+                                podcastId: review.podcastId,
+                                candidateStatus: "pending",
+                            },
+                            data: {
+                                candidateStatus: "rejected",
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                    }
+
+                    const after = await findComedianSnapshot(tx, before.id);
+                    if (!after) {
+                        return { error: "Comedian not found", status: 404 };
+                    }
+
+                    await writeAdminActionAudit(tx, {
+                        actorProfileId: profileId,
+                        action:
+                            parsed.data.action === "podcast-review-accept-host"
+                                ? "podcast_candidate_review.accept_host"
+                                : parsed.data.action ===
+                                    "podcast-review-reject-host"
+                                  ? "podcast_candidate_review.reject_host"
+                                  : "podcast_candidate_review.block_podcast",
+                        entityType: "podcast_candidate_review",
+                        entityId: review.id,
+                        reason,
+                        before: {
+                            review,
+                            comedian: snapshotForAudit(before),
+                        },
+                        after: {
+                            comedian: snapshotForAudit(after),
+                            podcastId: review.podcastId,
+                        },
+                    });
+
+                    const denyListEntry = await findDenyListEntry(
+                        tx,
+                        after.name,
+                    );
+                    return {
+                        comedian: serializeComedian(after, denyListEntry),
+                        name: after.name,
+                    };
+                }
+
                 if (parsed.data.action === "set-parent") {
                     const parentComedianId = parsed.data.parentComedianId;
 
@@ -537,7 +844,7 @@ export async function PATCH(req: NextRequest) {
                     };
                 }
 
-                const reason = parsed.data.reason.trim();
+                const reason = parsed.data.reason?.trim() ?? "";
                 const name = normalizeName(before.name);
                 const rows = await tx.$queryRaw<DenyListRow[]>`
                 INSERT INTO comedian_deny_list (name, reason, added_by)

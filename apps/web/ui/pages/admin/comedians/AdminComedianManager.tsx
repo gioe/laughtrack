@@ -53,6 +53,8 @@ type ManualImageUrls = {
 };
 
 type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
+type PodcastCandidateReview =
+    AdminComedianListItem["podcastCandidateReviews"][number];
 
 function formatDate(iso: string | null) {
     if (!iso) return null;
@@ -61,6 +63,10 @@ function formatDate(iso: string | null) {
 
 function formatDimensions(width: number | null, height: number | null) {
     return width && height ? `${width}x${height}` : "Unknown size";
+}
+
+function formatPercent(value: number) {
+    return `${Math.round(value * 100)}%`;
 }
 
 function legacyComedianImageUrl(row: AdminComedianListItem) {
@@ -482,6 +488,71 @@ export default function AdminComedianManager({ comedians }: Props) {
         setStatus({
             kind: "ok",
             message: `${row.name} removed from blocklist.`,
+        });
+        startTransition(() => router.refresh());
+    }
+
+    async function reviewPodcastCandidate(
+        row: AdminComedianListItem,
+        review: PodcastCandidateReview,
+        action:
+            | "podcast-review-accept-host"
+            | "podcast-review-reject-host"
+            | "podcast-review-block-podcast",
+    ) {
+        setStatus({ kind: "idle" });
+        setPendingId(row.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/comedians", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action,
+                    comedianId: row.id,
+                    candidateReviewId: review.id,
+                    ...(action === "podcast-review-block-podcast"
+                        ? {
+                              reason: `Blocked from comedian podcast review for ${row.name}`,
+                          }
+                        : {}),
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setStatus({
+                kind: "error",
+                message:
+                    error instanceof Error ? error.message : "Network error",
+            });
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setStatus({
+                kind: "error",
+                message: body.error ?? `Request failed (${res.status})`,
+            });
+            return;
+        }
+
+        setRows((current) =>
+            current.map((currentRow) =>
+                currentRow.id === row.id ? body.comedian : currentRow,
+            ),
+        );
+        const title = review.podcast?.title ?? review.sourcePodcastId;
+        setStatus({
+            kind: "ok",
+            message:
+                action === "podcast-review-accept-host"
+                    ? `${title} accepted as a host podcast for ${row.name}.`
+                    : action === "podcast-review-reject-host"
+                      ? `${title} rejected as a host podcast for ${row.name}.`
+                      : `${title} blocked from podcast ingestion.`,
         });
         startTransition(() => router.refresh());
     }
@@ -1562,6 +1633,199 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </div>
                                             )}
                                         </div>
+                                        {row.podcastCandidateReviews.length >
+                                            0 && (
+                                            <div className="mt-5 border-t border-copper/15 pt-4">
+                                                <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Podcast host reviews
+                                                </div>
+                                                <div className="grid gap-3">
+                                                    {row.podcastCandidateReviews.map(
+                                                        (review) => {
+                                                            const podcast =
+                                                                review.podcast;
+                                                            const isAccepted =
+                                                                review.candidateStatus ===
+                                                                "accepted";
+                                                            const isRejected =
+                                                                review.candidateStatus ===
+                                                                "rejected";
+                                                            const isBlocked =
+                                                                Boolean(
+                                                                    podcast?.denyListEntry,
+                                                                );
+                                                            return (
+                                                                <div
+                                                                    key={
+                                                                        review.id
+                                                                    }
+                                                                    className="grid gap-3 rounded-md border border-copper/15 bg-white/80 p-3 lg:grid-cols-[minmax(0,1fr)_auto]"
+                                                                >
+                                                                    <div className="min-w-0">
+                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                            <div className="font-dmSans text-body font-semibold text-cedar">
+                                                                                {podcast?.title ??
+                                                                                    review.sourcePodcastId}
+                                                                            </div>
+                                                                            <span className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-2 py-1 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                                {
+                                                                                    review.candidateStatus
+                                                                                }
+                                                                            </span>
+                                                                            {isBlocked && (
+                                                                                <span className="rounded-md border border-red-700/30 bg-red-50 px-2 py-1 font-dmSans text-caption font-semibold text-red-900">
+                                                                                    Blocked
+                                                                                </span>
+                                                                            )}
+                                                                            <span className="font-dmSans text-caption text-soft-charcoal">
+                                                                                {formatPercent(
+                                                                                    review.confidence,
+                                                                                )}
+                                                                            </span>
+                                                                        </div>
+                                                                        {podcast?.authorName && (
+                                                                            <div className="mt-1 font-dmSans text-caption text-soft-charcoal">
+                                                                                by{" "}
+                                                                                {
+                                                                                    podcast.authorName
+                                                                                }
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="mt-2 flex flex-wrap gap-3 font-dmSans text-caption">
+                                                                            {podcast && (
+                                                                                <a
+                                                                                    href={`/podcast/${podcast.slug}`}
+                                                                                    target="_blank"
+                                                                                    className="inline-flex items-center gap-1 text-copper-dark hover:underline"
+                                                                                >
+                                                                                    Public
+                                                                                    page
+                                                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                                                </a>
+                                                                            )}
+                                                                            {podcast?.feedUrl ? (
+                                                                                <a
+                                                                                    href={
+                                                                                        podcast.feedUrl
+                                                                                    }
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                >
+                                                                                    <span className="truncate">
+                                                                                        RSS:{" "}
+                                                                                        {
+                                                                                            podcast.feedUrl
+                                                                                        }
+                                                                                    </span>
+                                                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                                                </a>
+                                                                            ) : (
+                                                                                <span className="text-soft-charcoal">
+                                                                                    RSS
+                                                                                    feed
+                                                                                    missing
+                                                                                </span>
+                                                                            )}
+                                                                            {podcast?.websiteUrl && (
+                                                                                <a
+                                                                                    href={
+                                                                                        podcast.websiteUrl
+                                                                                    }
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                                                                                >
+                                                                                    Website
+                                                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                                                                                </a>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                                                                        {!isAccepted && (
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                disabled={
+                                                                                    disabled ||
+                                                                                    pendingId ===
+                                                                                        row.id ||
+                                                                                    isBlocked
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    void reviewPodcastCandidate(
+                                                                                        row,
+                                                                                        review,
+                                                                                        "podcast-review-accept-host",
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <Save className="h-4 w-4" />
+                                                                                Accept
+                                                                                as
+                                                                                host
+                                                                            </Button>
+                                                                        )}
+                                                                        {!isRejected &&
+                                                                            !isAccepted && (
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id ||
+                                                                                        isBlocked
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        void reviewPodcastCandidate(
+                                                                                            row,
+                                                                                            review,
+                                                                                            "podcast-review-reject-host",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                    Reject
+                                                                                    as
+                                                                                    host
+                                                                                </Button>
+                                                                            )}
+                                                                        {isRejected &&
+                                                                            !isBlocked && (
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    variant="outline"
+                                                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                                    disabled={
+                                                                                        disabled ||
+                                                                                        pendingId ===
+                                                                                            row.id
+                                                                                    }
+                                                                                    onClick={() =>
+                                                                                        void reviewPodcastCandidate(
+                                                                                            row,
+                                                                                            review,
+                                                                                            "podcast-review-block-podcast",
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    <Ban className="h-4 w-4" />
+                                                                                    Block
+                                                                                    podcast
+                                                                                </Button>
+                                                                            )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        },
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="col-span-full space-y-4">
                                         <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">

@@ -73,6 +73,27 @@ const comedians: AdminComedianListItem[] = [
                 confidence: 0.96,
             },
         ],
+        podcastCandidateReviews: [
+            {
+                id: 1001,
+                source: "itunes",
+                sourcePodcastId: "12345",
+                candidateStatus: "pending",
+                associationType: "host",
+                confidence: 0.91,
+                createdAt: "2026-05-03T12:00:00.000Z",
+                updatedAt: "2026-05-03T12:00:00.000Z",
+                podcast: {
+                    id: 30,
+                    slug: "candidate-podcast",
+                    title: "Candidate Podcast",
+                    authorName: "Candidate Author",
+                    feedUrl: "https://feeds.example.com/candidate.xml",
+                    websiteUrl: "https://example.com/candidate",
+                    denyListEntry: null,
+                },
+            },
+        ],
     },
     {
         id: 2,
@@ -94,6 +115,7 @@ const comedians: AdminComedianListItem[] = [
         blockAddedAt: null,
         latestTicketPurchase: null,
         attributedPodcasts: [],
+        podcastCandidateReviews: [],
     },
 ];
 
@@ -861,6 +883,82 @@ describe("AdminComedianManager", () => {
         });
         expect(screen.getByText("Alias Podcast RSS added.")).toBeTruthy();
         expect(screen.getAllByText("Alias Podcast").length).toBeGreaterThan(0);
+    });
+
+    it("reviews podcast host candidates from the comedian row", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[0],
+                    podcastCandidateReviews: [
+                        {
+                            ...comedians[0].podcastCandidateReviews[0],
+                            candidateStatus: "accepted",
+                            associationType: "host",
+                        },
+                    ],
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        expect(screen.getByText("Podcast host reviews")).toBeTruthy();
+        expect(screen.getByText("Candidate Podcast")).toBeTruthy();
+        expect(
+            screen.getByRole("link", {
+                name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
+            }),
+        ).toBeTruthy();
+        fireEvent.click(screen.getByRole("button", { name: "Accept as host" }));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        action: "podcast-review-accept-host",
+                        comedianId: 1,
+                        candidateReviewId: 1001,
+                    }),
+                }),
+            );
+        });
+    });
+
+    it("only shows podcast blocking after a host candidate is rejected", async () => {
+        const rejectedComedian = {
+            ...comedians[0],
+            podcastCandidateReviews: [
+                {
+                    ...comedians[0].podcastCandidateReviews[0],
+                    candidateStatus: "rejected",
+                },
+            ],
+        };
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: rejectedComedian,
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        expect(
+            screen.queryByRole("button", { name: "Block podcast" }),
+        ).toBeNull();
+        fireEvent.click(screen.getByRole("button", { name: "Reject as host" }));
+
+        await waitFor(() => {
+            expect(
+                screen.getByRole("button", { name: "Block podcast" }),
+            ).toBeTruthy();
+        });
     });
 
     it("links to the latest ticket purchase url", () => {

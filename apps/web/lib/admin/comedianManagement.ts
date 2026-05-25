@@ -53,6 +53,30 @@ export type AdminComedianListItem = {
         reviewStatus: string;
         confidence: number;
     }>;
+    podcastCandidateReviews: Array<{
+        id: number;
+        source: string;
+        sourcePodcastId: string;
+        candidateStatus: string;
+        associationType: string | null;
+        confidence: number;
+        createdAt: string;
+        updatedAt: string;
+        podcast: {
+            id: number;
+            slug: string;
+            title: string;
+            authorName: string | null;
+            feedUrl: string | null;
+            websiteUrl: string | null;
+            denyListEntry: {
+                id: number;
+                reason: string | null;
+                deniedAt: string;
+                deniedBy: string | null;
+            } | null;
+        } | null;
+    }>;
     latestTicketPurchase: {
         url: string;
         showId: number;
@@ -131,6 +155,43 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                         { reviewStatus: "asc" },
                         { confidence: "desc" },
                         { podcast: { title: "asc" } },
+                    ],
+                },
+                podcastCandidateReviews: {
+                    select: {
+                        id: true,
+                        source: true,
+                        sourcePodcastId: true,
+                        candidateStatus: true,
+                        associationType: true,
+                        confidence: true,
+                        createdAt: true,
+                        updatedAt: true,
+                        podcast: {
+                            select: {
+                                id: true,
+                                slug: true,
+                                title: true,
+                                authorName: true,
+                                feedUrl: true,
+                                websiteUrl: true,
+                                denyListEntries: {
+                                    where: { restoredAt: null },
+                                    select: {
+                                        id: true,
+                                        reason: true,
+                                        deniedAt: true,
+                                        deniedBy: true,
+                                    },
+                                    take: 1,
+                                },
+                            },
+                        },
+                    },
+                    orderBy: [
+                        { candidateStatus: "asc" },
+                        { confidence: "desc" },
+                        { updatedAt: "desc" },
                     ],
                 },
                 lineupItems: {
@@ -254,6 +315,43 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                     reviewStatus: link.reviewStatus,
                     confidence: link.confidence,
                 })),
+                podcastCandidateReviews: comedian.podcastCandidateReviews.map(
+                    (review) => ({
+                        id: review.id,
+                        source: review.source,
+                        sourcePodcastId: review.sourcePodcastId,
+                        candidateStatus: review.candidateStatus,
+                        associationType: review.associationType,
+                        confidence: review.confidence,
+                        createdAt: review.createdAt.toISOString(),
+                        updatedAt: review.updatedAt.toISOString(),
+                        podcast: review.podcast
+                            ? {
+                                  id: review.podcast.id,
+                                  slug: review.podcast.slug,
+                                  title: review.podcast.title,
+                                  authorName: review.podcast.authorName,
+                                  feedUrl: review.podcast.feedUrl,
+                                  websiteUrl: review.podcast.websiteUrl,
+                                  denyListEntry: review.podcast
+                                      .denyListEntries?.[0]
+                                      ? {
+                                            id: review.podcast
+                                                .denyListEntries[0].id,
+                                            reason: review.podcast
+                                                .denyListEntries[0].reason,
+                                            deniedAt:
+                                                review.podcast.denyListEntries[0].deniedAt.toISOString(),
+                                            deniedBy:
+                                                review.podcast
+                                                    .denyListEntries[0]
+                                                    .deniedBy,
+                                        }
+                                      : null,
+                              }
+                            : null,
+                    }),
+                ),
                 latestTicketPurchase:
                     latestTicketShow && latestTicketUrl
                         ? {
