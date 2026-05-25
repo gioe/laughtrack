@@ -136,6 +136,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                     },
                 },
                 comedianPodcasts: {
+                    where: { reviewStatus: "accepted" },
                     select: {
                         associationType: true,
                         source: true,

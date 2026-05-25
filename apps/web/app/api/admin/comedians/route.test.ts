@@ -228,6 +228,113 @@ describe("PATCH /api/admin/comedians", () => {
             }),
         );
     });
+
+    it("accepts one podcast host source and rejects existing accepted duplicates", async () => {
+        mockAuth.mockResolvedValue(adminSession as never);
+        const auditCreate = vi.fn();
+        const candidateUpdate = vi.fn();
+        const hostshipUpdateMany = vi.fn();
+        const hostshipUpsert = vi.fn();
+        const findUnique = vi
+            .fn()
+            .mockResolvedValueOnce(makeComedian())
+            .mockResolvedValueOnce(
+                makeComedian({
+                    comedianPodcasts: [
+                        {
+                            associationType: "host",
+                            source: "itunes",
+                            reviewStatus: "accepted",
+                            confidence: 0.97,
+                            podcast: {
+                                id: 99,
+                                slug: "wild-ride-with-steve-o",
+                                title: "Wild Ride! with Steve-O",
+                                feedUrl: null,
+                                websiteUrl: null,
+                            },
+                        },
+                    ],
+                }),
+            );
+        const reviewFindUnique = vi.fn().mockResolvedValueOnce({
+            id: 1001,
+            comedianId: 2,
+            podcastId: 99,
+            source: "itunes",
+            sourcePodcastId: "1503236243",
+            candidateStatus: "pending",
+            associationType: "host",
+            confidence: 0.97,
+            evidence: { matched_name: "Steve-O" },
+            podcast: {
+                id: 99,
+                slug: "wild-ride-with-steve-o",
+                title: "Wild Ride! with Steve-O",
+                source: "itunes",
+                sourcePodcastId: "1503236243",
+                feedUrl: null,
+            },
+        });
+        const txQueryRaw = vi.fn().mockResolvedValueOnce([]);
+        mockTransaction.mockImplementation(async (callback) =>
+            callback({
+                comedian: { findUnique },
+                comedianPodcast: {
+                    updateMany: hostshipUpdateMany,
+                    upsert: hostshipUpsert,
+                },
+                podcastCandidateReview: {
+                    findUnique: reviewFindUnique,
+                    update: candidateUpdate,
+                },
+                podcastDenyList: { upsert: vi.fn() },
+                $queryRaw: txQueryRaw,
+                adminActionAudit: { create: auditCreate },
+            } as never),
+        );
+
+        const res = await PATCH(
+            makeRequest({
+                action: "podcast-review-accept-host",
+                comedianId: 2,
+                candidateReviewId: 1001,
+            }),
+        );
+
+        expect(res.status).toBe(200);
+        expect(hostshipUpdateMany).toHaveBeenCalledWith({
+            where: {
+                comedianId: 2,
+                podcastId: 99,
+                associationType: "host",
+                source: { not: "itunes" },
+                reviewStatus: "accepted",
+            },
+            data: expect.objectContaining({
+                reviewStatus: "rejected",
+                reviewedBy: "profile-1",
+            }),
+        });
+        expect(hostshipUpsert).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: {
+                    comedianId_podcastId_associationType_source: {
+                        comedianId: 2,
+                        podcastId: 99,
+                        associationType: "host",
+                        source: "itunes",
+                    },
+                },
+                create: expect.objectContaining({
+                    reviewStatus: "accepted",
+                }),
+                update: expect.objectContaining({
+                    reviewStatus: "accepted",
+                }),
+            }),
+        );
+    });
 });
 
 describe("POST /api/admin/comedians", () => {

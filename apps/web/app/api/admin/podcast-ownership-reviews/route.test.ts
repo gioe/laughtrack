@@ -612,13 +612,17 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
         const auditCreate = vi.fn();
         const podcastUpsert = vi.fn().mockResolvedValue(podcast);
         const comedianFindUnique = vi.fn().mockResolvedValue(comedian);
+        const comedianPodcastUpdateMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
         mockTransaction.mockImplementation(async (callback) =>
             callback({
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: comedianFindUnique },
-                comedianPodcast: { upsert: comedianPodcastUpsert },
+                comedianPodcast: {
+                    updateMany: comedianPodcastUpdateMany,
+                    upsert: comedianPodcastUpsert,
+                },
                 podcastEpisode: { upsert: episodeUpsert },
                 adminActionAudit: { create: auditCreate },
             } as never),
@@ -654,6 +658,19 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
                 }),
             }),
         );
+        expect(comedianPodcastUpdateMany).toHaveBeenCalledWith({
+            where: {
+                comedianId: 42,
+                podcastId: 99,
+                associationType: "host",
+                source: { not: "manual_rss" },
+                reviewStatus: "accepted",
+            },
+            data: expect.objectContaining({
+                reviewStatus: "rejected",
+                reviewedBy: "profile-1",
+            }),
+        });
         expect(episodeUpsert).toHaveBeenCalledWith(
             expect.objectContaining({
                 create: expect.objectContaining({
@@ -775,6 +792,7 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
             feedUrl: "https://feeds.example.com/restored.xml",
         };
         const podcastUpsert = vi.fn().mockResolvedValue(podcast);
+        const comedianPodcastUpdateMany = vi.fn();
         const comedianPodcastUpsert = vi.fn();
         const episodeUpsert = vi.fn();
         const auditCreate = vi.fn();
@@ -783,7 +801,10 @@ describe("PUT /api/admin/podcast-hostship-reviews", () => {
             callback({
                 podcast: { upsert: podcastUpsert },
                 comedian: { findUnique: vi.fn().mockResolvedValue(comedian) },
-                comedianPodcast: { upsert: comedianPodcastUpsert },
+                comedianPodcast: {
+                    updateMany: comedianPodcastUpdateMany,
+                    upsert: comedianPodcastUpsert,
+                },
                 podcastEpisode: { upsert: episodeUpsert },
                 adminActionAudit: { create: auditCreate },
             } as never),

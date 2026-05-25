@@ -130,6 +130,15 @@ describe("PATCH /api/admin/comedians/podcasts", () => {
         const body = await res.json();
 
         expect(res.status).toBe(200);
+        expect(mockFindLink).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: expect.objectContaining({
+                    comedianId: 7,
+                    podcastId: 42,
+                    reviewStatus: "accepted",
+                }),
+            }),
+        );
         expect(mockUpdatePodcast).toHaveBeenCalledWith({
             where: { id: 42 },
             data: { feedUrl: "https://new.example.com/rss.xml" },

@@ -559,11 +559,12 @@ export async function POST(req: NextRequest) {
 
             await writeAdminActionAudit(tx, {
                 actorProfileId: profileId,
-                action: selectedComedianIds.length > 0
-                    ? "podcast_hostship_review.approve"
-                    : denyListed
-                      ? "podcast_hostship_review.deny_list"
-                      : "podcast_hostship_review.reject",
+                action:
+                    selectedComedianIds.length > 0
+                        ? "podcast_hostship_review.approve"
+                        : denyListed
+                          ? "podcast_hostship_review.deny_list"
+                          : "podcast_hostship_review.reject",
                 entityType: "podcast",
                 entityId: podcastId,
                 reason,
@@ -768,6 +769,20 @@ export async function PUT(req: NextRequest) {
             });
 
             const reviewedAt = new Date();
+            await tx.comedianPodcast.updateMany({
+                where: {
+                    comedianId: comedian.id,
+                    podcastId: podcast.id,
+                    associationType: "host",
+                    source: { not: source },
+                    reviewStatus: "accepted",
+                },
+                data: {
+                    reviewStatus: "rejected",
+                    reviewedAt,
+                    reviewedBy: profileId,
+                },
+            });
             await tx.comedianPodcast.upsert({
                 where: {
                     comedianId_podcastId_associationType_source: {

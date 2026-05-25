@@ -360,6 +360,7 @@ const comedianSnapshotSelect = {
         },
     },
     comedianPodcasts: {
+        where: { reviewStatus: "accepted" },
         select: {
             associationType: true,
             source: true,
@@ -609,6 +610,20 @@ export async function PATCH(req: NextRequest) {
                             data: {
                                 candidateStatus: "accepted",
                                 associationType: "host",
+                                reviewedAt,
+                                reviewedBy: profileId,
+                            },
+                        });
+                        await tx.comedianPodcast.updateMany({
+                            where: {
+                                comedianId: before.id,
+                                podcastId: review.podcastId,
+                                associationType: "host",
+                                source: { not: review.source },
+                                reviewStatus: "accepted",
+                            },
+                            data: {
+                                reviewStatus: "rejected",
                                 reviewedAt,
                                 reviewedBy: profileId,
                             },

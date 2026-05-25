@@ -42,6 +42,7 @@ export async function PATCH(req: NextRequest) {
                 where: {
                     comedianId: parsed.data.comedianId,
                     podcastId: parsed.data.podcastId,
+                    reviewStatus: "accepted",
                 },
                 select: {
                     id: true,

@@ -56,6 +56,12 @@ type AttributedPodcast = AdminComedianListItem["attributedPodcasts"][number];
 type PodcastCandidateReview =
     AdminComedianListItem["podcastCandidateReviews"][number];
 
+function acceptedAttributedPodcasts(row: AdminComedianListItem) {
+    return row.attributedPodcasts.filter(
+        (podcast) => podcast.reviewStatus === "accepted",
+    );
+}
+
 function formatDate(iso: string | null) {
     if (!iso) return null;
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
@@ -169,7 +175,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                     row.parent?.name ?? "",
                     row.blockReason ?? "",
                     row.blockAddedBy ?? "",
-                    ...row.attributedPodcasts.flatMap((podcast) => [
+                    ...acceptedAttributedPodcasts(row).flatMap((podcast) => [
                         podcast.title,
                         podcast.feedUrl ?? "",
                     ]),
@@ -1023,6 +1029,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const currentAvatar = currentAvatarUrl(row);
                         const currentHero = currentHeroUrl(row);
                         const legacyAvatar = legacyComedianImageUrl(row);
+                        const acceptedPodcasts =
+                            acceptedAttributedPodcasts(row);
                         const pendingPodcastCandidateReviews =
                             row.podcastCandidateReviews.filter(
                                 (review) =>
@@ -1193,7 +1201,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             children
                                         </span>
                                         <span>
-                                            {row.attributedPodcasts.length.toLocaleString()}{" "}
+                                            {acceptedPodcasts.length.toLocaleString()}{" "}
                                             podcasts
                                         </span>
                                         <span
@@ -1459,10 +1467,9 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                 Podcast RSS
                                             </div>
-                                            {row.attributedPodcasts.length >
-                                            0 ? (
+                                            {acceptedPodcasts.length > 0 ? (
                                                 <div className="grid gap-3 lg:grid-cols-2">
-                                                    {row.attributedPodcasts.map(
+                                                    {acceptedPodcasts.map(
                                                         (podcast) => {
                                                             const feedValue =
                                                                 podcastFeedValue(

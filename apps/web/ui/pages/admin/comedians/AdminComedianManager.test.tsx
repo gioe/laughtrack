@@ -69,7 +69,7 @@ const comedians: AdminComedianListItem[] = [
                 websiteUrl: "https://example.com/parent",
                 associationType: "owner",
                 source: "manual",
-                reviewStatus: "approved",
+                reviewStatus: "accepted",
                 confidence: 0.96,
             },
         ],
@@ -760,7 +760,7 @@ describe("AdminComedianManager", () => {
                     websiteUrl: "https://example.com/parent",
                     associationType: "owner",
                     source: "manual",
-                    reviewStatus: "approved",
+                    reviewStatus: "accepted",
                     confidence: 0.96,
                 },
             }),
@@ -814,7 +814,7 @@ describe("AdminComedianManager", () => {
                     websiteUrl: "https://example.com/parent",
                     associationType: "owner",
                     source: "manual",
-                    reviewStatus: "approved",
+                    reviewStatus: "accepted",
                     confidence: 0.96,
                 },
             }),
@@ -883,6 +883,38 @@ describe("AdminComedianManager", () => {
         });
         expect(screen.getByText("Alias Podcast RSS added.")).toBeTruthy();
         expect(screen.getAllByText("Alias Podcast").length).toBeGreaterThan(0);
+    });
+
+    it("does not render rejected duplicate podcast attributions", () => {
+        render(
+            <AdminComedianManager
+                comedians={[
+                    {
+                        ...comedians[0],
+                        attributedPodcasts: [
+                            {
+                                ...comedians[0].attributedPodcasts[0],
+                                id: 10,
+                                title: "Wild Ride! with Steve-O",
+                                reviewStatus: "accepted",
+                                source: "manual",
+                            },
+                            {
+                                ...comedians[0].attributedPodcasts[0],
+                                id: 10,
+                                title: "Wild Ride! with Steve-O",
+                                reviewStatus: "rejected",
+                                source: "podcast_index",
+                            },
+                        ],
+                    },
+                ]}
+            />,
+        );
+        expandAllRows();
+
+        expect(screen.getByText("1 podcasts")).toBeTruthy();
+        expect(screen.getAllByText("Wild Ride! with Steve-O")).toHaveLength(1);
     });
 
     it("reviews podcast host candidates from the comedian row", async () => {

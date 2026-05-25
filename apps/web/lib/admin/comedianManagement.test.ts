@@ -88,6 +88,9 @@ describe("listAdminComedians", () => {
                     podcastCandidateReviews: expect.objectContaining({
                         where: { candidateStatus: "pending" },
                     }),
+                    comedianPodcasts: expect.objectContaining({
+                        where: { reviewStatus: "accepted" },
+                    }),
                 }),
             }),
         );
