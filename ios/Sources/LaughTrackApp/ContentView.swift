@@ -238,24 +238,7 @@ struct ContentView: View {
     static func shouldPresentComedianOnboarding(
         authState: AuthManager.State,
         currentUser: AuthenticatedUser?
-    ) -> Bool {
-        guard case .authenticated = authState,
-              let currentUser
-        else { return false }
-
-        return !currentUser.comedianOnboardingCompleted
-    }
-
-    @ViewBuilder
-    private func appShell(signedOutMessage: String?) -> some View {
-        CoordinatedNavigationStack(coordinator: coordinator) { route in
-            switch route {
-            case .nearMe:
-                AppShellView(
-                    apiClient: apiClient,
-                    signedOutMessage: signedOutMessage,
-                    favorites: favorites,
-                    initialTab: .nearMe,
+    ) -> Bool {h                    initialTab: .nearMe,
                     shellState: shellState
                 )
             case .search:
@@ -574,7 +557,7 @@ private struct FirstEntryAuthChoiceView: View {
                         .padding(.bottom, theme.spacing.xs)
 
                     VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                        Text("Pick up where you left off")
+                        Text("Find your next laugh")
                             .font(laughTrack.typography.screenTitle)
                             .foregroundStyle(laughTrack.colors.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
