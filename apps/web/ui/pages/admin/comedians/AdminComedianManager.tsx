@@ -165,7 +165,7 @@ export default function AdminComedianManager({ comedians }: Props) {
     const visibleRows = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
         const filtered = rows.filter((row) => {
-            if (blockedOnly && !row.isBlocked) return false;
+            if (row.isBlocked !== blockedOnly) return false;
             if (parentOnly && row.parent !== null) return false;
             if (normalizedQuery) {
                 return [

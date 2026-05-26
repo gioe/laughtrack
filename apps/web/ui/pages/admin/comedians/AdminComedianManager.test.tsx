@@ -1151,6 +1151,8 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
+        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
+        expandAllRows();
 
         fireEvent.click(
             screen.getByRole("button", { name: "Remove from blocklist" }),
@@ -1184,6 +1186,8 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
+        expandAllRows();
+        fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
         expandAllRows();
 
         expect(
@@ -1221,6 +1225,8 @@ describe("AdminComedianManager", () => {
         expandAllRows();
 
         expect(screen.queryByRole("combobox", { name: "Blocked" })).toBeNull();
+        expect(screen.getByText("Parent Comic")).toBeTruthy();
+        expect(screen.queryByText("Alias Comic")).toBeNull();
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
@@ -1229,8 +1235,8 @@ describe("AdminComedianManager", () => {
 
         fireEvent.click(screen.getByRole("checkbox", { name: "Blocked" }));
 
-        expect(screen.getByText("Alias Comic")).toBeTruthy();
         expect(screen.getByText("Parent Comic")).toBeTruthy();
+        expect(screen.queryByText("Alias Comic")).toBeNull();
     });
 
     it("filters to parent comedians with a checkbox", () => {
