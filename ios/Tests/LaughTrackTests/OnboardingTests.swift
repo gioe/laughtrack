@@ -57,7 +57,7 @@ struct OnboardingTests {
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: true,
             currentUser: incompleteUser,
-            hasChosenGuestBrowsing: true
+            hasResolvedFirstEntryChoice: true
         ) == .signedOutShell(message: nil))
     }
 

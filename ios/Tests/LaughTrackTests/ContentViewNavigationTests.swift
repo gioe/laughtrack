@@ -30,7 +30,7 @@ struct ContentViewNavigationTests {
             authState: .signingIn(.google),
             hasLoadedCurrentUser: false,
             currentUser: nil,
-            hasChosenGuestBrowsing: true
+            hasResolvedFirstEntryChoice: true
         ) == .signedOutShell(message: nil))
     }
 
@@ -40,7 +40,7 @@ struct ContentViewNavigationTests {
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: false,
             currentUser: nil,
-            hasChosenGuestBrowsing: false
+            hasResolvedFirstEntryChoice: false
         ) == .authChoiceGate(message: nil))
         #expect(AppRoute.nearMe.shellTab == .nearMe)
         #expect(AppTab.allCases == [.nearMe, .search, .favorites])
@@ -53,17 +53,44 @@ struct ContentViewNavigationTests {
         )
         let store = FirstEntryAuthChoiceStore(appStateStorage: storage)
 
-        #expect(!store.hasChosenGuestBrowsing)
+        #expect(!store.hasResolvedFirstEntryChoice)
 
         store.continueAsGuest()
 
-        #expect(store.hasChosenGuestBrowsing)
-        #expect(FirstEntryAuthChoiceStore(appStateStorage: storage).hasChosenGuestBrowsing)
+        #expect(store.hasResolvedFirstEntryChoice)
+        #expect(FirstEntryAuthChoiceStore(appStateStorage: storage).hasResolvedFirstEntryChoice)
         #expect(ContentView.rootSurface(
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: false,
             currentUser: nil,
-            hasChosenGuestBrowsing: store.hasChosenGuestBrowsing
+            hasResolvedFirstEntryChoice: store.hasResolvedFirstEntryChoice
+        ) == .signedOutShell(message: nil))
+    }
+
+    @Test("signing in resolves first entry so a later sign-out shows the shell, not the gate")
+    func signingInResolvesFirstEntryChoice() async throws {
+        // Regression: a user who signed in directly from the first-launch gate
+        // (never tapped Continue as guest) must NOT be bounced back to the
+        // full-screen FirstEntryAuthChoiceView on sign-out. ContentView marks the
+        // choice resolved on the .authenticated transition; this exercises that the
+        // store persists it and that rootSurface then keeps the shell.
+        let storage = AppStateStorage(
+            userDefaults: UserDefaults(suiteName: "ContentViewNavigationTests.signin.\(UUID().uuidString)")!
+        )
+        let store = FirstEntryAuthChoiceStore(appStateStorage: storage)
+
+        #expect(!store.hasResolvedFirstEntryChoice)
+
+        store.markSignedIn()
+
+        #expect(store.hasResolvedFirstEntryChoice)
+        // Persisted across store re-creation (i.e. survives an app relaunch).
+        #expect(FirstEntryAuthChoiceStore(appStateStorage: storage).hasResolvedFirstEntryChoice)
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasResolvedFirstEntryChoice: store.hasResolvedFirstEntryChoice
         ) == .signedOutShell(message: nil))
     }
 
@@ -73,7 +100,7 @@ struct ContentViewNavigationTests {
             authState: .signedOut(message: nil),
             hasLoadedCurrentUser: false,
             currentUser: nil,
-            hasChosenGuestBrowsing: true
+            hasResolvedFirstEntryChoice: true
         ) == .signedOutShell(message: nil))
     }
 
@@ -85,7 +112,7 @@ struct ContentViewNavigationTests {
             authState: .signedOut(message: message),
             hasLoadedCurrentUser: false,
             currentUser: nil,
-            hasChosenGuestBrowsing: true
+            hasResolvedFirstEntryChoice: true
         ) == .signedOutShell(message: message))
 
         let presenter = LoginModalPresenter()

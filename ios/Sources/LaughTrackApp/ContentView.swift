@@ -142,7 +142,7 @@ struct ContentView: View {
             authState: authManager.state,
             hasLoadedCurrentUser: authManager.hasLoadedCurrentUser,
             currentUser: authManager.currentUser,
-            hasChosenGuestBrowsing: firstEntryAuthChoiceStore.hasChosenGuestBrowsing
+            hasResolvedFirstEntryChoice: firstEntryAuthChoiceStore.hasResolvedFirstEntryChoice
         )
 
         Group {
@@ -185,6 +185,14 @@ struct ContentView: View {
             await authManager.restoreSessionIfNeeded()
         }
         .onReceive(authManager.$state) { state in
+            if case .authenticated = state {
+                // Signing in resolves the first-entry choice, so a later sign-out
+                // returns to the signed-out shell rather than the first-launch gate.
+                // Also fires on session restore at launch, migrating users who signed
+                // in on a pre-fix build.
+                firstEntryAuthChoiceStore.markSignedIn()
+            }
+
             guard case .signedOut(let message) = state,
                   message?.localizedCaseInsensitiveContains("session expired") == true
             else { return }
@@ -200,7 +208,7 @@ struct ContentView: View {
         authState: AuthManager.State,
         hasLoadedCurrentUser: Bool,
         currentUser: AuthenticatedUser?,
-        hasChosenGuestBrowsing: Bool = false
+        hasResolvedFirstEntryChoice: Bool = false
     ) -> RootSurface {
         switch authState {
         case .restoring:
@@ -212,12 +220,12 @@ struct ContentView: View {
             // tapping "Continue with Google" from Profile), don't blow the whole
             // UI away to the splash — keep the shell visible underneath the
             // ASWebAuthenticationSession sheet that's about to present.
-            guard hasChosenGuestBrowsing else {
+            guard hasResolvedFirstEntryChoice else {
                 return .loading
             }
             return .signedOutShell(message: nil)
         case .signedOut(let message):
-            guard hasChosenGuestBrowsing else {
+            guard hasResolvedFirstEntryChoice else {
                 return .authChoiceGate(message: message)
             }
 
@@ -526,22 +534,41 @@ private struct PodcastMiniPlayerView: View {
 
 @MainActor
 final class FirstEntryAuthChoiceStore: ObservableObject {
+    // Storage key kept verbatim for backward compatibility: installs that recorded
+    // a guest choice under the old name must keep bypassing the first-entry gate.
+    // The flag's meaning has since broadened from "chose guest browsing" to
+    // "resolved the first-entry choice (guest OR signed in)".
     static let storageKey = "laughtrack.auth.first-entry-guest-choice"
 
-    @Published private(set) var hasChosenGuestBrowsing: Bool
+    @Published private(set) var hasResolvedFirstEntryChoice: Bool
 
     private let appStateStorage: AppStateStorageProtocol
 
     init(appStateStorage: AppStateStorageProtocol = AppStateStorage()) {
         self.appStateStorage = appStateStorage
-        self.hasChosenGuestBrowsing = appStateStorage.getValue(
+        self.hasResolvedFirstEntryChoice = appStateStorage.getValue(
             forKey: Self.storageKey,
             as: Bool.self
         ) ?? false
     }
 
     func continueAsGuest() {
-        hasChosenGuestBrowsing = true
+        markFirstEntryResolved()
+    }
+
+    // Signing in is itself a first-entry choice. Recording it means a later
+    // sign-out returns the user to the signed-out shell (.signedOutShell) rather
+    // than the full-screen first-launch gate (.authChoiceGate) — the gate exists
+    // only for users who have never resolved first entry. Idempotent, so it's safe
+    // to call on every .authenticated transition (including session restore on launch,
+    // which migrates already-signed-in users from the pre-fix builds).
+    func markSignedIn() {
+        markFirstEntryResolved()
+    }
+
+    private func markFirstEntryResolved() {
+        guard !hasResolvedFirstEntryChoice else { return }
+        hasResolvedFirstEntryChoice = true
         appStateStorage.setValue(true, forKey: Self.storageKey)
     }
 }
