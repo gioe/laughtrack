@@ -17,7 +17,6 @@ import LaughTrackCore
 struct ProfileViewTests {
     @Test("profile settings and account copy seams stay stable")
     func profileCopySeamsStayStable() {
-        #expect(ProfileView.favoriteComedianAlertsTitle == "Favorite comedian alerts")
         #expect(ProfileView.signOutButtonTitle == "Sign out")
         #expect(ProfileView.deleteAccountButtonTitle == "Delete account")
     }

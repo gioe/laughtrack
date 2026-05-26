@@ -5,7 +5,6 @@ import LaughTrackCore
 
 @MainActor
 struct ProfileView: View {
-    static let favoriteComedianAlertsTitle = "Favorite comedian alerts"
     static let signOutButtonTitle = "Sign out"
     static let deleteAccountButtonTitle = "Delete account"
     static let signedOutAuthOptions = SignedOutAuthOption.all
@@ -322,11 +321,10 @@ private struct ProfileNearbyPreferencesSection: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-            LaughTrackSectionHeader(
-                eyebrow: "Location",
-                title: "Profile location",
-                subtitle: "Set the location Near Me reads from your profile."
-            )
+            Text("Location")
+                .font(laughTrack.typography.eyebrow)
+                .foregroundStyle(laughTrack.colors.accent)
+                .textCase(.uppercase)
 
             editorCard
         }
@@ -464,11 +462,10 @@ private struct ProfileNotificationsSection: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-            LaughTrackSectionHeader(
-                eyebrow: "Notifications",
-                title: ProfileView.favoriteComedianAlertsTitle,
-                subtitle: "Choose how LaughTrack should notify you when saved comedians add shows."
-            )
+            Text("Notifications")
+                .font(laughTrack.typography.eyebrow)
+                .foregroundStyle(laughTrack.colors.accent)
+                .textCase(.uppercase)
 
             LaughTrackCard(tone: .muted) {
                 VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
