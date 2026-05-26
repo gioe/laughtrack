@@ -465,7 +465,7 @@ private struct ProfileNotificationsSection: View {
 
             LaughTrackCard(tone: .muted) {
                 VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                    Text("Select a toggle to decide where you would like to receive notifications when your followed artists have shows near you.")
+                    Text("Pick how you'd like to hear about nearby shows from your favorite comedians.")
                         .font(laughTrack.typography.metadata)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
