@@ -1243,17 +1243,44 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             {acceptedPodcasts.length.toLocaleString()}{" "}
                                             podcasts
                                         </span>
-                                        <span
-                                            className={
-                                                row.isBlocked
-                                                    ? "font-semibold text-red-900"
-                                                    : ""
-                                            }
-                                        >
-                                            {row.isBlocked
-                                                ? "Blocked"
-                                                : "Not blocked"}
-                                        </span>
+                                        {row.isBlocked ? (
+                                            <span className="inline-flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-semibold text-red-900">
+                                                <span>Blocked</span>
+                                                {row.blockReason ? (
+                                                    <span className="font-normal text-red-950">
+                                                        {row.blockReason}
+                                                    </span>
+                                                ) : null}
+                                                {row.blockAddedBy ||
+                                                row.blockAddedAt ? (
+                                                    <span className="font-normal text-red-900">
+                                                        {row.blockAddedBy}
+                                                        {row.blockAddedAt
+                                                            ? `${row.blockAddedBy ? " · " : ""}${formatDate(row.blockAddedAt)}`
+                                                            : ""}
+                                                    </span>
+                                                ) : null}
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    className="h-7 gap-1 border-green-800/40 bg-white px-2 py-1 text-caption text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                    disabled={
+                                                        disabled ||
+                                                        pendingId === row.id
+                                                    }
+                                                    onClick={() =>
+                                                        void unblockComedian(
+                                                            row,
+                                                        )
+                                                    }
+                                                >
+                                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                                    Remove from blocklist
+                                                </Button>
+                                            </span>
+                                        ) : (
+                                            <span>Not blocked</span>
+                                        )}
                                         {row.latestTicketPurchase ? (
                                             <span className="inline-flex min-w-0 items-center gap-1">
                                                 <a
@@ -2182,88 +2209,53 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                            Blocklist state
-                                        </div>
-                                        {row.isBlocked ? (
-                                            <div className="space-y-3">
-                                                <div className="rounded-md border border-red-700/25 bg-red-50 p-3 font-dmSans text-body text-red-950">
-                                                    <div className="font-semibold">
-                                                        {row.blockReason}
-                                                    </div>
-                                                    <div className="mt-1 text-caption text-red-900">
-                                                        {row.blockAddedBy}
-                                                        {row.blockAddedAt
-                                                            ? ` · ${formatDate(row.blockAddedAt)}`
-                                                            : ""}
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id
+                                    {!row.isBlocked && (
+                                        <div className="space-y-4">
+                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                Blocklist state
+                                            </div>
+                                            <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                                                Blocklist reason
+                                                <input
+                                                    type="text"
+                                                    value={
+                                                        blockReasons[row.id] ??
+                                                        ""
                                                     }
-                                                    onClick={() =>
-                                                        void unblockComedian(
-                                                            row,
+                                                    onChange={(event) =>
+                                                        setBlockReasons(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [row.id]:
+                                                                    event.target
+                                                                        .value,
+                                                            }),
                                                         )
                                                     }
-                                                >
-                                                    <ShieldCheck className="h-4 w-4" />
-                                                    Remove from blocklist
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                                                    Blocklist reason
-                                                    <input
-                                                        type="text"
-                                                        value={
-                                                            blockReasons[
-                                                                row.id
-                                                            ] ?? ""
-                                                        }
-                                                        onChange={(event) =>
-                                                            setBlockReasons(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    [row.id]:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                }),
-                                                            )
-                                                        }
-                                                        className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                        maxLength={1000}
-                                                    />
-                                                </label>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                    disabled={
-                                                        disabled ||
-                                                        pendingId === row.id ||
-                                                        !blockReasons[
-                                                            row.id
-                                                        ]?.trim()
-                                                    }
-                                                    onClick={() =>
-                                                        void blockComedian(row)
-                                                    }
-                                                >
-                                                    <Ban className="h-4 w-4" />
-                                                    Add to blocklist
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
+                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                    maxLength={1000}
+                                                />
+                                            </label>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                disabled={
+                                                    disabled ||
+                                                    pendingId === row.id ||
+                                                    !blockReasons[
+                                                        row.id
+                                                    ]?.trim()
+                                                }
+                                                onClick={() =>
+                                                    void blockComedian(row)
+                                                }
+                                            >
+                                                <Ban className="h-4 w-4" />
+                                                Add to blocklist
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </li>
                         );

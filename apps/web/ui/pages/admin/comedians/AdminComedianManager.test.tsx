@@ -1201,6 +1201,8 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByLabelText("Comedian name")).toBeNull();
         expect(screen.queryByLabelText("Comedian website")).toBeNull();
         expect(screen.queryByPlaceholderText("Search parent name")).toBeNull();
+        expect(screen.queryByText("Blocklist state")).toBeNull();
+        expect(screen.queryByLabelText("Blocklist reason")).toBeNull();
         expect(
             screen.queryByRole("button", { name: "Podcasts attributed" }),
         ).toBeNull();

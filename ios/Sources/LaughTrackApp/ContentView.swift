@@ -238,7 +238,24 @@ struct ContentView: View {
     static func shouldPresentComedianOnboarding(
         authState: AuthManager.State,
         currentUser: AuthenticatedUser?
-    ) -> Bool {h                    initialTab: .nearMe,
+    ) -> Bool {
+        guard case .authenticated = authState,
+              let currentUser
+        else { return false }
+
+        return !currentUser.comedianOnboardingCompleted
+    }
+
+    @ViewBuilder
+    private func appShell(signedOutMessage: String?) -> some View {
+        CoordinatedNavigationStack(coordinator: coordinator) { route in
+            switch route {
+            case .nearMe:
+                AppShellView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    favorites: favorites,
+                    initialTab: .nearMe,
                     shellState: shellState
                 )
             case .search:
