@@ -452,7 +452,7 @@ Then execute those instructions starting at **"Begin Work on a Task (with task I
 
 **IMPORTANT: Execute /tusk steps 1–11 only. Do NOT execute step 12 (merge/retro).** Stop after step 11 (`/review-commits` or the lint step) — this skill owns merge, issue close, and retro as steps 8–10 below.
 
-**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail.
+**Mid-task criteria management** (mark done, group with commits, skip inapplicable, skip-verify) follows /tusk's Step 7 verbatim. In particular: if a criterion does not apply to the implementation path you chose (e.g., the issue describes "do X OR document why exempt" and you did X), use `tusk criteria skip <cid> --reason "..."`, NOT `tusk criteria done <cid> --skip-verify` — the latter stamps the criterion with an unrelated commit hash and pollutes the audit trail. The commit-time scope guard from /tusk Step 7 also applies — issue-derived edits touching files outside the task's referenced paths require `TUSK_SCOPE_GUARD_BYPASS=1` or `tusk commit --skip-verify`.
 
 Hold onto the `session_id` returned by `tusk task-start` in step 1 of the /tusk workflow — it is required in step 8 below.
 
@@ -519,7 +519,7 @@ Then capture the commit SHA for Step 9 via `git log --oneline -1` (first token).
 gh issue close <number> --repo <owner/repo> --comment "Resolved in <commit_sha> — <pr_url_or_branch>. Tracked as tusk task #<task_id>."
 ```
 
-**Avoid backticks and unescaped `$` in the comment body** — `--comment` values (and the `--body` of any `gh issue comment` fallback) are shell arguments, so zsh and bash expand backticks and `$VAR` / `$(...)` even inside double quotes. Drop markdown code ticks around identifiers (write `_resolve_stable_tusk_bin` and `bin/tusk-merge.py` as plain text, not in backticks) and avoid literal dollar signs unless every metacharacter is escaped deliberately. Mirrors the same hazard documented for `tusk commit` messages (`/tusk` Step 7) and `tusk review add-comment` values (`/review-commits` Step 5.1).
+**Avoid backticks and unescaped `$` in the comment body — no automatic guard covers this surface** — `--comment` values (and the `--body` of any `gh issue comment` fallback) are shell arguments, so zsh and bash expand backticks and `$VAR` / `$(...)` even inside double quotes. Drop markdown code ticks around identifiers (write `_resolve_stable_tusk_bin` and `bin/tusk-merge.py` as plain text, not in backticks) and avoid literal dollar signs unless every metacharacter is escaped deliberately. **Note:** `tusk commit` enforces this at the boundary via `_validate_message_metacharacters` (issue #881), but `gh` is an external tool tusk does not wrap — the substitution hazard remains entirely manual to avoid here. The same caveat applies to `tusk review add-comment` (`/review-commits` Step 5.1).
 
 Use the `commit_sha` from Step 8 (include the PR URL if available, else the branch name). On failure, apply **Shared gh Failure Handling** from Step 5 — the already-closed retry posts the resolution note as a standalone comment and continues to Step 10.
 

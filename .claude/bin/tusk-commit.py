@@ -719,6 +719,44 @@ def _test_command_unavailable(result: subprocess.CompletedProcess) -> bool:
     )
 
 
+def _sparse_checkout_active(repo_root: str) -> bool:
+    """Return True when sparse-checkout is enabled in ``repo_root``."""
+    result = subprocess.run(
+        ["git", "-C", repo_root, "config", "--get", "core.sparseCheckout"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    return result.returncode == 0 and result.stdout.strip().lower() == "true"
+
+
+def _test_command_outside_sparse_cone(
+    test_cmd: str, repo_root: str
+) -> tuple[bool, str]:
+    """Return ``(True, target)`` when ``test_cmd``'s path-shaped tokens all
+    resolve outside the current sparse-checkout cone (i.e. they don't exist
+    on disk in ``repo_root``). Used by the test gate to degrade gracefully
+    instead of hard-failing the commit (TASK-480 criterion 2229, issue #906).
+
+    Returns ``(False, "")`` when no path-shaped tokens were found, or when
+    at least one resolves to an existing path. ``target`` is the first
+    missing token, for inclusion in the info message.
+    """
+    targets = []
+    for tok in test_cmd.split():
+        tok = tok.strip().strip('"').strip("'")
+        if not tok or tok.startswith("-") or "=" in tok:
+            continue
+        if "/" in tok:
+            targets.append(tok)
+    if not targets:
+        return False, ""
+    for tok in targets:
+        if os.path.exists(os.path.join(repo_root, tok.rstrip("/"))):
+            return False, ""
+    return True, targets[0]
+
+
 def _print_test_command_failure(
     result: subprocess.CompletedProcess,
     test_cmd: str,
@@ -751,6 +789,50 @@ def _print_test_command_failure(
         f"\nError: test_command failed (exit {result.returncode}, {elapsed:.1f}s) — aborting commit",
         file=sys.stderr,
     )
+
+
+# Reject commit messages containing shell-substitution metacharacters that zsh
+# and bash expand BEFORE tusk sees the argv — backticks, $(...), ${...}, and
+# bare $VAR. The boundary guard fires before any git/sqlite subprocess so a
+# substituted message never lands on origin (issue #881; original incident
+# TASK-464 shipped a JSON blob into commit 984ca1a/main when a literal
+# `tusk sync-main` inside a double-quoted message got executed by zsh).
+_METACHAR_RE = re.compile(r"`|\$\(|\$\{|\$[A-Za-z_]")
+
+
+def _validate_message_metacharacters(message: str) -> tuple[bool, str]:
+    """Return (True, "") when the message is safe, else (False, diagnostic).
+
+    Rejects any backtick (`), $(...) command substitution, ${...} braced
+    variable substitution, or bare $<identifier> substitution. The agent's
+    intended literal must be rewritten without metacharacters (plain
+    identifiers) — auto-escaping would silently mutate the message and is
+    deliberately not offered.
+    """
+    match = _METACHAR_RE.search(message)
+    if match is None:
+        return True, ""
+    metachar = match.group(0)
+    if metachar == "`":
+        name = "backtick"
+    elif metachar == "$(":
+        name = "$(...) command substitution"
+    elif metachar == "${":
+        name = "${...} variable substitution"
+    else:
+        name = f"{metachar} variable substitution"
+    diagnostic = (
+        f"Error: commit message contains shell-substitution metacharacter "
+        f"({name}) at position {match.start()}:\n"
+        f"  message: {message!r}\n"
+        f"zsh and bash expand this BEFORE tusk sees the argv, even inside "
+        f"double quotes. The corrupted message would land on origin and cannot "
+        f"be amended.\n"
+        f"Fix: rewrite the message without the metacharacter (use plain "
+        f"identifiers, not backticked code spans), or wrap the entire message "
+        f"in single quotes if the literal character must appear."
+    )
+    return False, diagnostic
 
 
 def main(argv: list[str]) -> int:
@@ -879,6 +961,11 @@ def _run_commit(argv: list[str], state: dict) -> int:
 
     if not message.strip():
         print("Error: Commit message must not be empty", file=sys.stderr)
+        return 1
+
+    ok, diagnostic = _validate_message_metacharacters(message)
+    if not ok:
+        print(diagnostic, file=sys.stderr)
         return 1
 
     # ── Announce status lines? ───────────────────────────────────────
@@ -1203,7 +1290,30 @@ def _run_commit(argv: list[str], state: dict) -> int:
     test_cmd = load_test_command(
         config_path, task_domain, resolved_files, repo_root=real_repo_root,
     )
-    if test_cmd and not skip_verify:
+    # Sparse-checkout-aware preflight (TASK-480 criterion 2229, issue #906).
+    # If the worktree is sparse-checked-out and every path-shaped token in
+    # the test command resolves to a non-existent path on disk, the test
+    # command would fail with "file or directory not found" — that's an
+    # environment problem, not a regression. Info-skip the gate instead of
+    # hard-failing (which previously forced every commit in the session to
+    # use --skip-verify, bypassing lint AND tests AND pre-commit hooks).
+    sparse_skip_test = False
+    if test_cmd and not skip_verify and _sparse_checkout_active(repo_root):
+        outside, missing_target = _test_command_outside_sparse_cone(
+            test_cmd, repo_root
+        )
+        if outside:
+            print(
+                f"Note: test_command path '{missing_target}' is not "
+                f"materialized under the current sparse-checkout cone — "
+                f"skipping test gate for this commit.\n"
+                f"  Command: {test_cmd}\n"
+                f"  Recover (optional): extend the cone with "
+                f"`git sparse-checkout add {missing_target.rstrip('/')}`."
+            )
+            sys.stdout.flush()
+            sparse_skip_test = True
+    if test_cmd and not skip_verify and not sparse_skip_test:
         test_cmd, _ = _worktree_command.rewrite_linked_worktree_venv_command(
             test_cmd,
             repo_root,

@@ -612,7 +612,15 @@ CREATE TABLE tasks (
     merge_base_sha TEXT,
     fixes_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
     bakeoff_id INTEGER,
-    bakeoff_shadow INTEGER NOT NULL DEFAULT 0 CHECK (bakeoff_shadow IN (0, 1))
+    bakeoff_shadow INTEGER NOT NULL DEFAULT 0 CHECK (bakeoff_shadow IN (0, 1)),
+    -- scope_enforced: 1 means the commit-time scope guard reads from the
+    -- authoritative task_scope table; 0 means fall back to the legacy
+    -- task_referenced_paths hint cache. Fresh tasks default to 1. Migration
+    -- 73 backfills existing rows to 0 so already-running tasks keep their
+    -- inferred-scope behavior. Set explicitly via `tusk task-insert
+    -- --unbounded` (stamps scope_enforced=1 with an 'unbounded' row that
+    -- signals "no path restriction").
+    scope_enforced INTEGER NOT NULL DEFAULT 1 CHECK (scope_enforced IN (0, 1))
 );
 
 -- task_dependencies
@@ -642,6 +650,27 @@ CREATE TABLE task_workspaces (
 );
 CREATE INDEX idx_task_workspaces_task_id ON task_workspaces(task_id);
 
+-- task_scope (authoritative scope declaration per task; supersedes the
+-- task_referenced_paths hint cache when present). Each row is one pattern
+-- (today: literal repo-root-relative path) attributed to a source. The
+-- commit-time scope guard reads via `tusk scope-paths <id>` which prefers
+-- this table over task_referenced_paths and silently passes when any row
+-- has source='unbounded'. Multiple rows per (task_id, pattern) are
+-- allowed so the same path can carry both an 'auto_derived' and a later
+-- 'operator_declared' entry without losing provenance.
+CREATE TABLE task_scope (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    pattern TEXT NOT NULL,
+    source TEXT NOT NULL CHECK (source IN ('auto_derived', 'operator_declared', 'expanded_mid_task', 'creates', 'unbounded')),
+    reason TEXT,
+    locked_at TEXT,
+    locked_by TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+CREATE INDEX idx_task_scope_task_id ON task_scope(task_id);
+
 -- task_progress (checkpoint log for context recovery)
 CREATE TABLE task_progress (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -665,6 +694,9 @@ CREATE TABLE task_sessions (
     cost_dollars REAL,
     tokens_in INTEGER,
     tokens_out INTEGER,
+    cache_read_tokens_in INTEGER,
+    cache_write_tokens_in INTEGER,
+    uncached_tokens_in INTEGER,
     lines_added INTEGER,
     lines_removed INTEGER,
     model TEXT,
@@ -906,6 +938,9 @@ CREATE TABLE skill_runs (
     cost_dollars REAL,
     tokens_in INTEGER,
     tokens_out INTEGER,
+    cache_read_tokens_in INTEGER,
+    cache_write_tokens_in INTEGER,
+    uncached_tokens_in INTEGER,
     model TEXT,
     metadata TEXT,
     request_count INTEGER,
@@ -1114,7 +1149,7 @@ TEST_RUNS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 72;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 74;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -1200,13 +1235,13 @@ cmd_query() {
         _fuzzy_match="$(python3 - "$_subcmd_lc" <<'PYEOF' 2>/dev/null  # suppress errors; no hint shown on failure
 import difflib, sys
 candidates = [
-  'init','path','config','validate','sql-quote','typed-criteria-build','branch','commit',
+  'init','path','config','validate','sql-quote','typed-criteria-build','resolve-schema-bin','branch','commit',
   'lint','lint-rule','dupes','conventions','pillars','glossary','plans','criteria','dashboard','chain','blockers',
   'review','review-verdict','review-pass-status','review-final-summary','review-diff-range','review-wait','review-check-perms','review-agent-cost',
   'deps','session-stats','session-recalc','session-close','skill-run','jot','jots','call-breakdown',
   'active-project','git-default-branch','branch-parse',
   'task-get','task-get-multi','task-select','task-start','task-done','task-insert','task-update','task-reopen','task-unstart','task-list','task-summary','task-worktree',
-  'audit','autoclose','backlog-scan','groom','check-deliverables',
+  'audit','insights','autoclose','backlog-scan','groom','check-deliverables','scope-paths','scope','scope-hint',
   'retro','retro-signals','retro-themes','retro-finding','retro-patches',
   'test-detect','test-precheck','add-lib','address-issue',
   'init-scan-codebase','init-scan-todos','init-fetch-bootstrap','init-write-config','init-write-manifest-files','init-wizard','init-scaffold',
@@ -1328,33 +1363,13 @@ BODY
 }
 
 cmd_version_bump() {
-  if [[ $# -gt 0 ]]; then
-    echo "tusk version-bump: takes no arguments — increments VERSION by 1; explicit values not supported" >&2
-    return 1
-  fi
-  # Resolve VERSION against the worktree's checkout first so a bump from a
-  # task-owned worktree writes the worktree's file and stages it cleanly via
-  # `git -C "$REPO_ROOT" add`. Fall back to the source bin's $SCRIPT_DIR /
-  # $INSTALL_DIR only when the worktree has no VERSION file (e.g. consumer
-  # projects installed via install.sh whose root contains no VERSION). Mirrors
-  # tusk-changelog-add.py's worktree-aware resolution (issues #798, #801).
-  local version_file
-  if [[ -f "$REPO_ROOT/VERSION" ]]; then
-    version_file="$REPO_ROOT/VERSION"
-  elif [[ -f "$SCRIPT_DIR/VERSION" ]]; then
-    version_file="$SCRIPT_DIR/VERSION"
-  elif [[ -f "$INSTALL_DIR/VERSION" ]]; then
-    version_file="$INSTALL_DIR/VERSION"
-  else
-    echo "Error: VERSION file not found" >&2
-    exit 1
-  fi
-  local current_version new_version
-  current_version="$(cat "$version_file")"
-  new_version=$(( current_version + 1 ))
-  echo "$new_version" > "$version_file"
-  git -C "$REPO_ROOT" add "$version_file"
-  echo "$new_version"
+  # Resolution order is implemented in tusk-version-bump.py:
+  #   --task-id N → task_workspaces.workspace_path/VERSION (registry lookup,
+  #     authoritative for primary-CWD bumps targeting a worktree, issue #903).
+  #   default     → REPO_ROOT/VERSION (preserves the worktree-aware fallback
+  #     from issues #798/#801 when invoked inside the worktree) →
+  #     SCRIPT_DIR/VERSION → INSTALL_DIR/VERSION (consumer-install fallback).
+  exec python3 "$SCRIPT_DIR/tusk-version-bump.py" "$REPO_ROOT" "$DB_PATH" "$SCRIPT_DIR" "$INSTALL_DIR" "$@"
 }
 
 cmd_migrate() {
@@ -1362,7 +1377,27 @@ cmd_migrate() {
     echo "tusk migrate: takes no arguments — applies all pending schema migrations in order" >&2
     return 1
   fi
-  exec python3 "$SCRIPT_DIR/tusk-migrate.py" "$DB_PATH" "$(resolve_config)"
+  # Worktree-CWD preference (TASK-480 criterion 2232, issue #893): in the
+  # tusk source repo, when a worktree adds a new migration to its own
+  # bin/tusk-migrate.py before the primary's .claude/bin/ has been refreshed,
+  # the tusk wrapper on PATH (primary's .claude/bin/tusk) still routes
+  # `tusk migrate` to the primary's older tusk-migrate.py and silently no-ops
+  # at the prior schema version. Prefer the worktree's binary when present
+  # and distinct from $SCRIPT_DIR so a worktree-local migration applies.
+  # Outside the source repo (target projects without bin/), $REPO_ROOT has
+  # no bin/tusk-migrate.py and this condition is silently false — the legacy
+  # path is unchanged.
+  local migrate_py="$SCRIPT_DIR/tusk-migrate.py"
+  if [[ -f "$REPO_ROOT/bin/tusk-migrate.py" ]]; then
+    local worktree_bin_realpath script_bin_realpath
+    worktree_bin_realpath="$(cd "$REPO_ROOT/bin" 2>/dev/null && pwd -P)" || worktree_bin_realpath=""
+    script_bin_realpath="$(cd "$SCRIPT_DIR" 2>/dev/null && pwd -P)" || script_bin_realpath=""
+    if [[ -n "$worktree_bin_realpath" && "$worktree_bin_realpath" != "$script_bin_realpath" ]]; then
+      migrate_py="$REPO_ROOT/bin/tusk-migrate.py"
+      echo "Note: dispatching to worktree migrate binary at $migrate_py" >&2
+    fi
+  fi
+  exec python3 "$migrate_py" "$DB_PATH" "$(resolve_config)"
 }
 
 cmd_upgrade() {
@@ -1585,12 +1620,18 @@ is_readonly_subcmd() {
   # Subcommands that never mutate tusk/tasks.db. Everything else triggers
   # a snapshot. When in doubt, omit from this list — a redundant backup is
   # cheaper than a missed one.
+  # `scope` is dispatched at the second positional: only `scope list` is
+  # read-only — `scope add` and `scope lock` mutate task_scope rows.
+  if [[ "${1:-}" == "scope" ]]; then
+    [[ "${2:-}" == "list" ]] && return 0
+    return 1
+  fi
   case "${1:-}" in
     ""|path|config|validate|sql-quote|typed-criteria-build|version|version-bump|\
     git-default-branch|branch-parse|report-issue|\
     sync-skills|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit|\
     task-get|task-get-multi|task-list|task-select|task-summary|setup|\
-    backlog-scan|blockers|check-deliverables|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|review-agent-cost|jots|retro-patches|\
+    backlog-scan|blockers|check-deliverables|scope-paths|scope-hint|test-detect|test-precheck|review-check-perms|review-diff-range|review-final-summary|review-agent-cost|jots|retro-patches|insights|\
     init-fetch-bootstrap|init-scan-codebase|init-scan-todos)
       return 0 ;;
     *) return 1 ;;
@@ -1623,6 +1664,19 @@ snapshot_db() {
 # sqlite3.OperationalError instead of an actionable upgrade prompt. The
 # reverse direction (binary newer than DB) stays the responsibility of
 # `tusk migrate`.
+#
+# Worktree-binary fallback (issue #876): before emitting the mismatch error,
+# consult tusk-resolve-schema-bin.py. It scans `git worktree list
+# --porcelain` for a sibling worktree whose `bin/tusk-migrate.py` knows about
+# the higher schema version, and prints that binary's path. If one is found,
+# re-exec into it with the original argv preserved so every subcommand —
+# skill-run finish, task-summary, commit, lint, glossary, etc. — survives
+# the same primary-stale-after-worktree-migration scenario that TASK-457
+# fixed only inside tusk-merge.py. The exec re-enters this script's
+# preflight; since the new binary supports the schema, it returns 0 and
+# proceeds normally. TUSK_NESTED_CALL is left unset so exactly one snapshot
+# is taken per operator invocation. Receives full argv via "$@" so the exec
+# below carries the original command intact.
 preflight_schema_version() {
   # No DB on disk → nothing to compare. The subcommand will either init a
   # fresh DB or fail with its own clearer message.
@@ -1634,9 +1688,14 @@ preflight_schema_version() {
     # blocked. Mirrors but does NOT reuse `is_readonly_subcmd` because that
     # list also includes DB-reading commands (task-get, task-list, …) which
     # are exactly what this preflight needs to guard.
+    #
+    # `resolve-schema-bin` is exempt because it IS part of the recovery
+    # path: bash invokes it directly below, and operators may run it
+    # manually to debug a mismatch.
     ""|init|path|config|version|version-bump|upgrade|migrate|regen-triggers|\
       sql-quote|typed-criteria-build|git-default-branch|branch-parse|report-issue|update-gitignore|\
-      sync-skills|sync-main|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit)
+      sync-skills|sync-main|reconcile-skills|generate-manifest|pricing-update|dev-sync|token-audit|\
+      resolve-schema-bin)
       return 0 ;;
   esac
   local user_version supported_max
@@ -1651,14 +1710,19 @@ preflight_schema_version() {
     | sort -n | tail -1)"
   [[ -n "$supported_max" ]] || return 0
   if (( user_version > supported_max )); then
+    local alt_bin
+    alt_bin="$(python3 "$SCRIPT_DIR/tusk-resolve-schema-bin.py" "$DB_PATH" "$SCRIPT_DIR/tusk")" || alt_bin=""
+    if [[ -n "$alt_bin" && -x "$alt_bin" ]]; then
+      exec "$alt_bin" "$@"
+    fi
     echo "Schema mismatch: this database is at v${user_version}, but this tusk binary expects <=v${supported_max}. Run 'tusk upgrade' to update." >&2
     exit 1
   fi
 }
 
-preflight_schema_version "${1:-}"
+preflight_schema_version "$@"
 
-if [[ -z "${TUSK_NESTED_CALL:-}" ]] && ! is_readonly_subcmd "${1:-}"; then
+if [[ -z "${TUSK_NESTED_CALL:-}" ]] && ! is_readonly_subcmd "${1:-}" "${2:-}"; then
   snapshot_db
 fi
 # Any nested `tusk` invoked by a Python child inherits this and skips the
@@ -1674,6 +1738,7 @@ case "${1:-}" in
   validate) shift; cmd_validate "$@" ;;
   sql-quote) shift; sql_quote "${1:-}" ;;
   typed-criteria-build) shift; exec python3 "$SCRIPT_DIR/tusk-typed-criteria-build.py" "$@" ;;
+  resolve-schema-bin) shift; exec python3 "$SCRIPT_DIR/tusk-resolve-schema-bin.py" "$@" ;;
   branch) shift; exec python3 "$SCRIPT_DIR/tusk-branch.py" "$REPO_ROOT" "$@" ;;
   commit) shift; exec python3 "$SCRIPT_DIR/tusk-commit.py" "$REPO_ROOT" "$(resolve_config)" "$@" ;;
   lint)   shift; exec python3 "$SCRIPT_DIR/tusk-lint.py" "$REPO_ROOT" "$@" ;;
@@ -1717,10 +1782,14 @@ case "${1:-}" in
   task-summary) shift; exec python3 "$SCRIPT_DIR/tusk-task-summary.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-worktree) shift; exec python3 "$SCRIPT_DIR/tusk-task-worktree.py" "$DB_PATH" "$(resolve_config)" "$REPO_ROOT" "$@" ;;
   audit) shift; exec python3 "$SCRIPT_DIR/tusk-audit.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  insights) shift; exec python3 "$SCRIPT_DIR/tusk-insights.py" "$DB_PATH" "$(resolve_config)" "$REPO_ROOT" "$@" ;;
   autoclose) shift; exec python3 "$SCRIPT_DIR/tusk-autoclose.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   backlog-scan) shift; exec python3 "$SCRIPT_DIR/tusk-backlog-scan.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   groom) shift; exec python3 "$SCRIPT_DIR/tusk-groom.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   check-deliverables) shift; exec python3 "$SCRIPT_DIR/tusk-check-deliverables.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  scope-paths) shift; exec python3 "$SCRIPT_DIR/tusk-scope-paths.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  scope-hint) shift; exec python3 "$SCRIPT_DIR/tusk-scope-hint.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  scope) shift; exec python3 "$SCRIPT_DIR/tusk-scope.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-signals) shift; exec python3 "$SCRIPT_DIR/tusk-retro-signals.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-themes) shift; exec python3 "$SCRIPT_DIR/tusk-retro-themes.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   retro-finding) shift; exec python3 "$SCRIPT_DIR/tusk-retro-finding.py" "$DB_PATH" "$(resolve_config)" "$@" ;;

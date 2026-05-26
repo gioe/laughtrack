@@ -28,16 +28,18 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader
+import tusk_loader  # loads tusk-db-lib.py, tusk-git-helpers.py, tusk-json-lib.py
 
 TUSK_BIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tusk")
 
 _db_lib = tusk_loader.load("tusk-db-lib")
+_git_helpers = tusk_loader.load("tusk-git-helpers")
 _json_lib = tusk_loader.load("tusk-json-lib")
 dumps = _json_lib.dumps
 get_connection = _db_lib.get_connection
 load_config = _db_lib.load_config
 validate_enum = _db_lib.validate_enum
+extract_paths = _git_helpers.extract_paths
 
 
 def _typed_criterion_type(value: str) -> dict:
@@ -94,6 +96,13 @@ def main(argv: list[str]) -> int:
                         help="Set expires_at to +N days")
     parser.add_argument("--fixes-task-id", type=int, default=None, dest="fixes_task_id", metavar="ID",
                         help="Link this task as a follow-up/rework of the given task id")
+    parser.add_argument("--scope", action="append", default=[], metavar="PATTERN",
+                        help="Declare an in-scope path (source='operator_declared'). Repeatable.")
+    parser.add_argument("--creates", action="append", default=[], metavar="PATH",
+                        help="Declare a path the task will create (source='creates'). Repeatable.")
+    parser.add_argument("--unbounded", action="store_true", default=False,
+                        help="Mark this task as legitimately spanning the repo — emits an 'unbounded' "
+                             "scope row that signals the commit-time scope guard to silently pass.")
     args = parser.parse_args(argv[2:])
 
     summary = args.summary
@@ -108,6 +117,9 @@ def main(argv: list[str]) -> int:
     typed_criteria: list[dict] = args.typed_criteria
     expires_in_days = args.expires_in_days
     fixes_task_id = args.fixes_task_id
+    scope_patterns: list[str] = args.scope
+    creates_paths: list[str] = args.creates
+    unbounded: bool = args.unbounded
 
     if not criteria and not typed_criteria:
         parser.error(
@@ -234,6 +246,54 @@ def main(argv: list[str]) -> int:
             )
             cid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
             criteria_ids.append(cid)
+
+        for pattern in scope_patterns:
+            conn.execute(
+                "INSERT INTO task_scope (task_id, pattern, source) "
+                "VALUES (?, ?, 'operator_declared')",
+                (task_id, pattern),
+            )
+        for path in creates_paths:
+            conn.execute(
+                "INSERT INTO task_scope (task_id, pattern, source) "
+                "VALUES (?, ?, 'creates')",
+                (task_id, path),
+            )
+        if unbounded:
+            # Pattern is a sentinel — the scope guard short-circuits when any
+            # row for the task has source='unbounded' (emits no patterns,
+            # silent pass).
+            conn.execute(
+                "INSERT INTO task_scope (task_id, pattern, source) "
+                "VALUES (?, '**', 'unbounded')",
+                (task_id,),
+            )
+        else:
+            # Auto-extract paths from summary/description/criteria/specs.
+            # Mirrors the migration-73 backfill (which used
+            # task_referenced_paths) so new tasks land with the same
+            # task_scope shape that the scope-paths fallback would have
+            # inferred from a legacy task. Explicit --scope and --creates
+            # rows already inserted above win — auto_derived is only added
+            # for paths the operator didn't already declare.
+            explicit_patterns = set(scope_patterns) | set(creates_paths)
+            text_blocks = [summary or "", description or ""]
+            for c in criteria:
+                text_blocks.append(c or "")
+            for tc in typed_criteria:
+                text_blocks.append(tc.get("text") or "")
+                text_blocks.append(tc.get("spec") or "")
+            seen_auto: set = set()
+            for text in text_blocks:
+                for p in extract_paths(text):
+                    if p in explicit_patterns or p in seen_auto:
+                        continue
+                    seen_auto.add(p)
+                    conn.execute(
+                        "INSERT INTO task_scope (task_id, pattern, source) "
+                        "VALUES (?, ?, 'auto_derived')",
+                        (task_id, p),
+                    )
 
         conn.commit()
     except sqlite3.Error as e:

@@ -748,10 +748,173 @@ def _maybe_refresh_deployed_bin(db_path: str, tusk_bin: str) -> bool:
     return True
 
 
+def _format_stale_deployed_bin_advisory(
+    primary_root, working_tree_clean: bool, refresh_fired: bool,
+) -> str:
+    """Return the four-variant advisory wording emitted when auto-sync is disabled or fails.
+
+    The four variants are selected by the ``refresh_fired`` x ``working_tree_clean``
+    matrix established by issue #877. Extracted so the wording is reusable from
+    both the env-var-disabled fast-path and the auto-sync-failure fallback path
+    (issue #880).
+    """
+    if refresh_fired:
+        if working_tree_clean:
+            return (
+                "tusk: primary's working tree is behind origin — this no-checkout "
+                f"merge updated the remote only. Run `tusk sync-main && tusk dev-sync` "
+                f"in {primary_root} when convenient."
+            )
+        return (
+            "tusk: primary's working tree is behind origin — this no-checkout "
+            "merge updated the remote only. Run `tusk sync-main && tusk dev-sync` "
+            f"in {primary_root} — sync-main stashes local changes by ref before "
+            "the ff-only pull, so no manual stash is needed."
+        )
+    if working_tree_clean:
+        return (
+            "tusk: .claude/bin/ may be stale — primary's working tree was not "
+            "updated by this no-checkout merge. Run `tusk sync-main && tusk dev-sync` "
+            f"in {primary_root} to fetch + ff-pull + migrate + refresh the deployed "
+            "bin/ cache."
+        )
+    return (
+        "tusk: .claude/bin/ may be stale — primary's working tree was not "
+        "updated by this no-checkout merge. Run `tusk sync-main && tusk dev-sync` "
+        f"in {primary_root} — sync-main stashes local changes by ref before "
+        "the ff-only pull, so no manual stash is needed."
+    )
+
+
+def _run_sync_main(tusk_bin: str, primary_root) -> subprocess.CompletedProcess:
+    """Run `tusk sync-main` against primary_root. Separated for testability (issue #880)."""
+    return subprocess.run(
+        [tusk_bin, "sync-main"],
+        cwd=str(primary_root),
+        capture_output=True, text=True, encoding="utf-8", check=False,
+    )
+
+
+_UNMERGED_STATUS_CODES = frozenset({"DD", "AU", "UD", "UA", "DU", "AA", "UU"})
+
+
+def _parse_unmerged_paths(porcelain_stdout: str) -> list[str]:
+    """Extract unmerged paths from `git status --porcelain` output."""
+    paths: list[str] = []
+    for line in (porcelain_stdout or "").splitlines():
+        if len(line) >= 3 and line[:2] in _UNMERGED_STATUS_CODES:
+            paths.append(line[3:])
+    return paths
+
+
+def _classify_sync_main_failure(parsed_json: dict, stderr: str) -> str | None:
+    """Identify which sync-main step failed given the JSON payload and stderr.
+
+    Returns one of 'fetch', 'stash', 'ff', 'pop', 'migrate', or None when the
+    data is insufficient to classify (caller falls back to the four-variant
+    advisory). Stderr signatures are pinned to the `Error:` prefixes emitted
+    by bin/tusk-sync-main.py — JSON-only routing is intentionally absent
+    because the result dict alone cannot distinguish fetch-failure from
+    migrate-failure on a zero-commit pull.
+    """
+    if not isinstance(parsed_json, dict):
+        parsed_json = {}
+    stderr_text = stderr or ""
+
+    if "tusk migrate failed" in stderr_text:
+        return "migrate"
+    if ("git stash pop" in stderr_text and "failed" in stderr_text) or (
+        "stash entry" in stderr_text and "disappeared" in stderr_text
+    ):
+        return "pop"
+    if "git merge --ff-only" in stderr_text and "failed" in stderr_text:
+        return "ff"
+    if "git stash push failed" in stderr_text:
+        return "stash"
+    if "git fetch" in stderr_text and "failed" in stderr_text:
+        return "fetch"
+    return None
+
+
+def _format_sync_main_failure_advisory(
+    sync_returncode: int,
+    failure_step: str | None,
+    unmerged_paths: list[str],
+    primary_root,
+    default_branch: str,
+    fallback_advisory: str,
+) -> str:
+    """Build the multi-line stderr block emitted after a sync-main failure.
+
+    Issue #908: route on the specific failure mode instead of re-suggesting
+    `tusk sync-main` (the command that just exited non-zero). The
+    unmerged-paths case takes priority over stderr-based classification —
+    pre-existing UU/AA/DD rows are the most common root cause and the
+    actionable fix is always "resolve conflicts first," regardless of which
+    sync-main step ultimately raised.
+    """
+    prefix = f"tusk: auto-sync failed (tusk sync-main exit {sync_returncode}) — "
+
+    if unmerged_paths:
+        sample = ", ".join(unmerged_paths[:3])
+        more = (
+            "" if len(unmerged_paths) <= 3
+            else f" (+{len(unmerged_paths) - 3} more)"
+        )
+        return (
+            f"{prefix}primary has unmerged paths.\n"
+            f"  Unmerged: {sample}{more}\n"
+            f"  Resolve the conflicts in {primary_root} (git add the resolved "
+            f"files, or git checkout --ours/--theirs), then re-run "
+            f"`tusk sync-main && tusk dev-sync`."
+        )
+
+    branch = default_branch or "<default>"
+
+    if failure_step == "fetch":
+        return (
+            f"{prefix}`git fetch origin {branch}` failed inside sync-main.\n"
+            f"  Check network/auth, then re-run `tusk sync-main && tusk "
+            f"dev-sync` in {primary_root}."
+        )
+    if failure_step == "stash":
+        return (
+            f"{prefix}`git stash push` refused inside sync-main.\n"
+            f"  This usually means primary has unmerged paths or a corrupt "
+            f"index. Inspect `git status` in {primary_root}, resolve the "
+            f"dirty/unmerged state, then re-run `tusk sync-main && tusk "
+            f"dev-sync`."
+        )
+    if failure_step == "ff":
+        return (
+            f"{prefix}`git merge --ff-only origin/{branch}` refused — local "
+            f"has diverged from origin.\n"
+            f"  Run `git pull --rebase origin {branch}` in {primary_root} "
+            f"(or `git reset --hard origin/{branch}` if local commits are "
+            f"disposable), then `tusk dev-sync`."
+        )
+    if failure_step == "pop":
+        return (
+            f"{prefix}`git stash pop` failed after the ff-pull.\n"
+            f"  Your changes remain stashed. Inspect `git stash list` in "
+            f"{primary_root}, resolve any conflicts, then `git stash pop "
+            f"<ref>` manually. Then run `tusk dev-sync`."
+        )
+    if failure_step == "migrate":
+        return (
+            f"{prefix}`tusk migrate` failed after a successful sync.\n"
+            f"  The remote was pulled successfully but pending schema "
+            f"migrations were not applied. Re-run `tusk migrate` in "
+            f"{primary_root} after resolving the migration error."
+        )
+
+    return f"{prefix}fall back to manual recovery below.\n{fallback_advisory}"
+
+
 def _maybe_advise_stale_deployed_bin(
-    db_path: str, refresh_fired: bool = False,
+    db_path: str, *, tusk_bin: str | None = None, refresh_fired: bool = False,
 ) -> None:
-    """Advise the operator that .claude/bin/ may be stale after a no-checkout merge.
+    """Advise or auto-action when primary's working tree is behind origin after a no-checkout merge.
 
     The no-checkout fast-forward path pushes to origin/<default> without updating
     primary's working tree, so _maybe_refresh_deployed_bin sees zero drift between
@@ -759,20 +922,36 @@ def _maybe_advise_stale_deployed_bin(
     content. The deployed cache remains stale relative to origin/<default> until
     the operator pulls primary (issue #865).
 
-    When ``refresh_fired`` is True, the auto-refresh helper just announced that
-    it synced .claude/bin/ from primary's bin/. Keeping the original
-    ".claude/bin/ may be stale ... run tusk dev-sync" wording immediately after
-    that line reads as a contradiction (issue #869); reframe the message around
-    primary's working tree being behind origin (the actual remaining state) so
-    the two lines are coherent. The recovery command is unchanged — after the
-    user pulls, primary's bin/ moves ahead of .claude/bin/ again and dev-sync
-    re-deploys.
+    Issue #880: when ``tusk_bin`` is provided and ``TUSK_NO_AUTO_SYNC_MAIN`` is
+    unset, invoke `tusk sync-main` directly from primary_root and emit a status
+    line ("tusk: auto-synced primary to origin/<default> via tusk sync-main")
+    instead of asking the operator to run it manually. On success, re-invoke
+    ``_maybe_refresh_deployed_bin`` so any bin/tusk-*.py content the sync just
+    pulled propagates into .claude/bin/ before the next session boots.
 
-    Emits a single stderr line naming the recovery command. Wording adapts to
-    primary's working-tree state: clean → plain `git pull && tusk dev-sync`;
-    dirty → add a stash-first note. Gated identically to _maybe_refresh_deployed_bin
-    (source-repo layout — both bin/ and .claude/bin/ must exist in primary; honors
-    TUSK_NO_DEPLOYED_BIN_REFRESH=1 as the single off-switch).
+    Issue #908: on auto-sync failure, route the advisory by the specific
+    sync-main step that failed (stash/ff/pop/migrate/fetch) rather than
+    re-suggesting `tusk sync-main` — the command that just exited non-zero.
+    The unmerged-paths case takes priority: if a fresh `git status --porcelain`
+    on primary shows UU/AA/DD rows, the advisory recommends resolving conflicts
+    first regardless of which sync-main step raised. Indeterminate failures
+    (stderr signature not matched, no unmerged paths) fall through to the
+    four-variant advisory wording established by issue #877.
+
+    Gates carried over from the original advisory path (issue #865):
+      * ``TUSK_NO_DEPLOYED_BIN_REFRESH=1`` — single off-switch shared with
+        ``_maybe_refresh_deployed_bin``; suppresses both the auto-action and
+        the advisory.
+      * Source-repo layout — both ``bin/`` and ``.claude/bin/`` must exist in
+        primary; consumer installs are a silent no-op.
+      * ``git status --porcelain`` must succeed on primary_root; if not (e.g.
+        not a git repo), stay silent rather than guess clean-vs-dirty.
+
+    Issue #880 off-switches:
+      * ``TUSK_NO_AUTO_SYNC_MAIN=1`` — keep the four-variant advisory; do not
+        invoke ``tusk sync-main`` automatically.
+      * ``tusk_bin is None`` — backwards-compatible advisory-only path used by
+        callers that don't have a resolved binary in scope.
     """
     if os.environ.get("TUSK_NO_DEPLOYED_BIN_REFRESH") == "1":
         return
@@ -788,35 +967,66 @@ def _maybe_advise_stale_deployed_bin(
     if status.returncode != 0:
         return
     working_tree_clean = not status.stdout.strip()
-    if refresh_fired:
-        if working_tree_clean:
-            print(
-                "tusk: primary's working tree is behind origin — this no-checkout "
-                f"merge updated the remote only. Run `git pull && tusk dev-sync` in {primary_root} "
-                "when convenient.",
-                file=sys.stderr,
-            )
-        else:
-            print(
-                "tusk: primary's working tree is behind origin — this no-checkout "
-                "merge updated the remote only. Stash or commit local changes in "
-                f"{primary_root}, then run `git pull && tusk dev-sync`.",
-                file=sys.stderr,
-            )
-    elif working_tree_clean:
+    advisory = _format_stale_deployed_bin_advisory(
+        primary_root, working_tree_clean, refresh_fired,
+    )
+
+    auto_sync_disabled = os.environ.get("TUSK_NO_AUTO_SYNC_MAIN") == "1"
+    if tusk_bin is None or auto_sync_disabled:
+        print(advisory, file=sys.stderr)
+        return
+
+    sync_result = _run_sync_main(tusk_bin, primary_root)
+    if sync_result.returncode == 0:
+        default_branch = "<default>"
+        try:
+            parsed = json.loads(sync_result.stdout or "")
+            branch_value = parsed.get("default_branch")
+            if isinstance(branch_value, str) and branch_value:
+                default_branch = branch_value
+        except (json.JSONDecodeError, ValueError, AttributeError):
+            pass
         print(
-            "tusk: .claude/bin/ may be stale — primary's working tree was not "
-            "updated by this no-checkout merge. Run `git pull && tusk dev-sync` "
-            f"in {primary_root} when convenient.",
+            f"tusk: auto-synced primary to origin/{default_branch} via tusk sync-main "
+            f"in {primary_root}.",
             file=sys.stderr,
         )
-    else:
-        print(
-            "tusk: .claude/bin/ may be stale — primary's working tree was not "
-            "updated by this no-checkout merge. Stash or commit local changes in "
-            f"{primary_root}, then run `git pull && tusk dev-sync`.",
-            file=sys.stderr,
-        )
+        # sync-main may have pulled new bin/tusk-*.py content into primary's bin/;
+        # re-run the deployed-bin refresh so .claude/bin/ catches up before the
+        # next session boots. _maybe_refresh_deployed_bin owns its own stderr
+        # advisory and TUSK_NO_DEPLOYED_BIN_REFRESH check.
+        _maybe_refresh_deployed_bin(db_path, tusk_bin)
+        return
+
+    parsed_json: dict = {}
+    try:
+        decoded = json.loads(sync_result.stdout or "")
+        if isinstance(decoded, dict):
+            parsed_json = decoded
+    except (json.JSONDecodeError, ValueError, AttributeError):
+        pass
+
+    post_status = run(
+        ["git", "-C", str(primary_root), "status", "--porcelain"], check=False,
+    )
+    post_stdout = post_status.stdout if post_status.returncode == 0 else ""
+    unmerged_paths = _parse_unmerged_paths(post_stdout)
+
+    failure_step = _classify_sync_main_failure(
+        parsed_json, sync_result.stderr or "",
+    )
+    default_branch_value = parsed_json.get("default_branch")
+    default_branch = (
+        default_branch_value if isinstance(default_branch_value, str) else ""
+    )
+
+    print(
+        _format_sync_main_failure_advisory(
+            sync_result.returncode, failure_step, unmerged_paths,
+            primary_root, default_branch, advisory,
+        ),
+        file=sys.stderr,
+    )
 
 
 def _stamp_merge_commit_sha(
@@ -932,7 +1142,7 @@ def _resolve_local_ref_sha(ref: str) -> str | None:
 
 
 def _resolve_merge_base(feature_branch: str, default_branch: str) -> str | None:
-    """Return the merge-base of ``feature_branch`` and origin/<default_branch>.
+    """Return the merge-base of ``feature_branch`` and the default-branch tip.
 
     Captured **before** the merge so the fast-forward and no-checkout push
     paths can stamp the parent of the first task commit on the feature
@@ -940,21 +1150,45 @@ def _resolve_merge_base(feature_branch: str, default_branch: str) -> str | None:
     fast-path consumed by ``bin/tusk-task-summary.py``. Migration 72
     follow-up to TASK-451 (issue #849).
 
-    Tries ``origin/<default_branch>`` first because that's the actual ref
-    the merge will fast-forward against; falls back to the local
-    ``<default_branch>`` ref when origin isn't reachable (the no-checkout
-    push path already issues a ``git fetch origin`` so the remote ref is
-    fresh in that flow). Returns None on any failure — caller stamps NULL
-    base and ``fetch_diff`` falls through to ``git show <tip>`` for that
-    row (correct for single-commit task work; understates multi-commit).
+    Resolves both candidate refs (``origin/<default_branch>`` and the
+    local ``<default_branch>``) and picks the **descendant** of the two
+    via ``git merge-base --is-ancestor``. When local default is ahead of
+    origin (operator has unpushed commits and the feature branch was
+    cut from the ahead-of-origin tip), the origin-relative merge-base
+    is an older ancestor and ``git log <old_base>..<tip>`` over-includes
+    the local-default unpushed commits in the numstat — inflating the
+    stats reported for the task. Picking the descendant base trims the
+    range to exactly the task's commits (issue #879, Edge 1).
+
+    Returns None on any failure — caller stamps NULL base and
+    ``fetch_diff`` falls back to ``git show <tip>`` for that row (correct
+    for single-commit task work; understates multi-commit).
     """
+    candidates: list[str] = []
     for ref in (f"origin/{default_branch}", default_branch):
         result = run(["git", "merge-base", ref, feature_branch], check=False)
         if result.returncode == 0:
             sha = result.stdout.strip()
-            if sha:
-                return sha
-    return None
+            if sha and sha not in candidates:
+                candidates.append(sha)
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+    a, b = candidates
+    # If a is an ancestor of b, b is the descendant (more recent base).
+    if run(
+        ["git", "merge-base", "--is-ancestor", a, b], check=False
+    ).returncode == 0:
+        return b
+    # Symmetric check — keep the explicit fallback so unrelated refs
+    # (no ancestor relationship in either direction) return a stable
+    # answer rather than silently picking the wrong candidate.
+    if run(
+        ["git", "merge-base", "--is-ancestor", b, a], check=False
+    ).returncode == 0:
+        return a
+    return a
 
 
 def _close_completed_task(
@@ -1175,8 +1409,14 @@ def _complete_no_checkout_fast_forward(
     # descends directly from origin/<default_branch>'s tip and the
     # merge-base equals that tip (= parent of the first task commit on
     # the rebased branch). Migration 72, TASK-452.
-    pre_push_merge_base_sha = _resolve_merge_base(branch_name, default_branch)
     if _origin_already_contains(branch_name, default_branch):
+        # Work already shipped — origin/<default_branch>'s tip equals
+        # branch_name's tip, so any merge-base resolved here would collapse
+        # to the tip and route fetch_diff into single-SHA tip-only mode
+        # (issue #879, Edge 2). Leave the stamp NULL so fetch_diff falls
+        # through to the recovery chain, which reproduces the cumulative
+        # stats from the actual [TASK-N] commit history.
+        pre_push_merge_base_sha = None
         print(
             f"Note: origin/{default_branch} already contains {branch_name}'s "
             "tip — skipping no-checkout fast-forward push; the work has already "
@@ -1184,6 +1424,7 @@ def _complete_no_checkout_fast_forward(
             file=sys.stderr,
         )
     else:
+        pre_push_merge_base_sha = _resolve_merge_base(branch_name, default_branch)
         result = run(["git", "push", "origin", f"{branch_name}:{default_branch}"], check=False)
         if result.returncode != 0:
             print(
@@ -1268,10 +1509,12 @@ def _complete_no_checkout_fast_forward(
     # Gate on rc == 0 to preserve original behavior: the refresh used to live
     # inside _close_completed_task's success branches only, never on the
     # task-done error path.
+    # Issue #880: the advisory call below now also shells out via tusk_bin
+    # (to invoke `tusk sync-main` against primary_root), so it joins the
+    # before-cleanup ordering for the same worktree-path-removal reason.
     refreshed = False
     if rc == 0:
         refreshed = _maybe_refresh_deployed_bin(db_path, tusk_bin)
-    _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
     # The auto-refresh above compares primary's bin/ against primary's
     # .claude/bin/, but the no-checkout path never updates primary's working
     # tree — so any drift here was pre-existing, not caused by this merge.
@@ -1279,7 +1522,8 @@ def _complete_no_checkout_fast_forward(
     # tree being behind origin (issue #869) instead of repeating the
     # ".claude/bin/ may be stale, run dev-sync" line that the refresh has
     # already addressed.
-    _maybe_advise_stale_deployed_bin(db_path, refresh_fired=refreshed)
+    _maybe_advise_stale_deployed_bin(db_path, tusk_bin=tusk_bin, refresh_fired=refreshed)
+    _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
     return rc
 
 
