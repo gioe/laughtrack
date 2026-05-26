@@ -45,7 +45,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
   LaughTrackBridge:
     type: framework
     platform: iOS
@@ -58,7 +58,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.bridge
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
   LaughTrackAPIClient:
     type: framework
     platform: iOS
@@ -78,7 +78,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.apiclient
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
   LaughTrack:
     type: application
     platform: iOS
@@ -142,8 +142,8 @@ targets:
         # build under `swift test` and `xcodebuild test`.
         PRODUCT_MODULE_NAME: LaughTrackApp
         GENERATE_INFOPLIST_FILE: "NO"
-        MARKETING_VERSION: "1.2"
-        CURRENT_PROJECT_VERSION: "5"
+        MARKETING_VERSION: "1.3"
+        CURRENT_PROJECT_VERSION: "6"
         SWIFT_EMIT_LOC_STRINGS: "YES"
         # iPhone-only (TARGETED_DEVICE_FAMILY "1"). Without this xcodegen defaults
         # to "1,2" (iPhone + iPad), which makes App Store Connect require iPad
@@ -179,7 +179,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.tests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
   LaughTrackUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -194,5 +194,5 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.uitests
         GENERATE_INFOPLIST_FILE: "YES"
-        MARKETING_VERSION: "1.2"
+        MARKETING_VERSION: "1.3"
         TEST_TARGET_NAME: LaughTrack
