@@ -142,9 +142,10 @@ struct ProfileView: View {
                     }
                 }
 
-                if isSignedIn {
-                    LaughTrackBadge(nearbySummary, systemImage: "location.fill", tone: .accent)
-                } else {
+                // Signed-in hero is identity only (avatar + name + sync status). The
+                // nearby-location state lives solely in the Location section below —
+                // the hero badge duplicated its summary, so it was dropped.
+                if !isSignedIn {
                     VStack(spacing: theme.spacing.sm) {
                         ForEach(Self.signedOutAuthOptions) { option in
                             SignedOutAuthOptionButton(option: option) { provider in
@@ -204,14 +205,6 @@ struct ProfileView: View {
         }
 
         return "Sign in to sync favorites and recover your account."
-    }
-
-    private var nearbySummary: String {
-        guard let preference = settingsModel.nearbyPreference else {
-            return "No nearby default"
-        }
-
-        return "\(preference.zipCode) · \(preference.distanceMiles) mi"
     }
 
     private func refreshNotificationPreferences(from user: AuthenticatedUser?) {
