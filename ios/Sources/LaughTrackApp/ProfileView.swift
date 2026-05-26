@@ -303,10 +303,7 @@ private struct ProfileSettingsSection: View {
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
             ProfileNearbyPreferencesSection(model: nearbyModel)
-            ProfileNotificationsSection(
-                emailAddress: authenticatedUser.email,
-                model: notificationModel
-            )
+            ProfileNotificationsSection(model: notificationModel)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileSettingsPanel)
     }
@@ -453,7 +450,6 @@ private struct ProfileNearbyPreferencesSection: View {
 }
 
 private struct ProfileNotificationsSection: View {
-    let emailAddress: String
     @ObservedObject var model: SettingsNotificationPreferenceModel
 
     @Environment(\.appTheme) private var theme
@@ -469,10 +465,14 @@ private struct ProfileNotificationsSection: View {
 
             LaughTrackCard(tone: .muted) {
                 VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                    Text("Select a toggle to decide where you would like to receive notifications when your followed artists have shows near you.")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
                     VStack(spacing: theme.spacing.sm) {
                         notificationToggle(
                             title: "Email",
-                            subtitle: "New-show alerts sent to \(emailAddress).",
                             systemImage: "envelope.fill",
                             isOn: Binding(
                                 get: { model.preferences.favoriteComedianEmailAlertsEnabled },
@@ -486,7 +486,6 @@ private struct ProfileNotificationsSection: View {
 
                         notificationToggle(
                             title: "Push notifications",
-                            subtitle: "New-show alerts delivered on this device.",
                             systemImage: "bell.badge.fill",
                             isOn: Binding(
                                 get: { model.preferences.favoriteComedianPushAlertsEnabled },
@@ -515,7 +514,7 @@ private struct ProfileNotificationsSection: View {
 
     private func notificationToggle(
         title: String,
-        subtitle: String,
+        subtitle: String? = nil,
         systemImage: String,
         isOn: Binding<Bool>,
         isEnabled: Bool = true
@@ -534,10 +533,12 @@ private struct ProfileNotificationsSection: View {
                         .font(laughTrack.typography.cardTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
 
-                    Text(subtitle)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }
