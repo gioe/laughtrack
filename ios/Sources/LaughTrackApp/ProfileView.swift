@@ -5,7 +5,6 @@ import LaughTrackCore
 
 @MainActor
 struct ProfileView: View {
-    static let profileSettingsTitle = "Profile settings"
     static let favoriteComedianAlertsTitle = "Favorite comedian alerts"
     static let signOutButtonTitle = "Sign out"
     static let deleteAccountButtonTitle = "Delete account"
@@ -87,15 +86,7 @@ struct ProfileView: View {
             .padding(.bottom, tokens.spacing.sectionGap)
         }
         .accessibilityIdentifier(LaughTrackViewTestID.profileTabScreen)
-        .background {
-            ZStack(alignment: .top) {
-                tokens.colors.canvas.ignoresSafeArea()
-                tokens.gradients.heroWash
-                    .frame(height: 220)
-                    .opacity(0.18)
-                    .ignoresSafeArea(edges: .top)
-            }
-        }
+        .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Profile")
         .profileNavigationTitleDisplayMode()
         .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
@@ -312,12 +303,6 @@ private struct ProfileSettingsSection: View {
         let laughTrack = theme.laughTrackTokens
 
         VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
-            LaughTrackSectionHeader(
-                eyebrow: "Profile",
-                title: ProfileView.profileSettingsTitle,
-                subtitle: "Location and alert preferences saved to your account."
-            )
-
             ProfileNearbyPreferencesSection(model: nearbyModel)
             ProfileNotificationsSection(
                 emailAddress: authenticatedUser.email,
