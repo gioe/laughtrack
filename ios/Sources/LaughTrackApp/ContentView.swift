@@ -203,8 +203,19 @@ struct ContentView: View {
         hasChosenGuestBrowsing: Bool = false
     ) -> RootSurface {
         switch authState {
-        case .restoring, .signingIn:
+        case .restoring:
             return .loading
+        case .signingIn:
+            // First-entry auth gate keeps the logo loading view so the
+            // matched-geometry "launch-logo" transition into AuthLoadingView
+            // reads as intended. But once the user is browsing the shell (e.g.
+            // tapping "Continue with Google" from Profile), don't blow the whole
+            // UI away to the splash — keep the shell visible underneath the
+            // ASWebAuthenticationSession sheet that's about to present.
+            guard hasChosenGuestBrowsing else {
+                return .loading
+            }
+            return .signedOutShell(message: nil)
         case .signedOut(let message):
             guard hasChosenGuestBrowsing else {
                 return .authChoiceGate(message: message)

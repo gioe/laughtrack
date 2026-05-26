@@ -21,6 +21,19 @@ struct ContentViewNavigationTests {
         ) == .loading)
     }
 
+    @Test("signing in from the shell keeps the shell visible instead of flashing the splash")
+    func signingInFromShellKeepsShellVisible() async throws {
+        // A returning guest tapping a provider from Profile: the auth web sheet
+        // presents over the shell, so the root surface must stay on the shell
+        // rather than swapping to the loading splash.
+        #expect(ContentView.rootSurface(
+            authState: .signingIn(.google),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            hasChosenGuestBrowsing: true
+        ) == .signedOutShell(message: nil))
+    }
+
     @Test("first-launch signed-out user sees auth choice gate")
     func firstLaunchSignedOutUserSeesAuthChoiceGate() async throws {
         #expect(ContentView.rootSurface(
