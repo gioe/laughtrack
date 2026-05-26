@@ -118,7 +118,7 @@ struct ProfileView: View {
         let isSignedIn = authManager.currentSession != nil
 
         return LaughTrackCard(tone: isSignedIn ? .accent : .muted, density: .compact) {
-            VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
                 HStack(alignment: .center, spacing: theme.spacing.md) {
                     LaughTrackAvatar(
                         style: .url(authManager.currentUser?.avatarURL, fallback: isSignedIn ? "person.crop.circle.fill" : "person.crop.circle.badge.plus"),
