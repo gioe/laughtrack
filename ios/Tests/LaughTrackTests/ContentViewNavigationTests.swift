@@ -133,6 +133,7 @@ struct ContentViewNavigationTests {
             .favoriteShows,
             .comedians,
             .clubs,
+            .podcasts,
         ])
     }
 
@@ -228,6 +229,7 @@ struct ContentViewNavigationTests {
             .favoriteShows,
             .comedians,
             .clubs,
+            .podcasts,
         ])
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
