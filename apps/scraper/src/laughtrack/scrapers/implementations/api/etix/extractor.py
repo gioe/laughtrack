@@ -34,6 +34,8 @@ _DATETIME_RE = re.compile(
     r'class="performance-datetime">\s*(.*?)\s*</div>', re.DOTALL | re.IGNORECASE
 )
 
+_PRICE_RE = re.compile(r"\$\s*(\d+(?:\.\d{1,2})?)")
+
 # Pagination: max page number from the pagination nav.
 _PAGE_NUM_RE = re.compile(r"pageNumber=(\d+)")
 
@@ -121,10 +123,22 @@ class EtixExtractor:
         # Time string.
         dt_m = _DATETIME_RE.search(card_html)
         time_str = dt_m.group(1).strip() if dt_m else ""
+        ticket_price = EtixExtractor._extract_ticket_price(card_html)
 
         return EtixEvent(
             title=title,
             start_date=start_date,
             time_str=time_str,
             ticket_url=ticket_url,
+            ticket_price=ticket_price,
         )
+
+    @staticmethod
+    def _extract_ticket_price(card_html: str) -> Optional[float]:
+        prices: List[float] = []
+        for match in _PRICE_RE.finditer(card_html or ""):
+            try:
+                prices.append(float(match.group(1)))
+            except ValueError:
+                continue
+        return min(prices) if prices else None

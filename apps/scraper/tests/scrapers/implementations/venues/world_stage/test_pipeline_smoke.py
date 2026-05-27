@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 import pytest
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
+from laughtrack.core.entities.event.etix import EtixEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.world_stage.data import WorldStagePageData
 from laughtrack.scrapers.implementations.venues.world_stage.extractor import WorldStageExtractor
@@ -22,7 +23,11 @@ _SOURCE_URL = "https://worldstage.live/shows"
 _API_URL = "https://www.myciright.com/Ciright/api/worldcafelive/m3203760"
 
 
-def _club(*, room_ids: List[int] = (_LOUNGE_ROOM_ID,)) -> Club:
+def _club(
+    *,
+    room_ids: List[int] = (_LOUNGE_ROOM_ID,),
+    etix_enrichment_enabled: bool = False,
+) -> Club:
     club = Club(
         id=1353,
         name="The Lounge at World Stage",
@@ -50,6 +55,7 @@ def _club(*, room_ids: List[int] = (_LOUNGE_ROOM_ID,)) -> Club:
             "room_ids": list(room_ids),
             "lookahead_days": 90,
             "api_url": _API_URL,
+            "etix_enrichment_enabled": etix_enrichment_enabled,
         },
     )
     club.scraping_sources = [club.active_scraping_source]
@@ -272,3 +278,45 @@ def test_transformation_pipeline_produces_lounge_shows():
     assert clayton.show_page_url == _SOURCE_URL
     # 03:00 PM in America/New_York for 2026-05-16
     assert clayton.date == datetime(2026, 5, 16, 15, 0, tzinfo=clayton.date.tzinfo)
+
+
+@pytest.mark.asyncio
+async def test_get_data_enriches_lounge_events_from_matching_etix_rows(monkeypatch):
+    scraper = WorldStageScraper(_club(etix_enrichment_enabled=True))
+
+    async def fake_post_json(self, url, data, **kwargs):
+        return _ciright_response()
+
+    async def fake_fetch_etix_events(self):
+        return [
+            EtixEvent(
+                title="Clayton English Comedy Show",
+                start_date="2026-05-16T20:00:00",
+                time_str="Doors at 7:00 PM, Show at 8:00 PM",
+                ticket_url="https://www.etix.com/ticket/p/123/clayton-english",
+                ticket_price=32.5,
+            ),
+            EtixEvent(
+                title="Lets Keep It 100 Podcast",
+                start_date="2026-05-09T20:00:00",
+                time_str="Doors at 7:00 PM, Show at 8:00 PM",
+                ticket_url="https://www.etix.com/ticket/p/999/main-hall",
+                ticket_price=40.0,
+            ),
+        ]
+
+    monkeypatch.setattr(WorldStageScraper, "post_json", fake_post_json)
+    monkeypatch.setattr(WorldStageScraper, "_fetch_etix_events", fake_fetch_etix_events)
+
+    result = await scraper.get_data(_API_URL)
+    shows = scraper.transformation_pipeline.transform(result)
+
+    clayton = next(s for s in shows if s.name == "Clayton English Comedy Show")
+    assert clayton.show_page_url == "https://www.etix.com/ticket/p/123/clayton-english"
+    assert clayton.tickets[0].purchase_url == "https://www.etix.com/ticket/p/123/clayton-english"
+    assert clayton.tickets[0].price == 32.5
+
+    assert all(s.name != "Lets Keep It 100 Podcast" for s in shows)
+    unplugged = next(s for s in shows if s.name == "Unplugged Series: R&B Dinner Party 1")
+    assert unplugged.show_page_url == _SOURCE_URL
+    assert unplugged.tickets[0].price is None

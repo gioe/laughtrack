@@ -53,23 +53,45 @@ https://www.etix.com/ticket/v/1599/music-hall-at-world-cafe-live
 
 This is the generic Etix venue landing page (`/ticket/v/1599/`, still carrying the
 stale "world-cafe-live" branding), not a per-event product page (`/ticket/p/<id>/`).
-The venue itself publishes no per-event purchase link anywhere — list view or modal.
 
-## Conclusion
+Follow-up TASK-2486 found that this venue page can render per-event Etix product
+links and price ranges when Etix allows the request through. That means the
+TASK-2469 conclusion was too strong: the venue-owned World Stage calendar still
+does not expose per-event purchase links, but Etix venue `1599` is a potential
+secondary source for ticket enrichment.
 
-The generic `worldstage.live/shows` target is **correct** and needs no event-specific
-remediation. There is no per-event purchase target to map to:
+The legacy Etix venue id `26727` is not Lounge-specific enough to switch back to
+blindly, and venue `1599` is the broader Music Hall at World Stage / World Cafe
+Live Etix venue. Its listing may include Main Hall shows as well as Lounge shows.
+Because club 1353 is specifically The Lounge, Ciright `roomId=3131060` remains
+the authoritative event backbone.
+
+Local scraper-stack verification on 2026-05-27:
+
+```
+EtixScraper venue_id=1599 -> HTTP 403
+Playwright fallback -> DataDome challenge HTML
+parsed Etix events -> 0
+```
+
+This confirms local curl_cffi/Playwright is still blocked. The scraper now treats
+Etix as best-effort enrichment only: it fetches venue `1599`, matches Etix rows
+back to already room-filtered Ciright rows by title and date, and upgrades only
+matched ticket URLs/prices. If Etix is blocked, the scraper keeps the existing
+Ciright rows and generic `worldstage.live/shows` ticket target rather than
+dropping the venue's reliable calendar.
+
+## Updated conclusion
+
+The generic `worldstage.live/shows` target is still the correct reliable fallback
+and room-filtered source. It should not be replaced wholesale by Etix because:
 
 - The Ciright API exposes no purchase URLs at all.
-- The venue's own site routes every show to one generic Etix venue page.
+- The venue's own World Stage site routes every show to one generic Etix venue page.
+- Etix venue `1599` is not proven Lounge-only and may include Main Hall inventory.
+- Etix is still DataDome-blocked from local scraper-stack verification.
 
-The current target is also the **preferred** choice over the generic Etix venue link:
-it keeps users on the venue's own site (project convention: drive traffic to the
-venue), whereas the Etix link is equally generic and still mis-branded "world-cafe-live".
-
-Recovering per-event Etix product URLs (the `/ticket/p/<id>/` shape the 14 legacy rows
-use) would require scraping the DataDome-protected Etix path that the Ciright migration
-was specifically built to avoid — not worth re-introducing for a non-event-specific gain.
-
-No code change recommended. The legacy per-event Etix rows can be left to age out
-naturally as the Ciright scraper supersedes them.
+The remediation is enrichment, not replacement: keep Ciright for event identity
+and room filtering, then use Etix venue `1599` opportunistically to upgrade
+matched rows to per-event `/ticket/p/<id>/...` purchase URLs and real prices when
+the scraper environment can reach Etix.

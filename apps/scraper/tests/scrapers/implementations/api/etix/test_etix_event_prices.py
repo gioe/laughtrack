@@ -25,3 +25,23 @@ def test_etix_event_to_show_uses_explicit_ticket_prices():
 
     assert show is not None
     assert show.tickets[0].price == 35.0
+
+
+def test_etix_extractor_uses_lowest_price_from_event_card():
+    from laughtrack.scrapers.implementations.api.etix.extractor import EtixExtractor
+
+    html = """
+    <li>
+      <div class="row performance">
+        <a href="/ticket/p/12345/paid-show">Paid Etix Show</a>
+        <meta itemprop="startDate" content="2099-05-08T20:00:00-0400">
+        <div class="performance-datetime">Doors at 7:00 PM, Show at 8:00 PM</div>
+        <span class="price">$35.00 - $45.00</span>
+      </div>
+    </li>
+    """
+
+    events = EtixExtractor.extract_events(html)
+
+    assert len(events) == 1
+    assert events[0].ticket_price == 35.0

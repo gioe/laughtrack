@@ -27,14 +27,22 @@ class WorldStageEvent(ShowConvertible):
     time: str  # "03:00 PM - 11:00 PM" or "All Day"
     room: str
     source_url: str
+    ticket_url: Optional[str] = None
+    ticket_price: Optional[float] = None
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         start = _parse_start(self.start_date, self.time, club.timezone or "America/New_York")
         if start is None:
             return None
 
-        link = url or self.source_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(link)]
+        link = url or self.ticket_url or self.source_url
+        ticket_link = self.ticket_url or link
+        tickets = [
+            ShowFactoryUtils.create_fallback_ticket(
+                ticket_link,
+                price=self.ticket_price,
+            )
+        ]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "World Stage Show",

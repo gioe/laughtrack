@@ -26,11 +26,18 @@ If a key is omitted the scraper falls back to the values observed live on
 2026-05-07 against worldstage.live.
 """
 
+import re
+from collections import defaultdict
+from dataclasses import replace
 from datetime import date, timedelta
 from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import ScrapingSource
+from laughtrack.core.entities.event.etix import EtixEvent
+from laughtrack.core.entities.event.world_stage import WorldStageEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.scrapers.implementations.api.etix.scraper import EtixScraper
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
 
@@ -46,6 +53,8 @@ _DEFAULT_TYPE_ID = 1662515
 _DEFAULT_APP_ID = 2949
 _DEFAULT_STATUS_ID = 1851385  # 'Confirmed'
 _DEFAULT_LOOKAHEAD_DAYS = 120
+_DEFAULT_ETIX_VENUE_URL = "https://www.etix.com/ticket/v/1599/music-hall-at-world-stage"
+_MATCH_TOKEN_RE = re.compile(r"[^a-z0-9]+")
 
 # Headers observed on the live worldstage.live → myciright.com call.
 # Ciright rejects requests that lack the X-Requested-With XMLHttpRequest hint.
@@ -154,9 +163,115 @@ class WorldStageScraper(BaseScraper):
             )
             return WorldStagePageData(event_list=[])
 
+        await self._enrich_with_etix(events)
+
         Logger.info(
             f"{self._log_prefix}: {len(events)} confirmed event(s) from Ciright "
             f"(room_ids={room_ids})",
             self.logger_context,
         )
         return WorldStagePageData(event_list=events)
+
+    def _etix_enrichment_enabled(self) -> bool:
+        return self._config().get("etix_enrichment_enabled", True) is not False
+
+    def _etix_venue_url(self) -> str:
+        return str(self._config().get("etix_venue_url") or _DEFAULT_ETIX_VENUE_URL)
+
+    async def _enrich_with_etix(self, events: List[WorldStageEvent]) -> None:
+        if not events or not self._etix_enrichment_enabled():
+            return
+
+        etix_events = await self._fetch_etix_events()
+        if not etix_events:
+            Logger.warn(
+                f"{self._log_prefix}: Etix enrichment found no usable events for {self._etix_venue_url()}",
+                self.logger_context,
+            )
+            return
+
+        by_date: dict[date, list[EtixEvent]] = defaultdict(list)
+        for etix_event in etix_events:
+            parsed = etix_event._parse_start_date(self.club)
+            if parsed is not None:
+                by_date[parsed.date()].append(etix_event)
+
+        enriched = 0
+        for event in events:
+            match = self._find_etix_match(event, by_date)
+            if match is None:
+                continue
+            event.ticket_url = match.ticket_url
+            event.ticket_price = match.ticket_price
+            enriched += 1
+
+        Logger.info(
+            f"{self._log_prefix}: Etix enrichment matched {enriched}/{len(events)} "
+            f"Ciright event(s)",
+            self.logger_context,
+        )
+
+    async def _fetch_etix_events(self) -> List[EtixEvent]:
+        source = ScrapingSource(
+            id=self.club.scraping_source.id if self.club.scraping_source else None,
+            club_id=self.club.id,
+            platform="etix",
+            scraper_key="etix",
+            source_url=self._etix_venue_url(),
+            metadata={},
+        )
+        etix_club = replace(
+            self.club,
+            active_scraping_source=source,
+            scraping_sources=[source],
+        )
+        scraper = EtixScraper(etix_club, proxy_pool=self.proxy_pool)
+        try:
+            events: List[EtixEvent] = []
+            try:
+                targets = await scraper.collect_scraping_targets()
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: Etix enrichment target discovery failed: {e}",
+                    self.logger_context,
+                )
+                return []
+
+            for target in targets:
+                try:
+                    data = await scraper.get_data(target)
+                except Exception as e:
+                    Logger.warn(
+                        f"{self._log_prefix}: Etix enrichment fetch failed for {target}: {e}",
+                        self.logger_context,
+                    )
+                    continue
+                if data and data.event_list:
+                    events.extend(data.event_list)
+            return events
+        finally:
+            await scraper.close_session()
+
+    def _find_etix_match(
+        self,
+        event: WorldStageEvent,
+        etix_by_date: dict[date, list[EtixEvent]],
+    ) -> Optional[EtixEvent]:
+        parsed = event.to_show(self.club)
+        if parsed is None:
+            return None
+
+        target_title = _match_title(event.title)
+        for candidate in etix_by_date.get(parsed.date.date(), []):
+            candidate_title = _match_title(candidate._clean_title())
+            if (
+                candidate_title == target_title
+                or candidate_title in target_title
+                or target_title in candidate_title
+            ):
+                return candidate
+        return None
+
+
+def _match_title(title: str) -> str:
+    return _MATCH_TOKEN_RE.sub(" ", (title or "").lower()).strip()
