@@ -98,6 +98,24 @@ class EsthersFolliesEventExtractor:
                 time=time_str.strip(),
             ))
 
+        # Coverage sanity check (TASK-2492): every show "SelectorBox" div should
+        # yield one parsed slot. The "More Event Dates" calendar buttons also
+        # carry the SelectorBox class but use a LoadEventCalendar onclick, so
+        # subtract them to estimate the expected show-box count. A parsed count
+        # far below that container count means the regex silently stopped
+        # matching most boxes — exactly the TASK-2490 collapse, where 1 of ~62
+        # boxes parsed for an unknown period and was logged only at INFO. Surface
+        # it as a WARNING so a future VBO markup change shows up in nightly logs
+        # instead of collapsing coverage invisibly.
+        detected_boxes = html.count("SelectorBox") - html.count("LoadEventCalendar")
+        if detected_boxes > 0 and len(events) < detected_boxes * 0.5:
+            Logger.warn(
+                f"EsthersFolliesEventExtractor: parsed only {len(events)} shows "
+                f"from {detected_boxes} SelectorBox divs in the slider HTML — "
+                f"possible VBO markup change (coverage collapse)",
+                ctx,
+            )
+
         Logger.info(
             f"EsthersFolliesEventExtractor: extracted {len(events)} show slots",
             ctx,
