@@ -7,11 +7,14 @@ import {
     ComedianImageDownloadError,
     downloadComedianImage,
     generateClubImageVariants,
+    getMimeExtension,
     validateClubImageAspectRatios,
 } from "@/lib/admin/comedianImagePipeline";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
 import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
+import { Prisma } from "@prisma/client";
+import crypto from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -123,9 +126,16 @@ function serializeClubForAdmin(club: {
     };
 }
 
-function buildClubImagePaths(clubName: string) {
+function buildClubImagePaths(
+    clubId: number,
+    clubName: string,
+    assetSlug: string,
+    sourceMimeType: string,
+) {
     const encodedName = encodeURIComponent(clubName);
+    const base = `club-images/${clubId}/${assetSlug}`;
     return {
+        original: `${base}/original.${getMimeExtension(sourceMimeType)}`,
         icon: `clubs/${encodedName}.png`,
         hero: `clubs/${encodedName}-hero.jpg`,
     };
@@ -174,7 +184,13 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    const paths = buildClubImagePaths(club.name);
+    const assetSlug = crypto.randomUUID();
+    const paths = buildClubImagePaths(
+        club.id,
+        club.name,
+        assetSlug,
+        icon.mimeType,
+    );
     const uploadedPaths: string[] = [];
     async function cleanupUploads(reason: string) {
         for (const path of uploadedPaths) {
@@ -190,6 +206,12 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+        await uploadToBunnyStorage({
+            path: paths.original,
+            body: icon.buffer,
+            contentType: icon.mimeType,
+        });
+        uploadedPaths.push(paths.original);
         await uploadToBunnyStorage({
             path: paths.icon,
             body: variants.iconBuffer,
@@ -213,6 +235,49 @@ export async function POST(req: NextRequest) {
 
     try {
         const updated = await db.$transaction(async (tx) => {
+            const previousActive = await tx.clubImageAsset.findMany({
+                where: { clubId: club.id, isActive: true },
+                select: {
+                    id: true,
+                    sourceImageUrl: true,
+                    originalPath: true,
+                    iconPath: true,
+                    heroPath: true,
+                    mimeType: true,
+                    width: true,
+                    height: true,
+                },
+            });
+
+            if (previousActive.length > 0) {
+                await tx.clubImageAsset.updateMany({
+                    where: { clubId: club.id, isActive: true },
+                    data: { isActive: false },
+                });
+            }
+
+            const createdAsset = await tx.clubImageAsset.create({
+                data: {
+                    clubId: club.id,
+                    sourceImageUrl: icon.sourceUrl,
+                    originalPath: paths.original,
+                    iconPath: paths.icon,
+                    heroPath: paths.hero,
+                    mimeType: icon.mimeType,
+                    width: icon.width,
+                    height: icon.height,
+                    isActive: true,
+                    metadata: {
+                        assetSlug,
+                        iconSourceImageUrl: icon.sourceUrl,
+                        heroSourceImageUrl: hero.sourceUrl,
+                        heroMimeType: hero.mimeType,
+                        heroWidth: hero.width,
+                        heroHeight: hero.height,
+                    } as Prisma.InputJsonValue,
+                },
+            });
+
             const after = await tx.club.update({
                 where: { id: club.id },
                 data: { hasImage: true },
@@ -227,13 +292,17 @@ export async function POST(req: NextRequest) {
                 reason: null,
                 before: {
                     hasImage: club.hasImage,
+                    activeAsset: previousActive[0] ?? null,
+                    previousAssetIds: previousActive.map((a) => a.id),
                     iconPath: paths.icon,
                     heroPath: paths.hero,
                 },
                 after: {
                     hasImage: true,
+                    activeAsset: createdAsset,
                     iconPath: paths.icon,
                     heroPath: paths.hero,
+                    originalPath: paths.original,
                     iconSourceImageUrl: icon.sourceUrl,
                     heroSourceImageUrl: hero.sourceUrl,
                 },
