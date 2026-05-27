@@ -24,10 +24,10 @@ const groups = [
             website: "https://example.com/funny-bone",
         },
         totals: {
-            clubCount: 2,
-            visibleCount: 1,
-            activeCount: 1,
-            scrapedShowCount: 15,
+            clubCount: 3,
+            visibleCount: 2,
+            activeCount: 2,
+            scrapedShowCount: 114,
         },
         clubs: [
             {
@@ -155,7 +155,7 @@ describe("AdminClubManager", () => {
 
         expect(screen.getByText("Funny Bone")).toBeTruthy();
         expect(screen.getByText("Funny Bone Albany")).toBeTruthy();
-        expect(screen.getAllByText(/15 scraped shows/).length).toBeGreaterThan(
+        expect(screen.getAllByText(/114 scraped shows/).length).toBeGreaterThan(
             0,
         );
         expect(screen.getAllByText("8").length).toBeGreaterThan(0);
@@ -430,8 +430,14 @@ describe("AdminClubManager", () => {
         fireEvent.change(screen.getByLabelText("Sort Funny Bone clubs"), {
             target: { value: "name-desc" },
         });
+        const groupPanelId =
+            getFunnyBoneGroupToggle().getAttribute("aria-controls");
+        expect(groupPanelId).toBeTruthy();
+        const groupPanel = document.getElementById(groupPanelId!);
+        expect(groupPanel).toBeTruthy();
         expect(
-            screen.getAllByRole("link", { name: /Funny Bone/ })[0].textContent,
+            within(groupPanel!).getAllByRole("link", { name: /Funny Bone/ })[0]
+                .textContent,
         ).toBe("Funny Bone Chicago");
     });
 
