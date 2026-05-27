@@ -101,9 +101,13 @@ function serializeClubForAdmin(club: {
         lastScrapedDate: Date | null;
         lastScrapedBy: string | null;
     }>;
+    imageAssets?: Array<{
+        heroPath: string | null;
+    }>;
     _count: { shows: number };
 }) {
     const latestShow = club.shows[0] ?? null;
+    const activeImageAsset = club.imageAssets?.[0] ?? null;
     return {
         id: club.id,
         name: club.name,
@@ -112,7 +116,7 @@ function serializeClubForAdmin(club: {
         website: club.website,
         hasImage: club.hasImage,
         iconUrl: buildClubImageUrl(club.name, club.hasImage),
-        heroUrl: buildClubHeroImageUrl(club.name, club.hasImage),
+        heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
         visible: club.visible ?? true,
         status: club.status,
         clubType: club.clubType,
@@ -160,6 +164,12 @@ const adminClubSelect = {
             { lastScrapedDate: "desc" as const },
             { id: "desc" as const },
         ],
+        take: 1,
+    },
+    imageAssets: {
+        where: { isActive: true },
+        select: { heroPath: true },
+        orderBy: { publishedAt: "desc" as const },
         take: 1,
     },
     _count: { select: { shows: true } },

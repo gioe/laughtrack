@@ -90,7 +90,7 @@ export type ComedianImageVariants = {
 
 export type ClubImageVariants = {
     iconBuffer: Buffer;
-    heroBuffer: Buffer;
+    heroBuffer?: Buffer;
 };
 
 export type DownloadComedianImageOptions = {
@@ -532,22 +532,24 @@ export async function generateClubImageVariants({
     hero,
 }: {
     icon: DownloadedComedianImage;
-    hero: DownloadedComedianImage;
+    hero?: DownloadedComedianImage;
 }): Promise<ClubImageVariants> {
     const iconBuffer = await sharp(icon.buffer)
         .resize(AVATAR_SIZE, AVATAR_SIZE, {
-            fit: "cover",
-            position: sharp.strategy.attention,
+            fit: "contain",
+            background: { r: 255, g: 255, b: 255, alpha: 1 },
         })
         .png()
         .toBuffer();
-    const heroBuffer = await sharp(hero.buffer)
-        .resize(HERO_WIDTH, HERO_HEIGHT, {
-            fit: "cover",
-            position: sharp.strategy.attention,
-        })
-        .jpeg({ quality: JPEG_QUALITY, progressive: true })
-        .toBuffer();
+    const heroBuffer = hero
+        ? await sharp(hero.buffer)
+              .resize(HERO_WIDTH, HERO_HEIGHT, {
+                  fit: "cover",
+                  position: sharp.strategy.attention,
+              })
+              .jpeg({ quality: JPEG_QUALITY, progressive: true })
+              .toBuffer()
+        : undefined;
     return { iconBuffer, heroBuffer };
 }
 

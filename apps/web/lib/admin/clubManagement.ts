@@ -135,6 +135,12 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
                 orderBy: [{ lastScrapedDate: "desc" }, { id: "desc" }],
                 take: 1,
             },
+            imageAssets: {
+                where: { isActive: true },
+                select: { heroPath: true },
+                orderBy: { publishedAt: "desc" },
+                take: 1,
+            },
             _count: {
                 select: {
                     shows: true,
@@ -147,6 +153,7 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
     return groupClubs(
         clubs.map((club) => {
             const latestShow = club.shows[0] ?? null;
+            const activeImageAsset = club.imageAssets?.[0] ?? null;
             return {
                 id: club.id,
                 name: club.name,
@@ -155,7 +162,7 @@ export async function listAdminClubGroups(): Promise<AdminClubGroup[]> {
                 website: club.website,
                 hasImage: club.hasImage,
                 iconUrl: buildClubImageUrl(club.name, club.hasImage),
-                heroUrl: buildClubHeroImageUrl(club.name, club.hasImage),
+                heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
                 visible: club.visible ?? true,
                 status: club.status,
                 clubType: club.clubType,

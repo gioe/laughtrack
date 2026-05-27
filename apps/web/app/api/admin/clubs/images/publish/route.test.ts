@@ -169,6 +169,7 @@ beforeEach(() => {
         chain: null,
         scrapingSources: [],
         shows: [],
+        imageAssets: [{ heroPath: "clubs/Comedy%20Cellar-hero.jpg" }],
         _count: { shows: 10 },
     });
     mockTxAuditCreate.mockResolvedValue({} as never);
@@ -234,5 +235,65 @@ describe("POST /api/admin/clubs/images/publish", () => {
         expect(auditArgs.data.entityId).toBe("12");
         expect(mockRevalidateTag).toHaveBeenCalledWith("club-detail-data");
         expect(mockRevalidateTag).toHaveBeenCalledWith("Comedy Cellar");
+    });
+
+    it("publishes an icon-only asset without uploading or returning a hero URL", async () => {
+        mockTxFindMany.mockResolvedValue([]);
+        mockTxUpdateClub.mockResolvedValue({
+            id: 12,
+            name: "Comedy Cellar",
+            city: "New York",
+            state: "NY",
+            website: "https://example.com",
+            hasImage: true,
+            visible: true,
+            status: "active",
+            clubType: "club",
+            closedAt: null,
+            totalShows: 10,
+            chain: null,
+            scrapingSources: [],
+            shows: [],
+            imageAssets: [{ heroPath: null }],
+            _count: { shows: 10 },
+        });
+        mockDownload.mockReset();
+        mockDownload.mockResolvedValueOnce({
+            sourceUrl: "https://example.com/icon.jpg",
+            buffer: Buffer.from("icon-original"),
+            mimeType: "image/jpeg",
+            width: 1600,
+            height: 900,
+        });
+        mockGenerateVariants.mockResolvedValue({
+            iconBuffer: Buffer.from("icon-variant"),
+        } as never);
+
+        const res = await POST(
+            makeRequest({
+                clubId: 12,
+                iconImageUrl: "https://example.com/icon.jpg",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(mockDownload).toHaveBeenCalledTimes(1);
+        expect(mockUpload).toHaveBeenCalledTimes(2);
+        expect(mockUpload.mock.calls.map((call) => call[0].path)).toEqual([
+            expect.stringMatching(
+                /^club-images\/12\/[0-9a-f-]{36}\/original\.jpg$/,
+            ),
+            "clubs/Comedy%20Cellar.png",
+        ]);
+        const createArgs = mockTxCreate.mock.calls[0][0] as {
+            data: Record<string, unknown>;
+        };
+        expect(createArgs.data.iconPath).toBe("clubs/Comedy%20Cellar.png");
+        expect(createArgs.data.heroPath).toBeNull();
+        expect(body.club.iconUrl).toBe(
+            "https://cdn.example.com/clubs/Comedy%20Cellar.png",
+        );
+        expect(body.club.heroUrl).toBe("");
     });
 });
