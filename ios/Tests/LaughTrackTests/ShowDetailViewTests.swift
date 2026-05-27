@@ -228,6 +228,36 @@ struct ShowDetailViewTests {
         #expect(ShowDetailPresentation.primaryTicketURL(for: show)?.absoluteString == "https://laughtrack.app/ticket-option")
     }
 
+    @Test("show detail ticket click recorder sends tracking before Safari routing continues")
+    func showDetailTicketClickRecorderSendsTrackingBeforeRoutingContinues() async throws {
+        let transport = StubClientTransport { request, body, _, operationID in
+            #expect(operationID == "recordTicketClick")
+            #expect(request.method == .post)
+            #expect(request.path == "/ticket-clicks")
+            let bytes = try await Data(collecting: body ?? HTTPBody(), upTo: 4096)
+            let payload = try JSONSerialization.jsonObject(with: bytes) as? [String: Any]
+            #expect(payload?["showId"] as? Int == 301)
+            #expect(payload?["clubId"] as? Int == 201)
+            #expect(payload?["destinationUrl"] as? String == "https://laughtrack.app/ticket-option")
+            #expect(payload?["sourceSurface"] as? String == "ios_show_detail")
+            return (HTTPResponse(status: .created), nil)
+        }
+        let client = Client(
+            serverURL: URL(string: "https://example.com")!,
+            transport: transport
+        )
+        let recorder = ShowDetailTicketClickRecorder(apiClient: client)
+
+        let didRecord = await recorder.record(
+            showID: 301,
+            clubID: 201,
+            destinationURL: URL(string: "https://laughtrack.app/ticket-option")!
+        )
+
+        #expect(didRecord == true)
+        #expect(transport.capturedRequests.map { $0.operationID } == ["recordTicketClick"])
+    }
+
     @Test("show detail calendar event uses show venue and ticket URL")
     func showCalendarEventUsesShowVenueAndTicketURL() {
         var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
@@ -250,6 +280,7 @@ struct ShowDetailViewTests {
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: MockShowDetailTransport(response: response, favoriteRecorder: favoriteRecorder)
         )
     }

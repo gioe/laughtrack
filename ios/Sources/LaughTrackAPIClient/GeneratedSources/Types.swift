@@ -128,6 +128,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/{id}`.
     /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
+    /// Record an outbound ticket purchase click
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output
     /// Composite home-screen feed (hero + six curated sections)
     ///
     /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
@@ -199,6 +204,98 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /zip-lookup`.
     /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)`.
     func lookupZip(_ input: Operations.LookupZip.Input) async throws -> Operations.LookupZip.Output
+}
+
+extension Operations {
+    /// Record an outbound ticket purchase click
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    public enum RecordTicketClick {
+        public static let id: Swift.String = "recordTicketClick"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/ticket-clicks/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>]
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RecordTicketClick.Input.Headers
+            /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody/json`.
+                public struct JsonPayload: Codable, Hashable, Sendable {
+                    public var showId: Swift.Int
+                    public var clubId: Swift.Int
+                    public var destinationUrl: Swift.String
+                    public var sourceSurface: Swift.String
+                    public init(
+                        showId: Swift.Int,
+                        clubId: Swift.Int,
+                        destinationUrl: Swift.String,
+                        sourceSurface: Swift.String
+                    ) {
+                        self.showId = showId
+                        self.clubId = clubId
+                        self.destinationUrl = destinationUrl
+                        self.sourceSurface = sourceSurface
+                    }
+                    public enum CodingKeys: String, CodingKey {
+                        case showId
+                        case clubId
+                        case destinationUrl
+                        case sourceSurface
+                    }
+                }
+                case json(Operations.RecordTicketClick.Input.Body.JsonPayload)
+            }
+            public var body: Operations.RecordTicketClick.Input.Body
+            public init(
+                headers: Operations.RecordTicketClick.Input.Headers = .init(),
+                body: Operations.RecordTicketClick.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Created: Sendable, Hashable {
+                public init() {}
+            }
+            case created(Operations.RecordTicketClick.Output.Created)
+            public struct BadRequest: Sendable, Hashable {}
+            case badRequest(Operations.RecordTicketClick.Output.BadRequest)
+            public struct Unauthorized: Sendable, Hashable {}
+            case unauthorized(Operations.RecordTicketClick.Output.Unauthorized)
+            public struct TooManyRequests: Sendable, Hashable {}
+            case tooManyRequests(Operations.RecordTicketClick.Output.TooManyRequests)
+            public struct InternalServerError: Sendable, Hashable {}
+            case internalServerError(Operations.RecordTicketClick.Output.InternalServerError)
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] { [.json] }
+        }
+    }
 }
 
 /// Convenience overloads for operation inputs.

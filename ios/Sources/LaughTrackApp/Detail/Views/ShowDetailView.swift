@@ -67,7 +67,15 @@ struct ShowDetailView: View {
                             ShowSummarySection(show: show, openClub: {
                                 coordinator.open(.club(show.club.id))
                             }, openTicketURL: { url in
-                                ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                                Task {
+                                    let recorder = ShowDetailTicketClickRecorder(apiClient: apiClient)
+                                    _ = await recorder.record(
+                                        showID: show.id,
+                                        clubID: show.club.id,
+                                        destinationURL: url
+                                    )
+                                    ExternalLinkRouter.route(url, presentedURL: $safariURL, openURL: openURL)
+                                }
                             }, addToCalendar: {
                                 Task {
                                     feedbackMessage = await calendarWriter.add(show)
@@ -114,6 +122,33 @@ struct ShowDetailView: View {
         })
     }
 
+}
+
+struct ShowDetailTicketClickRecorder {
+    let apiClient: Client
+
+    func record(showID: Int, clubID: Int, destinationURL: URL) async -> Bool {
+        do {
+            let output = try await apiClient.recordTicketClick(
+                .init(
+                    body: .json(
+                        .init(
+                            showId: showID,
+                            clubId: clubID,
+                            destinationUrl: destinationURL.absoluteString,
+                            sourceSurface: "ios_show_detail"
+                        )
+                    )
+                )
+            )
+            if case .created = output {
+                return true
+            }
+        } catch {
+            return false
+        }
+        return false
+    }
 }
 
 struct ShowDetailFact: Equatable {

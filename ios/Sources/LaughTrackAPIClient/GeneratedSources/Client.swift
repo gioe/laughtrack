@@ -5026,3 +5026,60 @@ public struct Client: APIProtocol {
         )
     }
 }
+
+extension Client {
+    /// Record an outbound ticket purchase click
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    public func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.RecordTicketClick.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/ticket-clicks",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 201:
+                    return .created(.init())
+                case 400:
+                    return .badRequest(.init())
+                case 401:
+                    return .unauthorized(.init())
+                case 429:
+                    return .tooManyRequests(.init())
+                case 500:
+                    return .internalServerError(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(headerFields: response.headerFields, body: responseBody)
+                    )
+                }
+            }
+        )
+    }
+}

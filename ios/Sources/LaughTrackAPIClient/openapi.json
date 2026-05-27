@@ -2093,6 +2093,66 @@
         }
       }
     },
+    "/ticket-clicks": {
+      "post": {
+        "operationId": "recordTicketClick",
+        "summary": "Record an outbound ticket purchase click",
+        "description": "Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.",
+        "tags": ["analytics"],
+        "security": [{ "bearerAuth": [] }, {}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TicketClickRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Click recorded"
+          },
+          "400": {
+            "description": "Invalid click payload",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid Bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Number of seconds the client should wait before retrying.",
+                "schema": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/zip-lookup": {
       "get": {
         "operationId": "lookupZip",
@@ -2166,6 +2226,19 @@
         "required": ["error"],
         "properties": {
           "error": { "type": "string" }
+        }
+      },
+      "TicketClickRequest": {
+        "type": "object",
+        "required": ["showId", "clubId", "destinationUrl", "sourceSurface"],
+        "properties": {
+          "showId": { "type": "integer", "minimum": 1 },
+          "clubId": { "type": "integer", "minimum": 1 },
+          "destinationUrl": { "type": "string", "format": "uri" },
+          "sourceSurface": {
+            "type": "string",
+            "enum": ["show_detail", "show_card", "compact_show_card", "ios_show_detail"]
+          }
         }
       },
       "TokenResponse": {
