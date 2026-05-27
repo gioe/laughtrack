@@ -163,6 +163,36 @@ def test_extractor_parses_full_slider_and_skips_calendar_box():
     assert [e.edid for e in events] == [s[0] for s in shows]
 
 
+def test_extractor_skips_malformed_box_without_swallowing_neighbor():
+    """A box missing its WeekDayTime is skipped, not paired with the next box.
+
+    The inter-field gaps are bounded to a single SelectorBox, so a malformed
+    box cannot span its lazy match into the following box and steal that box's
+    time (which would silently drop the neighbor). The broken box vanishes; the
+    intact box that follows still parses with its own correct fields.
+    """
+    broken_box = """
+        <li>
+            <div role="tab" class="SelectorBox Black"
+                 id="edid660000" onclick="LoadSpinner('660000'); LoadEvent('39242','660000');">
+                <div class="DateMonth __edid660000">Jun<div></div></div>
+                <div class="DateDay __edid660000">1<div></div></div>
+                <div class="DateTime __edid660000"><span class="WeekDay">Fri</span></div>
+            </div>
+        </li>
+    """
+    intact = _date_slider_html(
+        ("660001", "Jun", "2", "Sat", "9:00 PM"), include_calendar_box=False
+    )
+    # Splice the broken box ahead of the intact one inside a single <ul>.
+    html = "<ul>" + broken_box + intact[len("<ul>"):]
+
+    events = EsthersFolliesEventExtractor.extract_shows(html)
+
+    assert [e.edid for e in events] == ["660001"]
+    assert events[0].time == "9:00 PM"
+
+
 def test_extractor_deduplicates_same_edid():
     # Duplicate EDID should only appear once
     html = _date_slider_html(

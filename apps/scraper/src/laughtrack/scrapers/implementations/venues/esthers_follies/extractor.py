@@ -20,13 +20,19 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 # VBO moved show boxes off a leading LoadEvent handler; the old regex then
 # only matched by spanning from a LoadEventCalendar box into the first real
 # show, capping output at a single slot (TASK-2490).
+#
+# Each inter-field gap is _GAP rather than a bare ".*?": it consumes anything
+# *except* the start of the next show box. This bounds every match to a single
+# SelectorBox, so a malformed box (e.g. one missing its WeekDayTime) simply
+# fails to match and is skipped — it can no longer pair its edid/date with the
+# *next* box's time and silently swallow that neighbor.
+_GAP = r"(?:(?!onclick=\"LoadSpinner)[\s\S])*?"
 _SHOW_RE = re.compile(
-    r"onclick=\"LoadSpinner\('(\d+)'[^\"]*\">.*?"
-    r"<div class=\"DateMonth[^>]*>(\w+)<.*?"
-    r"<div class=\"DateDay[^>]*>(\d+)<.*?"
-    r"<span class=\"WeekDay\">(\w+)</span>.*?"
-    r"<span class=\"WeekDayTime\"> - ([^<]+)</span>",
-    re.DOTALL,
+    r"onclick=\"LoadSpinner\('(\d+)'[^\"]*\">" + _GAP
+    + r"<div class=\"DateMonth[^>]*>(\w+)<" + _GAP
+    + r"<div class=\"DateDay[^>]*>(\d+)<" + _GAP
+    + r"<span class=\"WeekDay\">(\w+)</span>" + _GAP
+    + r"<span class=\"WeekDayTime\"> - ([^<]+)</span>"
 )
 
 
@@ -40,8 +46,9 @@ class EsthersFolliesEventExtractor:
 
     Response is a server-rendered HTML fragment containing a ``<ul>`` of
     ``<li>`` elements, each with a ``SelectorBox`` div per upcoming show.
-    The first item is a "More Event Dates" calendar button — it has no
-    ``LoadEvent`` onclick and is skipped by the regex.
+    The "More Event Dates" calendar button is skipped because it carries no
+    ``LoadSpinner`` onclick (its handler is ``LoadEventCalendar(...)``) and no
+    DateMonth/DateDay markup for the regex to latch onto.
     """
 
     @staticmethod
