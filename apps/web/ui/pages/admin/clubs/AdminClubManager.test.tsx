@@ -7,13 +7,14 @@ import {
     fireEvent,
     render,
     screen,
+    within,
     waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminClubGroup } from "@/lib/admin/clubManagement";
 import AdminClubManager from "./AdminClubManager";
 
-const groups: AdminClubGroup[] = [
+const groups = [
     {
         key: "chain-1",
         chain: {
@@ -35,6 +36,7 @@ const groups: AdminClubGroup[] = [
                 city: "Albany",
                 state: "NY",
                 website: "https://example.com/albany",
+                popularity: 10,
                 hasImage: true,
                 iconUrl: "https://cdn.test/clubs/Funny%20Bone%20Albany.png",
                 heroUrl:
@@ -69,6 +71,7 @@ const groups: AdminClubGroup[] = [
                 city: "Boston",
                 state: "MA",
                 website: "https://example.com/boston",
+                popularity: 90,
                 hasImage: false,
                 iconUrl: "/placeholders/club-placeholder.svg",
                 heroUrl: "",
@@ -88,9 +91,35 @@ const groups: AdminClubGroup[] = [
                     website: "https://example.com/funny-bone",
                 },
             },
+            {
+                id: 12,
+                name: "Funny Bone Chicago",
+                city: "Chicago",
+                state: "IL",
+                website: "https://example.com/chicago",
+                popularity: 25,
+                hasImage: false,
+                iconUrl: "/placeholders/club-placeholder.svg",
+                heroUrl: "",
+                visible: true,
+                status: "active",
+                clubType: "club",
+                closedAt: null,
+                totalShows: 99,
+                scrapedShowCount: 99,
+                latestScrapeAt: null,
+                latestScrapeBy: null,
+                scrapingSources: [],
+                chain: {
+                    id: 1,
+                    name: "Funny Bone",
+                    slug: "funny-bone",
+                    website: "https://example.com/funny-bone",
+                },
+            },
         ],
     },
-];
+] satisfies AdminClubGroup[];
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -113,6 +142,12 @@ afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
 });
+
+function getFunnyBoneGroupToggle() {
+    return screen.getByRole("button", {
+        name: /^Funny Bone 3 clubs in this chain group/,
+    });
+}
 
 describe("AdminClubManager", () => {
     it("renders clubs grouped by chain with scrape counts", () => {
@@ -165,7 +200,7 @@ describe("AdminClubManager", () => {
             } as never);
         render(<AdminClubManager groups={groups} />);
 
-        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.click(getFunnyBoneGroupToggle());
         fireEvent.change(screen.getAllByLabelText("Icon image URL")[0], {
             target: { value: "https://example.com/icon.png" },
         });
@@ -217,6 +252,133 @@ describe("AdminClubManager", () => {
         ).toBeTruthy();
     });
 
+    it("shows imageless visible active clubs as a popularity-ranked image review worklist", () => {
+        render(<AdminClubManager groups={groups} />);
+
+        const worklist = screen.getByLabelText("Club image review worklist");
+        expect(within(worklist).getByText("Funny Bone Chicago")).toBeTruthy();
+        expect(within(worklist).queryByText("Funny Bone Boston")).toBeNull();
+        expect(within(worklist).queryByText("Funny Bone Albany")).toBeNull();
+        expect(within(worklist).getByText("Popularity 25")).toBeTruthy();
+        expect(within(worklist).getByText("99 shows")).toBeTruthy();
+    });
+
+    it("discovers prospective images and rejects a candidate without publishing it", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                clubId: 12,
+                seedPages: ["https://example.com/chicago"],
+                crawledPages: ["https://example.com/chicago/gallery"],
+                candidates: [
+                    {
+                        imageUrl: "https://example.com/chicago-stage.jpg",
+                        sourcePage: "https://example.com/chicago/gallery",
+                        width: 1200,
+                        height: 800,
+                        mimeType: "image/jpeg",
+                        score: 92,
+                        reasons: ["venue image", "large image"],
+                    },
+                ],
+            }),
+        } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Discover images for Funny Bone Chicago",
+            }),
+        );
+
+        expect(
+            await screen.findByText("https://example.com/chicago-stage.jpg"),
+        ).toBeTruthy();
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Reject image candidate for Funny Bone Chicago",
+            }),
+        );
+
+        expect(
+            screen.queryByText("https://example.com/chicago-stage.jpg"),
+        ).toBeNull();
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("approves a discovered image candidate by publishing it and refreshing the club image locally", async () => {
+        vi.mocked(global.fetch)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    clubId: 12,
+                    seedPages: ["https://example.com/chicago"],
+                    crawledPages: ["https://example.com/chicago/gallery"],
+                    candidates: [
+                        {
+                            imageUrl: "https://example.com/chicago-stage.jpg",
+                            sourcePage: "https://example.com/chicago/gallery",
+                            width: 1200,
+                            height: 800,
+                            mimeType: "image/jpeg",
+                            score: 92,
+                            reasons: ["venue image", "large image"],
+                        },
+                    ],
+                }),
+            } as never)
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({
+                    ok: true,
+                    club: {
+                        ...groups[0].clubs[2],
+                        hasImage: true,
+                        iconUrl:
+                            "https://cdn.test/clubs/Funny%20Bone%20Chicago.png",
+                        heroUrl:
+                            "https://cdn.test/clubs/Funny%20Bone%20Chicago-hero.jpg",
+                    },
+                }),
+            } as never);
+        render(<AdminClubManager groups={groups} />);
+
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Discover images for Funny Bone Chicago",
+            }),
+        );
+        await screen.findByText("https://example.com/chicago-stage.jpg");
+        fireEvent.click(
+            screen.getByRole("button", {
+                name: "Approve image candidate for Funny Bone Chicago",
+            }),
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenLastCalledWith(
+                "/api/admin/clubs/images/publish",
+                expect.objectContaining({
+                    method: "POST",
+                    body: JSON.stringify({
+                        clubId: 12,
+                        iconImageUrl: "https://example.com/chicago-stage.jpg",
+                        heroImageUrl: "https://example.com/chicago-stage.jpg",
+                    }),
+                }),
+            );
+        });
+        expect(
+            await screen.findByAltText("Funny Bone Chicago current icon image"),
+        ).toHaveProperty(
+            "src",
+            "https://cdn.test/clubs/Funny%20Bone%20Chicago.png",
+        );
+    });
+
     it("filters clubs within chain groups", () => {
         render(<AdminClubManager groups={groups} />);
 
@@ -231,12 +393,12 @@ describe("AdminClubManager", () => {
     it("searches, sorts, and filters clubs within an opened chain", () => {
         render(<AdminClubManager groups={groups} />);
 
-        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.click(getFunnyBoneGroupToggle());
 
         fireEvent.change(screen.getByLabelText("Search within Funny Bone"), {
             target: { value: "Boston" },
         });
-        expect(screen.getByText("1 of 2 clubs shown")).toBeTruthy();
+        expect(screen.getByText("1 of 3 clubs shown")).toBeTruthy();
         expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
         expect(screen.queryByText("Funny Bone Albany")).toBeNull();
 
@@ -270,7 +432,7 @@ describe("AdminClubManager", () => {
         });
         expect(
             screen.getAllByRole("link", { name: /Funny Bone/ })[0].textContent,
-        ).toBe("Funny Bone Boston");
+        ).toBe("Funny Bone Chicago");
     });
 
     it("toggles from chain groups to scraper groups", () => {
@@ -300,7 +462,7 @@ describe("AdminClubManager", () => {
     it("starts chain groups closed and reopens them", () => {
         render(<AdminClubManager groups={groups} />);
 
-        const toggle = screen.getByRole("button", { name: /Funny Bone/ });
+        const toggle = getFunnyBoneGroupToggle();
         const groupId = toggle.getAttribute("aria-controls");
         expect(groupId).toBeTruthy();
         const groupList = document.getElementById(groupId!);
@@ -318,7 +480,7 @@ describe("AdminClubManager", () => {
     it("saves status overrides", async () => {
         render(<AdminClubManager groups={groups} />);
 
-        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.click(getFunnyBoneGroupToggle());
 
         const statusSelects = screen.getAllByLabelText("Status");
         fireEvent.change(statusSelects[0], { target: { value: "closed" } });
@@ -369,7 +531,7 @@ describe("AdminClubManager", () => {
         } as never);
         render(<AdminClubManager groups={groups} />);
 
-        fireEvent.click(screen.getByRole("button", { name: /Funny Bone/ }));
+        fireEvent.click(getFunnyBoneGroupToggle());
         fireEvent.change(screen.getAllByLabelText("Club name")[0], {
             target: { value: "Funny Bone Albany Downtown" },
         });

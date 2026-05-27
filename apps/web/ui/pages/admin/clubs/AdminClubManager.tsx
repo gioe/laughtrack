@@ -4,6 +4,7 @@ import type {
     AdminClubGroup,
     AdminClubListItem,
 } from "@/lib/admin/clubManagement";
+import type { ClubImageCandidate } from "@/lib/admin/clubImageDiscovery";
 import { Button } from "@/ui/components/ui/button";
 import {
     AdminPagination,
@@ -16,9 +17,11 @@ import {
     ChevronDown,
     ChevronRight,
     ExternalLink,
+    ImagePlus,
     Save,
     ShieldCheck,
     UploadCloud,
+    X,
 } from "lucide-react";
 import Link from "next/link";
 import type { Dispatch, SetStateAction } from "react";
@@ -63,6 +66,14 @@ type ClubImageState = {
     kind: "idle" | "loading" | "ready" | "error";
     preview?: ClubImagePreview;
     source?: ClubImageUrls;
+    message?: string;
+};
+
+type ClubImageDiscoveryState = {
+    kind: "idle" | "loading" | "ready" | "error";
+    candidates: ClubImageCandidate[];
+    seedPages: string[];
+    crawledPages: string[];
     message?: string;
 };
 
@@ -187,6 +198,10 @@ function formatDate(iso: string | null) {
     return iso.replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
 }
 
+function formatDimensions(width: number | null, height: number | null) {
+    return width && height ? `${width}x${height}` : "Unknown size";
+}
+
 function initialDraft(club: AdminClubListItem): Draft {
     return {
         status: club.status,
@@ -257,6 +272,30 @@ function sortChainClubs(clubs: AdminClubListItem[], sort: string) {
     });
 }
 
+function imageReviewClubs(groups: AdminClubGroup[]) {
+    return flattenUniqueClubs(groups)
+        .filter(
+            (club) =>
+                !club.hasImage && club.visible && club.status === "active",
+        )
+        .sort((a, b) => {
+            const popularityDelta = b.popularity - a.popularity;
+            if (popularityDelta !== 0) return popularityDelta;
+            const totalShowsDelta = b.totalShows - a.totalShows;
+            if (totalShowsDelta !== 0) return totalShowsDelta;
+            return compareByName(a, b);
+        });
+}
+
+function emptyDiscoveryState(): ClubImageDiscoveryState {
+    return {
+        kind: "idle",
+        candidates: [],
+        seedPages: [],
+        crawledPages: [],
+    };
+}
+
 export default function AdminClubManager({ groups }: Props) {
     const [rows, setRows] = useState(groups);
     const [groupView, setGroupView] = useState<GroupView>("chain");
@@ -273,6 +312,9 @@ export default function AdminClubManager({ groups }: Props) {
     const [clubImageStates, setClubImageStates] = useState<
         Record<number, ClubImageState>
     >({});
+    const [clubImageDiscoveryStates, setClubImageDiscoveryStates] = useState<
+        Record<number, ClubImageDiscoveryState>
+    >({});
     const [collapsedGroups, setCollapsedGroups] = useState<
         Record<string, boolean>
     >(() => initialCollapsedGroups(groups));
@@ -285,6 +327,7 @@ export default function AdminClubManager({ groups }: Props) {
             ? chainDisplayGroups(rows)
             : buildScraperDisplayGroups(rows);
     }, [groupView, rows]);
+    const reviewClubs = useMemo(() => imageReviewClubs(rows), [rows]);
 
     const filteredGroups = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -377,6 +420,12 @@ export default function AdminClubManager({ groups }: Props) {
 
     function imageStateFor(club: AdminClubListItem): ClubImageState {
         return clubImageStates[club.id] ?? { kind: "idle" };
+    }
+
+    function discoveryStateFor(
+        club: AdminClubListItem,
+    ): ClubImageDiscoveryState {
+        return clubImageDiscoveryStates[club.id] ?? emptyDiscoveryState();
     }
 
     function updateClubImageUrls(
@@ -737,6 +786,150 @@ export default function AdminClubManager({ groups }: Props) {
         setStatus({ kind: "ok", message: `${updated.name} images published.` });
     }
 
+    async function discoverClubImageCandidates(club: AdminClubListItem) {
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+        setClubImageDiscoveryStates((current) => ({
+            ...current,
+            [club.id]: {
+                ...discoveryStateFor(club),
+                kind: "loading",
+                message: undefined,
+            },
+        }));
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/clubs/images/discover", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clubId: club.id }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setClubImageDiscoveryStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...discoveryStateFor(club),
+                    kind: "error",
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : "Network error",
+                },
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setClubImageDiscoveryStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...discoveryStateFor(club),
+                    kind: "error",
+                    message: body.error ?? `Request failed (${res.status})`,
+                },
+            }));
+            return;
+        }
+
+        setClubImageDiscoveryStates((current) => ({
+            ...current,
+            [club.id]: {
+                kind: "ready",
+                candidates: body.candidates ?? [],
+                seedPages: body.seedPages ?? [],
+                crawledPages: body.crawledPages ?? [],
+            },
+        }));
+    }
+
+    function rejectClubImageCandidate(
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) {
+        const current = discoveryStateFor(club);
+        setClubImageDiscoveryStates((states) => ({
+            ...states,
+            [club.id]: {
+                ...current,
+                candidates: current.candidates.filter(
+                    (item) => item.imageUrl !== candidate.imageUrl,
+                ),
+            },
+        }));
+    }
+
+    async function approveClubImageCandidate(
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) {
+        setStatus({ kind: "idle" });
+        setPendingId(club.id);
+
+        let res: Response;
+        try {
+            res = await fetch("/api/admin/clubs/images/publish", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clubId: club.id,
+                    iconImageUrl: candidate.imageUrl,
+                    heroImageUrl: candidate.imageUrl,
+                }),
+            });
+        } catch (error) {
+            setPendingId(null);
+            setClubImageDiscoveryStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...discoveryStateFor(club),
+                    kind: "error",
+                    message:
+                        error instanceof Error
+                            ? error.message
+                            : "Network error",
+                },
+            }));
+            return;
+        }
+
+        setPendingId(null);
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            setClubImageDiscoveryStates((current) => ({
+                ...current,
+                [club.id]: {
+                    ...discoveryStateFor(club),
+                    kind: "error",
+                    message: body.error ?? `Request failed (${res.status})`,
+                },
+            }));
+            return;
+        }
+
+        const updated = body.club as AdminClubListItem;
+        replaceClub(updated);
+        setClubImageDiscoveryStates((current) => {
+            const next = { ...current };
+            delete next[updated.id];
+            return next;
+        });
+        setClubImageUrls((current) => ({
+            ...current,
+            [updated.id]: {
+                iconImageUrl: updated.iconUrl,
+                heroImageUrl: updated.heroUrl,
+            },
+        }));
+        setStatus({
+            kind: "ok",
+            message: `${updated.name} image candidate approved.`,
+        });
+    }
+
     return (
         <div className="space-y-5">
             <AdminToolbar>
@@ -773,6 +966,15 @@ export default function AdminClubManager({ groups }: Props) {
                     {status.message}
                 </p>
             )}
+
+            <ClubImageReviewWorklist
+                clubs={reviewClubs}
+                pendingId={pendingId}
+                discoveryStateFor={discoveryStateFor}
+                discoverClubImageCandidates={discoverClubImageCandidates}
+                rejectClubImageCandidate={rejectClubImageCandidate}
+                approveClubImageCandidate={approveClubImageCandidate}
+            />
 
             <AdminPagination
                 page={currentPage}
@@ -828,6 +1030,287 @@ export default function AdminClubManager({ groups }: Props) {
                 }
                 onPageSizeChange={setPageSize}
             />
+        </div>
+    );
+}
+
+function ClubImageReviewWorklist({
+    clubs,
+    pendingId,
+    discoveryStateFor,
+    discoverClubImageCandidates,
+    rejectClubImageCandidate,
+    approveClubImageCandidate,
+}: {
+    clubs: AdminClubListItem[];
+    pendingId: number | null;
+    discoveryStateFor: (club: AdminClubListItem) => ClubImageDiscoveryState;
+    discoverClubImageCandidates: (club: AdminClubListItem) => Promise<void>;
+    rejectClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => void;
+    approveClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => Promise<void>;
+}) {
+    return (
+        <section
+            aria-label="Club image review worklist"
+            className="overflow-hidden rounded-md border border-copper/25 bg-white"
+        >
+            <header className="border-b border-copper/20 bg-cedar px-4 py-3 text-white">
+                <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 className="font-gilroy-bold text-h3 leading-tight">
+                            Club image reviews
+                        </h2>
+                        <p className="font-dmSans text-caption text-white/85">
+                            {clubs.length.toLocaleString()} visible active clubs
+                            need images
+                        </p>
+                    </div>
+                </div>
+            </header>
+            {clubs.length === 0 ? (
+                <div className="px-4 py-4 font-dmSans text-body text-soft-charcoal">
+                    No visible active clubs are waiting for image review.
+                </div>
+            ) : (
+                <ul className="divide-y divide-copper/15">
+                    {clubs.map((club) => (
+                        <li key={club.id} className="px-4 py-4">
+                            <ClubImageCandidateReview
+                                club={club}
+                                pendingId={pendingId}
+                                discoveryState={discoveryStateFor(club)}
+                                discoverClubImageCandidates={
+                                    discoverClubImageCandidates
+                                }
+                                rejectClubImageCandidate={
+                                    rejectClubImageCandidate
+                                }
+                                approveClubImageCandidate={
+                                    approveClubImageCandidate
+                                }
+                            />
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </section>
+    );
+}
+
+function ClubImageCandidateReview({
+    club,
+    pendingId,
+    discoveryState,
+    discoverClubImageCandidates,
+    rejectClubImageCandidate,
+    approveClubImageCandidate,
+}: {
+    club: AdminClubListItem;
+    pendingId: number | null;
+    discoveryState: ClubImageDiscoveryState;
+    discoverClubImageCandidates: (club: AdminClubListItem) => Promise<void>;
+    rejectClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => void;
+    approveClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => Promise<void>;
+}) {
+    const disabled = pendingId !== null;
+
+    return (
+        <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.7fr)_minmax(0,1.3fr)]">
+            <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                        href={`/admin/clubs/${club.id}`}
+                        className="font-gilroy-bold text-h3 text-cedar hover:underline"
+                    >
+                        {club.name}
+                    </Link>
+                    <span className="rounded-full border border-green-700/30 bg-green-50 px-2 py-1 font-dmSans text-caption font-semibold text-green-900">
+                        active
+                    </span>
+                    <span className="rounded-full border border-amber-700/30 bg-amber-50 px-2 py-1 font-dmSans text-caption font-semibold text-amber-900">
+                        no image
+                    </span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-dmSans text-body text-soft-charcoal">
+                    <span>ID {club.id}</span>
+                    <span>Popularity {Math.round(club.popularity)}</span>
+                    <span>{club.totalShows.toLocaleString()} shows</span>
+                    <span>
+                        {[club.city, club.state].filter(Boolean).join(", ") ||
+                            "—"}
+                    </span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        aria-label={`Discover images for ${club.name}`}
+                        className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                        disabled={disabled || pendingId === club.id}
+                        onClick={() => void discoverClubImageCandidates(club)}
+                    >
+                        <ImagePlus className="h-4 w-4" />
+                        Discover images
+                    </Button>
+                    <a
+                        href={club.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 self-center font-dmSans text-caption font-semibold text-copper-dark hover:underline"
+                    >
+                        Website
+                        <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                </div>
+            </div>
+            <div className="min-w-0">
+                {discoveryState.kind === "idle" && (
+                    <div className="rounded-md border border-dashed border-soft-charcoal/30 bg-coconut-cream/35 px-3 py-3 font-dmSans text-body text-soft-charcoal">
+                        No candidates attached yet.
+                    </div>
+                )}
+                {discoveryState.kind === "loading" && (
+                    <div className="rounded-md border border-copper/20 bg-coconut-cream/35 px-3 py-3 font-dmSans text-body font-semibold text-soft-charcoal">
+                        Discovering candidates...
+                    </div>
+                )}
+                {discoveryState.kind === "error" && (
+                    <div className="rounded-md border border-red-700/30 bg-red-50 px-3 py-3 font-dmSans text-body font-semibold text-red-900">
+                        {discoveryState.message ?? "Image discovery failed"}
+                    </div>
+                )}
+                {discoveryState.kind === "ready" &&
+                    (discoveryState.candidates.length === 0 ? (
+                        <div className="rounded-md border border-amber-700/30 bg-amber-50 px-3 py-3 font-dmSans text-body font-semibold text-amber-900">
+                            No candidate images remain for this club.
+                        </div>
+                    ) : (
+                        <div className="grid gap-3 md:grid-cols-2">
+                            {discoveryState.candidates.map((candidate) => (
+                                <ClubImageCandidateCard
+                                    key={candidate.imageUrl}
+                                    club={club}
+                                    candidate={candidate}
+                                    disabled={disabled}
+                                    rejectClubImageCandidate={
+                                        rejectClubImageCandidate
+                                    }
+                                    approveClubImageCandidate={
+                                        approveClubImageCandidate
+                                    }
+                                />
+                            ))}
+                        </div>
+                    ))}
+            </div>
+        </div>
+    );
+}
+
+function ClubImageCandidateCard({
+    club,
+    candidate,
+    disabled,
+    rejectClubImageCandidate,
+    approveClubImageCandidate,
+}: {
+    club: AdminClubListItem;
+    candidate: ClubImageCandidate;
+    disabled: boolean;
+    rejectClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => void;
+    approveClubImageCandidate: (
+        club: AdminClubListItem,
+        candidate: ClubImageCandidate,
+    ) => Promise<void>;
+}) {
+    return (
+        <div className="grid gap-3 rounded-md border border-copper/15 bg-white/80 p-3">
+            <img
+                src={candidate.imageUrl}
+                alt={`${club.name} image candidate`}
+                className="h-36 w-full rounded-md border border-copper/20 object-cover"
+            />
+            <div className="min-w-0 space-y-2 font-dmSans text-caption text-soft-charcoal">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-md border border-copper/30 bg-coconut-cream px-2 py-1 font-semibold text-cedar">
+                        Score {candidate.score}
+                    </span>
+                    <span>
+                        {formatDimensions(candidate.width, candidate.height)}
+                    </span>
+                    {candidate.mimeType && <span>{candidate.mimeType}</span>}
+                </div>
+                <a
+                    href={candidate.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block max-w-full truncate font-semibold text-copper-dark hover:underline"
+                >
+                    {candidate.imageUrl}
+                </a>
+                <a
+                    href={candidate.sourcePage}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex max-w-full items-center gap-1 text-copper-dark hover:underline"
+                >
+                    <span className="truncate">Source page</span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                </a>
+                {candidate.reasons.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                        {candidate.reasons.map((reason) => (
+                            <span
+                                key={reason}
+                                className="rounded-md border border-soft-charcoal/20 bg-gray-50 px-2 py-1 font-semibold text-soft-charcoal"
+                            >
+                                {reason}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    aria-label={`Approve image candidate for ${club.name}`}
+                    className="gap-2 border-green-800/40 bg-white text-green-950 hover:bg-green-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    disabled={disabled}
+                    onClick={() =>
+                        void approveClubImageCandidate(club, candidate)
+                    }
+                >
+                    <Save className="h-4 w-4" />
+                    Approve
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    aria-label={`Reject image candidate for ${club.name}`}
+                    className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                    disabled={disabled}
+                    onClick={() => rejectClubImageCandidate(club, candidate)}
+                >
+                    <X className="h-4 w-4" />
+                    Reject
+                </Button>
+            </div>
         </div>
     );
 }

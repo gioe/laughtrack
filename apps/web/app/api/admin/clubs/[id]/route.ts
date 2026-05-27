@@ -78,6 +78,7 @@ function serializeClubForAdmin(club: {
     city: string | null;
     state: string | null;
     website: string;
+    popularity: number;
     hasImage: boolean;
     visible: boolean | null;
     status: string;
@@ -114,6 +115,7 @@ function serializeClubForAdmin(club: {
         city: club.city,
         state: club.state,
         website: club.website,
+        popularity: club.popularity,
         hasImage: club.hasImage,
         iconUrl: buildClubImageUrl(club.name, club.hasImage),
         heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
@@ -136,6 +138,7 @@ const adminClubSelect = {
     city: true,
     state: true,
     website: true,
+    popularity: true,
     hasImage: true,
     visible: true,
     status: true,
@@ -217,6 +220,7 @@ export async function PATCH(
                     city: true,
                     state: true,
                     website: true,
+                    popularity: true,
                     hasImage: true,
                     visible: true,
                     status: true,
