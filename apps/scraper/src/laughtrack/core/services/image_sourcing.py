@@ -19,6 +19,7 @@ from typing import List, Optional
 import requests
 from PIL import Image
 
+from laughtrack.core.clients.google.places import GooglePlacesClient
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Wikidata SPARQL endpoint
@@ -358,3 +359,202 @@ def source_images_for_comedians(
     if sourced:
         Logger.info(f"image_sourcing: found images for {len(sourced)}/{len(comedian_names)} new comedians")
     return sourced
+
+
+# ---------------------------------------------------------------------------
+# Club image sourcing — website og:image first, Google Places photo fallback.
+# Clubs want venue/brand imagery (the inverse of comedian headshots), so the
+# preferred source is the venue's own site social-preview image; Places photos
+# only fill the gap when a site has no og:image (or no usable site at all).
+# ---------------------------------------------------------------------------
+
+_META_TAG_RE = re.compile(r"<meta\b[^>]*>", re.IGNORECASE)
+# og:image is preferred; twitter:image is the secondary social-preview signal.
+_OG_IMAGE_KEYS = ("og:image", "og:image:url", "twitter:image", "twitter:image:src")
+
+# Lazily-constructed shared Places client so the daily-call cap is enforced
+# across an entire batch run rather than reset per club.
+_places_client: Optional["GooglePlacesClient"] = None
+
+
+def _get_places_client() -> "GooglePlacesClient":
+    global _places_client
+    if _places_client is None:
+        _places_client = GooglePlacesClient()
+    return _places_client
+
+
+def _meta_attr(tag: str, attr: str) -> Optional[str]:
+    """Read a single attribute value from one ``<meta>`` tag."""
+    match = re.search(
+        rf'\b{attr}\s*=\s*("([^"]*)"|\'([^\']*)\'|([^\s>]+))',
+        tag,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+    return match.group(2) or match.group(3) or match.group(4)
+
+
+def _decode_html_entities(value: str) -> str:
+    return (
+        value.replace("&amp;", "&")
+        .replace("&quot;", '"')
+        .replace("&#39;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+    )
+
+
+def _fetch_html(url: str) -> Optional[str]:
+    """Download an HTML page as text. Returns None on any failure / non-HTML."""
+    try:
+        resp = requests.get(
+            url,
+            headers={"User-Agent": _WIKIMEDIA_USER_AGENT, "Accept": "text/html"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        content_type = resp.headers.get("Content-Type", "").lower()
+        if content_type and "html" not in content_type:
+            return None
+        return resp.text
+    except Exception as e:
+        Logger.warn(f"image_sourcing: page fetch failed for {url}: {e}")
+        return None
+
+
+def _extract_og_image(html: str) -> Optional[str]:
+    """Return the first og:image (then twitter:image) content from page HTML."""
+    found: dict[str, str] = {}
+    for match in _META_TAG_RE.finditer(html):
+        tag = match.group(0)
+        key = _meta_attr(tag, "property") or _meta_attr(tag, "name")
+        if not key:
+            continue
+        key = key.strip().lower()
+        if key not in _OG_IMAGE_KEYS or key in found:
+            continue
+        content = _meta_attr(tag, "content")
+        if content and content.strip():
+            found[key] = _decode_html_entities(content.strip())
+    for key in _OG_IMAGE_KEYS:
+        if key in found:
+            return found[key]
+    return None
+
+
+def _get_og_image_url(website: Optional[str]) -> Optional[str]:
+    """Fetch a club website and resolve its og:image to an absolute URL."""
+    if not website or not website.strip():
+        return None
+    page_url = website.strip()
+    if not page_url.lower().startswith(("http://", "https://")):
+        page_url = f"https://{page_url}"
+    html = _fetch_html(page_url)
+    if not html:
+        return None
+    raw = _extract_og_image(html)
+    if not raw:
+        return None
+    return urllib.parse.urljoin(page_url, raw)
+
+
+def _get_google_places_image_url(query: str) -> Optional[str]:
+    """Resolve a venue photo URL via the shared Google Places client."""
+    if not query or not query.strip():
+        return None
+    return _get_places_client().fetch_photo_url(query)
+
+
+def find_club_image_source(
+    club_name: str,
+    website: Optional[str],
+    *,
+    place_query: Optional[str] = None,
+    use_places: bool = True,
+) -> Optional[tuple[str, str]]:
+    """Resolve the best image candidate for a club.
+
+    Tries the club website's og:image first, then a Google Places venue photo.
+    Returns ``(source_label, image_url)`` for the first source that yields a
+    candidate, or ``None``. ``use_places=False`` reports only the website
+    result — used by dry-run so a listing pass never spends paid Places quota.
+    """
+    og_url = _get_og_image_url(website)
+    if og_url:
+        return ("website og:image", og_url)
+    if use_places:
+        places_url = _get_google_places_image_url(place_query or club_name)
+        if places_url:
+            return ("google places", places_url)
+    return None
+
+
+def fetch_club_image_png(
+    club_name: str,
+    website: Optional[str],
+    *,
+    place_query: Optional[str] = None,
+) -> Optional[tuple[bytes, str]]:
+    """Fetch and resize a club image without uploading.
+
+    Returns ``(png_bytes, source_label)`` or ``None``. Splitting fetch from
+    upload lets callers stage images locally for human review before
+    publishing them to the CDN.
+    """
+    source = find_club_image_source(club_name, website, place_query=place_query)
+    if source is None:
+        return None
+    label, image_url = source
+
+    raw_data = _download_image(image_url)
+    if not raw_data:
+        return None
+
+    try:
+        return (_resize_image(raw_data), label)
+    except Exception as e:
+        Logger.warn(f"image_sourcing: resize failed for club '{club_name}': {e}")
+        return None
+
+
+def upload_club_image_png(club_name: str, png_data: bytes) -> bool:
+    """Upload pre-fetched PNG bytes for a club to Bunny CDN as clubs/{name}.png.
+
+    Returns True on success, False if credentials are missing or the upload
+    fails. Resizes the input again so callers can pass arbitrary image bytes.
+    """
+    storage_password = os.environ.get("BUNNYCDN_STORAGE_PASSWORD", "")
+    storage_zone = os.environ.get("BUNNYCDN_STORAGE_ZONE", "")
+    if not storage_password or not storage_zone:
+        Logger.warn("image_sourcing: skipping upload — BUNNYCDN_STORAGE_PASSWORD or BUNNYCDN_STORAGE_ZONE not set")
+        return False
+    region = os.environ.get("BUNNYCDN_STORAGE_REGION", "la")
+
+    try:
+        png_data = _resize_image(png_data)
+    except Exception as e:
+        Logger.warn(f"image_sourcing: resize failed for club '{club_name}': {e}")
+        return False
+
+    cdn_path = f"clubs/{urllib.parse.quote(club_name)}.png"
+    return _upload_to_bunny_cdn(png_data, cdn_path, storage_password, storage_zone, region)
+
+
+def source_club_image(
+    club_name: str,
+    website: Optional[str],
+    *,
+    place_query: Optional[str] = None,
+) -> bool:
+    """Find, download, resize, and upload a venue image for a club.
+
+    Tries the website og:image first, then Google Places. Uploads to Bunny CDN
+    as ``clubs/{name}.png``. Returns True on success, False otherwise.
+    """
+    result = fetch_club_image_png(club_name, website, place_query=place_query)
+    if result is None:
+        return False
+    png_data, _label = result
+    return upload_club_image_png(club_name, png_data)
