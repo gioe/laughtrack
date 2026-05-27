@@ -360,7 +360,9 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.getByText("Parent Comic images removed.")).toBeTruthy();
+        expect(
+            await screen.findByText("Parent Comic images removed."),
+        ).toBeTruthy();
         expect(
             screen.queryByAltText("Parent Comic current headshot image"),
         ).toBeNull();
@@ -402,9 +404,11 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(
-            screen.queryByAltText("Parent Comic current headshot image"),
-        ).toBeNull();
+        await waitFor(() => {
+            expect(
+                screen.queryByAltText("Parent Comic current headshot image"),
+            ).toBeNull();
+        });
         expect(
             screen.getByAltText("Parent Comic current hero image"),
         ).toBeTruthy();
@@ -444,9 +448,11 @@ describe("AdminComedianManager", () => {
         expect(
             screen.getByAltText("Parent Comic current headshot image"),
         ).toBeTruthy();
-        expect(
-            screen.queryByAltText("Parent Comic current hero image"),
-        ).toBeNull();
+        await waitFor(() => {
+            expect(
+                screen.queryByAltText("Parent Comic current hero image"),
+            ).toBeNull();
+        });
         expect(screen.getByText("Parent Comic hero removed.")).toBeTruthy();
     });
 
@@ -528,7 +534,9 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.getByText("Alias Comic images published.")).toBeTruthy();
+        expect(
+            await screen.findByText("Alias Comic images published."),
+        ).toBeTruthy();
     });
 
     it("updates row preview after publish without losing other comedian edits", async () => {
@@ -585,9 +593,9 @@ describe("AdminComedianManager", () => {
             );
         });
         expect(
-            screen
-                .getByAltText("Alias Comic current headshot image")
-                .getAttribute("src"),
+            (
+                await screen.findByAltText("Alias Comic current headshot image")
+            ).getAttribute("src"),
         ).toBe("https://test.b-cdn.net/comedian-images/2/avatar.jpg");
         expect(
             screen
@@ -597,7 +605,9 @@ describe("AdminComedianManager", () => {
         expect(screen.getByDisplayValue("https://alias.example.com")).toBe(
             websiteInput,
         );
-        expect(screen.getByText("Alias Comic images published.")).toBeTruthy();
+        expect(
+            await screen.findByText("Alias Comic images published."),
+        ).toBeTruthy();
     });
 
     it("sorts comedians by popularity", () => {
@@ -880,7 +890,9 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.getByText("Parent Podcast RSS saved.")).toBeTruthy();
+        expect(
+            await screen.findByText("Parent Podcast RSS saved."),
+        ).toBeTruthy();
     });
 
     it("removes existing podcast RSS feed links in the comedian section", async () => {
@@ -963,7 +975,9 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.getByText("Alias Podcast RSS added.")).toBeTruthy();
+        expect(
+            await screen.findByText("Alias Podcast RSS added."),
+        ).toBeTruthy();
         expect(screen.getAllByText("Alias Podcast").length).toBeGreaterThan(0);
     });
 
@@ -1035,8 +1049,10 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.queryByText("Podcast host reviews")).toBeNull();
-        expect(screen.queryByText("Candidate Podcast")).toBeNull();
+        await waitFor(() => {
+            expect(screen.queryByText("Podcast host reviews")).toBeNull();
+            expect(screen.queryByText("Candidate Podcast")).toBeNull();
+        });
     });
 
     it("removes a host candidate after rejection", async () => {
