@@ -299,6 +299,24 @@ def test_parse_seat_tiers_handles_malformed_payload():
     assert parse_seat_tiers({"Seats": [{"Status": "A"}]}) == []
 
 
+def test_parse_seat_tiers_drops_non_positive_totals():
+    """A Total of 0/negative is not a real tier price -> the tier is dropped.
+
+    Pins the free-vs-unknown distinction: a $0 seat must not surface as a
+    priced tier (Esther's never lists free seats), and a tier whose only seats
+    have non-positive totals yields no SeatTier at all.
+    """
+    payload = _getseats_payload(
+        [
+            _seat("Tier 1", 40.0, 45.75, "A"),
+            _seat("Comp", 0.0, 0.0, "A"),
+            _seat("Comp", 0.0, -5.0, "A"),
+        ]
+    )
+    tiers = parse_seat_tiers(payload)
+    assert [t.type for t in tiers] == ["Tier 1"]
+
+
 def test_extract_eventdateid_guid_picks_getseats_guid():
     session = "0502a945-7f25-418e-89ee-32143dd0f475"
     event_date_guid = "70D33085-625B-41B5-9E86-8E7ED0EA8B1D"
