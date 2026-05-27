@@ -13,6 +13,9 @@ Comedy club venue. Has shows, tags, email subscriptions, and processed emails. O
 ### ClubAlias
 Verified alternate venue names that resolve to one canonical Club before scraper discovery inserts a new club row. Aliases are global across ingestion sources and are scoped by normalized alias name, city, and state so the same venue nickname in a different market does not collide.
 
+### ClubImageAsset
+Published image assets for a club from the admin club-image pipeline. Rows preserve the source image URL, Bunny storage paths for original/icon/hero variants, image metadata, and whether the row is the active public asset. `Club.hasImage` remains the migration-era public compatibility flag; URL builders still use the legacy name-keyed Bunny paths for existing club images while publishes can retain versioned asset history.
+
 ### Comedian
 Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
 
