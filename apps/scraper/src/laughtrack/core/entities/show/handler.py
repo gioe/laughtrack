@@ -30,8 +30,11 @@ _HEADLINER_FRIENDS_SUFFIX_RE = re.compile(r"\s+(?:&|and)\s+friends\s*$", re.IGNO
 
 # PatronTicket-family shows carry a stable Salesforce instance id in the
 # #/instances/<id> fragment of show_page_url (e.g. .../ticket/#/instances/a0FTP000004XeKY2A0).
-# urlparse drops it into .fragment rather than .path, so match against the whole URL.
-_PATRONTICKET_INSTANCE_RE = re.compile(r"/instances/([A-Za-z0-9]+)")
+# PatronTicket's ticket app is a hash-routed Salesforce SPA, so the "#/instances/" prefix
+# is structural to every such URL (confirmed for both the bespoke up_comedy_club and the
+# generic patron_ticket venues). Anchoring on the fragment keeps the matcher faithful to that
+# format so an unrelated URL that merely contains "/instances/" is not treated as an instance.
+_PATRONTICKET_INSTANCE_RE = re.compile(r"#/instances/([A-Za-z0-9]+)")
 
 
 class ShowHandler(BaseDatabaseHandler[Show]):
@@ -301,15 +304,27 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             if not rows:
                 continue
             incoming_date = self._normalize_cross_batch_key_date(show.date)
-            existing_dates = {self._normalize_cross_batch_key_date(row.get("date")) for row in rows}
-            if incoming_date in existing_dates:
-                # An existing row already sits at the incoming date; the upsert's
-                # ON CONFLICT will match it. Nothing to move.
+            incoming_room = show.room or ""
+            # The upsert keys on (club_id, date, room), so reconcile against that whole
+            # key, not date alone. If an existing instance row already sits at the
+            # incoming (date, room), the upsert will match it — nothing to move.
+            if any(
+                self._normalize_cross_batch_key_date(row.get("date")) == incoming_date
+                and (row.get("room") or "") == incoming_room
+                for row in rows
+            ):
                 continue
-            # Move the most-recently-inserted matching row (highest id) to the new
-            # date. The SQL guard skips the move if another row already occupies
+            # Only move a row whose room matches the incoming room, so the moved row
+            # lands on the upsert's exact conflict key. Moving a different-room row would
+            # leave it off-key and let the upsert insert a duplicate anyway (room is always
+            # "" for PatronTicket today, so this is a safety net for cross-scraper rows).
+            candidates = [row for row in rows if (row.get("room") or "") == incoming_room]
+            if not candidates:
+                continue
+            # Move the most-recently-inserted candidate (highest id — the query orders by
+            # id). The SQL guard skips the move if another row already occupies
             # (club_id, new_date, room), in which case the upsert reconciles there.
-            target = rows[-1]
+            target = candidates[-1]
             self.execute_with_cursor(
                 ShowQueries.UPDATE_SHOW_DATE_BY_ID,
                 (show.date, target.get("id"), show.date),

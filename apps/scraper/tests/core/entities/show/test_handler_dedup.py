@@ -183,3 +183,40 @@ def test_non_patronticket_show_never_reconciles_by_instance_id():
     ]
     assert pt_lookups == []
     assert _update_calls(h) == []
+
+
+def test_patronticket_reschedule_moves_highest_id_among_duplicate_rows():
+    """With pre-existing duplicate rows for one instance, move only the newest (highest id)."""
+    later_date = datetime(2026, 7, 11, 21, 0, 0)  # a second reschedule, matches neither row
+    existing = [
+        {"id": 481928, "club_id": 1, "date": _OLD_DATE, "room": "", "show_page_url": _PT_URL},
+        {"id": 535489, "club_id": 1, "date": _NEW_DATE, "room": "", "show_page_url": _PT_URL},
+    ]
+    h = _pt_handler(existing)  # GET orders by id, so the list arrives id-ascending
+
+    h._process_single_batch([_show(date=later_date, url=_PT_URL)])
+
+    update_calls = _update_calls(h)
+    assert len(update_calls) == 1
+    # Exactly one move, targeting the highest-id (most recent) row.
+    assert update_calls[0].args[1] == (later_date, 535489, later_date)
+
+
+def test_patronticket_no_move_when_no_room_compatible_row_exists():
+    """A room mismatch between the existing row and the incoming show blocks the move.
+
+    Moving a different-room row would land it off the upsert's (club_id, date, room)
+    conflict key, so reconciliation skips it rather than risk a duplicate.
+    """
+    existing = {
+        "id": 481928,
+        "club_id": 1,
+        "date": _OLD_DATE,
+        "room": "Main Stage",
+        "show_page_url": _PT_URL,
+    }
+    h = _pt_handler([existing])
+
+    h._process_single_batch([_show(date=_NEW_DATE, room="", url=_PT_URL)])
+
+    assert _update_calls(h) == []
