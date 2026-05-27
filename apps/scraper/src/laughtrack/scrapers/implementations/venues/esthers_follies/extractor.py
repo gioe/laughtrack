@@ -6,18 +6,26 @@ from typing import List, Optional
 from laughtrack.core.entities.event.esthers_follies import EsthersFolliesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-# Matches each "SelectorBox" entry in the date slider HTML, capturing:
-#   group 1: EDID (event date instance ID)
-#   group 2: month abbreviation (e.g. "Mar")
-#   group 3: day of month (e.g. "26")
+# Matches each show "SelectorBox" entry in the date slider HTML, capturing:
+#   group 1: EDID (event date instance ID), from the LoadSpinner() onclick arg
+#   group 2: month abbreviation (e.g. "May")
+#   group 3: day of month (e.g. "28")
 #   group 4: weekday abbreviation (e.g. "Thu")
 #   group 5: time string (e.g. "7:00 PM")
+#
+# Show boxes use onclick="LoadSpinner('<edid>'); LoadEvent('<eid>','<edid>');".
+# Anchoring on LoadSpinner (rather than the old LoadEvent prefix) cleanly
+# excludes the "More Event Dates" calendar buttons, which use
+# onclick="LoadEventCalendar(...)" and carry no DateMonth/DateDay markup.
+# VBO moved show boxes off a leading LoadEvent handler; the old regex then
+# only matched by spanning from a LoadEventCalendar box into the first real
+# show, capping output at a single slot (TASK-2490).
 _SHOW_RE = re.compile(
-    r'id="edid(\d+)"[^>]*onclick="LoadEvent[^"]+">.*?'
-    r'<div class="DateMonth[^>]+>(\w+)<.*?'
-    r'<div class="DateDay[^>]+>(\d+)<.*?'
-    r'<span class="WeekDay">(\w+)</span>.*?'
-    r'<span class="WeekDayTime"> - ([^<]+)</span>',
+    r"onclick=\"LoadSpinner\('(\d+)'[^\"]*\">.*?"
+    r"<div class=\"DateMonth[^>]*>(\w+)<.*?"
+    r"<div class=\"DateDay[^>]*>(\d+)<.*?"
+    r"<span class=\"WeekDay\">(\w+)</span>.*?"
+    r"<span class=\"WeekDayTime\"> - ([^<]+)</span>",
     re.DOTALL,
 )
 

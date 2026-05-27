@@ -53,17 +53,36 @@ _LOADPLUGIN_HTML = f"""
 """
 
 
-def _date_slider_html(*shows) -> str:
-    """Build a minimal VBO date slider HTML fragment for the given show tuples.
+def _date_slider_html(*shows, include_calendar_box: bool = True) -> str:
+    """Build a VBO date slider HTML fragment mirroring the live markup.
 
-    Each ``show`` is ``(edid, month, day, weekday, time)``.
+    Each ``show`` is ``(edid, month, day, weekday, time)``. Show boxes use the
+    current ``onclick="LoadSpinner('<edid>'); LoadEvent('<eid>','<edid>');"``
+    handler (VBO no longer leads with ``LoadEvent``).
+
+    When ``include_calendar_box`` is set, a leading "More Event Dates" calendar
+    button is prepended exactly as VBO renders it — it uses
+    ``onclick="LoadEventCalendar(...)"`` and has no DateMonth/DateDay markup, so
+    the extractor must skip it (TASK-2490 regression guard).
     """
     items = []
+    if include_calendar_box and shows:
+        cal_edid = shows[0][0]
+        items.append(f"""
+            <li>
+                <div role="tab" tabindex="0" class="DateMsg SelectorBox Black"
+                     id="edid{cal_edid}" onclick="LoadEventCalendar('39242','{cal_edid}');">
+                    <div class="EventDateSliderMorePosRel">
+                        <div class="EventDateSliderMore"> More Event Dates<br><i class="fal fa-calendar-alt"></i></div>
+                    </div>
+                </div>
+            </li>
+        """)
     for edid, month, day, weekday, time in shows:
         items.append(f"""
             <li>
                 <div role="tab" tabindex="0" class="SelectorBox Black"
-                     id="edid{edid}" onclick="LoadEvent('39242','{edid}');">
+                     id="edid{edid}" onclick="LoadSpinner('{edid}'); LoadEvent('39242','{edid}');">
                     <div class="DateMonth __edid{edid}">{month}<div></div></div>
                     <div class="DateDay __edid{edid}">{day}<div></div></div>
                     <div class="DateTime __edid{edid}">
@@ -117,6 +136,31 @@ def test_extractor_parses_multiple_shows():
     assert ("Mar", 27, "9:00 PM") in times
     assert ("Mar", 28, "7:00 PM") in times
     assert ("Mar", 28, "9:00 PM") in times
+
+
+def test_extractor_parses_full_slider_and_skips_calendar_box():
+    """A realistic ~60-box slider parses every LoadSpinner show and skips the
+    leading LoadEventCalendar 'More Event Dates' button.
+
+    Regression for TASK-2490: VBO moved show boxes off a leading LoadEvent
+    handler to LoadSpinner('<edid>'), so the old LoadEvent-anchored regex only
+    matched by spanning from the calendar box into the first show — capping
+    output at 1. The fixture mirrors the live LoadSpinner structure.
+    """
+    shows = [
+        (str(660000 + i), "Jun", str((i % 28) + 1), "Fri", "7:00 PM")
+        for i in range(60)
+    ]
+    html = _date_slider_html(*shows)
+    # Sanity: the fixture really contains the calendar button we expect to skip.
+    assert "LoadEventCalendar" in html
+
+    events = EsthersFolliesEventExtractor.extract_shows(html)
+
+    # All 60 LoadSpinner boxes parse; the calendar box (which shares the first
+    # show's edid) does not inflate the count.
+    assert len(events) == 60
+    assert [e.edid for e in events] == [s[0] for s in shows]
 
 
 def test_extractor_deduplicates_same_edid():
@@ -446,6 +490,64 @@ async def test_get_data_leaves_tiers_none_when_enrichment_fails(monkeypatch):
     assert result is not None
     assert len(result.event_list) == 1
     assert result.event_list[0].tiers is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_enrichment_concurrency_is_bounded(monkeypatch):
+    """Full-slider enrichment never exceeds the _ENRICH_CONCURRENCY cap.
+
+    Regression guard for TASK-2490: now that the extractor parses ~60 slots
+    (each costing two fetches), enrichment must fan out under a bounded
+    semaphore rather than firing all slots at once or strictly serializing.
+    """
+    import asyncio as _asyncio
+
+    from laughtrack.scrapers.implementations.venues.esthers_follies import (
+        scraper as scraper_module,
+    )
+
+    club = _club()
+    scraper = EsthersFolliesScraper(club)
+
+    shows = [(str(670000 + i), "Jun", (i % 28) + 1, "Fri", "7:00 PM") for i in range(40)]
+    slider_html = _date_slider_html(*shows)
+    guid = "70D33085-625B-41B5-9E86-8E7ED0EA8B1D"
+    svg_html = (
+        f"<script>url:'https://plugin.vbotickets.com/plugin/seatmap/getseats/"
+        f"{guid}?s={_FAKE_SESSION}&MapID=5835';</script>"
+    )
+
+    in_flight = 0
+    peak = 0
+
+    async def fake_fetch_html(url, **kwargs):
+        nonlocal in_flight, peak
+        if "loadplugin" in url:
+            return _LOADPLUGIN_HTML
+        if "load_seat_map_svg" in url:
+            in_flight += 1
+            peak = max(peak, in_flight)
+            await _asyncio.sleep(0)  # yield so overlapping tasks accumulate
+            in_flight -= 1
+            return svg_html
+        return slider_html
+
+    async def fake_fetch_json(url, **kwargs):
+        return _GETSEATS_FIXTURE
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", AsyncMock())
+
+    result = await scraper.get_data(_SCRAPING_URL)
+
+    assert result is not None
+    assert len(result.event_list) == 40
+    # Every slot got enriched...
+    assert all(ev.tiers is not None for ev in result.event_list)
+    # ...but never more than the cap ran concurrently.
+    assert peak <= scraper_module._ENRICH_CONCURRENCY
+    assert peak > 1  # confirms work actually overlapped (not strictly serial)
 
 
 @pytest.mark.asyncio
