@@ -1,8 +1,8 @@
 """Data model for a single show slot scraped from Esther's Follies (Austin, TX)."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -15,6 +15,21 @@ _MONTH_NUMS = {
     "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
     "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
 }
+
+
+@dataclass
+class SeatTier:
+    """A distinct reserved-seating price tier for an Esther's Follies show.
+
+    Derived from the VBO ``getseats`` payload by grouping seats on their
+    ``Section`` (e.g. "Tier 1"/"Tier 2"/"Tier 3"). ``price`` carries the
+    seat ``Total`` (base price + $5.75 VBO fee) — the figure the live VBO
+    seat-map legend shows the buyer, so it is the honest display price.
+    """
+
+    type: str                 # Section name, e.g. "Tier 1" — also the Ticket.type
+    price: Optional[float]    # Total incl. fee, e.g. 45.75 (None if unknown)
+    sold_out: bool = False    # True when the tier has no available (Status='A') seats
 
 
 @dataclass
@@ -41,6 +56,11 @@ class EsthersFolliesEvent(ShowConvertible):
     weekday: str  # Abbreviated weekday, e.g. "Thu"
     time: str     # Show time, e.g. "7:00 PM"
 
+    # Per-show reserved-seating price tiers, populated by the scraper's VBO
+    # seat-data enrichment step. None when enrichment was not attempted or
+    # failed — to_show() then emits a single price-unknown fallback ticket.
+    tiers: Optional[List[SeatTier]] = field(default=None)
+
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert this show slot to a Show domain object."""
         try:
@@ -63,8 +83,23 @@ class EsthersFolliesEvent(ShowConvertible):
         except Exception:
             return None
 
+        # Esther's Follies is reserved-seating: one Ticket per price tier when
+        # the scraper enriched this slot with VBO seat data, otherwise a single
+        # price-unknown fallback. purchase_url stays the stable venue tickets
+        # page — the session-scoped VBO seat-map URL is never persisted.
         ticket_url = url or _TICKET_URL
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        if self.tiers:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url,
+                    price=tier.price,
+                    ticket_type=tier.type,
+                    sold_out=tier.sold_out,
+                )
+                for tier in self.tiers
+            ]
+        else:
+            tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name="Esther's Follies",
