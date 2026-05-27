@@ -10,6 +10,7 @@ import pytest
 
 from laughtrack.core.services import image_sourcing
 from scripts.core import source_comedian_images
+from scripts.core import source_club_images
 
 
 @dataclass
@@ -411,6 +412,311 @@ def test_main_rejects_upload_from_dir_with_targeting_modes(monkeypatch, tmp_path
 
     with pytest.raises(SystemExit) as exc:
         source_comedian_images.main()
+
+    assert exc.value.code == 2
+    assert "--upload-from-dir cannot be combined" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# Club image sourcing — image_sourcing service helpers
+# ---------------------------------------------------------------------------
+
+
+def test_extract_og_image_prefers_og_over_twitter():
+    html = """
+    <head>
+      <meta name="twitter:image" content="https://example.com/twitter.png">
+      <meta property="og:image" content="https://example.com/og.png">
+    </head>
+    """
+    assert image_sourcing._extract_og_image(html) == "https://example.com/og.png"
+
+
+def test_extract_og_image_falls_back_to_twitter():
+    html = '<meta name="twitter:image" content="https://example.com/tw.jpg">'
+    assert image_sourcing._extract_og_image(html) == "https://example.com/tw.jpg"
+
+
+def test_extract_og_image_handles_content_before_property_and_entities():
+    html = '<meta content="https://example.com/a.png?x=1&amp;y=2" property="og:image" />'
+    assert image_sourcing._extract_og_image(html) == "https://example.com/a.png?x=1&y=2"
+
+
+def test_extract_og_image_returns_none_when_absent():
+    assert image_sourcing._extract_og_image("<html><body>no meta</body></html>") is None
+
+
+def test_get_og_image_url_resolves_relative_and_adds_scheme(monkeypatch):
+    captured = {}
+
+    def fake_fetch(url):
+        captured["url"] = url
+        return '<meta property="og:image" content="/img/hero.png">'
+
+    monkeypatch.setattr(image_sourcing, "_fetch_html", fake_fetch)
+
+    result = image_sourcing._get_og_image_url("comedyclub.com")
+
+    # Bare host gets an https:// scheme, and the relative og:image resolves
+    # against that page URL.
+    assert captured["url"] == "https://comedyclub.com"
+    assert result == "https://comedyclub.com/img/hero.png"
+
+
+def test_get_og_image_url_returns_none_for_blank_website():
+    assert image_sourcing._get_og_image_url("") is None
+    assert image_sourcing._get_og_image_url(None) is None
+
+
+def test_find_club_image_source_prefers_website_og_image(monkeypatch):
+    monkeypatch.setattr(image_sourcing, "_get_og_image_url", lambda website: "https://c.com/og.png")
+    # Places must not be consulted when the website yields an og:image.
+    monkeypatch.setattr(
+        image_sourcing,
+        "_get_google_places_image_url",
+        lambda query: (_ for _ in ()).throw(AssertionError("places should not be called")),
+    )
+
+    assert image_sourcing.find_club_image_source("Club", "https://c.com") == (
+        "website og:image",
+        "https://c.com/og.png",
+    )
+
+
+def test_find_club_image_source_falls_back_to_places(monkeypatch):
+    monkeypatch.setattr(image_sourcing, "_get_og_image_url", lambda website: None)
+    monkeypatch.setattr(
+        image_sourcing,
+        "_get_google_places_image_url",
+        lambda query: "https://lh3.googleusercontent.com/p.png",
+    )
+
+    assert image_sourcing.find_club_image_source(
+        "Club", "https://c.com", place_query="Club, Austin, TX"
+    ) == ("google places", "https://lh3.googleusercontent.com/p.png")
+
+
+def test_find_club_image_source_skips_places_when_disabled(monkeypatch):
+    monkeypatch.setattr(image_sourcing, "_get_og_image_url", lambda website: None)
+    monkeypatch.setattr(
+        image_sourcing,
+        "_get_google_places_image_url",
+        lambda query: (_ for _ in ()).throw(AssertionError("places should not be called")),
+    )
+
+    # use_places=False is the dry-run path: never spends paid Places quota.
+    assert image_sourcing.find_club_image_source("Club", "https://c.com", use_places=False) is None
+
+
+def test_fetch_club_image_png_downloads_and_resizes(monkeypatch):
+    monkeypatch.setattr(
+        image_sourcing,
+        "find_club_image_source",
+        lambda name, website, **kw: ("website og:image", "https://c.com/og.png"),
+    )
+    monkeypatch.setattr(image_sourcing, "_download_image", lambda url: b"raw")
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"png:" + data)
+
+    assert image_sourcing.fetch_club_image_png("Club", "https://c.com") == (b"png:raw", "website og:image")
+
+
+def test_fetch_club_image_png_returns_none_when_no_source(monkeypatch):
+    monkeypatch.setattr(image_sourcing, "find_club_image_source", lambda name, website, **kw: None)
+    assert image_sourcing.fetch_club_image_png("Club", "https://c.com") is None
+
+
+def test_upload_club_image_png_puts_to_clubs_path(monkeypatch):
+    captured: Dict[str, Any] = {}
+
+    def fake_put(url: str, **kwargs: Any) -> _FakePutResponse:
+        captured["url"] = url
+        captured["data"] = kwargs["data"]
+        return _FakePutResponse(status_code=201)
+
+    monkeypatch.setenv("BUNNYCDN_STORAGE_PASSWORD", "secret")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_ZONE", "laughtrack-images")
+    monkeypatch.setenv("BUNNYCDN_STORAGE_REGION", "ny")
+    monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"resized:" + data)
+    monkeypatch.setattr(image_sourcing.requests, "put", fake_put)
+
+    assert image_sourcing.upload_club_image_png("Comedy Cellar", b"raw-png") is True
+    assert captured["url"] == "https://ny.storage.bunnycdn.com/laughtrack-images/clubs/Comedy%20Cellar.png"
+    assert captured["data"] == b"resized:raw-png"
+
+
+def test_source_club_image_fetches_then_uploads(monkeypatch):
+    monkeypatch.setattr(
+        image_sourcing, "fetch_club_image_png", lambda name, website, **kw: (b"png", "google places")
+    )
+    captured: Dict[str, Any] = {}
+    monkeypatch.setattr(
+        image_sourcing,
+        "upload_club_image_png",
+        lambda name, data: captured.update(name=name, data=data) or True,
+    )
+
+    assert image_sourcing.source_club_image("Club", None, place_query="Club, NY") is True
+    assert captured == {"name": "Club", "data": b"png"}
+
+
+# ---------------------------------------------------------------------------
+# Club image sourcing — source_club_images.py script
+# ---------------------------------------------------------------------------
+
+
+class _FakeClubCursor:
+    def __init__(self, rows):
+        self.rows = rows
+        self.query = ""
+
+    def execute(self, query):
+        self.query = query
+
+    def fetchall(self):
+        return self.rows
+
+
+class _FakeClubConnection:
+    def __init__(self, rows):
+        self.cursor_obj = _FakeClubCursor(rows)
+
+    def cursor(self):
+        return self.cursor_obj
+
+
+def test_get_missing_image_clubs_orders_and_builds_place_query():
+    rows = [
+        ("Comedy Cellar", "https://cc.com", "New York", "NY"),
+        ("No Location Club", "https://nlc.com", None, None),
+    ]
+    conn = _FakeClubConnection(rows)
+
+    clubs = source_club_images.get_missing_image_clubs(conn, limit=5)
+
+    assert clubs[0] == {
+        "name": "Comedy Cellar",
+        "website": "https://cc.com",
+        "place_query": "Comedy Cellar, New York, NY",
+    }
+    assert clubs[1]["place_query"] == "No Location Club"
+    # Idempotency comes from the WHERE filter — only has_image=false rows.
+    assert "has_image = false" in conn.cursor_obj.query
+
+
+def test_main_dry_run_lists_clubs_and_sources_without_writing(monkeypatch, capsys):
+    rows = [
+        ("Has OG Club", "https://og.com", "Austin", "TX"),
+        ("No OG Club", "https://noog.com", None, None),
+    ]
+    monkeypatch.setattr(source_club_images, "_load_env_defaults", lambda: None)
+
+    class _Ctx:
+        def __enter__(self):
+            return _FakeClubConnection(rows)
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(source_club_images, "get_connection", lambda: _Ctx())
+
+    def fake_source(name, website, *, place_query=None, use_places=True):
+        assert use_places is False  # dry-run never probes Places
+        return ("website og:image", "https://og.com/og.png") if name == "Has OG Club" else None
+
+    monkeypatch.setattr(source_club_images, "find_club_image_source", fake_source)
+    # Guard: dry-run must not upload or flip has_image.
+    monkeypatch.setattr(
+        source_club_images,
+        "upload_club_image_png",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no upload in dry-run")),
+    )
+    monkeypatch.setattr(
+        source_club_images,
+        "_update_has_image",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no has_image flip in dry-run")),
+    )
+    monkeypatch.setattr(source_club_images.sys, "argv", ["source_club_images.py", "--dry-run"])
+
+    source_club_images.main()
+
+    out = capsys.readouterr().out
+    assert "Found 2 clubs with has_image=false" in out
+    assert "Has OG Club — website og:image" in out
+    assert "No OG Club — google places (fallback — not probed in dry-run)" in out
+
+
+def test_main_review_dir_saves_files_without_cdn_or_flag_flip(monkeypatch, tmp_path, capsys):
+    rows = [("Comedy Cellar", "https://cc.com", "New York", "NY")]
+    review_dir = tmp_path / "club-images"
+    monkeypatch.setattr(source_club_images, "_load_env_defaults", lambda: None)
+
+    class _Ctx:
+        def __enter__(self):
+            return _FakeClubConnection(rows)
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(source_club_images, "get_connection", lambda: _Ctx())
+    monkeypatch.setattr(
+        source_club_images,
+        "fetch_club_image_png",
+        lambda name, website, **kw: (b"png-bytes", "website og:image"),
+    )
+    # Guards: review mode must never touch the CDN or the has_image column.
+    monkeypatch.setattr(
+        source_club_images,
+        "upload_club_image_png",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no CDN upload in review mode")),
+    )
+    monkeypatch.setattr(
+        source_club_images,
+        "_update_has_image",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no has_image flip in review mode")),
+    )
+    monkeypatch.setattr(
+        source_club_images.sys,
+        "argv",
+        ["source_club_images.py", "--review-dir", str(review_dir)],
+    )
+
+    source_club_images.main()
+
+    saved = review_dir / "Comedy Cellar.png"
+    assert saved.read_bytes() == b"png-bytes"
+    out = capsys.readouterr().out
+    assert "CDN upload skipped, has_image not flipped" in out
+
+
+def test_source_to_review_dir_skips_unsafe_name(tmp_path):
+    review_dir = tmp_path / "out"
+    review_dir.mkdir()
+    club = {"name": "../escape", "website": "https://x.com", "place_query": "x"}
+
+    ok, label = source_club_images._source_to_review_dir(club, review_dir)
+
+    assert ok is False
+    assert list(review_dir.iterdir()) == []
+
+
+def test_main_rejects_upload_from_dir_with_review_dir(monkeypatch, tmp_path, capsys):
+    upload_dir = tmp_path / "reviewed"
+    upload_dir.mkdir()
+    monkeypatch.setattr(source_club_images, "_load_env_defaults", lambda: None)
+    monkeypatch.setattr(
+        source_club_images.sys,
+        "argv",
+        [
+            "source_club_images.py",
+            "--upload-from-dir",
+            str(upload_dir),
+            "--review-dir",
+            str(tmp_path / "review"),
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        source_club_images.main()
 
     assert exc.value.code == 2
     assert "--upload-from-dir cannot be combined" in capsys.readouterr().err
