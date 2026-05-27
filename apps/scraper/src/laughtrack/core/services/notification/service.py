@@ -22,6 +22,7 @@ SELECT
     u.email       AS user_email,
     u.name        AS user_name,
     up.zip_code   AS user_zip,
+    up.nearby_distance_miles,
     c.uuid        AS comedian_uuid,
     c.name        AS comedian_name,
     s.id          AS show_id,
@@ -164,7 +165,10 @@ class ComedianArrivalNotificationService:
 
     def run(self, radius_miles: float = 50.0, days_ahead: int = 30) -> Dict[str, int]:
         """
-        Query candidates and send emails for all matches within radius.
+        Query candidates and send emails for matches within each user's radius.
+
+        radius_miles is the fallback radius for profiles without a stored
+        nearby_distance_miles preference.
 
         Returns a summary dict: {"candidates": N, "distance_filtered": N, "emails_sent": N, "errors": N}
         """
@@ -187,6 +191,7 @@ class ComedianArrivalNotificationService:
             user_email = row["user_email"]
             user_name = row["user_name"] or ""
             user_zip = row["user_zip"] or ""
+            effective_radius_miles = self._effective_radius_miles(row, radius_miles)
             comedian_uuid = row["comedian_uuid"]
             comedian_name = row["comedian_name"]
             show_id = row["show_id"]
@@ -207,10 +212,11 @@ class ComedianArrivalNotificationService:
                 summary["distance_filtered"] += 1
                 continue
 
-            if distance > radius_miles:
+            if distance > effective_radius_miles:
                 Logger.info(
                     f"ComedianArrivalNotificationService: skipping user={user_id} show={show_id} "
-                    f"comedian={comedian_name!r} — distance {distance:.1f} miles exceeds radius {radius_miles} miles"
+                    f"comedian={comedian_name!r} — distance {distance:.1f} miles exceeds radius "
+                    f"{effective_radius_miles} miles"
                 )
                 summary["distance_filtered"] += 1
                 continue
@@ -250,7 +256,8 @@ class ComedianArrivalNotificationService:
 
             Logger.info(
                 f"ComedianArrivalNotificationService: sent notification to user={user_id} "
-                f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles"
+                f"comedian={comedian_name!r} show={show_id} distance={distance:.1f} miles "
+                f"radius={effective_radius_miles} miles"
             )
             summary["emails_sent"] += 1
 
@@ -260,6 +267,12 @@ class ComedianArrivalNotificationService:
             f"emails_sent={summary['emails_sent']} errors={summary['errors']}"
         )
         return summary
+
+    def _effective_radius_miles(self, row: dict, fallback_radius_miles: float) -> float:
+        profile_radius = row.get("nearby_distance_miles")
+        if profile_radius is None:
+            return fallback_radius_miles
+        return float(profile_radius)
 
     def _fetch_candidates(self, days_ahead: int) -> list:
         """Fetch all candidate rows from the DB."""

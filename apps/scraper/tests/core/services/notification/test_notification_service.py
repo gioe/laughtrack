@@ -20,6 +20,7 @@ def _make_row(
     user_email: str = "user@example.com",
     user_name: str = "Test User",
     user_zip: str = "10001",
+    nearby_distance_miles: int | None = None,
     comedian_uuid: str = "comedian-uuid-1",
     comedian_name: str = "Funny Person",
     show_id: int = 42,
@@ -38,6 +39,7 @@ def _make_row(
         "user_email": user_email,
         "user_name": user_name,
         "user_zip": user_zip,
+        "nearby_distance_miles": nearby_distance_miles,
         "comedian_uuid": comedian_uuid,
         "comedian_name": comedian_name,
         "show_id": show_id,
@@ -106,6 +108,27 @@ class TestRunSkipsIfOutsideRadius:
 
         mock_zip = MagicMock()
         mock_zip.distance_miles.return_value = 2800.0  # way outside 50 miles
+
+        service = ComedianArrivalNotificationService(zip_distance=mock_zip)
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch(
+                "laughtrack.core.services.notification.service.EmailService"
+            ) as MockEmail:
+                with patch.object(service, "_record_notification") as mock_record:
+                    summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        assert summary["emails_sent"] == 0
+        assert summary["distance_filtered"] == 1
+        assert summary["errors"] == 0
+        MockEmail.send_email.assert_not_called()
+        mock_record.assert_not_called()
+
+    def test_uses_profile_radius_when_smaller_than_job_default(self):
+        row = _make_row(nearby_distance_miles=25)
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 40.0
 
         service = ComedianArrivalNotificationService(zip_distance=mock_zip)
 
