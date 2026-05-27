@@ -44,7 +44,6 @@ import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 
-const mockDb = vi.mocked(db);
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockCheckRateLimit = vi.mocked(checkRateLimit);
 const mockRequireAdminForApi = vi.mocked(requireAdminForApi);
