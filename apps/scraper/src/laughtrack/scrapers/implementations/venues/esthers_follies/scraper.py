@@ -30,16 +30,25 @@ import re
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.esthers_follies import EsthersFolliesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import EsthersFolliesPageData
 from .extractor import EsthersFolliesEventExtractor
+from .seat_pricing import (
+    extract_eventdateid_guid,
+    getseats_url,
+    parse_seat_tiers,
+    seat_map_svg_url,
+)
 from .transformer import EsthersFolliesEventTransformer
 
 # VBO Tickets configuration for Esther's Follies
 _SITE_ID = "5D695E7C-1246-4F54-BF57-B1D92D1E6B83"
 _EID = "39242"
+# Esther's Follies has a single fixed seat map (plugin/seatmap/getseatmaps).
+_MAP_ID = "5835"
 
 _VBO_LOADPLUGIN_URL = (
     f"https://plugin.vbotickets.com/plugin/loadplugin"
@@ -146,4 +155,55 @@ class EsthersFolliesScraper(BaseScraper):
             f"{self._log_prefix}: {len(events)} upcoming show slots",
             self.logger_context,
         )
+
+        # Step 4: enrich each slot with reserved-seating price tiers (best-effort)
+        await self._enrich_events_with_tiers(events, session)
+
         return EsthersFolliesPageData(event_list=events)
+
+    async def _enrich_events_with_tiers(
+        self, events: List[EsthersFolliesEvent], session: str
+    ) -> None:
+        """Populate each event's price tiers from VBO seat data (best-effort).
+
+        For every show slot: fetch the seat-map SVG to resolve the per-show
+        eventDateId GUID, then fetch the getseats JSON and derive price tiers.
+        Failures are logged and left as ``tiers=None`` so ``to_show()`` falls
+        back to a single price-unknown ticket — one bad slot never aborts the
+        run. The session-scoped GUID is used transiently and never persisted.
+        """
+        enriched = 0
+        for event in events:
+            try:
+                svg = await self.fetch_html(
+                    seat_map_svg_url(_EID, event.edid, _MAP_ID, session)
+                )
+                guid = extract_eventdateid_guid(svg)
+                if not guid:
+                    Logger.warn(
+                        f"{self._log_prefix}: no eventDateId GUID in seat map for edid {event.edid}",
+                        self.logger_context,
+                    )
+                    continue
+
+                payload = await self.fetch_json(getseats_url(guid, _MAP_ID, session))
+                tiers = parse_seat_tiers(payload)
+                if not tiers:
+                    Logger.warn(
+                        f"{self._log_prefix}: no price tiers parsed for edid {event.edid}",
+                        self.logger_context,
+                    )
+                    continue
+
+                event.tiers = tiers
+                enriched += 1
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: seat enrichment failed for edid {event.edid}: {e}",
+                    self.logger_context,
+                )
+
+        Logger.info(
+            f"{self._log_prefix}: enriched {enriched}/{len(events)} slots with seat-tier prices",
+            self.logger_context,
+        )
