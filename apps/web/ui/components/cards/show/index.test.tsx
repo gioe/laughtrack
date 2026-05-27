@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowCard from "./index";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 vi.mock("next/link", () => ({
     default: ({
@@ -65,8 +66,13 @@ vi.mock("@/ui/components/lineup", () => ({
     default: () => <div data-testid="lineup-grid" />,
 }));
 
+vi.mock("@/util/ticketClickTracking", () => ({
+    trackTicketClick: vi.fn(() => Promise.resolve()),
+}));
+
 afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
 });
 
 const baseShow: ShowDTO = {
@@ -183,5 +189,37 @@ describe("ShowCard", () => {
             screen.getByRole("dialog", { name: "Price unavailable" })
                 .textContent,
         ).toContain("The venue has not made this ticket price available yet.");
+    });
+
+    it("records card ticket clicks without blocking the outbound link", () => {
+        render(
+            <ShowCard
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 30,
+                            purchaseUrl: "https://tickets.example.com",
+                            type: "General Admission",
+                            soldOut: false,
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        const link = screen.getByRole("link", {
+            name: /get tickets for late show/i,
+        });
+        link.addEventListener("click", (event) => event.preventDefault());
+        fireEvent.click(link);
+
+        expect(link.getAttribute("href")).toBe("https://tickets.example.com");
+        expect(trackTicketClick).toHaveBeenCalledWith({
+            showId: 42,
+            clubId: 24,
+            destinationUrl: "https://tickets.example.com",
+            sourceSurface: "show_card",
+        });
     });
 });

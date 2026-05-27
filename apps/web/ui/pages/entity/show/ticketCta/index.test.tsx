@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ShowTicketCta from "./index";
 import type { ShowDetailDTO } from "@/lib/data/show/detail/interface";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 vi.mock("next/link", () => ({
     default: ({
@@ -28,6 +29,10 @@ vi.mock("@/hooks", () => ({
     useDialogKeyboard: () => {},
 }));
 
+vi.mock("@/util/ticketClickTracking", () => ({
+    trackTicketClick: vi.fn(() => Promise.resolve()),
+}));
+
 const baseShow: ShowDetailDTO = {
     id: 42,
     clubId: 24,
@@ -44,6 +49,7 @@ const baseShow: ShowDetailDTO = {
 
 afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
 });
 
 describe("ShowTicketCta", () => {
@@ -81,5 +87,38 @@ describe("ShowTicketCta", () => {
             screen.getByRole("dialog", { name: "Price unavailable" })
                 .textContent,
         ).toContain("The venue has not made this ticket price available yet.");
+    });
+
+    it("records detail CTA ticket clicks without preventing the outbound link", () => {
+        render(
+            <ShowTicketCta
+                isPast={false}
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 24,
+                            purchaseUrl: "https://example.com/tickets",
+                            soldOut: false,
+                            type: "General admission",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        const link = screen.getByRole("link", {
+            name: /get tickets for late show/i,
+        });
+        link.addEventListener("click", (event) => event.preventDefault());
+        fireEvent.click(link);
+
+        expect(link.getAttribute("href")).toBe("https://example.com/tickets");
+        expect(trackTicketClick).toHaveBeenCalledWith({
+            showId: 42,
+            clubId: 24,
+            destinationUrl: "https://example.com/tickets",
+            sourceSurface: "show_detail",
+        });
     });
 });

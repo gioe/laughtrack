@@ -14,6 +14,7 @@ import EntityCard from "../entity";
 import { formatShowDate } from "@/util/dateUtil";
 import { hasUnknownAvailableTicketPrice } from "@/util/ticket/ticketUtil";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -207,6 +208,16 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     aria-label={ticketLabel}
+                                                    onClick={() => {
+                                                        void trackTicketClick({
+                                                            showId: show.id,
+                                                            clubId: show.clubId,
+                                                            destinationUrl:
+                                                                purchaseUrl,
+                                                            sourceSurface:
+                                                                "show_card",
+                                                        });
+                                                    }}
                                                 >
                                                     Get Tickets
                                                 </Link>

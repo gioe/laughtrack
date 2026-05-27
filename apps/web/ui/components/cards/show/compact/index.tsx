@@ -12,6 +12,7 @@ import {
 } from "@/util/ticket/ticketUtil";
 import EntityCard from "../../entity";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -151,6 +152,14 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={ticketAriaLabel}
+                                    onClick={() => {
+                                        void trackTicketClick({
+                                            showId: show.id,
+                                            clubId: show.clubId,
+                                            destinationUrl: buyUrl,
+                                            sourceSurface: "compact_show_card",
+                                        });
+                                    }}
                                     className="inline-block text-caption font-semibold text-copper-bright font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                                 >
                                     {ticketLabel || "Get Tickets"}

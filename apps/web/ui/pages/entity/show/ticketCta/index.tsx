@@ -10,6 +10,7 @@ import { Ticket } from "@/objects/class/ticket/Ticket";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
 import { Button } from "@/ui/components/ui/button";
 import PriceUnavailableInfo from "@/ui/components/tickets/PriceUnavailableInfo";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 interface ShowTicketCtaProps {
     show: ShowDetailDTO;
@@ -74,6 +75,14 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={ctaLabel}
+                        onClick={() => {
+                            void trackTicketClick({
+                                showId: show.id,
+                                clubId: show.clubId,
+                                destinationUrl: url,
+                                sourceSurface: "show_detail",
+                            });
+                        }}
                     >
                         Get Tickets
                         {priceLabel && (

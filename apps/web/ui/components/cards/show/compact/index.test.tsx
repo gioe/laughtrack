@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import CompactShowCard from "./index";
 import type { ShowDTO } from "@/objects/class/show/show.interface";
+import { trackTicketClick } from "@/util/ticketClickTracking";
 
 vi.mock("next/link", () => ({
     default: ({
@@ -45,6 +46,10 @@ vi.mock("@/hooks", () => ({
     useDialogKeyboard: () => {},
 }));
 
+vi.mock("@/util/ticketClickTracking", () => ({
+    trackTicketClick: vi.fn(() => Promise.resolve()),
+}));
+
 const baseShow: ShowDTO = {
     id: 42,
     clubId: 24,
@@ -75,6 +80,7 @@ const baseShow: ShowDTO = {
 
 afterEach(() => {
     cleanup();
+    vi.clearAllMocks();
 });
 
 describe("CompactShowCard", () => {
@@ -131,5 +137,23 @@ describe("CompactShowCard", () => {
             screen.getByRole("dialog", { name: "Price unavailable" })
                 .textContent,
         ).toContain("The venue has not made this ticket price available yet.");
+    });
+
+    it("records compact-card ticket clicks without blocking the outbound link", () => {
+        render(<CompactShowCard show={baseShow} />);
+
+        const link = screen.getByRole("link", {
+            name: /get tickets for late show/i,
+        });
+        link.addEventListener("click", (event) => event.preventDefault());
+        fireEvent.click(link);
+
+        expect(link.getAttribute("href")).toBe("https://example.com/tickets");
+        expect(trackTicketClick).toHaveBeenCalledWith({
+            showId: 42,
+            clubId: 24,
+            destinationUrl: "https://example.com/tickets",
+            sourceSurface: "compact_show_card",
+        });
     });
 });
