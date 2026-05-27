@@ -26,6 +26,7 @@ Pipeline:
   3. transformation_pipeline   → EsthersFolliesEvent.to_show() → Show objects
 """
 
+import asyncio
 import re
 from typing import List, Optional
 
@@ -49,6 +50,11 @@ _SITE_ID = "5D695E7C-1246-4F54-BF57-B1D92D1E6B83"
 _EID = "39242"
 # Esther's Follies has a single fixed seat map (plugin/seatmap/getseatmaps).
 _MAP_ID = "5835"
+# Max concurrent slots being seat-enriched at once. Each slot fires two
+# serialized fetches (SVG + getseats); with the full ~60-slot slider this caps
+# fan-out so the scrape stays bounded and polite to VBO instead of opening 60
+# simultaneous connections.
+_ENRICH_CONCURRENCY = 5
 
 _VBO_LOADPLUGIN_URL = (
     f"https://plugin.vbotickets.com/plugin/loadplugin"
@@ -171,37 +177,49 @@ class EsthersFolliesScraper(BaseScraper):
         Failures are logged and left as ``tiers=None`` so ``to_show()`` falls
         back to a single price-unknown ticket — one bad slot never aborts the
         run. The session-scoped GUID is used transiently and never persisted.
+
+        Each slot costs two serialized fetches (SVG + getseats). With the full
+        date slider (~60 slots) that is ~120 requests, so we cap fan-out with a
+        small semaphore rather than awaiting each slot strictly in series or
+        firing all 60 at once. The cap keeps the full-coverage scrape bounded
+        and polite to VBO while still overlapping I/O.
         """
-        enriched = 0
-        for event in events:
-            try:
-                svg = await self.fetch_html(
-                    seat_map_svg_url(_EID, event.edid, _MAP_ID, session)
-                )
-                guid = extract_eventdateid_guid(svg)
-                if not guid:
+        semaphore = asyncio.Semaphore(_ENRICH_CONCURRENCY)
+
+        async def _enrich_one(event: EsthersFolliesEvent) -> bool:
+            async with semaphore:
+                try:
+                    svg = await self.fetch_html(
+                        seat_map_svg_url(_EID, event.edid, _MAP_ID, session)
+                    )
+                    guid = extract_eventdateid_guid(svg)
+                    if not guid:
+                        Logger.warn(
+                            f"{self._log_prefix}: no eventDateId GUID in seat map for edid {event.edid}",
+                            self.logger_context,
+                        )
+                        return False
+
+                    payload = await self.fetch_json(getseats_url(guid, _MAP_ID, session))
+                    tiers = parse_seat_tiers(payload)
+                    if not tiers:
+                        Logger.warn(
+                            f"{self._log_prefix}: no price tiers parsed for edid {event.edid}",
+                            self.logger_context,
+                        )
+                        return False
+
+                    event.tiers = tiers
+                    return True
+                except Exception as e:
                     Logger.warn(
-                        f"{self._log_prefix}: no eventDateId GUID in seat map for edid {event.edid}",
+                        f"{self._log_prefix}: seat enrichment failed for edid {event.edid}: {e}",
                         self.logger_context,
                     )
-                    continue
+                    return False
 
-                payload = await self.fetch_json(getseats_url(guid, _MAP_ID, session))
-                tiers = parse_seat_tiers(payload)
-                if not tiers:
-                    Logger.warn(
-                        f"{self._log_prefix}: no price tiers parsed for edid {event.edid}",
-                        self.logger_context,
-                    )
-                    continue
-
-                event.tiers = tiers
-                enriched += 1
-            except Exception as e:
-                Logger.warn(
-                    f"{self._log_prefix}: seat enrichment failed for edid {event.edid}: {e}",
-                    self.logger_context,
-                )
+        results = await asyncio.gather(*(_enrich_one(ev) for ev in events))
+        enriched = sum(1 for ok in results if ok)
 
         Logger.info(
             f"{self._log_prefix}: enriched {enriched}/{len(events)} slots with seat-tier prices",
