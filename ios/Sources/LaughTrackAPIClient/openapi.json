@@ -2653,11 +2653,12 @@
       },
       "ClubDetail": {
         "type": "object",
-        "required": ["id", "name", "imageUrl", "website", "address"],
+        "required": ["id", "name", "imageUrl", "heroImageUrl", "website", "address"],
         "properties": {
           "id": { "type": "integer" },
           "name": { "type": "string" },
           "imageUrl": { "type": "string" },
+          "heroImageUrl": { "type": "string" },
           "website": { "type": "string" },
           "address": { "type": "string" },
           "zipCode": { "type": ["string", "null"] },
