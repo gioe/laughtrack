@@ -16,12 +16,13 @@ import os
 import re
 import time
 import urllib.parse
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 import requests
 from PIL import Image
 
-from laughtrack.core.clients.google.places import GooglePlacesClient
+from laughtrack.core.clients.google.places import GooglePlacesClient, PlacesPhotoResult
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 # Wikidata SPARQL endpoint
@@ -518,11 +519,28 @@ def _get_og_image_url(website: Optional[str]) -> Optional[str]:
     return image_url
 
 
-def _get_google_places_image_url(query: str) -> Optional[str]:
-    """Resolve a venue photo URL via the shared Google Places client."""
+def _get_google_places_photo(query: str) -> Optional[PlacesPhotoResult]:
+    """Resolve a venue photo (URL + place_id + attribution) via the shared client."""
     if not query or not query.strip():
         return None
-    return _get_places_client().fetch_photo_url(query)
+    return _get_places_client().fetch_photo(query)
+
+
+@dataclass
+class ClubImageCandidate:
+    """A sourced club image plus the provenance needed to persist it.
+
+    ``place_id`` and ``attributions`` are populated only for Google Places
+    candidates — a website og:image carries neither. They feed
+    ``clubs.google_place_id`` / ``clubs.google_place_attribution`` so the venue
+    identity and the photo's required author attributions travel with the club
+    once the image is published.
+    """
+
+    source_label: str
+    image_url: str
+    place_id: Optional[str] = None
+    attributions: List[Dict[str, str]] = field(default_factory=list)
 
 
 def find_club_image_source(
@@ -531,21 +549,26 @@ def find_club_image_source(
     *,
     place_query: Optional[str] = None,
     use_places: bool = True,
-) -> Optional[tuple[str, str]]:
+) -> Optional[ClubImageCandidate]:
     """Resolve the best image candidate for a club.
 
     Tries the club website's og:image first, then a Google Places venue photo.
-    Returns ``(source_label, image_url)`` for the first source that yields a
+    Returns a :class:`ClubImageCandidate` for the first source that yields a
     candidate, or ``None``. ``use_places=False`` reports only the website
     result — used by dry-run so a listing pass never spends paid Places quota.
     """
     og_url = _get_og_image_url(website)
     if og_url:
-        return ("website og:image", og_url)
+        return ClubImageCandidate(source_label="website og:image", image_url=og_url)
     if use_places:
-        places_url = _get_google_places_image_url(place_query or club_name)
-        if places_url:
-            return ("google places", places_url)
+        photo = _get_google_places_photo(place_query or club_name)
+        if photo:
+            return ClubImageCandidate(
+                source_label="google places",
+                image_url=photo.photo_uri,
+                place_id=photo.place_id,
+                attributions=photo.attributions,
+            )
     return None
 
 
@@ -554,24 +577,24 @@ def fetch_club_image_png(
     website: Optional[str],
     *,
     place_query: Optional[str] = None,
-) -> Optional[tuple[bytes, str]]:
+) -> Optional[tuple[bytes, "ClubImageCandidate"]]:
     """Fetch and resize a club image without uploading.
 
-    Returns ``(png_bytes, source_label)`` or ``None``. Splitting fetch from
-    upload lets callers stage images locally for human review before
+    Returns ``(png_bytes, candidate)`` or ``None``, where ``candidate`` carries
+    the source label plus any Google Places place_id/attribution. Splitting
+    fetch from upload lets callers stage images locally for human review before
     publishing them to the CDN.
     """
-    source = find_club_image_source(club_name, website, place_query=place_query)
-    if source is None:
+    candidate = find_club_image_source(club_name, website, place_query=place_query)
+    if candidate is None:
         return None
-    label, image_url = source
 
-    raw_data = _download_image(image_url)
+    raw_data = _download_image(candidate.image_url)
     if not raw_data:
         return None
 
     try:
-        return (_resize_image(raw_data), label)
+        return (_resize_image(raw_data), candidate)
     except Exception as e:
         Logger.warn(f"image_sourcing: resize failed for club '{club_name}': {e}")
         return None
@@ -614,5 +637,5 @@ def source_club_image(
     result = fetch_club_image_png(club_name, website, place_query=place_query)
     if result is None:
         return False
-    png_data, _label = result
+    png_data, _candidate = result
     return upload_club_image_png(club_name, png_data)

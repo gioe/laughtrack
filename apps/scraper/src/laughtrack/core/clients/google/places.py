@@ -78,6 +78,48 @@ class PlacesHoursResult:
     hours: Optional[Dict[str, str]]
 
 
+@dataclass
+class PlacesPhotoResult:
+    """Outcome of one ``fetch_photo`` call.
+
+    ``photo_uri`` is the key-free, directly-downloadable image URL (the same
+    value ``fetch_photo_url`` returns). ``place_id`` is the resolved Places
+    identifier for the venue — callers persist it on ``clubs.google_place_id``
+    so the venue can be re-queried without re-resolving. ``attributions`` is
+    the list of author attributions Google requires to be displayed alongside
+    the photo; each entry is a ``{"displayName", "uri", "photoUri"}`` dict of
+    string values (empty list when the API provided none).
+    """
+
+    photo_uri: str
+    place_id: Optional[str]
+    attributions: List[Dict[str, str]]
+
+
+def _normalize_attributions(raw: Any) -> List[Dict[str, str]]:
+    """Reduce Places ``authorAttributions`` to JSON-serializable string triples.
+
+    Keeps only ``displayName`` / ``uri`` / ``photoUri`` entries whose values are
+    non-empty strings, dropping anything else, so the result can be stored
+    directly in the ``clubs.google_place_attribution`` JSONB column. Non-list
+    input (or a missing field) yields ``[]``.
+    """
+    if not isinstance(raw, list):
+        return []
+    out: List[Dict[str, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        entry = {
+            key: item[key]
+            for key in ("displayName", "uri", "photoUri")
+            if isinstance(item.get(key), str) and item.get(key)
+        }
+        if entry:
+            out.append(entry)
+    return out
+
+
 def _normalize_ws(text: str) -> str:
     """Collapse thin / narrow-nbsp / regular nbsp into plain spaces and strip."""
     return (
@@ -321,15 +363,20 @@ class GooglePlacesClient:
                 descriptions = [d for d in raw_descs if isinstance(d, str)]
         return PlacesHoursResult(place_id=place_id, hours=parse_weekday_descriptions(descriptions))
 
-    def fetch_photo_url(self, query: str, max_width_px: int = 500) -> Optional[str]:
-        """Resolve a venue photo for ``query`` to a directly-downloadable URL.
+    def fetch_photo(
+        self, query: str, max_width_px: int = 500
+    ) -> Optional[PlacesPhotoResult]:
+        """Resolve a venue photo for ``query`` plus its place_id and attribution.
 
         Two requests under the daily cap: a ``places:searchText`` to find the
-        top match's first photo reference, then a photo ``media`` call with
-        ``skipHttpRedirect=true`` so Google returns a JSON ``photoUri`` (a
-        short-lived, key-free ``lh3.googleusercontent.com`` URL) instead of
-        the raw bytes. Returning the key-free ``photoUri`` keeps the API key
-        out of the caller's download path and logs.
+        top match's place_id, first photo reference, and required author
+        attributions, then a photo ``media`` call with ``skipHttpRedirect=true``
+        so Google returns a JSON ``photoUri`` (a short-lived, key-free
+        ``lh3.googleusercontent.com`` URL) instead of the raw bytes. The
+        key-free ``photoUri`` keeps the API key out of the caller's download
+        path and logs; ``place_id`` and ``attributions`` are returned so callers
+        can persist them (``clubs.google_place_id`` /
+        ``clubs.google_place_attribution``).
 
         Returns ``None`` on missing key, blank query, quota breach, any HTTP
         or network error, no match, or a match with no photos.
@@ -378,29 +425,54 @@ class GooglePlacesClient:
             Logger.warn(f"[places] bad JSON on photo query '{query}': {exc}")
             return None
 
-        photo_name = self._first_photo_name(data)
+        place_id, photo_name, attributions = self._extract_photo_fields(data)
         if not photo_name:
             return None
 
-        return self._resolve_photo_uri(photo_name, max_width_px, query)
+        photo_uri = self._resolve_photo_uri(photo_name, max_width_px, query)
+        if not photo_uri:
+            return None
+        return PlacesPhotoResult(
+            photo_uri=photo_uri, place_id=place_id, attributions=attributions
+        )
+
+    def fetch_photo_url(self, query: str, max_width_px: int = 500) -> Optional[str]:
+        """Resolve a venue photo for ``query`` to a directly-downloadable URL.
+
+        Thin wrapper over :meth:`fetch_photo` that returns only the key-free
+        ``photoUri``. Prefer :meth:`fetch_photo` when the resolved ``place_id``
+        or the photo's required attribution must be persisted.
+        """
+        result = self.fetch_photo(query, max_width_px)
+        return result.photo_uri if result else None
 
     @staticmethod
-    def _first_photo_name(data: Any) -> Optional[str]:
-        """Pull ``places[0].photos[0].name`` out of a searchText response."""
+    def _extract_photo_fields(
+        data: Any,
+    ) -> tuple[Optional[str], Optional[str], List[Dict[str, str]]]:
+        """Pull (place_id, first photo name, author attributions) from a search.
+
+        ``place_id`` may be present even when the match carries no photos (then
+        ``photo_name`` is ``None``). Attributions are normalized to
+        JSON-serializable string triples and default to ``[]``.
+        """
         places = data.get("places") if isinstance(data, dict) else None
         if not isinstance(places, list) or not places:
-            return None
+            return None, None, []
         top = places[0]
         if not isinstance(top, dict):
-            return None
+            return None, None, []
+        place_id = top.get("id") if isinstance(top.get("id"), str) else None
         photos = top.get("photos")
         if not isinstance(photos, list) or not photos:
-            return None
+            return place_id, None, []
         first = photos[0]
         if not isinstance(first, dict):
-            return None
+            return place_id, None, []
         name = first.get("name")
-        return name if isinstance(name, str) and name else None
+        photo_name = name if isinstance(name, str) and name else None
+        attributions = _normalize_attributions(first.get("authorAttributions"))
+        return place_id, photo_name, attributions
 
     def _resolve_photo_uri(
         self, photo_name: str, max_width_px: int, query: str

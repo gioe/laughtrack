@@ -24,6 +24,7 @@ Usage:
 """
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -271,11 +272,11 @@ def _print_dry_run(clubs):
     listing pass.
     """
     for club in clubs:
-        source = find_club_image_source(
+        candidate = find_club_image_source(
             club["name"], club["website"], place_query=club["place_query"], use_places=False
         )
-        if source is not None:
-            label = source[0]
+        if candidate is not None:
+            label = candidate.source_label
         else:
             label = "google places (fallback — not probed in dry-run)"
         print(f"  {club['name']} — {label}")
@@ -293,9 +294,10 @@ def _source_to_review_dir(club, review_dir: Path):
     result = fetch_club_image_png(name, club["website"], place_query=club["place_query"])
     if result is None:
         return (False, "")
-    png, label = result
+    png, candidate = result
     (review_dir / f"{name}.png").write_bytes(png)
-    return (True, label)
+    _persist_places_provenance(name, candidate)
+    return (True, candidate.source_label)
 
 
 def _source_to_cdn(club):
@@ -304,8 +306,11 @@ def _source_to_cdn(club):
     result = fetch_club_image_png(name, club["website"], place_query=club["place_query"])
     if result is None:
         return (False, "")
-    png, label = result
-    return (upload_club_image_png(name, png), label)
+    png, candidate = result
+    ok = upload_club_image_png(name, png)
+    if ok:
+        _persist_places_provenance(name, candidate)
+    return (ok, candidate.source_label)
 
 
 def _run_upload_from_dir(upload_dir: Path, dry_run: bool):
@@ -382,6 +387,30 @@ def _reject_unsafe_name(name: str, source: str) -> None:
     if "/" in name or "\\" in name or ".." in name or "\x00" in name or name.startswith("."):
         print(f"Error: unsafe club name from {source}: {name!r}", file=sys.stderr)
         sys.exit(2)
+
+
+def _persist_places_provenance(name, candidate):
+    """Persist a Google Places candidate's place_id + attribution onto a club.
+
+    No-op for website og:image candidates (no place_id, no attribution). Stores
+    the required author attributions as JSONB so they travel with the venue for
+    downstream display. Matches the club by unique name, mirroring
+    ``_update_has_image``.
+    """
+    if candidate.place_id is None and not candidate.attributions:
+        return
+    with get_transaction() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE clubs SET google_place_id = %s, "
+                "google_place_attribution = %s::jsonb WHERE name = %s",
+                (candidate.place_id, json.dumps(candidate.attributions), name),
+            )
+            rowcount = cur.rowcount
+    Logger.info(
+        f"source_club_images: stored Google Places provenance for {rowcount} club(s) "
+        f"(place_id={candidate.place_id!r})"
+    )
 
 
 def _update_has_image(names):

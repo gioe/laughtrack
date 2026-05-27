@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -547,34 +548,52 @@ def test_find_club_image_source_prefers_website_og_image(monkeypatch):
     # Places must not be consulted when the website yields an og:image.
     monkeypatch.setattr(
         image_sourcing,
-        "_get_google_places_image_url",
+        "_get_google_places_photo",
         lambda query: (_ for _ in ()).throw(AssertionError("places should not be called")),
     )
 
-    assert image_sourcing.find_club_image_source("Club", "https://c.com") == (
-        "website og:image",
-        "https://c.com/og.png",
+    candidate = image_sourcing.find_club_image_source("Club", "https://c.com")
+    assert candidate == image_sourcing.ClubImageCandidate(
+        source_label="website og:image", image_url="https://c.com/og.png"
     )
+    # A website og:image carries no Places provenance.
+    assert candidate.place_id is None
+    assert candidate.attributions == []
 
 
 def test_find_club_image_source_falls_back_to_places(monkeypatch):
     monkeypatch.setattr(image_sourcing, "_get_og_image_url", lambda website: None)
-    monkeypatch.setattr(
-        image_sourcing,
-        "_get_google_places_image_url",
-        lambda query: "https://lh3.googleusercontent.com/p.png",
-    )
+    captured: Dict[str, Any] = {}
 
-    assert image_sourcing.find_club_image_source(
+    def fake_photo(query):
+        captured["query"] = query
+        return image_sourcing.PlacesPhotoResult(
+            photo_uri="https://lh3.googleusercontent.com/p.png",
+            place_id="ChIJplace",
+            attributions=[{"displayName": "Jane D", "uri": "https://maps.google.com/jane"}],
+        )
+
+    monkeypatch.setattr(image_sourcing, "_get_google_places_photo", fake_photo)
+
+    candidate = image_sourcing.find_club_image_source(
         "Club", "https://c.com", place_query="Club, Austin, TX"
-    ) == ("google places", "https://lh3.googleusercontent.com/p.png")
+    )
+    # place_id + attribution come through so the sourcer can persist them.
+    assert candidate == image_sourcing.ClubImageCandidate(
+        source_label="google places",
+        image_url="https://lh3.googleusercontent.com/p.png",
+        place_id="ChIJplace",
+        attributions=[{"displayName": "Jane D", "uri": "https://maps.google.com/jane"}],
+    )
+    # The disambiguated place_query (not the bare club name) is what Places sees.
+    assert captured["query"] == "Club, Austin, TX"
 
 
 def test_find_club_image_source_skips_places_when_disabled(monkeypatch):
     monkeypatch.setattr(image_sourcing, "_get_og_image_url", lambda website: None)
     monkeypatch.setattr(
         image_sourcing,
-        "_get_google_places_image_url",
+        "_get_google_places_photo",
         lambda query: (_ for _ in ()).throw(AssertionError("places should not be called")),
     )
 
@@ -583,15 +602,19 @@ def test_find_club_image_source_skips_places_when_disabled(monkeypatch):
 
 
 def test_fetch_club_image_png_downloads_and_resizes(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="website og:image", image_url="https://c.com/og.png"
+    )
     monkeypatch.setattr(
         image_sourcing,
         "find_club_image_source",
-        lambda name, website, **kw: ("website og:image", "https://c.com/og.png"),
+        lambda name, website, **kw: candidate,
     )
     monkeypatch.setattr(image_sourcing, "_download_image", lambda url: b"raw")
     monkeypatch.setattr(image_sourcing, "_resize_image", lambda data: b"png:" + data)
 
-    assert image_sourcing.fetch_club_image_png("Club", "https://c.com") == (b"png:raw", "website og:image")
+    # The candidate is threaded back unchanged so callers can persist provenance.
+    assert image_sourcing.fetch_club_image_png("Club", "https://c.com") == (b"png:raw", candidate)
 
 
 def test_fetch_club_image_png_returns_none_when_no_source(monkeypatch):
@@ -695,7 +718,11 @@ def test_main_dry_run_lists_clubs_and_sources_without_writing(monkeypatch, capsy
 
     def fake_source(name, website, *, place_query=None, use_places=True):
         assert use_places is False  # dry-run never probes Places
-        return ("website og:image", "https://og.com/og.png") if name == "Has OG Club" else None
+        if name == "Has OG Club":
+            return image_sourcing.ClubImageCandidate(
+                source_label="website og:image", image_url="https://og.com/og.png"
+            )
+        return None
 
     monkeypatch.setattr(source_club_images, "find_club_image_source", fake_source)
     # Guard: dry-run must not upload or flip has_image.
@@ -735,7 +762,12 @@ def test_main_review_dir_saves_files_without_cdn_or_flag_flip(monkeypatch, tmp_p
     monkeypatch.setattr(
         source_club_images,
         "fetch_club_image_png",
-        lambda name, website, **kw: (b"png-bytes", "website og:image"),
+        lambda name, website, **kw: (
+            b"png-bytes",
+            image_sourcing.ClubImageCandidate(
+                source_label="website og:image", image_url="https://cc.com/og.png"
+            ),
+        ),
     )
     # Guards: review mode must never touch the CDN or the has_image column.
     monkeypatch.setattr(
@@ -830,3 +862,80 @@ def test_run_upload_from_dir_uploads_and_flips_has_image(monkeypatch, tmp_path, 
     # has_image flip happens only after a successful upload, keyed on the stem.
     assert flipped == {"names": ["Comedy Cellar"]}
     assert "Uploaded:  1" in capsys.readouterr().out
+
+
+class _FakeProvenanceCursor:
+    """Captures execute(sql, params); satisfies the `with conn.cursor()` block."""
+
+    def __init__(self):
+        self.executed: List[Any] = []
+        self.rowcount = 1
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def execute(self, sql, params=None):
+        self.executed.append((sql, params))
+
+
+class _FakeProvenanceConn:
+    def __init__(self, cur):
+        self._cur = cur
+
+    def cursor(self):
+        return self._cur
+
+
+class _FakeTransaction:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def __enter__(self):
+        return self._conn
+
+    def __exit__(self, *a):
+        return False
+
+
+def test_persist_places_provenance_writes_place_id_and_attribution(monkeypatch):
+    cur = _FakeProvenanceCursor()
+    monkeypatch.setattr(
+        source_club_images,
+        "get_transaction",
+        lambda: _FakeTransaction(_FakeProvenanceConn(cur)),
+    )
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="google places",
+        image_url="https://lh3.googleusercontent.com/p.png",
+        place_id="ChIJplace",
+        attributions=[{"displayName": "Jane D", "uri": "https://maps.google.com/jane"}],
+    )
+
+    source_club_images._persist_places_provenance("Comedy Cellar", candidate)
+
+    assert len(cur.executed) == 1
+    sql, params = cur.executed[0]
+    assert "google_place_id" in sql and "google_place_attribution" in sql
+    assert params[0] == "ChIJplace"
+    # Attribution is JSON-encoded for the ::jsonb cast.
+    assert json.loads(params[1]) == [
+        {"displayName": "Jane D", "uri": "https://maps.google.com/jane"}
+    ]
+    assert params[2] == "Comedy Cellar"
+
+
+def test_persist_places_provenance_noops_for_website_candidate(monkeypatch):
+    # Website og:image carries no place_id/attribution → no DB write at all.
+    monkeypatch.setattr(
+        source_club_images,
+        "get_transaction",
+        lambda: (_ for _ in ()).throw(AssertionError("no DB write for a website candidate")),
+    )
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="website og:image", image_url="https://c.com/og.png"
+    )
+
+    source_club_images._persist_places_provenance("Comedy Cellar", candidate)

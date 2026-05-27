@@ -8,6 +8,8 @@ import requests
 from laughtrack.core.clients.google.places import (
     GooglePlacesClient,
     PlacesHoursResult,
+    PlacesPhotoResult,
+    _normalize_attributions,
     parse_weekday_descriptions,
 )
 
@@ -448,3 +450,127 @@ def test_fetch_photo_url_media_network_error_refunds_slot(configured_client):
         assert configured_client.fetch_photo_url("Comedy Cellar") is None
     # Search counted, media refunded.
     assert configured_client.calls_made == 1
+
+
+# ---------------------------------------------------------------------------
+# GooglePlacesClient.fetch_photo (place_id + attribution capture)
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_photo_captures_place_id_and_attribution(configured_client):
+    search_body = {
+        "places": [
+            {
+                "id": "ChIJabc",
+                "photos": [
+                    {
+                        "name": "places/ChIJabc/photos/AeJxyz",
+                        "authorAttributions": [
+                            {
+                                "displayName": "Jane Doe",
+                                "uri": "https://maps.google.com/jane",
+                                "photoUri": "https://lh3.googleusercontent.com/jane",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
+    }
+    media_body = {"photoUri": "https://lh3.googleusercontent.com/places/abc=s500"}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        mock_get.return_value = _mock_response(200, json_data=media_body)
+        result = configured_client.fetch_photo("Comedy Cellar, New York, NY")
+
+    assert result == PlacesPhotoResult(
+        photo_uri="https://lh3.googleusercontent.com/places/abc=s500",
+        place_id="ChIJabc",
+        attributions=[
+            {
+                "displayName": "Jane Doe",
+                "uri": "https://maps.google.com/jane",
+                "photoUri": "https://lh3.googleusercontent.com/jane",
+            }
+        ],
+    )
+    # The downloadable URL must not carry the API key.
+    assert "fake-key" not in result.photo_uri
+    assert configured_client.calls_made == 2
+
+
+def test_fetch_photo_returns_empty_attributions_when_absent(configured_client):
+    search_body = {"places": [{"id": "ChIJabc", "photos": [{"name": "places/ChIJabc/photos/X"}]}]}
+    media_body = {"photoUri": "https://lh3.googleusercontent.com/places/x=s500"}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        mock_get.return_value = _mock_response(200, json_data=media_body)
+        result = configured_client.fetch_photo("Comedy Cellar")
+
+    assert result.place_id == "ChIJabc"
+    assert result.attributions == []
+
+
+def test_fetch_photo_returns_none_when_no_photos(configured_client):
+    search_body = {"places": [{"id": "ChIJabc", "displayName": {"text": "No Photos Club"}}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        result = configured_client.fetch_photo("No Photos Club")
+
+    assert result is None
+    mock_get.assert_not_called()
+    # No second request reserved when there is no photo to resolve.
+    assert configured_client.calls_made == 1
+
+
+def test_fetch_photo_url_is_thin_wrapper_over_fetch_photo(configured_client):
+    """fetch_photo_url returns only the photo_uri from fetch_photo."""
+    sentinel = PlacesPhotoResult(
+        photo_uri="https://lh3.googleusercontent.com/p=s500",
+        place_id="ChIJabc",
+        attributions=[{"displayName": "Jane Doe"}],
+    )
+    with patch.object(configured_client, "fetch_photo", return_value=sentinel) as mock_fetch:
+        url = configured_client.fetch_photo_url("Comedy Cellar", max_width_px=300)
+
+    assert url == "https://lh3.googleusercontent.com/p=s500"
+    mock_fetch.assert_called_once_with("Comedy Cellar", 300)
+
+
+# ---------------------------------------------------------------------------
+# _normalize_attributions
+# ---------------------------------------------------------------------------
+
+
+def test_normalize_attributions_keeps_string_triples():
+    raw = [
+        {
+            "displayName": "Jane Doe",
+            "uri": "https://maps.google.com/jane",
+            "photoUri": "https://lh3.googleusercontent.com/jane",
+        }
+    ]
+    assert _normalize_attributions(raw) == raw
+
+
+def test_normalize_attributions_drops_non_string_and_extra_fields():
+    raw = [
+        {"displayName": "Jane", "uri": 123, "ignored": "x"},
+        {"displayName": "", "uri": "https://u"},  # empty displayName dropped
+        "not-a-dict",
+    ]
+    assert _normalize_attributions(raw) == [
+        {"displayName": "Jane"},
+        {"uri": "https://u"},
+    ]
+
+
+def test_normalize_attributions_returns_empty_for_non_list():
+    assert _normalize_attributions(None) == []
+    assert _normalize_attributions({"displayName": "x"}) == []
