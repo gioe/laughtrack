@@ -63,7 +63,17 @@ export type ComedianImageDownloadCode =
     | "DECODE_FAILED"
     | "TOO_SMALL"
     | "ANIMATED_NOT_SUPPORTED"
+    | "SVG_NOT_SUPPORTED"
     | "INVALID_ASPECT_RATIO";
+
+// Club discovery surfaces SVG candidates (logos/wordmarks are frequently SVG),
+// but the publish pipeline only handles raster sources: sharp CAN rasterize SVG,
+// yet doing so expands the SSRF/decode-bomb surface (SVGs reference external
+// hrefs) and SVG intrinsic dimensions don't map onto the raster size floors.
+// Reject SVG explicitly with an actionable message instead of letting it fall
+// through to the generic INVALID_MIME / DECODE_FAILED guards.
+const SVG_NOT_SUPPORTED_MESSAGE =
+    "SVG images are not supported; choose a PNG, JPG, WebP, or AVIF raster image";
 
 export class ComedianImageDownloadError extends Error {
     public readonly code: ComedianImageDownloadCode;
@@ -344,6 +354,12 @@ export async function downloadComedianImage(
             ?.split(";")[0]
             ?.trim()
             .toLowerCase() ?? "";
+    if (declaredContentType === "image/svg+xml") {
+        throw new ComedianImageDownloadError(
+            "SVG_NOT_SUPPORTED",
+            SVG_NOT_SUPPORTED_MESSAGE,
+        );
+    }
     if (!ALLOWED_MIME_TYPES.has(declaredContentType)) {
         throw new ComedianImageDownloadError(
             "INVALID_MIME",
@@ -370,6 +386,16 @@ export async function downloadComedianImage(
         throw new ComedianImageDownloadError(
             "DECODE_FAILED",
             "Image could not be decoded",
+        );
+    }
+    // Backstop the declared-content-type check: a server can serve SVG bytes
+    // under an allowed raster content-type, and sharp will happily decode them
+    // (metadata.format === "svg"). Reject before the size floor so a small SVG
+    // icon reports the SVG reason rather than TOO_SMALL.
+    if (metadata.format === "svg") {
+        throw new ComedianImageDownloadError(
+            "SVG_NOT_SUPPORTED",
+            SVG_NOT_SUPPORTED_MESSAGE,
         );
     }
     const width = metadata.width ?? 0;
@@ -434,6 +460,12 @@ export async function readUploadedComedianImage(
     file: File,
 ): Promise<DownloadedComedianImage> {
     const declaredContentType = file.type.trim().toLowerCase();
+    if (declaredContentType === "image/svg+xml") {
+        throw new ComedianImageDownloadError(
+            "SVG_NOT_SUPPORTED",
+            SVG_NOT_SUPPORTED_MESSAGE,
+        );
+    }
     if (!ALLOWED_MIME_TYPES.has(declaredContentType)) {
         throw new ComedianImageDownloadError(
             "INVALID_MIME",
@@ -455,6 +487,12 @@ export async function readUploadedComedianImage(
         throw new ComedianImageDownloadError(
             "DECODE_FAILED",
             "Image could not be decoded",
+        );
+    }
+    if (metadata.format === "svg") {
+        throw new ComedianImageDownloadError(
+            "SVG_NOT_SUPPORTED",
+            SVG_NOT_SUPPORTED_MESSAGE,
         );
     }
 

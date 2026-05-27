@@ -34,6 +34,13 @@ async function makePngBuffer(
     return new Uint8Array(buffer);
 }
 
+function makeSvgBuffer(width = 800, height = 800): Uint8Array {
+    const svg =
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+        `<rect width="${width}" height="${height}" fill="#c86432"/></svg>`;
+    return new Uint8Array(Buffer.from(svg, "utf8"));
+}
+
 describe("validateComedianImageUrl", () => {
     it("rejects malformed URLs", () => {
         expect(() => validateComedianImageUrl("not-a-url")).toThrowError(
@@ -209,6 +216,45 @@ describe("downloadComedianImage", () => {
                 fetch: fetchMock as never,
             }),
         ).rejects.toMatchObject({ code: "INVALID_MIME" });
+    });
+
+    it("rejects SVG sources served as image/svg+xml (club logos are often SVG)", async () => {
+        const fetchMock = vi.fn(async () =>
+            imageResponse(makeSvgBuffer(), "image/svg+xml"),
+        );
+        await expect(
+            downloadComedianImage("https://example.com/logo.svg", {
+                fetch: fetchMock as never,
+            }),
+        ).rejects.toMatchObject({
+            name: "ComedianImageDownloadError",
+            code: "SVG_NOT_SUPPORTED",
+        });
+    });
+
+    it("rejects SVG bytes even when served under a spoofed raster content-type", async () => {
+        // Server lies about the content-type (claims PNG) but the body is SVG;
+        // the declared-type allowlist passes, so the decoded-format backstop
+        // (metadata.format === "svg") must catch it.
+        const fetchMock = vi.fn(async () =>
+            imageResponse(makeSvgBuffer(), "image/png"),
+        );
+        await expect(
+            downloadComedianImage("https://example.com/logo-as-png", {
+                fetch: fetchMock as never,
+            }),
+        ).rejects.toMatchObject({ code: "SVG_NOT_SUPPORTED" });
+    });
+
+    it("reports SVG (not TOO_SMALL) for an SVG below the raster size floor", async () => {
+        const fetchMock = vi.fn(async () =>
+            imageResponse(makeSvgBuffer(64, 64), "image/svg+xml"),
+        );
+        await expect(
+            downloadComedianImage("https://example.com/tiny.svg", {
+                fetch: fetchMock as never,
+            }),
+        ).rejects.toMatchObject({ code: "SVG_NOT_SUPPORTED" });
     });
 
     it("rejects animated source images (sharp metadata.pages > 1)", async () => {
