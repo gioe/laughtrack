@@ -37,9 +37,7 @@ def _club() -> Club:
 
 
 def _make_client(monkeypatch) -> SeatEngineClient:
-    monkeypatch.setattr(
-        se_client_module.URLUtils, "get_formatted_domain", lambda url: "example.com"
-    )
+    monkeypatch.setattr(se_client_module.URLUtils, "get_formatted_domain", lambda url: "example.com")
     monkeypatch.setattr(
         se_client_module.BaseHeaders,
         "get_headers",
@@ -133,6 +131,7 @@ async def test_fetch_events_populates_venue_website(monkeypatch, stub_base_init)
     monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
 
     from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+
     monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
@@ -166,6 +165,7 @@ async def test_fetch_events_venue_website_failure_degrades_gracefully(monkeypatc
     monkeypatch.setattr(client, "log_error", lambda *a, **k: None)
 
     from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+
     monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
@@ -199,6 +199,7 @@ async def test_fetch_events_enriches_show_without_inventories_from_detail(monkey
     monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
 
     from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+
     monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
@@ -229,6 +230,7 @@ async def test_fetch_events_detail_failure_keeps_fallback_show(monkeypatch, stub
     monkeypatch.setattr(client, "log_warning", lambda msg, *a, **k: warnings.append(msg))
 
     from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+
     monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
     monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
@@ -244,6 +246,7 @@ _FAKE_DATE = "2026-04-01T20:00:00+00:00"
 
 def _patch_dates(monkeypatch):
     from datetime import datetime, timezone
+
     monkeypatch.setattr(
         se_client_module.DateTimeUtils,
         "parse_datetime_with_timezone",
@@ -270,8 +273,22 @@ def test_create_show_url_uses_venue_website(monkeypatch, stub_base_init):
     assert show.tickets[0].purchase_url == "https://comedyzoneclt.seatengine.com/shows/337633"
 
 
-def test_create_show_url_falls_back_to_api_url_without_venue_website(monkeypatch, stub_base_init):
-    """create_show falls back to the API URL when venue_website is not set."""
+def test_invalid_venue_website_falls_back_to_configured_public_base(monkeypatch, stub_base_init):
+    """Invalid SeatEngine venue websites do not win URL construction."""
+    client = _make_client(monkeypatch)
+    client.venue_website = "#"
+    _patch_dates(monkeypatch)
+
+    show = client.create_show(_make_show_dict(show_id=337633))
+
+    assert show is not None
+    assert show.show_page_url == "https://example.com/shows/337633"
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://example.com/shows/337633"
+
+
+def test_create_show_url_falls_back_to_configured_public_base_without_venue_website(monkeypatch, stub_base_init):
+    """create_show falls back to the configured public base when venue_website is not set."""
     client = _make_client(monkeypatch)
     assert client.venue_website is None
     _patch_dates(monkeypatch)
@@ -279,8 +296,8 @@ def test_create_show_url_falls_back_to_api_url_without_venue_website(monkeypatch
     show = client.create_show(_make_show_dict(show_id=999))
 
     assert show is not None
-    assert "services.seatengine.com/api/v1" in show.show_page_url
-    assert "services.seatengine.com/api/v1" in show.tickets[0].purchase_url
+    assert show.show_page_url == "https://example.com/shows/999"
+    assert show.tickets[0].purchase_url == "https://example.com/shows/999"
 
 
 def test_create_show_price_from_inventories(monkeypatch, stub_base_init):
