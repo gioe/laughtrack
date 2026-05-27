@@ -67,7 +67,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
           : parsedClub.city || parsedClub.address;
 
     const showImage =
-        !error && !!parsedClub.imageUrl && parsedClub.imageUrl !== PLACEHOLDER;
+        !error && !!parsedClub.heroUrl && parsedClub.heroUrl !== PLACEHOLDER;
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -85,10 +85,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 {showImage && (
                     <>
                         <Image
-                            src={parsedClub.imageUrl}
+                            src={parsedClub.heroUrl}
                             alt={parsedClub.name}
                             fill
-                            className={`object-cover object-center transition-opacity duration-500 ${
+                            className={`object-contain object-center transition-opacity duration-500 ${
                                 imageLoaded ? "opacity-100" : "opacity-0"
                             }`}
                             onError={() => setError(true)}

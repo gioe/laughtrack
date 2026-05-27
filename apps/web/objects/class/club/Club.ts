@@ -30,6 +30,7 @@ export class Club implements ClubInterface {
     readonly showCount?: number;
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
+    readonly heroUrl: string;
     readonly phoneNumber: string;
     readonly clubType: string;
     readonly description: string;
@@ -56,6 +57,7 @@ export class Club implements ClubInterface {
         this.hours = coerceHours(input.hours);
 
         this.imageUrl = input.imageUrl;
+        this.heroUrl = input.heroUrl ?? "";
 
         // Initialize arrays and complex objects
         this.containedEntities =

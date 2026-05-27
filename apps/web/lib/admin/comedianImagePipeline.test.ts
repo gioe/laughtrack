@@ -5,6 +5,7 @@ import {
     ComedianImageDownloadError,
     buildComedianAssetPaths,
     downloadComedianImage,
+    generateClubImageVariants,
     generateComedianImageVariants,
     validateComedianImageUrl,
 } from "./comedianImagePipeline";
@@ -149,9 +150,7 @@ describe("downloadComedianImage", () => {
 
     it("rejects images below the minimum source dimension", async () => {
         const small = await makePngBuffer(200, 200);
-        const fetchMock = vi.fn(async () =>
-            imageResponse(small, "image/png"),
-        );
+        const fetchMock = vi.fn(async () => imageResponse(small, "image/png"));
         await expect(
             downloadComedianImage("https://example.com/small.png", {
                 fetch: fetchMock as never,
@@ -161,9 +160,7 @@ describe("downloadComedianImage", () => {
 
     it("returns decoded metadata for a valid image", async () => {
         const good = await makePngBuffer(1200, 1600);
-        const fetchMock = vi.fn(async () =>
-            imageResponse(good, "image/png"),
-        );
+        const fetchMock = vi.fn(async () => imageResponse(good, "image/png"));
         const result = await downloadComedianImage(
             "https://example.com/good.png",
             { fetch: fetchMock as never },
@@ -237,11 +234,8 @@ describe("downloadComedianImage", () => {
         const sourceBody =
             (meta.pages ?? 1) > 1
                 ? animated
-                : await sharp(frame, { animated: true })
-                      .gif()
-                      .toBuffer();
-        const sourceMime =
-            (meta.pages ?? 1) > 1 ? "image/webp" : "image/gif";
+                : await sharp(frame, { animated: true }).gif().toBuffer();
+        const sourceMime = (meta.pages ?? 1) > 1 ? "image/webp" : "image/gif";
         const meta2 = await sharp(sourceBody).metadata();
         if ((meta2.pages ?? 1) <= 1) {
             // Sharp build does not synthesize multi-page output from a single
@@ -271,7 +265,9 @@ describe("downloadComedianImage", () => {
                     // Emit in chunks so the reader can observe progress.
                     const chunkSize = 1 << 20;
                     for (let i = 0; i < oversized.length; i += chunkSize) {
-                        controller.enqueue(oversized.subarray(i, i + chunkSize));
+                        controller.enqueue(
+                            oversized.subarray(i, i + chunkSize),
+                        );
                     }
                     controller.close();
                 },
@@ -308,6 +304,45 @@ describe("generateComedianImageVariants", () => {
         expect(heroMeta.format).toBe("jpeg");
         expect(heroMeta.width).toBe(2000);
         expect(heroMeta.height).toBe(1125);
+    });
+});
+
+describe("generateClubImageVariants", () => {
+    it("pads non-square logo icons onto a white square instead of cropping", async () => {
+        const icon = await makePngBuffer(1200, 600);
+        const hero = await makePngBuffer(2000, 1125);
+        const variants = await generateClubImageVariants({
+            icon: {
+                sourceUrl: "https://example.com/logo.png",
+                buffer: Buffer.from(icon),
+                mimeType: "image/png",
+                width: 1200,
+                height: 600,
+            },
+            hero: {
+                sourceUrl: "https://example.com/hero.png",
+                buffer: Buffer.from(hero),
+                mimeType: "image/png",
+                width: 2000,
+                height: 1125,
+            },
+        });
+
+        const iconMeta = await sharp(variants.iconBuffer).metadata();
+        const topPixel = await sharp(variants.iconBuffer)
+            .extract({ left: 500, top: 0, width: 1, height: 1 })
+            .raw()
+            .toBuffer();
+        const centerPixel = await sharp(variants.iconBuffer)
+            .extract({ left: 500, top: 500, width: 1, height: 1 })
+            .raw()
+            .toBuffer();
+
+        expect(iconMeta.format).toBe("png");
+        expect(iconMeta.width).toBe(1000);
+        expect(iconMeta.height).toBe(1000);
+        expect([...topPixel]).toEqual([255, 255, 255]);
+        expect([...centerPixel]).toEqual([200, 100, 50]);
     });
 });
 

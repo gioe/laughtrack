@@ -194,10 +194,7 @@ class SeatEngineClient(BaseApiClient):
                 parsed_date = None
 
         show_id = show_dict.get("id")
-        if self.venue_website:
-            show_page_url = f"{self.venue_website}/shows/{show_id}"
-        else:
-            show_page_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
+        show_page_url = self._build_public_show_url(show_id)
 
         return {
             "name": event_data.get("name"),
@@ -210,10 +207,7 @@ class SeatEngineClient(BaseApiClient):
     def _extract_ticket_data(self, show_dict: JSONDict) -> List[Ticket]:
         """Extract ticket information from the SeatEngine show data."""
         show_id = show_dict.get("id")
-        if self.venue_website:
-            purchase_url = f"{self.venue_website}/shows/{show_id}"
-        else:
-            purchase_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
+        purchase_url = self._build_public_show_url(show_id)
 
         show_sold_out = bool(show_dict.get("sold_out", False))
         inventories = show_dict.get("inventories", [])
@@ -252,6 +246,27 @@ class SeatEngineClient(BaseApiClient):
             sold_out=show_sold_out,
             type="General Admission",
         )]
+
+    def _build_public_show_url(self, show_id: Any) -> str:
+        base_url = self._public_show_base_url()
+        if base_url:
+            return f"{base_url}/shows/{show_id}"
+        return f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
+
+    def _public_show_base_url(self) -> str:
+        if self.venue_website and URLUtils.is_valid_url(self.venue_website):
+            return self.venue_website.rstrip("/")
+
+        for key in ("public_show_base_url", "public_base_url", "show_base_url"):
+            configured = self.club.metadata_value(key)
+            if configured and URLUtils.is_valid_url(URLUtils.normalize_url(configured)):
+                return URLUtils.normalize_url(configured)
+
+        source_url = URLUtils.normalize_url(self.club.scraping_url or "")
+        if URLUtils.is_valid_url(source_url):
+            return URLUtils.get_base_domain_with_protocol(source_url)
+
+        return ""
 
     def _check_room(self, event_data: JSONDict) -> Optional[str]:
         """Check if the show is in a specific room based on event labels."""

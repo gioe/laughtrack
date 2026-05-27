@@ -14,9 +14,9 @@ point to the coming-soon page itself.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import pytz
 
@@ -71,6 +71,11 @@ class LaffsComedyCafeEvent(ShowConvertible):
     comedian_name: str  # e.g. "Adam Dominguez"
     showtime_str: str  # e.g. "Friday, April 10 @ 8 PM"
     ticket_url: str  # e.g. "https://www.laffstucson.com/coming-soon.html"
+    # Priced seating tiers recovered from the purchase flow's seating selector,
+    # e.g. [("General Admission", 15.0), ("Preferred Seating", 20.0)]. Empty when
+    # the page exposes no seating tiers, in which case a single unpriced fallback
+    # ticket is emitted.
+    seating_tiers: List[Tuple[str, Optional[float]]] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -86,7 +91,15 @@ class LaffsComedyCafeEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        if self.seating_tiers:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    ticket_url, price=price, ticket_type=ticket_type
+                )
+                for ticket_type, price in self.seating_tiers
+            ]
+        else:
+            tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.comedian_name,

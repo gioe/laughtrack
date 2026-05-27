@@ -770,6 +770,12 @@ availability. The scraper queries all 7 endpoints and deduplicates on `(date, ti
    "Live Stand-Up Comedy"; the lineup is always an empty list.
 2. **No per-show ticket URL** — tickets are sold via an embedded Square modal on the homepage.
    The ticket URL is always the homepage anchor: `https://eastaustincomedy.com/#shows`.
+   *Re-verified 2026-05-26 (TASK-2466):* clicking a showtime opens the Square **Web Payments SDK**
+   checkout modal in-page (card iframe hydrated via `pci-connect.squareup.com/payments/hydrate`,
+   `locationId=L3KHDZCAXZKGT`) — the URL never leaves `#shows`, the availability function returns
+   only `(date, time, seat-tier counts)`, and the booking flow carries no per-show product/event ID
+   (FB `InitiateCheckout` reports `content_ids=[""]`). The `#shows` anchor remains the canonical and
+   only purchase target; no remediation needed.
 3. **Show volume:** weekday evenings typically have 1–2 shows; Fri/Sat/Sun have up to 3 shows
    (e.g. 6 PM / 8 PM / 10 PM).
 4. The `scraping_url` DB field is unused at runtime — the scraper ignores it and always hits

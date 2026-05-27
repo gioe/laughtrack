@@ -67,6 +67,39 @@ const club: ClubDTO = {
 };
 
 describe("ClubDetailHero About description", () => {
+    it("renders the club hero image uncropped when a hero URL is present", () => {
+        render(
+            <ClubDetailHeader
+                club={{
+                    ...club,
+                    imageUrl: "https://cdn.example.com/clubs/icon.png",
+                    heroUrl: "https://cdn.example.com/clubs/hero.jpg",
+                }}
+            />,
+        );
+
+        const image = screen.getByRole("img", { name: "Comedy Cellar" });
+        expect(image.getAttribute("src")).toBe(
+            "https://cdn.example.com/clubs/hero.jpg",
+        );
+        expect(image.className).toContain("object-contain");
+        expect(image.className).not.toContain("object-cover");
+    });
+
+    it("keeps the square icon out of the detail banner when no hero URL exists", () => {
+        render(
+            <ClubDetailHeader
+                club={{
+                    ...club,
+                    imageUrl: "https://cdn.example.com/clubs/icon.png",
+                    heroUrl: "",
+                }}
+            />,
+        );
+
+        expect(screen.queryByRole("img", { name: "Comedy Cellar" })).toBeNull();
+    });
+
     it("renders the club description paragraph inside the hero block", () => {
         render(<ClubDetailHeader club={club} />);
 

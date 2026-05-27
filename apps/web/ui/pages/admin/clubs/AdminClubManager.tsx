@@ -54,8 +54,8 @@ type ClubImageUrls = {
 };
 
 type ClubImagePreview = {
-    iconDataUrl: string;
-    heroDataUrl: string;
+    iconDataUrl: string | null;
+    heroDataUrl: string | null;
     warnings: string[];
 };
 
@@ -581,12 +581,12 @@ export default function AdminClubManager({ groups }: Props) {
 
     async function validateClubImages(club: AdminClubListItem) {
         const urls = imageUrlsFor(club);
-        if (!urls.iconImageUrl.trim() || !urls.heroImageUrl.trim()) {
+        if (!urls.iconImageUrl.trim() && !urls.heroImageUrl.trim()) {
             setClubImageStates((current) => ({
                 ...current,
                 [club.id]: {
                     kind: "error",
-                    message: "Icon and hero image URLs are required.",
+                    message: "Provide an icon or hero image URL.",
                 },
             }));
             return;
@@ -606,8 +606,12 @@ export default function AdminClubManager({ groups }: Props) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     clubId: club.id,
-                    iconImageUrl: urls.iconImageUrl.trim(),
-                    heroImageUrl: urls.heroImageUrl.trim(),
+                    ...(urls.iconImageUrl.trim()
+                        ? { iconImageUrl: urls.iconImageUrl.trim() }
+                        : {}),
+                    ...(urls.heroImageUrl.trim()
+                        ? { heroImageUrl: urls.heroImageUrl.trim() }
+                        : {}),
                 }),
             });
         } catch (error) {
@@ -679,8 +683,12 @@ export default function AdminClubManager({ groups }: Props) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     clubId: club.id,
-                    iconImageUrl: urls.iconImageUrl.trim(),
-                    heroImageUrl: urls.heroImageUrl.trim(),
+                    ...(urls.iconImageUrl.trim()
+                        ? { iconImageUrl: urls.iconImageUrl.trim() }
+                        : {}),
+                    ...(urls.heroImageUrl.trim()
+                        ? { heroImageUrl: urls.heroImageUrl.trim() }
+                        : {}),
                 }),
             });
         } catch (error) {
@@ -1044,7 +1052,7 @@ function ChainGroupSection({
                         const imageUrls = imageUrlsFor(club);
                         const imageState = imageStateFor(club);
                         const canValidateImages =
-                            imageUrls.iconImageUrl.trim().length > 0 &&
+                            imageUrls.iconImageUrl.trim().length > 0 ||
                             imageUrls.heroImageUrl.trim().length > 0;
                         return (
                             <li
@@ -1306,22 +1314,30 @@ function ChainGroupSection({
                                         imageState.preview && (
                                             <div className="space-y-2">
                                                 <div className="flex flex-wrap gap-3">
-                                                    <img
-                                                        src={
-                                                            imageState.preview
-                                                                .iconDataUrl
-                                                        }
-                                                        alt={`${club.name} icon preview`}
-                                                        className="h-24 w-24 rounded-md border border-copper/20 object-cover"
-                                                    />
-                                                    <img
-                                                        src={
-                                                            imageState.preview
-                                                                .heroDataUrl
-                                                        }
-                                                        alt={`${club.name} hero preview`}
-                                                        className="h-24 w-40 rounded-md border border-copper/20 object-cover"
-                                                    />
+                                                    {imageState.preview
+                                                        .iconDataUrl && (
+                                                        <img
+                                                            src={
+                                                                imageState
+                                                                    .preview
+                                                                    .iconDataUrl
+                                                            }
+                                                            alt={`${club.name} icon preview`}
+                                                            className="h-24 w-24 rounded-md border border-copper/20 object-contain"
+                                                        />
+                                                    )}
+                                                    {imageState.preview
+                                                        .heroDataUrl && (
+                                                        <img
+                                                            src={
+                                                                imageState
+                                                                    .preview
+                                                                    .heroDataUrl
+                                                            }
+                                                            alt={`${club.name} hero preview`}
+                                                            className="h-24 w-40 rounded-md border border-copper/20 object-cover"
+                                                        />
+                                                    )}
                                                 </div>
                                                 {imageState.preview.warnings
                                                     .length > 0 && (

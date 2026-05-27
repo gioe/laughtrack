@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { buildClubImageUrl } from "@/util/imageUtil";
+import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 export async function GET(
@@ -33,6 +33,12 @@ export async function GET(
                 hasImage: true,
                 latitude: true,
                 longitude: true,
+                imageAssets: {
+                    where: { isActive: true },
+                    orderBy: { publishedAt: "desc" },
+                    take: 1,
+                    select: { heroPath: true },
+                },
             },
         });
 
@@ -49,6 +55,9 @@ export async function GET(
                     id: club.id,
                     name: club.name,
                     imageUrl: buildClubImageUrl(club.name, club.hasImage),
+                    heroImageUrl: buildClubHeroImageUrl(
+                        club.imageAssets[0]?.heroPath,
+                    ),
                     website: club.website,
                     address: club.address,
                     zipCode: club.zipCode,

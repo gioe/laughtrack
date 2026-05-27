@@ -67,7 +67,17 @@ class FriendlySkyEvent(ShowConvertible):
         except ValueError:
             return None
 
-        ticket_url = f"{self.base_url}/event?e={self.hash_event_id}&g={self.hash_id}"
+        # Prefer the direct purchase route (/event/<urlName>/tickets/seg?e=<hashEventId>),
+        # which lands on the selected show's checkout flow. The bare
+        # /event?e=<hashEventId>&g=<hashId> form only opens the general event
+        # calendar, so fall back to it solely when urlName is missing.
+        if self.url_name:
+            ticket_url = (
+                f"{self.base_url}/event/{self.url_name}/tickets/seg"
+                f"?e={self.hash_event_id}"
+            )
+        else:
+            ticket_url = f"{self.base_url}/event?e={self.hash_event_id}&g={self.hash_id}"
         show_page_url = ticket_url
 
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]

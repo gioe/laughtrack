@@ -147,10 +147,10 @@ async def test_show_page_url_is_public_venue_url_when_website_known(monkeypatch)
 
 
 @pytest.mark.asyncio
-async def test_show_page_url_falls_back_to_api_url_when_no_website(monkeypatch):
+async def test_show_page_url_falls_back_to_configured_public_base_when_no_website(monkeypatch):
     """
-    show_page_url falls back to services.seatengine.com/... when the venue
-    has no website configured (venue_website remains empty string after fetch).
+    show_page_url falls back to the configured public base when the venue has
+    no website configured (venue_website remains empty string after fetch).
     """
     scraper = SeatEngineScraper(_club())
     show = _show_dict(show_id=99)
@@ -165,7 +165,8 @@ async def test_show_page_url_falls_back_to_api_url_when_no_website(monkeypatch):
     shows = scraper.transform_data(page_data, source_url=VENUE_ID)
 
     assert len(shows) == 1
-    assert "services.seatengine.com" in shows[0].show_page_url
+    assert shows[0].show_page_url == "https://joes-comedy.com/shows/99"
+    assert shows[0].tickets[0].purchase_url == "https://joes-comedy.com/shows/99"
 
 
 # ---------------------------------------------------------------------------

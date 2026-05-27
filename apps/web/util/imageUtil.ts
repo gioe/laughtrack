@@ -26,14 +26,17 @@ export const buildClubImageUrl = (clubName: string, hasImage = true) => {
     }
 };
 
-export const buildClubHeroImageUrl = (clubName: string, hasImage = true) => {
-    if (!hasImage) return "";
-    const cdnBase = `https://${cdnHost}/`;
+export const buildClubImageAssetUrl = (path: string) => {
+    if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(path)) {
+        throw new Error("Club image asset path must be CDN-relative");
+    }
+    return new URL(path.replace(/^\/+/, ""), `https://${cdnHost}/`).toString();
+};
+
+export const buildClubHeroImageUrl = (heroPath?: string | null) => {
+    if (!heroPath) return "";
     try {
-        return new URL(
-            `/clubs/${encodeURIComponent(clubName)}-hero.jpg`,
-            cdnBase,
-        ).toString();
+        return buildClubImageAssetUrl(heroPath);
     } catch {
         return "";
     }

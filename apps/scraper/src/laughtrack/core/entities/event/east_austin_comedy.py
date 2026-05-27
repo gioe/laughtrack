@@ -19,7 +19,10 @@ class EastAustinComedyEvent(ShowConvertible):
 
     East Austin Comedy is an intimate 82-seat BYOB comedy room at 2505 E 6th St,
     Austin TX. Shows run nightly and are booked via a Square embedded modal on the
-    venue homepage — there are no per-show ticket URLs.
+    venue homepage — there are no per-show ticket URLs. Re-verified 2026-05-26
+    (TASK-2466): checkout is an in-page Square Web Payments SDK modal and the booking
+    flow exposes no per-show product/event ID, so ``_TICKET_URL`` (#shows) is the
+    canonical and only purchase target.
 
     Comedian lineups are not published on the website; shows are listed generically
     as "Live Stand-Up Comedy".

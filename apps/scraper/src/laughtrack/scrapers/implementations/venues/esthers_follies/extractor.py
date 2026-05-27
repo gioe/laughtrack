@@ -6,19 +6,33 @@ from typing import List, Optional
 from laughtrack.core.entities.event.esthers_follies import EsthersFolliesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-# Matches each "SelectorBox" entry in the date slider HTML, capturing:
-#   group 1: EDID (event date instance ID)
-#   group 2: month abbreviation (e.g. "Mar")
-#   group 3: day of month (e.g. "26")
+# Matches each show "SelectorBox" entry in the date slider HTML, capturing:
+#   group 1: EDID (event date instance ID), from the LoadSpinner() onclick arg
+#   group 2: month abbreviation (e.g. "May")
+#   group 3: day of month (e.g. "28")
 #   group 4: weekday abbreviation (e.g. "Thu")
 #   group 5: time string (e.g. "7:00 PM")
+#
+# Show boxes use onclick="LoadSpinner('<edid>'); LoadEvent('<eid>','<edid>');".
+# Anchoring on LoadSpinner (rather than the old LoadEvent prefix) cleanly
+# excludes the "More Event Dates" calendar buttons, which use
+# onclick="LoadEventCalendar(...)" and carry no DateMonth/DateDay markup.
+# VBO moved show boxes off a leading LoadEvent handler; the old regex then
+# only matched by spanning from a LoadEventCalendar box into the first real
+# show, capping output at a single slot (TASK-2490).
+#
+# Each inter-field gap is _GAP rather than a bare ".*?": it consumes anything
+# *except* the start of the next show box. This bounds every match to a single
+# SelectorBox, so a malformed box (e.g. one missing its WeekDayTime) simply
+# fails to match and is skipped — it can no longer pair its edid/date with the
+# *next* box's time and silently swallow that neighbor.
+_GAP = r"(?:(?!onclick=\"LoadSpinner)[\s\S])*?"
 _SHOW_RE = re.compile(
-    r'id="edid(\d+)"[^>]*onclick="LoadEvent[^"]+">.*?'
-    r'<div class="DateMonth[^>]+>(\w+)<.*?'
-    r'<div class="DateDay[^>]+>(\d+)<.*?'
-    r'<span class="WeekDay">(\w+)</span>.*?'
-    r'<span class="WeekDayTime"> - ([^<]+)</span>',
-    re.DOTALL,
+    r"onclick=\"LoadSpinner\('(\d+)'[^\"]*\">" + _GAP
+    + r"<div class=\"DateMonth[^>]*>(\w+)<" + _GAP
+    + r"<div class=\"DateDay[^>]*>(\d+)<" + _GAP
+    + r"<span class=\"WeekDay\">(\w+)</span>" + _GAP
+    + r"<span class=\"WeekDayTime\"> - ([^<]+)</span>"
 )
 
 
@@ -32,8 +46,9 @@ class EsthersFolliesEventExtractor:
 
     Response is a server-rendered HTML fragment containing a ``<ul>`` of
     ``<li>`` elements, each with a ``SelectorBox`` div per upcoming show.
-    The first item is a "More Event Dates" calendar button — it has no
-    ``LoadEvent`` onclick and is skipped by the regex.
+    The "More Event Dates" calendar button is skipped because it carries no
+    ``LoadSpinner`` onclick (its handler is ``LoadEventCalendar(...)``) and no
+    DateMonth/DateDay markup for the regex to latch onto.
     """
 
     @staticmethod
@@ -82,6 +97,24 @@ class EsthersFolliesEventExtractor:
                 weekday=weekday,
                 time=time_str.strip(),
             ))
+
+        # Coverage sanity check (TASK-2492): every show "SelectorBox" div should
+        # yield one parsed slot. The "More Event Dates" calendar buttons also
+        # carry the SelectorBox class but use a LoadEventCalendar onclick, so
+        # subtract them to estimate the expected show-box count. A parsed count
+        # far below that container count means the regex silently stopped
+        # matching most boxes — exactly the TASK-2490 collapse, where 1 of ~62
+        # boxes parsed for an unknown period and was logged only at INFO. Surface
+        # it as a WARNING so a future VBO markup change shows up in nightly logs
+        # instead of collapsing coverage invisibly.
+        detected_boxes = html.count("SelectorBox") - html.count("LoadEventCalendar")
+        if detected_boxes > 0 and len(events) < detected_boxes * 0.5:
+            Logger.warn(
+                f"EsthersFolliesEventExtractor: parsed only {len(events)} shows "
+                f"from {detected_boxes} SelectorBox divs in the slider HTML — "
+                f"possible VBO markup change (coverage collapse)",
+                ctx,
+            )
 
         Logger.info(
             f"EsthersFolliesEventExtractor: extracted {len(events)} show slots",

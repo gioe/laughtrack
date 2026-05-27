@@ -169,6 +169,7 @@ model Club {
   scrapingSources         ScrapingSource[]
   aliases                 ClubAlias[]
   favorites               FavoriteClub[]
+  imageAssets             ClubImageAsset[]
 
   @@index([visible])
   @@index([chainId])
@@ -193,6 +194,28 @@ model ClubAlias {
   @@unique([normalizedAliasName, normalizedCity, normalizedState])
   @@index([clubId])
   @@map("club_aliases")
+}
+
+model ClubImageAsset {
+  id             Int      @id @default(autoincrement())
+  clubId         Int      @map("club_id")
+  sourceImageUrl String   @map("source_image_url")
+  originalPath   String   @map("original_path")
+  iconPath       String?  @map("icon_path")
+  heroPath       String?  @map("hero_path")
+  mimeType       String?  @map("mime_type")
+  width          Int?
+  height         Int?
+  isActive       Boolean  @default(true) @map("is_active")
+  metadata       Json     @default("{}")
+  publishedAt    DateTime @default(now()) @map("published_at") @db.Timestamptz
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  club           Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@index([isActive])
+  @@map("club_image_assets")
 }
 
 model Comedian {

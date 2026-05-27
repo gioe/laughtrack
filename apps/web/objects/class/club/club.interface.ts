@@ -18,6 +18,7 @@ export type ClubHours = Record<string, string>;
 export interface ClubDTO {
     id?: number;
     imageUrl: string;
+    heroUrl?: string;
     name?: string;
     website?: string;
     address?: string;
