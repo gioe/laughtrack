@@ -340,3 +340,111 @@ def test_daily_limit_stops_further_calls(monkeypatch):
     assert second == PlacesHoursResult(None, None)
     assert mock_post.call_count == 1
     assert client.calls_remaining == 0
+
+
+# ---------------------------------------------------------------------------
+# GooglePlacesClient.fetch_photo_url
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_photo_url_unconfigured_returns_none(monkeypatch):
+    monkeypatch.delenv("GOOGLE_PLACES_API_KEY", raising=False)
+    client = GooglePlacesClient()
+    assert client.fetch_photo_url("Comedy Cellar, New York, NY") is None
+
+
+def test_fetch_photo_url_blank_query_returns_none(configured_client):
+    assert configured_client.fetch_photo_url("") is None
+    assert configured_client.fetch_photo_url("   ") is None
+
+
+def test_fetch_photo_url_happy_path_returns_keyfree_uri(configured_client):
+    search_body = {
+        "places": [
+            {
+                "id": "ChIJabc",
+                "photos": [{"name": "places/ChIJabc/photos/AeJxyz"}],
+            }
+        ]
+    }
+    media_body = {
+        "name": "places/ChIJabc/photos/AeJxyz/media",
+        "photoUri": "https://lh3.googleusercontent.com/places/abc=s500",
+    }
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        mock_get.return_value = _mock_response(200, json_data=media_body)
+        url = configured_client.fetch_photo_url("Comedy Cellar, New York, NY")
+
+    assert url == "https://lh3.googleusercontent.com/places/abc=s500"
+    # The returned URL must NOT carry the API key (it is fetched downstream by
+    # a key-unaware downloader).
+    assert "fake-key" not in url
+
+    # searchText must request the photos field mask.
+    _post_args, post_kwargs = mock_post.call_args
+    assert "places.photos" in post_kwargs["headers"]["X-Goog-FieldMask"]
+    # media call uses skipHttpRedirect so Google returns JSON, and sends the
+    # key as a header (not in the returned photoUri).
+    _get_args, get_kwargs = mock_get.call_args
+    assert get_kwargs["params"]["skipHttpRedirect"] == "true"
+    assert get_kwargs["headers"]["X-Goog-Api-Key"] == "fake-key"
+    # Two billable Places requests (search + media).
+    assert configured_client.calls_made == 2
+
+
+def test_fetch_photo_url_no_photos_returns_none_without_media_call(configured_client):
+    search_body = {"places": [{"id": "ChIJabc", "displayName": {"text": "No Photos Club"}}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        url = configured_client.fetch_photo_url("No Photos Club")
+
+    assert url is None
+    mock_get.assert_not_called()
+    # No second request reserved when there is no photo to resolve.
+    assert configured_client.calls_made == 1
+
+
+def test_fetch_photo_url_empty_places_returns_none(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(200, json_data={"places": []})
+        assert configured_client.fetch_photo_url("Made-Up Place") is None
+
+
+def test_fetch_photo_url_search_http_error_returns_none(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.return_value = _mock_response(403, json_data=None, text="forbidden")
+        assert configured_client.fetch_photo_url("Comedy Cellar") is None
+
+
+def test_fetch_photo_url_search_network_error_refunds_slot(configured_client):
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post:
+        mock_post.side_effect = requests.ConnectionError("dns fail")
+        assert configured_client.fetch_photo_url("Comedy Cellar") is None
+    assert configured_client.calls_made == 0
+
+
+def test_fetch_photo_url_media_http_error_returns_none(configured_client):
+    search_body = {"places": [{"id": "ChIJabc", "photos": [{"name": "places/ChIJabc/photos/X"}]}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        mock_get.return_value = _mock_response(404, json_data=None, text="not found")
+        assert configured_client.fetch_photo_url("Comedy Cellar") is None
+
+
+def test_fetch_photo_url_media_network_error_refunds_slot(configured_client):
+    search_body = {"places": [{"id": "ChIJabc", "photos": [{"name": "places/ChIJabc/photos/X"}]}]}
+    with patch("laughtrack.core.clients.google.places.requests.post") as mock_post, patch(
+        "laughtrack.core.clients.google.places.requests.get"
+    ) as mock_get:
+        mock_post.return_value = _mock_response(200, json_data=search_body)
+        mock_get.side_effect = requests.ConnectionError("dns fail")
+        assert configured_client.fetch_photo_url("Comedy Cellar") is None
+    # Search counted, media refunded.
+    assert configured_client.calls_made == 1

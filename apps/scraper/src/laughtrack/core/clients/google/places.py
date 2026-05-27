@@ -20,6 +20,7 @@ import os
 import re
 import threading
 import time
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -27,13 +28,18 @@ import requests
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-_API_URL = "https://places.googleapis.com/v1/places:searchText"
+_API_BASE = "https://places.googleapis.com/v1"
+_API_URL = f"{_API_BASE}/places:searchText"
 
 _FIELD_MASK = (
     "places.id,"
     "places.displayName,"
     "places.regularOpeningHours.weekdayDescriptions"
 )
+
+# Photo search only needs the place identity plus its photo references; the
+# image bytes are fetched in a follow-up media call keyed off photos[*].name.
+_PHOTO_FIELD_MASK = "places.id,places.displayName,places.photos"
 
 # "Monday: 5:00 PM – 11:00 PM" / "Tuesday: Closed" / "Wednesday: Open 24 hours"
 _DAY_PREFIX_RE = re.compile(
@@ -314,3 +320,126 @@ class GooglePlacesClient:
             if isinstance(raw_descs, list):
                 descriptions = [d for d in raw_descs if isinstance(d, str)]
         return PlacesHoursResult(place_id=place_id, hours=parse_weekday_descriptions(descriptions))
+
+    def fetch_photo_url(self, query: str, max_width_px: int = 500) -> Optional[str]:
+        """Resolve a venue photo for ``query`` to a directly-downloadable URL.
+
+        Two requests under the daily cap: a ``places:searchText`` to find the
+        top match's first photo reference, then a photo ``media`` call with
+        ``skipHttpRedirect=true`` so Google returns a JSON ``photoUri`` (a
+        short-lived, key-free ``lh3.googleusercontent.com`` URL) instead of
+        the raw bytes. Returning the key-free ``photoUri`` keeps the API key
+        out of the caller's download path and logs.
+
+        Returns ``None`` on missing key, blank query, quota breach, any HTTP
+        or network error, no match, or a match with no photos.
+        """
+        if not self.is_configured:
+            return None
+        if not query or not query.strip():
+            return None
+        if not self._reserve_call_slot():
+            Logger.warn(
+                f"[places] daily limit reached ({self._daily_limit}) — skipping photo query '{query}'"
+            )
+            return None
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": self._api_key,
+            "X-Goog-FieldMask": _PHOTO_FIELD_MASK,
+        }
+        payload: Dict[str, Any] = {"textQuery": query, "pageSize": 1}
+
+        if self._delay_s > 0:
+            time.sleep(self._delay_s)
+
+        try:
+            resp = requests.post(
+                _API_URL, json=payload, headers=headers, timeout=self._timeout_s
+            )
+        except requests.RequestException as exc:
+            self._release_call_slot()
+            Logger.warn(f"[places] photo search failed for '{query}': {exc}")
+            return None
+
+        if resp.status_code == 429:
+            Logger.warn(f"[places] rate limited (HTTP 429) on photo query '{query}'")
+            return None
+        if resp.status_code != 200:
+            Logger.warn(
+                f"[places] HTTP {resp.status_code} on photo query '{query}': {resp.text[:200]}"
+            )
+            return None
+
+        try:
+            data = resp.json()
+        except ValueError as exc:
+            Logger.warn(f"[places] bad JSON on photo query '{query}': {exc}")
+            return None
+
+        photo_name = self._first_photo_name(data)
+        if not photo_name:
+            return None
+
+        return self._resolve_photo_uri(photo_name, max_width_px, query)
+
+    @staticmethod
+    def _first_photo_name(data: Any) -> Optional[str]:
+        """Pull ``places[0].photos[0].name`` out of a searchText response."""
+        places = data.get("places") if isinstance(data, dict) else None
+        if not isinstance(places, list) or not places:
+            return None
+        top = places[0]
+        if not isinstance(top, dict):
+            return None
+        photos = top.get("photos")
+        if not isinstance(photos, list) or not photos:
+            return None
+        first = photos[0]
+        if not isinstance(first, dict):
+            return None
+        name = first.get("name")
+        return name if isinstance(name, str) and name else None
+
+    def _resolve_photo_uri(
+        self, photo_name: str, max_width_px: int, query: str
+    ) -> Optional[str]:
+        """Resolve a ``photos/*`` reference to its key-free ``photoUri``."""
+        if not self._reserve_call_slot():
+            Logger.warn(
+                f"[places] daily limit reached ({self._daily_limit}) — "
+                f"skipping photo media fetch for '{query}'"
+            )
+            return None
+
+        media_url = f"{_API_BASE}/{photo_name}/media"
+        if self._delay_s > 0:
+            time.sleep(self._delay_s)
+
+        try:
+            resp = requests.get(
+                media_url,
+                params={"maxWidthPx": max_width_px, "skipHttpRedirect": "true"},
+                headers={"X-Goog-Api-Key": self._api_key},
+                timeout=self._timeout_s,
+            )
+        except requests.RequestException as exc:
+            self._release_call_slot()
+            Logger.warn(f"[places] photo media fetch failed for '{query}': {exc}")
+            return None
+
+        if resp.status_code != 200:
+            Logger.warn(
+                f"[places] HTTP {resp.status_code} on photo media for '{query}': {resp.text[:200]}"
+            )
+            return None
+
+        try:
+            media = resp.json()
+        except ValueError as exc:
+            Logger.warn(f"[places] bad JSON on photo media for '{query}': {exc}")
+            return None
+
+        uri = media.get("photoUri") if isinstance(media, dict) else None
+        return uri if isinstance(uri, str) and uri else None
