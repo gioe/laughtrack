@@ -138,29 +138,31 @@ model Scraper {
 }
 
 model Club {
-  id                      Int                      @id @default(autoincrement())
-  name                    String                   @unique
+  id                      Int                        @id @default(autoincrement())
+  name                    String                     @unique
   address                 String
   website                 String
-  popularity              Float                    @default(0.0)
-  zipCode                 String?                  @map("zip_code") @db.VarChar(10)
-  city                    String?                  @map("city")
-  state                   String?                  @map("state")
-  country                 String?                  @map("country")
-  latitude                Float?                   @map("latitude")
-  longitude               Float?                   @map("longitude")
-  phoneNumber             String?                  @default("") @map("phone_number")
-  description             String?                  @map("description")
-  hours                   Json?                    @map("hours")
-  timezone                String?                  @map("timezone")
-  visible                 Boolean?                 @default(true)
-  totalShows              Int                      @default(0) @map("total_shows")
-  hasImage                Boolean                  @default(false) @map("has_image")
-  status                  String                   @default("active")
-  clubType                String                   @default("club") @map("club_type")
-  closedAt                DateTime?                @map("closed_at")
-  chainId                 Int?                     @map("chain_id")
-  chain                   Chain?                   @relation(fields: [chainId], references: [id])
+  popularity              Float                      @default(0.0)
+  zipCode                 String?                    @map("zip_code") @db.VarChar(10)
+  city                    String?                    @map("city")
+  state                   String?                    @map("state")
+  country                 String?                    @map("country")
+  latitude                Float?                     @map("latitude")
+  longitude               Float?                     @map("longitude")
+  phoneNumber             String?                    @default("") @map("phone_number")
+  description             String?                    @map("description")
+  hours                   Json?                      @map("hours")
+  timezone                String?                    @map("timezone")
+  visible                 Boolean?                   @default(true)
+  totalShows              Int                        @default(0) @map("total_shows")
+  hasImage                Boolean                    @default(false) @map("has_image")
+  googlePlaceId           String?                    @map("google_place_id")
+  googlePlaceAttribution  Json?                      @map("google_place_attribution")
+  status                  String                     @default("active")
+  clubType                String                     @default("club") @map("club_type")
+  closedAt                DateTime?                  @map("closed_at")
+  chainId                 Int?                       @map("chain_id")
+  chain                   Chain?                     @relation(fields: [chainId], references: [id])
   shows                   Show[]
   taggedClubs             TaggedClub[]
   emailSubscriptions      EmailSubscription[]
@@ -220,41 +222,41 @@ model ClubImageAsset {
 }
 
 model Comedian {
-  id                                   Int                           @id @default(autoincrement())
+  id                                   Int                               @id @default(autoincrement())
   name                                 String
-  instagramAccount                     String?                       @map("instagram_account")
-  instagramFollowers                   Int?                          @map("instagram_followers")
-  tiktokAccount                        String?                       @map("tiktok_account")
-  tiktokFollowers                      Int?                          @map("tiktok_followers")
+  instagramAccount                     String?                           @map("instagram_account")
+  instagramFollowers                   Int?                              @map("instagram_followers")
+  tiktokAccount                        String?                           @map("tiktok_account")
+  tiktokFollowers                      Int?                              @map("tiktok_followers")
   website                              String?
-  popularity                           Float                         @default(0.0)
-  youtubeAccount                       String?                       @map("youtube_account")
-  youtubeFollowers                     Int?                          @map("youtube_followers")
-  uuid                                 String                        @unique
-  createdAt                            DateTime                      @default(now()) @map("created_at") @db.Timestamptz
-  totalShows                           Int                           @default(0) @map("total_shows")
-  soldOutShows                         Int                           @default(0) @map("sold_out_shows")
+  popularity                           Float                             @default(0.0)
+  youtubeAccount                       String?                           @map("youtube_account")
+  youtubeFollowers                     Int?                              @map("youtube_followers")
+  uuid                                 String                            @unique
+  createdAt                            DateTime                          @default(now()) @map("created_at") @db.Timestamptz
+  totalShows                           Int                               @default(0) @map("total_shows")
+  soldOutShows                         Int                               @default(0) @map("sold_out_shows")
   linktree                             String?
-  songkickId                           String?                       @map("songkick_id")
-  bandsintownId                        String?                       @map("bandsintown_id")
-  hasImage                             Boolean                       @default(false) @map("has_image")
-  websiteDiscoverySource               String?                       @map("website_discovery_source")
-  websiteLastScraped                   DateTime?                     @map("website_last_scraped") @db.Timestamptz
-  websiteScrapeStrategy                String?                       @map("website_scrape_strategy")
-  websiteScrapingUrl                   String?                       @map("website_scraping_url")
-  websiteConfidence                    String?                       @map("website_confidence")
-  websiteScrapingUrlConfidence         String?                       @map("website_scraping_url_confidence")
-  websiteHealthStatus                  String?                       @map("website_health_status")
-  websiteHealthFailureCount            Int                           @default(0) @map("website_health_failure_count")
-  websiteHealthCheckedAt               DateTime?                     @map("website_health_checked_at") @db.Timestamptz
-  websiteScrapingUrlHealthStatus       String?                       @map("website_scraping_url_health_status")
-  websiteScrapingUrlHealthFailureCount Int                           @default(0) @map("website_scraping_url_health_failure_count")
-  websiteScrapingUrlHealthCheckedAt    DateTime?                     @map("website_scraping_url_health_checked_at") @db.Timestamptz
-  tourSourceReviewEvidence             Json?                         @map("tour_source_review_evidence")
+  songkickId                           String?                           @map("songkick_id")
+  bandsintownId                        String?                           @map("bandsintown_id")
+  hasImage                             Boolean                           @default(false) @map("has_image")
+  websiteDiscoverySource               String?                           @map("website_discovery_source")
+  websiteLastScraped                   DateTime?                         @map("website_last_scraped") @db.Timestamptz
+  websiteScrapeStrategy                String?                           @map("website_scrape_strategy")
+  websiteScrapingUrl                   String?                           @map("website_scraping_url")
+  websiteConfidence                    String?                           @map("website_confidence")
+  websiteScrapingUrlConfidence         String?                           @map("website_scraping_url_confidence")
+  websiteHealthStatus                  String?                           @map("website_health_status")
+  websiteHealthFailureCount            Int                               @default(0) @map("website_health_failure_count")
+  websiteHealthCheckedAt               DateTime?                         @map("website_health_checked_at") @db.Timestamptz
+  websiteScrapingUrlHealthStatus       String?                           @map("website_scraping_url_health_status")
+  websiteScrapingUrlHealthFailureCount Int                               @default(0) @map("website_scraping_url_health_failure_count")
+  websiteScrapingUrlHealthCheckedAt    DateTime?                         @map("website_scraping_url_health_checked_at") @db.Timestamptz
+  tourSourceReviewEvidence             Json?                             @map("tour_source_review_evidence")
   bio                                  String?
-  parentComedianId                     Int?                          @map("parent_comedian_id")
-  parentComedian                       Comedian?                     @relation("ComedianAliases", fields: [parentComedianId], references: [id])
-  alternativeNames                     Comedian[]                    @relation("ComedianAliases")
+  parentComedianId                     Int?                              @map("parent_comedian_id")
+  parentComedian                       Comedian?                         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
+  alternativeNames                     Comedian[]                        @relation("ComedianAliases")
   favoriteComedians                    FavoriteComedian[]
   lineupItems                          LineupItem[]
   taggedComedians                      TaggedComedian[]
@@ -506,20 +508,20 @@ model User {
 }
 
 model UserProfile {
-  id                          String             @id @default(cuid())
-  role                        String             @default("user")
-  emailShowNotifications      Boolean            @default(false) @map("email_show_notifications")
-  pushShowNotifications       Boolean            @default(false) @map("push_show_notifications")
-  comedianOnboardingCompleted Boolean            @default(false) @map("comedian_onboarding_completed")
-  zipCode                     String?            @map("zip_code")
-  nearbyDistanceMiles         Int?               @map("nearby_distance_miles")
-  userid                      String             @unique @map("user_id")
+  id                          String                     @id @default(cuid())
+  role                        String                     @default("user")
+  emailShowNotifications      Boolean                    @default(false) @map("email_show_notifications")
+  pushShowNotifications       Boolean                    @default(false) @map("push_show_notifications")
+  comedianOnboardingCompleted Boolean                    @default(false) @map("comedian_onboarding_completed")
+  zipCode                     String?                    @map("zip_code")
+  nearbyDistanceMiles         Int?                       @map("nearby_distance_miles")
+  userid                      String                     @unique @map("user_id")
   adminActionAudits           AdminActionAudit[]
   favoriteClubs               FavoriteClub[]
   favoriteComedians           FavoriteComedian[]
   favoritePodcasts            FavoritePodcast[]
   ticketPurchaseClicks        TicketPurchaseClickEvent[]
-  user                        User               @relation(fields: [userid], references: [id])
+  user                        User                       @relation(fields: [userid], references: [id])
 
   @@map("user_profiles")
 }
@@ -623,29 +625,29 @@ model FavoriteClub {
 }
 
 model Show {
-  id                  Int                @id @default(autoincrement())
-  name                String?
-  date                DateTime           @db.Timestamptz(6)
-  showPageUrl         String             @map("show_page_url")
-  clubId              Int                @map("club_id")
-  popularity          Float              @default(0.0)
-  lastScrapedDate     DateTime?          @map("last_scraped_date") @db.Timestamptz(6)
-  lastScrapedBy       String?            @map("last_scraped_by")
-  description         String?
-  room                String?
-  productionCompanyId Int?               @map("production_company_id")
+  id                   Int                        @id @default(autoincrement())
+  name                 String?
+  date                 DateTime                   @db.Timestamptz(6)
+  showPageUrl          String                     @map("show_page_url")
+  clubId               Int                        @map("club_id")
+  popularity           Float                      @default(0.0)
+  lastScrapedDate      DateTime?                  @map("last_scraped_date") @db.Timestamptz(6)
+  lastScrapedBy        String?                    @map("last_scraped_by")
+  description          String?
+  room                 String?
+  productionCompanyId  Int?                       @map("production_company_id")
   // Denormalized cheapest *paid* ticket price (excludes price = 0 / NULL).
   // Maintained by the tickets_trickle_show_min_price_{ins,del,upd} triggers
   // on tickets so the shows search can ORDER BY price without a per-row
   // subquery; NULL means no priced tickets are attached (free RSVP shows,
   // or no tickets yet).
-  minPrice            Decimal?           @map("min_price") @db.Decimal(7, 2)
-  lineupItems         LineupItem[]
-  club                Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  productionCompany   ProductionCompany? @relation(fields: [productionCompanyId], references: [id])
-  taggedShows         TaggedShow[]
-  tickets             Ticket[]
-  sentNotifications   SentNotification[]
+  minPrice             Decimal?                   @map("min_price") @db.Decimal(7, 2)
+  lineupItems          LineupItem[]
+  club                 Club                       @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  productionCompany    ProductionCompany?         @relation(fields: [productionCompanyId], references: [id])
+  taggedShows          TaggedShow[]
+  tickets              Ticket[]
+  sentNotifications    SentNotification[]
   ticketPurchaseClicks TicketPurchaseClickEvent[]
 
   // Dual-index design (intentional):
