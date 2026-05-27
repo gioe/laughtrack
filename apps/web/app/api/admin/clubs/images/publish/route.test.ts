@@ -4,6 +4,7 @@ import {
     uploadToBunnyStorage,
 } from "@/lib/admin/bunnyStorage";
 import {
+    ComedianImageDownloadError,
     downloadComedianImage,
     generateClubImageVariants,
 } from "@/lib/admin/comedianImagePipeline";
@@ -235,6 +236,33 @@ describe("POST /api/admin/clubs/images/publish", () => {
         expect(auditArgs.data.entityId).toBe("12");
         expect(mockRevalidateTag).toHaveBeenCalledWith("club-detail-data");
         expect(mockRevalidateTag).toHaveBeenCalledWith("Comedy Cellar");
+    });
+
+    it("rejects an SVG candidate with a clear 400 and no upload or DB write", async () => {
+        // Discovery surfaces SVG logo candidates; the pipeline rejects them at
+        // download time, and the route must surface that as a clear 400 rather
+        // than a generic 500 — and must not touch storage or the DB.
+        mockDownload.mockReset();
+        mockDownload.mockRejectedValueOnce(
+            new ComedianImageDownloadError(
+                "SVG_NOT_SUPPORTED",
+                "SVG images are not supported; choose a PNG, JPG, WebP, or AVIF raster image",
+            ),
+        );
+
+        const res = await POST(
+            makeRequest({
+                clubId: 12,
+                iconImageUrl: "https://example.com/logo.svg",
+            }),
+        );
+        const body = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(body.code).toBe("SVG_NOT_SUPPORTED");
+        expect(body.error).toMatch(/svg/i);
+        expect(mockUpload).not.toHaveBeenCalled();
+        expect(mockTransaction).not.toHaveBeenCalled();
     });
 
     it("publishes an icon-only asset without uploading or returning a hero URL", async () => {
