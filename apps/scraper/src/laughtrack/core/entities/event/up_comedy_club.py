@@ -73,7 +73,7 @@ class UPComedyClubEvent(ShowConvertible):
 
     def _parse_label_datetime(self, tz: ZoneInfo) -> Optional[datetime]:
         """Parse the source's local human date label when present."""
-        if not self.date_label:
+        if not isinstance(self.date_label, str) or not self.date_label:
             return None
 
         try:
