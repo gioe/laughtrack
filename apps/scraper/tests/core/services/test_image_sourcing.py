@@ -939,3 +939,77 @@ def test_persist_places_provenance_noops_for_website_candidate(monkeypatch):
     )
 
     source_club_images._persist_places_provenance("Comedy Cellar", candidate)
+
+
+def test_source_to_cdn_persists_provenance_after_successful_upload(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="google places",
+        image_url="https://lh3.googleusercontent.com/p.png",
+        place_id="ChIJplace",
+        attributions=[{"displayName": "Jane D"}],
+    )
+    monkeypatch.setattr(
+        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
+    )
+    monkeypatch.setattr(source_club_images, "upload_club_image_png", lambda name, data: True)
+    persisted: Dict[str, Any] = {}
+    monkeypatch.setattr(
+        source_club_images,
+        "_persist_places_provenance",
+        lambda name, cand: persisted.update(name=name, candidate=cand),
+    )
+
+    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "Comedy Cellar, NY"}
+    ok, label = source_club_images._source_to_cdn(club)
+
+    assert (ok, label) == (True, "google places")
+    # The place_id-bearing candidate is persisted after a successful upload.
+    assert persisted == {"name": "Comedy Cellar", "candidate": candidate}
+
+
+def test_source_to_cdn_skips_provenance_when_upload_fails(monkeypatch):
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="google places",
+        image_url="https://lh3.googleusercontent.com/p.png",
+        place_id="ChIJplace",
+    )
+    monkeypatch.setattr(
+        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
+    )
+    monkeypatch.setattr(source_club_images, "upload_club_image_png", lambda name, data: False)
+    monkeypatch.setattr(
+        source_club_images,
+        "_persist_places_provenance",
+        lambda *a, **k: (_ for _ in ()).throw(AssertionError("no persist when upload fails")),
+    )
+
+    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "q"}
+    ok, _label = source_club_images._source_to_cdn(club)
+    assert ok is False
+
+
+def test_source_to_review_dir_persists_provenance_for_places_candidate(monkeypatch, tmp_path):
+    candidate = image_sourcing.ClubImageCandidate(
+        source_label="google places",
+        image_url="https://lh3.googleusercontent.com/p.png",
+        place_id="ChIJplace",
+    )
+    monkeypatch.setattr(
+        source_club_images, "fetch_club_image_png", lambda name, website, **kw: (b"png", candidate)
+    )
+    persisted: Dict[str, Any] = {}
+    monkeypatch.setattr(
+        source_club_images,
+        "_persist_places_provenance",
+        lambda name, cand: persisted.update(name=name, candidate=cand),
+    )
+    review_dir = tmp_path / "out"
+    review_dir.mkdir()
+    club = {"name": "Comedy Cellar", "website": "https://cc.com", "place_query": "q"}
+
+    ok, label = source_club_images._source_to_review_dir(club, review_dir)
+
+    assert (ok, label) == (True, "google places")
+    assert (review_dir / "Comedy Cellar.png").read_bytes() == b"png"
+    # Staging a Places candidate also records its provenance.
+    assert persisted == {"name": "Comedy Cellar", "candidate": candidate}

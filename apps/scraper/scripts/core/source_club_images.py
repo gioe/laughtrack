@@ -396,6 +396,15 @@ def _persist_places_provenance(name, candidate):
     the required author attributions as JSONB so they travel with the venue for
     downstream display. Matches the club by unique name, mirroring
     ``_update_has_image``.
+
+    Provenance is intentionally coupled to the *source attempt*, not to CDN
+    publication: it is written whenever a Places photo is sourced — both the
+    direct ``_source_to_cdn`` path and the ``--review-dir`` staging path. The
+    place_id is venue identity and stays correct regardless of whether a staged
+    image is later published or discarded, and the ``--upload-from-dir`` publish
+    step only has file bytes (no candidate) so it cannot re-derive provenance.
+    The chosen storage is a JSON column on ``clubs`` (not a per-image sidecar),
+    so persisting at source time is the only point where the candidate exists.
     """
     if candidate.place_id is None and not candidate.attributions:
         return
@@ -407,10 +416,18 @@ def _persist_places_provenance(name, candidate):
                 (candidate.place_id, json.dumps(candidate.attributions), name),
             )
             rowcount = cur.rowcount
-    Logger.info(
-        f"source_club_images: stored Google Places provenance for {rowcount} club(s) "
-        f"(place_id={candidate.place_id!r})"
-    )
+    if rowcount == 0:
+        # Name drift (rename or casing mismatch between fetch and persist) means
+        # the provenance was silently dropped — surface it for debugging.
+        Logger.warn(
+            f"source_club_images: no club matched name {name!r} — Google Places "
+            f"provenance not stored (place_id={candidate.place_id!r})"
+        )
+    else:
+        Logger.info(
+            f"source_club_images: stored Google Places provenance for {rowcount} club(s) "
+            f"(place_id={candidate.place_id!r})"
+        )
 
 
 def _update_has_image(names):
