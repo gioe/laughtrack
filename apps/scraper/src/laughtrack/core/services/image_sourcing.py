@@ -8,6 +8,7 @@ All operations are synchronous and non-blocking — failures are logged but neve
 raised to callers.
 """
 
+import html
 import io
 import hashlib
 import os
@@ -396,16 +397,6 @@ def _meta_attr(tag: str, attr: str) -> Optional[str]:
     return match.group(2) or match.group(3) or match.group(4)
 
 
-def _decode_html_entities(value: str) -> str:
-    return (
-        value.replace("&amp;", "&")
-        .replace("&quot;", '"')
-        .replace("&#39;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-    )
-
-
 def _fetch_html(url: str) -> Optional[str]:
     """Download an HTML page as text. Returns None on any failure / non-HTML."""
     try:
@@ -424,10 +415,10 @@ def _fetch_html(url: str) -> Optional[str]:
         return None
 
 
-def _extract_og_image(html: str) -> Optional[str]:
+def _extract_og_image(page_html: str) -> Optional[str]:
     """Return the first og:image (then twitter:image) content from page HTML."""
     found: dict[str, str] = {}
-    for match in _META_TAG_RE.finditer(html):
+    for match in _META_TAG_RE.finditer(page_html):
         tag = match.group(0)
         key = _meta_attr(tag, "property") or _meta_attr(tag, "name")
         if not key:
@@ -437,7 +428,7 @@ def _extract_og_image(html: str) -> Optional[str]:
             continue
         content = _meta_attr(tag, "content")
         if content and content.strip():
-            found[key] = _decode_html_entities(content.strip())
+            found[key] = html.unescape(content.strip())
     for key in _OG_IMAGE_KEYS:
         if key in found:
             return found[key]

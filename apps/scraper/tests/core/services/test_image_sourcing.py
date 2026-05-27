@@ -438,8 +438,10 @@ def test_extract_og_image_falls_back_to_twitter():
 
 
 def test_extract_og_image_handles_content_before_property_and_entities():
-    html = '<meta content="https://example.com/a.png?x=1&amp;y=2" property="og:image" />'
-    assert image_sourcing._extract_og_image(html) == "https://example.com/a.png?x=1&y=2"
+    # Both named (&amp;) and numeric (&#38;) entities must decode — html.unescape
+    # covers the full entity set, unlike a hand-rolled replace chain.
+    html = '<meta content="https://example.com/a.png?x=1&amp;y=2&#38;z=3" property="og:image" />'
+    assert image_sourcing._extract_og_image(html) == "https://example.com/a.png?x=1&y=2&z=3"
 
 
 def test_extract_og_image_returns_none_when_absent():
@@ -720,3 +722,39 @@ def test_main_rejects_upload_from_dir_with_review_dir(monkeypatch, tmp_path, cap
 
     assert exc.value.code == 2
     assert "--upload-from-dir cannot be combined" in capsys.readouterr().err
+
+
+def test_run_upload_from_dir_rejects_unsafe_stem(tmp_path):
+    upload_dir = tmp_path / "reviewed"
+    upload_dir.mkdir()
+    # Stem "a..b" contains parent-traversal characters — must abort the run.
+    (upload_dir / "a..b.png").write_bytes(b"x")
+
+    with pytest.raises(SystemExit) as exc:
+        source_club_images._run_upload_from_dir(upload_dir, dry_run=False)
+
+    assert exc.value.code == 2
+
+
+def test_run_upload_from_dir_uploads_and_flips_has_image(monkeypatch, tmp_path, capsys):
+    upload_dir = tmp_path / "reviewed"
+    upload_dir.mkdir()
+    (upload_dir / "Comedy Cellar.png").write_bytes(b"png-bytes")
+
+    uploaded: Dict[str, Any] = {}
+    monkeypatch.setattr(
+        source_club_images,
+        "upload_club_image_png",
+        lambda name, data: uploaded.update(name=name, data=data) or True,
+    )
+    flipped: Dict[str, Any] = {}
+    monkeypatch.setattr(
+        source_club_images, "_update_has_image", lambda names: flipped.update(names=list(names))
+    )
+
+    source_club_images._run_upload_from_dir(upload_dir, dry_run=False)
+
+    assert uploaded == {"name": "Comedy Cellar", "data": b"png-bytes"}
+    # has_image flip happens only after a successful upload, keyed on the stem.
+    assert flipped == {"names": ["Comedy Cellar"]}
+    assert "Uploaded:  1" in capsys.readouterr().out
