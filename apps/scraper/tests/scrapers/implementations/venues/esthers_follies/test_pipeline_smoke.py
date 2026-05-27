@@ -213,6 +213,70 @@ def test_extractor_returns_empty_for_no_matches():
     assert events == []
 
 
+def _broken_box(edid) -> str:
+    """A SelectorBox show div missing its WeekDayTime — counts toward the
+    SelectorBox container total but never matches the show regex."""
+    return f"""
+        <li>
+            <div role="tab" class="SelectorBox Black"
+                 id="edid{edid}" onclick="LoadSpinner('{edid}'); LoadEvent('39242','{edid}');">
+                <div class="DateMonth __edid{edid}">Jun<div></div></div>
+                <div class="DateDay __edid{edid}">1<div></div></div>
+                <div class="DateTime __edid{edid}"><span class="WeekDay">Fri</span></div>
+            </div>
+        </li>
+    """
+
+
+_EXTRACTOR_LOGGER = (
+    "laughtrack.scrapers.implementations.venues.esthers_follies.extractor.Logger"
+)
+
+
+def test_extractor_warns_when_most_boxes_unparseable():
+    """A slider where most SelectorBox divs don't parse fires a coverage WARNING
+    naming both the parsed and detected counts (TASK-2492).
+
+    Guards against the TASK-2490 silent collapse: 8 of 10 show boxes are
+    malformed, so only 2 parse — well below the 50% coverage floor.
+    """
+    broken = "".join(_broken_box(660000 + i) for i in range(8))
+    intact = _date_slider_html(
+        ("670001", "Jun", "2", "Sat", "7:00 PM"),
+        ("670002", "Jun", "3", "Sun", "9:00 PM"),
+        include_calendar_box=False,
+    )
+    # Splice the 8 broken boxes ahead of the 2 intact ones inside one <ul>.
+    html = "<ul>" + broken + intact[len("<ul>"):]
+
+    with patch(_EXTRACTOR_LOGGER) as mock_logger:
+        events = EsthersFolliesEventExtractor.extract_shows(html)
+
+    assert len(events) == 2
+    warn_msgs = [c.args[0] for c in mock_logger.warn.call_args_list]
+    coverage_warnings = [m for m in warn_msgs if "SelectorBox divs" in m]
+    assert len(coverage_warnings) == 1
+    # The warning carries both the parsed (2) and detected (10) counts.
+    assert "2" in coverage_warnings[0]
+    assert "10" in coverage_warnings[0]
+
+
+def test_extractor_no_coverage_warning_on_healthy_full_slider():
+    """A realistic full slider (every box parses) fires no coverage WARNING."""
+    shows = [
+        (str(660000 + i), "Jun", str((i % 28) + 1), "Fri", "7:00 PM")
+        for i in range(60)
+    ]
+    html = _date_slider_html(*shows)
+
+    with patch(_EXTRACTOR_LOGGER) as mock_logger:
+        events = EsthersFolliesEventExtractor.extract_shows(html)
+
+    assert len(events) == 60
+    warn_msgs = [c.args[0] for c in mock_logger.warn.call_args_list]
+    assert not any("SelectorBox divs" in m for m in warn_msgs)
+
+
 # ---------------------------------------------------------------------------
 # EsthersFolliesEvent.to_show() unit tests
 # ---------------------------------------------------------------------------
