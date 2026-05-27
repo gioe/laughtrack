@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { buildClubImageUrl } from "@/util/imageUtil";
+import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { ClosedClubError } from "@/objects/ClosedClubError";
@@ -27,6 +27,12 @@ const CLUB_SELECT = {
             name: true,
             slug: true,
         },
+    },
+    imageAssets: {
+        where: { isActive: true },
+        select: { heroPath: true },
+        orderBy: { publishedAt: "desc" },
+        take: 1,
     },
 } as const;
 
@@ -54,10 +60,12 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
         if (clubData.status === "closed") {
             throw new ClosedClubError(clubData.name, clubData.closedAt);
         }
+        const activeImageAsset = clubData.imageAssets[0] ?? null;
         return {
             name: clubData.name,
             id: clubData.id,
             imageUrl: buildClubImageUrl(clubData.name, clubData.hasImage),
+            heroUrl: buildClubHeroImageUrl(activeImageAsset?.heroPath),
             website: clubData.website,
             address: clubData.address,
             city: clubData.city ?? undefined,
