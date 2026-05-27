@@ -41,17 +41,18 @@ struct ClubDetailView: View {
                 let club = content.club
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                    DetailHero(
-                        title: club.name,
-                        imageURL: club.imageUrl,
-                        badges: [],
-                        actions: clubHeroActions(club: club),
-                        openURL: { url in
-                            openURL(url)
-                        },
-                        fallbackSystemImage: "building.2.fill"
-                    )
-                    .ignoresSafeArea(.container, edges: .top)
+                    if let heroImageURL = ClubDetailHeroPresentation.imageURL(for: club) {
+                        DetailHero(
+                            title: club.name,
+                            imageURL: heroImageURL,
+                            badges: [],
+                            actions: clubHeroActions(club: club),
+                            openURL: { url in
+                                openURL(url)
+                            }
+                        )
+                        .ignoresSafeArea(.container, edges: .top)
+                    }
 
                     VStack(alignment: .leading, spacing: 20) {
                         PinnedShowsList(
@@ -134,6 +135,11 @@ struct ClubDetailView: View {
 }
 
 enum ClubDetailHeroPresentation {
+    static func imageURL(for club: Components.Schemas.ClubDetail) -> String? {
+        let trimmed = club.heroImageUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
     static func actions(for club: Components.Schemas.ClubDetail) -> [DetailHeroAction] {
         [
             DetailHeroAction(
@@ -149,4 +155,3 @@ enum ClubDetailHeroPresentation {
         ]
     }
 }
-

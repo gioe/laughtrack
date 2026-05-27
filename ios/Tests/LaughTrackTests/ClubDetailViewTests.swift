@@ -42,6 +42,25 @@ struct ClubDetailViewTests {
         #expect(actions.allSatisfy { $0.url != nil })
     }
 
+    @Test("club detail uses the dedicated hero image when present")
+    func clubDetailUsesDedicatedHeroImageWhenPresent() {
+        #expect(ClubDetailHeroPresentation.imageURL(for: primaryClub) == "https://example.com/club-hero.png")
+    }
+
+    @Test("club detail hides the hero when no hero image is present")
+    func clubDetailHidesHeroWhenNoHeroImageIsPresent() {
+        let club = Components.Schemas.ClubDetail(
+            id: 202,
+            name: "No Hero Club",
+            imageUrl: "https://example.com/logo.png",
+            heroImageUrl: "",
+            website: "https://example.com",
+            address: "100 Main St"
+        )
+
+        #expect(ClubDetailHeroPresentation.imageURL(for: club) == nil)
+    }
+
     @Test("club detail surfaces API failures explicitly")
     func clubDetailShowsErrorState() async throws {
         let model = ClubDetailModel(clubId: 201)
@@ -108,6 +127,7 @@ struct ClubDetailViewTests {
         )
         let apiClient = Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: transport
         )
         await model.loadIfNeeded(apiClient: apiClient)
@@ -132,6 +152,7 @@ struct ClubDetailViewTests {
     private func makeClient(transport: MockClubDetailTransport) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: transport
         )
     }
@@ -141,6 +162,7 @@ struct ClubDetailViewTests {
             id: 201,
             name: "Comedy Cellar",
             imageUrl: "https://example.com/club.png",
+            heroImageUrl: "https://example.com/club-hero.png",
             website: "https://www.comedycellar.com",
             address: "117 MacDougal St, New York, NY",
             zipCode: "10012",

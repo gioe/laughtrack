@@ -2178,6 +2178,8 @@ public enum Components {
             public var name: Swift.String
             /// - Remark: Generated from `#/components/schemas/ClubDetail/imageUrl`.
             public var imageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ClubDetail/heroImageUrl`.
+            public var heroImageUrl: Swift.String
             /// - Remark: Generated from `#/components/schemas/ClubDetail/website`.
             public var website: Swift.String
             /// - Remark: Generated from `#/components/schemas/ClubDetail/address`.
@@ -2206,6 +2208,7 @@ public enum Components {
                 id: Swift.Int,
                 name: Swift.String,
                 imageUrl: Swift.String,
+                heroImageUrl: Swift.String,
                 website: Swift.String,
                 address: Swift.String,
                 zipCode: Swift.String? = nil,
@@ -2216,6 +2219,7 @@ public enum Components {
                 self.id = id
                 self.name = name
                 self.imageUrl = imageUrl
+                self.heroImageUrl = heroImageUrl
                 self.website = website
                 self.address = address
                 self.zipCode = zipCode
@@ -2227,6 +2231,7 @@ public enum Components {
                 case id
                 case name
                 case imageUrl
+                case heroImageUrl
                 case website
                 case address
                 case zipCode
