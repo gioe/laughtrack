@@ -146,6 +146,49 @@ def test_download_uses_contact_user_agent(monkeypatch):
     assert "gioematt@gmail.com" in user_agent
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://169.254.169.254/latest/meta-data/",
+        "http://127.0.0.1/image.png",
+        "http://10.0.0.5/image.png",
+        "http://172.16.0.5/image.png",
+        "http://192.168.1.5/image.png",
+        "http://localhost/image.png",
+        "http://metadata.google.internal/image.png",
+        "http://[::1]/image.png",
+    ],
+)
+def test_download_image_blocks_private_and_metadata_hosts(monkeypatch, url):
+    def fake_get(_url: str, **_kwargs: Any):
+        raise AssertionError("blocked image URL should not be fetched")
+
+    monkeypatch.setattr(image_sourcing.requests, "get", fake_get)
+
+    assert image_sourcing._download_image(url) is None
+
+
+def test_download_image_blocks_redirect_to_metadata_host(monkeypatch):
+    calls: List[str] = []
+
+    class FakeRedirectResponse:
+        status_code = 302
+        headers = {"Location": "http://169.254.169.254/latest/meta-data/"}
+        content = b""
+
+        def raise_for_status(self) -> None:
+            pass
+
+    def fake_get(url: str, **_kwargs: Any):
+        calls.append(url)
+        return FakeRedirectResponse()
+
+    monkeypatch.setattr(image_sourcing.requests, "get", fake_get)
+
+    assert image_sourcing._download_image("https://example.com/image.png") is None
+    assert calls == ["https://example.com/image.png"]
+
+
 def test_default_image_source_delay_is_at_least_commons_crawl_delay():
     assert image_sourcing._IMAGE_SOURCE_DELAY_S >= 5.0
     assert source_comedian_images._IMAGE_SOURCE_DELAY_S >= 5.0
@@ -468,6 +511,35 @@ def test_get_og_image_url_resolves_relative_and_adds_scheme(monkeypatch):
 def test_get_og_image_url_returns_none_for_blank_website():
     assert image_sourcing._get_og_image_url("") is None
     assert image_sourcing._get_og_image_url(None) is None
+
+
+@pytest.mark.parametrize(
+    "website",
+    [
+        "http://169.254.169.254/latest/meta-data/",
+        "127.0.0.1",
+        "localhost",
+        "metadata.google.internal",
+        "http://[::1]/",
+    ],
+)
+def test_get_og_image_url_blocks_private_and_metadata_websites(monkeypatch, website):
+    def fake_fetch(_url: str):
+        raise AssertionError("blocked website URL should not be fetched")
+
+    monkeypatch.setattr(image_sourcing, "_fetch_html", fake_fetch)
+
+    assert image_sourcing._get_og_image_url(website) is None
+
+
+def test_get_og_image_url_blocks_private_og_image(monkeypatch):
+    monkeypatch.setattr(
+        image_sourcing,
+        "_fetch_html",
+        lambda _url: '<meta property="og:image" content="http://169.254.169.254/latest/meta-data/">',
+    )
+
+    assert image_sourcing._get_og_image_url("https://example.com") is None
 
 
 def test_find_club_image_source_prefers_website_og_image(monkeypatch):

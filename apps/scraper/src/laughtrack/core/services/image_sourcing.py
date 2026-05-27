@@ -11,6 +11,7 @@ raised to callers.
 import html
 import io
 import hashlib
+import ipaddress
 import os
 import re
 import time
@@ -44,6 +45,9 @@ _BUNNYCDN_REGIONS = {"la", "ny", "sg", "syd", "uk", "se", "br", "jh", "de"}
 # Only allow safe characters in SPARQL string literals
 _SAFE_NAME_RE = re.compile(r"^[a-zA-Z0-9 .'\-]+$")
 _COMMONS_IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp")
+_HTTP_REDIRECT_STATUSES = {301, 302, 303, 307, 308}
+_MAX_HTTP_REDIRECTS = 5
+_BLOCKED_METADATA_HOSTS = {"metadata.google.internal"}
 
 # Delay between per-comedian image sourcing requests to avoid rate-limiting
 _IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "5.0"))
@@ -82,6 +86,58 @@ def _wikimedia_upload_thumbnail_url(image_url: str) -> str:
 def _strip_url_query(url: str) -> str:
     parsed = urllib.parse.urlparse(url)
     return urllib.parse.urlunparse(parsed._replace(query="", fragment=""))
+
+
+def _is_blocked_hostname(hostname: Optional[str]) -> bool:
+    """Return True for local/private/metadata hosts that must not be fetched."""
+    if not hostname:
+        return True
+
+    host = hostname.rstrip(".").lower()
+    if host == "localhost" or host.endswith(".localhost"):
+        return True
+    if host in _BLOCKED_METADATA_HOSTS:
+        return True
+
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+
+    if getattr(ip, "ipv4_mapped", None) is not None:
+        ip = ip.ipv4_mapped
+    return not ip.is_global
+
+
+def _is_safe_http_url(url: str) -> bool:
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme.lower() in {"http", "https"} and not _is_blocked_hostname(parsed.hostname)
+
+
+def _guarded_get(url: str, *, headers: dict[str, str], timeout: int):
+    """GET a public HTTP(S) URL without following redirects to blocked hosts."""
+    current_url = url
+    for _ in range(_MAX_HTTP_REDIRECTS + 1):
+        if not _is_safe_http_url(current_url):
+            Logger.warn(f"image_sourcing: blocked unsafe fetch URL {current_url}")
+            return None
+
+        resp = requests.get(
+            current_url,
+            headers=headers,
+            timeout=timeout,
+            allow_redirects=False,
+        )
+        if getattr(resp, "status_code", 200) not in _HTTP_REDIRECT_STATUSES:
+            return resp
+
+        location = resp.headers.get("Location", "")
+        if not location:
+            return resp
+        current_url = urllib.parse.urljoin(current_url, location)
+
+    Logger.warn(f"image_sourcing: too many redirects for {url}")
+    return None
 
 
 def _commons_filename_matches_name(title: str, comedian_name: str) -> bool:
@@ -189,11 +245,13 @@ def _get_tmdb_image_url(comedian_name: str, api_key: str) -> Optional[str]:
 def _download_image(url: str) -> Optional[bytes]:
     """Download image bytes from a URL using requests (with default SSL verification)."""
     try:
-        resp = requests.get(
+        resp = _guarded_get(
             url,
             headers={"User-Agent": _WIKIMEDIA_USER_AGENT},
             timeout=15,
         )
+        if resp is None:
+            return None
         resp.raise_for_status()
         return resp.content
     except Exception as e:
@@ -400,11 +458,13 @@ def _meta_attr(tag: str, attr: str) -> Optional[str]:
 def _fetch_html(url: str) -> Optional[str]:
     """Download an HTML page as text. Returns None on any failure / non-HTML."""
     try:
-        resp = requests.get(
+        resp = _guarded_get(
             url,
             headers={"User-Agent": _WIKIMEDIA_USER_AGENT, "Accept": "text/html"},
             timeout=10,
         )
+        if resp is None:
+            return None
         resp.raise_for_status()
         content_type = resp.headers.get("Content-Type", "").lower()
         if content_type and "html" not in content_type:
@@ -442,13 +502,20 @@ def _get_og_image_url(website: Optional[str]) -> Optional[str]:
     page_url = website.strip()
     if not page_url.lower().startswith(("http://", "https://")):
         page_url = f"https://{page_url}"
+    if not _is_safe_http_url(page_url):
+        Logger.warn(f"image_sourcing: blocked unsafe website URL {page_url}")
+        return None
     html = _fetch_html(page_url)
     if not html:
         return None
     raw = _extract_og_image(html)
     if not raw:
         return None
-    return urllib.parse.urljoin(page_url, raw)
+    image_url = urllib.parse.urljoin(page_url, raw)
+    if not _is_safe_http_url(image_url):
+        Logger.warn(f"image_sourcing: blocked unsafe og:image URL {image_url}")
+        return None
+    return image_url
 
 
 def _get_google_places_image_url(query: str) -> Optional[str]:
