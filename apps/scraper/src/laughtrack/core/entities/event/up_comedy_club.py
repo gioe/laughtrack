@@ -37,6 +37,7 @@ class UPComedyClubEvent(ShowConvertible):
     date_utc: str     # ISO 8601 UTC string, e.g. "2026-05-29T00:00:00Z"
     ticket_url: str   # Salesforce ticket URL for the specific instance
     sold_out: bool    # True when instance.soldOut != 0
+    date_label: str = ""  # Human label, e.g. "Thursday, May 28, 2026, at 7:00 PM"
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
@@ -49,7 +50,7 @@ class UPComedyClubEvent(ShowConvertible):
             # Parse UTC datetime — instances always include a "Z" suffix
             dt_utc = datetime.fromisoformat(self.date_utc.replace("Z", "+00:00"))
             tz = ZoneInfo(club.timezone or "UTC")
-            start_dt = dt_utc.astimezone(tz)
+            start_dt = self._parse_label_datetime(tz) or dt_utc.astimezone(tz)
         except Exception as exc:
             Logger.debug(
                 f"UPComedyClubEvent: failed to parse date {self.date_utc!r} "
@@ -69,3 +70,18 @@ class UPComedyClubEvent(ShowConvertible):
             tickets=tickets,
             enhanced=enhanced,
         )
+
+    def _parse_label_datetime(self, tz: ZoneInfo) -> Optional[datetime]:
+        """Parse the source's local human date label when present."""
+        if not self.date_label:
+            return None
+
+        try:
+            naive = datetime.strptime(
+                self.date_label.strip(),
+                "%A, %B %d, %Y, at %I:%M %p",
+            )
+        except ValueError:
+            return None
+
+        return naive.replace(tzinfo=tz)

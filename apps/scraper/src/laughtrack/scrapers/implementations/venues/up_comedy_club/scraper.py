@@ -20,6 +20,7 @@ Step 2 — Per-show instances (get_data):
   Response: { patronticketData: { patronticketData: "<base64>" } }
   Base64 decodes to JSON with an "instances" array, each containing:
     - formattedDates.ISO8601  — UTC datetime string
+    - name                    — human-readable local date/time label
     - purchaseUrl              — Salesforce instance ticket URL
     - soldOut                  — 0 (available) or 1 (sold out)
     - eventName                — show title
@@ -196,6 +197,7 @@ class UPComedyClubScraper(BaseScraper):
                 continue
 
             date_utc = (inst.get("formattedDates") or {}).get("ISO8601", "")
+            date_label = inst.get("name", "")
             ticket_url = inst.get("purchaseUrl", "")
             title = inst.get("eventName", "") or ticket_data.get("name", "")
             sold_out = bool(inst.get("soldOut", 0))
@@ -216,6 +218,7 @@ class UPComedyClubScraper(BaseScraper):
                     date_utc=date_utc,
                     ticket_url=ticket_url,
                     sold_out=sold_out,
+                    date_label=date_label,
                 )
             )
 

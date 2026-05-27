@@ -78,13 +78,14 @@ def _make_instance(
     ticket_url: str = "https://secondcityus.my.salesforce-sites.com/ticket/#/instances/a0FTP000009NIIP2A4",
     sold_out: int = 0,
     title: str = "The Best of The Second City: Chicago Style",
+    name: str = "Thursday, May 28, 2026, at 7:00 PM",
 ) -> Dict[str, Any]:
     return {
         "venueId": "a0T36000005QkwLEAS",
         "soldOut": sold_out,
         "seatingType": "General Admission",
         "purchaseUrl": ticket_url,
-        "name": "Thursday, May 28, 2026, at 7:00 PM",
+        "name": name,
         "id": "a0FTP000009NIIP2A4",
         "formattedDates": {"ISO8601": date_utc},
         "eventName": title,
@@ -292,6 +293,36 @@ def test_to_show_converts_utc_to_club_timezone():
     assert show.date.month == 5
     assert show.date.day == 28
     assert show.date.hour == 19
+
+
+@pytest.mark.asyncio
+async def test_get_data_uses_post_dst_human_label_time(monkeypatch):
+    """Post-DST source ISO8601 stays fixed at 20:30Z, but the label says 3:30 PM local."""
+    scraper = UPComedyClubScraper(_club())
+    instances = [
+        _make_instance(
+            date_utc="2026-11-07T20:30:00Z",
+            name="Saturday, November 7, 2026, at 3:30 PM",
+        )
+    ]
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        return _entity_resolver_response(instances)
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    page_data = await scraper.get_data(
+        "https://www.secondcity.com/api/entityResolver?uri=%2Fshows%2Fchicago%2Ftest&isPreview=false"
+    )
+    assert page_data is not None
+
+    show = page_data.event_list[0].to_show(_club(timezone="America/Chicago"))
+
+    assert show is not None
+    assert show.date.month == 11
+    assert show.date.day == 7
+    assert show.date.hour == 15
+    assert show.date.minute == 30
 
 
 def test_to_show_falls_back_to_utc_when_timezone_is_none():
