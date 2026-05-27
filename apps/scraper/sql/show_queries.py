@@ -53,6 +53,38 @@ class ShowQueries:
           AND COALESCE(name, '') = ANY(%s)
         ORDER BY id
     '''
+
+    # PatronTicket-family shows (generic patron_ticket + bespoke up_comedy_club)
+    # carry a stable Salesforce instance id in the #/instances/<id> fragment of
+    # show_page_url. Fetch existing instance-bearing rows for the affected clubs so
+    # the handler can match an incoming show to its existing row by instance id and
+    # move it to a rescheduled date in place (see _reconcile_patronticket_instances).
+    GET_PATRONTICKET_SHOWS_BY_CLUB = '''
+        SELECT id, club_id, date, room, show_page_url
+        FROM shows
+        WHERE club_id = ANY(%s)
+          AND show_page_url LIKE '%%/instances/%%'
+        ORDER BY id
+    '''
+
+    # Move an existing show to a new (rescheduled) date in place, keyed by id, so the
+    # downstream ON CONFLICT (club_id, date, room) upsert updates the same row instead
+    # of inserting a near-duplicate. The NOT EXISTS guard prevents a unique-constraint
+    # violation if some other row already occupies (club_id, new_date, room); in that
+    # case the move is skipped and the upsert reconciles against that row instead.
+    # Params: (new_date, show_id, new_date).
+    UPDATE_SHOW_DATE_BY_ID = '''
+        UPDATE shows AS s
+        SET date = %s
+        WHERE s.id = %s
+          AND NOT EXISTS (
+              SELECT 1 FROM shows o
+              WHERE o.club_id = s.club_id
+                AND o.date = %s
+                AND o.room = s.room
+                AND o.id <> s.id
+          )
+    '''
     
     BATCH_GET_LINEUP_POPULARITY = '''
         WITH lineup_details AS (

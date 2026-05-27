@@ -28,6 +28,11 @@ from .model import Show
 
 _HEADLINER_FRIENDS_SUFFIX_RE = re.compile(r"\s+(?:&|and)\s+friends\s*$", re.IGNORECASE)
 
+# PatronTicket-family shows carry a stable Salesforce instance id in the
+# #/instances/<id> fragment of show_page_url (e.g. .../ticket/#/instances/a0FTP000004XeKY2A0).
+# urlparse drops it into .fragment rather than .path, so match against the whole URL.
+_PATRONTICKET_INSTANCE_RE = re.compile(r"/instances/([A-Za-z0-9]+)")
+
 
 class ShowHandler(BaseDatabaseHandler[Show]):
     """Handler for show database operations."""
@@ -238,6 +243,85 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             )
         return collapsed
 
+    @staticmethod
+    def _extract_instance_id(url: Optional[str]) -> Optional[str]:
+        """Extract the Salesforce PatronTicket instance id from a show URL.
+
+        Returns the id captured from the ``#/instances/<id>`` fragment, or None
+        when the URL is missing or not a PatronTicket-family ticket URL.
+        """
+        if not isinstance(url, str) or not url:
+            return None
+        match = _PATRONTICKET_INSTANCE_RE.search(url)
+        return match.group(1) if match else None
+
+    def _reconcile_patronticket_instances(self, batch: List[Show]) -> int:
+        """Move existing PatronTicket rows to a rescheduled date before the upsert.
+
+        PatronTicket-family shows (the generic ``patron_ticket`` scraper and the
+        bespoke ``up_comedy_club`` scraper) identify a performance by a stable
+        Salesforce instance id carried in the ``#/instances/<id>`` fragment of
+        show_page_url — not by start time. When a venue reschedules an instance,
+        the new UTC start time yields a new ``date`` and the upsert's
+        ON CONFLICT (club_id, date, room) misses the existing row, inserting a
+        near-duplicate that nothing reaps (see
+        docs/audits/task-2485-patronticket-duplicate-shows.md).
+
+        Here we match each incoming show to its existing row by (club_id, instance
+        id) and move that row's date in place, so the subsequent upsert updates the
+        same row instead of inserting a second one.
+        """
+        incoming_by_instance: dict[tuple, Show] = {}
+        club_ids: set[int] = set()
+        for show in batch:
+            instance_id = self._extract_instance_id(show.show_page_url)
+            if not instance_id or show.date is None:
+                continue
+            club_ids.add(show.club_id)
+            incoming_by_instance[(show.club_id, instance_id)] = show
+
+        if not incoming_by_instance:
+            return 0
+
+        existing_rows = self.execute_with_cursor(
+            ShowQueries.GET_PATRONTICKET_SHOWS_BY_CLUB,
+            (sorted(club_ids),),
+            return_results=True,
+        ) or []
+
+        existing_by_instance: dict[tuple, list[DictRow]] = {}
+        for row in existing_rows:
+            instance_id = self._extract_instance_id(row.get("show_page_url"))
+            if instance_id:
+                existing_by_instance.setdefault((row.get("club_id"), instance_id), []).append(row)
+
+        reconciled = 0
+        for key, show in incoming_by_instance.items():
+            rows = existing_by_instance.get(key)
+            if not rows:
+                continue
+            incoming_date = self._normalize_cross_batch_key_date(show.date)
+            existing_dates = {self._normalize_cross_batch_key_date(row.get("date")) for row in rows}
+            if incoming_date in existing_dates:
+                # An existing row already sits at the incoming date; the upsert's
+                # ON CONFLICT will match it. Nothing to move.
+                continue
+            # Move the most-recently-inserted matching row (highest id) to the new
+            # date. The SQL guard skips the move if another row already occupies
+            # (club_id, new_date, room), in which case the upsert reconciles there.
+            target = rows[-1]
+            self.execute_with_cursor(
+                ShowQueries.UPDATE_SHOW_DATE_BY_ID,
+                (show.date, target.get("id"), show.date),
+            )
+            reconciled += 1
+
+        if reconciled:
+            Logger.info(
+                f"Reconciled {reconciled} PatronTicket show(s) to a rescheduled date by instance id"
+            )
+        return reconciled
+
     def _update_shows_and_related(
         self, batch: List[Show], results: List[DictRow]
     ) -> Tuple[List[Show], int, int]:
@@ -289,6 +373,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return DatabaseOperationResult(validation_errors=len(validation_errors))
 
         batch, duplicate_details = ShowUtils.deduplicate_shows_with_details(batch)
+        self._reconcile_patronticket_instances(batch)
         self._collapse_cross_batch_duplicates(batch)
 
         # Insert shows and get results
