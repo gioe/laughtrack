@@ -8,7 +8,7 @@ Documents the purpose and usage of each model in `schema.prisma`.
 A comedy club chain/brand (e.g., Improv, Helium, Funny Bone). Groups multiple Club locations under one parent brand. Has a unique name, slug, and optional brand-level website.
 
 ### Club
-Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK.
+Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK. `googlePlaceId` caches the resolved Google Places identifier (text-searched by name + city/state) so the venue can be re-queried without re-resolving; `googlePlaceAttribution` stores the Google Places photo's required author attributions as a JSON array of `{displayName, uri, photoUri}` when a club image is sourced from Places rather than the club website. Both are populated server-side by the scraper's `source_club_images` job — `GOOGLE_PLACES_API_KEY` is read only in the scraper and is never exposed to the web client.
 
 ### ClubAlias
 Verified alternate venue names that resolve to one canonical Club before scraper discovery inserts a new club row. Aliases are global across ingestion sources and are scoped by normalized alias name, city, and state so the same venue nickname in a different market does not collide.
