@@ -74,6 +74,21 @@ Playwright fallback -> DataDome challenge HTML
 parsed Etix events -> 0
 ```
 
+GitHub Actions runner verification on 2026-05-27 used
+`Scraper Verify (Single Club)` run `26511493243` against club 1353 on branch
+`feature/TASK-2486-etix-world-stage-enrichment`. The job completed
+successfully because Ciright still produced 30 Lounge events, but Etix
+enrichment did not clear DataDome on the runner:
+
+```
+HTTP 403 when fetching ...upcomingEvents/venue?venue_id=1599...
+[HttpClient] Triggering Playwright fallback ... (reason: 'HTTP 403')
+[PlaywrightBrowser] DataDome interactive CAPTCHA detected but CAPSOLVER_API_KEY is unset
+[HttpClient] Playwright fallback ... also returned a bot-block page (signature: 'datadome')
+Etix enrichment found no usable events for https://www.etix.com/ticket/v/1599/music-hall-at-world-stage
+WorldStageScraper ... 30 confirmed event(s) from Ciright (room_ids=[3131060])
+```
+
 This confirms local curl_cffi/Playwright is still blocked. The scraper now treats
 Etix as best-effort enrichment only: it fetches venue `1599`, matches Etix rows
 back to already room-filtered Ciright rows by title and date, and upgrades only
