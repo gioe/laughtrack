@@ -170,6 +170,7 @@ model Club {
   aliases                 ClubAlias[]
   favorites               FavoriteClub[]
   imageAssets             ClubImageAsset[]
+  ticketPurchaseClicks    TicketPurchaseClickEvent[]
 
   @@index([visible])
   @@index([chainId])
@@ -517,6 +518,7 @@ model UserProfile {
   favoriteClubs               FavoriteClub[]
   favoriteComedians           FavoriteComedian[]
   favoritePodcasts            FavoritePodcast[]
+  ticketPurchaseClicks        TicketPurchaseClickEvent[]
   user                        User               @relation(fields: [userid], references: [id])
 
   @@map("user_profiles")
@@ -644,6 +646,7 @@ model Show {
   taggedShows         TaggedShow[]
   tickets             Ticket[]
   sentNotifications   SentNotification[]
+  ticketPurchaseClicks TicketPurchaseClickEvent[]
 
   // Dual-index design (intentional):
   // - @@unique([clubId, date, room]) enforces deduplication and is used by the
@@ -662,6 +665,29 @@ model Show {
   // to keep for those workflows.
   @@index([lastScrapedBy])
   @@map("shows")
+}
+
+model TicketPurchaseClickEvent {
+  id                 Int          @id @default(autoincrement())
+  showId             Int          @map("show_id")
+  clubId             Int          @map("club_id")
+  profileId          String?      @map("profile_id")
+  anonymousVisitorId String       @map("anonymous_visitor_id")
+  destinationUrl     String       @map("destination_url")
+  sourceSurface      String       @map("source_surface")
+  userAgent          String?      @map("user_agent")
+  deviceMetadata     Json         @default("{}") @map("device_metadata")
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  show               Show         @relation(fields: [showId], references: [id], onDelete: Cascade)
+  club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  profile            UserProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([showId, createdAt])
+  @@index([clubId, createdAt])
+  @@index([profileId, createdAt])
+  @@index([anonymousVisitorId, createdAt])
+  @@map("ticket_purchase_click_events")
 }
 
 model Ticket {
