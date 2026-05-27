@@ -32,8 +32,15 @@ def _form_html(
     data_name: str = "Adam_Dominguez",
     action: str = "make-res.php",
     showtimes: list[str] | None = None,
+    seating: list[tuple[str, str]] | None = None,
 ) -> str:
-    """Render a minimal Laffs reservation form matching the live HTML structure."""
+    """Render a minimal Laffs reservation form matching the live HTML structure.
+
+    ``seating`` is a list of (value, label_text) pairs rendering the seating
+    selector radios, e.g. [("general", "General - $15"), ("preferred",
+    "Preferred - $20")]. When None, no seating block is rendered (older
+    single-price layout).
+    """
     if showtimes is None:
         showtimes = [
             "Friday, April 10 @ 8 PM",
@@ -48,6 +55,21 @@ def _form_html(
         for i, st in enumerate(showtimes)
     )
 
+    seating_html = ""
+    if seating is not None:
+        seat_rows = "\n".join(
+            f'<div><input type="radio" id="seat_{val}" name="showtimeSeating" '
+            f'{val}="" value="{val}" required>'
+            f'<label for="seat_{val}">{lbl}</label></div>'
+            for val, lbl in seating
+        )
+        seating_html = (
+            '<div class="formComicShowtimes formComicButtons">'
+            '<label class="chsTime" for="showtimeSeating">Choose Your Seating</label>'
+            f'<div class="formComicShowtimesSeating">{seat_rows}</div>'
+            "</div>"
+        )
+
     return f"""
 <div style="display:none;">
   <div class="form-modal" id="rz_1" uk-modal>
@@ -58,6 +80,7 @@ def _form_html(
           <label class="chsTime">Choose Your Showtime</label>
           {radio_html}
         </div>
+        {seating_html}
       </form>
     </div>
   </div>
@@ -346,3 +369,147 @@ async def test_pipeline_transforms_events_to_shows(monkeypatch):
     assert len(shows) == 1
     assert isinstance(shows[0], Show)
     assert shows[0].name == "Adam Dominguez"
+
+
+# ---------------------------------------------------------------------------
+# Live form action (make-res-v2.php) + priced seating tiers (TASK-2483)
+# ---------------------------------------------------------------------------
+
+_SEATING = [("general", "General - $15"), ("preferred", "Preferred - $20")]
+
+
+@pytest.mark.asyncio
+async def test_get_data_parses_v2_reservation_forms(monkeypatch):
+    """The live page migrated to make-res-v2.php — events must still extract."""
+    scraper = LaffsComedyCafeScraper(_club())
+    html = _page([
+        _form_html(data_name="Jason_Russell", action="make-res-v2.php"),
+    ])
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return html
+
+    monkeypatch.setattr(LaffsComedyCafeScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(PAGE_URL)
+
+    assert isinstance(result, LaffsComedyCafePageData)
+    assert len(result.event_list) == 4  # 4 showtimes
+    assert {e.comedian_name for e in result.event_list} == {"Jason Russell"}
+
+
+@pytest.mark.asyncio
+async def test_get_data_skips_tix2_alongside_v2_reservation(monkeypatch):
+    """v2 reservation + tix2 purchase forms must not double-count events."""
+    scraper = LaffsComedyCafeScraper(_club())
+    html = _page([
+        _form_html(data_name="Jason_Russell", action="make-res-v2.php"),
+        _form_html(data_name="Jason_Russell", action="tix2.php"),
+    ])
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return html
+
+    monkeypatch.setattr(LaffsComedyCafeScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(PAGE_URL)
+
+    assert isinstance(result, LaffsComedyCafePageData)
+    # Only the 4 reservation-form showtimes, not 8.
+    assert len(result.event_list) == 4
+
+
+def test_extractor_recovers_seating_prices():
+    """Extractor reads general ($15) and preferred ($20) tiers from the form."""
+    from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.extractor import (
+        LaffsComedyCafeExtractor,
+    )
+
+    html = _page([
+        _form_html(
+            data_name="Jason_Russell",
+            action="make-res-v2.php",
+            showtimes=["Friday, May 29 @ 8 PM"],
+            seating=_SEATING,
+        ),
+    ])
+
+    events = LaffsComedyCafeExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].seating_tiers == [
+        ("General Admission", 15.0),
+        ("Preferred Seating", 20.0),
+    ]
+
+
+def test_extractor_no_seating_yields_empty_tiers():
+    """A form without a seating selector produces no tiers (fallback path)."""
+    from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.extractor import (
+        LaffsComedyCafeExtractor,
+    )
+
+    html = _page([
+        _form_html(
+            data_name="Jason_Russell",
+            action="make-res-v2.php",
+            showtimes=["Friday, May 29 @ 8 PM"],
+        ),
+    ])
+
+    events = LaffsComedyCafeExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].seating_tiers == []
+
+
+def test_to_show_emits_priced_ticket_per_tier():
+    """to_show() emits one priced ticket per seating tier."""
+    event = _make_event()
+    event.seating_tiers = [
+        ("General Admission", 15.0),
+        ("Preferred Seating", 20.0),
+    ]
+    show = event.to_show(_club())
+    assert show is not None
+    tiers = {(t.type, t.price) for t in show.tickets}
+    assert tiers == {
+        ("General Admission", 15.0),
+        ("Preferred Seating", 20.0),
+    }
+
+
+def test_to_show_falls_back_to_single_unpriced_ticket():
+    """to_show() without seating tiers keeps the single fallback ticket."""
+    event = _make_event()
+    show = event.to_show(_club())
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].price is None
+
+
+@pytest.mark.asyncio
+async def test_full_pipeline_recovers_priced_tickets(monkeypatch):
+    """End-to-end: v2 form with seating → shows carrying two priced tickets."""
+    scraper = LaffsComedyCafeScraper(_club())
+    html = _page([
+        _form_html(
+            data_name="Jason_Russell",
+            action="make-res-v2.php",
+            showtimes=["Friday, May 29 @ 8 PM"],
+            seating=_SEATING,
+        ),
+    ])
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return html
+
+    monkeypatch.setattr(LaffsComedyCafeScraper, "fetch_html", fake_fetch_html)
+
+    page_data = await scraper.get_data(PAGE_URL)
+    assert page_data is not None
+    shows = scraper.transformation_pipeline.transform(page_data)
+    assert len(shows) == 1
+    prices = {(t.type, t.price) for t in shows[0].tickets}
+    assert prices == {
+        ("General Admission", 15.0),
+        ("Preferred Seating", 20.0),
+    }
