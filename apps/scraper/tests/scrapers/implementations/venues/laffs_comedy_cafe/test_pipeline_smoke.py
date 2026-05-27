@@ -442,6 +442,50 @@ def test_extractor_recovers_seating_prices():
     ]
 
 
+def test_extractor_unknown_tier_derives_type_without_price():
+    """An unmapped tier derives its type from the label, stripping the price.
+
+    Covers both the hyphenated ("VIP - $50") and hyphen-less ("Lounge $30")
+    label shapes so the type never leaks the price string.
+    """
+    from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.extractor import (
+        LaffsComedyCafeExtractor,
+    )
+
+    html = _page([
+        _form_html(
+            data_name="Jason_Russell",
+            action="make-res-v2.php",
+            showtimes=["Friday, May 29 @ 8 PM"],
+            seating=[("vip", "VIP - $50"), ("lounge", "Lounge $30")],
+        ),
+    ])
+
+    events = LaffsComedyCafeExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].seating_tiers == [("VIP", 50.0), ("Lounge", 30.0)]
+
+
+def test_extractor_tier_without_price_yields_none():
+    """A seating label with no dollar amount yields a tier with price=None."""
+    from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.extractor import (
+        LaffsComedyCafeExtractor,
+    )
+
+    html = _page([
+        _form_html(
+            data_name="Jason_Russell",
+            action="make-res-v2.php",
+            showtimes=["Friday, May 29 @ 8 PM"],
+            seating=[("general", "General Seating")],
+        ),
+    ])
+
+    events = LaffsComedyCafeExtractor.extract_events(html)
+    assert len(events) == 1
+    assert events[0].seating_tiers == [("General Admission", None)]
+
+
 def test_extractor_no_seating_yields_empty_tiers():
     """A form without a seating selector produces no tiers (fallback path)."""
     from laughtrack.scrapers.implementations.venues.laffs_comedy_cafe.extractor import (

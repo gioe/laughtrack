@@ -147,9 +147,11 @@ class LaffsComedyCafeExtractor:
 
             ticket_type = _SEATING_TYPE_MAP.get(value)
             if ticket_type is None:
-                # Unknown tier — derive a readable type from the label name
-                # (the part before the price) or fall back to the raw value.
-                name_part = label_text.split("-")[0].strip()
+                # Unknown tier — derive a readable type from the label with the
+                # price stripped out (handles "VIP - $50" and the hyphen-less
+                # "VIP $50"), falling back to the raw value attribute.
+                name_part = _SEATING_PRICE_RE.sub("", label_text).strip()
+                name_part = name_part.strip("-").strip()
                 ticket_type = name_part or value.title()
 
             if not ticket_type or ticket_type in seen_types:
