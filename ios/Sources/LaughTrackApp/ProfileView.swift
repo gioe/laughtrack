@@ -27,6 +27,7 @@ struct ProfileView: View {
         nearbyLocationController: NearbyLocationController,
         notificationPreferenceStore: NotificationPreferenceStore,
         notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)? = nil,
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil,
         profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)? = nil
     ) {
         self.apiClient = apiClient
@@ -41,7 +42,8 @@ struct ProfileView: View {
         _notificationModel = StateObject(
             wrappedValue: SettingsNotificationPreferenceModel(
                 store: notificationPreferenceStore,
-                syncClient: notificationPreferenceSyncClient
+                syncClient: notificationPreferenceSyncClient,
+                pushTokenManager: pushTokenManager
             )
         )
     }

@@ -235,6 +235,36 @@ struct AuthManagerTests {
         #expect(!(await authMiddleware.hasAccessToken))
     }
 
+    @Test("signOut deactivates current device token before clearing tokens")
+    @MainActor
+    func signOutDeactivatesCurrentDeviceTokenBeforeClearingTokens() async {
+        let secureStorage = InMemorySecureStorage()
+        let appStateStorage = AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.signOutPush.\(UUID().uuidString)")!)
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+
+        try? tokenManager.storeTokens(
+            accessToken: Self.jwt(expirationOffset: 3600),
+            refreshToken: "opaque-refresh-token-\(UUID().uuidString)"
+        )
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: runner
+        )
+        await manager.restoreSession()
+
+        let pushTokenManager = RecordingAuthPushDeviceTokenManager()
+        manager.pushTokenManager = pushTokenManager
+
+        await manager.signOut()
+
+        #expect(await pushTokenManager.deactivateCalls == 1)
+    }
+
     @Test("signOut still clears local session when the server signout throws")
     @MainActor
     func signOutClearsLocalWhenServerSignoutFails() async {
@@ -578,6 +608,21 @@ private actor LoadUserErrorRecorder {
     func record(error: Error) {
         callCount += 1
         lastError = error
+    }
+}
+
+private actor RecordingAuthPushDeviceTokenManager: PushDeviceTokenManaging {
+    private(set) var registerCalls = 0
+    private(set) var deactivateCalls = 0
+
+    func registerForRemoteNotifications() async {
+        registerCalls += 1
+    }
+
+    func uploadDeviceToken(_ deviceToken: Data) async {}
+
+    func deactivateCurrentDeviceToken() async {
+        deactivateCalls += 1
     }
 }
 

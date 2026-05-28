@@ -43,6 +43,11 @@ public final class AuthManager: ObservableObject {
     // /v1/me to fetch the user's real display name, email, and avatar URL.
     public var loadUserRequest: LoadUserRequest?
 
+    // Bound after construction once the app-level push token service exists.
+    // Sign-out deactivates the current APNs token while the Bearer token is
+    // still available, then local auth state is cleared regardless of outcome.
+    public var pushTokenManager: (any PushDeviceTokenManaging)?
+
     // Invoked when signoutRequest throws. Defaults to emitting via the production
     // os.Logger. Tests replace this to verify the catch block was reached with the
     // expected error — without that hook, a regression that silently swallowed the
@@ -174,6 +179,7 @@ public final class AuthManager: ObservableObject {
         // Revoke server-side refresh tokens while we still have a valid Bearer
         // access token. Transport or auth failures must not block the local
         // clear — the user expects to end up signed out regardless.
+        await pushTokenManager?.deactivateCurrentDeviceToken()
         if let signoutRequest {
             do {
                 try await signoutRequest()

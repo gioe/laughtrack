@@ -176,14 +176,17 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
 
     private let store: NotificationPreferenceStore
     private let syncClient: (any NotificationPreferenceSyncing)?
+    private let pushTokenManager: (any PushDeviceTokenManaging)?
     private var preferencesCancellable: AnyCancellable?
 
     public init(
         store: NotificationPreferenceStore,
-        syncClient: (any NotificationPreferenceSyncing)? = nil
+        syncClient: (any NotificationPreferenceSyncing)? = nil,
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil
     ) {
         self.store = store
         self.syncClient = syncClient
+        self.pushTokenManager = pushTokenManager
         self.preferences = store.preferences
         preferencesCancellable = store.$preferences
             .sink { [weak self] preferences in
@@ -199,6 +202,7 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
     public func setFavoriteComedianPushAlertsEnabled(_ enabled: Bool) {
         store.setFavoriteComedianPushAlertsEnabled(enabled)
         syncFavoriteComedianAlerts(enabled, channel: .push)
+        syncPushDeviceToken(enabled: enabled)
     }
 
     public func replaceServerBackedPreferences(from user: AuthenticatedUser) {
@@ -221,6 +225,18 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
                 try await syncClient.setFavoriteComedianAlertsEnabled(enabled, channel: channel)
             } catch {
                 self?.handleSyncFailure(enabled: enabled, channel: channel)
+            }
+        }
+    }
+
+    private func syncPushDeviceToken(enabled: Bool) {
+        guard let pushTokenManager else { return }
+
+        Task {
+            if enabled {
+                await pushTokenManager.registerForRemoteNotifications()
+            } else {
+                await pushTokenManager.deactivateCurrentDeviceToken()
             }
         }
     }

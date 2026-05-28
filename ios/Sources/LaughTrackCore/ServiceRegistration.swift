@@ -35,6 +35,14 @@ public enum ServiceRegistration {
                 )
             )
         }
+        container.register((any PushDeviceTokenManaging).self, scope: .appLevel) {
+            PushDeviceTokenManager(
+                tokenManager: AuthTokenManager(
+                    secureStorage: container.resolve(SecureStorageProtocol.self)
+                ),
+                appStateStorage: container.resolve(AppStateStorageProtocol.self)
+            )
+        }
         container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
             ProfileLocationPreferenceSyncClient(
                 tokenManager: AuthTokenManager(

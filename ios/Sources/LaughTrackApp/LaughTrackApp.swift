@@ -4,6 +4,9 @@ import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIURLSession
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // SwiftPM test bundles provide their own entrypoint; keep the app entrypoint for Xcode builds.
 #if !SWIFT_PACKAGE
@@ -13,6 +16,9 @@ struct LaughTrackApp: App {
     @StateObject private var authManager: AuthManager
     @StateObject private var loginModalPresenter = LoginModalPresenter()
     @StateObject private var clubFavorites = ClubFavoriteStore()
+    #if canImport(UIKit)
+    @UIApplicationDelegateAdaptor(LaughTrackRemoteNotificationDelegate.self) private var remoteNotificationDelegate
+    #endif
 
     private let container: ServiceContainer
     private let apiClient: Client
@@ -25,6 +31,9 @@ struct LaughTrackApp: App {
         self.apiClient = bootstrap.apiClient
         self.theme = bootstrap.theme
         _authManager = StateObject(wrappedValue: bootstrap.authManager)
+        #if canImport(UIKit)
+        remoteNotificationDelegate.pushTokenManager = bootstrap.container.resolveOptional((any PushDeviceTokenManaging).self)
+        #endif
 
         if MockModeDetector.isMockMode {
             Self.applyMockModeSeedData(container: bootstrap.container)
@@ -66,6 +75,21 @@ struct LaughTrackApp: App {
         let store = container.resolve(NearbyPreferenceStore.self)
         store.setManualZip("90028", distanceMiles: 25, city: "Los Angeles", state: "CA")
         UserDefaults.standard.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
+    }
+}
+#endif
+
+#if canImport(UIKit)
+final class LaughTrackRemoteNotificationDelegate: NSObject, UIApplicationDelegate {
+    var pushTokenManager: (any PushDeviceTokenManaging)?
+
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Task {
+            await pushTokenManager?.uploadDeviceToken(deviceToken)
+        }
     }
 }
 #endif

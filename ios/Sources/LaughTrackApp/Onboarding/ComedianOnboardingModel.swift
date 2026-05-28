@@ -43,9 +43,14 @@ final class ComedianOnboardingModel: ObservableObject {
 
     let suggestedFavoriteTarget = 3
     private let pushPermissionRequester: any OnboardingPushPermissionRequesting
+    private let pushTokenManager: (any PushDeviceTokenManaging)?
 
-    init(pushPermissionRequester: any OnboardingPushPermissionRequesting = SystemOnboardingPushPermissionRequester()) {
+    init(
+        pushPermissionRequester: any OnboardingPushPermissionRequesting = SystemOnboardingPushPermissionRequester(),
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil
+    ) {
         self.pushPermissionRequester = pushPermissionRequester
+        self.pushTokenManager = pushTokenManager
     }
 
     var favoriteCount: Int {
@@ -108,6 +113,9 @@ final class ComedianOnboardingModel: ObservableObject {
         if let syncClient {
             try? await syncClient.setFavoriteComedianAlertsEnabled(emailEnabled, channel: .email)
             try? await syncClient.setFavoriteComedianAlertsEnabled(pushGranted, channel: .push)
+        }
+        if pushGranted {
+            await pushTokenManager?.registerForRemoteNotifications()
         }
     }
 

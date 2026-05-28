@@ -174,7 +174,11 @@ struct OnboardingTests {
     func notificationStepStoresPreferencesAndRequestsPushPermission() async throws {
         let permissionRequester = RecordingPushPermissionRequester(result: true)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step"))
-        let model = ComedianOnboardingModel(pushPermissionRequester: permissionRequester)
+        let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
+        let model = ComedianOnboardingModel(
+            pushPermissionRequester: permissionRequester,
+            pushTokenManager: pushTokenManager
+        )
 
         await model.setNotificationPreferences(
             emailEnabled: true,
@@ -185,6 +189,7 @@ struct OnboardingTests {
         #expect(store.preferences.favoriteComedianEmailAlertsEnabled)
         #expect(store.preferences.favoriteComedianPushAlertsEnabled)
         #expect(await permissionRequester.requestCount == 1)
+        #expect(await pushTokenManager.registerCalls == 1)
     }
 
     @Test("complete and skip both mark server onboarding complete")
@@ -347,6 +352,21 @@ private actor RecordingPushPermissionRequester: OnboardingPushPermissionRequesti
     func requestAuthorization() async -> Bool {
         requestCount += 1
         return result
+    }
+}
+
+private actor RecordingOnboardingPushDeviceTokenManager: PushDeviceTokenManaging {
+    private(set) var registerCalls = 0
+    private(set) var deactivateCalls = 0
+
+    func registerForRemoteNotifications() async {
+        registerCalls += 1
+    }
+
+    func uploadDeviceToken(_ deviceToken: Data) async {}
+
+    func deactivateCurrentDeviceToken() async {
+        deactivateCalls += 1
     }
 }
 

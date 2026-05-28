@@ -8,6 +8,7 @@ struct ComedianOnboardingView: View {
     let favorites: ComedianFavoriteStore
     let notificationPreferenceStore: NotificationPreferenceStore
     let notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)?
+    let pushTokenManager: (any PushDeviceTokenManaging)?
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var authManager: AuthManager
@@ -19,13 +20,19 @@ struct ComedianOnboardingView: View {
         favorites: ComedianFavoriteStore,
         notificationPreferenceStore: NotificationPreferenceStore,
         notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)?,
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil,
         model: ComedianOnboardingModel? = nil
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
         self.notificationPreferenceStore = notificationPreferenceStore
         self.notificationPreferenceSyncClient = notificationPreferenceSyncClient
-        _model = StateObject(wrappedValue: model ?? ComedianOnboardingModel())
+        self.pushTokenManager = pushTokenManager
+        _model = StateObject(
+            wrappedValue: model ?? ComedianOnboardingModel(
+                pushTokenManager: pushTokenManager
+            )
+        )
     }
 
     var body: some View {

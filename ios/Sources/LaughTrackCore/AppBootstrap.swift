@@ -43,6 +43,7 @@ public struct AppBootstrap {
             appStateStorage: appStateStorage,
             oauthSessionRunner: oauthSessionRunner
         )
+        authManager.pushTokenManager = container.resolveOptional((any PushDeviceTokenManaging).self)
         self.authManager = authManager
 
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware {
