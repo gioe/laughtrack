@@ -176,6 +176,13 @@ platform :ios do
       output_name: IPA_NAME,
       export_method: "app-store",
       clean: true,
+      # The archive step runs xcodebuild with automatic signing (the project
+      # sets no CODE_SIGN_STYLE). After the Push Notifications capability was
+      # added (aps-environment entitlement), automatic signing's managed profile
+      # must include Push — -allowProvisioningUpdates lets xcodebuild regenerate
+      # it via the loaded ASC API key. Without this the archive fails with
+      # "provisioning profile doesn't include the aps-environment entitlement".
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         signingStyle: "manual",
         teamID: TEAM_ID,
