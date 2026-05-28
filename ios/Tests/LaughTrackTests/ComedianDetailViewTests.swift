@@ -657,6 +657,7 @@ struct ComedianDetailViewTests {
     ) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: MockComedianDetailTransport(
                 comedianResponse: comedianResponse,
                 upcomingRunsResponse: upcomingRunsResponse,

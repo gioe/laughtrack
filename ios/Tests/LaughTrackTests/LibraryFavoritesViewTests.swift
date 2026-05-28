@@ -166,6 +166,7 @@ struct LibraryFavoritesViewTests {
     private func makeClient(response: MockLibraryFavoritesTransport.Response) -> Client {
         Client(
             serverURL: URL(string: "https://example.com")!,
+            configuration: .laughTrack,
             transport: MockLibraryFavoritesTransport(response: response)
         )
     }
