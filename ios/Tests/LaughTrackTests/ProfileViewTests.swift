@@ -32,10 +32,7 @@ struct ProfileViewTests {
         #expect(authManager.currentUser == nil)
 
         #expect(ProfileView.makeHeroTitle(user: nil, session: nil) == "Guest mode")
-        #expect(
-            ProfileView.makeHeroSubtitle(user: nil, session: nil)
-                == "Sign in to sync favorites and recover your account."
-        )
+
 
         // Middle branch: session restored before loadUserRequest resolves
         // (or it returns nil). Locks in the "<provider> account" / "Favorites
@@ -48,10 +45,6 @@ struct ProfileViewTests {
         )
         #expect(
             ProfileView.makeHeroTitle(user: nil, session: sessionWithoutUser) == "Apple account"
-        )
-        #expect(
-            ProfileView.makeHeroSubtitle(user: nil, session: sessionWithoutUser)
-                == "Favorites sync through Apple is on."
         )
     }
 
@@ -80,7 +73,6 @@ struct ProfileViewTests {
         }
         #expect(session.provider == .google)
         #expect(ProfileView.makeHeroTitle(user: nil, session: session) == "Google account")
-        #expect(ProfileView.makeHeroSubtitle(user: nil, session: session) == "Favorites sync through Google is on.")
     }
 
     @Test("profile and login modal render the same signed-out auth option set")
@@ -116,10 +108,6 @@ struct ProfileViewTests {
         #expect(authManager.currentUser == user)
 
         #expect(ProfileView.makeHeroTitle(user: user, session: session) == "Ada Lovelace")
-        #expect(
-            ProfileView.makeHeroSubtitle(user: user, session: session)
-                == "Favorites sync is on for Ada Lovelace."
-        )
     }
 
     @Test("authManager.deleteAccount() invokes deleteAccountRequest and drains the local session")

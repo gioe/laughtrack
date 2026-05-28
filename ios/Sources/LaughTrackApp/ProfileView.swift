@@ -53,14 +53,10 @@ struct ProfileView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: tokens.spacing.sectionGap) {
-                profileHero
+                profileCard
 
-                if authManager.currentSession != nil {
-                    accountCard
-                } else {
-                    if let signedOutMessage {
-                        LaughTrackAuthMessageCard(message: signedOutMessage)
-                    }
+                if authManager.currentSession == nil, let signedOutMessage {
+                    LaughTrackAuthMessageCard(message: signedOutMessage)
                 }
                 if let authenticatedUser = authManager.currentUser {
                     ProfileSettingsSection(
@@ -115,11 +111,14 @@ struct ProfileView: View {
         }
     }
 
-    private var profileHero: some View {
+    // Identity and account actions share one card. Signed in: avatar + name on
+    // top, then sign-out / delete-account below a divider. Signed out: avatar +
+    // name with the sign-in options beneath.
+    private var profileCard: some View {
         let laughTrack = theme.laughTrackTokens
         let isSignedIn = authManager.currentSession != nil
 
-        return LaughTrackCard(tone: isSignedIn ? .accent : .muted, density: .compact) {
+        return LaughTrackCard(tone: .muted) {
             VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
                 HStack(alignment: .center, spacing: theme.spacing.md) {
                     LaughTrackAvatar(
@@ -135,19 +134,42 @@ struct ProfileView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.86)
                             .fixedSize(horizontal: false, vertical: true)
-
-                        Text(heroSubtitle)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(heroSubtitleColor)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
-                // Signed-in hero is identity only (avatar + name + sync status). The
-                // nearby-location state lives solely in the Location section below —
-                // the hero badge duplicated its summary, so it was dropped.
-                if !isSignedIn {
+                if isSignedIn {
+                    Divider()
+                        .overlay(laughTrack.colors.borderSubtle)
+
+                    LaughTrackButton(
+                        Self.signOutButtonTitle,
+                        systemImage: "rectangle.portrait.and.arrow.right",
+                        tone: .secondary
+                    ) {
+                        Task {
+                            await authManager.signOut()
+                        }
+                    }
+
+                    Button {
+                        showingDeleteAccountConfirmation = true
+                    } label: {
+                        Text(Self.deleteAccountButtonTitle)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, theme.spacing.sm)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isDeletingAccount)
+                    .accessibilityIdentifier(LaughTrackViewTestID.profileDeleteAccountButton)
+
+                    if let deleteAccountErrorMessage {
+                        Text(deleteAccountErrorMessage)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.danger)
+                    }
+                } else {
                     VStack(spacing: theme.spacing.sm) {
                         ForEach(Self.signedOutAuthOptions) { option in
                             SignedOutAuthOptionButton(option: option) { provider in
@@ -164,21 +186,11 @@ struct ProfileView: View {
     }
 
     private var heroTitleColor: Color {
-        let laughTrack = theme.laughTrackTokens
-        return authManager.currentSession == nil ? laughTrack.colors.textPrimary : laughTrack.colors.textInverse
-    }
-
-    private var heroSubtitleColor: Color {
-        let laughTrack = theme.laughTrackTokens
-        return authManager.currentSession == nil ? laughTrack.colors.textSecondary : laughTrack.colors.textInverse.opacity(0.86)
+        theme.laughTrackTokens.colors.textPrimary
     }
 
     private var heroTitle: String {
         Self.makeHeroTitle(user: authManager.currentUser, session: authManager.currentSession)
-    }
-
-    private var heroSubtitle: String {
-        Self.makeHeroSubtitle(user: authManager.currentUser, session: authManager.currentSession)
     }
 
     // Pure helpers extracted from instance computed properties so ProfileViewTests
@@ -196,19 +208,7 @@ struct ProfileView: View {
 
         return "Guest mode"
     }
-
-    static func makeHeroSubtitle(user: AuthenticatedUser?, session: AuthSessionMetadata?) -> String {
-        if let user, let displayName = user.displayName, !displayName.isEmpty {
-            return "Favorites sync is on for \(displayName)."
-        }
-
-        if let providerName = session?.provider?.displayName {
-            return "Favorites sync through \(providerName) is on."
-        }
-
-        return "Sign in to sync favorites and recover your account."
-    }
-
+    
     private func refreshNotificationPreferences(from user: AuthenticatedUser?) {
         guard let user else { return }
         notificationModel.replaceServerBackedPreferences(from: user)
@@ -217,47 +217,6 @@ struct ProfileView: View {
     private func refreshProfileLocation(from user: AuthenticatedUser?) {
         guard let user else { return }
         settingsModel.replaceServerBackedPreference(from: user)
-    }
-
-    private var accountCard: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        return LaughTrackCard(tone: .standard) {
-            VStack(alignment: .leading, spacing: laughTrack.spacing.clusterGap) {
-                LaughTrackSectionHeader(
-                    eyebrow: "Account",
-                    title: "Account actions",
-                    subtitle: "Sign out or permanently remove your account.",
-                    density: .compact
-                )
-
-                LaughTrackButton(
-                    Self.signOutButtonTitle,
-                    systemImage: "rectangle.portrait.and.arrow.right",
-                    tone: .destructive
-                ) {
-                    Task {
-                        await authManager.signOut()
-                    }
-                }
-
-                LaughTrackButton(
-                    Self.deleteAccountButtonTitle,
-                    systemImage: "trash",
-                    tone: .destructive
-                ) {
-                    showingDeleteAccountConfirmation = true
-                }
-                .disabled(isDeletingAccount)
-                .accessibilityIdentifier(LaughTrackViewTestID.profileDeleteAccountButton)
-
-                if let deleteAccountErrorMessage {
-                    Text(deleteAccountErrorMessage)
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.danger)
-                }
-            }
-        }
     }
 
     private func deleteAccount() async {
