@@ -57,6 +57,9 @@ NextAuth user record (email, name, image).
 ### UserProfile
 Extended user profile (role, zip code, notification preferences, favorite comedians).
 
+### UserPushToken
+Active and revoked APNs device tokens for authenticated native clients. Rows are scoped to both `User` and `UserProfile`, store the platform (`ios`), normalized device token, registration timestamps, and inactive/revoked state. `POST /api/v1/me/push-tokens` upserts the caller's current token; `DELETE /api/v1/me/push-tokens` marks only the caller-owned token inactive without exposing token data across users.
+
 ### AdminActionAudit
 Durable audit trail for admin mutations. Each row records the actor profile when available, action name, entity type/id, optional reason, before/after JSON snapshots, and creation timestamp. Actor deletion preserves audit rows by nulling the actor reference.
 
