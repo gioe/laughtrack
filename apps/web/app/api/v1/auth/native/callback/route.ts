@@ -6,12 +6,16 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
+import {
+    NATIVE_AUTH_DEEP_LINK,
+    NATIVE_AUTH_PROVIDERS,
+} from "@/lib/auth/nativeDeepLink";
 
 // The redirect base is hard-coded — `deep_link` / `callbackUrl` query params
 // are ignored entirely so an attacker cannot smuggle a foreign host, extra
 // query params, a fragment, or userinfo into the token-bearing redirect.
-const CANONICAL_DEEP_LINK = "laughtrack://auth/callback";
-const ALLOWED_PROVIDERS = new Set(["apple", "google", "email"]);
+const CANONICAL_DEEP_LINK = NATIVE_AUTH_DEEP_LINK;
+const ALLOWED_PROVIDERS = NATIVE_AUTH_PROVIDERS;
 
 function safeProvider(raw: string | null): string | null {
     return raw && ALLOWED_PROVIDERS.has(raw) ? raw : null;

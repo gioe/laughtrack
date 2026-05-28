@@ -198,6 +198,28 @@ struct AuthManagerTests {
         #expect(!tokenManager.isAuthenticated)
     }
 
+    @Test("timed-out auth returns to signed out with a clear message")
+    @MainActor
+    func timedOutAuthReturnsNonDestructiveError() async {
+        let secureStorage = InMemorySecureStorage()
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let runner = MockOAuthSessionRunner()
+        runner.error = AuthFlowError.timedOut
+
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: AppStateStorage(userDefaults: UserDefaults(suiteName: "AuthManagerTests.timeout.\(UUID().uuidString)")!),
+            oauthSessionRunner: runner
+        )
+
+        await manager.signIn(with: .google)
+
+        #expect(manager.state == .signedOut(message: "Sign-in timed out. Please check your connection and try again."))
+        #expect(!tokenManager.isAuthenticated)
+    }
+
     @Test("signOut calls the server signout before clearing the local keychain")
     @MainActor
     func signOutCallsServerSignoutBeforeClearingTokens() async {

@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { Button } from "@/ui/components/ui/button";
+import { NATIVE_AUTH_MARKER_COOKIE } from "@/lib/auth/nativeDeepLink";
 import { Form } from "../../ui/form";
 import { FormInput } from "../components/input";
 
@@ -60,6 +61,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const googleSignIn = async () => {
         try {
             setIsSocialLoading(true);
+            if (nativeCallbackUrl) markNativeAuthAttempt("google");
             await signIn(
                 "google",
                 nativeCallbackUrl
@@ -76,6 +78,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const appleSignIn = async () => {
         try {
             setIsSocialLoading(true);
+            if (nativeCallbackUrl) markNativeAuthAttempt("apple");
             await signIn(
                 "apple",
                 nativeCallbackUrl
@@ -164,6 +167,15 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
 }
 
 const NATIVE_AUTH_PROVIDERS = new Set(["apple", "google", "email"]);
+
+// Drop a short-lived marker so the home page can recognize a native social
+// attempt and bounce an OAuth handshake error back into the app via the
+// laughtrack:// deep link, rather than stranding the ASWebAuthenticationSession
+// on the web error page (which it can't intercept).
+function markNativeAuthAttempt(provider: "google" | "apple") {
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${NATIVE_AUTH_MARKER_COOKIE}=${provider}; Max-Age=600; Path=/; SameSite=Lax${secure}`;
+}
 
 function getNativeCallbackUrl(searchParams: {
     get(name: string): string | null;

@@ -56,6 +56,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     mockIsOpen = false;
     mockSearchParamsGet = () => null;
+    document.cookie = "lt_native_auth=; Max-Age=0; Path=/";
     Object.defineProperty(window, "location", {
         value: {
             href: "https://laugh-track.com/",
@@ -138,6 +139,53 @@ describe("LoginModal", () => {
         });
 
         expect(mockOnOpen).not.toHaveBeenCalled();
+    });
+
+    it("bounces an OAuth error to the app deep link when a native attempt was marked", () => {
+        document.cookie = "lt_native_auth=google; Path=/";
+        Object.defineProperty(window, "location", {
+            value: {
+                href: "https://laugh-track.com/?error=OAuthCallback",
+                origin: "https://laugh-track.com",
+            },
+            writable: true,
+            configurable: true,
+        });
+        mockSearchParamsGet = (key) =>
+            key === "error" ? "OAuthCallback" : null;
+
+        act(() => {
+            render(<LoginModal />);
+        });
+
+        expect(window.location.href).toBe(
+            "laughtrack://auth/callback?provider=google&error=OAuthCallback",
+        );
+        expect(mockToastError).not.toHaveBeenCalled();
+        expect(mockOnOpen).not.toHaveBeenCalled();
+        expect(mockReplace).not.toHaveBeenCalled();
+        expect(document.cookie).not.toContain("lt_native_auth=google");
+    });
+
+    it("toasts (does not bounce) on an OAuth error with no native marker", () => {
+        Object.defineProperty(window, "location", {
+            value: {
+                href: "https://laugh-track.com/?error=OAuthCallback",
+                origin: "https://laugh-track.com",
+            },
+            writable: true,
+            configurable: true,
+        });
+        mockSearchParamsGet = (key) =>
+            key === "error" ? "OAuthCallback" : null;
+
+        act(() => {
+            render(<LoginModal />);
+        });
+
+        expect(window.location.href).not.toContain("laughtrack://");
+        expect(mockToastError).toHaveBeenCalledTimes(1);
+        expect(mockOnOpen).toHaveBeenCalledTimes(1);
     });
 
     it("removes the error param from the URL after handling", () => {

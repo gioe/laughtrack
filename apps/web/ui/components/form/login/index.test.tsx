@@ -100,6 +100,7 @@ beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
     mockSearchParamsGet = () => null;
+    document.cookie = "lt_native_auth=; Max-Age=0; Path=/";
     Object.defineProperty(window, "location", {
         value: {
             origin: "https://laughtrack.com",
@@ -172,6 +173,33 @@ describe("LoginForm native auth callbacks", () => {
                 callbackUrl,
             });
         });
+    });
+
+    it("marks a native social attempt with the bounce cookie before redirecting", async () => {
+        const callbackUrl =
+            "https://laughtrack.com/api/v1/auth/native/callback?provider=google";
+        mockSearchParamsGet = (key) =>
+            key === "callbackUrl" ? callbackUrl : null;
+
+        render(<LoginForm onSubmit={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /google/i }));
+
+        await waitFor(() => {
+            expect(mockSignIn).toHaveBeenCalled();
+        });
+        expect(document.cookie).toContain("lt_native_auth=google");
+    });
+
+    it("does not set the bounce cookie for a non-native (web) sign-in", async () => {
+        render(<LoginForm onSubmit={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /google/i }));
+
+        await waitFor(() => {
+            expect(mockSignIn).toHaveBeenCalledWith("google", undefined);
+        });
+        expect(document.cookie).not.toContain("lt_native_auth");
     });
 
     it("passes a native Apple callback URL into NextAuth social sign-in", async () => {

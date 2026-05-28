@@ -6,6 +6,10 @@ import toast from "react-hot-toast";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
 import { useLoginModal } from "@/hooks";
+import {
+    buildNativeAuthErrorDeepLink,
+    NATIVE_AUTH_MARKER_COOKIE,
+} from "@/lib/auth/nativeDeepLink";
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
     OAuthSignin: "Could not start sign-in. Please try again.",
@@ -16,6 +20,19 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 
 const NATIVE_AUTH_PROVIDERS = new Set(["apple", "google", "email"]);
+
+function readNativeAuthMarker(): string | null {
+    const match = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith(`${NATIVE_AUTH_MARKER_COOKIE}=`));
+    return match
+        ? decodeURIComponent(match.slice(match.indexOf("=") + 1))
+        : null;
+}
+
+function clearNativeAuthMarker() {
+    document.cookie = `${NATIVE_AUTH_MARKER_COOKIE}=; Max-Age=0; Path=/`;
+}
 
 function isNativeAuthRequest(searchParams: {
     get(name: string): string | null;
@@ -48,6 +65,22 @@ const LoginModal = () => {
     useEffect(() => {
         const error = searchParams.get("error");
         if (error) {
+            // A native social attempt runs inside ASWebAuthenticationSession,
+            // which only intercepts the laughtrack:// scheme. NextAuth routes
+            // OAuth handshake errors here over https, which the session can't
+            // catch — the sheet would hang until the user cancels. If the login
+            // form marked a native attempt before redirecting to the provider,
+            // bounce the failure back into the app via the deep link instead.
+            const deepLink = buildNativeAuthErrorDeepLink(
+                readNativeAuthMarker(),
+                error,
+            );
+            if (deepLink) {
+                clearNativeAuthMarker();
+                window.location.href = deepLink;
+                return;
+            }
+
             const message =
                 AUTH_ERROR_MESSAGES[error] ?? AUTH_ERROR_MESSAGES.Default;
             onOpen();
