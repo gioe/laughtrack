@@ -258,6 +258,58 @@ def _test_command_cone_paths(config_path: str) -> list[str]:
     return paths
 
 
+def _is_safe_cone_entry(entry: str) -> bool:
+    """Return True iff ``entry`` is safe to pass to ``git sparse-checkout set``.
+
+    Rejects entries that ``git sparse-checkout`` will refuse (and that produce
+    the ``fatal: could not normalize path ..`` failure observed in issue #928):
+
+    - Absolute paths (cone is repo-root-relative; an absolute entry gets
+      stripped of its leading ``/`` or rejected outright).
+    - Any segment equal to ``..`` (parent traversal) — this is the literal
+      ``could not normalize path ..`` trigger.
+    - Empty-string segments (e.g. ``foo//bar``) which normalize to ``foo/bar``
+      but signal a malformed input upstream.
+
+    Single-segment ``.`` entries are normalized to empty by ``os.path.normpath``
+    and rejected here as a no-op (cone mode auto-includes top-level files).
+    """
+    if not entry:
+        return False
+    if entry.startswith("/"):
+        return False
+    parts = entry.split("/")
+    for seg in parts:
+        if seg == "..":
+            return False
+        if seg == "" and entry != "/":
+            return False
+    return True
+
+
+def _normalize_cone_entry(entry: str) -> str:
+    """Return a normalized cone entry, or ``""`` if it must be dropped.
+
+    Strips whitespace, leading ``./``, trailing ``/``, then runs
+    ``os.path.normpath`` to collapse interior ``./`` segments. The result is
+    only returned when ``_is_safe_cone_entry`` passes; otherwise the empty
+    string signals "drop this entry".
+    """
+    if not entry:
+        return ""
+    s = entry.strip().rstrip("/")
+    while s.startswith("./"):
+        s = s[2:]
+    if not s or s == ".":
+        return ""
+    normalized = os.path.normpath(s)
+    if normalized in {".", ""}:
+        return ""
+    if not _is_safe_cone_entry(normalized):
+        return ""
+    return normalized
+
+
 def _derive_sparse_cone(paths: list[str]) -> list[str]:
     """Derive cone-mode sparse-checkout directory entries from a path list.
 
@@ -266,7 +318,9 @@ def _derive_sparse_cone(paths: list[str]) -> list[str]:
     cone mode rejects file paths anyway. Nested entries contribute their
     parent directory (e.g. ``.claude/tusk-manifest.json`` → ``.claude``,
     ``tests/integration/test_a.py`` → ``tests/integration``). Returns a
-    sorted unique list.
+    sorted unique list, with entries that ``git sparse-checkout`` would
+    reject (absolute paths, ``..`` segments) filtered out — they were the
+    trigger for the ``could not normalize path ..`` failure in issue #928.
     """
     cone: set[str] = set()
     for p in paths:
@@ -275,30 +329,70 @@ def _derive_sparse_cone(paths: list[str]) -> list[str]:
         p = p.strip().rstrip("/")
         if not p or "/" not in p:
             continue
-        cone.add(os.path.dirname(p))
+        candidate = _normalize_cone_entry(os.path.dirname(p))
+        if candidate:
+            cone.add(candidate)
     return sorted(cone)
 
 
-def _apply_sparse_checkout(worktree_path: str, cone: list[str]) -> tuple[bool, str]:
+def _apply_sparse_checkout(
+    worktree_path: str, cone: list[str]
+) -> tuple[bool, bool, str]:
     """Initialize cone-mode sparse-checkout on ``worktree_path`` and set the cone.
 
     Runs ``git sparse-checkout init --cone`` (which auto-enables
     ``extensions.worktreeConfig`` so the resulting state is per-worktree and
     does not affect the primary checkout) followed by
-    ``git sparse-checkout set <cone>`` when ``cone`` is non-empty. Returns
-    ``(ok, stderr)``; failures are surfaced to the caller but treated as
-    advisory — sparse-checkout is an optimization and never blocks worktree
-    creation.
+    ``git sparse-checkout set <cone>`` when ``cone`` is non-empty.
+
+    Returns ``(applied, disabled_fallback, stderr)``:
+
+    - ``applied=True, disabled_fallback=False`` — sparse-checkout is active
+      and the cone is set as requested.
+    - ``applied=False, disabled_fallback=True`` — init or set failed AND
+      ``git sparse-checkout disable`` succeeded as the fallback, so the
+      working tree is fully materialized (matching the "falls back to a
+      full checkout" advisory the caller prints). ``stderr`` carries the
+      original sparse-checkout failure reason.
+    - ``applied=False, disabled_fallback=False`` — both sparse-checkout
+      setup AND the disable fallback failed; the worktree is in an
+      indeterminate state and the caller must surface a clear error.
+      ``stderr`` carries both failure reasons joined by ``" || disable: "``.
+
+    Sparse-checkout is an optimization; the function never blocks worktree
+    creation, but it must also never leave the worktree in a partial-sparse
+    state that the caller has advertised as a full checkout (issue #928).
     """
     init = _run_git(worktree_path, ["sparse-checkout", "init", "--cone"])
     if init.returncode != 0:
-        return False, init.stderr.strip()
+        return _disable_fallback(worktree_path, init.stderr.strip())
     if not cone:
-        return True, ""
+        return True, False, ""
     set_result = _run_git(
         worktree_path, ["sparse-checkout", "set", *cone]
     )
-    return set_result.returncode == 0, set_result.stderr.strip()
+    if set_result.returncode != 0:
+        return _disable_fallback(worktree_path, set_result.stderr.strip())
+    return True, False, ""
+
+
+def _disable_fallback(
+    worktree_path: str, sparse_err: str
+) -> tuple[bool, bool, str]:
+    """Run ``git sparse-checkout disable`` to materialize a real full checkout.
+
+    Called from ``_apply_sparse_checkout`` after init or set fails — the
+    sparse-checkout state at this point is "enabled but empty / partial",
+    which leaves the worktree at ~1% of tracked files (issue #928). The
+    disable call un-sets ``core.sparseCheckout`` and re-materializes the
+    full tree. Returns the tri-state ``(applied, disabled_fallback, stderr)``
+    contract documented on ``_apply_sparse_checkout``.
+    """
+    disable = _run_git(worktree_path, ["sparse-checkout", "disable"])
+    if disable.returncode == 0:
+        return False, True, sparse_err
+    combined = f"{sparse_err} || disable: {disable.stderr.strip()}"
+    return False, False, combined
 
 
 def _primary_repo_root(repo_root: str) -> str:
@@ -322,6 +416,73 @@ def _primary_repo_root(repo_root: str) -> str:
         return repo_root
     primary = os.path.dirname(common_dir)
     return primary if os.path.isdir(primary) else repo_root
+
+
+def _maybe_advise_stale_primary(primary_root: str) -> None:
+    """Emit a one-line stderr advisory when primary is behind origin/<default>.
+
+    The hazard (issue #913): PATH-resolved ``tusk`` invocations from inside a
+    task worktree run primary's ``bin/tusk`` against the worktree CWD. When
+    primary itself is behind origin, those PATH-resolved calls execute stale
+    helper code against the worktree — the silent-MANIFEST-corruption vector
+    that closed during TASK-494 work. The /tusk Step 2 advice ("invoke
+    $workspace_path/bin/tusk, not tusk") exists for exactly this reason, but
+    it's a brittle convention that's easy to miss when the harness resets
+    CWD to primary between bash subshells. A one-line advisory at create
+    time names the hazard up front so the operator can run ``tusk sync-main``
+    in primary before starting work.
+
+    Best-effort: any git failure (no remote, no network, detached HEAD,
+    unreachable refs, missing ``origin``) leaves this silent. Never blocks
+    worktree creation — the advisory is supplementary to the task workflow,
+    not a precondition. ``TUSK_NO_STALE_PRIMARY_ADVISORY=1`` disables it.
+    """
+    if os.environ.get("TUSK_NO_STALE_PRIMARY_ADVISORY"):
+        return
+    if not primary_root or not os.path.isdir(primary_root):
+        return
+
+    # Resolve the default branch name as origin's symbolic-ref. Falls back
+    # to "main" when symbolic-ref isn't set (a freshly-cloned repo whose
+    # origin doesn't expose HEAD, or an offline checkout). Skip the
+    # advisory rather than guess when nothing resolves — false advisories
+    # are worse than missing ones for a best-effort hint.
+    head_result = _run_git(
+        primary_root,
+        ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+    )
+    if head_result.returncode != 0:
+        return
+    default_ref = head_result.stdout.strip()
+    if not default_ref or "/" not in default_ref:
+        return
+    default_branch = default_ref.split("/", 1)[1]
+
+    # Best-effort fetch; silently swallow failures (offline, auth, etc.).
+    _run_git(primary_root, ["fetch", "origin", default_branch])
+
+    count_result = _run_git(
+        primary_root,
+        ["rev-list", "--count", f"HEAD..origin/{default_branch}"],
+    )
+    if count_result.returncode != 0:
+        return
+    count_text = count_result.stdout.strip()
+    if not count_text.isdigit():
+        return
+    count = int(count_text)
+    if count <= 0:
+        return
+
+    print(
+        f"tusk: primary checkout is {count} commit(s) behind "
+        f"origin/{default_branch}; PATH-resolved tusk invocations from "
+        f"this worktree will run stale binaries against the worktree CWD "
+        f'and may corrupt MANIFEST under sparse-checkout. Run "tusk '
+        f'sync-main" in {primary_root} before invoking "tusk" from any '
+        "subshell here.",
+        file=sys.stderr,
+    )
 
 
 def _load_symlink_files(config_path: str) -> list[str]:
@@ -728,7 +889,7 @@ def cmd_create(
         #   1. task_referenced_paths — extracted from the task description
         #      and criteria.
         #   2. scope.sparse_always_include — project-level "always materialize"
-        #      paths from tusk/config.json.
+        #      paths from tusk/config.json (file paths; dirname extracted).
         #   3. scope.always_allowed — auto-allowed files (VERSION, MANIFEST,
         #      etc.); cone derivation drops root-level entries.
         #   4. test_command's target paths — so `tusk commit`'s default test
@@ -738,6 +899,13 @@ def cmd_create(
         #   5. --cone <path> CLI flag — operator-declared extras for tasks
         #      that obviously touch skills/docs/hooks without describing
         #      every path up front (issue #896, criterion 2231).
+        #   6. scope.sparse_always_cone — project-level "always materialize"
+        #      cone directories from tusk/config.json (literal directory
+        #      entries; no dirname extraction). Right for source-repo
+        #      configs that want to force `.claude/`, `skills/`, `.github/`,
+        #      etc. into every task worktree so unit tests reading those
+        #      files don't FileNotFoundError under a narrow per-task cone
+        #      (issue #935).
         if not os.environ.get("TUSK_NO_SPARSE_WORKTREE"):
             referenced = task_referenced_paths(task_id, conn)
             if referenced:
@@ -745,6 +913,7 @@ def cmd_create(
                     config_path, "sparse_always_include"
                 )
                 always_allowed = _load_scope_list(config_path, "always_allowed")
+                always_cone = _load_scope_list(config_path, "sparse_always_cone")
                 test_cmd_paths = _test_command_cone_paths(config_path)
                 # File-path inputs go through _derive_sparse_cone, which drops
                 # root-level entries (cone mode auto-materializes top-level
@@ -759,19 +928,30 @@ def cmd_create(
                         ]
                     )
                 )
+                # sparse_always_cone entries are directory-shaped; pass them
+                # through _normalize_cone_entry without the dirname() step
+                # so `skills` lands as `skills` rather than being dropped as
+                # a single-segment entry (issue #935).
+                for raw in always_cone:
+                    d = _normalize_cone_entry(raw or "")
+                    if d:
+                        cone_set.add(d)
                 # --cone <path> entries are directory-shaped; pass them through
-                # verbatim so `--cone docs` survives the single-segment drop
-                # and `--cone skills/tusk` lands as a targeted subtree entry
-                # rather than being widened to `skills` (issue #896).
+                # without the dirname() step so `--cone docs` survives the
+                # single-segment drop and `--cone skills/tusk` lands as a
+                # targeted subtree entry rather than being widened to `skills`
+                # (issue #896). They still go through _normalize_cone_entry so
+                # absolute paths and `..` segments get filtered out before
+                # reaching `git sparse-checkout set` (issue #928).
                 for raw in args.cone:
-                    d = (raw or "").strip().strip("/")
+                    d = _normalize_cone_entry(raw or "")
                     if d:
                         cone_set.add(d)
                 cone = sorted(cone_set)
-                sparse_ok, sparse_err = _apply_sparse_checkout(
-                    workspace_path, cone
+                sparse_applied, sparse_disabled, sparse_err = (
+                    _apply_sparse_checkout(workspace_path, cone)
                 )
-                if sparse_ok:
+                if sparse_applied:
                     cone_display = ", ".join(cone) if cone else "(root only)"
                     print(
                         f"Note: sparse-checkout applied (cone: {cone_display}). "
@@ -779,10 +959,21 @@ def cmd_create(
                         "`git sparse-checkout add <path>`.",
                         file=sys.stderr,
                     )
-                else:
+                elif sparse_disabled:
                     print(
                         "Note: sparse-checkout setup failed; worktree falls "
                         f"back to a full checkout. git stderr: {sparse_err}",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        "Warning: sparse-checkout setup failed AND the "
+                        "full-checkout fallback (git sparse-checkout disable) "
+                        "also failed; the worktree is in a partial-sparse "
+                        "state with an empty or unset cone. Run "
+                        "`git -C "
+                        f"{workspace_path} sparse-checkout disable` manually "
+                        f"to recover. git stderr: {sparse_err}",
                         file=sys.stderr,
                     )
 
@@ -829,6 +1020,11 @@ def cmd_create(
                     "TUSK_NO_AUTO_SYMLINK=1 to disable this fallback.",
                     file=sys.stderr,
                 )
+        # Stale-primary advisory (issue #913). Fires after the worktree is
+        # recorded so a slow or hung fetch never blocks task-worktree
+        # create from returning the workspace JSON. Best-effort; silently
+        # no-ops on any git error or when TUSK_NO_STALE_PRIMARY_ADVISORY=1.
+        _maybe_advise_stale_primary(_primary_repo_root(repo_root))
         print(dumps(_workspace_payload(row, created=True)))
         return 0
     except sqlite3.IntegrityError as exc:

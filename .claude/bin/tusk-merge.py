@@ -258,6 +258,104 @@ def _worktree_path_for_branch(branch: str) -> str | None:
     return None
 
 
+def _git_show_text(worktree_path: str, rev_path: str) -> str | None:
+    result = run(["git", "-C", worktree_path, "show", rev_path], check=False)
+    if result.returncode != 0:
+        return None
+    return result.stdout
+
+
+def _parse_version(text: str | None) -> int | None:
+    if text is None:
+        return None
+    stripped = text.strip()
+    if not re.fullmatch(r"\d+", stripped):
+        return None
+    return int(stripped)
+
+
+def _first_changelog_section(text: str) -> tuple[str, str] | None:
+    match = re.search(
+        r"^## \[(?P<version>\d+)\] - (?P<date>\d{4}-\d{2}-\d{2})\n(?P<body>.*?)(?=^## \[|\Z)",
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return None
+    return match.group("date"), match.group("body").rstrip() + "\n"
+
+
+def _recover_version_changelog_rebase_conflict(
+    worktree_path: str,
+    rebase_target: str,
+) -> bool:
+    """Resolve the common parallel-worktree VERSION/CHANGELOG.md bump race."""
+    unmerged = run(
+        ["git", "-C", worktree_path, "diff", "--name-only", "--diff-filter=U"],
+        check=False,
+    )
+    if unmerged.returncode != 0:
+        return False
+    paths = {line.strip() for line in unmerged.stdout.splitlines() if line.strip()}
+    if paths != {"VERSION", "CHANGELOG.md"}:
+        return False
+
+    versions = [
+        _parse_version(_git_show_text(worktree_path, f"{rebase_target}:VERSION")),
+        _parse_version(_git_show_text(worktree_path, ":2:VERSION")),
+        _parse_version(_git_show_text(worktree_path, ":3:VERSION")),
+    ]
+    if any(version is None for version in versions):
+        return False
+    next_version = max(version for version in versions if version is not None) + 1
+
+    upstream_changelog = _git_show_text(worktree_path, ":2:CHANGELOG.md")
+    task_changelog = _git_show_text(worktree_path, ":3:CHANGELOG.md")
+    if upstream_changelog is None or task_changelog is None:
+        return False
+    task_section = _first_changelog_section(task_changelog)
+    if task_section is None:
+        return False
+    section_date, section_body = task_section
+
+    with open(os.path.join(worktree_path, "VERSION"), "w", encoding="utf-8") as handle:
+        handle.write(f"{next_version}\n")
+    with open(os.path.join(worktree_path, "CHANGELOG.md"), "w", encoding="utf-8") as handle:
+        handle.write(f"## [{next_version}] - {section_date}\n{section_body}\n")
+        handle.write(upstream_changelog)
+
+    add_result = run(
+        ["git", "-C", worktree_path, "add", "VERSION", "CHANGELOG.md"],
+        check=False,
+    )
+    if add_result.returncode != 0:
+        return False
+    continue_result = run(["git", "-C", worktree_path, "rebase", "--continue"], check=False)
+    if continue_result.returncode != 0:
+        return False
+
+    subject_result = run(
+        ["git", "-C", worktree_path, "log", "-1", "--format=%s"],
+        check=False,
+    )
+    if subject_result.returncode != 0:
+        return True
+    subject = subject_result.stdout.strip()
+    corrected_subject = re.sub(
+        r"\bBump VERSION to \d+\b",
+        f"Bump VERSION to {next_version}",
+        subject,
+        count=1,
+    )
+    if corrected_subject == subject:
+        return True
+    amend_result = run(
+        ["git", "-C", worktree_path, "commit", "--amend", "-m", corrected_subject],
+        check=False,
+    )
+    return amend_result.returncode == 0
+
+
 def _rebase_in_feature_worktree(
     worktree_path: str,
     branch_name: str,
@@ -283,6 +381,13 @@ def _rebase_in_feature_worktree(
         ["git", "-C", worktree_path, "rebase", rebase_target], check=False
     )
     if rebase_result.returncode == 0:
+        return 0
+    if _recover_version_changelog_rebase_conflict(worktree_path, rebase_target):
+        print(
+            "Resolved VERSION/CHANGELOG.md rebase conflict by assigning the next "
+            "available version.",
+            file=sys.stderr,
+        )
         return 0
     if rebase_result.stderr.strip():
         print(rebase_result.stderr.strip(), file=sys.stderr)
@@ -843,6 +948,7 @@ def _format_sync_main_failure_advisory(
     primary_root,
     default_branch: str,
     fallback_advisory: str,
+    sync_stderr: str = "",
 ) -> str:
     """Build the multi-line stderr block emitted after a sync-main failure.
 
@@ -852,6 +958,15 @@ def _format_sync_main_failure_advisory(
     pre-existing UU/AA/DD rows are the most common root cause and the
     actionable fix is always "resolve conflicts first," regardless of which
     sync-main step ultimately raised.
+
+    Issue #915: when neither the unmerged-paths case nor a routed
+    failure_step matches, ``sync_stderr`` is surfaced verbatim (body lines
+    indented four spaces under a two-space ``sync-main stderr:`` header)
+    between the exit-code prefix and the four-variant fallback advisory. The
+    routed cases already include focused diagnostic context, so the stderr
+    injection is scoped to the indeterminate fallback where stderr is the
+    only diagnostic signal. Empty or whitespace-only stderr falls through to
+    the original wording with no spurious blank lines.
     """
     prefix = f"tusk: auto-sync failed (tusk sync-main exit {sync_returncode}) — "
 
@@ -908,12 +1023,21 @@ def _format_sync_main_failure_advisory(
             f"{primary_root} after resolving the migration error."
         )
 
+    stderr_text = (sync_stderr or "").strip()
+    if stderr_text:
+        indented = "\n".join(f"    {line}" for line in stderr_text.splitlines())
+        return (
+            f"{prefix}fall back to manual recovery below.\n"
+            f"  sync-main stderr:\n"
+            f"{indented}\n"
+            f"{fallback_advisory}"
+        )
     return f"{prefix}fall back to manual recovery below.\n{fallback_advisory}"
 
 
 def _maybe_advise_stale_deployed_bin(
     db_path: str, *, tusk_bin: str | None = None, refresh_fired: bool = False,
-) -> None:
+) -> str | None:
     """Advise or auto-action when primary's working tree is behind origin after a no-checkout merge.
 
     The no-checkout fast-forward path pushes to origin/<default> without updating
@@ -938,6 +1062,33 @@ def _maybe_advise_stale_deployed_bin(
     (stderr signature not matched, no unmerged paths) fall through to the
     four-variant advisory wording established by issue #877.
 
+    Issue #915: in the indeterminate fallback only, ``sync_result.stderr`` is
+    surfaced verbatim (indented under a ``sync-main stderr:`` header) between
+    the exit-code prefix and the four-variant advisory body — the routed cases
+    already include focused diagnostic context, so the injection is scoped to
+    the one path where stderr is the only diagnostic signal. Empty or
+    whitespace-only stderr leaves the original wording unchanged.
+
+    Issue #921: callers in the no-checkout fast-forward path read the return
+    value to decide whether ``_cleanup_no_checkout_workspace`` is safe to run.
+    A failed auto-sync means primary is still stale and may be the only
+    binary the operator's next subcommands can reach if the schema-mismatch
+    preflight fires — preserving the worktree gives them a recovery handle.
+
+    Returns one of:
+      * ``None`` — gates suppressed the advisory entirely (env-var disabled,
+        not a source-repo layout, or ``git status`` failed); caller should
+        proceed as today.
+      * ``"clean"`` — the four-variant advisory was printed without invoking
+        sync-main (``tusk_bin is None`` or ``TUSK_NO_AUTO_SYNC_MAIN=1``);
+        caller should proceed with cleanup since there is no in-flight
+        recovery state to preserve.
+      * ``"sync_succeeded"`` — sync-main was invoked and exited 0; primary
+        is now current and cleanup is safe.
+      * ``"sync_failed"`` — sync-main was invoked and exited non-zero; the
+        caller should defer ``_cleanup_no_checkout_workspace`` so the
+        worktree's bin/ remains reachable as the operator's recovery handle.
+
     Gates carried over from the original advisory path (issue #865):
       * ``TUSK_NO_DEPLOYED_BIN_REFRESH=1`` — single off-switch shared with
         ``_maybe_refresh_deployed_bin``; suppresses both the auto-action and
@@ -954,18 +1105,18 @@ def _maybe_advise_stale_deployed_bin(
         callers that don't have a resolved binary in scope.
     """
     if os.environ.get("TUSK_NO_DEPLOYED_BIN_REFRESH") == "1":
-        return
+        return None
     from pathlib import Path
     primary_root = Path(os.path.dirname(os.path.dirname(os.path.abspath(db_path))))
     src_bin = primary_root / "bin"
     dst_bin = primary_root / ".claude" / "bin"
     if not src_bin.is_dir() or not dst_bin.is_dir():
-        return
+        return None
     status = run(
         ["git", "-C", str(primary_root), "status", "--porcelain"], check=False,
     )
     if status.returncode != 0:
-        return
+        return None
     working_tree_clean = not status.stdout.strip()
     advisory = _format_stale_deployed_bin_advisory(
         primary_root, working_tree_clean, refresh_fired,
@@ -974,7 +1125,7 @@ def _maybe_advise_stale_deployed_bin(
     auto_sync_disabled = os.environ.get("TUSK_NO_AUTO_SYNC_MAIN") == "1"
     if tusk_bin is None or auto_sync_disabled:
         print(advisory, file=sys.stderr)
-        return
+        return "clean"
 
     sync_result = _run_sync_main(tusk_bin, primary_root)
     if sync_result.returncode == 0:
@@ -996,7 +1147,7 @@ def _maybe_advise_stale_deployed_bin(
         # next session boots. _maybe_refresh_deployed_bin owns its own stderr
         # advisory and TUSK_NO_DEPLOYED_BIN_REFRESH check.
         _maybe_refresh_deployed_bin(db_path, tusk_bin)
-        return
+        return "sync_succeeded"
 
     parsed_json: dict = {}
     try:
@@ -1024,9 +1175,11 @@ def _maybe_advise_stale_deployed_bin(
         _format_sync_main_failure_advisory(
             sync_result.returncode, failure_step, unmerged_paths,
             primary_root, default_branch, advisory,
+            sync_stderr=sync_result.stderr or "",
         ),
         file=sys.stderr,
     )
+    return "sync_failed"
 
 
 def _stamp_merge_commit_sha(
@@ -1334,29 +1487,37 @@ def _complete_no_checkout_fast_forward(
                 return 2
             rebase_result = run(["git", "rebase", rebase_target], check=False)
             if rebase_result.returncode != 0:
-                if rebase_result.stderr.strip():
-                    print(rebase_result.stderr.strip(), file=sys.stderr)
-                stash_note = ""
-                if did_stash:
-                    stash_note = (
-                        f"\nNote: your pre-merge working-tree changes are saved in stash "
-                        f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
-                        "Restore them with `git stash list` + `git stash pop <ref>` "
-                        "after the rebase completes."
+                if _recover_version_changelog_rebase_conflict(os.getcwd(), rebase_target):
+                    print(
+                        "Resolved VERSION/CHANGELOG.md rebase conflict by assigning "
+                        "the next available version.",
+                        file=sys.stderr,
                     )
-                print(
-                    f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
-                    f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
-                    "  1. Fix the conflicting files (git status lists them)\n"
-                    "  2. git add <resolved files>\n"
-                    "  3. git rebase --continue\n"
-                    "  4. Repeat steps 1–3 until the rebase completes\n"
-                    f"  5. Re-run: tusk merge {task_id}\n"
-                    "To abort the rebase and return to the pre-rebase state:\n"
-                    f"  git rebase --abort{stash_note}",
-                    file=sys.stderr,
-                )
-                return 2
+                else:
+                    if rebase_result.stderr.strip():
+                        print(rebase_result.stderr.strip(), file=sys.stderr)
+                    stash_note = ""
+                    if did_stash:
+                        stash_note = (
+                            f"\nNote: your pre-merge working-tree changes are saved in stash "
+                            f"entry 'tusk-merge: auto-stash for TASK-{task_id}'. "
+                            "Restore them with `git stash list` + `git stash pop <ref>` "
+                            "after the rebase completes."
+                        )
+                    print(
+                        f"Error: git rebase {rebase_target} failed — conflicts must be resolved manually.\n"
+                        f"You are on '{branch_name}' with the rebase in progress. To finish:\n"
+                        "  1. Fix the conflicting files (git status lists them)\n"
+                        "  2. git add <resolved files>\n"
+                        "  3. git rebase --continue\n"
+                        "  4. Repeat steps 1–3 until the rebase completes\n"
+                        f"  5. Re-run: tusk merge {task_id}\n"
+                        "To abort the rebase and return to the pre-rebase state:\n"
+                        f"  git rebase --abort{stash_note}",
+                        file=sys.stderr,
+                    )
+                    return 2
+
     else:
         fetch_result = run(["git", "fetch", "origin"], check=False)
         if fetch_result.returncode == 0:
@@ -1420,11 +1581,18 @@ def _complete_no_checkout_fast_forward(
         print(
             f"Note: origin/{default_branch} already contains {branch_name}'s "
             "tip — skipping no-checkout fast-forward push; the work has already "
-            "shipped to origin (issue #774).",
+            f"shipped to origin (issue #774), continuing task finalization; "
+            f"if this retry is interrupted, rerun tusk merge {task_id} --session {session_id}.",
             file=sys.stderr,
         )
     else:
         pre_push_merge_base_sha = _resolve_merge_base(branch_name, default_branch)
+        print(
+            f"Pushing {branch_name} to origin/{default_branch} via no-checkout "
+            f"fast-forward; if interrupted after the push succeeds, rerun tusk "
+            f"merge {task_id} --session {session_id} to finish finalization.",
+            file=sys.stderr,
+        )
         result = run(["git", "push", "origin", f"{branch_name}:{default_branch}"], check=False)
         if result.returncode != 0:
             print(
@@ -1522,14 +1690,104 @@ def _complete_no_checkout_fast_forward(
     # tree being behind origin (issue #869) instead of repeating the
     # ".claude/bin/ may be stale, run dev-sync" line that the refresh has
     # already addressed.
-    _maybe_advise_stale_deployed_bin(db_path, tusk_bin=tusk_bin, refresh_fired=refreshed)
-    _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
+    advisory_outcome = _maybe_advise_stale_deployed_bin(
+        db_path, tusk_bin=tusk_bin, refresh_fired=refreshed,
+    )
+    # Issue #921: when auto-sync-main failed, primary is still stale and may
+    # be the only binary the operator's next subcommands can reach if the
+    # schema-mismatch preflight fires. Preserving the worktree gives them a
+    # recovery handle — <workspace>/bin/tusk is at the version that
+    # successfully wrote to the DB and is therefore schema-compatible.
+    # Cleanup is deferred; rerunning tusk merge after resolving the
+    # underlying sync-main failure will close out the remaining state.
+    if advisory_outcome == "sync_failed":
+        _emit_worktree_preservation_advisory(db_path, task_id, branch_name)
+        # Surface as partial-cleanup (exit 3) so automation can detect
+        # deferred state without grepping stderr (TASK-504 contract).
+        # If rc is already non-zero (task-done failed), preserve that more
+        # severe signal — same precedence rule the original cleanup path used.
+        if rc == 0:
+            return 3
+        return rc
+    cleanup_ok = _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
+    # Distinguish "fully succeeded" from "succeeded but cleanup needs manual
+    # attention" so automation can detect a leftover worktree / branch
+    # without grepping stderr (TASK-504). Only promotes the partial-cleanup
+    # case — if rc is already non-zero (task-done failed, etc.), preserve
+    # that more severe signal.
+    if rc == 0 and not cleanup_ok:
+        return 3
     return rc
+
+
+def _emit_worktree_preservation_advisory(
+    db_path: str, task_id: int, branch_name: str,
+) -> None:
+    """Tell the operator that the worktree (and feature branch) have been
+    preserved as a recovery handle because ``tusk sync-main`` failed.
+
+    Called when ``_maybe_advise_stale_deployed_bin`` returned ``"sync_failed"``
+    and ``_cleanup_no_checkout_workspace`` was therefore skipped. The worktree
+    holds a tusk binary that successfully wrote to the DB at its current
+    schema version — invoking ``<workspace>/bin/tusk`` lets operator-flow
+    commands run even when primary's binary fails the schema-mismatch
+    preflight (issue #921).
+
+    Best-effort: a missing or stale ``task_workspaces`` row means the
+    worktree we'd preserve was already gone before this advisory; in that
+    case stay silent rather than emit a misleading "recovery handle"
+    pointing at a path that does not exist. The deferred cleanup is still
+    correct — the operator has a stale registry row plus an absent path,
+    which is the same state ``task-worktree list --format json`` shows for
+    any pruneable workspace.
+    """
+    workspace_row = _recorded_task_workspace(db_path, task_id)
+    if workspace_row is None:
+        return
+    workspace_path = workspace_row["workspace_path"]
+    if not workspace_path or not os.path.isdir(workspace_path):
+        return
+    # Probe the canonical bin/ locations inside the worktree in the same
+    # order tusk-resolve-schema-bin.py does. The first hit is the recovery
+    # handle we surface; if none exists (no bin/ shipped to the worktree),
+    # still emit the preservation note but omit the handle.
+    candidates = (
+        os.path.join(workspace_path, "bin", "tusk"),
+        os.path.join(workspace_path, ".claude", "bin", "tusk"),
+        os.path.join(workspace_path, "tusk", "bin", "tusk"),
+    )
+    recovery_handle = None
+    for candidate in candidates:
+        if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
+            recovery_handle = candidate
+            break
+    print(
+        f"Note: leaving worktree {workspace_path} (branch {branch_name}) "
+        f"intact for recovery because tusk sync-main failed; primary may "
+        f"still be at a schema version behind the DB. Issue #921.",
+        file=sys.stderr,
+    )
+    if recovery_handle is not None:
+        print(
+            f"  Recovery handle: invoke operator-flow tusk commands via "
+            f"{recovery_handle} while primary remains stale (e.g. "
+            f"{recovery_handle} skill-run finish <run_id>, "
+            f"{recovery_handle} task-summary <task_id>).",
+            file=sys.stderr,
+        )
+    print(
+        f"  After resolving the underlying sync-main failure, rerun "
+        f"tusk merge {task_id} --session <session_id> to finish cleanup, "
+        f"or remove the worktree manually: "
+        f"git worktree remove --force {workspace_path} && "
+        f"git branch -D {branch_name}.",
+        file=sys.stderr,
+    )
 
 
 def _cleanup_no_checkout_workspace(
     db_path: str, task_id: int, branch_name: str
-) -> None:
+) -> bool:
     """Remove the recorded task worktree and delete the local feature branch.
 
     Called only on the success path of the no-checkout fast-forward push,
@@ -1552,6 +1810,12 @@ def _cleanup_no_checkout_workspace(
     Any step that fails is surfaced as a Warning naming the remaining
     artifact and the reason, so the operator can resolve it manually
     rather than discovering a silent dangling state weeks later.
+
+    Returns ``True`` when every cleanup step that ran succeeded, ``False``
+    when ``git worktree remove`` failed, the local branch delete failed,
+    or chdir-to-repo-root failed. The caller maps False to a distinct
+    non-fatal exit code (``3``) so automation can detect a leftover
+    worktree / branch without grepping stderr (TASK-504).
     """
     recorded = _recorded_task_workspace(db_path, task_id)
     if recorded is None:
@@ -1564,7 +1828,8 @@ def _cleanup_no_checkout_workspace(
                 f"{result.stderr.strip()}",
                 file=sys.stderr,
             )
-        return
+            return False
+        return True
 
     workspace_path = recorded["workspace_path"]
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
@@ -1579,7 +1844,7 @@ def _cleanup_no_checkout_workspace(
             "manually.",
             file=sys.stderr,
         )
-        return
+        return False
 
     if not _remove_recorded_task_worktree(
         db_path, task_id, branch_name, workspace=recorded
@@ -1587,7 +1852,7 @@ def _cleanup_no_checkout_workspace(
         # _remove_recorded_task_worktree already printed the failure detail
         # (dirty worktree, etc.). Skip branch delete — git would refuse
         # anyway because the worktree still has the branch checked out.
-        return
+        return False
 
     result = run(["git", "branch", "-D", branch_name], check=False)
     if result.returncode != 0:
@@ -1599,6 +1864,8 @@ def _cleanup_no_checkout_workspace(
             f"git branch -D {branch_name}",
             file=sys.stderr,
         )
+        return False
+    return True
 
 
 def _recorded_task_workspace(db_path: str, task_id: int) -> sqlite3.Row | None:
@@ -1745,6 +2012,12 @@ def _remove_recorded_task_worktree(
 
     workspace_path = workspace["workspace_path"]
     if os.path.exists(workspace_path):
+        # Pre-clean tusk-created auto-symlinks (.venv, node_modules, .env,
+        # .env.local, and anything else in worktree.symlink_files) so
+        # `git worktree remove` doesn't refuse the worktree as dirty when
+        # the only untracked content is symlinks tusk itself created at
+        # task-worktree-create time (issues #910/#916/#919/#927).
+        _clean_tusk_auto_symlinks(workspace_path, db_path)
         result = run(["git", "worktree", "remove", workspace_path], check=False)
         if result.returncode != 0:
             detail = result.stderr.strip() or result.stdout.strip()
@@ -1760,6 +2033,121 @@ def _remove_recorded_task_worktree(
 
     _forget_task_workspace(db_path, workspace["id"])
     return True
+
+
+# Canonical runtime artifacts auto-linked when `worktree.symlink_files` is
+# empty AND `TUSK_NO_AUTO_SYMLINK` is unset. Mirrors CANONICAL_RUNTIME_FILES
+# in bin/tusk-task-worktree.py (issue #854) — duplicated here so merge/
+# abandon cleanup doesn't have to import from the task-worktree module.
+_CANONICAL_RUNTIME_FILES = ("node_modules", ".venv", ".env", ".env.local")
+
+
+def _clean_tusk_auto_symlinks(workspace_path: str, db_path: str) -> int:
+    """Remove tusk-created auto-symlinks from ``workspace_path`` before
+    invoking ``git worktree remove``.
+
+    Discovery rule: a symlink at ``workspace_path/<rel>`` is "tusk-created"
+    when *both* of the following hold:
+
+    1. Its basename appears in ``worktree.symlink_files`` from the project
+       config (or in the canonical fallback set if that config is empty),
+       OR its full relative path matches a path-style entry from the config.
+    2. ``os.path.islink`` is True at the worktree location.
+
+    The target value itself is not checked — task-worktree create writes
+    absolute paths into the primary repo, but a worktree could conceivably
+    contain user-created relative symlinks of the same basename, and the
+    cleanup goal is "let the worktree be removable when its dirty state is
+    just tusk's own auto-symlinks." If the user has a real ``node_modules``
+    DIRECTORY (not a symlink) inside the worktree, it isn't touched —
+    ``os.path.islink`` is False on directories.
+
+    Returns the count of symlinks removed. Best-effort: individual unlink
+    failures are silently swallowed so worktree cleanup is never blocked
+    by a permission error on one entry.
+    """
+    if not os.path.isdir(workspace_path):
+        return 0
+    # db_path is `<repo>/tusk/tasks.db`; config lives at `<repo>/tusk/config.json`.
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
+    config_path = os.path.join(repo_root, "tusk", "config.json")
+
+    names = _load_worktree_symlink_files(config_path)
+    if not names and not os.environ.get("TUSK_NO_AUTO_SYMLINK"):
+        # Mirror the canonical-fallback resolution in task-worktree create.
+        names = list(_CANONICAL_RUNTIME_FILES)
+    if not names:
+        return 0
+
+    basenames: set[str] = set()
+    path_entries: list[str] = []
+    for raw in names:
+        if not isinstance(raw, str) or not raw:
+            continue
+        if "/" not in raw:
+            basenames.add(raw)
+            continue
+        if raw.startswith("/"):
+            continue
+        parts = raw.split("/")
+        if any(p in ("", ".", "..") for p in parts):
+            continue
+        path_entries.append(raw)
+
+    removed = 0
+    # Path-style entries: one targeted check at workspace_path/<rel>.
+    for rel in path_entries:
+        candidate = os.path.join(workspace_path, rel)
+        if os.path.islink(candidate):
+            try:
+                os.unlink(candidate)
+                removed += 1
+            except OSError:
+                pass
+
+    # Bare basenames: walk the worktree looking for matching symlinks.
+    if basenames:
+        for root, dirs, files in os.walk(workspace_path, followlinks=False):
+            if ".git" in dirs:
+                dirs.remove(".git")
+            # Symlinked dirs show up in `dirs`; symlinked files in `files`.
+            matched = [n for n in (dirs + files) if n in basenames]
+            for n in matched:
+                p = os.path.join(root, n)
+                if os.path.islink(p):
+                    try:
+                        os.unlink(p)
+                        removed += 1
+                    except OSError:
+                        pass
+            # Drop matched dir names so os.walk doesn't try to descend into
+            # them (they've been unlinked).
+            for n in [d for d in dirs if d in basenames]:
+                dirs.remove(n)
+
+    return removed
+
+
+def _load_worktree_symlink_files(config_path: str) -> list[str]:
+    """Load ``worktree.symlink_files`` from the project config, returning []
+    on any error. Mirrors ``_load_symlink_files`` in bin/tusk-task-worktree.py.
+    """
+    if not config_path or not os.path.exists(config_path):
+        return []
+    try:
+        import json as _json
+
+        with open(config_path, encoding="utf-8") as f:
+            cfg = _json.load(f)
+    except (OSError, ValueError):
+        return []
+    worktree_cfg = cfg.get("worktree")
+    if not isinstance(worktree_cfg, dict):
+        return []
+    names = worktree_cfg.get("symlink_files")
+    if not isinstance(names, list):
+        return []
+    return [str(n) for n in names if isinstance(n, str) and n]
 
 
 def find_task_branch(task_id: int) -> tuple[str | None, str | None, bool]:
@@ -2111,6 +2499,20 @@ def main(argv: list[str]) -> int:
         )
         path_exists = os.path.exists(candidate_path)
         if branch_exists and has_task_commits:
+            if not path_exists:
+                print(
+                    f"Error: recorded task workspace path is missing: {candidate_path}\n"
+                    "This usually means the task worktree was manually removed "
+                    "with git worktree remove --force after an earlier merge "
+                    "cleanup failure. Refusing to checkout "
+                    f"{candidate_branch} in the primary checkout.\n"
+                    "To recover, clear the stale workspace registry row with:\n"
+                    "  tusk task-worktree prune\n"
+                    "Then re-run:\n"
+                    f"  tusk merge {task_id} --session {session_id}",
+                    file=sys.stderr,
+                )
+                return 2
             branch_name = candidate_branch
             err = None
             pre_merged = False

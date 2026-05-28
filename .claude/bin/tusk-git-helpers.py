@@ -372,6 +372,7 @@ _BARE_TOPLEVEL_WHITELIST = frozenset({
 })
 
 _BARE_TOPLEVEL_ALTERNATION = "|".join(re.escape(n) for n in _BARE_TOPLEVEL_WHITELIST)
+_EXTENSIONLESS_SCRIPT_PREFIXES = ("bin/", "hooks/git/", "scripts/")
 
 # Regex to extract candidate file paths from unstructured text.
 # First alternative: tokens that start with a path-like prefix and contain at
@@ -403,10 +404,25 @@ def extract_paths(text: str) -> list:
         p = m.group(1).strip().rstrip('.,;:\'"`)')
         if not p or '://' in p:
             continue
+        if "/" in p:
+            first, rest = p.split("/", 1)
+            if first in _BARE_TOPLEVEL_WHITELIST and "/" not in rest:
+                paths.append(first)
+                if rest in _BARE_TOPLEVEL_WHITELIST or "." in os.path.basename(rest):
+                    paths.append(rest)
+                continue
         # Whitelisted bare top-level files bypass the extension check
         # (e.g. VERSION has no extension); everything else must have a dot
-        # in the basename so we don't chase bare directory names.
-        if p in _BARE_TOPLEVEL_WHITELIST or '.' in os.path.basename(p):
+        # in the basename unless it is an extensionless script under a known
+        # executable-script prefix.
+        basename = os.path.basename(p.rstrip("/"))
+        is_extensionless_script = (
+            basename
+            and not p.endswith("/")
+            and "." not in basename
+            and any(p.startswith(prefix) for prefix in _EXTENSIONLESS_SCRIPT_PREFIXES)
+        )
+        if p in _BARE_TOPLEVEL_WHITELIST or "." in basename or is_extensionless_script:
             paths.append(p)
     return paths
 
