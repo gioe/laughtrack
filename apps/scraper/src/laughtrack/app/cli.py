@@ -6,7 +6,7 @@ Usage:
 Commands:
     audit-show                  Dry-run lineup comparison for a specific show.
     manage-subscriptions        Manage email subscription tracking for clubs.
-    notify-comedian-arrivals    Send notification emails when followed comedians have nearby shows.
+    notify-comedian-arrivals    Send email and push notifications when followed comedians have nearby shows.
 
 Run any command with --help for full usage details.
 """
@@ -24,7 +24,7 @@ _COMMANDS = {
 _HELP = {
     "audit-show": "Dry-run lineup comparison for a specific show.",
     "manage-subscriptions": "Manage email subscription tracking for clubs.",
-    "notify-comedian-arrivals": "Send notification emails when followed comedians have nearby shows.",
+    "notify-comedian-arrivals": "Send email and push notifications when followed comedians have nearby shows.",
 }
 
 

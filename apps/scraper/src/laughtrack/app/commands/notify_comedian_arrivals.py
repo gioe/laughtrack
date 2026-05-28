@@ -1,6 +1,6 @@
 """CLI command: notify-comedian-arrivals
 
-Sends notification emails to users when a comedian they follow has an upcoming
+Sends email and push notifications to users when a comedian they follow has an upcoming
 show within a configurable distance of their zip code.
 
 Usage:
@@ -20,7 +20,7 @@ def main(argv: list | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="notify-comedian-arrivals",
         description=(
-            "Send notification emails when followed comedians have nearby upcoming shows."
+            "Send email and push notifications when followed comedians have nearby upcoming shows."
         ),
     )
     parser.add_argument(
@@ -51,6 +51,10 @@ def main(argv: list | None = None) -> None:
         f"Done — candidates: {summary['candidates']}, "
         f"distance_filtered: {summary['distance_filtered']}, "
         f"emails_sent: {summary['emails_sent']}, "
+        f"push_candidates: {summary['push_candidates']}, "
+        f"push_filtered: {summary['push_filtered']}, "
+        f"push_sent: {summary['push_sent']}, "
+        f"push_errors: {summary['push_errors']}, "
         f"errors: {summary['errors']}"
     )
 

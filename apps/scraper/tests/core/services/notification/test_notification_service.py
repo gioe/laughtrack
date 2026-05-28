@@ -31,6 +31,9 @@ def _make_row(
     club_city: str = "New York",
     club_state: str = "NY",
     club_zip: str = "10002",
+    notification_type: str = "email",
+    push_token_id: str | None = None,
+    push_token: str | None = None,
 ) -> dict:
     if show_date is None:
         show_date = datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc)
@@ -50,6 +53,9 @@ def _make_row(
         "club_city": club_city,
         "club_state": club_state,
         "club_zip": club_zip,
+        "notification_type": notification_type,
+        "push_token_id": push_token_id,
+        "push_token": push_token,
     }
 
 
@@ -99,7 +105,84 @@ class TestRunSendsEmailForMatchingComedian:
             user_id="user-1",
             comedian_id="comedian-uuid-1",
             show_id=42,
+            notification_type="email",
         )
+
+
+class TestRunSendsPushForMatchingComedian:
+    def test_sends_push_and_records_push_notification(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="token-row-1",
+            push_token="abcdef123456",
+        )
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+        mock_push_sender = MagicMock()
+
+        service = ComedianArrivalNotificationService(
+            zip_distance=mock_zip,
+            push_sender=mock_push_sender,
+        )
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_record_notification") as mock_record:
+                summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        assert summary["push_candidates"] == 1
+        assert summary["push_sent"] == 1
+        assert summary["push_filtered"] == 0
+        assert summary["push_errors"] == 0
+        mock_push_sender.send_show_notification.assert_called_once()
+        payload = mock_push_sender.send_show_notification.call_args.kwargs
+        assert payload["device_token"] == "abcdef123456"
+        assert payload["comedian_name"] == "Funny Person"
+        assert payload["club_name"] == "The Comedy Club"
+        assert payload["show_id"] == 42
+        assert payload["show_page_url"] == "https://laugh-track.com/show/42"
+        mock_record.assert_called_once_with(
+            user_id="user-1",
+            comedian_id="comedian-uuid-1",
+            show_id=42,
+            notification_type="push",
+        )
+
+    def test_deactivates_invalid_push_token_and_counts_error(self):
+        row = _make_row(
+            notification_type="push",
+            push_token_id="token-row-1",
+            push_token="bad-token",
+        )
+
+        mock_zip = MagicMock()
+        mock_zip.distance_miles.return_value = 5.0
+        mock_push_sender = MagicMock()
+        mock_push_sender.send_show_notification.return_value = MagicMock(
+            success=False,
+            invalid_token=True,
+            status_code=410,
+            reason="Unregistered",
+        )
+
+        service = ComedianArrivalNotificationService(
+            zip_distance=mock_zip,
+            push_sender=mock_push_sender,
+        )
+
+        with patch.object(service, "_fetch_candidates", return_value=[row]):
+            with patch.object(service, "_deactivate_push_token") as mock_deactivate:
+                with patch.object(service, "_record_notification") as mock_record:
+                    summary = service.run(radius_miles=50.0, days_ahead=30)
+
+        assert summary["push_sent"] == 0
+        assert summary["push_errors"] == 1
+        mock_deactivate.assert_called_once_with(
+            token_id="token-row-1",
+            reason="Unregistered",
+            status_code=410,
+        )
+        mock_record.assert_not_called()
 
 
 class TestRunSkipsIfOutsideRadius:
@@ -193,10 +276,11 @@ class TestRunRecordsSentNotification:
             user_id="user-99",
             comedian_id="comedian-abc",
             show_id=101,
+            notification_type="email",
         )
 
     def test_record_notification_uses_correct_sql_params(self):
-        """_record_notification inserts with notification_type='email' explicitly."""
+        """_record_notification binds the notification_type channel."""
         service = ComedianArrivalNotificationService()
 
         mock_conn = MagicMock()
@@ -215,6 +299,7 @@ class TestRunRecordsSentNotification:
                 user_id="u1",
                 comedian_id="c1",
                 show_id=7,
+                notification_type="push",
             )
 
         mock_cur.execute.assert_called_once()
@@ -222,10 +307,36 @@ class TestRunRecordsSentNotification:
         # SQL should contain ON CONFLICT ... DO NOTHING
         assert "ON CONFLICT" in sql_arg
         assert "DO NOTHING" in sql_arg
-        # notification_type is embedded in the SQL (not a param) as 'email'
-        assert "'email'" in sql_arg
-        # params are (user_id, comedian_id, show_id) — notification_type is in SQL literal
-        assert params_arg == ("u1", "c1", 7)
+        assert "notification_type" in sql_arg
+        assert params_arg == ("u1", "c1", 7, "push")
+
+
+class TestPushCandidateSql:
+    def test_fetch_candidates_includes_push_opt_in_active_tokens_and_push_dedupe(self):
+        service = ComedianArrivalNotificationService()
+
+        mock_conn = MagicMock()
+        mock_cur = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur.__enter__ = MagicMock(return_value=mock_cur)
+        mock_cur.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value = mock_cur
+        mock_cur.description = []
+        mock_cur.fetchall.return_value = []
+
+        with patch(
+            "laughtrack.core.services.notification.service.get_connection",
+            return_value=mock_conn,
+        ):
+            service._fetch_candidates(days_ahead=30)
+
+        sql_arg = mock_cur.execute.call_args[0][0]
+        assert "up.push_show_notifications = true" in sql_arg
+        assert "JOIN user_push_tokens upt" in sql_arg
+        assert "upt.is_active = true" in sql_arg
+        assert "sn.notification_type = 'push'" in sql_arg
+        assert "sn.notification_type = 'email'" in sql_arg
 
 
 class TestRunMultipleCandidates:

@@ -1,5 +1,7 @@
 # Core Dependencies
 requests>=2.33.1       # HTTP library for synchronous requests
+httpx[http2]>=0.28.0   # HTTP/2 client for APNs push notification delivery
+cryptography>=47.0.0   # ES256 signing for APNs provider authentication tokens
 urllib3>=2.7.0         # HTTP backend for requests; floor pinned to patch CVEs (decompression bomb, redirect header forwarding)
 curl-cffi>=0.5.0       # Async HTTP client with Chrome TLS/JA3 fingerprinting
 asynciolimiter>=1.0.0  # Async rate limiting for HTTP requests
