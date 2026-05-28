@@ -42,6 +42,26 @@ vi.mock("@/hooks", () => ({
 }));
 
 describe("PopularClubCard", () => {
+    it("contains club artwork so wide venue images are not cropped", () => {
+        const { container } = render(
+            <PopularClubCard
+                entity={{
+                    id: 12,
+                    name: "Wide Banner Comedy Club",
+                    zipCode: "10001",
+                    imageUrl: "https://cdn.example.com/wide-banner.jpg",
+                    activeComedianCount: 4,
+                }}
+            />,
+        );
+
+        const image = container.querySelector(
+            'img[alt="Wide Banner Comedy Club"]',
+        );
+        expect(image?.className).toContain("object-contain");
+        expect(image?.className).not.toContain("object-cover");
+    });
+
     it("renders a branded fallback instead of the gray placeholder image", () => {
         const { container } = render(
             <PopularClubCard

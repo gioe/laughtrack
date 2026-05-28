@@ -86,14 +86,14 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                 {/* Club header */}
                 <div className="flex items-center gap-3">
                     <div
-                        className={`relative h-10 w-10 flex-none overflow-hidden rounded-full bg-[#241912] ring-1 ring-copper/25 ${isSoldOut ? "grayscale opacity-60" : ""}`}
+                        className={`relative h-10 w-10 flex-none overflow-hidden rounded-full bg-coconut-cream ring-1 ring-copper/25 ${isSoldOut ? "grayscale opacity-60" : ""}`}
                     >
                         <Image
                             src={imgError ? PLACEHOLDER : parsedShow.imageUrl}
                             onError={() => setImgError(true)}
                             alt={parsedShow.clubName ?? "Club"}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             sizes="40px"
                             aria-hidden="true"
                         />

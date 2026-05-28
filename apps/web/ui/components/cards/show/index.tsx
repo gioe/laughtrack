@@ -285,7 +285,7 @@ const ShowCardArtwork = ({ show }: { show: Show }) => {
                     onError={() => setImageError(true)}
                     alt={altText}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     sizes="(max-width: 1199px) 100vw, 65vw"
                 />
             ) : (

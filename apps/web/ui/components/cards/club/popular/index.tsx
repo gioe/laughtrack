@@ -48,7 +48,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                             src={club.imageUrl}
                             alt={club.name}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                             onError={() => setError(true)}
                             sizes="(max-width: 319px) calc(100vw - 2rem), (max-width: 640px) 280px, 320px"
                             priority={false}

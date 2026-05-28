@@ -58,7 +58,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                             src={show.imageUrl}
                             alt={show.clubName ?? "Club"}
                             fill
-                            className={`object-cover object-center transition-opacity duration-500 ${
+                            className={`object-contain object-center transition-opacity duration-500 ${
                                 imageLoaded ? "opacity-100" : "opacity-0"
                             }`}
                             onError={() => setError(true)}

@@ -84,6 +84,14 @@ afterEach(() => {
 });
 
 describe("CompactShowCard", () => {
+    it("contains the club thumbnail so wide venue artwork is not cropped", () => {
+        const { container } = render(<CompactShowCard show={baseShow} />);
+
+        const image = container.querySelector('img[alt="The Copper Room"]');
+        expect(image?.className).toContain("object-contain");
+        expect(image?.className).not.toContain("object-cover");
+    });
+
     it("renders the show name before the club name", () => {
         const { container } = render(<CompactShowCard show={baseShow} />);
 

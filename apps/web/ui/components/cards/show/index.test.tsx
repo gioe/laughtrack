@@ -114,9 +114,12 @@ describe("ShowCard", () => {
         render(<ShowCard show={baseShow} />);
 
         expect(screen.queryByTestId("lineup-grid")).toBeNull();
-        expect(
-            screen.getAllByAltText("The Copper Room venue artwork"),
-        ).toHaveLength(2);
+        const artworkImages = screen.getAllByAltText(
+            "The Copper Room venue artwork",
+        );
+        expect(artworkImages).toHaveLength(2);
+        expect(artworkImages[0].className).toContain("object-contain");
+        expect(artworkImages[0].className).not.toContain("object-cover");
     });
 
     it("uses venue artwork instead of the lineup grid in comedian detail context", () => {
