@@ -338,6 +338,29 @@ class TestPushCandidateSql:
         assert "sn.notification_type = 'push'" in sql_arg
         assert "sn.notification_type = 'email'" in sql_arg
 
+    def test_fetch_candidates_filters_to_recently_discovered_shows(self):
+        service = ComedianArrivalNotificationService()
+
+        mock_conn = MagicMock()
+        mock_cur = MagicMock()
+        mock_conn.__enter__ = MagicMock(return_value=mock_conn)
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        mock_cur.__enter__ = MagicMock(return_value=mock_cur)
+        mock_cur.__exit__ = MagicMock(return_value=False)
+        mock_conn.cursor.return_value = mock_cur
+        mock_cur.description = []
+        mock_cur.fetchall.return_value = []
+
+        with patch(
+            "laughtrack.core.services.notification.service.get_connection",
+            return_value=mock_conn,
+        ):
+            service._fetch_candidates(days_ahead=30, discovered_within_days=2)
+
+        sql_arg = mock_cur.execute.call_args[0][0]
+        assert "s2.first_discovered_at IS NOT NULL" in sql_arg
+        assert "s2.first_discovered_at >= NOW() - INTERVAL '2 days'" in sql_arg
+
 
 class TestRunMultipleCandidates:
     def test_sends_to_all_within_radius(self):

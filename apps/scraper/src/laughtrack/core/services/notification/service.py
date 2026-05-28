@@ -49,6 +49,8 @@ JOIN lineup_items li ON li.comedian_id = c.uuid AND li.show_id IN (
     SELECT s2.id FROM shows s2
     WHERE s2.date >= NOW()
       AND s2.date <= NOW() + INTERVAL '%s days'
+      AND s2.first_discovered_at IS NOT NULL
+      AND s2.first_discovered_at >= NOW() - INTERVAL '%s days'
 )
 JOIN shows s ON s.id = li.show_id
 JOIN clubs cl ON cl.id = s.club_id
@@ -366,7 +368,12 @@ class ComedianArrivalNotificationService:
         self._zip_distance = zip_distance or ZipCodeDistance()
         self._push_sender = push_sender
 
-    def run(self, radius_miles: float = 50.0, days_ahead: int = 30) -> Dict[str, int]:
+    def run(
+        self,
+        radius_miles: float = 50.0,
+        days_ahead: int = 30,
+        discovered_within_days: int = 1,
+    ) -> Dict[str, int]:
         """
         Query candidates and send emails for matches within each user's radius.
 
@@ -392,7 +399,7 @@ class ComedianArrivalNotificationService:
         )
 
         try:
-            rows = self._fetch_candidates(days_ahead)
+            rows = self._fetch_candidates(days_ahead, discovered_within_days=discovered_within_days)
         except Exception as e:
             Logger.error(f"ComedianArrivalNotificationService: failed to fetch candidates: {e}")
             summary["errors"] += 1
@@ -552,15 +559,22 @@ class ComedianArrivalNotificationService:
             return fallback_radius_miles
         return float(profile_radius)
 
-    def _fetch_candidates(self, days_ahead: int) -> list:
+    def _fetch_candidates(self, days_ahead: int, discovered_within_days: int = 1) -> list:
         """Fetch all candidate rows from the DB."""
         rows = []
         with get_connection() as conn:
             with conn.cursor() as cur:
                 # psycopg2 does not allow %s inside a string literal in mogrify-style
-                # substitution, so we use Python string formatting for the INTERVAL value
-                # (days_ahead is always an int — no injection risk).
-                sql = _CANDIDATES_SQL % (days_ahead, days_ahead)
+                # substitution, so we use Python string formatting for INTERVAL values
+                # after coercing them to ints.
+                days_ahead = int(days_ahead)
+                discovered_within_days = int(discovered_within_days)
+                sql = _CANDIDATES_SQL % (
+                    days_ahead,
+                    discovered_within_days,
+                    days_ahead,
+                    discovered_within_days,
+                )
                 cur.execute(sql)
                 cols = [d[0] for d in cur.description]
                 for raw in cur.fetchall():
