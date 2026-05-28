@@ -115,6 +115,7 @@
 		8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */; };
 		8D81806CD0D225EBF53B6513 /* ComediansDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */; };
 		8DA3FE021FF27F14D1E9CB48 /* PodcastTonightNearYouCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */; };
+		8E0967C60A9B0B948488554B /* PodcastMiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F71C15C570035C0FC7955C22 /* PodcastMiniPlayerView.swift */; };
 		9009C5A81846DBC1B9A15358 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34F7E79132A5EA5AA3552B4 /* AppTab.swift */; };
 		91F5129BA47F8724B27E8BF2 /* LaughTrackAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FC93EDB4A27FDCCB09F568 /* LaughTrackAPIClient.swift */; };
 		92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C6A228D912DFFE3A74A36BB /* AppRoute.swift */; };
@@ -459,6 +460,7 @@
 		F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDetailView.swift; sourceTree = "<group>"; };
 		F68855886251A28240961B91 /* PodcastPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastPlayback.swift; sourceTree = "<group>"; };
 		F6C46BD00ADB099FBA8460B7 /* ShowsListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsListModel.swift; sourceTree = "<group>"; };
+		F71C15C570035C0FC7955C22 /* PodcastMiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastMiniPlayerView.swift; sourceTree = "<group>"; };
 		F89AAF6B2F061BEDB66EB34A /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
 		F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackComponents.swift; sourceTree = "<group>"; };
 		FA8627914216136279852602 /* LaughTrackThemeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackThemeTests.swift; sourceTree = "<group>"; };
@@ -647,6 +649,7 @@
 				373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */,
 				E72E7220A41EC66002D83923 /* NowPlayingView.swift */,
 				864367FC4FA9308A8C738B7C /* PodcastDetailView.swift */,
+				F71C15C570035C0FC7955C22 /* PodcastMiniPlayerView.swift */,
 				F68855886251A28240961B91 /* PodcastPlayback.swift */,
 				6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */,
 				8D4FD58F0DC910AB5B9C590C /* PodcastVisualEffects.swift */,
@@ -1183,6 +1186,7 @@
 				9DF9E44E3C545330B35C49C1 /* PillSheetTrigger.swift in Sources */,
 				06881E628183E17F45A7AF89 /* PinnedShowsList.swift in Sources */,
 				105A74AEF668E4F7692C3D65 /* PodcastDetailView.swift in Sources */,
+				8E0967C60A9B0B948488554B /* PodcastMiniPlayerView.swift in Sources */,
 				35A290866D09D24ED6F65E9B /* PodcastPlayback.swift in Sources */,
 				71D04A047E2361629E448EC9 /* PodcastSearchModel.swift in Sources */,
 				9E3D740175C97A1CD7B19AE6 /* PodcastSearchView.swift in Sources */,
@@ -1400,7 +1404,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1416,7 +1420,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1424,7 +1428,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1448,7 +1452,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.apiclient;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1467,7 +1471,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1485,7 +1489,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1508,7 +1512,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1527,7 +1531,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1542,7 +1546,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1550,7 +1554,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = app.laughtrack.ios;
 				PRODUCT_MODULE_NAME = LaughTrackApp;
 				SDKROOT = iphoneos;
@@ -1574,7 +1578,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.core;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1598,7 +1602,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1617,7 +1621,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1640,7 +1644,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.laughtrack.bridge;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
