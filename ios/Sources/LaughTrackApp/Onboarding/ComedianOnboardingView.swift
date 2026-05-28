@@ -66,13 +66,17 @@ struct ComedianOnboardingView: View {
                 comedianSection
 
                 notificationSection
-
-                actionSection
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.vertical, theme.spacing.xxl)
         }
         .background(tokens.colors.canvas.ignoresSafeArea())
+        .safeAreaInset(edge: .bottom) {
+            continueBar
+        }
+        .overlay(alignment: .topTrailing) {
+            skipButton
+        }
         .task {
             guard model.comedians.isEmpty else { return }
             await model.loadInitialComedians(apiClient: apiClient, favorites: favorites)
@@ -143,25 +147,57 @@ struct ComedianOnboardingView: View {
         }
     }
 
-    private var actionSection: some View {
-        VStack(spacing: theme.spacing.sm) {
-            LaughTrackButton(model.phase == .saving ? "Saving..." : "Continue", systemImage: "checkmark") {
-                Task {
-                    await saveNotificationPreferences()
-                    await model.complete(apiClient: apiClient, authManager: authManager)
-                }
-            }
-            .disabled(!model.canContinue)
-            .accessibilityIdentifier(LaughTrackViewTestID.onboardingContinueButton)
+    private var continueBar: some View {
+        let tokens = theme.laughTrackTokens
 
-            LaughTrackButton("Skip", systemImage: "arrow.right", tone: .secondary) {
-                Task {
-                    await model.skip(apiClient: apiClient, authManager: authManager)
-                }
+        return LaughTrackButton(model.phase == .saving ? "Saving..." : "Continue", systemImage: "checkmark") {
+            Task {
+                await saveNotificationPreferences()
+                await model.complete(apiClient: apiClient, authManager: authManager)
             }
-            .disabled(!model.canContinue)
-            .accessibilityIdentifier(LaughTrackViewTestID.onboardingSkipButton)
         }
+        .disabled(!model.canContinue)
+        .accessibilityIdentifier(LaughTrackViewTestID.onboardingContinueButton)
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.top, theme.spacing.md)
+        .padding(.bottom, theme.spacing.sm)
+        .background(
+            tokens.colors.canvas
+                .overlay(alignment: .top) {
+                    Rectangle()
+                        .fill(tokens.colors.borderSubtle)
+                        .frame(height: 1)
+                }
+                .ignoresSafeArea(edges: .bottom)
+        )
+    }
+
+    private var skipButton: some View {
+        let tokens = theme.laughTrackTokens
+
+        return Button {
+            Task {
+                await model.skip(apiClient: apiClient, authManager: authManager)
+            }
+        } label: {
+            HStack(spacing: theme.spacing.xs) {
+                Text("Skip")
+                Image(systemName: "arrow.right")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+            }
+            .font(tokens.typography.metadata)
+            .foregroundStyle(tokens.colors.textSecondary)
+            .padding(.horizontal, theme.spacing.md)
+            .padding(.vertical, theme.spacing.sm)
+            .background(Capsule().fill(tokens.colors.surfaceElevated))
+            .overlay(Capsule().stroke(tokens.colors.borderSubtle, lineWidth: 1))
+            .shadowStyle(tokens.shadows.card)
+        }
+        .buttonStyle(.plain)
+        .disabled(!model.canContinue)
+        .padding(.top, theme.spacing.sm)
+        .padding(.trailing, theme.spacing.lg)
+        .accessibilityIdentifier(LaughTrackViewTestID.onboardingSkipButton)
     }
 
     private func saveNotificationPreferences() async {

@@ -4,6 +4,7 @@ import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIURLSession
 import Foundation
+import os
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -81,6 +82,11 @@ struct LaughTrackApp: App {
 
 #if canImport(UIKit)
 final class LaughTrackRemoteNotificationDelegate: NSObject, UIApplicationDelegate {
+    private static let logger = Logger(
+        subsystem: "com.laughtrack.notifications",
+        category: "RemoteNotifications"
+    )
+
     var pushTokenManager: (any PushDeviceTokenManaging)?
 
     func application(
@@ -90,6 +96,15 @@ final class LaughTrackRemoteNotificationDelegate: NSObject, UIApplicationDelegat
         Task {
             await pushTokenManager?.uploadDeviceToken(deviceToken)
         }
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        Self.logger.error(
+            "Remote notification registration failed: \(error.localizedDescription, privacy: .public)"
+        )
     }
 }
 #endif

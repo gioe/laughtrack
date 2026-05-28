@@ -32,7 +32,6 @@
 		1FDB4B4BA0CCBABE3BEE1021 /* LaughTrackBrowseComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E74EE4E67E5475B4FDB8BA /* LaughTrackBrowseComponents.swift */; };
 		216AB2C6394A55C617E14E89 /* ComedianLineupRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F8A66AB1B210569977A53D /* ComedianLineupRow.swift */; };
 		2268FC3D21464E385BD48063 /* NotificationPreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7010A6134B6DB8A613D78CA /* NotificationPreferenceStore.swift */; };
-		22A3E8052A7D4D3F932B4DF2 /* PushDeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70B6E4B4E5088C2F87B1451 /* PushDeviceTokenManager.swift */; };
 		23903ED5272661EF2B7D9FDE /* ShowsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E5F06E48F96202840FD255A /* ShowsListView.swift */; };
 		255083D6293B5C6A330E0A97 /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 5065622ECA00D55918B63F96 /* HTTPTypes */; };
 		25B01A08ED99159630E955F2 /* StubURLProtocolSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */; };
@@ -152,6 +151,7 @@
 		BF22056DCD1C27CBFAFAAF11 /* DetailFetchSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F4233943B1264FC9441BD6C /* DetailFetchSupportTests.swift */; };
 		C27DB4BAD000672EF70ED3E6 /* LaughTrackBridge.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C385816EB40B0E60FD8350AD /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = F840714F147704B940EFAC06 /* HTTPTypes */; };
+		C4D575BB4C744D954DBDE5C6 /* PushDeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */; };
 		C6716683C773C258B4689242 /* MainPageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64FD81FFE1F92583390A721E /* MainPageCacheTests.swift */; };
 		C6BDC552CA2E02C18B2C5F2E /* ShowDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F507D3C7B4E507D8FA307075 /* ShowDetailView.swift */; };
 		C6FB9B34A0F4D1A23A580E19 /* LaughTrackAPIClient.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -359,6 +359,7 @@
 		4CF86F29E41E550F89B40A3E /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailViewTests.swift; sourceTree = "<group>"; };
 		50E74EE4E67E5475B4FDB8BA /* LaughTrackBrowseComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBrowseComponents.swift; sourceTree = "<group>"; };
+		50F23924A8A716577DB3ED8B /* LaughTrack.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LaughTrack.entitlements; sourceTree = "<group>"; };
 		561D473C1C08608F79C5271E /* ZipLocationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipLocationResolver.swift; sourceTree = "<group>"; };
 		585D8619C93C9C77641450CD /* AuthRouteConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRouteConfiguration.swift; sourceTree = "<group>"; };
 		5984C96F90F11803C896B6D2 /* HostedViewDumpTreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostedViewDumpTreeTests.swift; sourceTree = "<group>"; };
@@ -379,6 +380,7 @@
 		7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubURLProtocolSupport.swift; sourceTree = "<group>"; };
 		77FB1D59ADDFE8101352E823 /* ExternalLinkRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalLinkRouter.swift; sourceTree = "<group>"; };
 		787B72EABFD79CFD44CEF1A1 /* ComediansDiscoveryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryModel.swift; sourceTree = "<group>"; };
+		7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushDeviceTokenManager.swift; sourceTree = "<group>"; };
 		81A43012E1A7CE02D4EAE547 /* PodcastSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PodcastSearchView.swift; sourceTree = "<group>"; };
 		822BF17F198A98B4106613C1 /* ComedianRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianRowTests.swift; sourceTree = "<group>"; };
 		847B300414E0F1BA6011DA7B /* LaughTrackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTests.swift; sourceTree = "<group>"; };
@@ -409,7 +411,6 @@
 		A6A4759E6DB08350C5ADD176 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A6C10175A73D669E5D8BF97A /* ListLoadingSkeletons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListLoadingSkeletons.swift; sourceTree = "<group>"; };
 		A7010A6134B6DB8A613D78CA /* NotificationPreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPreferenceStore.swift; sourceTree = "<group>"; };
-		A70B6E4B4E5088C2F87B1451 /* PushDeviceTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushDeviceTokenManager.swift; sourceTree = "<group>"; };
 		A7488519FE0E33B0A18BB456 /* DetailNavigationChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailNavigationChrome.swift; sourceTree = "<group>"; };
 		A74BC487918A42A77595DEB3 /* SnapshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotHelper.swift; sourceTree = "<group>"; };
 		A7EEAA636F7147ADDA0C8CC3 /* LineupAvatarStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineupAvatarStrip.swift; sourceTree = "<group>"; };
@@ -701,9 +702,9 @@
 				498BFB68E6063E822195D27C /* NearbyLocationController.swift */,
 				92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */,
 				A7010A6134B6DB8A613D78CA /* NotificationPreferenceStore.swift */,
-				A70B6E4B4E5088C2F87B1451 /* PushDeviceTokenManager.swift */,
 				039D68E0AF3A931C7C2455F6 /* PersistentMainPageCache.swift */,
 				74568165A0CA8A0DB5CD35AF /* PodcastFavoriteStore.swift */,
+				7E115819A3E8E7A9D194E204 /* PushDeviceTokenManager.swift */,
 				0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */,
 				1CA1C8E0B073FCE3484E62AB /* XTimezoneHeaderNormalizationMiddleware.swift */,
 				561D473C1C08608F79C5271E /* ZipLocationResolver.swift */,
@@ -747,6 +748,7 @@
 				23B9224C211F8ECAD8510E1A /* DateRangeFilter.swift */,
 				8BF2B88CE4154BD479271AA7 /* EntityDataFlow.swift */,
 				FFF7EC3716232F6AB430AF80 /* Info.plist */,
+				50F23924A8A716577DB3ED8B /* LaughTrack.entitlements */,
 				281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */,
 				EE87A12423AD71BAD9FAF368 /* LaughTrackLoginModalView.swift */,
 				F89AAF6B2F061BEDB66EB34A /* LibraryView.swift */,
@@ -1241,10 +1243,10 @@
 				E3DDB8037254DC0B356EBBEB /* NearbyLocationController.swift in Sources */,
 				8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */,
 				2268FC3D21464E385BD48063 /* NotificationPreferenceStore.swift in Sources */,
-				22A3E8052A7D4D3F932B4DF2 /* PushDeviceTokenManager.swift in Sources */,
 				38D7CA0826C7E00A4113ABA9 /* OAuthSessionRunner.swift in Sources */,
 				AB486FE01B540C9BB81E1410 /* PersistentMainPageCache.swift in Sources */,
 				4A80B43FE77D9F072D844DC3 /* PodcastFavoriteStore.swift in Sources */,
+				C4D575BB4C744D954DBDE5C6 /* PushDeviceTokenManager.swift in Sources */,
 				F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */,
 				3CEBAA68984331D050F4088C /* UnauthorizedResponseMiddleware.swift in Sources */,
 				3BAF38CEEE908DDC0D8941E9 /* XTimezoneHeaderNormalizationMiddleware.swift in Sources */,
@@ -1410,7 +1412,9 @@
 		14DCB10E8498AFF5A1621645 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
@@ -1534,7 +1538,9 @@
 		4406245F42A0F6FC2D99678E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;

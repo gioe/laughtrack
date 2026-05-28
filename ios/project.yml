@@ -142,6 +142,12 @@ targets:
         # build under `swift test` and `xcodebuild test`.
         PRODUCT_MODULE_NAME: LaughTrackApp
         GENERATE_INFOPLIST_FILE: "NO"
+        # Push Notifications capability. The entitlements file reads aps-environment
+        # from $(APS_ENVIRONMENT), set per-config below. Without this the signed
+        # binary lacks aps-environment and registerForRemoteNotifications() fails
+        # on device (didFailToRegister fires; no token is ever delivered), even
+        # though the provisioning profile grants it.
+        CODE_SIGN_ENTITLEMENTS: Sources/LaughTrackApp/LaughTrack.entitlements
         MARKETING_VERSION: "1.5"
         CURRENT_PROJECT_VERSION: "8"
         SWIFT_EMIT_LOC_STRINGS: "YES"
@@ -152,6 +158,11 @@ targets:
         # so we ship iPhone-only and iPad users still install via the iPhone
         # App Store with the standard scaled-iPhone-app treatment.
         TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        Debug:
+          APS_ENVIRONMENT: development
+        Release:
+          APS_ENVIRONMENT: production
     scheme:
       testTargets:
         - LaughTrackTests
