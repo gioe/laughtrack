@@ -58,6 +58,12 @@ function getSearchText(user: AdminUserListItem) {
         user.profile?.role,
         user.profile?.zipCode,
         ...user.accountProviders,
+        ...user.pushTokens.flatMap((token) => [
+            token.id,
+            token.platform,
+            token.tokenPreview,
+            token.isActive ? "active push token" : "inactive push token",
+        ]),
         ...(user.profile?.favoriteComedians.map((comedian) => comedian.name) ??
             []),
     ]
@@ -189,6 +195,9 @@ export default function AdminUsersManager({
                         {pagedUsers.map((user) => {
                             const favorites =
                                 user.profile?.favoriteComedians ?? [];
+                            const activePushTokenCount = user.pushTokens.filter(
+                                (token) => token.isActive,
+                            ).length;
                             return (
                                 <li
                                     key={user.id}
@@ -347,6 +356,88 @@ export default function AdminUsersManager({
                                                 </dd>
                                             </div>
                                         </dl>
+
+                                        <details className="rounded-md border border-copper/20 bg-ecru-white p-3">
+                                            <summary className="cursor-pointer font-dmSans text-body font-semibold text-cedar">
+                                                Push tokens:{" "}
+                                                {activePushTokenCount} active of{" "}
+                                                {user.pushTokens.length}
+                                            </summary>
+                                            {user.pushTokens.length === 0 ? (
+                                                <p className="mt-2 font-dmSans text-caption text-soft-charcoal">
+                                                    No device tokens registered.
+                                                </p>
+                                            ) : (
+                                                <div className="mt-3 grid gap-3">
+                                                    {user.pushTokens.map(
+                                                        (token) => (
+                                                            <dl
+                                                                key={token.id}
+                                                                className="rounded-md border border-copper/15 bg-white p-3 font-dmSans text-caption text-soft-charcoal"
+                                                            >
+                                                                <div>
+                                                                    <dt className="inline font-semibold text-cedar">
+                                                                        Token:
+                                                                    </dt>{" "}
+                                                                    <dd className="inline break-all">
+                                                                        {
+                                                                            token.tokenPreview
+                                                                        }
+                                                                    </dd>
+                                                                </div>
+                                                                <div>
+                                                                    <dt className="inline font-semibold text-cedar">
+                                                                        Status:
+                                                                    </dt>{" "}
+                                                                    <dd className="inline">
+                                                                        {token.isActive
+                                                                            ? "Active"
+                                                                            : "Inactive"}{" "}
+                                                                        ·{" "}
+                                                                        {
+                                                                            token.platform
+                                                                        }
+                                                                    </dd>
+                                                                </div>
+                                                                <div>
+                                                                    <dt className="inline font-semibold text-cedar">
+                                                                        Last
+                                                                        refreshed:
+                                                                    </dt>{" "}
+                                                                    <dd className="inline">
+                                                                        {formatDateTime(
+                                                                            token.lastRegisteredAt,
+                                                                        )}
+                                                                    </dd>
+                                                                </div>
+                                                                <div>
+                                                                    <dt className="inline font-semibold text-cedar">
+                                                                        Registered:
+                                                                    </dt>{" "}
+                                                                    <dd className="inline">
+                                                                        {formatDateTime(
+                                                                            token.createdAt,
+                                                                        )}
+                                                                    </dd>
+                                                                </div>
+                                                                {!token.isActive && (
+                                                                    <div>
+                                                                        <dt className="inline font-semibold text-cedar">
+                                                                            Revoked:
+                                                                        </dt>{" "}
+                                                                        <dd className="inline">
+                                                                            {formatDateTime(
+                                                                                token.revokedAt,
+                                                                            )}
+                                                                        </dd>
+                                                                    </div>
+                                                                )}
+                                                            </dl>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+                                        </details>
 
                                         <div>
                                             <h4 className="font-dmSans text-body font-semibold text-cedar">

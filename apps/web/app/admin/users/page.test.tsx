@@ -34,6 +34,17 @@ const usersData: AdminUsersData = {
             accountCount: 1,
             refreshTokenCount: 2,
             sentNotificationCount: 3,
+            pushTokens: [
+                {
+                    id: "push-token-1",
+                    platform: "ios",
+                    tokenPreview: "apns-...cdef",
+                    isActive: true,
+                    createdAt: "2026-05-18T10:00:00.000Z",
+                    lastRegisteredAt: "2026-05-27T10:30:00.000Z",
+                    revokedAt: null,
+                },
+            ],
             profile: {
                 id: "profile-1",
                 role: "admin",
@@ -72,6 +83,7 @@ const usersData: AdminUsersData = {
             accountCount: 0,
             refreshTokenCount: 0,
             sentNotificationCount: 0,
+            pushTokens: [],
             profile: null,
         },
     ],

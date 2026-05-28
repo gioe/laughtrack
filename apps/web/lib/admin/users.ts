@@ -12,6 +12,15 @@ export type AdminUserListItem = {
     accountCount: number;
     refreshTokenCount: number;
     sentNotificationCount: number;
+    pushTokens: Array<{
+        id: string;
+        platform: string;
+        tokenPreview: string;
+        isActive: boolean;
+        createdAt: string;
+        lastRegisteredAt: string;
+        revokedAt: string | null;
+    }>;
     profile: {
         id: string;
         role: string;
@@ -46,6 +55,11 @@ function toIso(value: Date | null | undefined): string | null {
     return value ? value.toISOString() : null;
 }
 
+function maskPushToken(token: string): string {
+    if (token.length <= 14) return token;
+    return `${token.slice(0, 8)}...${token.slice(-6)}`;
+}
+
 export async function listAdminUsers(): Promise<AdminUsersData> {
     const users = await db.user.findMany({
         select: {
@@ -61,6 +75,18 @@ export async function listAdminUsers(): Promise<AdminUsersData> {
                     provider: true,
                 },
                 orderBy: [{ provider: "asc" }],
+            },
+            pushTokens: {
+                select: {
+                    id: true,
+                    platform: true,
+                    token: true,
+                    isActive: true,
+                    createdAt: true,
+                    lastRegisteredAt: true,
+                    revokedAt: true,
+                },
+                orderBy: [{ lastRegisteredAt: "desc" }, { createdAt: "desc" }],
             },
             profile: {
                 select: {
@@ -126,6 +152,15 @@ export async function listAdminUsers(): Promise<AdminUsersData> {
             accountCount: user._count.accounts,
             refreshTokenCount: user._count.refreshTokens,
             sentNotificationCount: user._count.sentNotifications,
+            pushTokens: user.pushTokens.map((token) => ({
+                id: token.id,
+                platform: token.platform,
+                tokenPreview: maskPushToken(token.token),
+                isActive: token.isActive,
+                createdAt: toIso(token.createdAt) ?? "",
+                lastRegisteredAt: toIso(token.lastRegisteredAt) ?? "",
+                revokedAt: toIso(token.revokedAt),
+            })),
             profile: user.profile
                 ? {
                       id: user.profile.id,

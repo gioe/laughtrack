@@ -20,6 +20,17 @@ const users: AdminUserListItem[] = [
         accountCount: 1,
         refreshTokenCount: 2,
         sentNotificationCount: 3,
+        pushTokens: [
+            {
+                id: "push-token-1",
+                platform: "ios",
+                tokenPreview: "apns-...cdef",
+                isActive: true,
+                createdAt: "2026-05-18T10:00:00.000Z",
+                lastRegisteredAt: "2026-05-27T10:30:00.000Z",
+                revokedAt: null,
+            },
+        ],
         profile: {
             id: "profile-1",
             role: "admin",
@@ -51,6 +62,7 @@ const users: AdminUserListItem[] = [
         accountCount: 1,
         refreshTokenCount: 0,
         sentNotificationCount: 0,
+        pushTokens: [],
         profile: {
             id: "profile-2",
             role: "user",
@@ -74,6 +86,7 @@ const users: AdminUserListItem[] = [
         accountCount: 0,
         refreshTokenCount: 0,
         sentNotificationCount: 0,
+        pushTokens: [],
         profile: null,
     },
 ];
@@ -128,5 +141,21 @@ describe("AdminUsersManager", () => {
         });
 
         expect(screen.getAllByText("1-3 of 3 users")).toHaveLength(2);
+    });
+
+    it("shows push token details in a collapsed disclosure", () => {
+        render(<AdminUsersManager users={users} />);
+
+        const summary = screen.getByText("Push tokens: 1 active of 1");
+        const disclosure = summary.closest("details") as HTMLDetailsElement;
+
+        expect(disclosure.open).toBe(false);
+
+        fireEvent.click(summary);
+
+        expect(disclosure.open).toBe(true);
+        expect(screen.getByText("apns-...cdef")).toBeTruthy();
+        expect(screen.getByText(/Last refreshed:/)).toBeTruthy();
+        expect(screen.getByText(/May 27, 2026/)).toBeTruthy();
     });
 });
