@@ -74,12 +74,31 @@ struct HomeContentSectionTests {
         #expect(!block.contains(".scaledToFill()"))
     }
 
-    @Test("home source uses carousel hero grid entity rails and lifted rail copy")
-    func homeSourceUsesCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
+    @Test("home source uses fixed-width carousel hero grid entity rails and lifted rail copy")
+    func homeSourceUsesFixedWidthCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
         let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let carouselBlock = try sourceBlock(
+            in: source,
+            from: "private struct HomeShowsTonightCarousel",
+            to: "private struct HomeShowsTonightPageIndicator"
+        )
+        let heroBlock = try sourceBlock(
+            in: source,
+            from: "private struct HomeShowsTonightHeroCard",
+            to: "enum HomeShowsTonightHeroPresentation"
+        )
 
-        #expect(source.contains("TabView"))
-        #expect(source.contains("PageTabViewStyle"))
+        #expect(carouselBlock.contains("GeometryReader"))
+        #expect(carouselBlock.contains("UIScreen.main.bounds.width - 64"))
+        #expect(carouselBlock.contains(".frame(width: pageWidth"))
+        #expect(carouselBlock.contains(".clipped()"))
+        #expect(carouselBlock.contains("pagerDragGesture(pageWidth: pageWidth)"))
+        #expect(heroBlock.contains(".scaledToFit()"))
+        #expect(source.contains("HomeDiscoverHeader("))
+        #expect(source.contains("nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)"))
+        #expect(source.contains("SettingsNearbyPreferenceModel("))
+        #expect(source.contains("HomeLocationPrompt("))
+        #expect(source.contains("HomeLocationEditorSheet("))
         #expect(source.contains("LazyVGrid"))
         #expect(source.contains("Comics on the rise this week"))
         #expect(!source.contains("eyebrow: \"Trending comedians\""))

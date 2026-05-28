@@ -175,6 +175,11 @@ struct AppShellView: View {
         .environmentObject(favorites)
         .tint(podcastPlayer.accentColorOverride ?? theme.colors.primary)
         .animation(.easeInOut(duration: 0.55), value: podcastPlayer.accentColorOverride)
+        .safeAreaInset(edge: .bottom) {
+            PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
+                .padding(.horizontal, theme.spacing.md)
+                .padding(.bottom, theme.spacing.sm)
+        }
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             shellState.selectTab(.search)
         }

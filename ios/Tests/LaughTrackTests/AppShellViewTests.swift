@@ -48,6 +48,7 @@ struct AppShellViewTests {
             .favoriteShows,
             .comedians,
             .clubs,
+            .podcasts,
         ])
         // homeSettingsButton lives inside HomeView's `.toolbar` modifier, which
         // requires an ancestor NavigationStack. Wrapping the test view in
@@ -76,6 +77,7 @@ struct AppShellViewTests {
             .favoriteShows,
             .comedians,
             .clubs,
+            .podcasts,
         ])
         #expect(HomeContentSection.sections(for: .shows) == [
             .showsTonight,
@@ -102,6 +104,7 @@ struct AppShellViewTests {
             .environmentObject(authManager)
             .environmentObject(PodcastFavoriteStore())
             .environmentObject(ClubFavoriteStore())
+            .environmentObject(PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine()))
         )
 
         #expect(host.findView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton) == nil)
@@ -138,10 +141,48 @@ struct AppShellViewTests {
                 .environmentObject(authManager)
                 .environmentObject(PodcastFavoriteStore())
                 .environmentObject(ClubFavoriteStore())
+                .environmentObject(PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine()))
         )
         await host.settle()
 
         #expect(recorder.getFavoritesCalls >= 1)
+    }
+
+    @Test("shell mounts the podcast mini player inside the tab chrome")
+    func shellMountsPodcastMiniPlayerInsideTabChrome() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-mini-player")
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-mini-player")
+        let player = PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine())
+        player.start(PodcastPlaybackItem(
+            id: 901,
+            podcastID: 301,
+            episodeTitle: "Shell Episode",
+            podcastName: "LaughTrack Podcast",
+            podcastImageURL: nil,
+            displayRole: "guest",
+            audioURL: URL(string: "https://cdn.example.com/shell.mp3"),
+            episodeURL: URL(string: "https://podcasts.example.com/shell"),
+            failedAudioURL: nil
+        ))
+
+        let host = HostedView(
+            AppShellView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                shellState: AppShellState()
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .environment(\.serviceContainer, container)
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+            .environmentObject(PodcastFavoriteStore())
+            .environmentObject(ClubFavoriteStore())
+            .environmentObject(player)
+        )
+        await host.settle()
+
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.podcastMiniPlayer) != nil)
     }
 
     @Test("shell account header targets the profile route")
@@ -163,6 +204,20 @@ struct AppShellViewTests {
 
 private final class ShellFavoritesRequestRecorder: @unchecked Sendable {
     var getFavoritesCalls = 0
+}
+
+@MainActor
+private final class ShellRecordingPodcastAudioEngine: PodcastAudioEngine {
+    var currentTime: TimeInterval { 0 }
+    var duration: TimeInterval { 120 }
+    var rate: Float { 1 }
+    var isBuffering: Bool { false }
+
+    func load(url: URL, onFailure: @escaping () -> Void) {}
+    func play() {}
+    func pause() {}
+    func stop() {}
+    func setObserver(_ handler: @escaping () -> Void) {}
 }
 
 private struct MockShellFavoritesTransport: ClientTransport {

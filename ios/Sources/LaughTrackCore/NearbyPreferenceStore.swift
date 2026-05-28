@@ -269,7 +269,7 @@ public final class SettingsNearbyPreferenceModel: ObservableObject {
 
     public func saveNearbyPreference() {
         guard nearbyLocationController.applyManualZip(zipCodeDraft, distanceMiles: distanceMiles) else {
-            validationMessage = "Enter a valid 5-digit ZIP code before saving this profile location."
+            validationMessage = "Enter a valid 5-digit ZIP code before saving this location."
             return
         }
 

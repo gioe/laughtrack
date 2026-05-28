@@ -1,4 +1,7 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 import LaughTrackAPIClient
 import LaughTrackBridge
 import LaughTrackCore
@@ -143,7 +146,7 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: laughTrack.browseDensity.shelfGap) {
                 HomeDiscoverHeader(
-                    nearbyPreferenceStore: serviceContainer.resolve(NearbyPreferenceStore.self)
+                    nearbyLocationController: serviceContainer.resolve(NearbyLocationController.self)
                 )
 
                 contentSections
@@ -249,37 +252,258 @@ struct HomeView: View {
 }
 
 private struct HomeDiscoverHeader: View {
-    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
+    @ObservedObject private var nearbyLocationController: NearbyLocationController
+    @StateObject private var locationModel: SettingsNearbyPreferenceModel
+    @State private var isLocationEditorPresented = false
+
+    @Environment(\.appTheme) private var theme
+
+    init(nearbyLocationController: NearbyLocationController) {
+        self.nearbyLocationController = nearbyLocationController
+        _locationModel = StateObject(
+            wrappedValue: SettingsNearbyPreferenceModel(
+                nearbyLocationController: nearbyLocationController
+            )
+        )
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.md) {
+            Text("Discover")
+                .font(laughTrack.typography.sectionTitle)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .accessibilityIdentifier(LaughTrackViewTestID.homeDiscoverHeader)
+
+            Button {
+                isLocationEditorPresented = true
+            } label: {
+                HomeLocationPrompt(preference: nearbyLocationController.preference)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(LaughTrackViewTestID.homeLocationPrompt)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .sheet(isPresented: $isLocationEditorPresented) {
+            HomeLocationEditorSheet(
+                model: locationModel,
+                isPresented: $isLocationEditorPresented
+            )
+            .environment(\.appTheme, theme)
+        }
+    }
+}
+
+private struct HomeLocationPrompt: View {
+    let preference: NearbyPreference?
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            Text("Discover")
-                .font(laughTrack.typography.sectionTitle)
-                .foregroundStyle(laughTrack.colors.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
+        HStack(alignment: .center, spacing: theme.spacing.sm) {
+            Image(systemName: preference == nil ? "location.circle" : "location.fill")
+                .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .frame(width: 34, height: 34)
+                .background(laughTrack.colors.accentStrong.opacity(0.12))
+                .clipShape(Circle())
 
-            Text(subtitle)
-                .font(laughTrack.typography.body)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(laughTrack.typography.body.weight(.semibold))
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(1)
+
+                Text(subtitle)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 0)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: theme.iconSizes.sm, weight: .bold))
                 .foregroundStyle(laughTrack.colors.textSecondary)
-                .lineLimit(2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(LaughTrackViewTestID.homeDiscoverHeader)
+        .padding(.horizontal, theme.spacing.md)
+        .padding(.vertical, theme.spacing.sm)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .contentShape(Rectangle())
+    }
+
+    private var title: String {
+        guard let preference else {
+            return "Set your location"
+        }
+
+        if let city = preference.city, let state = preference.state {
+            return "Near \(city), \(state)"
+        }
+
+        return "ZIP \(preference.zipCode)"
     }
 
     private var subtitle: String {
-        guard let preference = nearbyPreferenceStore.preference else {
-            return "Shows, comedians, clubs, and podcasts handpicked for you."
+        guard let preference else {
+            return "Get shows, clubs, and comedians near you."
         }
 
-        let source = preference.source == .manual ? "saved ZIP" : "current location"
-        return "Using your \(source): \(preference.zipCode) within \(preference.distanceMiles) mi."
+        let source = preference.source == .manual ? "Saved ZIP" : "Current location"
+        return "\(source) - \(preference.distanceMiles) mi"
+    }
+}
+
+private struct HomeLocationEditorSheet: View {
+    @ObservedObject var model: SettingsNearbyPreferenceModel
+    @Binding var isPresented: Bool
+
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            HStack(alignment: .top, spacing: theme.spacing.md) {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text("Location")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .accessibilityIdentifier(LaughTrackViewTestID.homeLocationSheet)
+
+                    Text("Choose where Discover should look for nearby comedy.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Button {
+                    isPresented = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: theme.iconSizes.sm, weight: .bold))
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(laughTrack.colors.surfaceElevated)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Close")
+            }
+
+            LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft) {
+                Button {
+                    applyZip()
+                } label: {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.accent)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Apply ZIP")
+            }
+            .modifier(SearchFieldInputBehavior())
+            #if os(iOS)
+            .keyboardType(UIKeyboardType.numberPad)
+            #endif
+            .onSubmit(applyZip)
+            .accessibilityLabel("Discover location ZIP code")
+            .accessibilityIdentifier(LaughTrackViewTestID.homeLocationZipField)
+
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                Text("Distance")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
+
+                Picker("Distance", selection: $model.distanceMiles) {
+                    ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
+                        Text("\(distance) mi").tag(distance)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityLabel("Distance")
+                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationDistancePicker)
+            }
+
+            VStack(spacing: theme.spacing.sm) {
+                LaughTrackButton("Apply ZIP", systemImage: "checkmark", density: .compact) {
+                    applyZip()
+                }
+                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationApplyButton)
+
+                LaughTrackButton(
+                    model.isResolvingCurrentLocation ? "Finding ZIP..." : "Use my location",
+                    systemImage: "location.fill",
+                    tone: .secondary,
+                    density: .compact
+                ) {
+                    Task {
+                        let didUpdate = await model.useCurrentLocation()
+                        if didUpdate {
+                            isPresented = false
+                        }
+                    }
+                }
+                .disabled(model.isResolvingCurrentLocation)
+                .accessibilityIdentifier(LaughTrackViewTestID.homeLocationCurrentButton)
+
+                if model.nearbyPreference != nil {
+                    LaughTrackButton("Clear location", systemImage: "location.slash", tone: .tertiary, density: .compact) {
+                        model.clearNearbyPreference()
+                        isPresented = false
+                    }
+                    .accessibilityIdentifier(LaughTrackViewTestID.homeLocationClearButton)
+                }
+            }
+
+            if let validationMessage = model.validationMessage {
+                Text(validationMessage)
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let statusMessage = model.statusMessage {
+                InlineStatusMessage(message: statusMessage)
+
+                if statusMessage == NearbyLocationError.denied.recoveryMessage {
+                    LaughTrackButton("Open Settings", systemImage: "gearshape", tone: .secondary, density: .compact, fullWidth: false) {
+                        openAppSettings()
+                    }
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(theme.spacing.xl)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .presentationDetents([.medium, .large])
+    }
+
+    private func applyZip() {
+        model.saveNearbyPreference()
+        if model.validationMessage == nil {
+            isPresented = false
+        }
+    }
+
+    private func openAppSettings() {
+        #if canImport(UIKit)
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+        #endif
     }
 }
 
@@ -406,11 +630,19 @@ private struct HomeShowsTonightCarousel: View {
     var body: some View {
         #if os(iOS)
         VStack(spacing: theme.spacing.xs) {
-            TabView(selection: selectedShowIDBinding) {
-                carouselButtons
+            GeometryReader { proxy in
+                let pageWidth = min(proxy.size.width, max(0, UIScreen.main.bounds.width - 64))
+
+                HStack(spacing: 0) {
+                    carouselButtons(pageWidth: pageWidth)
+                }
+                .offset(x: -CGFloat(selectedShowIndex) * pageWidth)
+                .animation(.snappy(duration: 0.25), value: selectedShowIndex)
+                .frame(width: pageWidth, alignment: .leading)
+                .clipped()
+                .gesture(pagerDragGesture(pageWidth: pageWidth))
             }
             .frame(height: 292)
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
 
             HomeShowsTonightPageIndicator(
                 count: shows.count,
@@ -420,32 +652,27 @@ private struct HomeShowsTonightCarousel: View {
         #else
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: theme.spacing.sm) {
-                carouselButtons
+                carouselButtons(pageWidth: 320)
                     .frame(width: 320)
             }
         }
         #endif
     }
 
-    private var carouselButtons: some View {
+    private func carouselButtons(pageWidth: CGFloat) -> some View {
         ForEach(shows, id: \.id) { show in
             Button {
                 coordinator.open(.show(show.id))
             } label: {
-                HomeShowsTonightHeroCard(show: show)
+                HomeShowsTonightHeroCard(show: show, width: pageWidth)
+                    .frame(width: pageWidth)
             }
+            .frame(width: pageWidth)
+            .clipped()
             .buttonStyle(.plain)
             .accessibilityIdentifier(show.id == shows.first?.id ? LaughTrackViewTestID.homeShowsTonightHeroButton : LaughTrackViewTestID.homeShowsTonightButton(show.id))
-            .padding(.horizontal, 1)
             .tag(show.id)
         }
-    }
-
-    private var selectedShowIDBinding: Binding<Int> {
-        Binding(
-            get: { selectedShowID ?? shows.first?.id ?? 0 },
-            set: { selectedShowID = $0 }
-        )
     }
 
     private var selectedShowIndex: Int {
@@ -456,6 +683,25 @@ private struct HomeShowsTonightCarousel: View {
         }
 
         return index
+    }
+
+    private func pagerDragGesture(pageWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 20)
+            .onEnded { value in
+                let threshold = pageWidth * 0.2
+                let currentIndex = selectedShowIndex
+                let nextIndex: Int
+
+                if value.translation.width < -threshold {
+                    nextIndex = min(shows.count - 1, currentIndex + 1)
+                } else if value.translation.width > threshold {
+                    nextIndex = max(0, currentIndex - 1)
+                } else {
+                    nextIndex = currentIndex
+                }
+
+                selectedShowID = shows[nextIndex].id
+            }
     }
 }
 
@@ -485,6 +731,7 @@ private struct HomeShowsTonightPageIndicator: View {
 
 private struct HomeShowsTonightHeroCard: View {
     let show: Components.Schemas.Show
+    var width: CGFloat?
 
     @Environment(\.appTheme) private var theme
 
@@ -516,6 +763,7 @@ private struct HomeShowsTonightHeroCard: View {
             }
         }
         .padding(laughTrack.browseDensity.compactCardPadding)
+        .frame(width: width, alignment: .leading)
         .background(laughTrack.colors.surface)
         .overlay(
             RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
@@ -535,7 +783,7 @@ private struct HomeShowsTonightHeroCard: View {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
             } placeholder: {
                 Rectangle()
                     .fill(laughTrack.colors.surfaceMuted)
@@ -548,6 +796,7 @@ private struct HomeShowsTonightHeroCard: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 144)
+            .clipped()
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         } else {
             fallbackArtwork
