@@ -453,7 +453,7 @@ struct LaughTrackEntityRow: View {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
             } placeholder: {
                 artworkBackground
                     .overlay {
@@ -464,6 +464,7 @@ struct LaughTrackEntityRow: View {
                 fallbackArtwork
             }
             .frame(width: design.artworkSize, height: design.artworkSize)
+            .background(artworkBackground)
             .modifier(LaughTrackEntityArtworkClip(shape: design.artworkShape))
         } else {
             fallbackArtwork

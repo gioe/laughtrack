@@ -61,6 +61,19 @@ struct HomeContentSectionTests {
         #expect(source.contains("CachedAsyncImage(url:"))
     }
 
+    @Test("home club cards fit club artwork without cropping")
+    func homeClubCardsFitClubArtworkWithoutCropping() throws {
+        let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "private struct HomePopularClubCard",
+            to: "private struct HomeTrendingPodcastCard"
+        )
+
+        #expect(block.contains(".scaledToFit()"))
+        #expect(!block.contains(".scaledToFill()"))
+    }
+
     @Test("home source uses carousel hero grid entity rails and lifted rail copy")
     func homeSourceUsesCarouselHeroGridEntityRailsAndLiftedRailCopy() throws {
         let source = try String(contentsOf: homeViewSourceURL(), encoding: .utf8)
@@ -84,5 +97,16 @@ struct HomeContentSectionTests {
             throw CocoaError(.fileNoSuchFile)
         }
         return sourceURL
+    }
+
+    private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {
+        guard
+            let start = source.range(of: startMarker),
+            let end = source.range(of: endMarker, range: start.upperBound..<source.endIndex)
+        else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return String(source[start.lowerBound..<end.lowerBound])
     }
 }

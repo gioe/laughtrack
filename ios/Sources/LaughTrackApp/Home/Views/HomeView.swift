@@ -1305,7 +1305,7 @@ private struct HomePopularClubCard: View {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
             } placeholder: {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(laughTrack.colors.surfaceMuted)
@@ -1318,6 +1318,7 @@ private struct HomePopularClubCard: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 104)
+            .background(laughTrack.colors.surfaceMuted)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         } else {
             fallbackArtwork

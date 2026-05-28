@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 import LaughTrackAPIClient
 @testable import LaughTrackApp
 
@@ -25,6 +26,19 @@ struct ClubRowTests {
         #expect(ClubRow.metadata(for: club) == ["19 active comedians", "8 shows"])
     }
 
+    @Test("browse entity rows fit club artwork without cropping")
+    func browseEntityRowsFitClubArtworkWithoutCropping() throws {
+        let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
+        let block = try sourceBlock(
+            in: source,
+            from: "private var artwork: some View",
+            to: "private var artworkBackground: some View"
+        )
+
+        #expect(block.contains(".scaledToFit()"))
+        #expect(!block.contains(".scaledToFill()"))
+    }
+
     private func makeClub(
         city: String? = "San Francisco",
         state: String? = "CA",
@@ -47,5 +61,30 @@ struct ClubRowTests {
             activeComedianCount: activeComedianCount,
             distanceMiles: nil
         )
+    }
+
+    private func browseComponentsSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/DesignSystem/LaughTrackBrowseComponents.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
+    }
+
+    private func sourceBlock(in source: String, from startMarker: String, to endMarker: String) throws -> String {
+        guard
+            let start = source.range(of: startMarker),
+            let end = source.range(of: endMarker, range: start.upperBound..<source.endIndex)
+        else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return String(source[start.lowerBound..<end.lowerBound])
     }
 }
