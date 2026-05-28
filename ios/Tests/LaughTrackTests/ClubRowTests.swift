@@ -31,7 +31,7 @@ struct ClubRowTests {
         let source = try String(contentsOf: browseComponentsSourceURL(), encoding: .utf8)
         let block = try sourceBlock(
             in: source,
-            from: "private var artwork: some View",
+            from: "struct LaughTrackEntityRow: View",
             to: "private var artworkBackground: some View"
         )
 

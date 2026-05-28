@@ -67,7 +67,7 @@ struct HomeContentSectionTests {
         let block = try sourceBlock(
             in: source,
             from: "private struct HomePopularClubCard",
-            to: "private struct HomeTrendingPodcastCard"
+            to: "private var fallbackArtwork: some View"
         )
 
         #expect(block.contains(".scaledToFit()"))
