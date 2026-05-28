@@ -156,5 +156,18 @@
       "node_modules"
     ]
   },
-  "report_tusk_issue_footer": "_Filed via /report-tusk-issue from a Claude Code session._"
+  "report_tusk_issue_footer": "_Filed via /report-tusk-issue from a Claude Code session._",
+  "scope": {
+    "always_allowed": [
+      "VERSION",
+      "CHANGELOG.md",
+      "MANIFEST",
+      ".claude/tusk-manifest.json"
+    ],
+    "sparse_always_include": [
+      "bin/tusk",
+      "tests/conftest.py",
+      "ios/Sources/LaughTrackAPIClient/openapi.json"
+    ]
+  }
 }
