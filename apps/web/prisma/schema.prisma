@@ -655,6 +655,7 @@ model Show {
   popularity           Float                      @default(0.0)
   lastScrapedDate      DateTime?                  @map("last_scraped_date") @db.Timestamptz(6)
   lastScrapedBy        String?                    @map("last_scraped_by")
+  firstDiscoveredAt    DateTime?                  @map("first_discovered_at") @db.Timestamptz(6)
   description          String?
   room                 String?
   productionCompanyId  Int?                       @map("production_company_id")
@@ -688,6 +689,7 @@ model Show {
   // and equality audits use bitmap scans; the deployed index is small enough
   // to keep for those workflows.
   @@index([lastScrapedBy])
+  @@index([firstDiscoveredAt])
   @@map("shows")
 }
 

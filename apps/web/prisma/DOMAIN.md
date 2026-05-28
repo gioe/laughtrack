@@ -41,7 +41,7 @@ Accepted or pending graph edge connecting a comedian to a specific podcast episo
 Review queue and audit log for candidate episode appearances. Stores accepted and rejected candidates with source episode ids, confidence, evidence, review status, reviewer, role, and optional canonical episode linkage.
 
 ### Show
-A comedy show at a club on a date. Has lineup items, tickets, and tags.
+A comedy show at a club on a date. Has lineup items, tickets, and tags. `firstDiscoveredAt` is set by the database default when a scraper inserts a new show and is preserved on later upserts; historical rows may be null so notification candidate queries can exclude pre-existing backlog.
 
 ### Ticket
 A ticket option for a show (price, purchase URL, type, sold-out flag).
