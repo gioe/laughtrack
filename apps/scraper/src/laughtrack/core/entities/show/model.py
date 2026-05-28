@@ -33,6 +33,7 @@ class Show(DatabaseEntity):
     room: Optional[str] = ""
     production_company_id: Optional[int] = None
     last_scraped_by: Optional[str] = None  # scraper_key of the producer; stamped at persistence
+    first_discovered_at: Optional[datetime] = None
     id: Optional[int] = None  # Database ID
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
 
@@ -116,6 +117,7 @@ class Show(DatabaseEntity):
             popularity=row.get("popularity", 0.0),
             production_company_id=row.get("production_company_id"),
             last_scraped_by=row.get("last_scraped_by"),
+            first_discovered_at=row.get("first_discovered_at"),
         )
 
     @classmethod

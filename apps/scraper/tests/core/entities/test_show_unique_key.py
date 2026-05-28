@@ -80,3 +80,22 @@ def test_to_tuple_last_scraped_by_defaults_to_none():
     show = _show(datetime(2026, 4, 15, 20, 0, 0))
 
     assert show.to_tuple()[8] is None
+
+
+def test_show_from_db_row_reads_first_discovered_at():
+    first_discovered_at = datetime(2026, 4, 1, 12, 30, 0, tzinfo=timezone.utc)
+
+    show = Show.from_db_row(
+        {
+            "id": 77,
+            "name": "Test Show",
+            "show_page_url": "https://example.com/show",
+            "description": "",
+            "date": datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc),
+            "club_id": 42,
+            "room": "Main Room",
+            "first_discovered_at": first_discovered_at,
+        }
+    )
+
+    assert show.first_discovered_at == first_discovered_at
