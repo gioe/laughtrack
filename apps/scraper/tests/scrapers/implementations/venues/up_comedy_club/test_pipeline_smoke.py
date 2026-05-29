@@ -74,7 +74,7 @@ def _make_patron_ticket_data(instances: list) -> str:
 
 
 def _make_instance(
-    date_utc: str = "2026-05-29T00:00:00Z",
+    date_utc: str = "2099-01-01T00:00:00Z",
     ticket_url: str = "https://secondcityus.my.salesforce-sites.com/ticket/#/instances/a0FTP000009NIIP2A4",
     sold_out: int = 0,
     title: str = "The Best of The Second City: Chicago Style",
@@ -195,8 +195,8 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     """get_data() decodes patronticketData and returns one event per instance."""
     scraper = UPComedyClubScraper(_club())
     instances = [
-        _make_instance("2026-05-29T00:00:00Z"),
-        _make_instance("2026-05-30T01:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/INST2"),
+        _make_instance("2099-01-01T00:00:00Z"),
+        _make_instance("2099-01-02T01:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/INST2"),
     ]
 
     async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
@@ -405,7 +405,7 @@ async def test_get_data_filters_past_instances(monkeypatch):
     scraper = UPComedyClubScraper(_club())
     instances = [
         _make_instance("2020-01-01T00:00:00Z"),  # past — must be skipped
-        _make_instance("2026-05-29T00:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/FUTURE"),  # future
+        _make_instance("2099-01-01T00:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/FUTURE"),  # future
     ]
 
     async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
