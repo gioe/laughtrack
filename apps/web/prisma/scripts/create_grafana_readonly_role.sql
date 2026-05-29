@@ -30,6 +30,13 @@ BEGIN
     -- (current_database() avoids hardcoding the environment-specific DB name).
     EXECUTE format('GRANT CONNECT ON DATABASE %I TO grafana_ro', current_database());
 
+    -- Self-heal least privilege: strip any pre-existing blanket grants (e.g. a manual
+    -- GRANT SELECT ON ALL TABLES) before re-granting only the scraper-health tables.
+    -- Without this, the grants below are purely additive and an over-granted role
+    -- (able to read users, refresh_tokens, etc.) would silently stay over-granted.
+    REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM grafana_ro;
+    REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM grafana_ro;
+
     -- Schema access + SELECT on ONLY the three scraper-health tables (least privilege).
     GRANT USAGE ON SCHEMA public TO grafana_ro;
     GRANT SELECT ON
