@@ -1,6 +1,10 @@
-name: Test Pull Request
+name: Scraper CI
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/scraper/**"
   pull_request:
     branches: [main, master]
     types: [opened, synchronize, reopened]
