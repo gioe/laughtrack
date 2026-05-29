@@ -359,6 +359,52 @@ These secrets are consumed by the scraper application and should be added to any
 
 ---
 
+## Database Observability (Grafana Cloud)
+
+The scraper persists per-run, per-club, and per-error health metrics to three Postgres tables — `scraper_runs`, `scraper_run_clubs`, and `scraper_run_errors` (created in `apps/scraper/migrations/20260518_add_scraper_run_summary_tables.sql`). [Grafana Cloud](https://grafana.com/products/cloud/) (free tier) reads these tables through a dedicated **read-only** Neon role and renders them as the **Scraper Health** dashboard, consolidating job-health signal that was previously scattered across Discord, Healthchecks.io, and per-run logs.
+
+### Read-only Neon role
+
+Grafana connects as a dedicated `grafana_read` role — **not** the application's DB role. The role has `SELECT` on only the three scraper-health tables (no blanket schema grant), so a misconfigured datasource cannot read `users`, sessions, or any other table.
+
+Create it once against production:
+
+```bash
+psql "$DIRECT_URL" -f prisma/scripts/create_grafana_readonly_role.sql
+# Then set its password out-of-band (never commit this):
+psql "$DIRECT_URL" -c "ALTER ROLE grafana_read WITH PASSWORD '<generated-password>';"
+```
+
+The script (`apps/web/prisma/scripts/create_grafana_readonly_role.sql`) is idempotent — re-running is safe.
+
+### Grafana datasource
+
+In Grafana Cloud, add a **PostgreSQL** datasource:
+
+| Field | Value |
+|---|---|
+| Host | The **pooled** Neon endpoint (hostname ends in `-pooler.`, the same host as `DATABASE_URL` — long-lived dashboard connections should use the pooler, not the direct endpoint). |
+| Database | The production database name. |
+| User / Password | `grafana_read` and the password set above. |
+| TLS/SSL Mode | `require` (Neon requires TLS). |
+
+Click **Save & Test** — a green result confirms the read-only role can connect and read.
+
+### Dashboard
+
+Import `apps/web/monitoring/grafana/scraper-health.json` (Grafana → Dashboards → New → Import → upload JSON), then pick the Neon datasource for the `${datasource}` template variable. Panels:
+
+- **Run success-rate over time** — `scraper_runs.success_rate` trend
+- **Per-club success-rate trend** — per-club `success_rate` from `scraper_run_clubs`
+- **Run duration** — `scraper_runs.duration_seconds`
+- **Error count by run** — `scraper_run_errors` count per run
+- **Clubs dropped to zero shows (latest run)** — clubs with `num_shows = 0` in the most recent run
+- **Bot-block providers** — error counts grouped by `bot_block_provider`
+
+Dashboard JSON is the source of truth — see `apps/web/monitoring/grafana/README.md` for the edit/export round-trip.
+
+---
+
 ## Uptime Monitoring & Incident Response
 
 Production uptime is monitored by [UptimeRobot](https://uptimerobot.com). Pages route to the **`#laughtrack` channel in Discord** (same destination as Sentry alerts) via UptimeRobot's native Discord webhook alert contact.
