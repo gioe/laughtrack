@@ -88,10 +88,15 @@ groups:
               refId: A
               format: table
               rawSql: |
+                -- run_key LIKE 'scraper:%' excludes generic pipeline runs
+                -- (record_pipeline_run.py / backfill_github_pipeline_runs.py),
+                -- which carry a synthetic success_rate and no club rows and
+                -- would otherwise pollute the rolling baseline.
                 WITH ranked AS (
                   SELECT success_rate,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
                   FROM scraper_runs
+                  WHERE run_key LIKE 'scraper:%'
                 )
                 SELECT
                   COALESCE(AVG(success_rate) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
@@ -145,19 +150,33 @@ groups:
               refId: A
               format: table
               rawSql: |
+                -- run_key LIKE 'scraper:%' restricts the two-run window to real
+                -- scrape runs (generic pipeline runs have no club rows, so a
+                -- pipeline run as rn=1 or rn=2 would silently mask a drop).
+                -- club_shows aggregates num_shows per (run_id, club_name) so a
+                -- venue scraped from multiple sources in one run resolves to a
+                -- single row — scraper_run_clubs has no UNIQUE on (run_id,
+                -- club_name), so the club-name join would otherwise fan out.
                 WITH last_two AS (
                   SELECT id,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
                   FROM scraper_runs
+                  WHERE run_key LIKE 'scraper:%'
+                ),
+                club_shows AS (
+                  SELECT c.run_id, c.club_name, SUM(c.num_shows) AS num_shows
+                  FROM scraper_run_clubs c
+                  JOIN last_two ON last_two.id = c.run_id
+                  GROUP BY c.run_id, c.club_name
                 )
-                SELECT c.club_name AS club,
+                SELECT latest.club_name AS club,
                        1 AS dropped_to_zero
-                FROM scraper_run_clubs c
-                JOIN last_two latest ON latest.id = c.run_id AND latest.rn = 1
-                JOIN scraper_run_clubs prev_c ON prev_c.club_name = c.club_name
-                JOIN last_two prev ON prev.id = prev_c.run_id AND prev.rn = 2
-                WHERE c.num_shows = 0
-                  AND prev_c.num_shows > 0;
+                FROM club_shows latest
+                JOIN last_two lt_latest ON lt_latest.id = latest.run_id AND lt_latest.rn = 1
+                JOIN club_shows prev ON prev.club_name = latest.club_name
+                JOIN last_two lt_prev ON lt_prev.id = prev.run_id AND lt_prev.rn = 2
+                WHERE latest.num_shows = 0
+                  AND prev.num_shows > 0;
           - refId: B
             datasourceUid: __expr__
             model:
@@ -201,10 +220,13 @@ groups:
               refId: A
               format: table
               rawSql: |
+                -- run_key LIKE 'scraper:%' excludes generic pipeline runs from
+                -- the error-count baseline (see the success-rate rule above).
                 WITH per_run AS (
                   SELECT r.id, r.exported_at, COUNT(e.id) AS errors
                   FROM scraper_runs r
                   LEFT JOIN scraper_run_errors e ON e.run_id = r.id
+                  WHERE r.run_key LIKE 'scraper:%'
                   GROUP BY r.id, r.exported_at
                 ),
                 ranked AS (
