@@ -4,6 +4,14 @@ Dashboard-as-code for the scraper-health Postgres tables (`scraper_runs`,
 `scraper_run_clubs`, `scraper_run_errors`), which the scraper writes after every run but
 which nothing read until now.
 
+`scraper_runs` is shared by two writers: real scrape snapshots (written with
+`run_type = 'scraper'`, carrying per-club child rows) and generic GitHub Actions
+pipeline records (`run_type = 'pipeline'`, no child rows — written by
+`record_pipeline_run.py` / `backfill_github_pipeline_runs.py`). Every dashboard panel
+and alert rule filters on `run_type = 'scraper'` so pipeline rows never leak into the
+scraper metrics. (This replaced the earlier `run_key LIKE 'scraper:%'` naming-convention
+discriminator — TASK-2518.)
+
 ## Files
 
 - `scraper-health.json` — the **Scraper Health** dashboard. Panels:

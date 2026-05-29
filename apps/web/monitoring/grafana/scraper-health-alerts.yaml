@@ -88,15 +88,16 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_key LIKE 'scraper:%' excludes generic pipeline runs
-                -- (record_pipeline_run.py / backfill_github_pipeline_runs.py),
-                -- which carry a synthetic success_rate and no club rows and
-                -- would otherwise pollute the rolling baseline.
+                -- run_type = 'scraper' excludes generic pipeline runs
+                -- (record_pipeline_run.py / backfill_github_pipeline_runs.py,
+                -- written with run_type='pipeline'), which carry a synthetic
+                -- success_rate and no club rows and would otherwise pollute the
+                -- rolling baseline.
                 WITH ranked AS (
                   SELECT success_rate,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
                   FROM scraper_runs
-                  WHERE run_key LIKE 'scraper:%'
+                  WHERE run_type = 'scraper'
                 )
                 SELECT
                   COALESCE(AVG(success_rate) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
@@ -150,7 +151,7 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_key LIKE 'scraper:%' restricts the two-run window to real
+                -- run_type = 'scraper' restricts the two-run window to real
                 -- scrape runs (generic pipeline runs have no club rows, so a
                 -- pipeline run as rn=1 or rn=2 would silently mask a drop).
                 -- club_shows aggregates num_shows per (run_id, club_name) so a
@@ -161,7 +162,7 @@ groups:
                   SELECT id,
                          ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
                   FROM scraper_runs
-                  WHERE run_key LIKE 'scraper:%'
+                  WHERE run_type = 'scraper'
                 ),
                 club_shows AS (
                   SELECT c.run_id, c.club_name, SUM(c.num_shows) AS num_shows
@@ -220,13 +221,13 @@ groups:
               refId: A
               format: table
               rawSql: |
-                -- run_key LIKE 'scraper:%' excludes generic pipeline runs from
+                -- run_type = 'scraper' excludes generic pipeline runs from
                 -- the error-count baseline (see the success-rate rule above).
                 WITH per_run AS (
                   SELECT r.id, r.exported_at, COUNT(e.id) AS errors
                   FROM scraper_runs r
                   LEFT JOIN scraper_run_errors e ON e.run_id = r.id
-                  WHERE r.run_key LIKE 'scraper:%'
+                  WHERE r.run_type = 'scraper'
                   GROUP BY r.id, r.exported_at
                 ),
                 ranked AS (
