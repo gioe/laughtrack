@@ -31,6 +31,13 @@ class MetricsAggregator:
                     num_shows=len(result.shows),
                     execution_time=result.execution_time,
                     success=result.success,
+                    # Per-club scrapes are a single attempt, so the only success
+                    # signal available at aggregation time is the binary outcome
+                    # (DB saves happen in bulk run-level and can't be attributed
+                    # per club). Emit 100/0 so the persisted column is a real
+                    # number the dashboards can chart — a meaningful reliability
+                    # rate emerges as Grafana averages it across runs.
+                    success_rate=(100.0 if result.success else 0.0),
                     error=(result.error if result.error is not None else None),
                     club_id=result.club_id,
                     errors=result.error_log_count,
