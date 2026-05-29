@@ -1059,8 +1059,13 @@ class TestSendRunSummary:
         from laughtrack.foundation.models.operation_result import DatabaseOperationResult
         return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
 
-    def _run_with_channels(self, svc, channels):
-        summary = _make_summary(ok=1)
+    def _run_with_channels(self, svc, channels, summary=None):
+        # A failing club makes the run unhealthy so the Discord branch is not
+        # gated off (see TASK-2511 / _is_healthy_run). Channel-dispatch tests
+        # care about which channel methods fire, not the health gate itself,
+        # which TestDiscordRunSummaryHealthGate covers.
+        if summary is None:
+            summary = _make_summary(error=1)
         db_result = self._make_db_result()
         mock_config = MagicMock()
         mock_config.get_configured_channels.return_value = channels

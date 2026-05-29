@@ -868,8 +868,33 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
 
+    def _is_healthy_run(self, summary: ScrapingRunSummary) -> bool:
+        """True when no club is *actionably* below the success-rate threshold.
+
+        EMPTY_CALENDAR venues fall below the threshold (shows == 0) but represent
+        a legitimate "no programming scheduled" outcome rather than a scraper
+        failure, so they are excluded here — mirroring the same exclusion in
+        _check_and_alert. This deliberately matches _check_and_alert's failing
+        set: a run is healthy exactly when _check_and_alert would stay silent.
+
+        Regressions that aren't an outright current-run failure — a rolling
+        success-rate drop or a club falling from above-zero to zero shows — are
+        detected by Grafana alerting against the persisted scraper-health tables
+        (see apps/web/monitoring/grafana/scraper-health-alerts.yaml), not here.
+        """
+        return not any(
+            m.outcome != ScrapeOutcome.EMPTY_CALENDAR
+            for m in summary.below_threshold(self.success_rate_threshold)
+        )
+
     def _send_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
-        """Dispatch the post-run summary to all configured alert channels."""
+        """Dispatch the post-run summary to all configured alert channels.
+
+        Discord is gated on run health: a healthy run produces no Discord post,
+        so Discord carries only failures (this summary on a failing run, alongside
+        the _check_and_alert failure alert) and regressions (Grafana). Email and
+        webhook remain unconditional record-keeping channels.
+        """
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             config = MonitoringConfig.default()
@@ -880,6 +905,12 @@ class ScrapingService:
 
         for channel in channels:
             if channel == "discord":
+                if self._is_healthy_run(summary):
+                    Logger.info(
+                        "Healthy run — skipping unconditional Discord run summary "
+                        "(regressions are surfaced by Grafana alerting)"
+                    )
+                    continue
                 self._send_discord_run_summary(summary, db_result)
             elif channel == "email":
                 self._send_email_run_summary(summary, db_result)
