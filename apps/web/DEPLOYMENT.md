@@ -403,6 +403,18 @@ Import `apps/web/monitoring/grafana/scraper-health.json` (Grafana → Dashboards
 
 Dashboard JSON is the source of truth — see `apps/web/monitoring/grafana/README.md` for the edit/export round-trip.
 
+### Regression alerts
+
+`apps/web/monitoring/grafana/scraper-health-alerts.yaml` defines three unified-alerting rules-as-code that baseline each run against the **trailing 7-run rolling average** and route to a Discord contact point:
+
+- **Success-rate regression** — latest run's `scraper_runs.success_rate` is >10 percentage points below the trailing average.
+- **Club dropped to zero shows** — a club returned shows in the previous run but zero in the latest run. The rule matches the *transition* (prev > 0, latest = 0), so it fires **exactly once** per drop and resolves on the next run (one alert instance per club).
+- **Error-count spike** — latest run logged >5 errors above the trailing-average error count.
+
+These replace the scraper's old unconditional per-run Discord summary, which posted after **every** run and buried real signal under per-run noise. That summary is now gated on run health (`ScrapingService._is_healthy_run`): a healthy run produces **no Discord post**, so Discord carries only failures (the `_check_and_alert` failure alert) and regressions (these Grafana alerts).
+
+Setup (datasource UID pinning, Discord webhook, provisioning, and notification routing) is documented in `apps/web/monitoring/grafana/README.md` → **Regression alerts**. On Grafana Cloud the rules are recreated via the UI or Terraform using the SQL/thresholds in the file verbatim.
+
 ---
 
 ## Uptime Monitoring & Incident Response

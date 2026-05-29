@@ -1,0 +1,237 @@
+# Grafana unified-alerting rules for scraper-health regressions.
+#
+# Dashboard-as-code companion to scraper-health.json. These rules baseline each
+# run against the trailing-N-run rolling average of the persisted scraper-health
+# tables (scraper_runs, scraper_run_clubs, scraper_run_errors) and fire to
+# Discord on a regression — replacing the unconditional per-run Discord summary
+# the scraper used to post after every run (gated off in TASK-2511). A healthy
+# run produces no Discord post; Discord now carries only failures and regressions.
+#
+# N defaults to a trailing window of 7 runs (rows rn BETWEEN 2 AND 8: the 7 runs
+# immediately preceding the latest). Adjust the rn bounds in each rawSql to widen
+# or narrow the baseline.
+#
+# Provisioning (self-hosted Grafana): drop this file in
+# /etc/grafana/provisioning/alerting/ and restart. On Grafana Cloud (no file
+# provisioning) recreate these rules via the UI or Terraform using the SQL and
+# thresholds below verbatim — see apps/web/monitoring/grafana/README.md.
+#
+# datasourceUid below must match the UID of the Neon (grafana_ro) Postgres
+# datasource. Pin that datasource's uid to `neon-scraper-health` (datasource
+# settings → JSON model, or its own provisioning file) so this reference stays
+# stable, or replace every `neon-scraper-health` occurrence with the real UID.
+
+apiVersion: 1
+
+# ---------------------------------------------------------------------------
+# Contact point: Discord. Additive and safe to provision (does not replace the
+# org notification policy). Set the webhook URL out-of-band — never commit it.
+# ---------------------------------------------------------------------------
+contactPoints:
+  - orgId: 1
+    name: scraper-health-discord
+    receivers:
+      - uid: scraper-health-discord
+        type: discord
+        disableResolveMessage: false
+        settings:
+          # Replace with the #laughtrack Discord channel incoming-webhook URL,
+          # or provision via an env-substituted secret. Do NOT append /slack.
+          url: REPLACE_WITH_DISCORD_WEBHOOK_URL
+
+# Route scraper-health alerts to Discord. Provisioned `policies` REPLACE the org
+# root policy tree, so this is commented out by default to avoid clobbering an
+# existing setup. Either uncomment and set `receiver` to your real default
+# receiver, or (recommended) add the equivalent nested route in the Grafana UI:
+#   matcher  service = scraper-health   →   contact point  scraper-health-discord
+#
+# policies:
+#   - orgId: 1
+#     receiver: grafana-default-email      # <-- set to your existing default receiver
+#     routes:
+#       - receiver: scraper-health-discord
+#         object_matchers:
+#           - ['service', '=', 'scraper-health']
+#         group_by: ['alertname', 'club']
+
+# ---------------------------------------------------------------------------
+# Alert rules.
+# ---------------------------------------------------------------------------
+groups:
+  - orgId: 1
+    name: scraper-health-regressions
+    folder: Scraper Health
+    interval: 1h
+    rules:
+      # 1) Overall success-rate regression: latest run's success_rate is more
+      #    than 10 percentage points below the trailing-7-run rolling average.
+      - uid: scraper-success-rate-regression
+        title: Scraper success-rate regression (vs trailing-7-run average)
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          service: scraper-health
+          severity: warning
+        annotations:
+          summary: Scrape success-rate dropped vs rolling average
+          description: >
+            The latest scrape run's overall success-rate is more than 10
+            percentage points below the average of the previous 7 runs. Check
+            the Scraper Health dashboard for which clubs regressed.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: neon-scraper-health
+            model:
+              refId: A
+              format: table
+              rawSql: |
+                WITH ranked AS (
+                  SELECT success_rate,
+                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
+                  FROM scraper_runs
+                )
+                SELECT
+                  COALESCE(AVG(success_rate) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
+                  - COALESCE(MAX(success_rate) FILTER (WHERE rn = 1), 0)
+                  AS success_rate_drop
+                FROM ranked
+                WHERE rn <= 8;
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [10]
+
+      # 2) A club dropped from above-zero to zero shows in the latest run.
+      #    The query detects the *transition* (prev run > 0, latest run = 0), so
+      #    it fires exactly once per drop: on the next run the previous run is
+      #    itself 0, the transition no longer holds, and the alert resolves.
+      #    One series per club (club_name label) → one alert instance per club.
+      - uid: scraper-club-dropped-to-zero
+        title: Club dropped from above-zero to zero shows
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          service: scraper-health
+          severity: warning
+        annotations:
+          summary: '{{ $labels.club }} dropped to zero shows'
+          description: >
+            {{ $labels.club }} returned shows in the previous run but zero in the
+            latest run. This is a silent regression (the run may still report
+            success) — verify the venue's calendar and scraper.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: neon-scraper-health
+            model:
+              refId: A
+              format: table
+              rawSql: |
+                WITH last_two AS (
+                  SELECT id,
+                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
+                  FROM scraper_runs
+                )
+                SELECT c.club_name AS club,
+                       1 AS dropped_to_zero
+                FROM scraper_run_clubs c
+                JOIN last_two latest ON latest.id = c.run_id AND latest.rn = 1
+                JOIN scraper_run_clubs prev_c ON prev_c.club_name = c.club_name
+                JOIN last_two prev ON prev.id = prev_c.run_id AND prev.rn = 2
+                WHERE c.num_shows = 0
+                  AND prev_c.num_shows > 0;
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+
+      # 3) Error-count spike: the latest run logged more than 5 errors above the
+      #    trailing-7-run rolling average error count.
+      - uid: scraper-error-count-spike
+        title: Scraper error-count spike (vs trailing-7-run average)
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          service: scraper-health
+          severity: warning
+        annotations:
+          summary: Scrape error count spiked vs rolling average
+          description: >
+            The latest scrape run logged more than 5 errors above the average of
+            the previous 7 runs. Check the Error count and Bot-block panels on the
+            Scraper Health dashboard.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: neon-scraper-health
+            model:
+              refId: A
+              format: table
+              rawSql: |
+                WITH per_run AS (
+                  SELECT r.id, r.exported_at, COUNT(e.id) AS errors
+                  FROM scraper_runs r
+                  LEFT JOIN scraper_run_errors e ON e.run_id = r.id
+                  GROUP BY r.id, r.exported_at
+                ),
+                ranked AS (
+                  SELECT errors,
+                         ROW_NUMBER() OVER (ORDER BY exported_at DESC) AS rn
+                  FROM per_run
+                )
+                SELECT
+                  COALESCE(MAX(errors) FILTER (WHERE rn = 1), 0)
+                  - COALESCE(AVG(errors) FILTER (WHERE rn BETWEEN 2 AND 8), 0)
+                  AS error_spike
+                FROM ranked
+                WHERE rn <= 8;
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
