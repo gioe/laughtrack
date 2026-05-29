@@ -210,6 +210,17 @@ final class PodcastPlaybackController: ObservableObject {
         }
     }
 
+    deinit {
+        // MPRemoteCommandCenter is a process-wide singleton that retains every
+        // addTarget handler until it is explicitly removed. This controller is
+        // normally an app-lifetime singleton, but if an instance is ever torn
+        // down its handlers must be removed so they don't accumulate on the
+        // shared center across instances.
+        MainActor.assumeIsolated {
+            tearDownRemoteCommands()
+        }
+    }
+
     // MARK: - Transport
 
     func start(_ item: PodcastPlaybackItem) {
@@ -357,16 +368,29 @@ final class PodcastPlaybackController: ObservableObject {
         if engineCurrent.isFinite, engineCurrent >= 0 {
             currentTime = engineCurrent
         }
-        if engineDuration.isFinite, engineDuration > 0 {
+
+        // The Now Playing dictionary only needs refreshing on discrete changes:
+        // iOS extrapolates elapsed time from the playback rate between updates,
+        // so rebuilding it on every 0.5s observer tick was a wasted IPC to
+        // mediaserverd twice a second. Push only when duration first resolves or
+        // the play/pause state flips; the explicit transport methods handle seek
+        // and rate changes.
+        var nowPlayingNeedsRefresh = false
+        if engineDuration.isFinite, engineDuration > 0, engineDuration != duration {
             duration = engineDuration
+            nowPlayingNeedsRefresh = true
         }
         isBuffering = audioEngine.isBuffering
 
         let engineIsPlaying = audioEngine.rate > 0
         if currentItem?.audioURL != nil, engineIsPlaying != isPlaying {
             isPlaying = engineIsPlaying
+            nowPlayingNeedsRefresh = true
         }
-        updateNowPlayingInfo()
+
+        if nowPlayingNeedsRefresh {
+            updateNowPlayingInfo()
+        }
     }
 
     private func applyRateIfPlaying() {
@@ -453,6 +477,28 @@ final class PodcastPlaybackController: ObservableObject {
                 self.setRate(rateEvent.playbackRate)
                 return .success
             }
+        }
+    }
+
+    private func tearDownRemoteCommands() {
+        guard remoteCommandsRegistered else { return }
+        remoteCommandsRegistered = false
+
+        let center = MPRemoteCommandCenter.shared()
+        let commands: [MPRemoteCommand] = [
+            center.playCommand,
+            center.pauseCommand,
+            center.togglePlayPauseCommand,
+            center.skipBackwardCommand,
+            center.skipForwardCommand,
+            center.changePlaybackPositionCommand,
+            center.changePlaybackRateCommand
+        ]
+        // This controller is the sole registrant on the shared center in this
+        // app, so removing all targets per command is equivalent to removing
+        // exactly ours.
+        for command in commands {
+            command.removeTarget(nil)
         }
     }
 
