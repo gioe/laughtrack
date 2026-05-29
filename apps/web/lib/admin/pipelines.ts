@@ -41,7 +41,6 @@ type PipelineClubRow = {
     execution_time_seconds: number;
     success: boolean;
     error_message: string | null;
-    shows_saved: number | null;
     errors_count: number | null;
     http_status: number | null;
     bot_block_detected: boolean | null;
@@ -113,7 +112,6 @@ export type AdminPipelineClubStat = {
     executionTimeSeconds: number;
     success: boolean;
     errorMessage: string | null;
-    showsSaved: number | null;
     errorsCount: number | null;
     httpStatus: number | null;
     botBlockDetected: boolean;
@@ -251,7 +249,6 @@ function mapClub(row: PipelineClubRow): AdminPipelineClubStat {
         executionTimeSeconds: row.execution_time_seconds,
         success: row.success,
         errorMessage: row.error_message,
-        showsSaved: row.shows_saved,
         errorsCount: row.errors_count,
         httpStatus: row.http_status,
         botBlockDetected: Boolean(row.bot_block_detected),
@@ -340,7 +337,7 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
             )
             SELECT src.club_id, src.club_name, src.num_shows,
                    src.execution_time_seconds, src.success, src.error_message,
-                   src.shows_saved, src.errors_count, src.http_status,
+                   src.errors_count, src.http_status,
                    src.bot_block_detected, src.playwright_fallback_used
             FROM scraper_run_clubs src
             JOIN latest_run lr ON lr.id = src.run_id
@@ -356,7 +353,7 @@ export async function listAdminPipelines(): Promise<AdminPipelinesData> {
             )
             SELECT src.club_id, src.club_name, src.num_shows,
                    src.execution_time_seconds, src.success, src.error_message,
-                   src.shows_saved, src.errors_count, src.http_status,
+                   src.errors_count, src.http_status,
                    src.bot_block_detected, src.playwright_fallback_used
             FROM scraper_run_clubs src
             JOIN latest_run lr ON lr.id = src.run_id
