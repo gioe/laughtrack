@@ -40,7 +40,7 @@
           "format": "time_series",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT exported_at AS \"time\", success_rate FROM scraper_runs WHERE $__timeFilter(exported_at) ORDER BY exported_at"
+          "rawSql": "SELECT exported_at AS \"time\", success_rate FROM scraper_runs WHERE run_key LIKE 'scraper:%' AND $__timeFilter(exported_at) ORDER BY exported_at"
         }
       ]
     },
@@ -61,7 +61,7 @@
           "format": "time_series",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT r.exported_at AS \"time\", c.club_name AS metric, (c.success::int * 100) AS success_rate FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE $__timeFilter(r.exported_at) ORDER BY r.exported_at"
+          "rawSql": "SELECT r.exported_at AS \"time\", c.club_name AS metric, c.success_rate FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE r.run_key LIKE 'scraper:%' AND $__timeFilter(r.exported_at) AND c.success_rate IS NOT NULL ORDER BY r.exported_at"
         }
       ]
     },
@@ -82,7 +82,7 @@
           "format": "time_series",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT exported_at AS \"time\", duration_seconds FROM scraper_runs WHERE $__timeFilter(exported_at) ORDER BY exported_at"
+          "rawSql": "SELECT exported_at AS \"time\", duration_seconds FROM scraper_runs WHERE run_key LIKE 'scraper:%' AND $__timeFilter(exported_at) ORDER BY exported_at"
         }
       ]
     },
@@ -103,7 +103,7 @@
           "format": "time_series",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT r.exported_at AS \"time\", COUNT(e.id) AS errors FROM scraper_runs r LEFT JOIN scraper_run_errors e ON e.run_id = r.id WHERE $__timeFilter(r.exported_at) GROUP BY r.exported_at ORDER BY r.exported_at"
+          "rawSql": "SELECT r.exported_at AS \"time\", COUNT(e.id) AS errors FROM scraper_runs r LEFT JOIN scraper_run_errors e ON e.run_id = r.id WHERE r.run_key LIKE 'scraper:%' AND $__timeFilter(r.exported_at) GROUP BY r.exported_at ORDER BY r.exported_at"
         }
       ]
     },
@@ -121,7 +121,7 @@
           "format": "table",
           "rawQuery": true,
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
-          "rawSql": "SELECT c.club_name, c.num_shows, c.success, c.error_message FROM scraper_run_clubs c WHERE c.run_id = (SELECT c2.run_id FROM scraper_run_clubs c2 JOIN scraper_runs r2 ON c2.run_id = r2.id ORDER BY r2.exported_at DESC LIMIT 1) AND c.num_shows = 0 ORDER BY c.club_name"
+          "rawSql": "SELECT c.club_name, c.num_shows, c.success, c.error_message FROM scraper_run_clubs c WHERE c.run_id = (SELECT id FROM scraper_runs WHERE run_key LIKE 'scraper:%' ORDER BY exported_at DESC LIMIT 1) AND c.num_shows = 0 ORDER BY c.club_name"
         }
       ]
     },
