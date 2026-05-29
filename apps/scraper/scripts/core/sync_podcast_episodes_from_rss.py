@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
+import psycopg2
+
 _root = next(p for p in Path(__file__).resolve().parents if (p / "pyproject.toml").exists())
 for _path in (_root / "src", _root):
     if str(_path) not in sys.path:
@@ -82,6 +84,43 @@ def _bump_last_synced(conn: Any, podcast_id: int) -> None:
         cur.execute(_BUMP_LAST_SYNCED_SQL, (podcast_id,))
 
 
+def _rollback_safely(conn: Any) -> None:
+    if getattr(conn, "closed", False):
+        Logger.warn("[rss-episode-reader] skipping rollback because database connection is already closed")
+        return
+    try:
+        conn.rollback()
+    except (psycopg2.InterfaceError, psycopg2.OperationalError) as exc:
+        Logger.warn(f"[rss-episode-reader] rollback failed after database connection error: {exc}")
+
+
+def _load_sync_inputs(
+    *, source: Optional[str], podcast_ids: Optional[list[int]], limit: Optional[int]
+) -> tuple[int, list[reader.PodcastRssFeed]]:
+    with get_connection() as conn:
+        before_count = _episode_count(conn)
+        podcasts = load_podcasts(conn, source=source, podcast_ids=podcast_ids, limit=limit)
+    return before_count, podcasts
+
+
+def _sync_one_podcast(podcast: reader.PodcastRssFeed, *, dry_run: bool) -> reader.RssSyncSummary:
+    fetched = reader.fetch_rss_episodes(podcast)
+    with get_connection(autocommit=False) as conn:
+        try:
+            podcast_summary = reader.persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
+            if not dry_run:
+                _bump_last_synced(conn, podcast.podcast_id)
+
+            if dry_run:
+                conn.rollback()
+            else:
+                conn.commit()
+        except Exception:
+            _rollback_safely(conn)
+            raise
+    return podcast_summary
+
+
 def sync_podcasts_from_rss(
     *,
     dry_run: bool,
@@ -90,47 +129,37 @@ def sync_podcasts_from_rss(
     podcast_ids: Optional[list[int]] = None,
 ) -> DriverSummary:
     summary = DriverSummary()
-    with get_connection(autocommit=False) as conn:
+    before_count, podcasts = _load_sync_inputs(source=source, podcast_ids=podcast_ids, limit=limit)
+    print("=== BEFORE ===")
+    print(f"PodcastEpisode rows: {before_count}")
+    print(f"Podcasts selected: {len(podcasts)}")
+
+    for podcast in podcasts:
+        summary.podcasts_scanned += 1
         try:
-            before_count = _episode_count(conn)
-            print("=== BEFORE ===")
-            print(f"PodcastEpisode rows: {before_count}")
+            podcast_summary = _sync_one_podcast(podcast, dry_run=dry_run)
+        except Exception as exc:
+            summary.podcasts_failed += 1
+            message = f"podcast {podcast.podcast_id} ({podcast.title}): {exc}"
+            summary.per_podcast_errors.append(message)
+            Logger.warn(f"[rss-episode-reader] sync failed for {message}")
+            continue
 
-            podcasts = load_podcasts(conn, source=source, podcast_ids=podcast_ids, limit=limit)
-            print(f"Podcasts selected: {len(podcasts)}")
+        summary.episodes_seen += podcast_summary.episodes_seen
+        summary.episodes_inserted += podcast_summary.episodes_inserted
+        summary.episodes_updated += podcast_summary.episodes_updated
+        summary.episodes_unchanged += podcast_summary.episodes_unchanged
+        summary.episodes_skipped += podcast_summary.episodes_skipped
+        if podcast_summary.not_modified:
+            summary.not_modified += 1
 
-            for podcast in podcasts:
-                summary.podcasts_scanned += 1
-                try:
-                    podcast_summary = reader.sync_podcast_episodes_from_rss(conn, podcast, dry_run=dry_run)
-                except Exception as exc:
-                    summary.podcasts_failed += 1
-                    message = f"podcast {podcast.podcast_id} ({podcast.title}): {exc}"
-                    summary.per_podcast_errors.append(message)
-                    Logger.warn(f"[rss-episode-reader] sync failed for {message}")
-                    continue
-
-                summary.episodes_seen += podcast_summary.episodes_seen
-                summary.episodes_inserted += podcast_summary.episodes_inserted
-                summary.episodes_updated += podcast_summary.episodes_updated
-                summary.episodes_unchanged += podcast_summary.episodes_unchanged
-                summary.episodes_skipped += podcast_summary.episodes_skipped
-                if podcast_summary.not_modified:
-                    summary.not_modified += 1
-                if not dry_run:
-                    _bump_last_synced(conn, podcast.podcast_id)
-
-            print("=== AFTER ===")
-            if dry_run:
-                print("DRY RUN: no database writes applied")
-                print(f"PodcastEpisode rows: {before_count}")
-                conn.rollback()
-            else:
-                conn.commit()
-                print(f"PodcastEpisode rows: {_episode_count(conn)}")
-        except Exception:
-            conn.rollback()
-            raise
+    print("=== AFTER ===")
+    if dry_run:
+        print("DRY RUN: no database writes applied")
+        print(f"PodcastEpisode rows: {before_count}")
+    else:
+        with get_connection() as conn:
+            print(f"PodcastEpisode rows: {_episode_count(conn)}")
 
     return summary
 

@@ -324,13 +324,13 @@ def _update_podcast_cache(conn: Any, podcast: PodcastRssFeed, result: RssFetchRe
         cur.execute(_UPDATE_PODCAST_CACHE_SQL, (json.dumps(payload, sort_keys=True), podcast.podcast_id))
 
 
-def sync_podcast_episodes_from_rss(
+def persist_rss_fetch_result(
     conn: Any,
     podcast: PodcastRssFeed,
+    fetched: RssFetchResult,
     *,
     dry_run: bool,
 ) -> RssSyncSummary:
-    fetched = fetch_rss_episodes(podcast)
     summary = RssSyncSummary(episodes_seen=len(fetched.episodes), not_modified=fetched.not_modified)
     seen_episode_ids: set[tuple[str, str]] = set()
 
@@ -354,3 +354,13 @@ def sync_podcast_episodes_from_rss(
         _update_podcast_cache(conn, podcast, fetched)
 
     return summary
+
+
+def sync_podcast_episodes_from_rss(
+    conn: Any,
+    podcast: PodcastRssFeed,
+    *,
+    dry_run: bool,
+) -> RssSyncSummary:
+    fetched = fetch_rss_episodes(podcast)
+    return persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)

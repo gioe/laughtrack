@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import psycopg2
+
 _repo_root = Path(__file__).resolve().parents[3]
 _src_path = _repo_root / "src"
 for _p in (str(_src_path), str(_repo_root)):
@@ -45,8 +47,8 @@ class _FakeCursor:
 
 
 class _FakeConn:
-    def __init__(self) -> None:
-        self.podcast_rows = [
+    def __init__(self, podcast_rows: list[tuple[Any, ...]] | None = None) -> None:
+        self.podcast_rows = podcast_rows or [
             (42, "itunes", "12345", "https://feeds.example.com/show.xml", "Comedy Talk", {"raw": True})
         ]
         self.episode_count = 7
@@ -54,6 +56,7 @@ class _FakeConn:
         self.last_synced_updates: list[Any] = []
         self.commits = 0
         self.rollbacks = 0
+        self.closed = False
 
     def __enter__(self) -> "_FakeConn":
         return self
@@ -62,12 +65,18 @@ class _FakeConn:
         return False
 
     def cursor(self) -> _FakeCursor:
+        if self.closed:
+            raise psycopg2.InterfaceError("connection already closed")
         return _FakeCursor(self)
 
     def commit(self) -> None:
+        if self.closed:
+            raise psycopg2.InterfaceError("connection already closed")
         self.commits += 1
 
     def rollback(self) -> None:
+        if self.closed:
+            raise psycopg2.InterfaceError("connection already closed")
         self.rollbacks += 1
 
 
@@ -76,16 +85,21 @@ def test_driver_dry_run_prints_audit_blocks_and_writes_nothing(monkeypatch, caps
     sync_calls: list[tuple[int, bool]] = []
 
     def fake_get_connection(*, autocommit: bool = True) -> _FakeConn:
-        assert autocommit is False
         return conn
 
-    def fake_sync(sync_conn: Any, podcast: Any, *, dry_run: bool) -> mod.reader.RssSyncSummary:
+    def fake_fetch(podcast: Any) -> mod.reader.RssFetchResult:
+        return mod.reader.RssFetchResult()
+
+    def fake_persist(
+        sync_conn: Any, podcast: Any, _fetched: mod.reader.RssFetchResult, *, dry_run: bool
+    ) -> mod.reader.RssSyncSummary:
         assert sync_conn is conn
         sync_calls.append((podcast.podcast_id, dry_run))
         return mod.reader.RssSyncSummary(episodes_seen=3, episodes_skipped=0)
 
     monkeypatch.setattr(mod, "get_connection", fake_get_connection)
-    monkeypatch.setattr(mod.reader, "sync_podcast_episodes_from_rss", fake_sync)
+    monkeypatch.setattr(mod.reader, "fetch_rss_episodes", fake_fetch)
+    monkeypatch.setattr(mod.reader, "persist_rss_fetch_result", fake_persist)
 
     assert mod.main(["--dry-run", "--limit", "1"]) == 0
 
@@ -103,10 +117,11 @@ def test_driver_confirm_bumps_last_synced_after_success(monkeypatch):
     conn = _FakeConn()
 
     monkeypatch.setattr(mod, "get_connection", lambda *, autocommit=False: conn)
+    monkeypatch.setattr(mod.reader, "fetch_rss_episodes", lambda _podcast: mod.reader.RssFetchResult())
     monkeypatch.setattr(
         mod.reader,
-        "sync_podcast_episodes_from_rss",
-        lambda _conn, _podcast, *, dry_run: mod.reader.RssSyncSummary(
+        "persist_rss_fetch_result",
+        lambda _conn, _podcast, _fetched, *, dry_run: mod.reader.RssSyncSummary(
             episodes_seen=2,
             episodes_inserted=1,
         ),
@@ -119,3 +134,51 @@ def test_driver_confirm_bumps_last_synced_after_success(monkeypatch):
     assert conn.last_synced_updates == [(42,)]
     assert conn.commits == 1
     assert conn.rollbacks == 0
+
+
+def test_driver_continues_after_closed_connection_during_podcast_sync(monkeypatch):
+    podcast_rows = [
+        (42, "itunes", "12345", "https://feeds.example.com/broken.xml", "Broken Talk", {"raw": True}),
+        (43, "itunes", "67890", "https://feeds.example.com/healthy.xml", "Healthy Talk", {"raw": True}),
+    ]
+    loader_conn = _FakeConn(podcast_rows)
+    first_sync_conn = _FakeConn()
+    second_sync_conn = _FakeConn()
+    after_count_conn = _FakeConn()
+    connections = [loader_conn, first_sync_conn, second_sync_conn, after_count_conn]
+    autocommit_modes: list[bool] = []
+    events: list[str] = []
+    sync_calls: list[int] = []
+
+    def fake_get_connection(*, autocommit: bool = True) -> _FakeConn:
+        autocommit_modes.append(autocommit)
+        events.append(f"connect:{autocommit}")
+        return connections.pop(0)
+
+    def fake_fetch(podcast: Any) -> mod.reader.RssFetchResult:
+        events.append(f"fetch:{podcast.podcast_id}")
+        return mod.reader.RssFetchResult()
+
+    def fake_persist(
+        sync_conn: _FakeConn, podcast: Any, _fetched: mod.reader.RssFetchResult, *, dry_run: bool
+    ) -> mod.reader.RssSyncSummary:
+        sync_calls.append(podcast.podcast_id)
+        if podcast.podcast_id == 42:
+            sync_conn.closed = True
+            raise psycopg2.InterfaceError("connection already closed")
+        return mod.reader.RssSyncSummary(episodes_seen=2, episodes_inserted=1)
+
+    monkeypatch.setattr(mod, "get_connection", fake_get_connection)
+    monkeypatch.setattr(mod.reader, "fetch_rss_episodes", fake_fetch)
+    monkeypatch.setattr(mod.reader, "persist_rss_fetch_result", fake_persist)
+
+    summary = mod.sync_podcasts_from_rss(dry_run=False, limit=2, source=None)
+
+    assert summary.podcasts_scanned == 2
+    assert summary.podcasts_failed == 1
+    assert summary.episodes_inserted == 1
+    assert autocommit_modes == [True, False, False, True]
+    assert events == ["connect:True", "fetch:42", "connect:False", "fetch:43", "connect:False", "connect:True"]
+    assert sync_calls == [42, 43]
+    assert second_sync_conn.last_synced_updates == [(43,)]
+    assert second_sync_conn.commits == 1
