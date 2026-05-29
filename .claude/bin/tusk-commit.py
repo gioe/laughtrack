@@ -22,7 +22,9 @@ Steps:
     0. Validate file paths — fail fast before lint/tests if any path is missing or escapes repo root
     1. Run tusk lint --quiet — aborts on any non-advisory violation (exit 6).
        Advisory-only rules warn but never block. Bypass with --skip-lint or --skip-verify.
-    2. Run test_command gate: use domain_test_commands[task.domain] if present, else test_command (hard-blocks on failure)
+    2. Run test_command gate: use domain_test_commands[task.domain] if present, else test_command (hard-blocks on failure).
+       Info-skipped when every staged file is non-code — a docs/markdown file (*.md) or a scope.always_allowed metadata file
+       (VERSION, CHANGELOG.md, MANIFEST, .claude/tusk-manifest.json) — since such commits cannot change test outcomes (issue #950).
     3. Stage files: git add for all files (handles additions, modifications, and deletions)
     4. git commit with [TASK-<id>] <message> format and Co-Authored-By trailer
     5. For each criterion ID passed via --criteria, call tusk criteria done <id> (captures HEAD automatically)
@@ -63,6 +65,7 @@ import re
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -534,6 +537,58 @@ def load_lint_timeout(config_path: str) -> tuple[int, str]:
     return DEFAULT_LINT_TIMEOUT_SEC, "default"
 
 
+def _make_lint_trace_env():
+    """Create a per-rule breadcrumb file and the env that points `tusk lint` at
+    it (issue #952).
+
+    Returns ``(trace_path, env)``. ``tusk lint`` overwrites ``trace_path`` with
+    the name of each rule just before running it, so after the lint subprocess
+    is killed on timeout, ``_read_inflight_lint_rule`` can name the rule that
+    was executing. On any failure to create the file, ``trace_path`` is None and
+    env is the unmodified environment (the feature degrades to the old generic
+    message rather than aborting the commit).
+    """
+    try:
+        fd, trace_path = tempfile.mkstemp(prefix="tusk-lint-trace.")
+        os.close(fd)
+    except OSError:
+        return None, os.environ.copy()
+    env = os.environ.copy()
+    env["TUSK_LINT_TRACE_FILE"] = trace_path
+    return trace_path, env
+
+
+def _read_inflight_lint_rule(trace_path):
+    """Return the rule name recorded in the breadcrumb (the rule running when
+    the lint subprocess was killed), or None when unavailable."""
+    if not trace_path:
+        return None
+    try:
+        with open(trace_path, encoding="utf-8") as f:
+            name = f.read().strip()
+        return name or None
+    except OSError:
+        return None
+
+
+def _lint_timeout_hung_rule_line(trace_path):
+    """Format the abort-message line that names the slow lint rule when known,
+    falling back to the original generic wording otherwise (issue #952)."""
+    rule = _read_inflight_lint_rule(trace_path)
+    if rule:
+        return f"  Slowest rule (running when the timeout fired): {rule}.\n"
+    return "  A lint rule appears to be hung.\n"
+
+
+def _cleanup_lint_trace(trace_path):
+    if not trace_path:
+        return
+    try:
+        os.remove(trace_path)
+    except OSError:
+        pass
+
+
 def is_linked_worktree(repo_root: str) -> bool:
     """Return True when repo_root is a linked git worktree checkout.
 
@@ -755,6 +810,89 @@ def _test_command_outside_sparse_cone(
         if os.path.exists(os.path.join(repo_root, tok.rstrip("/"))):
             return False, ""
     return True, targets[0]
+
+
+# Canonical non-code metadata files — mirrors scope.always_allowed in
+# config.default.json. Used as the fallback when a project's tusk/config.json
+# predates the scope.always_allowed key (or omits it), so VERSION / CHANGELOG /
+# MANIFEST commits are still recognized as non-code (issue #950).
+_DEFAULT_NON_CODE_FILES = (
+    "VERSION",
+    "CHANGELOG.md",
+    "MANIFEST",
+    ".claude/tusk-manifest.json",
+)
+
+
+def _resolve_non_code_allowlist(config_path: str) -> set[str]:
+    """Return the set of repo-root-relative paths treated as non-code metadata
+    files for the test-gate skip (issue #950).
+
+    A project's ``scope.always_allowed`` wins when defined and non-empty;
+    otherwise the canonical ``_DEFAULT_NON_CODE_FILES`` set is used so installs
+    predating that config key still recognize VERSION / CHANGELOG / MANIFEST.
+    """
+    vals: list[str] = []
+    if config_path and os.path.exists(config_path):
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                cfg = json.load(f)
+            scope_cfg = cfg.get("scope")
+            if isinstance(scope_cfg, dict):
+                raw = scope_cfg.get("always_allowed")
+                if isinstance(raw, list):
+                    vals = [str(v) for v in raw if isinstance(v, str) and v]
+        except (OSError, json.JSONDecodeError):
+            vals = []
+    if not vals:
+        vals = list(_DEFAULT_NON_CODE_FILES)
+    return {v.replace(os.sep, "/") for v in vals}
+
+
+def _pending_commit_paths(repo_root: str, resolved_files) -> list[str]:
+    """Return the repo-root-relative paths this commit will actually contain.
+
+    ``tusk commit`` finalizes with a path-less ``git commit``, so the commit
+    captures more than the explicitly-resolved files: any already-staged index
+    changes (modifications, additions, ``git rm`` deletions) plus the unstaged
+    deletions of tracked files that Step 2.5 auto-sweeps in. The non-code
+    test-gate skip must reason over this full set so a pre-staged or
+    ``rm``-deleted code file never bypasses the gate (issue #950).
+    """
+    paths = {
+        os.path.relpath(f, repo_root) if os.path.isabs(f) else f
+        for f in resolved_files
+    }
+    for git_args in (
+        ["git", "diff", "--cached", "--name-only", "-z"],
+        ["git", "ls-files", "--deleted", "-z"],
+    ):
+        res = run(git_args, check=False, cwd=repo_root)
+        if res.returncode == 0 and res.stdout:
+            paths.update(p for p in res.stdout.split("\0") if p)
+    return list(paths)
+
+
+def _all_staged_files_non_code(rel_paths, allowlist: set[str]) -> bool:
+    """Return True when every path in ``rel_paths`` is a non-code file that
+    cannot change test outcomes — a Markdown/docs file (``*.md``) or a
+    ``scope.always_allowed`` metadata entry (VERSION, MANIFEST, CHANGELOG.md,
+    .claude/tusk-manifest.json). Used to skip the test gate for docs-only /
+    version-bump commits (issue #950).
+
+    Empty input returns False: with nothing to reason about, the caller's
+    normal (gate-runs) path is the safe default.
+    """
+    if not rel_paths:
+        return False
+    for rel in rel_paths:
+        norm = str(rel).replace(os.sep, "/")
+        if norm in allowlist:
+            continue
+        if norm.lower().endswith(".md"):
+            continue
+        return False
+    return True
 
 
 def _print_test_command_failure(
@@ -1170,12 +1308,14 @@ def _run_commit(argv: list[str], state: dict) -> int:
         # `--task <task_id>` narrows Rule 6 (Done with incomplete acceptance
         # criteria) to the current task so unrelated historical state cannot
         # block this commit (Issue #568). All other rules ignore the flag.
+        lint_trace_path, lint_env = _make_lint_trace_env()
         try:
             lint = subprocess.run(
                 [tusk_bin, "lint", "--quiet", "--task", str(task_id)],
                 capture_output=True,
                 text=True, encoding="utf-8",
                 timeout=lint_timeout_sec,
+                env=lint_env,
             )
         except subprocess.TimeoutExpired:
             source_hint = {
@@ -1189,11 +1329,13 @@ def _run_commit(argv: list[str], state: dict) -> int:
             _print_error(
                 f"\nError: tusk lint timed out after {lint_timeout_sec}s "
                 f"({source_hint}) — aborting commit.\n"
-                "  A lint rule appears to be hung. Bypass with --skip-lint "
-                "(lint only) or --skip-verify (lint, tests, and pre-commit hooks), "
-                "or raise the timeout."
+                f"{_lint_timeout_hung_rule_line(lint_trace_path)}"
+                "  Bypass with --skip-lint (lint only) or --skip-verify "
+                "(lint, tests, and pre-commit hooks), or raise the timeout."
             )
             return 8
+        finally:
+            _cleanup_lint_trace(lint_trace_path)
         if lint.returncode != 0:
             # Issue #674: when the only blocking violations are MANIFEST drift
             # (Rules 18/19), the fix is the canonical idempotent
@@ -1240,12 +1382,14 @@ def _run_commit(argv: list[str], state: dict) -> int:
                     if regen.stdout:
                         sys.stdout.write(regen.stdout)
                         sys.stdout.flush()
+                    retry_trace_path, retry_env = _make_lint_trace_env()
                     try:
                         lint = subprocess.run(
                             [tusk_bin, "lint", "--quiet", "--task", str(task_id)],
                             capture_output=True,
                             text=True, encoding="utf-8",
                             timeout=lint_timeout_sec,
+                            env=retry_env,
                         )
                     except subprocess.TimeoutExpired:
                         source_hint = {
@@ -1260,10 +1404,13 @@ def _run_commit(argv: list[str], state: dict) -> int:
                             f"\nError: tusk lint timed out after "
                             f"{lint_timeout_sec}s ({source_hint}) on the "
                             "MANIFEST-recovery retry — aborting commit.\n"
+                            f"{_lint_timeout_hung_rule_line(retry_trace_path)}"
                             "  Bypass with --skip-lint or --skip-verify, or "
                             "raise the timeout."
                         )
                         return 8
+                    finally:
+                        _cleanup_lint_trace(retry_trace_path)
                     if lint.returncode == 0:
                         for rel in ("MANIFEST", ".claude/tusk-manifest.json"):
                             abs_path = os.path.join(repo_root, rel)
@@ -1335,7 +1482,31 @@ def _run_commit(argv: list[str], state: dict) -> int:
             )
             sys.stdout.flush()
             sparse_skip_test = True
+    # Non-code-only preflight (issue #950). When every staged file is a
+    # docs/markdown file or a scope.always_allowed metadata file (VERSION,
+    # CHANGELOG.md, MANIFEST, .claude/tusk-manifest.json), the commit cannot
+    # change test outcomes — running the full test gate is wasted wall-clock and
+    # needlessly exposes the (recommended) VERSION-bump-as-own-commit path to
+    # timeout flakes under load. Info-skip the gate; lint (Step 1) and
+    # pre-commit hooks (Step 3) still run since they are separate steps.
+    # Preserve always-run behavior whenever any code file is staged.
+    noncode_skip_test = False
     if test_cmd and not skip_verify and not sparse_skip_test:
+        gate_rel_paths = _pending_commit_paths(repo_root, resolved_files)
+        if _all_staged_files_non_code(
+            gate_rel_paths, _resolve_non_code_allowlist(config_path)
+        ):
+            print(
+                "Note: every staged file is non-code (docs/markdown or a "
+                "scope.always_allowed metadata file) — skipping test gate "
+                "for this commit.\n"
+                f"  Staged: {', '.join(gate_rel_paths)}\n"
+                "  These files cannot change test outcomes; lint and "
+                "pre-commit hooks still run."
+            )
+            sys.stdout.flush()
+            noncode_skip_test = True
+    if test_cmd and not skip_verify and not sparse_skip_test and not noncode_skip_test:
         test_cmd, _ = _worktree_command.rewrite_linked_worktree_venv_command(
             test_cmd,
             repo_root,

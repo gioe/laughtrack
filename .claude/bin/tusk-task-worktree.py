@@ -130,6 +130,19 @@ def _run_git(repo_root: str, args: list[str]) -> subprocess.CompletedProcess:
     )
 
 
+def _rev_count(repo_root: str, rev_range: str) -> int | None:
+    """Return the commit count for ``git rev-list --count <rev_range>``.
+
+    Returns ``None`` when the command fails or emits non-numeric output so
+    callers can treat an unresolvable range as "unknown" rather than zero.
+    """
+    result = _run_git(repo_root, ["rev-list", "--count", rev_range])
+    if result.returncode != 0:
+        return None
+    text = result.stdout.strip()
+    return int(text) if text.isdigit() else None
+
+
 def _detect_default_branch(repo_root: str) -> str:
     set_head = _run_git(repo_root, ["remote", "set-head", "origin", "--auto"])
     if set_head.returncode == 0:
@@ -461,21 +474,37 @@ def _maybe_advise_stale_primary(primary_root: str) -> None:
     # Best-effort fetch; silently swallow failures (offline, auth, etc.).
     _run_git(primary_root, ["fetch", "origin", default_branch])
 
-    count_result = _run_git(
-        primary_root,
-        ["rev-list", "--count", f"HEAD..origin/{default_branch}"],
-    )
-    if count_result.returncode != 0:
+    # Compute behind AND ahead so a divergence (local commits unpushed AND
+    # origin advanced) is reported as such instead of being mislabeled as a
+    # simple "behind" — the issue #949 fix. The behind side drives the
+    # stale-binary hazard, so an ahead-only primary stays silent (it has newer
+    # binaries, not stale ones, and the merge-time guard handles any unpushed
+    # commit it might otherwise strand).
+    behind = _rev_count(primary_root, f"HEAD..origin/{default_branch}")
+    if behind is None or behind <= 0:
         return
-    count_text = count_result.stdout.strip()
-    if not count_text.isdigit():
-        return
-    count = int(count_text)
-    if count <= 0:
+    ahead = _rev_count(primary_root, f"origin/{default_branch}..HEAD")
+
+    if ahead and ahead > 0:
+        # Diverged: "tusk sync-main" cannot recover this (its git merge
+        # --ff-only step refuses a non-fast-forward), so recommend a rebase
+        # pull instead.
+        print(
+            f"tusk: primary checkout has diverged from origin/{default_branch} "
+            f"({ahead} commit(s) ahead, {behind} behind); PATH-resolved tusk "
+            f"invocations from this worktree will run stale binaries against "
+            f"the worktree CWD and may corrupt MANIFEST under sparse-checkout. "
+            f'"tusk sync-main" cannot recover a diverged branch (its '
+            f"git merge --ff-only step refuses the non-fast-forward). Run "
+            f'"git pull --rebase origin {default_branch}" in {primary_root} to '
+            f'reconcile (then "git push"), before invoking "tusk" from any '
+            "subshell here.",
+            file=sys.stderr,
+        )
         return
 
     print(
-        f"tusk: primary checkout is {count} commit(s) behind "
+        f"tusk: primary checkout is {behind} commit(s) behind "
         f"origin/{default_branch}; PATH-resolved tusk invocations from "
         f"this worktree will run stale binaries against the worktree CWD "
         f'and may corrupt MANIFEST under sparse-checkout. Run "tusk '
@@ -701,6 +730,26 @@ def _workspace_payload(row: sqlite3.Row, *, created: bool) -> dict:
     }
 
 
+def _select_existing_workspace(
+    repo_root: str, rows: list[sqlite3.Row]
+) -> sqlite3.Row:
+    """Pick the single workspace row to reuse for a task (issue #947).
+
+    A task owns at most one workspace, but a DB created before the idempotency
+    fix may already hold duplicates. Choose deterministically: prefer a row
+    whose path exists on disk (healthy reuse), else one whose branch still
+    resolves in git (stale-recover via re-attach), else the lowest-id row
+    (which then hits the fully-stale refusal path).
+    """
+    for row in rows:
+        if os.path.isdir(row["workspace_path"]):
+            return row
+    for row in rows:
+        if _branch_exists(repo_root, row["branch"]):
+            return row
+    return rows[0]
+
+
 def cmd_create(
     db_path: str, config_path: str, repo_root: str, argv: list[str]
 ) -> int:
@@ -797,15 +846,31 @@ def cmd_create(
         if not os.environ.get("TUSK_NO_AUTO_PRUNE"):
             _auto_prune_stale_workspaces(conn, repo_root, task_id)
 
-        existing = conn.execute(
+        # Idempotent on task_id (issue #947): a task owns at most one
+        # workspace. Match on task_id alone — NOT on the slug-derived branch —
+        # so a resuming agent that picks a different brief-description slug
+        # reuses the existing workspace instead of silently provisioning a
+        # second worktree + branch. The earlier `WHERE task_id = ? AND branch
+        # = ?` form missed whenever the slug differed and fell through to the
+        # create path, duplicating the workspace.
+        existing_rows = conn.execute(
             """
             SELECT id, task_id, branch, workspace_path
             FROM task_workspaces
-            WHERE task_id = ? AND branch = ?
+            WHERE task_id = ?
+            ORDER BY id
             """,
-            (task_id, branch),
-        ).fetchone()
-        if existing:
+            (task_id,),
+        ).fetchall()
+        if existing_rows:
+            existing = _select_existing_workspace(repo_root, existing_rows)
+            if existing["branch"] != branch:
+                print(
+                    f"Note: TASK-{task_id} already has a recorded workspace on "
+                    f"branch '{existing['branch']}'; reusing it and ignoring the "
+                    f"requested slug '{slug}'.",
+                    file=sys.stderr,
+                )
             # Healthy state: registry row + workspace_path present on disk.
             if os.path.isdir(existing["workspace_path"]):
                 print(dumps(_workspace_payload(existing, created=False)))

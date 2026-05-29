@@ -285,6 +285,28 @@ def _first_changelog_section(text: str) -> tuple[str, str] | None:
     return match.group("date"), match.group("body").rstrip() + "\n"
 
 
+def _insert_changelog_entry(content: str, entry: str) -> str:
+    """Insert a versioned entry block immediately below the ## [Unreleased] marker.
+
+    Mirrors tusk-changelog-add.py's insertion so the rebase-conflict resolver keeps
+    a single '# Changelog' title and never prepends a version block above it. The
+    old resolver wrote the new entry followed by the entire upstream changelog,
+    which placed the block above upstream's '# Changelog' title and accumulated
+    duplicate titles on every rebase-merge (issue #954).
+    """
+    marker = "## [Unreleased]"
+    idx = content.find(marker)
+    if idx != -1:
+        eol = content.find("\n", idx)
+        if eol == -1:
+            eol = len(content) - 1
+        return content[: eol + 1] + "\n" + entry + content[eol + 1 :]
+    vmatch = re.search(r"^## \[\d+\] - ", content, re.MULTILINE)
+    if vmatch:
+        return content[: vmatch.start()] + entry + "\n" + content[vmatch.start() :]
+    return content.rstrip("\n") + "\n\n" + entry
+
+
 def _recover_version_changelog_rebase_conflict(
     worktree_path: str,
     rebase_target: str,
@@ -297,17 +319,40 @@ def _recover_version_changelog_rebase_conflict(
     if unmerged.returncode != 0:
         return False
     paths = {line.strip() for line in unmerged.stdout.splitlines() if line.strip()}
-    if paths != {"VERSION", "CHANGELOG.md"}:
+    # Fire whenever the unmerged set is a non-empty subset of {VERSION, CHANGELOG.md}
+    # that includes CHANGELOG.md. The same-version parallel race auto-merges VERSION
+    # (byte-identical bumps) and leaves only CHANGELOG.md conflicted (issue #951).
+    if "CHANGELOG.md" not in paths or not paths.issubset({"VERSION", "CHANGELOG.md"}):
         return False
 
-    versions = [
-        _parse_version(_git_show_text(worktree_path, f"{rebase_target}:VERSION")),
-        _parse_version(_git_show_text(worktree_path, ":2:VERSION")),
-        _parse_version(_git_show_text(worktree_path, ":3:VERSION")),
-    ]
-    if any(version is None for version in versions):
+    known_versions = []
+    target_version = _parse_version(
+        _git_show_text(worktree_path, f"{rebase_target}:VERSION")
+    )
+    if target_version is not None:
+        known_versions.append(target_version)
+    if "VERSION" in paths:
+        for stage in (":2:VERSION", ":3:VERSION"):
+            staged = _parse_version(_git_show_text(worktree_path, stage))
+            if staged is not None:
+                known_versions.append(staged)
+    else:
+        # VERSION auto-merged (same-version race) — read the resolved value from the
+        # index, falling back to the worktree, since the :2/:3 stages do not exist.
+        resolved = _parse_version(_git_show_text(worktree_path, ":0:VERSION"))
+        if resolved is None:
+            try:
+                with open(
+                    os.path.join(worktree_path, "VERSION"), encoding="utf-8"
+                ) as handle:
+                    resolved = _parse_version(handle.read())
+            except OSError:
+                resolved = None
+        if resolved is not None:
+            known_versions.append(resolved)
+    if not known_versions:
         return False
-    next_version = max(version for version in versions if version is not None) + 1
+    next_version = max(known_versions) + 1
 
     upstream_changelog = _git_show_text(worktree_path, ":2:CHANGELOG.md")
     task_changelog = _git_show_text(worktree_path, ":3:CHANGELOG.md")
@@ -318,11 +363,13 @@ def _recover_version_changelog_rebase_conflict(
         return False
     section_date, section_body = task_section
 
+    new_entry = f"## [{next_version}] - {section_date}\n{section_body}"
+    merged_changelog = _insert_changelog_entry(upstream_changelog, new_entry)
+
     with open(os.path.join(worktree_path, "VERSION"), "w", encoding="utf-8") as handle:
         handle.write(f"{next_version}\n")
     with open(os.path.join(worktree_path, "CHANGELOG.md"), "w", encoding="utf-8") as handle:
-        handle.write(f"## [{next_version}] - {section_date}\n{section_body}\n")
-        handle.write(upstream_changelog)
+        handle.write(merged_changelog)
 
     add_result = run(
         ["git", "-C", worktree_path, "add", "VERSION", "CHANGELOG.md"],
@@ -567,6 +614,49 @@ def _drop_unpushed_commits(
         file=sys.stderr,
     )
     return False
+
+
+def _warn_no_checkout_unpushed_default(
+    commits: list[tuple[str, str]],
+    default_branch: str,
+    task_id: int,
+    session_id: int,
+) -> None:
+    """Loudly report local-``<default>`` commits a no-checkout push would strand.
+
+    The no-checkout fast-forward path ships ``<branch>:<default>`` — the feature
+    branch, which ``task-worktree create`` based on ``origin/<default>`` (issue
+    #949). Commits that live only on the LOCAL ``<default>`` ref were never on
+    the feature branch, so the push cannot carry them; without this guard they
+    were silently left behind while the merge reported success.
+
+    Unlike ``_confirm_proceed_with_unpushed`` (standard checkout path) there is
+    no safe interactive choice to offer here: a ``[y]`` "push as passengers"
+    cannot work because the feature-branch push fundamentally excludes these
+    commits, and a ``[d]`` ``git reset --hard`` would clobber the wrong branch
+    because the current checkout in the no-checkout flow is the feature worktree,
+    not ``<default>``. The caller therefore always aborts after this warning.
+    """
+    print(
+        f"\nAborting TASK-{task_id} merge: local '{default_branch}' has "
+        f"{len(commits)} commit(s) not on 'origin/{default_branch}' that the "
+        f"feature branch was not based on. This no-checkout fast-forward push "
+        f"ships only the feature branch, so they would be silently stranded on "
+        f"local '{default_branch}':",
+        file=sys.stderr,
+    )
+    for sha, subject in commits:
+        print(f"  {sha}  {subject}", file=sys.stderr)
+    print(
+        f"\nTo resolve, in the checkout where '{default_branch}' is checked out "
+        f"(usually the primary repo):\n"
+        f"  - Publish them: git pull --rebase origin {default_branch} && "
+        f"git push origin {default_branch}\n"
+        f"  - Or discard them: git fetch origin && "
+        f"git reset --hard origin/{default_branch}\n"
+        f"Then re-run: tusk merge {task_id} --session {session_id}",
+        file=sys.stderr,
+    )
 
 
 def _try_pop_stash(task_id: int) -> None:
@@ -1410,6 +1500,47 @@ def _close_completed_task(
                 )
             print(dumps(synthetic))
             return 0
+        if result.returncode == 2 and "is already done" in result.stderr.lower():
+            # Idempotent retry path (issue #943): a prior tusk merge attempt got
+            # as far as marking the task Done but failed during worktree cleanup
+            # (e.g. untracked files blocked `git worktree remove`). Rerunning
+            # tusk merge sees task-done refuse with "is already Done" — treat
+            # that as success when the row genuinely is Done with
+            # closed_reason='completed', so the rest of the merge sequence
+            # (refresh, advisory, cleanup) can finish the work the prior attempt
+            # left behind. Mirrors the session-close "already closed" branch in
+            # the no-checkout fast-forward path. Closed_reason gating keeps the
+            # safety net intact for genuine state mismatches (wont_do, expired,
+            # duplicate): only completed retries unlock idempotent recovery.
+            try:
+                conn = get_connection(db_path)
+                try:
+                    row = conn.execute(
+                        "SELECT status, closed_reason FROM tasks WHERE id = ?",
+                        (task_id,),
+                    ).fetchone()
+                finally:
+                    conn.close()
+            except sqlite3.Error:
+                row = None
+            if row and row["status"] == "Done" and row["closed_reason"] == "completed":
+                print(
+                    f"Warning: Task {task_id} was already closed by a prior merge "
+                    "attempt — continuing with cleanup.",
+                    file=sys.stderr,
+                )
+                synthetic = {
+                    "task": {
+                        "id": task_id,
+                        "status": "Done",
+                        "closed_reason": "completed",
+                    },
+                    "sessions_closed": 1 if session_was_closed else 0,
+                    "unblocked_tasks": [],
+                    "idempotent_retry": True,
+                }
+                print(dumps(synthetic))
+                return 0
         print(f"Error: task-done failed:\n{result.stderr.strip()}", file=sys.stderr)
         return 2
 
@@ -1586,6 +1717,23 @@ def _complete_no_checkout_fast_forward(
             file=sys.stderr,
         )
     else:
+        # Guard (issue #949): the standard checkout path runs this check at
+        # bin/tusk-merge.py's `git pull` site, but the no-checkout path
+        # historically skipped it and silently stranded commits that live only
+        # on the local <default> ref. The fetch above (rebase or freshness
+        # branch) refreshed origin/<default>, so the comparison is current. Only
+        # runs when we are actually about to push — the already-shipped
+        # short-circuit above leaves a pre-existing local-default divergence to
+        # the operator rather than blocking finalization of work that already
+        # reached origin.
+        unpushed_local = _local_default_unpushed_commits(default_branch)
+        if unpushed_local:
+            _warn_no_checkout_unpushed_default(
+                unpushed_local, default_branch, task_id, session_id
+            )
+            if did_stash:
+                _try_pop_stash(task_id)
+            return 2
         pre_push_merge_base_sha = _resolve_merge_base(branch_name, default_branch)
         print(
             f"Pushing {branch_name} to origin/{default_branch} via no-checkout "
@@ -1710,12 +1858,21 @@ def _complete_no_checkout_fast_forward(
             return 3
         return rc
     cleanup_ok = _cleanup_no_checkout_workspace(db_path, task_id, branch_name)
+    # Reconcile any *sibling* task_workspaces rows the single-row cleanup
+    # above could not see (issue #945): a task that ran `task-worktree create`
+    # more than once strands the un-selected rows after finalization. Safe
+    # siblings are removed; siblings holding unmerged work are surfaced with
+    # a remediation command rather than auto-deleted.
+    siblings_ok = _reconcile_duplicate_task_workspaces(
+        db_path, task_id, branch_name, default_branch
+    )
     # Distinguish "fully succeeded" from "succeeded but cleanup needs manual
     # attention" so automation can detect a leftover worktree / branch
     # without grepping stderr (TASK-504). Only promotes the partial-cleanup
     # case — if rc is already non-zero (task-done failed, etc.), preserve
-    # that more severe signal.
-    if rc == 0 and not cleanup_ok:
+    # that more severe signal. A leftover unreconciled sibling (#945) folds
+    # into the same exit-3 partial-cleanup signal.
+    if rc == 0 and not (cleanup_ok and siblings_ok):
         return 3
     return rc
 
@@ -1894,6 +2051,142 @@ def _forget_task_workspace(db_path: str, workspace_id: int) -> None:
         conn.close()
 
 
+def _all_task_workspaces(db_path: str, task_id: int) -> list[sqlite3.Row]:
+    """Return every recorded task_workspaces row for ``task_id`` (oldest first).
+
+    Companion to ``_recorded_task_workspace`` (which returns only the latest
+    row); the reconciliation pass below needs the full set so duplicate
+    sibling rows don't get stranded after finalization (issue #945).
+    """
+    conn = get_connection(db_path)
+    try:
+        return conn.execute(
+            "SELECT id, branch, workspace_path FROM task_workspaces "
+            "WHERE task_id = ? ORDER BY id",
+            (task_id,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+
+def _reconcile_duplicate_task_workspaces(
+    db_path: str, task_id: int, merged_branch: str, default_branch: str
+) -> bool:
+    """Reconcile sibling task_workspaces rows after the chosen workspace was
+    cleaned on the merge success path (issue #945).
+
+    ``_recorded_task_workspace`` / ``_cleanup_no_checkout_workspace`` operate
+    on a single workspace (``ORDER BY id DESC LIMIT 1``), so a task that
+    accumulated more than one ``task_workspaces`` row — e.g. two
+    ``task-worktree create`` calls with different slugs — strands the
+    un-selected sibling rows after finalization and the merge exits 3 with
+    duplicate recorded workspaces still present.
+
+    For each sibling row (same task, ``branch != merged_branch``):
+      * ``workspace_path`` missing on disk -> forget the stale registry row
+        (and delete its branch when fully merged into ``origin/<default>``;
+        a lingering unmerged branch is surfaced, not deleted).
+      * worktree present, branch fully contained in ``origin/<default>``,
+        tree clean -> ``git worktree remove`` + ``git branch -D`` + forget row.
+      * worktree present with unmerged commits or a dirty tree -> left
+        intact; a targeted remediation command is printed.
+
+    Returns ``True`` when no sibling remains unreconciled (or there were
+    none), ``False`` otherwise. The no-checkout caller folds a ``False``
+    return into the partial-cleanup (exit 3) signal so automation still
+    detects leftover state.
+    """
+    siblings = [
+        row
+        for row in _all_task_workspaces(db_path, task_id)
+        if row["branch"] != merged_branch
+    ]
+    if not siblings:
+        return True
+
+    # `git worktree remove` refuses to remove the worktree git is currently
+    # operating in. The no-checkout cleanup already chdir'd to repo root; do
+    # it defensively here too in case that early-returned before chdir.
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
+    try:
+        os.chdir(repo_root)
+    except OSError:
+        pass
+
+    all_reconciled = True
+    for row in siblings:
+        branch = row["branch"]
+        workspace_path = row["workspace_path"]
+        branch_present = bool(branch) and _branch_exists(branch)
+        # "Merged" = no commits the destination ref does not already contain.
+        # A missing/empty branch is trivially merged (nothing to lose).
+        merged = (not branch_present) or _origin_already_contains(
+            branch, default_branch
+        )
+
+        if not os.path.exists(workspace_path):
+            # Stale registry row — the worktree directory is already gone.
+            _forget_task_workspace(db_path, row["id"])
+            if branch_present and merged:
+                run(["git", "branch", "-D", branch], check=False)
+                print(
+                    f"Note: reconciled stale sibling workspace for TASK-{task_id}: "
+                    f"forgot registry row and deleted merged branch {branch} "
+                    f"(worktree {workspace_path} was already gone).",
+                    file=sys.stderr,
+                )
+            elif branch_present:
+                print(
+                    f"Note: forgot stale sibling workspace registry row for "
+                    f"TASK-{task_id} (worktree {workspace_path} gone), but branch "
+                    f"{branch} still has commits not on origin/{default_branch} — "
+                    f"left intact. Delete it once handled: git branch -D {branch}.",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"Note: forgot stale sibling workspace registry row for "
+                    f"TASK-{task_id} (worktree {workspace_path} no longer exists).",
+                    file=sys.stderr,
+                )
+            continue
+
+        # Worktree directory exists.
+        if branch_present and not merged:
+            # Unmerged work — never auto-delete. Surface targeted remediation.
+            all_reconciled = False
+            print(
+                f"Warning: sibling task worktree {workspace_path} (branch {branch}) "
+                f"for TASK-{task_id} has commits not on origin/{default_branch}; "
+                f"leaving it intact to avoid losing work. Reconcile manually:\n"
+                f"  cd {workspace_path} && git log origin/{default_branch}..{branch}\n"
+                f"  # then, once handled:\n"
+                f"  git worktree remove {workspace_path} && git branch -D {branch}",
+                file=sys.stderr,
+            )
+            continue
+
+        # Branch is merged / empty — safe to remove the worktree. The helper
+        # pre-cleans tusk auto-symlinks and lets `git worktree remove` (no
+        # --force) refuse a genuinely dirty tree, returning False.
+        if _remove_recorded_task_worktree(
+            db_path, task_id, branch, workspace=row
+        ):
+            if branch_present:
+                run(["git", "branch", "-D", branch], check=False)
+            print(
+                f"Note: reconciled duplicate sibling workspace for TASK-{task_id}: "
+                f"removed worktree {workspace_path}"
+                + (f" and branch {branch}." if branch_present else "."),
+                file=sys.stderr,
+            )
+        else:
+            # _remove_recorded_task_worktree already printed the failure detail
+            # (dirty tree, active rebase, branch mismatch, etc.).
+            all_reconciled = False
+    return all_reconciled
+
+
 def _branch_exists(branch_name: str) -> bool:
     result = run(
         ["git", "show-ref", "--verify", f"refs/heads/{branch_name}"],
@@ -1982,6 +2275,38 @@ def _delete_remote_feature_branch_if_tracking(branch_name: str) -> None:
         )
 
 
+def _worktree_has_active_rebase(workspace_path: str) -> bool:
+    """Return True iff a rebase is in progress in ``workspace_path`` (issue #940).
+
+    A paused / in-progress rebase leaves a ``rebase-merge`` (interactive and
+    merge backends) or ``rebase-apply`` (am backend) directory in the
+    worktree's per-worktree git dir. For a linked worktree that dir lives under
+    ``<main>/.git/worktrees/<name>/``, NOT ``<workspace>/.git/rebase-*`` — so
+    resolve the state path via ``git -C <workspace> rev-parse --git-path``
+    rather than assuming the layout. Best-effort: any git failure (not a repo,
+    detached state) is treated as "no rebase" so detection never blocks a
+    legitimate removal.
+    """
+    if not os.path.isdir(workspace_path):
+        return False
+    for state in ("rebase-merge", "rebase-apply"):
+        result = run(
+            ["git", "-C", workspace_path, "rev-parse", "--git-path", state],
+            check=False,
+        )
+        if result.returncode != 0:
+            continue
+        rel = result.stdout.strip()
+        if not rel:
+            continue
+        # `git -C <dir>` runs from <dir>, so a relative --git-path is relative
+        # to the worktree; absolute paths are returned verbatim by some gits.
+        path = rel if os.path.isabs(rel) else os.path.join(workspace_path, rel)
+        if os.path.exists(path):
+            return True
+    return False
+
+
 def _remove_recorded_task_worktree(
     db_path: str,
     task_id: int,
@@ -2012,6 +2337,24 @@ def _remove_recorded_task_worktree(
 
     workspace_path = workspace["workspace_path"]
     if os.path.exists(workspace_path):
+        # Refuse to remove a worktree with a rebase in progress (issue #940).
+        # A parallel session finalizing the same task would otherwise delete
+        # the worktree out from under an operator who is mid-rebase resolving
+        # a conflict, destroying the in-progress resolution. Detect it before
+        # touching anything so the worktree (and that work) survives.
+        if _worktree_has_active_rebase(workspace_path):
+            print(
+                f"Error: refusing to remove task worktree {workspace_path} — a "
+                f"rebase is in progress there. Another session may be mid-rebase "
+                f"finalizing TASK-{task_id}; removing the worktree now would "
+                f"destroy the in-progress conflict resolution.\n"
+                f"  Resolve or abort that rebase first:\n"
+                f"    cd {workspace_path} && git rebase --continue   # or --abort\n"
+                f"  then re-run:\n"
+                f"  {retry_command}",
+                file=sys.stderr,
+            )
+            return False
         # Pre-clean tusk-created auto-symlinks (.venv, node_modules, .env,
         # .env.local, and anything else in worktree.symlink_files) so
         # `git worktree remove` doesn't refuse the worktree as dirty when
