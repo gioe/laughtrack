@@ -1,0 +1,147 @@
+{
+  "title": "Scraper Health",
+  "uid": "scraper-health",
+  "tags": ["scraper", "laughtrack"],
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "",
+  "time": { "from": "now-30d", "to": "now" },
+  "annotations": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Datasource",
+        "type": "datasource",
+        "query": "grafana-postgresql-datasource",
+        "refresh": 1,
+        "hide": 0,
+        "regex": "",
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Run success-rate over time",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit", "min": 0, "max": 1 },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT exported_at AS \"time\", success_rate FROM scraper_runs WHERE $__timeFilter(exported_at) ORDER BY exported_at"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Per-club success-rate trend",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit", "min": 0, "max": 1 },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT r.exported_at AS \"time\", c.club_name AS metric, c.success_rate FROM scraper_run_clubs c JOIN scraper_runs r ON c.run_id = r.id WHERE $__timeFilter(r.exported_at) AND c.success_rate IS NOT NULL ORDER BY r.exported_at"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Run duration",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "s" },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT exported_at AS \"time\", duration_seconds FROM scraper_runs WHERE $__timeFilter(exported_at) ORDER BY exported_at"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Error count by run (over time)",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "min": 0 },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT r.exported_at AS \"time\", COUNT(e.id) AS errors FROM scraper_runs r LEFT JOIN scraper_run_errors e ON e.run_id = r.id WHERE $__timeFilter(r.exported_at) GROUP BY r.exported_at ORDER BY r.exported_at"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Clubs dropped to zero shows (latest run)",
+      "type": "table",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT c.club_name, c.num_shows, c.success, c.error_message FROM scraper_run_clubs c WHERE c.run_id = (SELECT id FROM scraper_runs ORDER BY exported_at DESC LIMIT 1) AND c.num_shows = 0 ORDER BY c.club_name"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Bot-block providers (error counts by type)",
+      "type": "table",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "${datasource}" },
+          "rawSql": "SELECT COALESCE(bot_block_provider, 'unknown') AS provider, COUNT(*) AS blocks FROM scraper_run_clubs WHERE bot_block_detected GROUP BY bot_block_provider ORDER BY blocks DESC"
+        }
+      ]
+    }
+  ]
+}
