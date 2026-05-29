@@ -416,9 +416,9 @@ Production uptime is monitored by [UptimeRobot](https://uptimerobot.com). Pages 
 | Monitor | URL | Why |
 |---|---|---|
 | Homepage canary | `https://www.laugh-track.com/` | Full SSR path — catches DB / Prisma / NextAuth / CDN failures that a thin liveness check would miss. Monitor the canonical `www.` host directly so a redirect-layer issue at the apex does not masquerade as an app outage. |
-| Liveness probe | `https://www.laugh-track.com/api/health` | Cheap 200 OK from `apps/web/app/api/health/route.ts`. No DB dependency, so it stays green during transient DB blips while the homepage tells you whether real traffic is affected |
+| Readiness probe | `https://www.laugh-track.com/api/health` | `apps/web/app/api/health/route.ts` runs a cheap `SELECT 1` round-trip against Neon: **200** when the DB answers, **503** when the query throws. Catches a Neon outage directly instead of waiting ~10 min for the homepage canary to fail. Responses are `no-store` so a cached 200 never masks a live outage. |
 
-The homepage is the leading signal (deep canary). The `/api/health` endpoint is a corroborating signal — if both fail, the app is hard-down; if only the homepage fails, the outage is in the data layer or middleware.
+The homepage is the leading signal (deep canary). The `/api/health` endpoint is now a direct readiness signal — because it touches the database, a Neon outage trips it (503) as fast as it trips the homepage. If both fail, the app is hard-down; if only `/api/health` returns 503 while the homepage still renders, suspect a DB connectivity blip isolated to the health route's connection.
 
 ### "Down" criteria
 
@@ -455,7 +455,7 @@ When a page fires:
      - [Neon console](https://console.neon.tech) — is the compute endpoint suspended or out of CPU credits?
      - [Sentry](https://sentry.io) — any new spike of errors on the homepage route?
      - Vercel logs for the most recent deployment.
-   - **Only `/api/health` down, `/` up** → unlikely (homepage covers the same Node runtime). Treat as Vercel infrastructure flap; wait 5 minutes before deeper investigation.
+   - **Only `/api/health` down (503), `/` up** → the health route's `SELECT 1` failed but SSR still rendered. Likely a transient Neon connectivity blip or pool exhaustion confined to the health route's connection. Check the [Neon console](https://console.neon.tech) for compute suspension / credit exhaustion; if the homepage starts failing too, escalate to the "both down" path.
 4. **Communicate** — drop a note in `#laughtrack` Discord describing what you're seeing, even if you don't have a fix yet.
 5. **Resolve and close** the incident in UptimeRobot once both monitors are green for ≥ 5 minutes.
 6. **Post-incident** — file a tusk task (`/create-task`) capturing root cause, time to detect, time to resolve, and any follow-up work (e.g. add a new alert, fix a brittle code path).
