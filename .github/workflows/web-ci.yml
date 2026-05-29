@@ -251,3 +251,24 @@ jobs:
         run: npm run build
         env:
           BUNNYCDN_CDN_HOST: laughtrack.b-cdn.net
+
+  notify-failure:
+    name: Notify Discord on failure
+    runs-on: ubuntu-latest
+    needs: [type-check, lint, test, e2e, e2e-visual, build]
+    # failure() runs this job when any needed job failed; scoped to push/schedule
+    # on main so failing PR checks don't spam Discord.
+    if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Post failure to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[web-ci] Failed on main. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"

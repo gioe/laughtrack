@@ -65,3 +65,18 @@ jobs:
             apps/scraper/pytest-results.xml
             apps/scraper/coverage.xml
           retention-days: 30
+
+      # Scoped to push/schedule on main so failing PR checks don't spam Discord.
+      - name: Notify Discord on failure
+        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set; skipping Discord failure alert"
+            exit 0
+          fi
+          MSG="[scraper-ci] Failed on main. View run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
