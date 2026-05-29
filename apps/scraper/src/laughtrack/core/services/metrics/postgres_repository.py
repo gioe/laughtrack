@@ -96,6 +96,7 @@ class PostgresMetricsRepository:
                             errors_total,
                             success_rate,
                             self._json_payload(record.raw_snapshot),
+                            "pipeline",
                         ),
                     )
                     row = cur.fetchone()
@@ -137,6 +138,7 @@ class PostgresMetricsRepository:
             snapshot.errors.total,
             snapshot.success_rate,
             self._json_payload(snapshot.to_full_json()),
+            "scraper",
         )
 
     def _club_rows(self, run_id: int, stats: Iterable[PerClubStat]) -> Iterable[tuple[Any, ...]]:
@@ -193,9 +195,10 @@ class PostgresMetricsRepository:
             clubs_failed,
             errors_total,
             success_rate,
-            raw_snapshot
+            raw_snapshot,
+            run_type
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (run_key) DO UPDATE SET
             exported_at = EXCLUDED.exported_at,
             duration_seconds = EXCLUDED.duration_seconds,
@@ -213,6 +216,7 @@ class PostgresMetricsRepository:
             errors_total = EXCLUDED.errors_total,
             success_rate = EXCLUDED.success_rate,
             raw_snapshot = EXCLUDED.raw_snapshot,
+            run_type = EXCLUDED.run_type,
             updated_at = NOW()
         RETURNING id
     """

@@ -110,6 +110,7 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
     assert result is True
     assert "INSERT INTO scraper_runs" in cursor.executed[0][0]
     assert cursor.executed[0][1][0] == "scraper:2026-05-18T12:30:00+00:00"
+    assert cursor.executed[0][1][17] == "scraper"
     assert "ON CONFLICT (run_key) DO UPDATE" in cursor.executed[0][0]
     assert "DELETE FROM scraper_run_clubs" in cursor.executed[1][0]
     assert "DELETE FROM scraper_run_errors" in cursor.executed[2][0]
@@ -148,6 +149,7 @@ def test_generic_pipeline_run_persistence_upserts_run_and_clears_child_rows():
     assert cursor.executed[0][1][0] == "github_actions_web_ci:123:2"
     assert cursor.executed[0][1][14] == 1
     assert cursor.executed[0][1][15] == 0.0
+    assert cursor.executed[0][1][17] == "pipeline"
     assert "DELETE FROM scraper_run_clubs" in cursor.executed[1][0]
     assert "DELETE FROM scraper_run_errors" in cursor.executed[2][0]
 
