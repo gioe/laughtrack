@@ -365,14 +365,14 @@ The scraper persists per-run, per-club, and per-error health metrics to three Po
 
 ### Read-only Neon role
 
-Grafana connects as a dedicated `grafana_read` role — **not** the application's DB role. The role has `SELECT` on only the three scraper-health tables (no blanket schema grant), so a misconfigured datasource cannot read `users`, sessions, or any other table.
+Grafana connects as a dedicated `grafana_ro` role — **not** the application's DB role. The role has `SELECT` on only the three scraper-health tables (no blanket schema grant), so a misconfigured datasource cannot read `users`, sessions, or any other table.
 
 Create it once against production:
 
 ```bash
 psql "$DIRECT_URL" -f prisma/scripts/create_grafana_readonly_role.sql
 # Then set its password out-of-band (never commit this):
-psql "$DIRECT_URL" -c "ALTER ROLE grafana_read WITH PASSWORD '<generated-password>';"
+psql "$DIRECT_URL" -c "ALTER ROLE grafana_ro WITH PASSWORD '<generated-password>';"
 ```
 
 The script (`apps/web/prisma/scripts/create_grafana_readonly_role.sql`) is idempotent — re-running is safe.
@@ -385,7 +385,7 @@ In Grafana Cloud, add a **PostgreSQL** datasource:
 |---|---|
 | Host | The **pooled** Neon endpoint (hostname ends in `-pooler.`, the same host as `DATABASE_URL` — long-lived dashboard connections should use the pooler, not the direct endpoint). |
 | Database | The production database name. |
-| User / Password | `grafana_read` and the password set above. |
+| User / Password | `grafana_ro` and the password set above. |
 | TLS/SSL Mode | `require` (Neon requires TLS). |
 
 Click **Save & Test** — a green result confirms the read-only role can connect and read.

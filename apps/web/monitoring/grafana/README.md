@@ -21,11 +21,11 @@ which nothing read until now.
 
    ```bash
    psql "$DIRECT_URL" -f apps/web/prisma/scripts/create_grafana_readonly_role.sql
-   psql "$DIRECT_URL" -c "ALTER ROLE grafana_read WITH PASSWORD '<generated-password>';"
+   psql "$DIRECT_URL" -c "ALTER ROLE grafana_ro WITH PASSWORD '<generated-password>';"
    ```
 
 2. **Add the Postgres datasource in Grafana Cloud** — point it at the **pooled** Neon
-   endpoint (hostname ends in `-pooler.`) with the `grafana_read` credentials and
+   endpoint (hostname ends in `-pooler.`) with the `grafana_ro` credentials and
    `sslmode=require`. "Save & Test" must pass.
 
 3. **Import the dashboard** — Grafana → Dashboards → New → Import → upload
