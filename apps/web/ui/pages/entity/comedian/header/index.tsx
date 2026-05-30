@@ -148,27 +148,32 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
 
     const backdropGradient = {
         backgroundImage:
-            "linear-gradient(135deg, rgba(54, 30, 20, 0.86) 0%, rgba(54, 30, 20, 0.74) 52%, var(--comedian-hero-accent-soft) 100%)",
+            "linear-gradient(135deg, rgba(30, 18, 12, 0.92) 0%, rgba(54, 30, 20, 0.74) 44%, var(--comedian-hero-accent-soft) 100%)",
     } as React.CSSProperties;
 
     const fallbackGradient = {
         backgroundImage:
-            "linear-gradient(135deg, #361E14 0%, var(--comedian-hero-accent-soft) 48%, #361E14 100%)",
+            "linear-gradient(135deg, #1f120c 0%, #361E14 42%, var(--comedian-hero-accent-soft) 100%)",
     } as React.CSSProperties;
 
     const imageBottomGradient = {
         backgroundImage:
-            "linear-gradient(to top, #361E14 0%, rgba(54, 30, 20, 0.65) 45%, transparent 100%)",
+            "linear-gradient(to top, rgba(18, 12, 8, 0.52) 0%, rgba(18, 12, 8, 0.18) 38%, transparent 72%)",
     } as React.CSSProperties;
 
-    const imageSideGradient = {
+    const imageLeftGradient = {
         backgroundImage:
-            "linear-gradient(to right, #361E14 0%, rgba(54, 30, 20, 0.48) 54%, color-mix(in srgb, var(--comedian-hero-accent) 35%, transparent) 100%)",
+            "linear-gradient(to right, #1f120c 0%, rgba(31, 18, 12, 0.92) 28%, rgba(31, 18, 12, 0.48) 56%, transparent 82%)",
     } as React.CSSProperties;
 
     const imageTopGradient = {
         backgroundImage:
-            "linear-gradient(to bottom, rgba(54, 30, 20, 0.35) 0%, transparent 100%)",
+            "linear-gradient(to bottom, rgba(18, 12, 8, 0.32) 0%, transparent 42%)",
+    } as React.CSSProperties;
+
+    const portraitGlow = {
+        backgroundImage:
+            "radial-gradient(circle at 74% 44%, rgba(255, 236, 205, 0.18) 0%, rgba(255, 236, 205, 0.08) 28%, transparent 58%)",
     } as React.CSSProperties;
 
     return (
@@ -185,7 +190,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                             alt=""
                             aria-hidden="true"
                             fill
-                            className="object-cover object-center scale-110 blur-2xl opacity-60"
+                            className="object-cover object-center scale-110 blur-2xl opacity-45"
                             sizes="100vw"
                             priority
                         />
@@ -200,7 +205,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         style={fallbackGradient}
                     />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
             </div>
 
             {showImage && (
@@ -215,19 +220,20 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                         src={comedian.imageUrl}
                         alt={parsedComedian.name}
                         fill
-                        className="object-cover object-top"
+                        className="object-contain object-top md:object-right-top lg:object-right"
                         onError={() => setError(true)}
                         onLoad={() => setImageLoaded(true)}
                         priority
                         sizes="100vw"
                     />
+                    <div className="absolute inset-0" style={portraitGlow} />
                     <div
                         className="absolute inset-0"
                         style={imageBottomGradient}
                     />
                     <div
                         className="absolute inset-0"
-                        style={imageSideGradient}
+                        style={imageLeftGradient}
                     />
                     <div
                         className="absolute inset-0"
@@ -240,7 +246,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative z-10 max-w-7xl mx-auto min-h-[28rem] md:min-h-[34rem] lg:min-h-[38rem] px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14 flex flex-col justify-end"
+                className="relative z-10 max-w-7xl mx-auto min-h-[30rem] md:min-h-[34rem] lg:min-h-[38rem] px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14 flex flex-col justify-end"
             >
                 {/* Favorite button — pinned to top-right of the hero */}
                 <motion.div
@@ -256,7 +262,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 : "Add to favorites"
                         }
                         aria-pressed={isFavorite}
-                        className="p-2.5 bg-white/75 backdrop-blur-sm rounded-full shadow-md hover:bg-white/90 hover:shadow-lg transition"
+                        className="p-2.5 bg-[#FAF6E0]/95 text-[#24160f] backdrop-blur-sm rounded-full shadow-md ring-1 ring-black/10 hover:bg-white hover:shadow-lg transition"
                     >
                         <Heart
                             aria-hidden="true"
@@ -269,7 +275,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                     </button>
                 </motion.div>
 
-                <div className="w-full max-w-4xl text-center md:text-left lg:text-left">
+                <div className="w-full max-w-3xl text-center md:text-left lg:text-left">
                     {!showImage && (
                         /* Fallback remains contained only when no usable hero headshot exists. */
                         <div className="mx-auto md:mx-0 mb-6 relative h-44 w-44 sm:h-56 sm:w-56 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-2xl">
@@ -321,7 +327,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                 onClick={handleNotifyClick}
                                 disabled={isFavorite}
                                 aria-pressed={isFavorite}
-                                className="min-h-12 gap-2 rounded-full bg-[var(--comedian-hero-cta)] px-7 py-3 text-base shadow-lg hover:bg-[var(--comedian-hero-cta-hover)]"
+                                className="min-h-12 gap-2 rounded-full border border-white/20 bg-[#FAF6E0] px-7 py-3 text-base text-[#24160f] shadow-lg shadow-black/25 hover:bg-white"
                             >
                                 <Bell className="h-5 w-5" aria-hidden="true" />
                                 {isFavorite
@@ -366,7 +372,7 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             aria-label={`${parsedComedian.name} on ${platform}`}
-                                            className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-foreground px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
+                                            className="inline-flex items-center gap-2 rounded-full bg-[#FAF6E0]/95 hover:bg-white text-[#24160f] px-3 py-1.5 text-caption font-dmSans font-semibold shadow-sm shadow-black/20 ring-1 ring-black/10 transition-colors"
                                         >
                                             <Icon
                                                 className="w-4 h-4"

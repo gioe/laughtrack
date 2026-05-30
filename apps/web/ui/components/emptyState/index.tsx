@@ -10,24 +10,24 @@ interface EmptyStateProps {
 
 const EmptyState = ({ title, message, icons, action }: EmptyStateProps) => {
     return (
-        <div className="flex flex-col items-center justify-center py-16 px-4 max-w-2xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-white to-coconut-cream p-8 rounded-2xl shadow-lg mb-8">
-                <div className="flex flex-col items-center gap-6">
-                    <div className="flex items-center gap-4">
+        <div className="mx-auto flex w-full max-w-xl flex-col items-center justify-center px-4 py-16 text-center">
+            <div className="w-full rounded-lg border border-white/10 bg-white/[0.035] px-6 py-8 shadow-sm shadow-black/20 sm:px-8">
+                <div className="flex flex-col items-center gap-5">
+                    <div className="flex items-center gap-3">
                         {icons.map((Icon, index) => (
                             <div
                                 key={index}
-                                className="p-4 bg-copper/10 rounded-full"
+                                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-foreground/45"
                             >
-                                <Icon className="w-8 h-8 text-copper" />
+                                <Icon className="h-5 w-5" strokeWidth={1.7} />
                             </div>
                         ))}
                     </div>
-                    <div className="space-y-4">
-                        <h2 className="font-bold font-dmSans text-3xl sm:text-4xl text-foreground">
+                    <div className="space-y-3">
+                        <h2 className="font-dmSans text-2xl font-semibold text-foreground sm:text-3xl">
                             {title}
                         </h2>
-                        <p className="text-gray-600 text-lg font-dmSans">
+                        <p className="font-dmSans text-base text-foreground/55 sm:text-lg">
                             {message}
                         </p>
                         {action && <div className="pt-2">{action}</div>}
