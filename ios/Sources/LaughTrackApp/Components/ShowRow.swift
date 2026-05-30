@@ -302,11 +302,19 @@ enum ShowTitlePresentation {
             return fallbackTitle(clubName: clubName)
         }
 
-        if isLineupOnlyTitle(title, lineup: lineup) || isLikelyPerformerOnlyTitle(title) {
+        if isLineupOnlyTitle(title, lineup: lineup) {
+            return performerHeadlineTitle(performerName: title)
+        }
+
+        if isLikelyPerformerOnlyTitle(title) {
             return fallbackTitle(clubName: clubName)
         }
 
         return title
+    }
+
+    private static func performerHeadlineTitle(performerName: String) -> String {
+        "\(performerName) Headlines"
     }
 
     private static func isLineupOnlyTitle(

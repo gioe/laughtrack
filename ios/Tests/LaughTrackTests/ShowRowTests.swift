@@ -27,7 +27,7 @@ struct ShowRowTests {
         #expect(ShowRow.title(for: show) == "Late show")
     }
 
-    @Test("show row replaces lone lineup performer titles with venue title")
+    @Test("show row turns lone lineup performer titles into a headline title")
     func showRowReplacesLoneLineupPerformerTitle() {
         let show = makeShow(
             name: "Vanessa Jackson",
@@ -37,10 +37,10 @@ struct ShowRowTests {
             ]
         )
 
-        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+        #expect(ShowRow.title(for: show) == "Vanessa Jackson Headlines")
     }
 
-    @Test("show row uses compact list title when title repeats the venue")
+    @Test("show row keeps the headline title in the compact list title")
     func showRowUsesCompactListTitleWhenTitleRepeatsVenue() {
         let show = makeShow(
             name: "Vanessa Jackson",
@@ -50,10 +50,10 @@ struct ShowRowTests {
             ]
         )
 
-        #expect(ShowRow.listTitle(for: show) == "Comedy show")
+        #expect(ShowRow.listTitle(for: show) == "Vanessa Jackson Headlines")
     }
 
-    @Test("show row replaces performer-looking titles even when lineup is absent")
+    @Test("show row falls back to a venue title for performer-looking titles when lineup is absent")
     func showRowReplacesPerformerLookingTitleWithoutLineup() {
         let show = makeShow(
             name: "Vanessa Jackson",
@@ -62,6 +62,18 @@ struct ShowRowTests {
         )
 
         #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+    }
+
+    @Test("show row falls back to a venue title when the name is empty")
+    func showRowFallsBackToVenueTitleWhenNameEmpty() {
+        let show = makeShow(
+            name: "",
+            clubName: "The Broadway Comedy Club",
+            lineup: nil
+        )
+
+        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+        #expect(ShowRow.listTitle(for: show) == "Comedy show")
     }
 
     @Test("show row preserves titled shows that contain show words")
