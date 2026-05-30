@@ -62,7 +62,11 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
-          python -m scripts.core.detect_podcast_episode_appearances
+          # The detector orders episodes least-recently-scanned first (never
+          # scanned first) and bumps each scanned episode's appearances_detected_at.
+          # A bounded batch keeps the load query inside Neon's statement_timeout
+          # while still rotating through the full episode backlog across runs.
+          python -m scripts.core.detect_podcast_episode_appearances --episode-limit 2000
 
       - name: Upload podcast sync logs
         uses: actions/upload-artifact@v4
