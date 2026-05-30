@@ -13,7 +13,7 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
 import { Prisma } from "@prisma/client";
 import { ComediansResponse } from "./interface";
 
-const COMEDIAN_SELECT = {
+export const COMEDIAN_SELECT = {
     id: true,
     uuid: true,
     name: true,
@@ -51,7 +51,7 @@ const COMEDIAN_SELECT = {
 } as const;
 
 // _count select is built fresh per request to avoid capturing a stale module-load Date
-function buildUpcomingCountSelect() {
+export function buildUpcomingCountSelect() {
     return {
         _count: {
             select: {
@@ -65,12 +65,12 @@ function buildUpcomingCountSelect() {
     } as const;
 }
 
-type ComedianWithUpcomingCount = Prisma.ComedianGetPayload<{
+export type ComedianWithUpcomingCount = Prisma.ComedianGetPayload<{
     select: typeof COMEDIAN_SELECT &
         ReturnType<typeof buildUpcomingCountSelect>;
 }> & { favoriteComedians?: { id: number }[] };
 
-function mapComedian(comedian: ComedianWithUpcomingCount) {
+export function mapComedian(comedian: ComedianWithUpcomingCount) {
     const effectiveComedian = getEffectiveComedian(comedian);
     const isAlias = containsAliasTag(effectiveComedian.taggedComedians ?? []);
 
