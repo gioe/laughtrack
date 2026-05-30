@@ -53,4 +53,20 @@ describe("getTrendingShowsThisWeek", () => {
         expect(date.gte.toISOString()).toBe("2026-04-27T03:00:00.000Z");
         expect(date.lte.toISOString()).toBe("2026-05-04T23:59:59.999Z");
     });
+
+    it("filters to clubs near the supplied ZIP when location is known", async () => {
+        await getTrendingShowsThisWeek("America/New_York", "10001", 25);
+
+        const [where, orderBy, take, options] =
+            mockFindShowsForHome.mock.calls[0];
+        expect(where.club).toMatchObject({
+            visible: true,
+            zipCode: {
+                in: expect.arrayContaining(["10001"]),
+            },
+        });
+        expect(orderBy).toEqual({ popularity: "desc" });
+        expect(take).toBeUndefined();
+        expect(options).toEqual({ zipCode: "10001" });
+    });
 });

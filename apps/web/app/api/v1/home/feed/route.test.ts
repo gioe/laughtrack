@@ -356,6 +356,22 @@ describe("GET /api/v1/home/feed", () => {
             );
         });
 
+        it("passes the resolved ZIP to getTrendingShowsThisWeek so the iOS rail is local", async () => {
+            mockGetHeroContext.mockResolvedValue({
+                zipCode: "10001",
+                city: "New York",
+                state: "NY",
+            });
+
+            await GET(makeRequest({ zip: "10001" }));
+
+            expect(mockGetTrendingShowsThisWeek).toHaveBeenCalledWith(
+                "UTC",
+                "10001",
+                expect.any(Number),
+            );
+        });
+
         it("defaults to UTC when X-Timezone is absent", async () => {
             await GET(makeRequest());
 

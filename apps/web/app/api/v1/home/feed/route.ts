@@ -94,9 +94,15 @@ export async function GET(req: NextRequest) {
                       logSectionError("getShowsNearZip"),
                   )
                 : Promise.resolve([]),
-            getTrendingShowsThisWeek(timezone).catch(
-                logSectionError("getTrendingShowsThisWeek"),
-            ),
+            zipCode
+                ? getTrendingShowsThisWeek(
+                      timezone,
+                      zipCode,
+                      DEFAULT_HOME_RADIUS_MILES,
+                  ).catch(logSectionError("getTrendingShowsThisWeek"))
+                : getTrendingShowsThisWeek(timezone).catch(
+                      logSectionError("getTrendingShowsThisWeek"),
+                  ),
             getTrendingPodcasts(zipCode).catch(
                 logSectionError("getTrendingPodcasts"),
             ),
