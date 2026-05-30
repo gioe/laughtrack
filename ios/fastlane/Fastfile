@@ -10,12 +10,18 @@ TEAM_ID = "4HDNC3V5Q6"
 # Test simulator pin (TASK-2339). The iOS 26.1 / 26.2 SDK has a regression in
 # _UIHostingView's accessibility-tree wiring that fails ~18 tests across 16
 # HostedView suites on those runtimes (bisect table in ios/CLAUDE.md under
-# "iOS 26 Accessibility-Tree Wiring Regression (TASK-1921)"). Same source
-# revision passes cleanly on iOS 18.3.1. Pin the test lane here until Apple
-# ships a fix, with a separate non-blocking watcher lane against the latest
-# 26.x runtime so a fix shows up in the CI signal.
+# "iOS 26 Accessibility-Tree Wiring Regression (TASK-1921)"). The suite passes
+# cleanly on iOS 18.x. Pin the test lane to an iOS 18 runtime until Apple ships
+# a fix, with a separate non-blocking watcher lane against the latest 26.x
+# runtime so a fix shows up in the CI signal.
+#
+# Pinned to 18.6 (was 18.3.1): the GitHub Actions macOS runner image dropped the
+# 18.3.1 simulator runtime, so the old pin failed with "Unable to find a device
+# matching the provided destination specifier". 18.5 / 18.6 are what the current
+# image ships; iPhone 16 Pro is available on 18.6. Bump this to whatever iOS 18.x
+# runtime the runner provides if 18.6 is later removed (`xcodebuild -showdestinations`).
 TEST_SIM_NAME = "iPhone 16 Pro"
-TEST_IOS_VERSION = "18.3.1"
+TEST_IOS_VERSION = "18.6"
 TEST_IOS_26_WATCH_VERSION = "26.2"
 
 # Read a project.yml build setting (e.g. "CURRENT_PROJECT_VERSION") by regex.
@@ -54,7 +60,7 @@ platform :ios do
     setup_ci if ENV["CI"]
   end
 
-  desc "Run the iOS test suite on the pinned iOS 18.3.1 simulator (dodges iOS 26.x HostedView regression — see ios/CLAUDE.md)"
+  desc "Run the iOS test suite on the pinned iOS 18.x simulator (dodges iOS 26.x HostedView regression — see ios/CLAUDE.md)"
   lane :test do
     run_tests(
       scheme: SCHEME,

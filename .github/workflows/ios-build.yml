@@ -30,12 +30,15 @@ jobs:
       - name: Compile-gate LaughTrackTests against the current API surface
         run: cd ios && swift build --build-tests
 
-  # Sim-test job pinned to iOS 18.3.1 (TASK-2339). The iOS 26.1 / 26.2 SDK has
-  # a regression in _UIHostingView's accessibility-tree wiring that fails ~18
-  # tests across 16 HostedView suites on those runtimes; bisect details and
-  # workaround patterns live in ios/CLAUDE.md under "iOS 26 Accessibility-Tree
-  # Wiring Regression (TASK-1921)". Pin the blocking CI test job to 18.3.1
-  # until Apple ships a fix.
+  # Sim-test job pinned to an iOS 18.x runtime (TASK-2339). The iOS 26.1 / 26.2
+  # SDK has a regression in _UIHostingView's accessibility-tree wiring that
+  # fails ~18 tests across 16 HostedView suites on those runtimes; bisect
+  # details and workaround patterns live in ios/CLAUDE.md under "iOS 26
+  # Accessibility-Tree Wiring Regression (TASK-1921)". Pin the blocking CI test
+  # job to iOS 18.x until Apple ships a fix. The exact version (currently 18.6)
+  # is set by TEST_IOS_VERSION in ios/fastlane/Fastfile — keep it matched to a
+  # runtime the runner image actually ships (the "Show available iOS simulator
+  # runtimes" step below prints what's installed).
   sim-tests-ios-18:
     runs-on: macos-latest
     needs: swift-build-tests
@@ -49,7 +52,7 @@ jobs:
       - name: Install fastlane dependencies
         run: cd ios && bundle install
 
-      - name: Run tests on the pinned iOS 18.3.1 simulator
+      - name: Run tests on the pinned iOS 18.x simulator
         run: cd ios && bundle exec fastlane test
         # `xcodebuild -showBuildSettings` intermittently exceeds fastlane's
         # default 3s base timeout / 4 retries on the macOS runner, failing the

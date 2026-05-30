@@ -224,15 +224,26 @@ them, but tests built on top of it inherit the constraints.
    workaround in `nearMeProfileButtonPushesProfileRoute`
    (`ios/Tests/LaughTrackTests/ContentViewNavigationTests.swift`).
 
-### CI Simulator Pin: iOS 18.3.1 (TASK-2339)
+### CI Simulator Pin: iOS 18.x (TASK-2339)
 
 The fastlane `test` lane and the `sim-tests-ios-18` job in
-`.github/workflows/ios-build.yml` are pinned to the **iOS 18.3.1** simulator
+`.github/workflows/ios-build.yml` are pinned to an **iOS 18.x** simulator
 runtime (`iPhone 16 Pro`) to dodge the iOS 26.x HostedView accessibility-tree
 wiring regression described in the next section. Same source revision fails
 ~18 tests across 16 HostedView suites on iOS 26.1 / 26.2 and passes cleanly on
-iOS 18.3.1; pinning keeps the release-blocking CI signal green until Apple
+iOS 18.x; pinning keeps the release-blocking CI signal green until Apple
 ships an SDK fix.
+
+The exact runtime is `TEST_IOS_VERSION` in `ios/fastlane/Fastfile`. It was
+**18.3.1**, but the GitHub Actions macOS runner image later dropped that
+runtime — the job started failing with `xcodebuild: error: Unable to find a
+device matching the provided destination specifier { OS:18.3.1, name:iPhone 16
+Pro }`. It is now **18.6** (what the current image ships alongside 18.5). If
+the runner drops 18.6 too, bump `TEST_IOS_VERSION` to whatever iOS 18.x runtime
+the "Show available iOS simulator runtimes" CI step lists. This is runner-image
+drift, not a code regression — the pin just has to track an installed 18.x
+build. (Bumping the runtime still warrants re-confirming the HostedView suites
+pass on it, but staying within iOS 18.x keeps the accessibility wiring intact.)
 
 A separate `sim-tests-ios-26-watch` job (`fastlane test_ios26_watch`) runs the
 same suite against the latest iOS 26.x runtime with `continue-on-error: true`.
