@@ -137,6 +137,23 @@ class TestInsertTicketsPurchaseUrlUpsert:
     a different purchase_url must pass the updated URL to execute_batch_operation.
     """
 
+    @pytest.fixture(autouse=True)
+    def _stub_transaction(self, monkeypatch):
+        """Stub the single-transaction wrapper insert_tickets opens (TASK-2410).
+
+        Without this, ``with self.transaction()`` calls the real
+        create_connection(), which raises "Database configuration not found or
+        incomplete" in CI (no DATABASE_* env). These tests assert the SQL
+        contract via the per-operation execute_* mocks; the shared-transaction
+        behaviour itself is covered by TestInsertTicketsSingleTransaction.
+        """
+
+        @contextmanager
+        def _noop_transaction(_self):
+            yield MagicMock(name="tx_conn")
+
+        monkeypatch.setattr(TicketHandler, "transaction", _noop_transaction)
+
     def test_second_call_passes_updated_purchase_url(self):
         """execute_batch_operation receives the new purchase_url on the second insert."""
         show_id = 42
@@ -291,6 +308,22 @@ class TestStaleTicketSweep:
     in the DB. The handler now issues DELETE_STALE_TICKETS_FOR_SHOWS before the
     upsert, keyed by the set of (show_id, type) pairs in the new batch.
     """
+
+    @pytest.fixture(autouse=True)
+    def _stub_transaction(self, monkeypatch):
+        """Stub the single-transaction wrapper insert_tickets opens (TASK-2410).
+
+        Without this, ``with self.transaction()`` calls the real
+        create_connection(), which raises "Database configuration not found or
+        incomplete" in CI (no DATABASE_* env). The sweep SQL is asserted via the
+        per-operation execute_* mocks in each test.
+        """
+
+        @contextmanager
+        def _noop_transaction(_self):
+            yield MagicMock(name="tx_conn")
+
+        monkeypatch.setattr(TicketHandler, "transaction", _noop_transaction)
 
     def test_shrinking_tier_set_sweeps_orphaned_types(self):
         """Show inserted with 4 tier types then re-inserted with 2 — the keep set sent to the DELETE sweep contains only the 2 surviving types."""
