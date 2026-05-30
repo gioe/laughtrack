@@ -16,10 +16,11 @@
 # provisioning) recreate these rules via the UI or Terraform using the SQL and
 # thresholds below verbatim — see apps/web/monitoring/grafana/README.md.
 #
-# datasourceUid below must match the UID of the Neon (grafana_ro) Postgres
-# datasource. Pin that datasource's uid to `neon-scraper-health` (datasource
-# settings → JSON model, or its own provisioning file) so this reference stays
-# stable, or replace every `neon-scraper-health` occurrence with the real UID.
+# datasourceUid below is the UID of the Neon (grafana_ro) Postgres datasource in
+# the aiqobservability Grafana Cloud stack (`dfnjxqagicw74a`). Grafana treats a
+# datasource UID as immutable, so it cannot be renamed to a friendlier value
+# after creation — this is the real, stable UID. If the datasource is ever
+# recreated, replace every `dfnjxqagicw74a` occurrence below with the new UID.
 
 apiVersion: 1
 
@@ -83,7 +84,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange: { from: 0, to: 0 }
-            datasourceUid: neon-scraper-health
+            datasourceUid: dfnjxqagicw74a
             model:
               refId: A
               format: table
@@ -146,7 +147,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange: { from: 0, to: 0 }
-            datasourceUid: neon-scraper-health
+            datasourceUid: dfnjxqagicw74a
             model:
               refId: A
               format: table
@@ -216,7 +217,7 @@ groups:
         data:
           - refId: A
             relativeTimeRange: { from: 0, to: 0 }
-            datasourceUid: neon-scraper-health
+            datasourceUid: dfnjxqagicw74a
             model:
               refId: A
               format: table
