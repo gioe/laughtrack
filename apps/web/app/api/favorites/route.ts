@@ -10,6 +10,7 @@ import {
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const PAGE_SIZE = 100;
 
@@ -18,7 +19,7 @@ const querySchema = z.object({
     page: z.coerce.number().int().min(0).default(0),
 });
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     try {
         const session = await auth();
         // Bucket by profile when available; users with a session but no profile
@@ -138,4 +139,4 @@ export async function GET(req: NextRequest) {
             { status: 500 },
         );
     }
-}
+});

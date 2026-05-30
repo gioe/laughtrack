@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { normalizePodcastAppearanceRole } from "@/lib/data/podcast/appearanceRole";
+import { withRequestMetrics } from "@/lib/metrics";
 
 type PodcastEpisodeAppearance = {
     id: number;
@@ -90,7 +91,7 @@ function mapPodcastAppearances(appearances: PodcastEpisodeAppearance[]) {
     });
 }
 
-export async function GET(
+export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -245,4 +246,4 @@ export async function GET(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

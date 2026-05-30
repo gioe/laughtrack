@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 
-export async function GET(
+export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -75,4 +76,4 @@ export async function GET(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

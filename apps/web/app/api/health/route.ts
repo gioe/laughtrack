@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { withRequestMetrics } from "@/lib/metrics";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -8,7 +9,7 @@ const noStore = {
     "Cache-Control": "no-store, max-age=0",
 };
 
-export async function GET() {
+export const GET = withRequestMetrics(async function GET() {
     try {
         // Cheap round-trip that proves Neon is actually reachable, not just
         // that the app process is up. Returns 503 so UptimeRobot/Grafana can
@@ -39,4 +40,4 @@ export async function GET() {
             headers: noStore,
         },
     );
-}
+});
