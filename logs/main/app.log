@@ -7,3 +7,6 @@
 2026-05-18 08:00:59,774 | INFO | pid=90916 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
 2026-05-18 08:00:59,911 | INFO | pid=90916 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
 2026-05-18 08:01:00,097 | INFO | pid=90916 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
+2026-05-25 09:41:08,647 | INFO | pid=44074 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Configuration loaded successfully
+2026-05-25 09:41:09,011 | INFO | pid=44074 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection created successfully
+2026-05-25 09:41:09,067 | INFO | pid=44074 | laughtrack.foundation.infrastructure.logger.logger | club_id=- club=- scraper=- | Database connection closed
