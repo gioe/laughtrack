@@ -34,6 +34,11 @@ it surfaces gotchas, workarounds, and invariants you would otherwise hit the har
   Tockify, OvationTix, OpenDate, TicketSource, etc.)
 - `apps/scraper/CONTRIBUTING.md` — scraper testing patterns (smoke tests, module
   loading, mocking, async, VCR cassettes)
+- `ios/CLAUDE.md` — native SwiftUI iOS app conventions: simulator test flow
+  (`swift test` vs `test_sim`), the iOS 26 HostedView accessibility-tree
+  regression and CI sim pin, OpenAPI client regeneration (lockstep with
+  `apps/web` `/api/v1` contract), and the ios-libs bridge-target architecture.
+  Read this before touching anything under `ios/`.
 
 ## Adding new conventions
 

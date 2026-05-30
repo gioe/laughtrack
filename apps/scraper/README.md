@@ -150,7 +150,7 @@ copy that file to `.env` to configure them locally.
 - Scraper utilities: `src/laughtrack/scrapers/utils/` (`url_discovery.py`, `rate_limiting.py`)
 - Batch concurrency helper: `src/laughtrack/utilities/infrastructure/scraper/scraper.py` (`BatchScraper`)
 - HTTP/DB ports: `src/laughtrack/ports/` (protocols); adapters and implementations under `src/laughtrack/adapters/` and `src/laughtrack/infrastructure/`
-- Orchestration: `src/laughtrack/scrapers/orchestration/`
+- Orchestration: `src/laughtrack/core/services/scraping/` (`ScrapingService`)
 
 ## Development
 

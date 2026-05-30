@@ -192,9 +192,9 @@ This applies to any function imported with `from X import Y` — always patch at
 ## Scraper Manual Run — Use `make scrape-club`, Not `bin/scrape`
 
 Use `make scrape-club CLUB='<venue name>'` to run a scrape for a specific club.
-`bin/scrape` does not exist — the `bin/` directory only contains `migrate` and
-`cleanup-stale-scrapers`. Task criteria and next-steps that say "run bin/scrape"
-should be interpreted as `make scrape-club CLUB='<name>'`.
+`bin/scrape` does not exist — the `bin/` directory only contains `migrate`,
+`cleanup-stale-scrapers`, `probe-tixr`, and `query`. Task criteria and next-steps
+that say "run bin/scrape" should be interpreted as `make scrape-club CLUB='<name>'`.
 
 The Makefile lives in `apps/scraper/` — always run from that directory:
 
