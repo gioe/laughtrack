@@ -582,3 +582,25 @@ def test_dry_run_does_not_advance_scan_cursor(monkeypatch):
     )
 
     assert "ids" not in marked
+
+
+def test_empty_roster_run_does_not_drain_backlog(monkeypatch):
+    # An anomalous empty comedian load (transient DB hiccup or query regression)
+    # must not bump episodes that were never matched against anyone — otherwise
+    # the next run sorts them last and skips them, the opposite of rotation.
+    marked: dict[str, Any] = {}
+    _stub_detect_pipeline(monkeypatch, marked)
+    monkeypatch.setattr(mod, "load_match_comedians", lambda **_kw: [])
+
+    mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=2000,
+        comedian_limit=None,
+        include_aliases=True,
+        auto_accept=True,
+    )
+
+    assert "ids" not in marked

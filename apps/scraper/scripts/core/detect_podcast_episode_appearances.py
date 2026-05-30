@@ -761,7 +761,9 @@ def mark_episodes_scanned_with_conn(conn: Any, episode_ids: list[int]) -> int:
         return 0
     with conn.cursor() as cur:
         cur.execute(_MARK_EPISODES_DETECTED_SQL, ([int(eid) for eid in episode_ids],))
-        return cur.rowcount if cur.rowcount and cur.rowcount > 0 else len(episode_ids)
+        # rowcount is -1/None only when the driver can't report it; a genuine 0
+        # (all batched ids deleted concurrently) is a real, accurate count.
+        return cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else len(episode_ids)
 
 
 def persist_candidates(candidates: list[EpisodeAppearanceCandidate], dry_run: bool) -> DetectSummary:
@@ -878,9 +880,12 @@ def detect_podcast_episode_appearances(
     # comedian-subset run (--comedian-id/--comedian-name/--comedian-limit) does
     # not scan an episode against every comedian, so marking it scanned would
     # let the nightly full-roster run skip it. Episode/source filters are still
-    # full-roster, so they may advance the cursor.
+    # full-roster, so they may advance the cursor. Guard on a non-empty roster
+    # too: an anomalous empty comedian load (transient DB hiccup or a future
+    # query regression) must NOT drain the backlog by bumping episodes that were
+    # never matched against anyone — leave them NULL so the next run re-scans.
     full_roster_scan = comedian_ids is None and comedian_names is None and comedian_limit is None
-    if not dry_run and full_roster_scan:
+    if not dry_run and full_roster_scan and comedians:
         mark_episodes_scanned([episode.episode_id for episode in episodes])
     return summary
 
