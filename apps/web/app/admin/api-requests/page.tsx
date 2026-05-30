@@ -259,18 +259,17 @@ function RouteTrend({
                                         : ""
                                 }`}
                             >
-                                <div className="flex w-full flex-col justify-end overflow-hidden rounded-t-sm bg-copper/70">
+                                {/* Single stacked bar: copper volume with the
+                                    error portion nested at the top in rose. */}
+                                <div
+                                    className="flex w-full flex-col overflow-hidden rounded-t-sm bg-copper/70"
+                                    style={{ height: `${Math.max(height, 1)}%` }}
+                                >
                                     <div
                                         className="w-full bg-rose-500"
-                                        style={{
-                                            height: `${errorShare * Math.max(height, 1)}%`,
-                                        }}
+                                        style={{ height: `${errorShare * 100}%` }}
                                     />
                                 </div>
-                                <div
-                                    className="w-full rounded-t-sm bg-copper/70"
-                                    style={{ height: `${Math.max(height, 1)}%` }}
-                                />
                             </div>
                         );
                     })}
@@ -307,7 +306,11 @@ export default async function AdminApiRequestsPage({
                 description="Per-route request volume recorded by the withRequestMetrics wrapper into api_request_metrics. Same data as the Grafana Cloud dashboard, viewable in-app."
                 summary={
                     totals.lastBucket
-                        ? `Latest bucket ${formatHour(totals.lastBucket)}`
+                        ? `Data ${
+                              totals.firstBucket
+                                  ? `${formatHour(totals.firstBucket)} – `
+                                  : "through "
+                          }${formatHour(totals.lastBucket)}`
                         : undefined
                 }
             />
