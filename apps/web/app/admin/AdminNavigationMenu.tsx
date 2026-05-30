@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    Activity,
     Building2,
     Menu,
     Podcast,
@@ -37,6 +38,12 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         href: "/admin/pipelines",
         description: "Run status",
         icon: Workflow,
+    },
+    {
+        label: "API Requests",
+        href: "/admin/api-requests",
+        description: "Request metrics by route",
+        icon: Activity,
     },
     {
         label: "Comedians",
