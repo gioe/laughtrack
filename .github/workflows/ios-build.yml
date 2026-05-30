@@ -51,6 +51,12 @@ jobs:
 
       - name: Run tests on the pinned iOS 18.3.1 simulator
         run: cd ios && bundle exec fastlane test
+        # `xcodebuild -showBuildSettings` intermittently exceeds fastlane's
+        # default 3s base timeout / 4 retries on the macOS runner, failing the
+        # job before tests even start. Give it more headroom.
+        env:
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "30"
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: "6"
 
   # Non-blocking watcher (TASK-2339). Runs the same suite on the latest iOS
   # 26.x simulator so a future Apple fix surfaces in the CI signal — until
