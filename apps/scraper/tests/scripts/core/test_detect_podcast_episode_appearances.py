@@ -15,6 +15,8 @@ from scripts.core import detect_podcast_episode_appearances as mod  # noqa: E402
 
 
 class _FakeCursor:
+    rowcount = -1
+
     def __init__(self, conn: "_FakeConn") -> None:
         self._conn = conn
         self._last_result: list[tuple[Any, ...]] = []
@@ -484,3 +486,99 @@ def test_load_episode_inputs_source_filter_binds_array_params_for_each_source_co
     assert "AND p.source = ANY(%s::text[])" in sql
     assert "AND pe.source = ANY(%s::text[])" in sql
     assert params == (["itunes", "podcast_index"], ["itunes", "podcast_index"])
+
+
+def test_episode_query_orders_least_recently_scanned_first():
+    query = mod._GET_EPISODES_SQL
+
+    # NULLS FIRST keeps never-scanned episodes ahead of the oldest-scanned ones,
+    # so a bounded --episode-limit batch rotates through the full backlog.
+    assert "appearances_detected_at ASC NULLS FIRST" in query
+
+
+def test_mark_episodes_scanned_issues_bounded_update(monkeypatch):
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    mod.mark_episodes_scanned([3, 1, 2])
+
+    update_calls = [call for call in conn.executed if "UPDATE podcast_episodes" in call[0]]
+    assert len(update_calls) == 1
+    assert "appearances_detected_at = NOW()" in update_calls[0][0]
+    assert update_calls[0][1] == ([3, 1, 2],)
+    assert conn.commits == 1
+
+
+def test_mark_episodes_scanned_noop_for_empty_batch(monkeypatch):
+    conn = _FakeConn()
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    assert mod.mark_episodes_scanned([]) == 0
+    assert conn.executed == []
+
+
+def _stub_detect_pipeline(monkeypatch, marked: dict[str, Any]) -> None:
+    monkeypatch.setattr(
+        mod, "load_match_comedians", lambda **_kw: [mod.MatchComedian(12, "Ari Shaffir", [])]
+    )
+    monkeypatch.setattr(
+        mod,
+        "load_episode_inputs",
+        lambda **_kw: [_episode(episode_id=5, title="Ari Shaffir on the road")],
+    )
+    monkeypatch.setattr(mod, "persist_candidates", lambda _c, dry_run: mod.DetectSummary())
+    monkeypatch.setattr(mod, "mark_episodes_scanned", lambda ids: marked.__setitem__("ids", ids))
+
+
+def test_full_roster_run_marks_scanned_episodes(monkeypatch):
+    marked: dict[str, Any] = {}
+    _stub_detect_pipeline(monkeypatch, marked)
+
+    mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=2000,
+        comedian_limit=None,
+        include_aliases=True,
+        auto_accept=True,
+    )
+
+    assert marked["ids"] == [5]
+
+
+def test_comedian_subset_run_does_not_advance_scan_cursor(monkeypatch):
+    marked: dict[str, Any] = {}
+    _stub_detect_pipeline(monkeypatch, marked)
+
+    mod.detect_podcast_episode_appearances(
+        dry_run=False,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=2000,
+        comedian_limit=1000,
+        include_aliases=True,
+        auto_accept=True,
+    )
+
+    assert "ids" not in marked
+
+
+def test_dry_run_does_not_advance_scan_cursor(monkeypatch):
+    marked: dict[str, Any] = {}
+    _stub_detect_pipeline(monkeypatch, marked)
+
+    mod.detect_podcast_episode_appearances(
+        dry_run=True,
+        comedian_ids=None,
+        comedian_names=None,
+        episode_ids=None,
+        episode_limit=2000,
+        comedian_limit=None,
+        include_aliases=True,
+        auto_accept=True,
+    )
+
+    assert "ids" not in marked

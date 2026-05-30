@@ -380,6 +380,7 @@ model PodcastEpisode {
   externalIds              Json                      @default("{}") @map("external_ids")
   evidence                 Json                      @default("{}")
   sourcePayload            Json?                     @map("source_payload")
+  appearancesDetectedAt    DateTime?                 @map("appearances_detected_at") @db.Timestamptz
   createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                DateTime                  @updatedAt @map("updated_at") @db.Timestamptz
   podcast                  Podcast                   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
@@ -390,6 +391,7 @@ model PodcastEpisode {
   @@index([podcastId])
   @@index([podcastId, releaseDate])
   @@index([guid])
+  @@index([appearancesDetectedAt])
   @@map("podcast_episodes")
 }
 

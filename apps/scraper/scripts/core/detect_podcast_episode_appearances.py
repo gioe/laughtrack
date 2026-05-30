@@ -93,7 +93,17 @@ _GET_EPISODES_SQL = """
       {extra_filter}
     GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title, p.author_name,
         pe.title, pe.description, pe.episode_url, pe.source_payload
-    ORDER BY pe.release_date DESC NULLS LAST, pe.id DESC
+    ORDER BY pe.appearances_detected_at ASC NULLS FIRST, pe.release_date DESC NULLS LAST, pe.id DESC
+"""
+
+# Advance the per-episode scan cursor for every episode in the processed batch
+# (matched or not). NULL means "never scanned"; ordering NULLS FIRST above plus
+# this bump is what rotates a bounded batch through the full backlog across
+# repeated runs, mirroring sync_podcast_episodes_from_rss's last_synced_at bump.
+_MARK_EPISODES_DETECTED_SQL = """
+    UPDATE podcast_episodes
+    SET appearances_detected_at = NOW()
+    WHERE id = ANY(%s::int[])
 """
 
 _UPSERT_REVIEW_SQL = """
@@ -737,6 +747,23 @@ def load_episode_inputs_from_conn(
         ]
 
 
+def mark_episodes_scanned(episode_ids: list[int]) -> int:
+    if not episode_ids:
+        return 0
+    with get_connection() as conn:
+        scanned = mark_episodes_scanned_with_conn(conn, episode_ids)
+        conn.commit()
+    return scanned
+
+
+def mark_episodes_scanned_with_conn(conn: Any, episode_ids: list[int]) -> int:
+    if not episode_ids:
+        return 0
+    with conn.cursor() as cur:
+        cur.execute(_MARK_EPISODES_DETECTED_SQL, ([int(eid) for eid in episode_ids],))
+        return cur.rowcount if cur.rowcount and cur.rowcount > 0 else len(episode_ids)
+
+
 def persist_candidates(candidates: list[EpisodeAppearanceCandidate], dry_run: bool) -> DetectSummary:
     summary = DetectSummary(candidates=len(candidates))
     summary.auto_accepted = sum(1 for c in candidates if c.status == "accepted")
@@ -846,7 +873,16 @@ def detect_podcast_episode_appearances(
         include_aliases=include_aliases,
         auto_accept=auto_accept,
     )
-    return persist_candidates(candidates, dry_run=dry_run)
+    summary = persist_candidates(candidates, dry_run=dry_run)
+    # Advance the scan cursor only after a successful full-roster persist. A
+    # comedian-subset run (--comedian-id/--comedian-name/--comedian-limit) does
+    # not scan an episode against every comedian, so marking it scanned would
+    # let the nightly full-roster run skip it. Episode/source filters are still
+    # full-roster, so they may advance the cursor.
+    full_roster_scan = comedian_ids is None and comedian_names is None and comedian_limit is None
+    if not dry_run and full_roster_scan:
+        mark_episodes_scanned([episode.episode_id for episode in episodes])
+    return summary
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -855,7 +891,17 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--comedian-id", dest="comedian_ids", action="append", type=int, default=None)
     parser.add_argument("--comedian-name", dest="comedian_names", action="append", default=None)
     parser.add_argument("--episode-id", dest="episode_ids", action="append", type=int, default=None)
-    parser.add_argument("--episode-limit", type=int, default=None)
+    parser.add_argument(
+        "--episode-limit",
+        type=int,
+        default=None,
+        help=(
+            "Max episodes to scan in this run. Episodes are ordered "
+            "least-recently-scanned first (never-scanned first), so a bounded "
+            "limit rotates through the full backlog across repeated runs and "
+            "keeps the load query inside Neon's statement_timeout."
+        ),
+    )
     parser.add_argument("--limit", dest="episode_limit", type=int, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--comedian-limit", type=int, default=None)
     parser.add_argument(
