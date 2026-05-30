@@ -19,6 +19,17 @@ export default [
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
+      // Honor the leading-underscore convention for intentionally-unused
+      // bindings (e.g. handler params kept for signature/position like
+      // `(_req, _ctx)`), while still flagging genuinely-unused identifiers.
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       // Disable React Compiler-specific rules — these flag legitimate standard
       // React patterns (setState in effects, manual useMemo) that are correct
       // and intentional in codebases that do not use the React Compiler.
