@@ -835,3 +835,27 @@ model SentNotification {
   @@index([userId])
   @@map("sent_notifications")
 }
+
+// Per-API-route request counter, bucketed by the hour. Written by the
+// withRequestMetrics handler wrapper as an UPSERT keyed by the composite
+// primary key (route_pattern, method, status_class, hour_bucket), so a busy
+// route is a handful of rows per hour instead of one row per request. The
+// composite PK doubles as the ON CONFLICT target for the counter UPSERT.
+// route_pattern stores the route TEMPLATE (e.g. /api/v1/comedian/[name]),
+// never the resolved dynamic value, to bound row cardinality. Read by the
+// grafana_ro role for the API-request Grafana dashboard; pruned past the
+// retention window by prisma/scripts/prune_api_request_metrics.sql.
+model ApiRequestMetric {
+  routePattern String   @map("route_pattern")
+  method       String
+  statusClass  String   @map("status_class")
+  hourBucket   DateTime @map("hour_bucket") @db.Timestamptz
+  count        Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  @@id([routePattern, method, statusClass, hourBucket])
+  @@index([hourBucket])
+  @@index([routePattern, hourBucket])
+  @@map("api_request_metrics")
+}
