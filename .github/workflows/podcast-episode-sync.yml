@@ -65,8 +65,18 @@ jobs:
           # The detector orders episodes least-recently-scanned first (never
           # scanned first) and bumps each scanned episode's appearances_detected_at.
           # A bounded batch keeps the load query inside Neon's statement_timeout
-          # while still rotating through the full episode backlog across runs.
-          python -m scripts.core.detect_podcast_episode_appearances --episode-limit 2000
+          # (30s, set on the detector connection in connection.py) while still
+          # rotating through the full episode backlog across runs.
+          #
+          # Limit sized empirically (TASK-2528): the binding cost is client-side
+          # row transfer of the wide description/source_payload columns, not
+          # server execution. Measured fetch time for the eligible backlog
+          # (~162k episodes from accepted-comedian podcasts): 2k->3.7s, 10k->5.6s,
+          # 25k->27s, 50k->28s, 100k+ -> QueryCanceled (>30s). 10k keeps a ~5x
+          # safety margin under the 30s timeout while draining the backlog in
+          # ~16 nights (vs ~81 at 2k). Never-scanned episodes sort first, so
+          # steady-state new episodes are always covered.
+          python -m scripts.core.detect_podcast_episode_appearances --episode-limit 10000
 
       - name: Upload podcast sync logs
         uses: actions/upload-artifact@v4
