@@ -24,6 +24,20 @@ discriminator — TASK-2518.)
 - `scraper-health-alerts.yaml` — unified-alerting **rules-as-code** that baseline
   each run against the trailing-N-run rolling average and fire to Discord on a
   regression (see **Regression alerts** below).
+- `api-requests.json` — the **API Requests** dashboard, reading the
+  `api_request_metrics` hourly counter table (written by the `withRequestMetrics`
+  handler wrapper). Panels:
+  - Requests per route over time
+  - Top routes by volume
+  - Requests by status_class over time
+  - Requests by HTTP method
+
+  Unlike `scraper-health.json` (which uses a `${datasource}` template variable),
+  this dashboard pins the Neon datasource UID `dfnjxqagicw74a` directly — the same
+  UID the regression alerts reference — so importing it requires no variable
+  selection. If the datasource is recreated under a new UID, replace every
+  `dfnjxqagicw74a` occurrence in the JSON. Import the same way:
+  Grafana → Dashboards → New → Import → upload `api-requests.json`.
 
 ## One-time setup
 

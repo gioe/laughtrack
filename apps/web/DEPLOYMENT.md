@@ -365,7 +365,7 @@ The scraper persists per-run, per-club, and per-error health metrics to three Po
 
 ### Read-only Neon role
 
-Grafana connects as a dedicated `grafana_ro` role — **not** the application's DB role. The role has `SELECT` on only the three scraper-health tables (no blanket schema grant), so a misconfigured datasource cannot read `users`, sessions, or any other table.
+Grafana connects as a dedicated `grafana_ro` role — **not** the application's DB role. The role has `SELECT` on only the four observability tables — the three scraper-health tables plus `api_request_metrics` (no blanket schema grant), so a misconfigured datasource cannot read `users`, sessions, or any other table.
 
 Create it once against production:
 
@@ -402,6 +402,15 @@ Import `apps/web/monitoring/grafana/scraper-health.json` (Grafana → Dashboards
 - **Bot-block providers** — error counts grouped by `bot_block_provider`
 
 Dashboard JSON is the source of truth — see `apps/web/monitoring/grafana/README.md` for the edit/export round-trip.
+
+### API request dashboard
+
+`apps/web/monitoring/grafana/api-requests.json` is a second dashboard on the same Neon datasource. It reads `api_request_metrics` — an hourly per-route request counter (`route_pattern`, `method`, `status_class`, `hour_bucket`, `count`) written by the `withRequestMetrics` handler wrapper as an UPSERT, so meaningful data depends on that API instrumentation being live. Import the same way (Grafana → Dashboards → New → Import → upload JSON). Unlike the Scraper Health dashboard, it pins the datasource UID `dfnjxqagicw74a` directly (no `${datasource}` variable to select). Panels:
+
+- **Requests per route over time** — `SUM(count)` per `route_pattern`, stacked
+- **Top routes by volume** — top 20 `route_pattern` by total `count`
+- **Requests by status_class over time** — `SUM(count)` per `status_class`
+- **Requests by HTTP method** — `SUM(count)` per `method`
 
 ### Regression alerts
 
