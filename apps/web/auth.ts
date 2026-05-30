@@ -12,7 +12,10 @@ import {
     googleProviderConfig,
 } from "@/lib/auth/providerConfig";
 import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
-import { buildMagicLinkEmail } from "@/lib/auth/emailTemplate";
+import {
+    buildMagicLinkEmail,
+    buildWelcomeEmail,
+} from "@/lib/auth/emailTemplate";
 
 // Define session types
 interface UserProfile {
@@ -40,6 +43,16 @@ declare module "next-auth" {
 }
 
 const adapter = PrismaAdapter(prisma);
+const emailServer = {
+    host: process.env.SMTP_HOST ?? "",
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === "true",
+    auth: {
+        user: process.env.SMTP_USER ?? "",
+        pass: process.env.SMTP_PASSWORD ?? "",
+    },
+};
+const emailFrom = process.env.EMAIL_FROM ?? "noreply@laughtrack.com";
 
 // Apple sign-in uses response_mode=form_post: appleid.apple.com POSTs the auth
 // response back to our callback as a cross-site POST. Browsers drop
@@ -72,16 +85,8 @@ const _nextAuth = NextAuth({
         Apple(appleProviderConfig()),
         Nodemailer({
             id: "email",
-            server: {
-                host: process.env.SMTP_HOST ?? "",
-                port: Number(process.env.SMTP_PORT) || 587,
-                secure: process.env.SMTP_SECURE === "true",
-                auth: {
-                    user: process.env.SMTP_USER ?? "",
-                    pass: process.env.SMTP_PASSWORD ?? "",
-                },
-            },
-            from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
+            server: emailServer,
+            from: emailFrom,
             async sendVerificationRequest({ identifier, url, provider }) {
                 const transport = createTransport(provider.server);
                 const email = buildMagicLinkEmail({ url });
@@ -134,6 +139,40 @@ const _nextAuth = NextAuth({
             } catch (error) {
                 console.error(
                     "Error creating user profile:",
+                    JSON.stringify(sanitizeAuthError(error)),
+                );
+                return;
+            }
+
+            const verifiedUser = user as typeof user & {
+                emailVerified?: Date | null;
+            };
+            if (!user.email || !verifiedUser.emailVerified) {
+                return;
+            }
+
+            try {
+                const transport = createTransport(emailServer);
+                const email = buildWelcomeEmail({ baseUrl: getSiteBaseUrl() });
+                const result = await transport.sendMail({
+                    to: user.email,
+                    from: emailFrom,
+                    subject: email.subject,
+                    text: email.text,
+                    html: email.html,
+                });
+                const failed = [
+                    ...(result.rejected || []),
+                    ...(result.pending || []),
+                ].filter(Boolean);
+                if (failed.length) {
+                    throw new Error(
+                        `Welcome email (${failed.join(", ")}) could not be sent`,
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "Error sending welcome email:",
                     JSON.stringify(sanitizeAuthError(error)),
                 );
             }
@@ -203,3 +242,16 @@ export const signOut = _nextAuth.signOut;
 // calls in the same request reuse the resolved session — avoiding duplicate
 // session-callback runs and (on a cold JWT) duplicate userProfile lookups.
 export const auth = cache(_nextAuth.auth);
+
+function getSiteBaseUrl(): string {
+    if (process.env.NEXT_PUBLIC_WEBSITE_URL) {
+        return process.env.NEXT_PUBLIC_WEBSITE_URL;
+    }
+    if (process.env.AUTH_URL) {
+        return process.env.AUTH_URL;
+    }
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    return "http://localhost:3000";
+}

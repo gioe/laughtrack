@@ -6,6 +6,7 @@ const {
     mockUserProfileCreate,
     mockCreateTransport,
     mockBuildMagicLinkEmail,
+    mockBuildWelcomeEmail,
     capturedConfig,
 } = vi.hoisted(() => {
     const captured: { value: any } = { value: null };
@@ -13,6 +14,7 @@ const {
     const userProfileCreate = vi.fn();
     const createTransport = vi.fn();
     const buildMagicLink = vi.fn();
+    const buildWelcome = vi.fn();
     const nextAuth = vi.fn((config: any) => {
         captured.value = config;
         return {
@@ -28,21 +30,30 @@ const {
         mockUserProfileCreate: userProfileCreate,
         mockCreateTransport: createTransport,
         mockBuildMagicLinkEmail: buildMagicLink,
+        mockBuildWelcomeEmail: buildWelcome,
         capturedConfig: captured,
     };
 });
 
 vi.mock("react", async (importOriginal) => {
     const actual = await importOriginal<typeof import("react")>();
-    return { ...actual, cache: <T,>(fn: T) => fn };
+    return { ...actual, cache: <T>(fn: T) => fn };
 });
 vi.mock("next-auth", () => ({ default: mockNextAuth }));
 vi.mock("@auth/prisma-adapter", () => ({ PrismaAdapter: vi.fn(() => ({})) }));
 vi.mock("next-auth/providers/google", () => ({
-    default: vi.fn((config: unknown) => ({ id: "google", type: "oauth", config })),
+    default: vi.fn((config: unknown) => ({
+        id: "google",
+        type: "oauth",
+        config,
+    })),
 }));
 vi.mock("next-auth/providers/apple", () => ({
-    default: vi.fn((config: unknown) => ({ id: "apple", type: "oauth", config })),
+    default: vi.fn((config: unknown) => ({
+        id: "apple",
+        type: "oauth",
+        config,
+    })),
 }));
 vi.mock("next-auth/providers/nodemailer", () => ({
     default: vi.fn((config: any) => ({
@@ -54,6 +65,7 @@ vi.mock("next-auth/providers/nodemailer", () => ({
 vi.mock("nodemailer", () => ({ createTransport: mockCreateTransport }));
 vi.mock("@/lib/auth/emailTemplate", () => ({
     buildMagicLinkEmail: mockBuildMagicLinkEmail,
+    buildWelcomeEmail: mockBuildWelcomeEmail,
 }));
 vi.mock("./lib/db", () => ({
     prisma: { userProfile: { findUnique: mockFindUnique } },
@@ -83,6 +95,7 @@ beforeEach(() => {
     mockUserProfileCreate.mockReset();
     mockCreateTransport.mockReset();
     mockBuildMagicLinkEmail.mockReset();
+    mockBuildWelcomeEmail.mockReset();
 });
 
 describe("auth.ts NextAuth config", () => {
@@ -293,6 +306,108 @@ describe("auth.ts NextAuth config", () => {
             });
         });
 
+        it("sends the welcome email after creating a verified user's profile", async () => {
+            const sendMail = vi.fn().mockResolvedValue({
+                rejected: [],
+                pending: [],
+            });
+            mockUserProfileCreate.mockResolvedValueOnce({ id: "profile-1" });
+            mockCreateTransport.mockReturnValueOnce({ sendMail });
+            mockBuildWelcomeEmail.mockReturnValueOnce({
+                subject: "Welcome to LaughTrack",
+                text: "text body",
+                html: "<p>html body</p>",
+            });
+
+            await capturedConfig.value.events.createUser({
+                user: {
+                    id: "user-1",
+                    email: "new@example.com",
+                    emailVerified: new Date("2026-05-29T12:00:00.000Z"),
+                },
+            });
+
+            expect(mockBuildWelcomeEmail).toHaveBeenCalledWith({
+                baseUrl: "http://localhost:3000",
+            });
+            expect(mockCreateTransport).toHaveBeenCalledWith({
+                host: "",
+                port: 587,
+                secure: false,
+                auth: { user: "", pass: "" },
+            });
+            expect(sendMail).toHaveBeenCalledWith({
+                to: "new@example.com",
+                from: "noreply@laughtrack.com",
+                subject: "Welcome to LaughTrack",
+                text: "text body",
+                html: "<p>html body</p>",
+            });
+        });
+
+        it("does not send the welcome email when the user has no email address", async () => {
+            mockUserProfileCreate.mockResolvedValueOnce({ id: "profile-1" });
+
+            await capturedConfig.value.events.createUser({
+                user: {
+                    id: "user-1",
+                    emailVerified: new Date("2026-05-29T12:00:00.000Z"),
+                },
+            });
+
+            expect(mockBuildWelcomeEmail).not.toHaveBeenCalled();
+            expect(mockCreateTransport).not.toHaveBeenCalled();
+        });
+
+        it("does not send the welcome email when the user's email is unverified", async () => {
+            mockUserProfileCreate.mockResolvedValueOnce({ id: "profile-1" });
+
+            await capturedConfig.value.events.createUser({
+                user: {
+                    id: "user-1",
+                    email: "new@example.com",
+                    emailVerified: null,
+                },
+            });
+
+            expect(mockBuildWelcomeEmail).not.toHaveBeenCalled();
+            expect(mockCreateTransport).not.toHaveBeenCalled();
+        });
+
+        it("swallows welcome email delivery errors after profile creation", async () => {
+            const consoleSpy = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => {});
+            const sendMail = vi.fn().mockResolvedValue({
+                rejected: ["new@example.com"],
+                pending: [],
+            });
+            mockUserProfileCreate.mockResolvedValueOnce({ id: "profile-1" });
+            mockCreateTransport.mockReturnValueOnce({ sendMail });
+            mockBuildWelcomeEmail.mockReturnValueOnce({
+                subject: "Welcome to LaughTrack",
+                text: "text body",
+                html: "<p>html body</p>",
+            });
+
+            await expect(
+                capturedConfig.value.events.createUser({
+                    user: {
+                        id: "user-1",
+                        email: "new@example.com",
+                        emailVerified: new Date("2026-05-29T12:00:00.000Z"),
+                    },
+                }),
+            ).resolves.toBeUndefined();
+
+            expect(mockUserProfileCreate).toHaveBeenCalledTimes(1);
+            expect(consoleSpy).toHaveBeenCalledWith(
+                "Error sending welcome email:",
+                expect.any(String),
+            );
+            consoleSpy.mockRestore();
+        });
+
         it("swallows errors from db.userProfile.create and logs the sanitized error", async () => {
             const consoleSpy = vi
                 .spyOn(console, "error")
@@ -378,9 +493,7 @@ describe("auth.ts NextAuth config", () => {
                     url: "https://laugh-track.com/verify?token=abc",
                     provider,
                 }),
-            ).rejects.toThrow(
-                "Email (bad@example.com) could not be sent",
-            );
+            ).rejects.toThrow("Email (bad@example.com) could not be sent");
         });
 
         it("throws when sendMail returns pending addresses", async () => {
@@ -402,9 +515,7 @@ describe("auth.ts NextAuth config", () => {
                     url: "https://laugh-track.com/verify?token=abc",
                     provider,
                 }),
-            ).rejects.toThrow(
-                "Email (pending@example.com) could not be sent",
-            );
+            ).rejects.toThrow("Email (pending@example.com) could not be sent");
         });
     });
 });
