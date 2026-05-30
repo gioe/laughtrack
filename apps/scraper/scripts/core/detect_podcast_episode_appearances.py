@@ -59,6 +59,37 @@ _GET_MATCH_COMEDIANS_SQL = """
     ORDER BY c.popularity DESC NULLS LAST, c.total_shows DESC NULLS LAST, c.id
 """
 
+# Episode loading is two-phase to keep it inside Neon's 30s statement_timeout
+# as the eligible backlog grows (TASK-2530: ~160k episodes from accepted-comedian
+# podcasts). The single-query form group-aggregated host arrays over wide rows
+# (description + source_payload jsonb) and sorted the WHOLE eligible set by the
+# scan cursor before LIMIT, so its cost scaled with the entire backlog and tipped
+# over 30s -> QueryCanceled, failing the nightly detect step.
+#
+# Phase 1 (_GET_EPISODE_IDS_SQL): pick the next batch of candidate episode ids
+# ordered by the scan cursor (never-scanned first). Narrow row, no GROUP BY /
+# array_agg, so the supporting index podcast_episodes_scan_cursor_idx
+# (appearances_detected_at NULLS FIRST, release_date DESC, id DESC) can serve the
+# top-N without sorting the full backlog. Selects `pe.id, pe.podcast_id` so the
+# heaviest work is bounded by --episode-limit.
+_GET_EPISODE_IDS_SQL = """
+    SELECT pe.id, pe.podcast_id
+    FROM podcast_episodes pe
+    JOIN podcasts p ON p.id = pe.podcast_id
+    WHERE EXISTS (
+          SELECT 1
+          FROM comedian_podcasts accepted_cp
+          WHERE accepted_cp.podcast_id = p.id
+            AND accepted_cp.review_status = 'accepted'
+      )
+      {extra_filter}
+    ORDER BY pe.appearances_detected_at ASC NULLS FIRST, pe.release_date DESC NULLS LAST, pe.id DESC
+"""
+
+# Phase 2 (_GET_EPISODES_SQL): hydrate the chosen episodes with podcast metadata
+# and accepted-host aggregates. Bounded to the Phase-1 id set, so the GROUP BY /
+# array_agg run over the batch (<= --episode-limit), not the full backlog. The
+# ORDER BY is retained so the returned list keeps the cursor order.
 _GET_EPISODES_SQL = """
     SELECT
         pe.id,
@@ -84,13 +115,7 @@ _GET_EPISODES_SQL = """
     LEFT JOIN comedian_podcasts cp ON cp.podcast_id = p.id
         AND cp.review_status = 'accepted'
         AND cp.association_type IN ('host', 'cohost', 'owner')
-    WHERE EXISTS (
-          SELECT 1
-          FROM comedian_podcasts accepted_cp
-          WHERE accepted_cp.podcast_id = p.id
-            AND accepted_cp.review_status = 'accepted'
-      )
-      {extra_filter}
+    WHERE pe.id = ANY(%s::int[])
     GROUP BY pe.id, pe.podcast_id, pe.source, pe.source_episode_id, p.title, p.author_name,
         pe.title, pe.description, pe.episode_url, pe.source_payload
     ORDER BY pe.appearances_detected_at ASC NULLS FIRST, pe.release_date DESC NULLS LAST, pe.id DESC
@@ -722,12 +747,22 @@ def load_episode_inputs_from_conn(
     if episode_ids:
         filters.append("AND pe.id = ANY(%s::int[])")
         params.append(episode_ids)
-    query = _GET_EPISODES_SQL.format(extra_filter="\n      ".join(filters))
+
+    # Phase 1: pick the candidate episode ids in cursor order, bounded by limit.
+    id_query = _GET_EPISODE_IDS_SQL.format(extra_filter="\n      ".join(filters))
     if limit:
-        query += "\n    LIMIT %s"
+        id_query += "\n    LIMIT %s"
         params.append(int(limit))
     with conn.cursor() as cur:
-        cur.execute(query, tuple(params) if params else None)
+        cur.execute(id_query, tuple(params) if params else None)
+        candidate_ids = [int(row[0]) for row in cur.fetchall()]
+
+    if not candidate_ids:
+        return []
+
+    # Phase 2: hydrate only those ids with podcast metadata + host aggregates.
+    with conn.cursor() as cur:
+        cur.execute(_GET_EPISODES_SQL, (candidate_ids,))
         return [
             PodcastEpisodeCandidateInput(
                 episode_id=int(row[0]),

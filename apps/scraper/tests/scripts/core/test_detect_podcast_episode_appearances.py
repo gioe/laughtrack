@@ -124,12 +124,17 @@ def test_comedian_query_uses_canonical_non_denied_comedians_and_aliases():
 
 
 def test_episode_query_scans_only_accepted_podcast_relationships():
-    query = mod._GET_EPISODES_SQL
+    # Eligibility (only episodes from accepted-comedian podcasts) is enforced in
+    # the Phase-1 candidate-id selection; Phase 2 hydrates the chosen ids.
+    id_query = mod._GET_EPISODE_IDS_SQL
+    assert "EXISTS" in id_query
+    assert "accepted_cp.podcast_id = p.id" in id_query
+    assert "accepted_cp.review_status = 'accepted'" in id_query
 
-    assert "p.author_name AS podcast_author" in query
-    assert "EXISTS" in query
-    assert "accepted_cp.podcast_id = p.id" in query
-    assert "accepted_cp.review_status = 'accepted'" in query
+    hydrate_query = mod._GET_EPISODES_SQL
+    assert "p.author_name AS podcast_author" in hydrate_query
+    # Phase 2 is bounded to the Phase-1 id set rather than re-scanning the backlog.
+    assert "pe.id = ANY(%s::int[])" in hydrate_query
 
 
 def test_normalization_handles_entities_unicode_punctuation_variants_and_initials():
@@ -359,6 +364,45 @@ def test_load_functions_parse_database_rows(monkeypatch):
     assert episodes[0].podcast_author == "Ari Network"
     assert episodes[0].source_payload == {"persons": [{"name": "Ari Shaffir", "role": "guest"}]}
     assert "LIMIT %s" in conn.executed[0][0]
+
+
+def test_load_episode_inputs_is_two_phase_and_hydrates_only_phase1_ids(monkeypatch):
+    # Regression guard for TASK-2530: episode loading must stay two-phase so the
+    # heavy GROUP BY / array_agg runs only over the bounded candidate-id set, not
+    # the full eligible backlog (which tripped Neon's 30s statement_timeout).
+    conn = _FakeConn(
+        episode_rows=[
+            (
+                4,
+                9,
+                "podcast_index",
+                "ep-4",
+                "Comedy Talk",
+                "Ari Network",
+                "Ari Shaffir appears",
+                "Episode description",
+                "https://podcast.example/4",
+                {},
+                [12],
+                ["host"],
+            )
+        ],
+    )
+    monkeypatch.setattr(mod, "get_connection", lambda: conn)
+
+    mod.load_episode_inputs(limit=10)
+
+    assert len(conn.executed) == 2, "expected a candidate-id query then a hydrate query"
+    id_sql, _ = conn.executed[0]
+    hydrate_sql, hydrate_params = conn.executed[1]
+    # Phase 1 selects ids in cursor order with the bound; no GROUP BY there.
+    assert id_sql.strip().startswith("SELECT pe.id, pe.podcast_id")
+    assert "GROUP BY" not in id_sql
+    assert "LIMIT %s" in id_sql
+    # Phase 2 hydrates only the ids Phase 1 returned (episode id 4 here).
+    assert "pe.id = ANY(%s::int[])" in hydrate_sql
+    assert "GROUP BY" in hydrate_sql
+    assert hydrate_params == ([4],)
 
 
 def test_detect_passes_comedian_limit_and_matching_options(monkeypatch):
