@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { toggleFavoriteClub } from "@/lib/data/favorites/toggleFavoriteClub";
 
-export async function DELETE(
+export const DELETE = withRequestMetrics(async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ clubId: string }> },
 ) {
@@ -45,13 +46,10 @@ export async function DELETE(
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {
-        console.error(
-            "DELETE /api/v1/favorite-clubs/[clubId] error:",
-            error,
-        );
+        console.error("DELETE /api/v1/favorite-clubs/[clubId] error:", error);
         return NextResponse.json(
             { error: "Failed to remove favorite club" },
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

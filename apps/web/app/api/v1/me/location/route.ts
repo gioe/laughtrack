@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
@@ -17,7 +18,7 @@ const ProfileLocationUpdateSchema = z.object({
     nearbyDistanceMiles: z.number().int().positive().nullable(),
 });
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     const ipRl = await checkRateLimit(
         `me-location-ip:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -74,4 +75,4 @@ export async function PATCH(req: NextRequest) {
             nearbyDistanceMiles: updatedProfile.nearbyDistanceMiles,
         },
     });
-}
+});

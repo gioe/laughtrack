@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
@@ -83,7 +84,7 @@ async function parseBody(req: NextRequest) {
     };
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const auth = await authenticate(req, "me-push-token");
     if (auth.response) return auth.response;
 
@@ -117,9 +118,11 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ data: token });
-}
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestMetrics(async function DELETE(
+    req: NextRequest,
+) {
     const auth = await authenticate(req, "me-push-token-delete");
     if (auth.response) return auth.response;
 
@@ -140,4 +143,4 @@ export async function DELETE(req: NextRequest) {
     });
 
     return NextResponse.json({ data: { deactivated: result.count > 0 } });
-}
+});

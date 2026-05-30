@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { timingSafeEqual } from "crypto";
+import { withRequestMetrics } from "@/lib/metrics";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,7 +16,7 @@ const SUPPORTED_TAGS = [
 
 type SupportedTag = (typeof SUPPORTED_TAGS)[number];
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     // Auth: admin session OR Bearer token
     const authHeader = req.headers.get("authorization");
     const bearerToken = authHeader?.startsWith("Bearer ")
@@ -78,4 +79,4 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ revalidated: tags });
-}
+});

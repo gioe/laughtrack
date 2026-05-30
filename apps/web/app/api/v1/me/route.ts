@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
@@ -17,7 +18,7 @@ const ProfileUpdateSchema = z.object({
     }),
 });
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     // Pre-auth IP rate limit protects resolveAuth() / auth() from
     // unauthenticated probes — matches the /auth/signout pattern.
     const ipRl = await checkRateLimit(
@@ -83,15 +84,14 @@ export async function GET(req: NextRequest) {
                 comedianOnboardingCompleted:
                     user.profile?.comedianOnboardingCompleted ?? false,
                 zipCode: user.profile?.zipCode ?? null,
-                nearbyDistanceMiles:
-                    user.profile?.nearbyDistanceMiles ?? null,
+                nearbyDistanceMiles: user.profile?.nearbyDistanceMiles ?? null,
             },
         },
         { headers: rateLimitHeaders(rl) },
     );
-}
+});
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     const ipRl = await checkRateLimit(
         `me-patch-ip:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -147,9 +147,11 @@ export async function PATCH(req: NextRequest) {
                 updatedProfile.comedianOnboardingCompleted,
         },
     });
-}
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestMetrics(async function DELETE(
+    req: NextRequest,
+) {
     const ipRl = await checkRateLimit(
         `me-delete-ip:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -200,4 +202,4 @@ export async function DELETE(req: NextRequest) {
         { data: { deleted: true } },
         { headers: rateLimitHeaders(rl) },
     );
-}
+});

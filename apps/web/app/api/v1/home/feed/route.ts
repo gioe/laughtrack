@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { auth } from "@/auth";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
@@ -25,7 +26,7 @@ function logSectionError(section: string) {
     };
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "home");
     if (rl instanceof NextResponse) return rl;
 
@@ -143,4 +144,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

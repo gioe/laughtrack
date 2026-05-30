@@ -6,6 +6,7 @@ import { buildClubHeroImageUrl, buildClubImageUrl } from "@/util/imageUtil";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const DAYS = [
     "monday",
@@ -178,7 +179,7 @@ const adminClubSelect = {
     _count: { select: { shows: true } },
 };
 
-export async function PATCH(
+export const PATCH = withRequestMetrics(async function PATCH(
     req: NextRequest,
     ctx: { params: Promise<{ id: string }> },
 ) {
@@ -343,4 +344,4 @@ export async function PATCH(
         console.error("Admin club PATCH failed:", error);
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
     }
-}
+});

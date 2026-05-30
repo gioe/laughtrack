@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const GeocodeSchema = z.object({
     lat: z.coerce.number().min(-90).max(90),
     lng: z.coerce.number().min(-180).max(180),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestMetrics(async function GET(request: NextRequest) {
     const rl = await applyPublicReadRateLimit(request, "geocode");
     if (rl instanceof NextResponse) return rl;
 
@@ -60,4 +61,4 @@ export async function GET(request: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

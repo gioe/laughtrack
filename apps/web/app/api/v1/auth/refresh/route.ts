@@ -10,6 +10,7 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 import { ACCESS_TOKEN_TTL_SECONDS, generateAccessToken } from "@/util/token";
+import { withRequestMetrics } from "@/lib/metrics";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -18,7 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
  * refresh token. The submitted refresh token is revoked atomically — a
  * subsequent call with the same token returns 401.
  */
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const rl = await checkRateLimit(
         `auth-refresh:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -77,4 +78,4 @@ export async function POST(req: NextRequest) {
         },
         { headers: rateLimitHeaders(rl) },
     );
-}
+});

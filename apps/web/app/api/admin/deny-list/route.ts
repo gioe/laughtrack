@@ -4,6 +4,7 @@ import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 type DenyListRow = {
     name: string;
@@ -58,7 +59,7 @@ async function findEntry(
     return rows[0] ?? null;
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
@@ -81,9 +82,9 @@ export async function GET(req: NextRequest) {
         `;
 
     return NextResponse.json({ entries: rows.map(serializeRow) });
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
@@ -134,9 +135,11 @@ export async function POST(req: NextRequest) {
         console.error("Admin deny-list POST failed:", error);
         return NextResponse.json({ error: "Create failed" }, { status: 500 });
     }
-}
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestMetrics(async function DELETE(
+    req: NextRequest,
+) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
@@ -188,4 +191,4 @@ export async function DELETE(req: NextRequest) {
         console.error("Admin deny-list DELETE failed:", error);
         return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
-}
+});

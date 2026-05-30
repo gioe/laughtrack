@@ -7,9 +7,10 @@ import {
     findPastShowsForComedian,
     PAST_SHOWS_PAGE_SIZE,
 } from "@/lib/data/comedian/detail/findPastShowsForComedian";
+import { withRequestMetrics } from "@/lib/metrics";
 const MAX_PAGE_SIZE = 50;
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-past-shows");
     if (rl instanceof NextResponse) return rl;
 
@@ -86,4 +87,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

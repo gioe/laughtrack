@@ -3,8 +3,9 @@ import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { auth } from "@/auth";
+import { withRequestMetrics } from "@/lib/metrics";
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "clubs-search");
     if (rl instanceof NextResponse) return rl;
 
@@ -64,4 +65,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

@@ -5,7 +5,8 @@ import {
     parseLimitParam,
     rateLimitHeaders,
 } from "@/lib/rateLimit";
-export async function GET(req: NextRequest) {
+import { withRequestMetrics } from "@/lib/metrics";
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians");
     if (rl instanceof NextResponse) return rl;
 
@@ -34,4 +35,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

@@ -1,10 +1,11 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
-export async function DELETE(
+export const DELETE = withRequestMetrics(async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ podcastId: string }> },
 ) {
@@ -65,4 +66,4 @@ export async function DELETE(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

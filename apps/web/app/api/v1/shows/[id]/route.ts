@@ -4,6 +4,7 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { findRelatedShowsForShow } from "@/lib/data/show/detail/findRelatedShowsForShow";
 import { findShowById } from "@/lib/data/show/detail/findShowById";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
+import { withRequestMetrics } from "@/lib/metrics";
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parseShowId(raw: string): number | null {
@@ -34,7 +35,7 @@ function buildCtaLabel(showName: string | null, clubName?: string): string {
     return `Get tickets for comedy show at ${clubName ?? "this venue"}`;
 }
 
-export async function GET(
+export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -96,4 +97,4 @@ export async function GET(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

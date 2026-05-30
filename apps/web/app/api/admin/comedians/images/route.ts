@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const requestSchema = z
     .object({
@@ -21,7 +22,9 @@ async function readBody(req: NextRequest) {
     }
 }
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestMetrics(async function DELETE(
+    req: NextRequest,
+) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
@@ -160,4 +163,4 @@ export async function DELETE(req: NextRequest) {
             { status: 500 },
         );
     }
-}
+});

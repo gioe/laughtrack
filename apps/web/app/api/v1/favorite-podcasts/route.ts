@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
@@ -19,7 +20,7 @@ const favoritePodcastSelect = {
     },
 } as const;
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "favorite-podcasts");
     if (rl instanceof NextResponse) return rl;
 
@@ -74,9 +75,9 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "favorite-podcasts");
     if (rl instanceof NextResponse) return rl;
 
@@ -149,4 +150,4 @@ export async function POST(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

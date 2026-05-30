@@ -2,12 +2,13 @@ import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
 import zipcodes from "zipcodes";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const ZipLookupSchema = z.object({
     zip: z.string().regex(/^\d{5}$/, "ZIP must be a 5-digit US postal code"),
 });
 
-export async function GET(request: NextRequest) {
+export const GET = withRequestMetrics(async function GET(request: NextRequest) {
     const rl = await applyPublicReadRateLimit(request, "zip-lookup");
     if (rl instanceof NextResponse) return rl;
 
@@ -32,4 +33,4 @@ export async function GET(request: NextRequest) {
         { city: lookup.city, state: lookup.state },
         { headers: rateLimitHeaders(rl) },
     );
-}
+});

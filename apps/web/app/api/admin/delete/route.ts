@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const entityTypeSchema = z.enum(ADMIN_DELETE_ENTITY_TYPES);
 
@@ -43,7 +44,9 @@ const deleteSchema = targetSchema
 
 type DeleteTarget = z.infer<typeof targetSchema>;
 
-async function readJson(req: NextRequest): Promise<
+async function readJson(
+    req: NextRequest,
+): Promise<
     | { ok: true; body: unknown }
     | { ok: false; response: NextResponse<{ error: string }> }
 > {
@@ -91,7 +94,7 @@ async function loadPreview(target: DeleteTarget) {
     );
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
@@ -119,9 +122,11 @@ export async function POST(req: NextRequest) {
             confirmation: confirmationFor(preview),
         },
     });
-}
+});
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withRequestMetrics(async function DELETE(
+    req: NextRequest,
+) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
@@ -201,4 +206,4 @@ export async function DELETE(req: NextRequest) {
         console.error("Admin delete failed:", error);
         return NextResponse.json({ error: "Delete failed" }, { status: 500 });
     }
-}
+});

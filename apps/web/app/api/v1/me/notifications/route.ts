@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
@@ -23,7 +24,7 @@ const NotificationPreferenceUpdateSchema = z
         },
     );
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withRequestMetrics(async function PATCH(req: NextRequest) {
     const ipRl = await checkRateLimit(
         `me-notifications-ip:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -80,4 +81,4 @@ export async function PATCH(req: NextRequest) {
             pushShowNotifications: updatedProfile.pushShowNotifications,
         },
     });
-}
+});

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findCoBilledComediansForComedian } from "@/lib/data/comedian/detail/findCoBilledComediansForComedian";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
-export async function GET(
+import { withRequestMetrics } from "@/lib/metrics";
+export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -34,4 +35,4 @@ export async function GET(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

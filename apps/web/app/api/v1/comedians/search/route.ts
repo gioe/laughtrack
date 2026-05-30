@@ -4,7 +4,8 @@ import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { UserRole } from "@/objects/enum/userRole";
-export async function GET(req: NextRequest) {
+import { withRequestMetrics } from "@/lib/metrics";
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-search");
     if (rl instanceof NextResponse) return rl;
 
@@ -65,4 +66,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

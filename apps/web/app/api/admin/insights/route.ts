@@ -3,6 +3,7 @@ import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const executeSchema = z
     .object({
@@ -37,14 +38,14 @@ function invalidPayload(error: z.ZodError) {
     );
 }
 
-export async function GET() {
+export const GET = withRequestMetrics(async function GET() {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
     return NextResponse.json({ insights: listAdminInsights() });
-}
+});
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
@@ -79,4 +80,4 @@ export async function POST(req: NextRequest) {
         insight: insight.name,
         rows,
     });
-}
+});

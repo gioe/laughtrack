@@ -9,12 +9,15 @@ import {
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const UnsubscribeSchema = z.object({
     token: z.string().min(1, "token is required"),
 });
 
-export async function POST(request: NextRequest) {
+export const POST = withRequestMetrics(async function POST(
+    request: NextRequest,
+) {
     const rl = await checkRateLimit(
         `unsubscribe:${getClientIp(request)}`,
         RATE_LIMITS.unsubscribe,
@@ -92,4 +95,4 @@ export async function POST(request: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

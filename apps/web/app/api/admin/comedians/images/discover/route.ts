@@ -3,6 +3,7 @@ import { requireAdminForApi } from "@/lib/auth/requireAdmin";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const requestSchema = z
     .object({
@@ -18,7 +19,7 @@ async function readBody(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
 
@@ -66,4 +67,4 @@ export async function POST(req: NextRequest) {
             { status: 500 },
         );
     }
-}
+});

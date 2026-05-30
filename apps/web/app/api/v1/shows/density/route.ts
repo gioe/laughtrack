@@ -4,6 +4,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { SearchParams } from "@/objects/interface";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { readTimezoneHeader } from "@/util/timezone";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -34,7 +35,7 @@ function addUtcDays(date: Date, days: number): Date {
     return copy;
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "shows-density");
     if (rl instanceof NextResponse) return rl;
 
@@ -139,4 +140,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

@@ -22,6 +22,7 @@ import crypto from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const requestSchema = z
     .object({
@@ -179,7 +180,7 @@ function serializeAsset(asset: {
     };
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const gate = await requireAdminForApi();
     if (!gate.ok) return gate.response;
     const { profileId } = gate.context;
@@ -452,4 +453,4 @@ export async function POST(req: NextRequest) {
             { status: 500 },
         );
     }
-}
+});

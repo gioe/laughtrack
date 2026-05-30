@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { issueRefreshToken } from "@/lib/auth/refreshTokens";
 import { ACCESS_TOKEN_TTL_SECONDS, generateAccessToken } from "@/util/token";
+import { withRequestMetrics } from "@/lib/metrics";
 import { NextRequest, NextResponse } from "next/server";
 import {
     checkRateLimit,
@@ -27,7 +28,7 @@ const ALLOWED_ORIGINS = (
  * completing OAuth via ASWebAuthenticationSession.
  * Browser cross-origin requests are rejected via Origin check to prevent CSRF.
  */
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const rl = await checkRateLimit(
         `auth-token:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -67,4 +68,4 @@ export async function POST(req: NextRequest) {
         },
         { headers: rateLimitHeaders(rl) },
     );
-}
+});

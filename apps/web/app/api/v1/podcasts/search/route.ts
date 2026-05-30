@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSearchedPodcasts } from "@/lib/data/podcast/search/getSearchedPodcasts";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
+import { withRequestMetrics } from "@/lib/metrics";
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "podcasts-search");
     if (rl instanceof NextResponse) return rl;
 
@@ -29,4 +30,4 @@ export async function GET(req: NextRequest) {
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

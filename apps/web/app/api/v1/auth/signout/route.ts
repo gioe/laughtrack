@@ -7,6 +7,7 @@ import {
     rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
+import { withRequestMetrics } from "@/lib/metrics";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -15,7 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
  * valid Bearer access token. iOS clients should still wipe their local
  * keychain entries after receiving a 200 response.
  */
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const rl = await checkRateLimit(
         `auth-signout:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -39,4 +40,4 @@ export async function POST(req: NextRequest) {
     const revoked = await revokeAllRefreshTokens(authCtx.userId);
 
     return NextResponse.json({ revoked }, { headers: rateLimitHeaders(rl) });
-}
+});

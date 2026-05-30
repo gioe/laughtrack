@@ -11,6 +11,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const ANON_COOKIE = "lt_anon_visitor_id";
 const ANON_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 395;
@@ -68,7 +69,7 @@ async function applyTicketClickRateLimit(
     return rl;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     let payload: unknown;
     try {
         payload = await req.json();
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
         });
     }
     return response;
-}
+});
 
 function parseDateParam(value: string | null): Date | null {
     if (!value) return null;
@@ -153,7 +154,7 @@ function toNumber(value: bigint | number | string | null | undefined): number {
     return Number(value ?? 0);
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const admin = await requireAdminForApi();
     if (!admin.ok) return admin.response;
 
@@ -211,4 +212,4 @@ export async function GET(req: NextRequest) {
         uniqueSignedInUsers: toNumber(row?.unique_signed_in_users),
         uniqueAnonymousVisitors: toNumber(row?.unique_anonymous_visitors),
     });
-}
+});

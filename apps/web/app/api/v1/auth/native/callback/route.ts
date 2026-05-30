@@ -6,6 +6,7 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 import { sanitizeAuthError } from "@/lib/auth/authErrorLogging";
+import { withRequestMetrics } from "@/lib/metrics";
 import {
     NATIVE_AUTH_DEEP_LINK,
     NATIVE_AUTH_PROVIDERS,
@@ -49,7 +50,7 @@ function logNativeAuthCallbackError(details: Record<string, unknown>) {
  * authenticated NextAuth session for the same mobile access + refresh token
  * pair, then redirects back into the app's URL scheme.
  */
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await checkRateLimit(
         `auth-native-callback:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
@@ -145,7 +146,7 @@ export async function GET(req: NextRequest) {
             }),
         );
     }
-}
+});
 
 async function readDiagnosticResponseBody(response: Response) {
     const contentType = response.headers.get("content-type") ?? "";

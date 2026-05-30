@@ -1,4 +1,5 @@
 import { cleanupExpiredRefreshTokens } from "@/lib/auth/refreshTokens";
+import { withRequestMetrics } from "@/lib/metrics";
 import { timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
  * active user rotates 2+ tokens per day on a 30-day TTL, and the unique index
  * on `token` plus the per-user updateMany on sign-out both slow down with size.
  */
-export async function POST(req: NextRequest) {
+export const POST = withRequestMetrics(async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization");
     const bearerToken = authHeader?.startsWith("Bearer ")
         ? authHeader.slice(7)
@@ -44,4 +45,4 @@ export async function POST(req: NextRequest) {
         console.error("[cron/cleanup-refresh-tokens] failed:", err);
         return NextResponse.json({ error: "cleanup_failed" }, { status: 500 });
     }
-}
+});

@@ -3,6 +3,7 @@ import { getPodcastDetailPageDataById } from "@/lib/data/podcast/detail/getPodca
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
+import { withRequestMetrics } from "@/lib/metrics";
 const POSITIVE_INTEGER_RE = /^[1-9]\d*$/;
 
 function parsePodcastId(raw: string): number | null {
@@ -14,7 +15,7 @@ function parsePodcastId(raw: string): number | null {
     return numericId;
 }
 
-export async function GET(
+export const GET = withRequestMetrics(async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -38,10 +39,7 @@ export async function GET(
             numericId,
             authCtx?.profileId,
         );
-        return NextResponse.json(
-            result,
-            { headers: rateLimitHeaders(rl) },
-        );
+        return NextResponse.json(result, { headers: rateLimitHeaders(rl) });
     } catch (error) {
         if (error instanceof NotFoundError) {
             return NextResponse.json(
@@ -56,4 +54,4 @@ export async function GET(
             { status: 500, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

@@ -6,6 +6,7 @@ import {
     type RateLimitResult,
 } from "@/lib/rateLimit";
 import { safePodcastImageUrl } from "@/lib/data/podcast/imageUrl";
+import { withRequestMetrics } from "@/lib/metrics";
 
 const CACHE_CONTROL = "public, max-age=86400, s-maxage=604800";
 
@@ -23,7 +24,7 @@ function unsupportedMediaType(rl: RateLimitResult) {
     );
 }
 
-export async function GET(req: NextRequest) {
+export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "podcast-artwork");
     if (rl instanceof NextResponse) return rl;
 
@@ -70,4 +71,4 @@ export async function GET(req: NextRequest) {
             { status: 502, headers: rateLimitHeaders(rl) },
         );
     }
-}
+});

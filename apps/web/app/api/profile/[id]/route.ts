@@ -1,5 +1,6 @@
 import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { updateUserProfileData } from "@/lib/data/profile/updateUserProfileData";
+import { withRequestMetrics } from "@/lib/metrics";
 import { NextRequest, NextResponse } from "next/server";
 import { UserProfileInterface } from "./interface";
 import { z } from "zod";
@@ -28,7 +29,7 @@ const ProfileUpdateSchema = z
 
 type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
 
-export async function PUT(
+export const PUT = withRequestMetrics(async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
@@ -84,4 +85,4 @@ export async function PUT(
                 { status: 500 },
             );
         });
-}
+});
