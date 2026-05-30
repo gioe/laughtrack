@@ -95,6 +95,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /comedians/search`.
     /// - Remark: Generated from `#/paths//comedians/search/get(searchComedians)`.
     func searchComedians(_ input: Operations.SearchComedians.Input) async throws -> Operations.SearchComedians.Output
+    /// Popularity-weighted random comedian suggestions for onboarding
+    ///
+    /// Returns a fresh popularity-weighted random sample of comedians with upcoming shows for the post-auth favorite-a-comedian onboarding grid. Unlike comedian search (deterministic popularity sort), membership and order vary per call. Optional auth: when a bearer token is supplied, isFavorite reflects the caller's existing favorites.
+    ///
+    /// - Remark: HTTP `GET /comedians/suggestions`.
+    /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)`.
+    func getComedianSuggestions(_ input: Operations.GetComedianSuggestions.Input) async throws -> Operations.GetComedianSuggestions.Output
     /// List past shows for a comedian
     ///
     /// Returns past shows (date < now) where the named comedian appeared in the lineup, ordered by date desc. Paginated.
@@ -473,6 +480,15 @@ extension APIProtocol {
             query: query,
             headers: headers
         ))
+    }
+    /// Popularity-weighted random comedian suggestions for onboarding
+    ///
+    /// Returns a fresh popularity-weighted random sample of comedians with upcoming shows for the post-auth favorite-a-comedian onboarding grid. Unlike comedian search (deterministic popularity sort), membership and order vary per call. Optional auth: when a bearer token is supplied, isFavorite reflects the caller's existing favorites.
+    ///
+    /// - Remark: HTTP `GET /comedians/suggestions`.
+    /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)`.
+    public func getComedianSuggestions(headers: Operations.GetComedianSuggestions.Input.Headers = .init()) async throws -> Operations.GetComedianSuggestions.Output {
+        try await getComedianSuggestions(Operations.GetComedianSuggestions.Input(headers: headers))
     }
     /// List past shows for a comedian
     ///
@@ -7382,6 +7398,256 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.SearchComedians.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Popularity-weighted random comedian suggestions for onboarding
+    ///
+    /// Returns a fresh popularity-weighted random sample of comedians with upcoming shows for the post-auth favorite-a-comedian onboarding grid. Unlike comedian search (deterministic popularity sort), membership and order vary per call. Optional auth: when a bearer token is supplied, isFavorite reflects the caller's existing favorites.
+    ///
+    /// - Remark: HTTP `GET /comedians/suggestions`.
+    /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)`.
+    public enum GetComedianSuggestions {
+        public static let id: Swift.String = "getComedianSuggestions"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/comedians/suggestions/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianSuggestions.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetComedianSuggestions.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetComedianSuggestions.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.GetComedianSuggestions.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/200/content/json`.
+                    public struct JsonPayload: Codable, Hashable, Sendable {
+                        /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/200/content/json/data`.
+                        public var data: [Components.Schemas.ComedianSearchItem]
+                        /// Creates a new `JsonPayload`.
+                        ///
+                        /// - Parameters:
+                        ///   - data:
+                        public init(data: [Components.Schemas.ComedianSearchItem]) {
+                            self.data = data
+                        }
+                        public enum CodingKeys: String, CodingKey {
+                            case data
+                        }
+                    }
+                    /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/200/content/application\/json`.
+                    case json(Operations.GetComedianSuggestions.Output.Ok.Body.JsonPayload)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Operations.GetComedianSuggestions.Output.Ok.Body.JsonPayload {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianSuggestions.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianSuggestions.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Comedian suggestions
+            ///
+            /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetComedianSuggestions.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetComedianSuggestions.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.GetComedianSuggestions.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianSuggestions.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.GetComedianSuggestions.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.GetComedianSuggestions.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetComedianSuggestions.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.GetComedianSuggestions.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/comedians/suggestions/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetComedianSuggestions.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetComedianSuggestions.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//comedians/suggestions/get(getComedianSuggestions)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetComedianSuggestions.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.GetComedianSuggestions.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

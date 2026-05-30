@@ -117,8 +117,8 @@ struct OnboardingTests {
         ))
     }
 
-    @Test("onboarding loads popular comedians before search")
-    func loadsPopularComediansInitially() async throws {
+    @Test("onboarding initial load uses the suggestions endpoint, not search")
+    func loadsSuggestionsInitially() async throws {
         let recorder = OnboardingRequestRecorder()
         let apiClient = Client(
             serverURL: URL(string: "https://example.com")!,
@@ -129,7 +129,9 @@ struct OnboardingTests {
         await model.loadInitialComedians(apiClient: apiClient, favorites: ComedianFavoriteStore())
 
         #expect(model.comedians.map(\.name) == ["Taylor Tomlinson", "Sam Morril", "Atsuko Okatsuka"])
-        #expect(await recorder.searchQueries == [""])
+        #expect(await recorder.suggestionsCalls == 1)
+        // Initial load must not hit the deterministic-popularity search path.
+        #expect(await recorder.searchQueries == [])
     }
 
     @Test("onboarding searches for more comedians")
@@ -264,6 +266,11 @@ private actor OnboardingRequestRecorder {
     private(set) var searchQueries: [String] = []
     private(set) var favoriteRequests: [String] = []
     private(set) var updateMeCalls = 0
+    private(set) var suggestionsCalls = 0
+
+    func recordSuggestions() {
+        suggestionsCalls += 1
+    }
 
     func recordSearch(_ query: String) {
         searchQueries.append(query)
@@ -288,6 +295,15 @@ private struct MockOnboardingTransport: ClientTransport {
         operationID: String
     ) async throws -> (HTTPResponse, HTTPBody?) {
         switch operationID {
+        case "getComedianSuggestions":
+            await recorder.recordSuggestions()
+            return jsonResponse(Operations.GetComedianSuggestions.Output.Ok.Body.JsonPayload(
+                data: [
+                    .comedian(id: 1, uuid: "comedian-1", name: "Taylor Tomlinson"),
+                    .comedian(id: 2, uuid: "comedian-2", name: "Sam Morril"),
+                    .comedian(id: 3, uuid: "comedian-3", name: "Atsuko Okatsuka"),
+                ]
+            ))
         case "searchComedians":
             let query = searchQuery(from: request.path)
             await recorder.recordSearch(query)

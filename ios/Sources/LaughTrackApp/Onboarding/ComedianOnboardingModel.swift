@@ -65,7 +65,7 @@ final class ComedianOnboardingModel: ObservableObject {
         apiClient: Client,
         favorites: ComedianFavoriteStore
     ) async {
-        await load(query: "", apiClient: apiClient, favorites: favorites)
+        await loadSuggestions(apiClient: apiClient, favorites: favorites)
     }
 
     func search(
@@ -133,6 +133,31 @@ final class ComedianOnboardingModel: ObservableObject {
         await markServerOnboardingComplete(apiClient: apiClient, authManager: authManager)
     }
 
+    // Initial onboarding load: a fresh popularity-weighted random sample so the
+    // favorite-a-comedian grid varies between sessions instead of always showing
+    // the same fixed top-N that a deterministic popularity sort would return.
+    private func loadSuggestions(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async {
+        phase = .loading
+        do {
+            let output = try await apiClient.getComedianSuggestions()
+
+            guard case .ok(let ok) = output else {
+                phase = .failure("LaughTrack could not load comedians right now.")
+                return
+            }
+
+            comedians = try ok.body.json.data.map { resolveFavorite($0, favorites: favorites) }
+            phase = .loaded
+        } catch {
+            phase = .failure("LaughTrack could not reach the comedians service. Please try again.")
+        }
+    }
+
+    // Explicit search box query: a deterministic popularity sort is the right
+    // behavior here, so this path stays on searchComedians.
     private func load(
         query: String,
         apiClient: Client,
@@ -155,16 +180,23 @@ final class ComedianOnboardingModel: ObservableObject {
                 return
             }
 
-            comedians = try ok.body.json.data.map { comedian in
-                favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
-                var item = comedian
-                item.isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
-                return item
-            }
+            comedians = try ok.body.json.data.map { resolveFavorite($0, favorites: favorites) }
             phase = .loaded
         } catch {
             phase = .failure("LaughTrack could not reach the comedians service. Please try again.")
         }
+    }
+
+    // Seed the favorite store from the server-reported flag, then echo back the
+    // store's resolved value so locally-toggled favorites win over stale server data.
+    private func resolveFavorite(
+        _ comedian: Components.Schemas.ComedianSearchItem,
+        favorites: ComedianFavoriteStore
+    ) -> Components.Schemas.ComedianSearchItem {
+        favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+        var item = comedian
+        item.isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
+        return item
     }
 
     private func markServerOnboardingComplete(
