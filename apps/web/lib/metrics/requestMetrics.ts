@@ -33,8 +33,13 @@ export function startOfHour(date: Date): Date {
  * both record against `/api/v1/comedians/[id]` rather than spawning a row per id.
  *
  * Catch-all segments (`params` value is an array) collapse to `[...param]`.
- * Substitution is anchored to full path segments so a param value can't match a
- * coincidental substring of a static segment.
+ * Substitution is anchored to full path segments — a leading "/" and a trailing
+ * "/" or end-of-string — so a param value can never match a coincidental
+ * substring of a static segment. The greedy `(.*)` prefix anchors to the LAST
+ * matching run of segments: dynamic segments are the trailing/most-specific part
+ * of these routes, so when a value coincides with an earlier static segment
+ * (e.g. `/api/clubs/clubs` with `id="clubs"`) the trailing segment is collapsed
+ * (`/api/clubs/[id]`), not the earlier one.
  */
 export function normalizeRoutePattern(
     pathname: string,
@@ -47,15 +52,18 @@ export function normalizeRoutePattern(
     let pattern = pathname;
     for (const [key, value] of Object.entries(params)) {
         if (Array.isArray(value)) {
-            const joined = value.join("/");
+            const joined = value.map(escapeRegExp).join("/");
             if (joined) {
-                pattern = pattern.replace(joined, `[...${key}]`);
+                pattern = pattern.replace(
+                    new RegExp(`^(.*)/${joined}(?=/|$)`),
+                    `$1/[...${key}]`,
+                );
             }
         } else if (value) {
-            // Anchor to segment boundaries: a leading "/" or start, and a
-            // trailing "/" or end, so "123" only matches the "/123" segment.
-            const segment = new RegExp(`(^|/)${escapeRegExp(value)}(?=/|$)`);
-            pattern = pattern.replace(segment, `$1[${key}]`);
+            pattern = pattern.replace(
+                new RegExp(`^(.*)/${escapeRegExp(value)}(?=/|$)`),
+                `$1/[${key}]`,
+            );
         }
     }
     return pattern;

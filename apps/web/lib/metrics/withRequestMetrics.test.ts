@@ -16,7 +16,6 @@ vi.mock("@vercel/functions", () => ({
 
 vi.mock("@/lib/db", () => ({
     db: { $executeRaw: executeRawMock },
-    prisma: { $executeRaw: executeRawMock },
 }));
 
 import { withRequestMetrics } from "./withRequestMetrics";
@@ -83,6 +82,20 @@ describe("normalizeRoutePattern", () => {
         expect(
             normalizeRoutePattern("/api/files/a/b/c", { path: ["a", "b", "c"] }),
         ).toBe("/api/files/[...path]");
+    });
+
+    it("collapses the trailing dynamic segment when the value also appears as an earlier static segment", () => {
+        // The dynamic [id] is the trailing segment; matching the last
+        // occurrence avoids rewriting the earlier static "clubs".
+        expect(
+            normalizeRoutePattern("/api/clubs/clubs", { id: "clubs" }),
+        ).toBe("/api/clubs/[id]");
+    });
+
+    it("anchors a catch-all to its trailing run, not an earlier coincidental one", () => {
+        expect(
+            normalizeRoutePattern("/api/a/b/files/a/b", { path: ["a", "b"] }),
+        ).toBe("/api/a/b/files/[...path]");
     });
 });
 
