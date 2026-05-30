@@ -25,19 +25,28 @@ describe("GET /api/v1/auth/native/callback", () => {
         vi.restoreAllMocks();
     });
 
+    // Mock fetch with mockImplementation (fresh Response per call), NOT
+    // mockResolvedValue(new Response(...)). A Response body is single-use: a
+    // shared instance is fine in isolation but flakes in the full suite, where
+    // a leaked cross-file fetch consumer can read the body before the handler's
+    // `await response.json()` runs, surfacing as
+    //   TypeError: Body is unusable: Body has already been read
+    // nondeterministically (~1/3 of full-suite runs). Returning a new Response
+    // per call gives every consumer its own unconsumed body. See TASK-2533.
     it("redirects back into the app with the exchanged tokens", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
         );
 
         const { GET } = await import("./route");
@@ -69,18 +78,19 @@ describe("GET /api/v1/auth/native/callback", () => {
     });
 
     it("accepts email magic-link callbacks and returns the mobile token session", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
         );
 
         const { GET } = await import("./route");
@@ -142,11 +152,12 @@ describe("GET /api/v1/auth/native/callback", () => {
         const consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => undefined);
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(JSON.stringify({ message: "Unauthorized" }), {
-                status: 401,
-                headers: { "content-type": "application/json" },
-            }),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(JSON.stringify({ message: "Unauthorized" }), {
+                    status: 401,
+                    headers: { "content-type": "application/json" },
+                }),
         );
 
         const { GET } = await import("./route");
@@ -175,11 +186,12 @@ describe("GET /api/v1/auth/native/callback", () => {
         const consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => undefined);
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(JSON.stringify({ accessToken: "access-jwt" }), {
-                status: 200,
-                headers: { "content-type": "application/json" },
-            }),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(JSON.stringify({ accessToken: "access-jwt" }), {
+                    status: 200,
+                    headers: { "content-type": "application/json" },
+                }),
         );
 
         const { GET } = await import("./route");
@@ -268,18 +280,19 @@ describe("GET /api/v1/auth/native/callback", () => {
     });
 
     it("ignores attacker-supplied laughtrack:// deep_link hosts and falls back to canonical", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
         );
 
         const { GET } = await import("./route");
@@ -296,18 +309,19 @@ describe("GET /api/v1/auth/native/callback", () => {
     });
 
     it("falls back to the canonical deep link for non-laughtrack callbackUrl values", async () => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
         );
 
         const { GET } = await import("./route");
@@ -340,18 +354,19 @@ describe("GET /api/v1/auth/native/callback", () => {
             "deep_link=laughtrack%3A%2F%2Fevil%40auth%2Fcallback",
         ],
     ])("strips %s", async (_label, queryFragment) => {
-        vi.spyOn(global, "fetch").mockResolvedValue(
-            new Response(
-                JSON.stringify({
-                    accessToken: "access-jwt",
-                    refreshToken: "opaque-refresh",
-                    expiresIn: 900,
-                }),
-                {
-                    status: 200,
-                    headers: { "content-type": "application/json" },
-                },
-            ),
+        vi.spyOn(global, "fetch").mockImplementation(
+            async () =>
+                new Response(
+                    JSON.stringify({
+                        accessToken: "access-jwt",
+                        refreshToken: "opaque-refresh",
+                        expiresIn: 900,
+                    }),
+                    {
+                        status: 200,
+                        headers: { "content-type": "application/json" },
+                    },
+                ),
         );
 
         const { GET } = await import("./route");
