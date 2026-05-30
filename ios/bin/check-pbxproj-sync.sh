@@ -196,7 +196,21 @@ else
     }
     trap restore_snapshots EXIT
 
-    if ! (cd "$IOS_DIR" && xcodegen generate) >"$xcodegen_log" 2>&1; then
+    xcodegen_rc=0
+    (cd "$IOS_DIR" && xcodegen generate) >"$xcodegen_log" 2>&1 || xcodegen_rc=$?
+
+    if (( xcodegen_rc >= 128 )); then
+        # Killed by a signal (e.g. 139 = SIGSEGV). XcodeGen built from source on
+        # the Linux CI runner segfaults under the runner's current Swift 6.x
+        # toolchain ("Signal 11 ... Bad pointer dereference at 0x0"). That's a
+        # toolchain/runtime fault, not Info.plist drift — degrade to a WARN so
+        # checks 1 & 2 still gate the workflow, mirroring the "xcodegen absent →
+        # skip" branch above. Real drift is still caught by any local
+        # 'xcodegen generate' on macOS, where the binary doesn't crash.
+        echo "WARN: xcodegen generate crashed (exit $xcodegen_rc, signal $((xcodegen_rc - 128))) — skipping Info.plist drift check"
+        echo "      Linux toolchain fault, not project drift; the wiring + version checks above still ran"
+        sed 's/^/  /' "$xcodegen_log" >&2
+    elif (( xcodegen_rc != 0 )); then
         echo "ERROR: xcodegen generate failed while running Info.plist drift check:" >&2
         sed 's/^/  /' "$xcodegen_log" >&2
         fail_rc=1
