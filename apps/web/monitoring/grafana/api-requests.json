@@ -1,0 +1,92 @@
+{
+  "title": "API Requests",
+  "uid": "api-requests",
+  "tags": ["api", "laughtrack"],
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "",
+  "time": { "from": "now-7d", "to": "now" },
+  "annotations": { "list": [] },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Requests per route over time",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "min": 0, "custom": { "drawStyle": "line", "stacking": { "mode": "normal" } } },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+          "rawSql": "SELECT hour_bucket AS \"time\", route_pattern AS metric, SUM(count) AS requests FROM api_request_metrics WHERE $__timeFilter(hour_bucket) GROUP BY hour_bucket, route_pattern ORDER BY hour_bucket"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Top routes by volume",
+      "type": "table",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+          "rawSql": "SELECT route_pattern, SUM(count) AS requests FROM api_request_metrics WHERE $__timeFilter(hour_bucket) GROUP BY route_pattern ORDER BY requests DESC LIMIT 20"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Requests by status_class over time",
+      "type": "timeseries",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "min": 0, "custom": { "drawStyle": "bars", "stacking": { "mode": "normal" } } },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "format": "time_series",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+          "rawSql": "SELECT hour_bucket AS \"time\", status_class AS metric, SUM(count) AS requests FROM api_request_metrics WHERE $__timeFilter(hour_bucket) GROUP BY hour_bucket, status_class ORDER BY hour_bucket"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Requests by HTTP method",
+      "type": "piechart",
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "pieType": "donut", "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] } },
+      "targets": [
+        {
+          "refId": "A",
+          "format": "table",
+          "rawQuery": true,
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "dfnjxqagicw74a" },
+          "rawSql": "SELECT method, SUM(count) AS requests FROM api_request_metrics WHERE $__timeFilter(hour_bucket) GROUP BY method ORDER BY requests DESC"
+        }
+      ]
+    }
+  ]
+}
