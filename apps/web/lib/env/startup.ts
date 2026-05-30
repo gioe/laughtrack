@@ -54,6 +54,16 @@ export function validateWebStartupEnv({
     env = process.env,
     logger = console,
 }: StartupEnvValidationOptions = {}) {
+    // Fixture mode (the E2E visual-regression CI job) serves home-page
+    // fixtures and bypasses auth(), so it never exercises the DB or Google
+    // OAuth creds — requiring them would only block the visual run from
+    // booting. Mirror the VERCEL_ENV belt-and-suspenders from app/page.tsx so
+    // a stray E2E_FIXTURE_MODE=1 on a Vercel production deploy is NOT honored
+    // and still validates fully.
+    if (env.VERCEL_ENV !== "production" && env.E2E_FIXTURE_MODE === "1") {
+        return;
+    }
+
     const missing = getMissingStartupEnv(env);
     if (missing.length === 0) return;
 

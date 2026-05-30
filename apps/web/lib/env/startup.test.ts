@@ -45,4 +45,27 @@ describe("startup env validation", () => {
             "Missing required web startup environment variables: AUTH_SECRET or NEXTAUTH_SECRET, AUTH_GOOGLE_ID or GOOGLE_CLIENT_ID",
         );
     });
+
+    it("skips validation in fixture mode outside Vercel production", () => {
+        const logger = { error: vi.fn() };
+
+        expect(() =>
+            validateWebStartupEnv({
+                env: { E2E_FIXTURE_MODE: "1" },
+                logger,
+            }),
+        ).not.toThrow();
+        expect(logger.error).not.toHaveBeenCalled();
+    });
+
+    it("still validates in Vercel production even if fixture mode leaks in", () => {
+        const logger = { error: vi.fn() };
+
+        expect(() =>
+            validateWebStartupEnv({
+                env: { E2E_FIXTURE_MODE: "1", VERCEL_ENV: "production" },
+                logger,
+            }),
+        ).toThrow(MissingStartupEnvError);
+    });
 });
