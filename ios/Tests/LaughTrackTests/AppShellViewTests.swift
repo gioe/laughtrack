@@ -181,12 +181,21 @@ struct AppShellViewTests {
         // mounted mini player can't be asserted via findView (TASK-2535). The
         // shell mounts PodcastMiniPlayerView unconditionally in its bottom
         // safe-area inset, and that view renders its chrome iff the shared
-        // PodcastPlaybackController has an active item — so verify the gating
-        // state directly after start(_:).
+        // PodcastPlaybackController has an active item (PodcastMiniPlayerView.body
+        // is `if let item = player.currentItem`). The old findView assertion
+        // proved the visible direction; cover both gating directions at the
+        // model layer so the hidden-when-empty branch isn't silently dropped.
+
+        // Active item → mini player chrome is shown.
         #expect(player.currentItem?.id == 901)
         #expect(player.currentItem?.podcastID == 301)
         #expect(player.currentItem?.episodeTitle == "Shell Episode")
         #expect(player.isPlaying)
+
+        // No active item → mini player chrome is hidden.
+        player.dismiss()
+        #expect(player.currentItem == nil)
+        #expect(!player.isPlaying)
     }
 
     @Test("shell account header targets the profile route")
