@@ -145,13 +145,12 @@ def test_driver_continues_after_closed_connection_during_podcast_sync(monkeypatc
         (43, "itunes", "67890", "https://feeds.example.com/healthy.xml", "Healthy Talk", {"raw": True}),
     ]
     loader_conn = _FakeConn(podcast_rows)
-    failed_sync_conn = _FakeConn()
-    record_conn = _FakeConn()
-    healthy_sync_conn = _FakeConn()
+    first_sync_conn = _FakeConn()
+    second_sync_conn = _FakeConn()
     after_count_conn = _FakeConn()
-    # A failed fetch now opens one extra connection (record_conn) to persist the
-    # feed's unreachable state before the run moves on to the next podcast.
-    connections = [loader_conn, failed_sync_conn, record_conn, healthy_sync_conn, after_count_conn]
+    # A persist/DB error must NOT bench the feed, so no extra record connection is
+    # opened on this path (only genuine fetch failures record unreachable state).
+    connections = [loader_conn, first_sync_conn, second_sync_conn, after_count_conn]
     autocommit_modes: list[bool] = []
     events: list[str] = []
     sync_calls: list[int] = []
@@ -183,22 +182,11 @@ def test_driver_continues_after_closed_connection_during_podcast_sync(monkeypatc
     assert summary.podcasts_scanned == 2
     assert summary.podcasts_failed == 1
     assert summary.episodes_inserted == 1
-    assert autocommit_modes == [True, False, False, False, True]
-    assert events == [
-        "connect:True",
-        "fetch:42",
-        "connect:False",
-        "connect:False",
-        "fetch:43",
-        "connect:False",
-        "connect:True",
-    ]
+    assert autocommit_modes == [True, False, False, True]
+    assert events == ["connect:True", "fetch:42", "connect:False", "fetch:43", "connect:False", "connect:True"]
     assert sync_calls == [42, 43]
-    assert healthy_sync_conn.last_synced_updates == [(43,)]
-    assert healthy_sync_conn.commits == 1
-    # The failed feed's unreachable state was recorded on its own committed txn.
-    assert record_conn.commits == 1
-    assert any("source_payload" in sql for sql, _ in record_conn.executed)
+    assert second_sync_conn.last_synced_updates == [(43,)]
+    assert second_sync_conn.commits == 1
 
 
 def test_load_podcasts_query_skips_feeds_in_reachability_cooldown():
@@ -251,6 +239,27 @@ def test_dry_run_does_not_record_unreachable_on_fetch_failure(monkeypatch):
     monkeypatch.setattr(mod.reader, "record_fetch_failure", lambda _conn, p: recorded.append(p.podcast_id) or 1)
 
     summary = mod.sync_podcasts_from_rss(dry_run=True, limit=1, source=None)
+
+    assert summary.podcasts_failed == 1
+    assert recorded == []
+
+
+def test_persist_error_does_not_bench_reachable_feed(monkeypatch):
+    # A successful fetch followed by a downstream persist/DB error must count as a
+    # failure but must NOT increment the feed's reachability backoff counter.
+    conn = _FakeConn()
+    recorded: list[int] = []
+
+    monkeypatch.setattr(mod, "get_connection", lambda *, autocommit=False: conn)
+    monkeypatch.setattr(mod.reader, "fetch_rss_episodes", lambda _podcast: mod.reader.RssFetchResult())
+
+    def fake_persist(_conn: Any, _podcast: Any, _fetched: Any, *, dry_run: bool) -> Any:
+        raise psycopg2.OperationalError("transient DB error")
+
+    monkeypatch.setattr(mod.reader, "persist_rss_fetch_result", fake_persist)
+    monkeypatch.setattr(mod.reader, "record_fetch_failure", lambda _conn, p: recorded.append(p.podcast_id) or 1)
+
+    summary = mod.sync_podcasts_from_rss(dry_run=False, limit=1, source=None)
 
     assert summary.podcasts_failed == 1
     assert recorded == []

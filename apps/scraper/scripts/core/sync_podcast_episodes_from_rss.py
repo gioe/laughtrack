@@ -21,6 +21,15 @@ from laughtrack.core import rss_episode_reader as reader
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
+class FeedUnreachableError(RuntimeError):
+    """A feed could not be fetched/parsed (network, HTTP, or malformed RSS).
+
+    Wraps the underlying fetch error so the driver can tell a genuinely
+    unreachable feed apart from a downstream persistence failure — only the
+    former should increment the feed's reachability backoff counter.
+    """
+
+
 @dataclass
 class DriverSummary:
     podcasts_scanned: int = 0
@@ -132,9 +141,10 @@ def _load_sync_inputs(
 def _record_unreachable(podcast: reader.PodcastRssFeed) -> None:
     """Persist a feed's failed-fetch outcome on its own short transaction.
 
-    The fetch in ``_sync_one_podcast`` raises before any DB connection is opened,
-    so the failure is recorded here. Wrapped defensively: a bookkeeping write
-    must never abort the sync run.
+    Only called for ``FeedUnreachableError`` (a genuine fetch/network/parse
+    failure), never for a downstream persist error — so a reachable feed is
+    never benched by a transient DB hiccup. Wrapped defensively: a bookkeeping
+    write must never abort the sync run.
     """
     try:
         with get_connection(autocommit=False) as conn:
@@ -151,7 +161,13 @@ def _record_unreachable(podcast: reader.PodcastRssFeed) -> None:
 
 
 def _sync_one_podcast(podcast: reader.PodcastRssFeed, *, dry_run: bool) -> reader.RssSyncSummary:
-    fetched = reader.fetch_rss_episodes(podcast)
+    try:
+        fetched = reader.fetch_rss_episodes(podcast)
+    except Exception as exc:
+        # Reachability failures originate here (network/HTTP/parse) — tag them so
+        # the driver benches only genuinely unreachable feeds, never a reachable
+        # feed that hit a downstream persist/DB error.
+        raise FeedUnreachableError(str(exc)) from exc
     with get_connection(autocommit=False) as conn:
         try:
             podcast_summary = reader.persist_rss_fetch_result(conn, podcast, fetched, dry_run=dry_run)
@@ -194,7 +210,9 @@ def sync_podcasts_from_rss(
             message = f"podcast {podcast.podcast_id} ({podcast.title}): {exc}"
             summary.per_podcast_errors.append(message)
             Logger.warn(f"[rss-episode-reader] sync failed for {message}")
-            if not dry_run:
+            # Only bench feeds whose fetch failed; a downstream persist/DB error
+            # must not increment a reachable feed's reachability backoff counter.
+            if not dry_run and isinstance(exc, FeedUnreachableError):
                 _record_unreachable(podcast)
             continue
 
