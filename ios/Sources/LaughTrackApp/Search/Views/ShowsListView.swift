@@ -6,6 +6,22 @@ import LaughTrackCore
 import UIKit
 #endif
 
+/// Pure description of which Shows-list chrome is visible for a given mode.
+/// Compact mode (used by pinned rails such as club / comedian detail) hides
+/// the full comedian/club search fields and the sort + filter pills, keeping
+/// only the location and date affordances. Extracted so the behaviour can be
+/// verified without hosting the view — HostedView's accessibility-tree wiring
+/// is broken on iOS 26.x / 18.6 simulators, so a dump-based assertion is
+/// unreliable (TASK-2535).
+struct ShowsListChromeVisibility: Equatable {
+    let compactMode: Bool
+
+    var showsSearchFields: Bool { !compactMode }
+    var showsSortControl: Bool { !compactMode }
+    var showsFilterControl: Bool { !compactMode }
+    var showsDateControl: Bool { true }
+}
+
 struct ShowsListView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsListModel
@@ -27,9 +43,13 @@ struct ShowsListView: View {
         serviceContainer.resolve(DataCache<LaughTrackCacheKey>.self)
     }
 
+    private var chrome: ShowsListChromeVisibility {
+        ShowsListChromeVisibility(compactMode: compactMode)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
-                if !compactMode {
+                if chrome.showsSearchFields {
                     if let unifiedSearchText {
                         SearchField(
                             title: "Search",
@@ -208,6 +228,10 @@ private struct ShowFiltersPanel: View {
     @Binding var openDropdownID: String?
     let compactMode: Bool
 
+    private var chrome: ShowsListChromeVisibility {
+        ShowsListChromeVisibility(compactMode: compactMode)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
             ChipFlowLayout(spacing: theme.spacing.sm, rowSpacing: theme.spacing.sm) {
@@ -221,7 +245,7 @@ private struct ShowFiltersPanel: View {
                     )
                 }
 
-                if !compactMode {
+                if chrome.showsSortControl {
                     PillDropdownTrigger(
                         id: "shows-sort",
                         selected: model.sort,
@@ -251,7 +275,7 @@ private struct ShowFiltersPanel: View {
                     isDateEditorPresented = true
                 }
 
-                if !compactMode {
+                if chrome.showsFilterControl {
                     PillSheetTrigger(
                         title: activeFilterCount > 0 ? filterCountTitle : "Filters",
                         systemImage: "line.3.horizontal.decrease",

@@ -181,33 +181,36 @@ struct SearchRootViewTests {
         #expect(searchRootQueryValue("comedian", from: request.path) == "Atsuko")
     }
 
-    #if canImport(UIKit)
     @Test("shows list compact mode hides full search and filter chrome")
     func showsListCompactModeHidesFullSearchAndFilterChrome() async throws {
-        let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shows-list-compact-mode")
-        let nearbyLocationController = container.resolve(NearbyLocationController.self)
-        let model = ShowsListModel(nearbyLocationController: nearbyLocationController)
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let host = HostedView(
-            ShowsListView(
-                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                model: model,
-                compactMode: true,
-                isActive: false
-            )
-            .environment(\.appTheme, LaughTrackTheme())
-            .environment(\.serviceContainer, container)
-            .navigationCoordinator(coordinator)
-        )
+        // HostedView accessibility-tree wiring is broken on iOS 26.x / 18.6, so
+        // the chrome can't be asserted via dumpAccessibilityTree (TASK-2535).
+        // Compact vs. full chrome is now derived by the pure
+        // ShowsListChromeVisibility that both ShowsListView and ShowFiltersPanel
+        // consume, so verify that derivation directly.
+        let compact = ShowsListChromeVisibility(compactMode: true)
+        #expect(!compact.showsSearchFields)   // hides the Comedian/Club search fields
+        #expect(!compact.showsSortControl)    // hides the "Sort Earliest" pill
+        #expect(!compact.showsFilterControl)  // hides the "Filter results" pill
+        #expect(compact.showsDateControl)     // keeps the date ("Today") pill
 
-        let dump = host.dumpAccessibilityTree()
-        #expect(!dump.contains("Comedian"))
-        #expect(!dump.contains("Club"))
-        #expect(!dump.contains("Sort Earliest"))
-        #expect(!dump.contains("Filter results"))
-        #expect(dump.contains("Today"))
+        let full = ShowsListChromeVisibility(compactMode: false)
+        #expect(full.showsSearchFields)
+        #expect(full.showsSortControl)
+        #expect(full.showsFilterControl)
+        #expect(full.showsDateControl)
+
+        // The date control stays visible in compact mode and reflects the
+        // default active "Today" range that the date pill renders.
+        let model = ShowsListModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver(),
+                zipLocationResolver: StubZipLocationResolver()
+            )
+        )
+        #expect(model.dateRange.isActive)
     }
-    #endif
 }
 
 @Suite("Search root model")
