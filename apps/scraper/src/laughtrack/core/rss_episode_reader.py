@@ -17,6 +17,15 @@ _MAX_RETRIES = 3
 _BASE_RETRY_DELAY_S = 2.0
 _CACHE_KEY = "rss_episode_reader"
 
+# Per-feed reachability backoff. A feed that fails to fetch
+# UNREACHABLE_FAILURE_THRESHOLD runs in a row is benched (skipped by the load
+# query) for UNREACHABLE_COOLDOWN_DAYS, after which it is re-attempted exactly
+# once per cooldown window. Any successful fetch (200 or 304) resets the
+# counter, so a feed that recovers rejoins the normal rotation immediately and
+# is never permanently blacklisted.
+UNREACHABLE_FAILURE_THRESHOLD = 3
+UNREACHABLE_COOLDOWN_DAYS = 7
+
 
 @dataclass(frozen=True)
 class PodcastRssFeed:
@@ -310,18 +319,73 @@ def upsert_episode_with_result(conn: Any, episode: RssEpisodeRow) -> EpisodeUpse
     return EpisodeUpsertResult(episode_id=int(row[0]), inserted=bool(row[1]), changed=True)
 
 
-def _update_podcast_cache(conn: Any, podcast: PodcastRssFeed, result: RssFetchResult) -> None:
-    if not result.etag and not result.last_modified:
-        return
+def record_fetch_success(conn: Any, podcast: PodcastRssFeed, result: RssFetchResult) -> None:
+    """Persist conditional-cache headers and clear any reachability backoff state.
+
+    A successful fetch (HTTP 200 or 304) means the feed is reachable, so we drop
+    the consecutive-failure counter and stamp ``last_success_at``. The write is
+    skipped entirely when nothing changed, so steady-state feeds without ETags
+    do not incur an extra UPDATE per run.
+    """
     payload = dict(podcast.source_payload or {})
     cache = dict(payload.get(_CACHE_KEY) or {})
-    if result.etag:
+
+    needs_write = False
+    if result.etag and cache.get("etag") != result.etag:
         cache["etag"] = result.etag
-    if result.last_modified:
+        needs_write = True
+    if result.last_modified and cache.get("last_modified") != result.last_modified:
         cache["last_modified"] = result.last_modified
+        needs_write = True
+    if cache.get("consecutive_failures") or cache.get("last_failure_at"):
+        cache.pop("consecutive_failures", None)
+        cache.pop("last_failure_at", None)
+        needs_write = True
+
+    if not needs_write:
+        return
+
+    cache["last_success_at"] = datetime.now(timezone.utc).isoformat()
     payload[_CACHE_KEY] = cache
     with conn.cursor() as cur:
         cur.execute(_UPDATE_PODCAST_CACHE_SQL, (json.dumps(payload, sort_keys=True), podcast.podcast_id))
+
+
+def reachable_feed_clause() -> tuple[str, list[Any]]:
+    """SQL boolean (true => feed is reachable / eligible) plus its bind params.
+
+    AND it into a WHERE to skip feeds in reachability cooldown, or negate it to
+    count benched feeds. A feed is eligible when it is under the consecutive
+    failure threshold OR its cooldown has elapsed (so dead feeds are re-probed
+    once per cooldown window and never permanently blacklisted). COALESCE keeps
+    the predicate non-NULL for feeds that have never failed. Keeps the
+    source_payload cache schema encapsulated in this module.
+    """
+    clause = (
+        "(COALESCE((source_payload -> %s ->> 'consecutive_failures')::int, 0) < %s"
+        " OR COALESCE((source_payload -> %s ->> 'last_failure_at')::timestamptz, 'epoch'::timestamptz)"
+        " <= NOW() - make_interval(days => %s))"
+    )
+    params: list[Any] = [_CACHE_KEY, UNREACHABLE_FAILURE_THRESHOLD, _CACHE_KEY, UNREACHABLE_COOLDOWN_DAYS]
+    return clause, params
+
+
+def record_fetch_failure(conn: Any, podcast: PodcastRssFeed) -> int:
+    """Increment the feed's consecutive-failure counter and stamp ``last_failure_at``.
+
+    Returns the new consecutive-failure count. Once it reaches
+    ``UNREACHABLE_FAILURE_THRESHOLD`` the load query benches the feed for
+    ``UNREACHABLE_COOLDOWN_DAYS`` (see ``sync_podcast_episodes_from_rss``).
+    """
+    payload = dict(podcast.source_payload or {})
+    cache = dict(payload.get(_CACHE_KEY) or {})
+    failures = int(cache.get("consecutive_failures") or 0) + 1
+    cache["consecutive_failures"] = failures
+    cache["last_failure_at"] = datetime.now(timezone.utc).isoformat()
+    payload[_CACHE_KEY] = cache
+    with conn.cursor() as cur:
+        cur.execute(_UPDATE_PODCAST_CACHE_SQL, (json.dumps(payload, sort_keys=True), podcast.podcast_id))
+    return failures
 
 
 def persist_rss_fetch_result(
@@ -351,7 +415,7 @@ def persist_rss_fetch_result(
             summary.episodes_unchanged += 1
 
     if not dry_run:
-        _update_podcast_cache(conn, podcast, fetched)
+        record_fetch_success(conn, podcast, fetched)
 
     return summary
 

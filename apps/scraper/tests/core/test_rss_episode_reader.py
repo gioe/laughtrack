@@ -220,3 +220,65 @@ def test_sync_upserts_deduped_guid_rows_with_parent_source(monkeypatch):
     assert json.loads(upsert_params[10]) == {"rss_guid": "rss-guid-1"}
     assert conn.podcast_updates
     assert json.loads(conn.podcast_updates[0][0])["rss_episode_reader"]["etag"] == '"fresh"'
+
+
+def test_record_fetch_failure_increments_counter_and_stamps_timestamp():
+    conn = _FakeConn()
+    podcast = _podcast(source_payload={"collectionId": 1, "rss_episode_reader": {"consecutive_failures": 2}})
+
+    failures = mod.record_fetch_failure(conn, podcast)
+
+    assert failures == 3
+    assert conn.podcast_updates
+    cache = json.loads(conn.podcast_updates[0][0])["rss_episode_reader"]
+    assert cache["consecutive_failures"] == 3
+    assert cache["last_failure_at"]
+
+
+def test_record_fetch_failure_starts_at_one_for_clean_feed():
+    conn = _FakeConn()
+    podcast = _podcast(source_payload={})
+
+    assert mod.record_fetch_failure(conn, podcast) == 1
+    cache = json.loads(conn.podcast_updates[0][0])["rss_episode_reader"]
+    assert cache["consecutive_failures"] == 1
+
+
+def test_record_fetch_success_clears_failure_state_even_without_etag():
+    conn = _FakeConn()
+    podcast = _podcast(
+        source_payload={"rss_episode_reader": {"consecutive_failures": 5, "last_failure_at": "2024-05-01T00:00:00+00:00"}}
+    )
+
+    mod.record_fetch_success(conn, podcast, mod.RssFetchResult(not_modified=True))
+
+    assert conn.podcast_updates
+    cache = json.loads(conn.podcast_updates[0][0])["rss_episode_reader"]
+    assert "consecutive_failures" not in cache
+    assert "last_failure_at" not in cache
+    assert cache["last_success_at"]
+
+
+def test_record_fetch_success_is_noop_when_nothing_changed():
+    conn = _FakeConn()
+    # Cache already holds the same etag/last_modified the response returns and has no failures.
+    podcast = _podcast()
+    result = mod.RssFetchResult(etag='"cached-etag"', last_modified="Wed, 01 May 2024 00:00:00 GMT")
+
+    mod.record_fetch_success(conn, podcast, result)
+
+    assert conn.podcast_updates == []
+
+
+def test_reachable_feed_clause_params_match_thresholds():
+    clause, params = mod.reachable_feed_clause()
+
+    assert "consecutive_failures" in clause
+    assert "last_failure_at" in clause
+    assert clause.count("%s") == len(params) == 4
+    assert params == [
+        mod._CACHE_KEY,
+        mod.UNREACHABLE_FAILURE_THRESHOLD,
+        mod._CACHE_KEY,
+        mod.UNREACHABLE_COOLDOWN_DAYS,
+    ]
