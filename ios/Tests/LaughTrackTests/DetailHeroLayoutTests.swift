@@ -25,29 +25,10 @@ struct DetailHeroLayoutTests {
         #expect(DetailHeroLayout.heroTextShadowOpacity >= 0.7)
     }
 
-    @Test("show detail turns lone lineup performer titles into a headline title")
-    func showDetailTurnsLoneLineupPerformerTitleIntoHeadline() {
-        var show = Self.showDetail()
-        show.name = "Vanessa Jackson"
-        show.club = .init(
-            id: 301,
-            name: "The Broadway Comedy Club",
-            address: "318 W. 53rd St, New York, NY",
-            imageUrl: "https://example.com/club.png",
-            timezone: "America/New_York"
-        )
-        show.lineup = [
-            .init(
-                name: "Vanessa Jackson",
-                imageUrl: "https://example.com/vanessa.png",
-                uuid: "vanessa-jackson",
-                id: 401,
-                showCount: 1
-            )
-        ]
-
-        #expect(ShowTitlePresentation.title(for: show) == "Vanessa Jackson Headlines")
-    }
+    // The solo-headliner title fixture that previously lived here moved to
+    // ShowTitlePresentationTests — `ShowTitlePresentation.title(for:)` rendering is
+    // not a hero-layout concern, and keeping a parallel copy here is what shipped a
+    // stale expectation (TASK-2536). See TASK-2537.
 
     @Test("show detail hero renders a countdown badge")
     func showHeroBadgeIncludesCountdown() {

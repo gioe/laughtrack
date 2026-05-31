@@ -16,19 +16,13 @@ struct ShowRowTests {
         #expect(ShowRow.artworkImageURL(for: show) == "https://example.com/headliner.jpg")
     }
 
-    @Test("show row titles with the show name")
-    func showRowUsesShowNameTitle() {
-        let show = makeShow(lineup: [
-            lineup(name: "Opening comic", imageURL: "https://example.com/opening.jpg", showCount: 12),
-            lineup(name: "Headliner", imageURL: "https://example.com/headliner.jpg", showCount: 42),
-            lineup(name: "Feature", imageURL: "https://example.com/feature.jpg", showCount: 20),
-        ])
-
-        #expect(ShowRow.title(for: show) == "Late show")
-    }
-
-    @Test("show row turns lone lineup performer titles into a headline title")
-    func showRowReplacesLoneLineupPerformerTitle() {
+    // Title-transformation behavior (plain passthrough, solo-headliner "<Performer>
+    // Headlines", performer-looking fallback, named-show preservation) is owned by
+    // ShowTitlePresentationTests — the single authoritative suite. ShowRow.title is a
+    // thin passthrough, so we assert delegation rather than re-encoding the expected
+    // strings here (see TASK-2537).
+    @Test("show row title delegates to ShowTitlePresentation")
+    func showRowTitleDelegatesToPresentation() {
         let show = makeShow(
             name: "Vanessa Jackson",
             clubName: "The Broadway Comedy Club",
@@ -37,11 +31,11 @@ struct ShowRowTests {
             ]
         )
 
-        #expect(ShowRow.title(for: show) == "Vanessa Jackson Headlines")
+        #expect(ShowRow.title(for: show) == ShowTitlePresentation.title(for: show))
     }
 
-    @Test("show row keeps the headline title in the compact list title")
-    func showRowUsesCompactListTitleWhenTitleRepeatsVenue() {
+    @Test("show row list title passes non-venue titles through unchanged")
+    func showRowListTitlePassesThroughNonVenueTitles() {
         let show = makeShow(
             name: "Vanessa Jackson",
             clubName: "The Broadway Comedy Club",
@@ -50,41 +44,22 @@ struct ShowRowTests {
             ]
         )
 
-        #expect(ShowRow.listTitle(for: show) == "Vanessa Jackson Headlines")
+        // listTitle only collapses the "Comedy Show at <club>" venue fallback;
+        // every other title (headline titles included) is passed through verbatim.
+        #expect(ShowRow.listTitle(for: show) == ShowTitlePresentation.title(for: show))
     }
 
-    @Test("show row falls back to a venue title for performer-looking titles when lineup is absent")
-    func showRowReplacesPerformerLookingTitleWithoutLineup() {
-        let show = makeShow(
-            name: "Vanessa Jackson",
-            clubName: "The Broadway Comedy Club",
-            lineup: nil
-        )
-
-        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
-    }
-
-    @Test("show row falls back to a venue title when the name is empty")
-    func showRowFallsBackToVenueTitleWhenNameEmpty() {
+    @Test("show row collapses the venue fallback title in the compact list title")
+    func showRowCollapsesVenueFallbackInCompactListTitle() {
         let show = makeShow(
             name: "",
             clubName: "The Broadway Comedy Club",
             lineup: nil
         )
 
-        #expect(ShowRow.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+        // The venue-fallback title itself is covered in ShowTitlePresentationTests;
+        // here we assert ShowRow's own collapse of that fallback to "Comedy show".
         #expect(ShowRow.listTitle(for: show) == "Comedy show")
-    }
-
-    @Test("show row preserves titled shows that contain show words")
-    func showRowPreservesNamedShows() {
-        let show = makeShow(
-            name: "Atsuko Late Set",
-            clubName: "The Stand",
-            lineup: nil
-        )
-
-        #expect(ShowRow.title(for: show) == "Atsuko Late Set")
     }
 
     @Test("show row keeps named shows in compact list title")
