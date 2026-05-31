@@ -69,17 +69,24 @@ async function resolveRoutePattern(
 }
 
 function scheduleMetricWrite(makeWritePromise: () => Promise<unknown>): void {
-    // Only start the detached write inside an actual serverless request context.
-    // Bail BEFORE building the write promise — otherwise the write fires against
-    // an unconfigured Prisma client and logs a benign-but-noisy connection
-    // failure ("No database host…" / "$executeRaw is not a function") to stderr
-    // on every request the unit-test suite exercises.
-    if (!hasServerlessRequestContext()) {
-        return;
+    try {
+        // Only start the detached write inside an actual serverless request
+        // context. Bail BEFORE building the write promise — otherwise the write
+        // fires against an unconfigured Prisma client and logs a benign-but-noisy
+        // connection failure ("No database host…" / "$executeRaw is not a
+        // function") to stderr on every request the unit-test suite exercises.
+        if (!hasServerlessRequestContext()) {
+            return;
+        }
+        // Inside a request context: register the real write through waitUntil so
+        // it settles off the response critical path without blocking the response.
+        waitUntil(makeWritePromise());
+    } catch {
+        // Metrics scheduling is best-effort and must never throw out of the
+        // handler path (this runs in the wrapper's finally block). Swallow any
+        // context-detection or registration error rather than masking the
+        // response — or the handler's own error — being returned.
     }
-    // Inside a request context: register the real write through waitUntil so it
-    // settles off the response critical path without blocking the response.
-    waitUntil(makeWritePromise());
 }
 
 /**
