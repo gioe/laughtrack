@@ -36,6 +36,7 @@ import re
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +60,8 @@ task_referenced_basenames = _git_helpers.task_referenced_basenames
 filter_commits_by_block_overlap = _git_helpers.filter_commits_by_block_overlap
 iter_branch_auto_stashes = _git_helpers.iter_branch_auto_stashes
 _GENERATED_LOCKFILES = _git_helpers.GENERATED_LOCKFILES
+
+DEFAULT_LINT_TIMEOUT_SEC = 60
 
 _WORKSPACE_NOT_PROVIDED = object()
 
@@ -816,6 +819,120 @@ def load_merge_mode(config_path: str) -> str:
         return config.get("merge", {}).get("mode", "local")
     except (FileNotFoundError, json.JSONDecodeError):
         return "local"
+
+
+def load_lint_timeout(config_path: str) -> tuple[int, str]:
+    """Return (timeout_seconds, source) for the pre-merge lint gate."""
+    env_val = os.environ.get("TUSK_LINT_TIMEOUT")
+    if env_val:
+        try:
+            parsed = int(env_val)
+            if parsed > 0:
+                return parsed, "env"
+        except ValueError:
+            pass
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            config = json.load(f)
+        cfg_val = config.get("lint_timeout_sec")
+        if cfg_val is not None:
+            parsed = int(cfg_val)
+            if parsed > 0:
+                return parsed, "config"
+    except (FileNotFoundError, json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return DEFAULT_LINT_TIMEOUT_SEC, "default"
+
+
+def _make_lint_trace_env():
+    """Create a per-rule breadcrumb file for diagnosing lint timeouts."""
+    fd, trace_path = tempfile.mkstemp(prefix="tusk-merge-lint-trace.")
+    os.close(fd)
+    env = os.environ.copy()
+    env["TUSK_LINT_TRACE_FILE"] = trace_path
+    return trace_path, env
+
+
+def _read_inflight_lint_rule(trace_path):
+    if not trace_path:
+        return None
+    try:
+        with open(trace_path, "r", encoding="utf-8") as f:
+            line = f.readline().strip()
+    except OSError:
+        return None
+    return line or None
+
+
+def _cleanup_lint_trace(trace_path):
+    if not trace_path:
+        return
+    try:
+        os.unlink(trace_path)
+    except OSError:
+        pass
+
+
+def _lint_timeout_hung_rule_line(trace_path):
+    rule = _read_inflight_lint_rule(trace_path)
+    if rule:
+        return f"  In-flight lint rule when timeout fired: {rule}\n"
+    return "  A lint rule appears to be hung.\n"
+
+
+def _run_pre_merge_lint(
+    tusk_bin: str, config_path: str, task_id: int, cwd: str | None = None
+) -> int:
+    """Run the required clean-lint gate before merge/session mutation."""
+    lint_timeout_sec, lint_timeout_source = load_lint_timeout(config_path)
+    print(
+        f"Running tusk lint before merge (timeout {lint_timeout_sec}s)...",
+        file=sys.stderr,
+    )
+    trace_path, lint_env = _make_lint_trace_env()
+    try:
+        lint = subprocess.run(
+            [tusk_bin, "lint", "--quiet", "--task", str(task_id)],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=lint_timeout_sec,
+            env=lint_env,
+            cwd=cwd,
+        )
+    except subprocess.TimeoutExpired:
+        source_hint = {
+            "env": 'env var "TUSK_LINT_TIMEOUT"',
+            "config": 'config key "lint_timeout_sec"',
+            "default": (
+                'default (override with "lint_timeout_sec" in tusk/config.json '
+                'or TUSK_LINT_TIMEOUT env var)'
+            ),
+        }[lint_timeout_source]
+        print(
+            f"\nError: tusk lint timed out after {lint_timeout_sec}s "
+            f"({source_hint}) — aborting merge.\n"
+            f"{_lint_timeout_hung_rule_line(trace_path)}"
+            "  Fix the hung rule or raise the timeout; merge requires a clean "
+            "lint result.",
+            file=sys.stderr,
+        )
+        return 8
+    finally:
+        _cleanup_lint_trace(trace_path)
+
+    if lint.stdout:
+        print(lint.stdout.rstrip(), file=sys.stderr)
+    if lint.stderr:
+        print(lint.stderr.rstrip(), file=sys.stderr)
+    if lint.returncode != 0:
+        print(
+            "\nError: tusk lint reported non-advisory violations — aborting merge.\n"
+            "  Fix the violations above, then re-run tusk merge.",
+            file=sys.stderr,
+        )
+        return 6
+    return 0
 
 
 def _recover_missing_task(db_path: str, task_id: int) -> bool:
@@ -2337,6 +2454,30 @@ def _remove_recorded_task_worktree(
 
     workspace_path = workspace["workspace_path"]
     if os.path.exists(workspace_path):
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(db_path)))
+        try:
+            cwd_real = os.path.realpath(os.getcwd())
+        except OSError:
+            cwd_real = ""
+        workspace_real = os.path.realpath(workspace_path)
+        try:
+            cwd_inside_workspace = (
+                bool(cwd_real)
+                and os.path.commonpath([cwd_real, workspace_real]) == workspace_real
+            )
+        except ValueError:
+            cwd_inside_workspace = False
+        if cwd_inside_workspace:
+            try:
+                os.chdir(repo_root)
+            except OSError as exc:
+                print(
+                    f"Error: failed to chdir to repo root {repo_root} before "
+                    f"removing current task worktree {workspace_path}: {exc}.",
+                    file=sys.stderr,
+                )
+                return False
+
         # Refuse to remove a worktree with a rebase in progress (issue #940).
         # A parallel session finalizing the same task would otherwise delete
         # the worktree out from under an operator who is mid-rebase resolving
@@ -2831,6 +2972,7 @@ def main(argv: list[str]) -> int:
     # commit-pattern scan in find_task_branch picks the real branch — without
     # this validation, a stale empty branch silently wins over the user's real
     # work (issue #763).
+    lint_cwd: str | None = None
     recorded_workspace = _recorded_task_workspace(_db_path, task_id)
     if recorded_workspace is not None:
         candidate_branch = recorded_workspace["branch"]
@@ -2859,6 +3001,7 @@ def main(argv: list[str]) -> int:
             branch_name = candidate_branch
             err = None
             pre_merged = False
+            lint_cwd = candidate_path
             print(
                 f"Found recorded task workspace branch: {branch_name}",
                 file=sys.stderr,
@@ -2935,6 +3078,9 @@ def main(argv: list[str]) -> int:
             "Branch was previously merged. Auto-completing finalization...",
             file=sys.stderr,
         )
+        lint_rc = _run_pre_merge_lint(tusk_bin, config_path, task_id)
+        if lint_rc != 0:
+            return lint_rc
         checkpoint_wal(_db_path)
         print(f"Closing session {session_id}...", file=sys.stderr)
         result = _run_tusk_subcommand(tusk_bin, ["session-close", str(session_id)])
@@ -2989,6 +3135,9 @@ def main(argv: list[str]) -> int:
         return 1
 
     print(f"Found branch: {branch_name}", file=sys.stderr)
+    lint_rc = _run_pre_merge_lint(tusk_bin, config_path, task_id, cwd=lint_cwd)
+    if lint_rc != 0:
+        return lint_rc
 
     default_branch = None
     has_origin = None
@@ -3630,24 +3779,6 @@ def main(argv: list[str]) -> int:
         if has_origin:
             _delete_remote_feature_branch_if_tracking(branch_name)
 
-        # Step 6: Delete feature branch
-        if not _remove_recorded_task_worktree(
-            _db_path, task_id, branch_name, workspace=recorded_workspace
-        ):
-            if did_stash:
-                _try_pop_stash(task_id)
-            return 2
-
-        # Use -D (force) when the branch was not merged via git merge (task_on_default path).
-        branch_delete_flag = "-D" if task_on_default else "-d"
-        result = run(["git", "branch", branch_delete_flag, branch_name], check=False)
-        if result.returncode != 0:
-            # Non-fatal: branch is already gone or merge state mismatch, warn and continue
-            print(
-                f"Warning: git branch {branch_delete_flag} {branch_name} failed:\n{result.stderr.strip()}",
-                file=sys.stderr,
-            )
-
         if did_stash:
             _try_pop_stash(task_id)
 
@@ -3664,6 +3795,32 @@ def main(argv: list[str]) -> int:
     )
     if rc == 0:
         _maybe_refresh_deployed_bin(_db_path, tusk_bin)
+    if not use_pr:
+        cleanup_ok = True
+        # Step 6: Delete feature branch after task-done. This mirrors the
+        # no-checkout path: once the merge has succeeded, worktree/branch
+        # cleanup leftovers are partial finalization issues, not reasons to
+        # leave the task open. It also keeps task-done away from a CWD that
+        # may be invalidated by removing the invoking task worktree (issue #967).
+        if not _remove_recorded_task_worktree(
+            _db_path, task_id, branch_name, workspace=recorded_workspace
+        ):
+            cleanup_ok = False
+        else:
+            # The merge has already succeeded or the task was proven to have
+            # no new branch-side work. Use -D because cleanup may have chdir'd
+            # to a sibling checkout whose HEAD is not the default branch, so
+            # `git branch -d` can reject a branch that is merged into default.
+            branch_delete_flag = "-D"
+            result = run(["git", "branch", branch_delete_flag, branch_name], check=False)
+            if result.returncode != 0:
+                cleanup_ok = False
+                print(
+                    f"Warning: git branch {branch_delete_flag} {branch_name} failed:\n{result.stderr.strip()}",
+                    file=sys.stderr,
+                )
+        if rc == 0 and not cleanup_ok:
+            return 3
     return rc
 
 
