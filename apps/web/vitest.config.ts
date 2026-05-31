@@ -27,6 +27,18 @@ export default defineConfig({
         // to stdout/stderr synchronously, eliminating that RPC and the race
         // (the commit-time test gate flaked ~1/8 full-suite runs before this).
         disableConsoleIntercept: true,
+        // Auto-run vi.unstubAllGlobals() before every test so a file that
+        // stubs a global (most commonly global.fetch via vi.stubGlobal) can
+        // never leak that stub into a later file. Without this, a suite that
+        // stubs fetch but forgets afterEach(vi.unstubAllGlobals) leaves the
+        // stubbed fetch installed for whichever file vitest runs next in the
+        // same worker — and a single-use Response body from that stale stub
+        // throws "Body has already been read" nondeterministically in the full
+        // suite (app/api/admin/podcast-ownership-reviews/route.test.ts was the
+        // offender; TASK-2534). The unstub runs as an internal beforeEach that
+        // fires *before* user beforeEach hooks, so every suite that re-stubs in
+        // beforeEach or per-test (all of ours do) is unaffected.
+        unstubGlobals: true,
     },
     resolve: {
         alias: {
