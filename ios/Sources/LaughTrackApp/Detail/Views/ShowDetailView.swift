@@ -495,6 +495,24 @@ private struct ShowLineupSection: View {
     }
 }
 
+/// Pure derivation of the role badge shown on a comedian lineup tile in show
+/// detail. Returns the trimmed, non-empty role string (the view renders it
+/// uppercased) or nil when the lineup item carries no role. Extracted so the
+/// badge logic is verifiable without hosting the view — HostedView's
+/// accessibility-tree wiring is broken on iOS 26.x / 18.6 simulators
+/// (TASK-2535).
+enum ShowLineupPresentation {
+    static func roleBadge(for comedian: Components.Schemas.ComedianLineup) -> String? {
+        guard
+            let role = comedian.role?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !role.isEmpty
+        else {
+            return nil
+        }
+        return role
+    }
+}
+
 private struct ComedianLineupTile: View {
     let comedian: Components.Schemas.ComedianLineup
 
@@ -522,7 +540,7 @@ private struct ComedianLineupTile: View {
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if let role = comedian.role?.trimmingCharacters(in: .whitespacesAndNewlines), !role.isEmpty {
+            if let role = ShowLineupPresentation.roleBadge(for: comedian) {
                 Text(role)
                     .font(laughTrack.typography.metadata.weight(.bold))
                     .textCase(.uppercase)
