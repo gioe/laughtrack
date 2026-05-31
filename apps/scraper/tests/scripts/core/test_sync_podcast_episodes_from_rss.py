@@ -33,6 +33,8 @@ class _FakeCursor:
             self._last_result = self.conn.podcast_rows
         elif normalized.startswith("SELECT COUNT(*) FROM podcast_episodes"):
             self._last_result = [(self.conn.episode_count,)]
+        elif normalized.startswith("SELECT COUNT(*) FROM podcasts"):
+            self._last_result = [(self.conn.unreachable_count,)]
         elif normalized.startswith("UPDATE podcasts SET last_synced_at"):
             self.conn.last_synced_updates.append(params)
             self._last_result = []
@@ -52,6 +54,7 @@ class _FakeConn:
             (42, "itunes", "12345", "https://feeds.example.com/show.xml", "Comedy Talk", {"raw": True})
         ]
         self.episode_count = 7
+        self.unreachable_count = 0
         self.executed: list[tuple[str, Any]] = []
         self.last_synced_updates: list[Any] = []
         self.commits = 0
@@ -142,10 +145,13 @@ def test_driver_continues_after_closed_connection_during_podcast_sync(monkeypatc
         (43, "itunes", "67890", "https://feeds.example.com/healthy.xml", "Healthy Talk", {"raw": True}),
     ]
     loader_conn = _FakeConn(podcast_rows)
-    first_sync_conn = _FakeConn()
-    second_sync_conn = _FakeConn()
+    failed_sync_conn = _FakeConn()
+    record_conn = _FakeConn()
+    healthy_sync_conn = _FakeConn()
     after_count_conn = _FakeConn()
-    connections = [loader_conn, first_sync_conn, second_sync_conn, after_count_conn]
+    # A failed fetch now opens one extra connection (record_conn) to persist the
+    # feed's unreachable state before the run moves on to the next podcast.
+    connections = [loader_conn, failed_sync_conn, record_conn, healthy_sync_conn, after_count_conn]
     autocommit_modes: list[bool] = []
     events: list[str] = []
     sync_calls: list[int] = []
@@ -177,8 +183,74 @@ def test_driver_continues_after_closed_connection_during_podcast_sync(monkeypatc
     assert summary.podcasts_scanned == 2
     assert summary.podcasts_failed == 1
     assert summary.episodes_inserted == 1
-    assert autocommit_modes == [True, False, False, True]
-    assert events == ["connect:True", "fetch:42", "connect:False", "fetch:43", "connect:False", "connect:True"]
+    assert autocommit_modes == [True, False, False, False, True]
+    assert events == [
+        "connect:True",
+        "fetch:42",
+        "connect:False",
+        "connect:False",
+        "fetch:43",
+        "connect:False",
+        "connect:True",
+    ]
     assert sync_calls == [42, 43]
-    assert second_sync_conn.last_synced_updates == [(43,)]
-    assert second_sync_conn.commits == 1
+    assert healthy_sync_conn.last_synced_updates == [(43,)]
+    assert healthy_sync_conn.commits == 1
+    # The failed feed's unreachable state was recorded on its own committed txn.
+    assert record_conn.commits == 1
+    assert any("source_payload" in sql for sql, _ in record_conn.executed)
+
+
+def test_load_podcasts_query_skips_feeds_in_reachability_cooldown():
+    conn = _FakeConn()
+
+    mod.load_podcasts(conn, source=None, podcast_ids=None, limit=500)
+
+    select_sql, select_params = next(
+        (sql, params) for sql, params in conn.executed if sql.lstrip().startswith("SELECT id, source")
+    )
+    # The reachability predicate is ANDed into the load query and its bind params follow the filters.
+    assert "consecutive_failures" in select_sql
+    assert "last_failure_at" in select_sql
+    assert mod.reader.UNREACHABLE_FAILURE_THRESHOLD in select_params
+    assert mod.reader.UNREACHABLE_COOLDOWN_DAYS in select_params
+    # LIMIT is still the final bind param so the rotating batch is preserved.
+    assert select_params[-1] == 500
+
+
+def test_driver_records_failure_and_reports_skipped_unreachable(monkeypatch):
+    conn = _FakeConn()
+    conn.unreachable_count = 12
+    recorded: list[int] = []
+
+    monkeypatch.setattr(mod, "get_connection", lambda *, autocommit=False: conn)
+
+    def fake_fetch(_podcast: Any) -> mod.reader.RssFetchResult:
+        raise RuntimeError("Could not resolve host")
+
+    monkeypatch.setattr(mod.reader, "fetch_rss_episodes", fake_fetch)
+    monkeypatch.setattr(mod.reader, "record_fetch_failure", lambda _conn, p: recorded.append(p.podcast_id) or 1)
+
+    summary = mod.sync_podcasts_from_rss(dry_run=False, limit=1, source=None)
+
+    assert summary.podcasts_failed == 1
+    assert summary.podcasts_skipped_unreachable == 12
+    assert recorded == [42]
+
+
+def test_dry_run_does_not_record_unreachable_on_fetch_failure(monkeypatch):
+    conn = _FakeConn()
+    recorded: list[int] = []
+
+    monkeypatch.setattr(mod, "get_connection", lambda *, autocommit=True: conn)
+    monkeypatch.setattr(
+        mod.reader,
+        "fetch_rss_episodes",
+        lambda _podcast: (_ for _ in ()).throw(RuntimeError("SSL alert")),
+    )
+    monkeypatch.setattr(mod.reader, "record_fetch_failure", lambda _conn, p: recorded.append(p.podcast_id) or 1)
+
+    summary = mod.sync_podcasts_from_rss(dry_run=True, limit=1, source=None)
+
+    assert summary.podcasts_failed == 1
+    assert recorded == []

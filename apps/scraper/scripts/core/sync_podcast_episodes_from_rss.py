@@ -31,6 +31,7 @@ class DriverSummary:
     episodes_unchanged: int = 0
     episodes_skipped: int = 0
     not_modified: int = 0
+    podcasts_skipped_unreachable: int = 0
     per_podcast_errors: list[str] = field(default_factory=list)
 
 
@@ -40,8 +41,21 @@ _LOAD_PODCASTS_SQL = """
     WHERE feed_url IS NOT NULL
       AND (%s::text IS NULL OR source = %s)
       AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
+      AND {reachable}
     ORDER BY last_synced_at ASC NULLS FIRST, id ASC
     {limit_clause}
+"""
+
+# Counts feeds excluded by the reachability cooldown (benched), respecting the
+# same source / podcast-id filters, so the run report can surface how many dead
+# feeds were skipped.
+_COUNT_UNREACHABLE_SQL = """
+    SELECT COUNT(*)
+    FROM podcasts
+    WHERE feed_url IS NOT NULL
+      AND (%s::text IS NULL OR source = %s)
+      AND (%s::int[] IS NULL OR id = ANY(%s::int[]))
+      AND NOT {reachable}
 """
 
 _COUNT_EPISODES_SQL = "SELECT COUNT(*) FROM podcast_episodes"
@@ -52,8 +66,9 @@ def load_podcasts(
     conn: Any, *, source: Optional[str], podcast_ids: Optional[list[int]], limit: Optional[int]
 ) -> list[reader.PodcastRssFeed]:
     limit_clause = "LIMIT %s" if limit else ""
-    query = _LOAD_PODCASTS_SQL.format(limit_clause=limit_clause)
-    params: list[Any] = [source, source, podcast_ids, podcast_ids]
+    reachable_clause, reachable_params = reader.reachable_feed_clause()
+    query = _LOAD_PODCASTS_SQL.format(reachable=reachable_clause, limit_clause=limit_clause)
+    params: list[Any] = [source, source, podcast_ids, podcast_ids, *reachable_params]
     if limit:
         params.append(int(limit))
     with conn.cursor() as cur:
@@ -79,6 +94,16 @@ def _episode_count(conn: Any) -> int:
     return int(row[0] if row else 0)
 
 
+def _count_unreachable(conn: Any, *, source: Optional[str], podcast_ids: Optional[list[int]]) -> int:
+    reachable_clause, reachable_params = reader.reachable_feed_clause()
+    query = _COUNT_UNREACHABLE_SQL.format(reachable=reachable_clause)
+    params: list[Any] = [source, source, podcast_ids, podcast_ids, *reachable_params]
+    with conn.cursor() as cur:
+        cur.execute(query, tuple(params))
+        row = cur.fetchone()
+    return int(row[0]) if row and row[0] is not None else 0
+
+
 def _bump_last_synced(conn: Any, podcast_id: int) -> None:
     with conn.cursor() as cur:
         cur.execute(_BUMP_LAST_SYNCED_SQL, (podcast_id,))
@@ -96,11 +121,33 @@ def _rollback_safely(conn: Any) -> None:
 
 def _load_sync_inputs(
     *, source: Optional[str], podcast_ids: Optional[list[int]], limit: Optional[int]
-) -> tuple[int, list[reader.PodcastRssFeed]]:
+) -> tuple[int, list[reader.PodcastRssFeed], int]:
     with get_connection() as conn:
         before_count = _episode_count(conn)
         podcasts = load_podcasts(conn, source=source, podcast_ids=podcast_ids, limit=limit)
-    return before_count, podcasts
+        skipped_unreachable = _count_unreachable(conn, source=source, podcast_ids=podcast_ids)
+    return before_count, podcasts, skipped_unreachable
+
+
+def _record_unreachable(podcast: reader.PodcastRssFeed) -> None:
+    """Persist a feed's failed-fetch outcome on its own short transaction.
+
+    The fetch in ``_sync_one_podcast`` raises before any DB connection is opened,
+    so the failure is recorded here. Wrapped defensively: a bookkeeping write
+    must never abort the sync run.
+    """
+    try:
+        with get_connection(autocommit=False) as conn:
+            try:
+                reader.record_fetch_failure(conn, podcast)
+                conn.commit()
+            except Exception:
+                _rollback_safely(conn)
+                raise
+    except Exception as exc:
+        Logger.warn(
+            f"[rss-episode-reader] could not record unreachable state for podcast {podcast.podcast_id}: {exc}"
+        )
 
 
 def _sync_one_podcast(podcast: reader.PodcastRssFeed, *, dry_run: bool) -> reader.RssSyncSummary:
@@ -129,10 +176,14 @@ def sync_podcasts_from_rss(
     podcast_ids: Optional[list[int]] = None,
 ) -> DriverSummary:
     summary = DriverSummary()
-    before_count, podcasts = _load_sync_inputs(source=source, podcast_ids=podcast_ids, limit=limit)
+    before_count, podcasts, skipped_unreachable = _load_sync_inputs(
+        source=source, podcast_ids=podcast_ids, limit=limit
+    )
+    summary.podcasts_skipped_unreachable = skipped_unreachable
     print("=== BEFORE ===")
     print(f"PodcastEpisode rows: {before_count}")
     print(f"Podcasts selected: {len(podcasts)}")
+    print(f"Podcasts skipped (unreachable, in cooldown): {skipped_unreachable}")
 
     for podcast in podcasts:
         summary.podcasts_scanned += 1
@@ -143,6 +194,8 @@ def sync_podcasts_from_rss(
             message = f"podcast {podcast.podcast_id} ({podcast.title}): {exc}"
             summary.per_podcast_errors.append(message)
             Logger.warn(f"[rss-episode-reader] sync failed for {message}")
+            if not dry_run:
+                _record_unreachable(podcast)
             continue
 
         summary.episodes_seen += podcast_summary.episodes_seen
@@ -174,7 +227,8 @@ def _print_report(summary: DriverSummary, *, dry_run: bool) -> None:
         f"{summary.episodes_unchanged} unchanged, "
         f"{summary.episodes_skipped} skipped, "
         f"{summary.not_modified} not modified, "
-        f"{summary.podcasts_failed} failures"
+        f"{summary.podcasts_failed} failures, "
+        f"{summary.podcasts_skipped_unreachable} skipped unreachable"
     )
     for error in summary.per_podcast_errors:
         print(f"  error: {error}")
