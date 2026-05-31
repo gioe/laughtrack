@@ -2,6 +2,26 @@ import { waitUntil } from "@vercel/functions";
 import type { NextRequest } from "next/server";
 import { normalizeRoutePattern, recordRequestMetric } from "./requestMetrics";
 
+// Vercel publishes the active serverless request context on globalThis under
+// this well-known symbol (the same one @vercel/functions' internal getContext()
+// reads). Its presence — and a callable waitUntil on the resolved store — is how
+// we tell a real request apart from local dev / unit tests, where there is no
+// context. Note that waitUntil() does NOT throw off-context: getContext() simply
+// returns {} and the optional `waitUntil?.()` call no-ops. So we must detect the
+// context ourselves rather than relying on waitUntil to reject.
+const REQUEST_CONTEXT_SYMBOL = Symbol.for("@vercel/request-context");
+
+type RequestContextStore = {
+    get?: () => { waitUntil?: unknown } | undefined;
+};
+
+function hasServerlessRequestContext(): boolean {
+    const store = (globalThis as Record<symbol, unknown>)[
+        REQUEST_CONTEXT_SYMBOL
+    ] as RequestContextStore | undefined;
+    return typeof store?.get?.()?.waitUntil === "function";
+}
+
 type RouteParams = Record<string, string | string[]>;
 
 // Next.js 15 passes params as a Promise in the second handler argument. Static
@@ -48,16 +68,18 @@ async function resolveRoutePattern(
     }
 }
 
-function scheduleMetricWrite(writePromise: Promise<unknown>): void {
-    try {
-        // waitUntil keeps the serverless function alive until the write settles
-        // without blocking the response. Outside a Vercel request context (local
-        // dev / unit tests) it throws — the promise still runs detached, so we
-        // just swallow the registration error.
-        waitUntil(writePromise);
-    } catch {
-        /* no active request context */
+function scheduleMetricWrite(makeWritePromise: () => Promise<unknown>): void {
+    // Only start the detached write inside an actual serverless request context.
+    // Bail BEFORE building the write promise — otherwise the write fires against
+    // an unconfigured Prisma client and logs a benign-but-noisy connection
+    // failure ("No database host…" / "$executeRaw is not a function") to stderr
+    // on every request the unit-test suite exercises.
+    if (!hasServerlessRequestContext()) {
+        return;
     }
+    // Inside a request context: register the real write through waitUntil so it
+    // settles off the response critical path without blocking the response.
+    waitUntil(makeWritePromise());
 }
 
 /**
@@ -87,18 +109,23 @@ export function withRequestMetrics<H extends RouteHandler>(handler: H): H {
             return response;
         } finally {
             const method = req?.method ?? "GET";
-            const writePromise = (async () => {
-                const routePattern = await resolveRoutePattern(req, ctx);
-                await recordRequestMetric({ routePattern, method, status });
-            })().catch((error) => {
-                // Metrics are best-effort: a recording failure must never break
-                // the request it was observing.
-                console.error(
-                    "[withRequestMetrics] failed to record request metric",
-                    error,
-                );
-            });
-            scheduleMetricWrite(writePromise);
+            // Pass a factory rather than a live promise so the DB write is only
+            // started once scheduleMetricWrite confirms an active request context
+            // (see its waitUntil probe). Building the promise eagerly here would
+            // fire the write even when there is no context to run it in.
+            scheduleMetricWrite(() =>
+                (async () => {
+                    const routePattern = await resolveRoutePattern(req, ctx);
+                    await recordRequestMetric({ routePattern, method, status });
+                })().catch((error) => {
+                    // Metrics are best-effort: a recording failure must never
+                    // break the request it was observing.
+                    console.error(
+                        "[withRequestMetrics] failed to record request metric",
+                        error,
+                    );
+                }),
+            );
         }
     };
 

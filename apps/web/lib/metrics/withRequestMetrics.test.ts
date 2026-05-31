@@ -8,11 +8,27 @@ const { scheduled, executeRawMock } = vi.hoisted(() => ({
     executeRawMock: vi.fn().mockResolvedValue(1),
 }));
 
-vi.mock("@vercel/functions", () => ({
-    waitUntil: (promise: Promise<unknown>) => {
-        scheduled.push(promise);
-    },
-}));
+// The wrapper only fires its detached write inside a Vercel serverless request
+// context, which it detects via the well-known request-context symbol on
+// globalThis (the same one @vercel/functions' real waitUntil reads). Rather than
+// mock @vercel/functions, we install that store directly so the *real* waitUntil
+// registers the off-path promise into `scheduled` for the test to await. The
+// no-context test removes the store to exercise the guard.
+const REQUEST_CONTEXT_SYMBOL = Symbol.for("@vercel/request-context");
+
+function installRequestContext() {
+    (globalThis as Record<symbol, unknown>)[REQUEST_CONTEXT_SYMBOL] = {
+        get: () => ({
+            waitUntil: (promise: Promise<unknown>) => {
+                scheduled.push(promise);
+            },
+        }),
+    };
+}
+
+function clearRequestContext() {
+    delete (globalThis as Record<symbol, unknown>)[REQUEST_CONTEXT_SYMBOL];
+}
 
 vi.mock("@/lib/db", () => ({
     db: { $executeRaw: executeRawMock },
@@ -45,10 +61,12 @@ function fakeRequest(
 beforeEach(() => {
     scheduled.length = 0;
     executeRawMock.mockClear();
+    installRequestContext();
 });
 
 afterEach(() => {
     vi.useRealTimers();
+    clearRequestContext();
 });
 
 describe("normalizeRoutePattern", () => {
@@ -246,6 +264,29 @@ describe("withRequestMetrics", () => {
         await flushScheduled();
 
         expect(errorSpy).toHaveBeenCalled();
+        errorSpy.mockRestore();
+    });
+
+    it("skips the detached write entirely when there is no serverless request context", async () => {
+        // Outside a Vercel request context there is no request-context store on
+        // globalThis (local dev / unit tests). The wrapper must detect that and
+        // bail BEFORE starting the DB write — otherwise the write fires against
+        // an unconfigured Prisma client and logs a benign-but-noisy connection
+        // failure to stderr on every request the test suite exercises.
+        clearRequestContext();
+        const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const handler = withRequestMetrics(
+            async (_req: NextRequest) => new Response(null, { status: 200 }),
+        );
+
+        const res = await handler(fakeRequest("/api/health") as never);
+        expect(res.status).toBe(200);
+        await flushScheduled();
+
+        // No write started, and no error logged from the metric path.
+        expect(executeRawMock).not.toHaveBeenCalled();
+        expect(errorSpy).not.toHaveBeenCalled();
         errorSpy.mockRestore();
     });
 });
