@@ -25,8 +25,8 @@ struct DetailHeroLayoutTests {
         #expect(DetailHeroLayout.heroTextShadowOpacity >= 0.7)
     }
 
-    @Test("show detail replaces lone lineup performer titles with venue title")
-    func showDetailReplacesLoneLineupPerformerTitle() {
+    @Test("show detail turns lone lineup performer titles into a headline title")
+    func showDetailTurnsLoneLineupPerformerTitleIntoHeadline() {
         var show = Self.showDetail()
         show.name = "Vanessa Jackson"
         show.club = .init(
@@ -46,7 +46,7 @@ struct DetailHeroLayoutTests {
             )
         ]
 
-        #expect(ShowTitlePresentation.title(for: show) == "Comedy Show at The Broadway Comedy Club")
+        #expect(ShowTitlePresentation.title(for: show) == "Vanessa Jackson Headlines")
     }
 
     @Test("show detail hero renders a countdown badge")
