@@ -74,10 +74,12 @@ enum ShowFormatting {
     static func isOpenMic(tags: [Components.Schemas.Tag]?) -> Bool {
         guard let tags else { return false }
         return tags.contains { tag in
-            let slug = tag.slug
+            // Compare against the canonical backend slug. The web side emits
+            // tags as kebab-case (see apps/web/lib/data/show fixtures); a
+            // space-separated variant is operator-facing copy, not a slug.
+            tag.slug
                 .lowercased()
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            return slug == "open mic" || slug == "open-mic"
+                .trimmingCharacters(in: .whitespacesAndNewlines) == "open-mic"
         }
     }
 

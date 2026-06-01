@@ -213,6 +213,28 @@ struct ShowDetailViewTests {
         #expect(facts.first { $0.label == "Tickets" }?.value == "Price unavailable")
     }
 
+    @Test("open-mic show detail substitutes RSVP for the price and reports isOpenMic")
+    func showDetailOpenMicRendersRSVPVariant() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.name = "Late Set"
+        show.tags = [.init(slug: "open-mic", name: "Open Mic")]
+
+        #expect(ShowDetailPresentation.isOpenMic(show))
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+        #expect(facts.first { $0.label == "Tickets" }?.value == "RSVP")
+    }
+
+    @Test("non-open-mic show detail keeps the price value and reports !isOpenMic")
+    func showDetailNonOpenMicRendersUnchanged() {
+        var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data
+        show.name = "Late Set"
+        show.tags = [.init(slug: "weekly-showcase", name: "Weekly Showcase")]
+
+        #expect(ShowDetailPresentation.isOpenMic(show) == false)
+        let facts = ShowDetailPresentation.summaryFacts(for: show)
+        #expect(facts.first { $0.label == "Tickets" }?.value != "RSVP")
+    }
+
     @Test("show detail ticket cell targets ticket purchase URL")
     func showTicketCellTargetsTicketPurchaseURL() {
         var show = DemoContent.showDetailResponse(id: 301)?.data ?? DemoContent.primaryShowDetail.data

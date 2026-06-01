@@ -137,7 +137,7 @@ struct ShowRowTests {
         // driven by the same signal.
         let openMic = makeShow(
             name: "Late Set",
-            tags: [.init(slug: "open mic", name: "Open Mic")],
+            tags: [.init(slug: "open-mic", name: "Open Mic")],
             lineup: nil
         )
         #expect(ShowRow.isOpenMic(openMic))
@@ -212,8 +212,10 @@ struct ShowRowTests {
         #expect(ShowRow.topLineup(for: show).map(\.name) == ["First", "Second"])
     }
 
-    @Test("ShowRow.isOpenMic delegates to ShowFormatting on the show name")
+    @Test("ShowRow.isOpenMic falls back to the show name when no tags are present")
     func showRowIsOpenMicMatchesName() {
+        // Tags omitted on the fixture so this exercises the name-string
+        // fallback path inside `ShowRow.isOpenMic`.
         let show = makeShow(name: "Tuesday Open Mic", lineup: nil)
         #expect(ShowRow.isOpenMic(show))
     }
