@@ -10,7 +10,7 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 import copy
-from typing import Optional, List
+from typing import Dict, Optional, List
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -45,6 +45,27 @@ _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard 
 # stalls room to recover; legitimate large-batch upserts finish in tens of
 # seconds, so this only fires on a real stall. Module-level for tests.
 _DB_WRITE_TIMEOUT = 300
+
+# Per-club fetch deadline inside scrape_one's source loop.
+# Default cap tightened from 300s to 180s in TASK-2543 (~p99 across 528 clubs).
+# Per-scraper overrides allow deep-catalog platforms more headroom: in run
+# 26762966336 (2026-06-01 workflow_dispatch), 16 of 18 clubs that hit the
+# 180s cap were seatengine_classic (Helium chain, Comedy Zone chain, DC Improv,
+# Bricktown, Magoobys, Fort Lauderdale Improv, Desert Ridge, Emerald City,
+# Spokane, Louisville), all of which fetch 200-300 shows per call. 240s
+# preserves the 90m runtime-budget gain vs the prior 300s while recovering
+# the chains that 180s sacrificed. Two seatengine_classic venues
+# (The Comedy Loft of DC, Off The Hook Comedy Club) still time out at 240s
+# but also timed out at 300s — they are a separate scraper bug (TASK-2550
+# territory), not a cap-tuning concern.
+_DEFAULT_PER_CLUB_TIMEOUT = 180
+_PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
+    "seatengine_classic": 240,
+}
+
+
+def _per_club_timeout_for(scraper_key: str) -> int:
+    return _PER_SCRAPER_TIMEOUT_OVERRIDES.get(scraper_key, _DEFAULT_PER_CLUB_TIMEOUT)
 
 # Cause hint included in the ERROR log and ClubScrapingResult.error when the
 # runtime scraper registry has no class for a configured scraper_key. Tells
@@ -509,13 +530,6 @@ class ScrapingService:
                     scraper_type=sources[0].scraper_key,
                 )
                 metrics.total += 1
-                # Per-source cap. Tightened from 300s after the 2026-06-01 nightly-budget
-                # investigation: in two consecutive nightly runs, p95 club execution time
-                # was ~135s and p99 ~260s across 528 clubs, while only ~10 clubs/run finished
-                # successfully between 180s and 290s. 180s preserves >98% of long-tail
-                # successes (mostly seatengine_classic on big chains) while reclaiming
-                # ~2 min/club from genuine stalls.
-                _PER_CLUB_TIMEOUT = 180  # seconds; unblocks gather if a thread stalls on network
                 last_result: Optional[ClubScrapingResult] = None
                 last_key = sources[0].scraper_key
                 unresolved_keys: List[str] = []
@@ -536,23 +550,24 @@ class ScrapingService:
                             f"Club '{club.name}': trying fallback source priority={source.priority} "
                             f"with scraper '{key}'"
                         )
+                    per_club_timeout = _per_club_timeout_for(key)
                     try:
                         scraper: BaseScraper = scraper_cls(attempt_club, proxy_pool=self.proxy_pool)
                         try:
                             result = await asyncio.wait_for(
                                 loop.run_in_executor(None, _scrape_with_context, scraper, attempt_club),
-                                timeout=_PER_CLUB_TIMEOUT,
+                                timeout=per_club_timeout,
                             )
                         except asyncio.TimeoutError:
                             Logger.warn(
-                                f"scrape_one: club '{club.name}' timed out after {_PER_CLUB_TIMEOUT}s "
+                                f"scrape_one: club '{club.name}' timed out after {per_club_timeout}s "
                                 f"with scraper '{key}'"
                             )
                             last_result = ClubScrapingResult(
                                 club_name=club.name,
                                 shows=[],
-                                execution_time=float(_PER_CLUB_TIMEOUT),
-                                error=f"timed out after {_PER_CLUB_TIMEOUT}s",
+                                execution_time=float(per_club_timeout),
+                                error=f"timed out after {per_club_timeout}s",
                                 club_id=club.id,
                             )
                             continue
