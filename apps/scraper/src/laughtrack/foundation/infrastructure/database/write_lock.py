@@ -33,16 +33,16 @@ still flips ok→error.
 
 Caller-visible side effect: EventbriteScraper organizer-mode upserts
 (scrapers/implementations/api/eventbrite/scraper.py::_upsert_one) also call
-``serialized_db_call`` and are *not* wrapped in their own ``asyncio.wait_for``.
-Pre-fix a stuck writer made those upserts hang forever (visible as a hung
-process); post-fix each contested venue upsert fails fast with LockHeldError
-and is swallowed by ``_upsert_one``'s broad ``except Exception`` (it returns
-``[]`` and logs "failed to upsert club for venue X"). That means per-venue
-silent drops are possible while a sibling DB writer is stuck; the orchestrator
-per-club metric never names these venues because they live inside one scraper
-run. TASK-2554 is tracking the structural fix (bound ``_upsert_one`` too, or
-push the timeout into the lock layer uniformly). Until then, "organizer-mode
-venue X missing" in a nightly summary should look here first.
+``serialized_db_call`` from per-venue coroutines run under ``asyncio.gather``.
+TASK-2554 bounded each ``_upsert_one`` await with its own ``asyncio.wait_for``
+(``_EB_UPSERT_TIMEOUT``) so a single hung executor thread can no longer hold
+the gather() open past the EB scraper's parent per-club timeout — when the
+wait_for fires, the venue is named in the error log and the gather completes
+with empty results for that venue. The executor thread may still hold this
+RLock (CPython threads are not safely cancelable), but the ``_LOCK_HOLD_TIMEOUT``
+fail-fast above converts that into LockHeldError for subsequent contenders
+instead of unbounded waits. "Organizer-mode venue X missing" in a nightly
+summary should look for the venue-named timeout log line first.
 """
 
 import threading

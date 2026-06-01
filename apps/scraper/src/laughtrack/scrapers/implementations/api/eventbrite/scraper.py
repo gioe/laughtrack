@@ -39,6 +39,33 @@ from .extractor import EventbriteExtractor
 from .transformer import EventbriteEventTransformer
 
 
+# Per-venue upsert deadline inside _upsert_one. The organizer-mode pipeline
+# dispatches one _upsert_one coroutine per distinct venue via asyncio.gather;
+# each coroutine awaits loop.run_in_executor(None, serialized_db_call, ...).
+# Without a bounded wait, a stuck upsert would block the gather forever and
+# leave the EB scraper hanging until the orchestrator's per-club asyncio.wait_for
+# fired — at which point the orchestrator only sees ONE row (the organizer
+# scrape) and cannot name which venue inside the feed stalled.
+#
+# TASK-2554 design decision: bound the await at the EB call site rather than
+# pushing a hold-time timeout into the write_lock layer. CPython threads are
+# not safely cancelable, so a lock-layer hold-time bound can't actually
+# interrupt a stuck DB call — it can only bound the *wait* side (which
+# TASK-2553 already does via _LOCK_HOLD_TIMEOUT=30s + LockHeldError). The
+# wait-side bound here is the missing piece: when an EB upsert hangs, the
+# asyncio.wait_for cancels _upsert_one's await so the gather() can complete
+# and the venue name lands in the error log. The executor thread keeps
+# running and may still hold _DB_WRITE_LOCK, but TASK-2553's fail-fast
+# converts that into LockHeldError for subsequent serialized_db_call callers
+# instead of unbounded waits.
+#
+# 60s = comfortably above the 30s _LOCK_HOLD_TIMEOUT (so legitimate sibling
+# contention doesn't trip it) and well under the orchestrator's 180s default
+# per-club scrape budget (so the EB scraper finishes its own gather() before
+# its parent timeout cancels it).
+_EB_UPSERT_TIMEOUT = 60
+
+
 class EventbriteScraper(BaseScraper):
     """
     Scraper for venues that use Eventbrite for event management.
@@ -190,12 +217,27 @@ class EventbriteScraper(BaseScraper):
             api_venue = group[0]._api_venue
             venue_label = getattr(api_venue, "name", None) or str(venue_key)
             try:
-                venue_club = await loop.run_in_executor(
-                    None,
-                    serialized_db_call,
-                    self._club_handler.upsert_for_eventbrite_venue,
-                    api_venue,
+                venue_club = await asyncio.wait_for(
+                    loop.run_in_executor(
+                        None,
+                        serialized_db_call,
+                        self._club_handler.upsert_for_eventbrite_venue,
+                        api_venue,
+                    ),
+                    timeout=_EB_UPSERT_TIMEOUT,
                 )
+            except asyncio.TimeoutError:
+                # The await is cancelled but the executor thread keeps running
+                # and may still hold _DB_WRITE_LOCK — see _EB_UPSERT_TIMEOUT's
+                # module-level note. Naming the venue here is the whole point:
+                # the orchestrator per-club metric sees the organizer scrape as
+                # one row and can't surface which venue inside the feed stalled.
+                Logger.error(
+                    f"{self._log_prefix}: upsert for venue '{venue_label}' timed out after "
+                    f"{_EB_UPSERT_TIMEOUT}s — venue skipped ({len(group)} event(s) lost)",
+                    self.logger_context,
+                )
+                return []
             except Exception as exc:
                 Logger.error(
                     f"{self._log_prefix}: failed to upsert club for venue '{venue_label}': {exc}",
@@ -233,7 +275,10 @@ class EventbriteScraper(BaseScraper):
         # Run per-venue upserts concurrently. serialized_db_call still serializes
         # the actual writes through the process-wide DB lock, so concurrency
         # only parallelizes the executor dispatch and Show construction —
-        # overlapping clubs upserts are still impossible.
+        # overlapping clubs upserts are still impossible. Each _upsert_one
+        # await is bounded by _EB_UPSERT_TIMEOUT so a single hung executor
+        # thread cannot pin this gather() open past the EB scraper's parent
+        # per-club timeout.
         per_venue_shows = await asyncio.gather(
             *[_upsert_one(key, group) for key, group in venue_groups.items()]
         )
