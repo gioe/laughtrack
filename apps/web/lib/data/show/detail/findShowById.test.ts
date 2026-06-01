@@ -40,6 +40,8 @@ const mockFindUnique = vi.mocked(db.show.findUnique);
 const mockMapTickets = vi.mocked(mapTickets);
 const mockFilterAndMap = vi.mocked(filterAndMapLineupItems);
 
+type TaggedShowInput = { tag: { slug: string | null; name: string | null } };
+
 function makeShowRow(
     overrides: Partial<{
         id: number;
@@ -58,6 +60,7 @@ function makeShowRow(
             visible: boolean;
         };
         lineupItems: object[];
+        taggedShows: TaggedShowInput[];
     }> = {},
 ) {
     return {
@@ -77,6 +80,7 @@ function makeShowRow(
             visible: true,
         },
         lineupItems: [],
+        taggedShows: [],
         ...overrides,
     };
 }
@@ -270,6 +274,73 @@ describe("findShowById", () => {
             await expect(findShowById(7)).rejects.not.toThrow(/Hidden Club/);
             mockFindUnique.mockResolvedValue(row as never);
             await expect(findShowById(7)).rejects.not.toThrow(/somewhere/);
+        });
+    });
+
+    describe("tags", () => {
+        it("maps row.taggedShows[].tag to a flat tags array of {slug, name}", async () => {
+            const row = makeShowRow({
+                taggedShows: [
+                    { tag: { slug: "open-mic", name: "Open Mic" } },
+                    { tag: { slug: "free", name: "Free" } },
+                ],
+            });
+            mockFindUnique.mockResolvedValue(row as never);
+
+            const result = await findShowById(1);
+
+            expect(result.show.tags).toEqual([
+                { slug: "open-mic", name: "Open Mic" },
+                { slug: "free", name: "Free" },
+            ]);
+        });
+
+        it("returns an empty tags array when the show has no tagged_shows rows", async () => {
+            const row = makeShowRow({ taggedShows: [] });
+            mockFindUnique.mockResolvedValue(row as never);
+
+            const result = await findShowById(1);
+
+            expect(result.show.tags).toEqual([]);
+        });
+
+        it("constrains the taggedShows query to PUBLIC tag visibility so ADMIN tags never leak", async () => {
+            mockFindUnique.mockResolvedValue(makeShowRow() as never);
+
+            await findShowById(1);
+
+            const args = mockFindUnique.mock.calls[0][0] as {
+                select: {
+                    taggedShows: {
+                        where: { tag: { visibility: string } };
+                        select: { tag: { select: Record<string, boolean> } };
+                    };
+                };
+            };
+            expect(args.select.taggedShows.where).toEqual({
+                tag: { visibility: "PUBLIC" },
+            });
+            expect(args.select.taggedShows.select.tag.select).toEqual({
+                slug: true,
+                name: true,
+            });
+        });
+
+        it("skips tags whose slug or name is null so the response only contains usable entries", async () => {
+            const row = makeShowRow({
+                taggedShows: [
+                    { tag: { slug: "open-mic", name: "Open Mic" } },
+                    { tag: { slug: null, name: "No Slug" } },
+                    { tag: { slug: "no-name", name: null } },
+                ],
+            });
+            mockFindUnique.mockResolvedValue(row as never);
+
+            const result = await findShowById(1);
+
+            expect(result.show.tags).toEqual([
+                { slug: "open-mic", name: "Open Mic" },
+            ]);
         });
     });
 
