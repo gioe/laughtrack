@@ -17,6 +17,8 @@ type LineupInput = {
     };
 };
 
+type TaggedShowInput = { tag: { slug: string | null; name: string | null } };
+
 vi.mock("@/lib/db", () => ({
     db: { show: { findMany: vi.fn() } },
 }));
@@ -125,6 +127,7 @@ function makeShowRow(
             timezone?: string | null;
         };
         lineupItems: ReturnType<typeof makeLineupItem>[];
+        taggedShows: TaggedShowInput[];
     }> = {},
 ) {
     return {
@@ -142,6 +145,7 @@ function makeShowRow(
             timezone: "America/Los_Angeles",
         },
         lineupItems: [makeLineupItem()],
+        taggedShows: [],
         ...overrides,
     };
 }
@@ -505,6 +509,80 @@ describe("findShowsForHome", () => {
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ where, orderBy }),
             );
+        });
+    });
+
+    describe("tags emission (TASK-2567)", () => {
+        // Home-shelf and related-shows Show responses now carry `tags` so
+        // iOS ShowRow can run tag-based open-mic detection without falling
+        // back to the name heuristic. PUBLIC-only filter matches the show
+        // detail and findShowsWithCount endpoints.
+
+        it("maps row.taggedShows[].tag to a flat tags array of {slug, name}", async () => {
+            const row = makeShowRow({
+                taggedShows: [
+                    { tag: { slug: "open mic", name: "Open Mic" } },
+                    { tag: { slug: "weekly", name: "Weekly" } },
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].tags).toEqual([
+                { slug: "open mic", name: "Open Mic" },
+                { slug: "weekly", name: "Weekly" },
+            ]);
+        });
+
+        it("returns an empty tags array when the show has no tagged_shows rows", async () => {
+            const row = makeShowRow({ taggedShows: [] });
+            mockFindMany.mockResolvedValue([row] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].tags).toEqual([]);
+        });
+
+        it("constrains the taggedShows select to PUBLIC tag visibility so ADMIN tags never leak", async () => {
+            let capturedSelect!: {
+                taggedShows: {
+                    where: { tag: { visibility: string } };
+                    select: { tag: { select: Record<string, boolean> } };
+                };
+            };
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as { select: typeof capturedSelect })
+                    .select;
+                return Promise.resolve([]) as never;
+            });
+
+            await findShowsForHome({}, { date: "asc" });
+
+            expect(capturedSelect.taggedShows.where).toEqual({
+                tag: { visibility: "PUBLIC" },
+            });
+            expect(capturedSelect.taggedShows.select.tag.select).toEqual({
+                slug: true,
+                name: true,
+            });
+        });
+
+        it("skips tags whose slug or name is null so the response only contains usable entries", async () => {
+            const row = makeShowRow({
+                taggedShows: [
+                    { tag: { slug: "open mic", name: "Open Mic" } },
+                    { tag: { slug: null, name: "No Slug" } },
+                    { tag: { slug: "no-name", name: null } },
+                ],
+            });
+            mockFindMany.mockResolvedValue([row] as never);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].tags).toEqual([
+                { slug: "open mic", name: "Open Mic" },
+            ]);
         });
     });
 

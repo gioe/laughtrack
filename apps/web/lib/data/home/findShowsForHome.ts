@@ -80,6 +80,12 @@ const HOME_SHOW_SELECT = {
             },
         },
     },
+    taggedShows: {
+        where: { tag: { visibility: "PUBLIC" } },
+        select: {
+            tag: { select: { slug: true, name: true } },
+        },
+    },
 } satisfies Prisma.ShowSelect;
 
 /**
@@ -137,6 +143,16 @@ export async function findShowsForHome(
                 room: show.room ?? undefined,
                 distanceMiles,
                 timezone: show.club.timezone,
+                tags: (show.taggedShows ?? [])
+                    .map((tt) => tt.tag)
+                    .filter(
+                        (
+                            tag,
+                        ): tag is { slug: string; name: string } =>
+                            typeof tag?.slug === "string" &&
+                            typeof tag?.name === "string",
+                    )
+                    .map((tag) => ({ slug: tag.slug, name: tag.name })),
             },
             lineupPopularity: getLineupPopularity(lineup),
         };
