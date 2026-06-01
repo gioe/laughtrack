@@ -232,6 +232,13 @@ class EventbriteScraper(BaseScraper):
                 # module-level note. Naming the venue here is the whole point:
                 # the orchestrator per-club metric sees the organizer scrape as
                 # one row and can't surface which venue inside the feed stalled.
+                #
+                # Returning [] here also trips the aggregate "yielded 0 shows
+                # from N event(s)" warn in the loop below the gather(). That
+                # double-log is intentional: this ERROR names the failure mode
+                # ('timed out'), the aggregate WARN names the silent-drop
+                # outcome (0 shows). Operators triaging from either log can
+                # cross-reference the venue name without missing the incident.
                 Logger.error(
                     f"{self._log_prefix}: upsert for venue '{venue_label}' timed out after "
                     f"{_EB_UPSERT_TIMEOUT}s — venue skipped ({len(group)} event(s) lost)",

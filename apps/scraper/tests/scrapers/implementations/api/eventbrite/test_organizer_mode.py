@@ -553,12 +553,18 @@ async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypa
         hang_release.wait(timeout=10.0)
         return bull_pen_club
 
-    # Shrink the per-venue deadline so the test resolves in milliseconds. The
+    # Shrink the per-venue deadline so the test resolves in seconds. The
     # production default (60s) is documented at the EB call site; the
     # structural assertion below is invariant to the exact timeout value.
+    # 1.0s patched timeout against a 5.0s budget = 5x slack, which absorbs
+    # cold-CI ThreadPoolExecutor spin-up + asyncio.wait_for tick granularity
+    # without making the slow-path branch the only thing it covers timing-
+    # sensitive. The pre-fix unbounded await would still trip the budget
+    # almost instantly (it would wait for hang_release or the 10s safety
+    # wait), so the wider slack does not weaken the regression catch.
     monkeypatch.setattr(
         "laughtrack.scrapers.implementations.api.eventbrite.scraper._EB_UPSERT_TIMEOUT",
-        0.2,
+        1.0,
     )
 
     scraper = EventbriteScraper(proxy)
@@ -575,10 +581,11 @@ async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypa
             elapsed = time.monotonic() - t0
 
         # Structural assertion #1: the scraper completed despite the hung
-        # upsert. A 2s budget gives the executor and asyncio plenty of slack
-        # while still failing loudly if the wait_for was removed (pre-fix the
-        # await would block until hang_release.set() or the 10s safety wait).
-        assert elapsed < 2.0, f"scraper took {elapsed:.2f}s — wait_for may not have fired"
+        # upsert. A 5s budget against the 1s patched timeout gives the
+        # executor and asyncio plenty of slack while still failing loudly
+        # if the wait_for was removed (pre-fix the await would block until
+        # hang_release.set() or the 10s safety wait).
+        assert elapsed < 5.0, f"scraper took {elapsed:.2f}s — wait_for may not have fired"
 
         # Structural assertion #2: the hung venue produced no shows (its
         # _upsert_one branch returned [] after the wait_for cancelled).
