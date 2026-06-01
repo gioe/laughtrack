@@ -658,6 +658,60 @@ class TestScrapeClubsWithMetrics:
         assert len(persisted) == 1
         assert persisted[0] is healthy_result
 
+    @pytest.mark.asyncio
+    async def test_persist_timeout_surfaces_as_error_and_flips_metric(self):
+        """Lock the regression behind TASK-2550: a per-club persist that exceeds
+        _DB_WRITE_TIMEOUT must NOT silently disappear with a WARN. The scrape
+        result keeps its shows, but result.error is stamped with the timeout
+        message and the per-club metric flips ok→error, which is what feeds
+        the nightly alert path. Pre-fix this was Logger.warn + empty
+        DatabaseOperationResult + result.error untouched, hiding seven clubs
+        per nightly run in the cascade documented in run 26762966336."""
+        import laughtrack.core.services.scraping as scraping_mod
+        from laughtrack.core.services.scraping import ScrapingService
+        svc = self._make_service()
+
+        result = ClubScrapingResult(club_name="Slow Persist Club", shows=[MagicMock()], execution_time=1.0)
+        mock_scraper = MagicMock()
+        mock_scraper.scrape_with_result.return_value = result
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
+
+        # Block insert_club_result longer than the patched timeout so
+        # asyncio.wait_for fires. threading.Event lets us release the
+        # executor thread deterministically after the timeout fires so it
+        # doesn't keep holding the process-wide RLock across test teardown.
+        release = threading.Event()
+
+        def slow_persist(club_result):
+            release.wait(timeout=5.0)
+            from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+            return DatabaseOperationResult()
+
+        svc._result_processor.insert_club_result.side_effect = slow_persist
+
+        club = self._make_club(name="Slow Persist Club")
+
+        with patch.object(scraping_mod, "_DB_WRITE_TIMEOUT", 0.05), \
+             patch.object(scraping_mod, "Logger") as mock_logger:
+            try:
+                results, summary, _ = await svc._scrape_clubs_concurrently([club])
+            finally:
+                # Always release so the executor thread completes and frees
+                # _DB_WRITE_LOCK before another test runs.
+                release.set()
+
+        assert len(results) == 1
+        assert results[0].error is not None
+        assert "persist timed out" in results[0].error
+        assert "0.05s" in results[0].error  # timeout value formatted into the message
+        assert len(summary.per_club) == 1
+        assert summary.per_club[0].error == 1
+        assert summary.per_club[0].ok == 0
+
+        error_calls = [str(c) for c in mock_logger.error.call_args_list]
+        timeout_errors = [c for c in error_calls if "DB write for club" in c and "shows lost" in c]
+        assert len(timeout_errors) == 1, f"Expected one timeout ERROR log, got: {error_calls}"
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os
