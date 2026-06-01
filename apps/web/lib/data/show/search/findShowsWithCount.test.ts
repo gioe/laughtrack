@@ -76,6 +76,8 @@ function makeHelper(
     };
 }
 
+type TaggedShowInput = { tag: { slug: string | null; name: string | null } };
+
 function makeShow(
     overrides: Partial<{
         id: number;
@@ -95,6 +97,7 @@ function makeShow(
             timezone?: string | null;
         };
         lineupItems: object[];
+        taggedShows: TaggedShowInput[];
     }> = {},
 ) {
     return {
@@ -113,6 +116,7 @@ function makeShow(
             timezone: "America/New_York",
         },
         lineupItems: [],
+        taggedShows: [],
         ...overrides,
     };
 }
@@ -766,6 +770,83 @@ describe("findShowsWithCount", () => {
             const result = await findShowsWithCount(makeHelper() as never);
 
             expect(result.zipCapTriggered).toBe(false);
+        });
+    });
+
+    describe("tags emission (TASK-2563)", () => {
+        // List/search Show responses now carry `tags` so iOS ShowRow can run
+        // tag-based open-mic detection without falling back to the name
+        // heuristic. PUBLIC-only filter matches the show detail endpoint.
+
+        it("maps row.taggedShows[].tag to a flat tags array of {slug, name}", async () => {
+            const show = makeShow({
+                taggedShows: [
+                    { tag: { slug: "open mic", name: "Open Mic" } },
+                    { tag: { slug: "weekly", name: "Weekly" } },
+                ],
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as never);
+
+            expect(result.shows[0].tags).toEqual([
+                { slug: "open mic", name: "Open Mic" },
+                { slug: "weekly", name: "Weekly" },
+            ]);
+        });
+
+        it("returns an empty tags array when the show has no tagged_shows rows", async () => {
+            const show = makeShow({ taggedShows: [] });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as never);
+
+            expect(result.shows[0].tags).toEqual([]);
+        });
+
+        it("constrains the taggedShows select to PUBLIC tag visibility so ADMIN tags never leak", async () => {
+            let capturedSelect!: {
+                taggedShows: {
+                    where: { tag: { visibility: string } };
+                    select: { tag: { select: Record<string, boolean> } };
+                };
+            };
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockImplementation((args: unknown) => {
+                capturedSelect = (args as { select: typeof capturedSelect })
+                    .select;
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(makeHelper() as never);
+
+            expect(capturedSelect.taggedShows.where).toEqual({
+                tag: { visibility: "PUBLIC" },
+            });
+            expect(capturedSelect.taggedShows.select.tag.select).toEqual({
+                slug: true,
+                name: true,
+            });
+        });
+
+        it("skips tags whose slug or name is null so the response only contains usable entries", async () => {
+            const show = makeShow({
+                taggedShows: [
+                    { tag: { slug: "open mic", name: "Open Mic" } },
+                    { tag: { slug: null, name: "No Slug" } },
+                    { tag: { slug: "no-name", name: null } },
+                ],
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as never);
+
+            expect(result.shows[0].tags).toEqual([
+                { slug: "open mic", name: "Open Mic" },
+            ]);
         });
     });
 });

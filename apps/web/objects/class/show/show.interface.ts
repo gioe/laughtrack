@@ -18,6 +18,11 @@ export interface ShowInterface extends Entity, SocialDiscoverable {
     soldOut?: boolean;
 }
 
+export interface ShowTagDTO {
+    slug: string;
+    name: string;
+}
+
 // DB
 export interface ShowDTO {
     id: number;
@@ -37,6 +42,9 @@ export interface ShowDTO {
     soldOut?: boolean;
     distanceMiles?: number | null;
     timezone?: string | null;
+    // PUBLIC-visibility tags only — ADMIN tags are filtered at the query
+    // boundary so internal taxonomy can never leak through the API.
+    tags?: ShowTagDTO[];
 }
 
 export interface PaginatedShowResponseDTO {
