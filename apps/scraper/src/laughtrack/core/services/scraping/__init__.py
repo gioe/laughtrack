@@ -498,7 +498,13 @@ class ScrapingService:
                     scraper_type=sources[0].scraper_key,
                 )
                 metrics.total += 1
-                _PER_CLUB_TIMEOUT = 300  # seconds; unblocks gather if a thread stalls on network
+                # Per-source cap. Tightened from 300s after the 2026-06-01 nightly-budget
+                # investigation: in two consecutive nightly runs, p95 club execution time
+                # was ~135s and p99 ~260s across 528 clubs, while only ~10 clubs/run finished
+                # successfully between 180s and 290s. 180s preserves >98% of long-tail
+                # successes (mostly seatengine_classic on big chains) while reclaiming
+                # ~2 min/club from genuine stalls.
+                _PER_CLUB_TIMEOUT = 180  # seconds; unblocks gather if a thread stalls on network
                 last_result: Optional[ClubScrapingResult] = None
                 last_key = sources[0].scraper_key
                 unresolved_keys: List[str] = []
