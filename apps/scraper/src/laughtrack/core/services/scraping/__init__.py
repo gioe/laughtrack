@@ -796,8 +796,8 @@ class ScrapingService:
                 # loop so asyncio.run's loop-close path doesn't re-join it
                 # via loop.shutdown_default_executor() and block the wrapper
                 # thread in _scrape_clubs_with_metrics. The public
-                # loop.set_default_executor(None) rejects None on Python <3.12
-                # (TypeError: executor must be ThreadPoolExecutor instance),
+                # loop.set_default_executor() requires a ThreadPoolExecutor
+                # instance (None raises TypeError on every released Python),
                 # so reach for the private attribute — the loop is about to
                 # be closed and discarded by the asyncio.run wrapper anyway.
                 loop._default_executor = None
