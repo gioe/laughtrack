@@ -1367,3 +1367,166 @@ class TestAllowEmptyBody:
 
         mock_browser.fetch_html.assert_called_once()
         assert any("empty body" in c.args[0] for c in mock_warn.call_args_list)
+
+
+# ---------------------------------------------------------------------------
+# Cross-host redirect WARN (TASK-2562)
+# ---------------------------------------------------------------------------
+
+
+def _make_response_with_url(
+    status_code: int,
+    text: str = "",
+    final_url: str = "https://example.com/page",
+):
+    """Build a mock curl_cffi response with an explicit ``.url`` so the
+    cross-host redirect detector has a concrete final URL to inspect."""
+    resp = MagicMock()
+    resp.status_code = status_code
+    resp.text = text
+    resp.url = final_url
+    resp.json = MagicMock(return_value={})
+    return resp
+
+
+class TestCrossHostRedirectWarn:
+    """A response whose final URL host differs from the requested host must
+    emit exactly one WARN per (original_host, final_host) tuple per scrape
+    run. Same-host redirects (trailing slash, http->https on same host) must
+    not warn at all."""
+
+    def setup_method(self):
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            ScrapeDiagnostics,
+            bind_diagnostics,
+        )
+
+        client_module._reset_cross_host_redirect_dedup()
+        # Bind a fresh diagnostics container so per-scrape dedup is exercised
+        # the same way it is in production. teardown_method resets it.
+        self._diag = ScrapeDiagnostics()
+        self._token = bind_diagnostics(self._diag)
+
+    def teardown_method(self):
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            reset_diagnostics,
+        )
+
+        reset_diagnostics(self._token)
+
+    @pytest.mark.asyncio
+    async def test_cross_host_302_emits_exactly_one_warn(self):
+        session = AsyncMock()
+        # curl-cffi follows the redirect transparently; the response object's
+        # .url reflects the final URL after the 302.
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://www.example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(session, "https://example.com/page")
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 1
+        msg = cross_host_warns[0].args[0]
+        assert "example.com" in msg
+        assert "www.example.com" in msg
+        assert "scraping_sources.source_url" in msg
+
+    @pytest.mark.asyncio
+    async def test_same_host_path_rewrite_does_not_warn(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://example.com/page/",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(session, "https://example.com/page")
+
+        assert not any(
+            "Cross-host redirect" in c.args[0] for c in mock_warn.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    async def test_same_host_scheme_upgrade_does_not_warn(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(session, "http://example.com/page")
+
+        assert not any(
+            "Cross-host redirect" in c.args[0] for c in mock_warn.call_args_list
+        )
+
+    @pytest.mark.asyncio
+    async def test_repeated_cross_host_redirect_is_debounced(self):
+        """A 315-fetch fan-out to the same uncanonical host must emit one
+        WARN, not 315 — the TASK-2559 OTH log-flood scenario."""
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://www.example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                for _ in range(5):
+                    await HttpClient.fetch_html(session, "https://example.com/page")
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 1
+        assert self._diag.cross_host_redirects_warned == {("example.com", "www.example.com")}
+
+    @pytest.mark.asyncio
+    async def test_distinct_cross_host_pairs_each_emit_one_warn(self):
+        session = AsyncMock()
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                session.get.return_value = _make_response_with_url(
+                    200, text="<html/>", final_url="https://www.example.com/a",
+                )
+                await HttpClient.fetch_html(session, "https://example.com/a")
+                session.get.return_value = _make_response_with_url(
+                    200, text="<html/>", final_url="https://www.other.com/b",
+                )
+                await HttpClient.fetch_html(session, "https://other.com/b")
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 2
+
+    @pytest.mark.asyncio
+    async def test_club_id_from_logger_context_appears_in_warn(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response_with_url(
+            200, text="<html/>", final_url="https://www.example.com/page",
+        )
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(
+                    session,
+                    "https://example.com/page",
+                    logger_context={"club_id": 1234},
+                )
+
+        cross_host_warns = [
+            c for c in mock_warn.call_args_list
+            if "Cross-host redirect" in c.args[0]
+        ]
+        assert len(cross_host_warns) == 1
+        assert "club_id=1234" in cross_host_warns[0].args[0]
