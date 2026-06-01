@@ -200,6 +200,7 @@ class TestBatchUpdateComedianShowCountsSql:
         so BOOL_AND only runs for shows in the targeted comedians' lineups.
         Don't reintroduce the unbounded GROUP BY form.
         """
+        import re
         sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
         # LATERAL is the contract — the correlated subquery is what bounds the
         # tickets aggregation to relevant shows only.
@@ -210,8 +211,10 @@ class TestBatchUpdateComedianShowCountsSql:
             "LATERAL subquery must correlate on show_id to use the tickets index"
         )
         # The exact prior offending shape: a non-correlated `FROM tickets GROUP BY show_id`.
-        # If either marker reappears the unbounded aggregation is back.
-        assert "from tickets\n            group by show_id" not in sql, (
+        # Normalize whitespace first so reformatting the SQL string (dedent, line
+        # rewrap) cannot silently turn this anti-pattern check into a no-op.
+        normalized = re.sub(r"\s+", " ", sql)
+        assert "from tickets group by show_id" not in normalized, (
             "Reintroduced unbounded tickets GROUP BY — would scan all tickets every call"
         )
 
