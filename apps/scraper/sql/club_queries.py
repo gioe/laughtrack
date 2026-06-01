@@ -249,7 +249,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -305,7 +305,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -356,7 +356,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -428,7 +428,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE
@@ -499,7 +499,7 @@ class ClubQueries:
                     WHEN EXISTS (
                         SELECT 1
                         FROM jsonb_object_keys(COALESCE(scraping_sources.metadata, '{}'::jsonb)) k
-                        WHERE k LIKE 'task_%_disposition'
+                        WHERE k LIKE 'task_%%_disposition'
                     )
                     THEN scraping_sources.enabled
                     ELSE TRUE

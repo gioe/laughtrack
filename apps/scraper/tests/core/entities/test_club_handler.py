@@ -537,7 +537,10 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
             # disposition key and short-circuit the re-enable when found.
             assert "JSONB_OBJECT_KEYS" in conflict, label
             assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            assert "TASK_%_DISPOSITION" in conflict, label
+            # The on-disk SQL must escape the % to %% — psycopg2 pyformat
+            # substitution otherwise reads it as a malformed placeholder
+            # and raises IndexError. Postgres receives a single literal %.
+            assert "TASK_%%_DISPOSITION" in conflict, label
             # Preserves the existing enabled flag (not EXCLUDED.enabled, which
             # would defeat the carve-out by always re-enabling).
             assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
@@ -616,7 +619,10 @@ class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
             # disposition key and short-circuit the re-enable when found.
             assert "JSONB_OBJECT_KEYS" in conflict, label
             assert "SCRAPING_SOURCES.METADATA" in conflict, label
-            assert "TASK_%_DISPOSITION" in conflict, label
+            # The on-disk SQL must escape the % to %% — psycopg2 pyformat
+            # substitution otherwise reads it as a malformed placeholder
+            # and raises IndexError. Postgres receives a single literal %.
+            assert "TASK_%%_DISPOSITION" in conflict, label
             # Preserves the existing enabled flag (not EXCLUDED.enabled, which
             # would defeat the carve-out by always re-enabling).
             assert "THEN SCRAPING_SOURCES.ENABLED" in conflict, label
@@ -640,6 +646,62 @@ class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
             assert ", TRUE," in insert_segment, label
             # And the conflict guard must not appear in the insert segment.
             assert "JSONB_OBJECT_KEYS" not in insert_segment, label
+
+
+class TestUpsertClubQueriesArePyformatSafe:
+    """Regression for the May 6 TASK-1968 bug: every UPSERT_CLUB_BY_*_VENUE
+    query is dispatched through psycopg2 pyformat parameter substitution,
+    which scans the raw SQL for %s / %(name)s / %% patterns. A bare % followed
+    by anything else is read as a malformed placeholder, and the substitution
+    raises IndexError ('tuple index out of range') by walking off the end of
+    the params tuple. The original LIKE 'task_%_disposition' clauses added in
+    commit 455840452f tripped this on every Eventbrite/Ticketmaster/Tour-date/
+    SeatEngine club upsert once the May 6 disposition scripts populated
+    matching metadata keys — about a week of silent data loss until 2026-05-31.
+
+    Tests Python's `%` operator rather than psycopg2.cursor.mogrify so the
+    assertion runs in CI without a Postgres connection; both use the same
+    pyformat parsing and detect the same class of bug (Python raises
+    TypeError, psycopg2 raises IndexError — either is a failed substitution).
+    """
+
+    _AT_RISK_QUERIES = [
+        ("eventbrite", 6),
+        ("seatengine", 8),
+        ("seatengine_v3", 8),
+        ("ticketmaster", 7),
+        ("tour_date", 7),
+    ]
+
+    def _query(self, label: str) -> str:
+        return getattr(ClubQueries, f"UPSERT_CLUB_BY_{label.upper()}_VENUE")
+
+    def test_substitution_does_not_raise_for_each_at_risk_query(self):
+        for label, arity in self._AT_RISK_QUERIES:
+            sql = self._query(label)
+            params = tuple(f"v{i}" for i in range(arity))
+            try:
+                sql % params
+            except (TypeError, ValueError) as exc:
+                pytest.fail(
+                    f"UPSERT_CLUB_BY_{label.upper()}_VENUE failed pyformat "
+                    f"substitution with {arity} params: {type(exc).__name__}: "
+                    f"{exc}. Likely an unescaped % — escape it as %%."
+                )
+
+    def test_arity_matches_callsite_for_each_at_risk_query(self):
+        # Sanity guard: if a query's %s count drifts from the caller's tuple
+        # length, substitution either over- or under-consumes. Counts a bare %s
+        # only (not %%s, which is the literal-% escape).
+        import re
+        for label, expected_arity in self._AT_RISK_QUERIES:
+            sql = self._query(label)
+            actual = len(re.findall(r"(?<!%)%s", sql))
+            assert actual == expected_arity, (
+                f"UPSERT_CLUB_BY_{label.upper()}_VENUE has {actual} %s "
+                f"placeholders but the call site passes {expected_arity}. "
+                f"Either the SQL or the caller drifted — update both."
+            )
 
 
 class TestTourDateUpsertDiscoveryMetadata:
