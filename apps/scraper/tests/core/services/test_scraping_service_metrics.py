@@ -1278,6 +1278,34 @@ class TestSendDiscordRunSummary:
         assert "↪️" not in desc
         assert metadata.get("cross_host_redirects") == 0
 
+    def test_cross_host_redirect_absent_at_sub_threshold(self):
+        """1-2 distinct tuples is below the default N=3 threshold and emits no line.
+
+        Guards the boundary against a future `>=` → `>` swap that would still
+        pass the zero-event and >=3 tests but break the documented contract.
+        """
+        svc = self._make_service(threshold=70.0)
+        a = _make_metric("Club A", ok=1, error=0)
+        a.cross_host_redirects = {("a.example.com", "a.canonical.com")}
+        b = _make_metric("Club B", ok=1, error=0)
+        b.cross_host_redirects = {("b.example.com", "b.canonical.com")}
+        summary = _make_multi_club_summary([a, b])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "cross-host redirect" not in desc
+        assert "↪️" not in desc
+        assert metadata.get("cross_host_redirects") == 2
+
     def test_cross_host_redirect_line_when_count_meets_threshold(self):
         """>=3 distinct (club, original_host, final_host) tuples emits the aggregate line."""
         svc = self._make_service(threshold=70.0)
