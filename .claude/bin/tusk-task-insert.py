@@ -21,8 +21,10 @@ Exit codes:
 """
 
 import argparse
+from datetime import datetime, timedelta, timezone
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -40,6 +42,51 @@ get_connection = _db_lib.get_connection
 load_config = _db_lib.load_config
 validate_enum = _db_lib.validate_enum
 extract_paths = _git_helpers.extract_paths
+is_prose_identifier_path = _git_helpers.is_prose_identifier_path
+path_exists_in_repo = _git_helpers.path_exists_in_repo
+
+
+_RELATIVE_NOT_BEFORE_RE = re.compile(r"^\+(\d+)([mhdw])$")
+_GLOB_METACHARS = set("*?[")
+_OBVIOUS_REPO_PATH_RE = re.compile(
+    r'(?:^|[\s\'"`(,])'
+    r'((?:apps|app|src|test|tests|bin|docs|doc|skills|skills-internal|hooks)/'
+    r'[\w./_-]+)',
+    re.MULTILINE,
+)
+
+
+def _format_utc(value: datetime) -> str:
+    """Return a SQLite-friendly UTC timestamp."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _parse_not_before(value: str) -> str:
+    """Parse --not-before as UTC, accepting ISO datetimes or +Nm/+Nh/+Nd/+Nw."""
+    raw = (value or "").strip()
+    match = _RELATIVE_NOT_BEFORE_RE.match(raw)
+    if match:
+        amount = int(match.group(1))
+        unit = match.group(2)
+        delta = {
+            "m": timedelta(minutes=amount),
+            "h": timedelta(hours=amount),
+            "d": timedelta(days=amount),
+            "w": timedelta(weeks=amount),
+        }[unit]
+        return _format_utc(datetime.now(timezone.utc) + delta)
+
+    normalized = raw.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "--not-before must be an ISO datetime (for example "
+            "2026-06-01T06:00:00Z) or a relative offset like +4h"
+        ) from exc
+    return _format_utc(parsed)
 
 
 def _typed_criterion_type(value: str) -> dict:
@@ -72,6 +119,121 @@ def run_dupe_check(summary: str, domain: str | None) -> dict | None:
     return None
 
 
+def _repo_root(config_path: str) -> str | None:
+    env_root = os.environ.get("TUSK_REPO_ROOT") or os.environ.get("TUSK_PROJECT")
+    if env_root:
+        return env_root
+    if not config_path:
+        return None
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+    if os.path.basename(config_dir) == "tusk":
+        return os.path.dirname(config_dir)
+    return config_dir
+
+
+def _has_glob_metachar(path: str) -> bool:
+    return any(ch in path for ch in _GLOB_METACHARS)
+
+
+def _expand_scope_patterns(patterns: list[str]) -> list[str]:
+    expanded = []
+    for pattern in patterns:
+        for entry in str(pattern or "").split(","):
+            entry = entry.strip()
+            if entry:
+                expanded.append(entry)
+    return expanded
+
+
+def _obvious_spec_paths(spec: str) -> list[str]:
+    paths = []
+    seen = set()
+    for path in extract_paths(spec):
+        if path not in seen:
+            seen.add(path)
+            paths.append(path)
+    for match in _OBVIOUS_REPO_PATH_RE.finditer(spec or ""):
+        path = match.group(1).strip().rstrip('.,;:\'"`)')
+        if path and path not in seen:
+            seen.add(path)
+            paths.append(path)
+    return paths
+
+
+def _warn_missing_path(path: str, source: str) -> None:
+    print(
+        f"Warning: task-insert {source} path does not exist at repo root: {path}",
+        file=sys.stderr,
+    )
+
+
+def _warn_for_missing_declared_paths(
+    repo_root: str | None,
+    scope_patterns: list[str],
+    typed_criteria: list[dict],
+) -> None:
+    if not repo_root:
+        return
+
+    for pattern in scope_patterns:
+        if _has_glob_metachar(pattern):
+            continue
+        if not path_exists_in_repo(repo_root, pattern):
+            _warn_missing_path(pattern, "--scope")
+
+    warned_specs: set[str] = set()
+    for tc in typed_criteria:
+        spec = tc.get("spec") or ""
+        for path in _obvious_spec_paths(spec):
+            if _has_glob_metachar(path) or path in warned_specs:
+                continue
+            warned_specs.add(path)
+            if not path_exists_in_repo(repo_root, path):
+                _warn_missing_path(path, "verification_spec")
+
+
+def _path_file_portion(path: str) -> str:
+    """Return the file path portion of a pytest nodeid-like token."""
+    return (path or "").split("::", 1)[0].strip()
+
+
+def _tracked_repo_files(repo_root: str | None) -> list[str]:
+    if not repo_root:
+        return []
+    result = subprocess.run(
+        ["git", "-C", repo_root, "ls-files", "-z"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    if result.returncode != 0:
+        return []
+    return [p for p in result.stdout.split("\0") if p]
+
+
+def _resolve_auto_derived_scope_pattern(repo_root: str | None, pattern: str) -> str:
+    """Resolve a non-existing auto-derived path by unique repo suffix.
+
+    Exact paths win. Missing paths are fuzzy-matched only when exactly one
+    tracked file ends with the extracted pattern, so ambiguous prose keeps the
+    literal value for the operator to expand later.
+    """
+    raw = (pattern or "").strip()
+    file_part = _path_file_portion(raw)
+    if not file_part or _has_glob_metachar(file_part):
+        return raw
+    if path_exists_in_repo(repo_root, file_part):
+        return file_part
+
+    matches = [
+        path for path in _tracked_repo_files(repo_root)
+        if path.endswith(f"/{file_part}")
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return raw
+
+
 def main(argv: list[str]) -> int:
     db_path = argv[0]
     config_path = argv[1]
@@ -94,6 +256,9 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--workflow", default=None, help="Workflow (validated against config)")
     parser.add_argument("--expires-in", type=int, default=None, dest="expires_in_days", metavar="DAYS",
                         help="Set expires_at to +N days")
+    parser.add_argument("--not-before", type=_parse_not_before, default=None, dest="not_before",
+                        metavar="TIMESTAMP",
+                        help="Do not surface/start the task before this UTC time; accepts ISO or +Nm/+Nh/+Nd/+Nw")
     parser.add_argument("--fixes-task-id", type=int, default=None, dest="fixes_task_id", metavar="ID",
                         help="Link this task as a follow-up/rework of the given task id")
     parser.add_argument("--scope", action="append", default=[], metavar="PATTERN",
@@ -116,8 +281,9 @@ def main(argv: list[str]) -> int:
     criteria: list[str] = args.criteria
     typed_criteria: list[dict] = args.typed_criteria
     expires_in_days = args.expires_in_days
+    not_before = args.not_before
     fixes_task_id = args.fixes_task_id
-    scope_patterns: list[str] = args.scope
+    scope_patterns: list[str] = _expand_scope_patterns(args.scope)
     creates_paths: list[str] = args.creates
     unbounded: bool = args.unbounded
 
@@ -174,6 +340,9 @@ def main(argv: list[str]) -> int:
             print(f"Error: {e}", file=sys.stderr)
         return 2
 
+    repo_root = _repo_root(config_path)
+    _warn_for_missing_declared_paths(repo_root, scope_patterns, typed_criteria)
+
     # Run duplicate check
     dupe = run_dupe_check(summary, domain)
     if dupe:
@@ -209,20 +378,20 @@ def main(argv: list[str]) -> int:
             conn.execute(
                 "INSERT INTO tasks (summary, description, status, priority, domain, "
                 "task_type, assignee, complexity, workflow, fixes_task_id, "
-                "expires_at, created_at, updated_at) "
+                "expires_at, not_before, created_at, updated_at) "
                 "VALUES (?, ?, 'To Do', ?, ?, ?, ?, ?, ?, ?, datetime('now', ?), "
-                "datetime('now'), datetime('now'))",
+                "?, datetime('now'), datetime('now'))",
                 (summary, description, priority, domain, task_type, assignee,
-                 complexity, workflow, fixes_task_id, expires_at_expr),
+                 complexity, workflow, fixes_task_id, expires_at_expr, not_before),
             )
         else:
             conn.execute(
                 "INSERT INTO tasks (summary, description, status, priority, domain, "
                 "task_type, assignee, complexity, workflow, fixes_task_id, "
-                "created_at, updated_at) "
-                "VALUES (?, ?, 'To Do', ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+                "not_before, created_at, updated_at) "
+                "VALUES (?, ?, 'To Do', ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
                 (summary, description, priority, domain, task_type, assignee,
-                 complexity, workflow, fixes_task_id),
+                 complexity, workflow, fixes_task_id, not_before),
             )
 
         task_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
@@ -286,13 +455,16 @@ def main(argv: list[str]) -> int:
             seen_auto: set = set()
             for text in text_blocks:
                 for p in extract_paths(text):
-                    if p in explicit_patterns or p in seen_auto:
+                    if is_prose_identifier_path(p, repo_root):
                         continue
-                    seen_auto.add(p)
+                    resolved = _resolve_auto_derived_scope_pattern(repo_root, p)
+                    if resolved in explicit_patterns or resolved in seen_auto:
+                        continue
+                    seen_auto.add(resolved)
                     conn.execute(
                         "INSERT INTO task_scope (task_id, pattern, source) "
                         "VALUES (?, ?, 'auto_derived')",
-                        (task_id, p),
+                        (task_id, resolved),
                     )
 
         conn.commit()

@@ -46,6 +46,8 @@ Do **not** suggest `/groom-backlog` or `/retro` when there are no ready tasks �
 
 On success, the JSON blob's `task.id` is the task you just started and `skill_run.run_id` is the open skill-run row. **Immediately proceed to step 1b of the "Begin Work on a Task" workflow** — do not wait for additional user confirmation.
 
+Before proceeding to Step 1b, state the resolved task identity verbatim: `Working on TASK-<id>: <summary>`. Treat the JSON blob's `task.id` as the single source of truth; never type a task ID that did not come from this output. This gives the operator one chance to correct a misread or hallucinated ID before any downstream command runs.
+
 ### Begin Work on a Task (with task ID argument)
 
 When called with a task ID (e.g., `/tusk 6`), begin the full development workflow. When called with no argument, the "Get Next Task" step above has already run `tusk task-start --force --skill tusk` for you — **skip Step 1 entirely and pick up at Step 1b (Workflow routing)**, using the JSON blob and the `skill_run.run_id` you already captured.
@@ -62,6 +64,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    - `criteria` — array of acceptance criteria objects (id, criterion, source, is_completed, criterion_type, verification_spec). These are the implementation checklist. Work through them in order during implementation. Mark each criterion done (`tusk criteria done <cid>`) as you complete it — do not defer this to the end. Non-manual criteria (type: code, test, file) run automated verification on `done`; use `--skip-verify` if needed. If the array is empty, proceed normally using the description as scope.
    - `session_id` — the session ID to use for the duration of the workflow (reuses an open session if one exists, otherwise creates a new one)
    - `skill_run` — `{run_id, skill_name, started_at, task_id}` for the skill-run row opened by `--skill`. Capture `skill_run.run_id` — it's referenced by every exit path below.
+
+   Before proceeding to Step 1b, state the resolved task identity verbatim: `Working on TASK-<id>: <summary>`. Treat the JSON blob's `task.id` as the single source of truth; never type a task ID that did not come from this output. This gives the operator one chance to correct a misread or hallucinated ID before any downstream command runs.
 
    Hold onto `session_id` from the JSON — it will be passed to `tusk merge` in step 12 to close the session. **Do not pass it to `tusk task-done`; use `tusk merge` for the full finalization sequence.**
 
@@ -271,6 +275,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     If any criteria are still incomplete, address them now. If a criterion was intentionally skipped, note why in the PR description.
 
+    **Post-merge verification criteria:** If a criterion can only be verified after the change lands on the default branch (for example, a `workflow_dispatch` run, production deploy check, or external system callback), do not leave it open for `tusk merge` to close implicitly. Defer it explicitly before Step 12:
+    ```bash
+    tusk criteria skip <criterion_id> --reason "post-merge verification: <what will be checked after TASK-<id> lands>"
+    ```
+    Capture the exact post-merge check in the reason. `tusk merge` refuses ordinary open, non-deferred criteria so a task is not marked Done just because finalization used `task-done --force`.
+
 10. **Run convention lint (advisory)** — `tusk commit` already runs lint before each commit. If you need to check lint independently before pushing:
     ```bash
     tusk lint
@@ -290,11 +300,13 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
       After `/review-commits` completes with verdict **APPROVED**, proceed to step 12. If verdict is **CHANGES REMAINING**, run `tusk skill-run cancel <run_id>`, surface the unresolved items to the user, and stop.
 
-12. **Finalize — merge, push, and run retro.** Execute as a single uninterrupted sequence — do NOT pause for user confirmation between steps:
+12. **Finalize — merge, push, and run retro.** Execute as a sequence — run each command in its own tool call and read its result before issuing the next, but do NOT pause for user confirmation between steps:
     ```bash
     tusk merge <id> --session $SESSION_ID
     ```
     `tusk merge` closes the session, merges the feature branch into the default branch, pushes, deletes the feature branch, and marks the task Done. It returns JSON including an `unblocked_tasks` array. If there are newly unblocked tasks, note them in the retro.
+
+    `tusk merge` refuses to proceed while ordinary non-deferred criteria are still open. Complete them, or use Step 9's explicit post-merge verification deferral pattern when the check is impossible before merge.
 
     **Already-merged path:** If the feature branch was previously merged and deleted (e.g. via a PR that was merged in another session), `tusk merge` detects this automatically when you are on the default branch — it prints `Note: TASK-<id> — no feature branch found; already on '<branch>'. Branch was previously merged.`, closes the session, pushes, and marks the task Done without re-merging. If `tusk merge` exits 0 in this scenario, proceed to `/retro` as normal.
 
@@ -344,7 +356,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     `tusk abandon` switches off the feature branch, deletes it (force), closes the session, and marks the task Done with the given `closed_reason` in one call. **Refuses** if the feature branch has commits not on the default branch — in that case use `tusk merge` to ship the work, or delete the branch manually if you really want to discard it. The optional `--note` records the decision rationale on `task_progress` so the audit trail survives. After `tusk abandon` exits 0, run `/retro` exactly as you would after `tusk merge`.
 
-    After `tusk merge` (or `tusk abandon`) exits 0, close out the /tusk skill-run so its cost is captured before `/retro` starts its own run:
+    Only after `tusk merge` (or `tusk abandon`) exits 0, close out the /tusk skill-run so its cost is captured before `/retro` starts its own run. Do not run this command after a failed merge or abandon attempt:
     ```bash
     tusk skill-run finish <run_id>
     ```
