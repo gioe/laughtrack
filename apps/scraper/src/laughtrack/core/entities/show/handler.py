@@ -706,8 +706,22 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         except Exception as e:
             club_ids = sorted({s.club_id for s in shows})
             comedian_uuids = sorted({c.uuid for s in shows for c in s.lineup if c.uuid})
+            # "non-fatal" means: the show rows for this 100-batch were already
+            # written upstream by BATCH_INSERT_SHOWS in _process_single_batch,
+            # so swallowing here lets the outer scrape continue (the next
+            # 100-batch still runs). For comedian/lineup data this batch sees,
+            # recovery happens on the next nightly scrape_shows --all: the
+            # same lineup is re-extracted and update_show_lineups replays
+            # idempotently against the upserted shows. The window of loss is
+            # one nightly cycle — and only for lineups whose source content
+            # disappears before the next scrape (cancellation, venue
+            # delisting). TASK-2544 narrowed the most common trigger
+            # (BATCH_UPDATE_COMEDIAN_SHOW_COUNTS timing out on Neon's
+            # statement_timeout) by rewriting the offending tickets
+            # aggregation as a LATERAL subquery; transient network blips
+            # remain the residual exposure for this catch.
             Logger.error(
-                f"Error updating show lineups (non-fatal): {e} | "
+                f"Error updating show lineups (non-fatal, recovers next nightly): {e} | "
                 f"club_ids={club_ids}, shows={len(shows)}, "
                 f"comedian_uuids={comedian_uuids}"
             )
