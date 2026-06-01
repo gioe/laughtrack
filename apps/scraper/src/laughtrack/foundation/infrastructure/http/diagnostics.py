@@ -16,7 +16,7 @@ outside a scrape).
 from __future__ import annotations
 
 from contextvars import ContextVar, Token
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 __all__ = [
@@ -56,6 +56,11 @@ class ScrapeDiagnostics:
     targets_collected: int = 0
     fetches_ok: int = 0
     fetches_failed: int = 0
+    # Cross-host redirect dedup. Keyed on (original_host, final_host); the HTTP
+    # client logs at most one WARN per tuple per scrape run so a fan-out that
+    # fetches 300+ price-detail pages from the same uncanonical host emits one
+    # actionable signal instead of 300 (TASK-2559 incident on OTH).
+    cross_host_redirects_warned: set[tuple[str, str]] = field(default_factory=set)
 
     def record_response(self, status_code: int) -> None:
         if self.http_status is None:
@@ -101,6 +106,16 @@ class ScrapeDiagnostics:
 
     def record_fetch_failed(self) -> None:
         self.fetches_failed += 1
+
+    def note_cross_host_redirect(self, original_host: str, final_host: str) -> bool:
+        """Record a cross-host redirect tuple. Returns True if this is the
+        first time the tuple has been seen this scrape (caller should emit
+        the WARN); False if a prior fetch already warned about it."""
+        key = (original_host, final_host)
+        if key in self.cross_host_redirects_warned:
+            return False
+        self.cross_host_redirects_warned.add(key)
+        return True
 
 
 _current: ContextVar[Optional[ScrapeDiagnostics]] = ContextVar(

@@ -197,6 +197,70 @@ def _reset_bot_block_shortcircuit() -> None:
     _recent_bot_blocked_hosts.clear()
 
 
+# Dedup set for cross-host redirect WARNs emitted when no ScrapeDiagnostics is
+# bound (ad-hoc scripts, tests without bind). Per-scrape dedup uses the
+# diagnostics container; this set covers the unbound case so a tight loop
+# without diagnostics still emits one WARN per (original_host, final_host)
+# pair instead of flooding logs.
+_cross_host_redirects_warned_no_diag: set[tuple[str, str]] = set()
+
+
+def _reset_cross_host_redirect_dedup() -> None:
+    """Test helper to clear the unbound cross-host redirect dedup set."""
+    _cross_host_redirects_warned_no_diag.clear()
+
+
+def _maybe_warn_cross_host_redirect(
+    original_url: str,
+    response: Response,
+    logger_context: JSONDict,
+) -> None:
+    """Emit a WARN when the response's final URL host differs from the
+    requested URL host, debounced to once per (original_host, final_host)
+    tuple per scrape run.
+
+    Same-host redirects (trailing slash, path rewrite, http->https on the
+    same host) are silent because the host comparison ignores scheme and
+    path. Surfaces uncanonical ``scraping_sources.source_url`` rows that
+    quietly pay a redirect tax on every fan-out fetch (TASK-2559 incident:
+    OTH source_url stored bare-host, 302-redirected to www on 315+
+    price-detail fetches per nightly scrape).
+    """
+    final_url = getattr(response, "url", None)
+    if final_url is None:
+        return
+    try:
+        final_url_str = str(final_url)
+    except Exception:
+        return
+    original_host = _host_of(original_url)
+    final_host = _host_of(final_url_str)
+    if not original_host or not final_host or original_host == final_host:
+        return
+
+    diagnostics = current_diagnostics()
+    if diagnostics is not None:
+        if not diagnostics.note_cross_host_redirect(original_host, final_host):
+            return
+    else:
+        key = (original_host, final_host)
+        if key in _cross_host_redirects_warned_no_diag:
+            return
+        _cross_host_redirects_warned_no_diag.add(key)
+
+    club_hint = ""
+    if logger_context:
+        club_id = logger_context.get("club_id")
+        if club_id is not None:
+            club_hint = f" for club_id={club_id}"
+    Logger.warn(
+        f"[HttpClient] Cross-host redirect: {original_url!r} -> "
+        f"{final_url_str!r}; consider canonicalizing "
+        f"scraping_sources.source_url{club_hint} to host={final_host!r}",
+        logger_context or {},
+    )
+
+
 # ---------------------------------------------------------------------------
 # Lazy JS-fallback browser cache
 # ---------------------------------------------------------------------------
@@ -401,6 +465,8 @@ class HttpClient:
 
         proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
+
+        _maybe_warn_cross_host_redirect(normalized_url, response, logger_context)
 
         diagnostics = current_diagnostics()
         if diagnostics is not None:
