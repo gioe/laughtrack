@@ -53,6 +53,23 @@ _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard 
 # instead of N×300s.
 _DB_WRITE_TIMEOUT = 300
 
+# Bound on the post-gather executor.shutdown(wait=True) below. The default
+# ThreadPoolExecutor.shutdown(wait=True) joins every worker thread before
+# returning and has no timeout parameter, so a single worker stuck in
+# serialized_db_call past TASK-2553's LockHeldError fail-fast window would
+# keep _scrape_clubs_concurrently from returning — making GHA's 90m runtime
+# cap the only backstop (TASK-2558). The bounded path runs shutdown on a
+# dedicated one-shot helper executor and limits the await from the asyncio
+# side via asyncio.wait_for; on timeout the pool is abandoned (the existing
+# "scraper-club threads still alive" WARN below surfaces the leak), the
+# loop's default executor is reset so asyncio.run's loop-close path doesn't
+# re-join the abandoned pool, and the orchestrator returns. 30s is generous
+# vs the ~one-loop-iteration cost of a clean shutdown (workers have already
+# completed their futures by this point) and well below the per-club fetch
+# and persist budgets above, so a real hang is bounded into the seconds
+# range. Module-level for tests.
+_EXECUTOR_SHUTDOWN_TIMEOUT = 30
+
 # Per-club fetch deadline inside scrape_one's source loop.
 # Default cap tightened from 300s to 180s in TASK-2543 (~p99 across 528 clubs).
 # Per-scraper overrides allow deep-catalog platforms more headroom: in run
@@ -746,7 +763,44 @@ class ScrapingService:
             # near-instant in practice. wait=False was racy with the subsequent
             # threading.enumerate(), producing a cosmetic "threads still alive"
             # WARNING because workers hadn't finished exiting their pool loop.
-            executor.shutdown(wait=True)
+            #
+            # TASK-2558: bound the wait. A worker stuck in serialized_db_call
+            # past the LockHeldError fail-fast window would otherwise block
+            # shutdown indefinitely. Run shutdown on a dedicated one-shot
+            # helper executor (can't reuse `executor` — we're shutting it
+            # down, and the loop's default executor IS `executor`) and gate
+            # the await with asyncio.wait_for. On timeout the pool is
+            # abandoned; the alive-thread WARN below surfaces the leak.
+            shutdown_executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="scraper-club-shutdown",
+            )
+            try:
+                try:
+                    await asyncio.wait_for(
+                        loop.run_in_executor(shutdown_executor, executor.shutdown, True),
+                        timeout=_EXECUTOR_SHUTDOWN_TIMEOUT,
+                    )
+                except asyncio.TimeoutError:
+                    Logger.error(
+                        f"executor.shutdown(wait=True) did not complete within "
+                        f"{_EXECUTOR_SHUTDOWN_TIMEOUT}s — abandoning thread pool "
+                        f"to prevent orchestrator hang (TASK-2558)"
+                    )
+            finally:
+                # Don't wait for the shutdown helper itself — if outer
+                # shutdown is still running, joining here would re-introduce
+                # the hang we just bounded.
+                shutdown_executor.shutdown(wait=False)
+                # Detach the (possibly still-shutting-down) pool from the
+                # loop so asyncio.run's loop-close path doesn't re-join it
+                # via loop.shutdown_default_executor() and block the wrapper
+                # thread in _scrape_clubs_with_metrics. The public
+                # loop.set_default_executor(None) rejects None on Python <3.12
+                # (TypeError: executor must be ThreadPoolExecutor instance),
+                # so reach for the private attribute — the loop is about to
+                # be closed and discarded by the asyncio.run wrapper anyway.
+                loop._default_executor = None
             alive = [t.name for t in threading.enumerate() if t.name.startswith("scraper-club")]
             if alive:
                 Logger.warn(f"scraper-club threads still alive after gather: {alive}")
