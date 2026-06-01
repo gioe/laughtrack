@@ -130,8 +130,33 @@ struct ShowRowTests {
         #expect(stack.time.contains("8:00"))
     }
 
-    @Test("open mic detection matches common naming variants")
+    @Test("open mic detection reads the tag list without depending on the show name")
     func openMicDetection() {
+        // Deliberately use a non-open-mic name so this asserts the tag-based
+        // path, not the name-string fallback. ShowRow + ShowDetailView are
+        // driven by the same signal.
+        let openMic = makeShow(
+            name: "Late Set",
+            tags: [.init(slug: "open mic", name: "Open Mic")],
+            lineup: nil
+        )
+        #expect(ShowRow.isOpenMic(openMic))
+
+        let nonOpenMic = makeShow(
+            name: "Late Set",
+            tags: [.init(slug: "weekly-showcase", name: "Weekly Showcase")],
+            lineup: nil
+        )
+        #expect(ShowRow.isOpenMic(nonOpenMic) == false)
+
+        let untagged = makeShow(name: "Late Set", tags: nil, lineup: nil)
+        #expect(ShowRow.isOpenMic(untagged) == false)
+    }
+
+    @Test("name-based open mic fallback still recognizes common name variants")
+    func openMicNameFallback() {
+        // Defensive fallback for venues whose tag list hasn't been backfilled
+        // yet — the function is intentionally retained on ShowFormatting.
         #expect(ShowFormatting.isOpenMic("Tuesday Open Mic"))
         #expect(ShowFormatting.isOpenMic("OPEN MIC"))
         #expect(ShowFormatting.isOpenMic("Comedy open-mic night"))
@@ -300,6 +325,7 @@ struct ShowRowTests {
         clubName: String = "Comedy Cellar",
         room: String? = nil,
         tickets: [Components.Schemas.Ticket] = [],
+        tags: [Components.Schemas.Tag]? = nil,
         lineup: [Components.Schemas.ComedianLineup]?
     ) -> Components.Schemas.Show {
         Components.Schemas.Show(
@@ -310,6 +336,7 @@ struct ShowRowTests {
             tickets: tickets,
             name: name,
             lineup: lineup,
+            tags: tags,
             room: room,
             imageUrl: "https://example.com/show.jpg",
             distanceMiles: 2.1
