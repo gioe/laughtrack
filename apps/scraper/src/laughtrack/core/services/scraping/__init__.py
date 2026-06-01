@@ -40,10 +40,17 @@ _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard 
 # for seven clubs in two 1-minute-cadence cascades: a single stalled write
 # blocks the cross-thread RLock inside serialized_db_call, and the
 # asyncio.wait_for cancellation does NOT stop the executor thread — it only
-# stops awaiting it — so the thread keeps the RLock and every queued persist
-# then times out _DB_WRITE_TIMEOUT seconds later. 300s gives transient Neon
-# stalls room to recover; legitimate large-batch upserts finish in tens of
-# seconds, so this only fires on a real stall. Module-level for tests.
+# stops awaiting it — so the thread keeps the RLock. 300s gives transient
+# Neon stalls room to recover; legitimate large-batch upserts finish in tens
+# of seconds, so this only fires on a real stall. Module-level for tests.
+#
+# Cascade bounding (TASK-2553): the underlying executor thread is still not
+# cancelable, but serialized_db_call now acquires _DB_WRITE_LOCK with a 30s
+# bounded wait (see write_lock._LOCK_HOLD_TIMEOUT) and raises LockHeldError
+# when the prior writer is stuck. The exception is caught by the existing
+# `except Exception` branch below, which stamps result.error so the per-club
+# metric flips ok→error. One stuck writer therefore costs 1×300s + (N-1)×30s
+# instead of N×300s.
 _DB_WRITE_TIMEOUT = 300
 
 # Per-club fetch deadline inside scrape_one's source loop.
