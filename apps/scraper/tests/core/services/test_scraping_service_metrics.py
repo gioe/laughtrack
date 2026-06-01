@@ -751,6 +751,124 @@ class TestScrapeClubsWithMetrics:
         persist_errors = [c for c in error_calls if "Failed to persist shows for club" in c]
         assert len(persist_errors) == 1, f"Expected one persist-failure ERROR log, got: {error_calls}"
 
+    @pytest.mark.asyncio
+    async def test_persist_cascade_is_bounded_by_lock_fail_fast(self):
+        """Lock the structural fix from TASK-2553: a single stuck DB writer
+        thread must NOT cause subsequent clubs to time out at _DB_WRITE_TIMEOUT
+        each. ``asyncio.wait_for`` cannot cancel the underlying executor thread,
+        so the thread keeps holding _DB_WRITE_LOCK; without bounding the lock
+        wait, every queued persist would block 300s each (the cascade in run
+        26762966336). serialized_db_call now acquires the lock with a 30s
+        bounded wait and raises LockHeldError, which the orchestrator's
+        existing persist-exception branch (TASK-2555) catches and stamps onto
+        result.error so the per-club metric still flips ok→error.
+
+        Pre-fix expectation (would fail with this test): all 3 clubs stamped
+        with 'persist timed out'.
+
+        Post-fix expectation: club 1 stamped with 'persist timed out' (its
+        executor thread is genuinely hung); clubs 2 and 3 stamped with the
+        LockHeldError message and the per-club metric still records error.
+        """
+        import laughtrack.core.services.scraping as scraping_mod
+        from laughtrack.foundation.infrastructure.database import write_lock as write_lock_mod
+
+        svc = self._make_service()
+
+        # Each club's scrape produces a one-show result; the persist itself
+        # hangs on the same release event, so the first club's executor thread
+        # keeps holding _DB_WRITE_LOCK while clubs B and C try (and fail) to
+        # acquire it. The hang duration must outlast the patched
+        # _DB_WRITE_TIMEOUT (0.5s) plus the cascade-cleanup window for B and C
+        # (~_LOCK_HOLD_TIMEOUT each), but be short enough that the orchestrator's
+        # post-gather executor.shutdown(wait=True) doesn't block the test for
+        # the full mock-hang duration.
+        release = threading.Event()
+        _HANG_DURATION_S = 0.8
+
+        def hanging_persist(club_result):
+            release.wait(timeout=_HANG_DURATION_S)
+            from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+            return DatabaseOperationResult()
+
+        svc._result_processor.insert_club_result.side_effect = hanging_persist
+
+        def make_scraper_for(club_name):
+            result = ClubScrapingResult(club_name=club_name, shows=[MagicMock()], execution_time=0.0)
+            mock_scraper = MagicMock()
+            mock_scraper.scrape_with_result.return_value = result
+            return mock_scraper
+
+        # Resolver returns a scraper whose result.club_name matches the club it
+        # was constructed for; one factory per call so each task gets its own
+        # mock_scraper instance.
+        def resolver_factory(key):
+            def factory(club, **kw):
+                return make_scraper_for(club.name)
+            return factory
+
+        svc._scraping_resolver.get.side_effect = resolver_factory
+
+        clubs = [
+            self._make_club(name="Stuck Club A"),
+            self._make_club(name="Cascaded Club B"),
+            self._make_club(name="Cascaded Club C"),
+        ]
+
+        # Fresh RLock so prior-test thread contention can't leak in. Patch
+        # _DB_WRITE_TIMEOUT short so the first club's wait_for fires quickly,
+        # and _LOCK_HOLD_TIMEOUT shorter still so the bounding kicks in before
+        # the orchestrator's per-call timeout.
+        fresh_lock = threading.RLock()
+        try:
+            with patch.object(write_lock_mod, "_DB_WRITE_LOCK", fresh_lock), \
+                 patch.object(write_lock_mod, "_LOCK_HOLD_TIMEOUT", 0.05), \
+                 patch.object(scraping_mod, "_DB_WRITE_TIMEOUT", 0.5):
+                t0 = time.monotonic()
+                results, summary, _ = await svc._scrape_clubs_concurrently(clubs)
+                elapsed = time.monotonic() - t0
+        finally:
+            # Unblock the hung executor thread so the patched lock can drain
+            # before the next test runs.
+            release.set()
+
+        # Total wall-clock bound: one full _DB_WRITE_TIMEOUT for the genuinely
+        # hung club (0.5s), then ~_LOCK_HOLD_TIMEOUT (0.05s) for each cascaded
+        # club, plus the orchestrator's post-gather executor.shutdown(wait=True)
+        # which waits for the hung thread to exit (bounded by _HANG_DURATION_S
+        # = 0.8s above). Pre-fix this would have been ~3 * _DB_WRITE_TIMEOUT
+        # (1.5s) — bound at 1.5s keeps the cascade-vs-no-cascade distinction
+        # while leaving headroom for slow CI.
+        assert elapsed < 1.5, f"cascade not bounded: {elapsed:.2f}s for 3 clubs (pre-fix would be ~1.5s+ with shutdown)"
+
+        by_name = {r.club_name: r for r in results}
+        assert len(by_name) == 3
+        for r in results:
+            assert r.error is not None, f"club {r.club_name} missing error"
+
+        # Exactly one club hit the per-club DB timeout (the genuinely stuck one).
+        timed_out = [r for r in results if "persist timed out" in (r.error or "")]
+        assert len(timed_out) == 1, (
+            f"expected exactly 1 club to hit per-call DB timeout (the cascade root), "
+            f"got {len(timed_out)}: {[r.club_name + ':' + r.error for r in results]}"
+        )
+
+        # The remaining two were bounded by LockHeldError, NOT by the
+        # per-call timeout — which is the whole point of the fix.
+        fail_fast = [r for r in results if r.error and "still held" in r.error]
+        assert len(fail_fast) == 2, (
+            f"expected 2 clubs to fail-fast via LockHeldError, got {len(fail_fast)}: "
+            f"{[r.club_name + ':' + r.error for r in results]}"
+        )
+
+        # All three clubs flip ok→error in the metric. (The fix preserves the
+        # alert path — silent ok counts would mask the cascade in nightly
+        # summaries, which is the TASK-2550/2555 contract.)
+        assert len(summary.per_club) == 3
+        for m in summary.per_club:
+            assert m.error == 1, f"club {m.club_name} did not flip to error"
+            assert m.ok == 0, f"club {m.club_name} still counted as ok"
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os
