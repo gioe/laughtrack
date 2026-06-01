@@ -457,6 +457,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     targets_collected=diagnostics.targets_collected,
                     fetches_ok=diagnostics.fetches_ok,
                     fetches_failed=diagnostics.fetches_failed,
+                    cross_host_redirects=set(diagnostics.cross_host_redirects_warned),
                 )
             except Exception as e:
                 execution_time = (datetime.now() - start_time).total_seconds()
@@ -481,6 +482,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     bot_block_stage=diagnostics.bot_block_stage,
                     playwright_fallback_used=diagnostics.playwright_fallback_used,
                     items_before_filter=diagnostics.items_before_filter,
+                    cross_host_redirects=set(diagnostics.cross_host_redirects_warned),
                 )
             finally:
                 reset_diagnostics(token)

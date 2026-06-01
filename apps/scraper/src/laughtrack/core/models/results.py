@@ -6,8 +6,8 @@ providing structured representations of individual club results and
 aggregated scraping operation results.
 """
 
-from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional, Set, Tuple
 
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.models.metrics import PerClubStat, ErrorDetail
@@ -50,6 +50,12 @@ class ClubScrapingResult:
     # config drift (unmerged module, renamed key, gitignored file) from a
     # legitimate zero-shows scrape so the entry script can exit non-zero.
     config_error: bool = False
+    # Distinct (original_host, final_host) pairs that triggered a cross-host
+    # redirect WARN during this club's scrape (TASK-2562 emits the per-scrape
+    # WARN, deduped via ScrapeDiagnostics). Propagated up so the run-end
+    # summary can aggregate uncanonical scraping_sources.source_url tuples
+    # across all clubs and surface them in the nightly Discord summary.
+    cross_host_redirects: Set[Tuple[str, str]] = field(default_factory=set)
 
     @property
     def num_shows(self) -> int:

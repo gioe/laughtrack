@@ -34,6 +34,14 @@ _DEFAULT_MAX_CONCURRENT_CLUBS = 5
 _OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to trigger a summary alert
 _DISCORD_DESCRIPTION_LIMIT = 2048  # conservative limit; Discord's actual embed description cap is 4096
 _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard limit but avoids huge payloads
+# Minimum distinct (club, original_host, final_host) tuples observed across a
+# scrape_all run before the cross-host redirect aggregate line is added to the
+# Discord summary. Below this, a stray uncanonical source_url stays as a raw
+# WARN in the log archaeology surface — only worth a Discord line once it's a
+# pattern. Tunable via env to dial sensitivity post-rollout (TASK-2566).
+_CROSS_HOST_REDIRECT_VENUE_THRESHOLD = int(
+    os.environ.get("SCRAPING_CROSS_HOST_REDIRECT_VENUE_THRESHOLD", "3")
+)
 
 # Per-club persist deadline inside _scrape_clubs_concurrently's scrape_one.
 # Raised from 60s after run 26762966336 (2026-06-01 nightly) lost the persist
@@ -280,6 +288,7 @@ def _copy_diagnostics_into_metrics(
     metrics.fetches_failed = result.fetches_failed or 0
     metrics.items_before_filter = result.items_before_filter or 0
     metrics.bot_block_detected = bool(result.bot_block_detected)
+    metrics.cross_host_redirects = set(result.cross_host_redirects or set())
 
 
 class ScrapingService:
@@ -1100,6 +1109,17 @@ class ScrapingService:
                     f"🔎 {len(parser_rejected_all)} club(s) where parser rejected all candidates:",
                 ]
                 body_lines.extend(f"• {m.club_name}" for m in parser_rejected_all)
+            cross_host_tuples = summary.cross_host_redirect_tuples
+            if len(cross_host_tuples) >= _CROSS_HOST_REDIRECT_VENUE_THRESHOLD:
+                body_lines += [
+                    "",
+                    f"↪️ {len(cross_host_tuples)} cross-host redirect(s) "
+                    "(uncanonical scraping_sources.source_url):",
+                ]
+                body_lines.extend(
+                    f"• {club}: {original} → {final}"
+                    for (club, original, final) in sorted(cross_host_tuples)
+                )
 
             gioe_alert = GioeAlert(
                 title=title,
@@ -1110,6 +1130,7 @@ class ScrapingService:
                     "total_clubs": summary.total_clubs,
                     "clubs_empty_calendar": summary.clubs_empty_calendar,
                     "clubs_classifier_rejected_all": summary.clubs_classifier_rejected_all,
+                    "cross_host_redirects": len(cross_host_tuples),
                     "shows_total": db_result.total,
                     "shows_inserted": db_result.inserts,
                     "shows_updated": db_result.updates,

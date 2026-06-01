@@ -5,7 +5,7 @@ Tracks per-club request outcomes accumulated in-memory during a scrape_all run.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 
 class ScrapeOutcome(str, Enum):
@@ -50,6 +50,11 @@ class DomainRequestMetrics:
     # those silent failures to DEGRADED instead of misclassifying them as
     # EMPTY_CALENDAR and filtering them out of alerts.
     bot_block_detected: bool = False
+    # Distinct (original_host, final_host) pairs that triggered the TASK-2562
+    # cross-host redirect WARN during this club's scrape. Carried up from
+    # ClubScrapingResult so ScrapingRunSummary can aggregate uncanonical
+    # source_urls across the run for the nightly Discord summary.
+    cross_host_redirects: Set[Tuple[str, str]] = field(default_factory=set)
 
     @property
     def success_rate(self) -> float:
@@ -149,6 +154,22 @@ class ScrapingRunSummary:
     def classifier_rejected_all_clubs(self) -> List[DomainRequestMetrics]:
         """Per-club metrics for venues where candidates were all filtered out."""
         return [m for m in self.per_club if m.outcome == ScrapeOutcome.CLASSIFIER_REJECTED_ALL]
+
+    @property
+    def cross_host_redirect_tuples(self) -> Set[Tuple[str, str, str]]:
+        """Distinct (club_name, original_host, final_host) tuples observed during the run.
+
+        Each tuple represents one uncanonical scraping_sources.source_url that
+        triggered the TASK-2562 cross-host redirect WARN. Sourcing from the set
+        means a club whose scrape fans out 300 price-detail fetches contributes
+        one tuple per (original_host, final_host) pair, not 300 — ScrapeDiagnostics
+        already deduped at scrape time.
+        """
+        return {
+            (m.club_name, original, final)
+            for m in self.per_club
+            for (original, final) in m.cross_host_redirects
+        }
 
     def merge(self, other: "ScrapingRunSummary") -> "ScrapingRunSummary":
         """Combine two summaries into one (e.g. venue clubs + production companies)."""
