@@ -25,16 +25,14 @@ on:
       - ".github/workflows/ios-openapi-drift.yml"
 
 jobs:
-  # Initial watcher: ios/CLAUDE.md ("Generator-version drift") notes the
-  # currently committed Client.swift / Types.swift have mixed formatting from
-  # prior generator versions, so a clean regen against the pinned generator
-  # version will produce a diff on day one. continue-on-error keeps the failure
-  # signal visible without blocking PRs. Convert to a blocking gate after the
-  # committed files are re-baselined against the pinned generator (same
-  # watcher-then-gate progression used by sim-tests-ios-26-watch).
+  # Blocking gate: the committed Client.swift / Types.swift were re-baselined
+  # against the pinned generator (swift-openapi-generator 1.9.0) in TASK-2568,
+  # so a clean regen now matches byte-for-byte. Any drift here means openapi.json
+  # was edited without a matching client regen (TASK-2549 incident pattern) or
+  # GeneratedSources/ was hand-edited — fix per ios/CLAUDE.md "OpenAPI Client
+  # Regeneration".
   check-openapi-regen-drift:
     runs-on: macos-latest
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
