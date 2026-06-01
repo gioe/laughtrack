@@ -53,7 +53,19 @@ class PostgresMetricsRepository:
                     cur.execute("DELETE FROM scraper_run_clubs WHERE run_id = %s", (run_id,))
                     cur.execute("DELETE FROM scraper_run_errors WHERE run_id = %s", (run_id,))
 
-                    club_rows = list(self._club_rows(run_id, snapshot.per_club_stats))
+                    valid_club_ids = self._fetch_valid_club_ids(cur, snapshot.per_club_stats)
+                    nulled = [
+                        f"{stat.club} (id={stat.club_id})"
+                        for stat in snapshot.per_club_stats
+                        if stat.club_id is not None
+                        and int(stat.club_id) not in valid_club_ids
+                    ]
+                    if nulled:
+                        Logger.info(
+                            f"Nulling {len(nulled)} unknown club_id(s) on scraper_run_clubs "
+                            f"to satisfy FK to clubs: {', '.join(nulled)}"
+                        )
+                    club_rows = list(self._club_rows(run_id, snapshot.per_club_stats, valid_club_ids))
                     if club_rows:
                         execute_values(cur, self._INSERT_CLUBS_SQL, club_rows)
 
@@ -141,13 +153,40 @@ class PostgresMetricsRepository:
             "scraper",
         )
 
-    def _club_rows(self, run_id: int, stats: Iterable[PerClubStat]) -> Iterable[tuple[Any, ...]]:
+    @staticmethod
+    def _fetch_valid_club_ids(cur, stats: Iterable[PerClubStat]) -> set[int]:
+        """Return the subset of stats' club_ids that exist in `clubs`.
+
+        Synthetic production_company proxies use ``id = -company.id`` (negative)
+        and would FK-violate against ``scraper_run_clubs.club_id REFERENCES
+        clubs(id)``; hard-deleted real clubs would too. Nullifying unknown ids
+        before INSERT keeps the FK satisfied (the column is nullable with
+        ON DELETE SET NULL semantics).
+        """
+        candidates = {int(stat.club_id) for stat in stats if stat.club_id is not None}
+        if not candidates:
+            return set()
+        cur.execute(
+            "SELECT id FROM clubs WHERE id = ANY(%s)",
+            (list(candidates),),
+        )
+        return {row[0] for row in cur.fetchall()}
+
+    def _club_rows(
+        self,
+        run_id: int,
+        stats: Iterable[PerClubStat],
+        valid_club_ids: set[int],
+    ) -> Iterable[tuple[Any, ...]]:
         for ordinal, stat in enumerate(stats):
+            club_id = stat.club_id
+            if club_id is not None and int(club_id) not in valid_club_ids:
+                club_id = None
             yield (
                 run_id,
                 ordinal,
                 stat.club,
-                stat.club_id,
+                club_id,
                 stat.num_shows,
                 stat.execution_time,
                 stat.success,

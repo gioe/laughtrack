@@ -17,8 +17,13 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 
 
 class _Cursor:
-    def __init__(self) -> None:
+    def __init__(self, valid_club_ids: list[int] | None = None) -> None:
         self.executed = []
+        # Rows returned by the next fetchall(). The FK-filter SELECT in
+        # persist_snapshot is the only path that calls fetchall(); tests that
+        # don't construct with a list get an empty result (all club_ids treated
+        # as unknown and nulled).
+        self._fetchall_rows = [(cid,) for cid in (valid_club_ids or [])]
 
     def __enter__(self):
         return self
@@ -31,6 +36,9 @@ class _Cursor:
 
     def fetchone(self):
         return (42,)
+
+    def fetchall(self):
+        return list(self._fetchall_rows)
 
 
 class _Connection:
@@ -89,7 +97,7 @@ def _snapshot() -> ScrapingMetricsSnapshot:
 
 
 def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
-    cursor = _Cursor()
+    cursor = _Cursor(valid_club_ids=[7, 8])
     captured_batches = []
 
     def fake_execute_values(cur, sql, rows):
@@ -114,6 +122,7 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
     assert "ON CONFLICT (run_key) DO UPDATE" in cursor.executed[0][0]
     assert "DELETE FROM scraper_run_clubs" in cursor.executed[1][0]
     assert "DELETE FROM scraper_run_errors" in cursor.executed[2][0]
+    assert "SELECT id FROM clubs WHERE id = ANY" in cursor.executed[3][0]
 
     club_sql, club_rows = captured_batches[0]
     error_sql, error_rows = captured_batches[1]
@@ -121,9 +130,99 @@ def test_scraper_run_summary_persistence_upserts_run_and_replaces_child_rows():
     assert "INSERT INTO scraper_run_errors" in error_sql
     assert len(club_rows) == 2
     assert club_rows[0][2] == "Good Club"
+    assert club_rows[0][3] == 7
+    assert club_rows[1][3] == 8
     assert club_rows[1][7] == "timeout"
     assert len(error_rows) == 1
     assert error_rows[0][2] == "Bad Club"
+
+
+def test_scraper_run_summary_nullifies_unknown_club_ids_to_satisfy_fk():
+    """Synthetic production_company proxies emit negative club_ids; deleted
+    clubs leave stale positive ids in per_club_stats. Both must be nulled
+    before INSERT or scraper_run_clubs_club_id_fkey raises and aborts the
+    transaction (run 26762966336 incident)."""
+    dt = datetime(2026, 5, 18, 12, 30, tzinfo=timezone.utc)
+    snapshot = ScrapingMetricsSnapshot(
+        timestamp=dt.isoformat(),
+        datetime=dt,
+        session=SessionBlock(duration_seconds=1.0, exported_at=dt.isoformat()),
+        shows=ShowsBlock(),
+        clubs=ClubsBlock(),
+        errors=ErrorsBlock(),
+        success_rate=0.0,
+        execution_times=[],
+        per_club_stats=[
+            PerClubStat(club="Real Club", club_id=7, num_shows=0, execution_time=0.0, success=True),
+            PerClubStat(club="Improbable Comedy (organizer)", club_id=-2, num_shows=0, execution_time=0.0, success=True),
+            PerClubStat(club="Deleted Club", club_id=999, num_shows=0, execution_time=0.0, success=False),
+            PerClubStat(club="Unknown ID Club", club_id=None, num_shows=0, execution_time=0.0, success=False),
+        ],
+        error_details=[],
+    )
+    cursor = _Cursor(valid_club_ids=[7])  # only club 7 exists; -2 and 999 must be nulled
+    captured_batches = []
+
+    def fake_execute_values(cur, sql, rows):
+        captured_batches.append((sql, list(rows)))
+
+    with (
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+            return_value=_Transaction(_Connection(cursor)),
+        ),
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.execute_values",
+            side_effect=fake_execute_values,
+        ),
+    ):
+        result = PostgresMetricsRepository().persist_snapshot(snapshot)
+
+    assert result is True
+    select_sql, select_params = cursor.executed[3]
+    assert "SELECT id FROM clubs WHERE id = ANY" in select_sql
+    assert sorted(select_params[0]) == [-2, 7, 999]
+
+    _, club_rows = captured_batches[0]
+    by_name = {row[2]: row[3] for row in club_rows}
+    assert by_name == {
+        "Real Club": 7,
+        "Improbable Comedy (organizer)": None,
+        "Deleted Club": None,
+        "Unknown ID Club": None,
+    }
+
+
+def test_scraper_run_summary_skips_validation_query_when_no_club_ids():
+    """If per_club_stats has no non-null club_ids, skip the SELECT entirely —
+    Postgres rejects ANY(ARRAY[]) and the round-trip is wasted work."""
+    dt = datetime(2026, 5, 18, 12, 30, tzinfo=timezone.utc)
+    snapshot = ScrapingMetricsSnapshot(
+        timestamp=dt.isoformat(),
+        datetime=dt,
+        session=SessionBlock(duration_seconds=0.0, exported_at=dt.isoformat()),
+        shows=ShowsBlock(),
+        clubs=ClubsBlock(),
+        errors=ErrorsBlock(),
+        success_rate=0.0,
+        execution_times=[],
+        per_club_stats=[],
+        error_details=[],
+    )
+    cursor = _Cursor()
+
+    with (
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.get_transaction",
+            return_value=_Transaction(_Connection(cursor)),
+        ),
+        patch(
+            "laughtrack.core.services.metrics.postgres_repository.execute_values",
+        ),
+    ):
+        PostgresMetricsRepository().persist_snapshot(snapshot)
+
+    assert not any("SELECT id FROM clubs" in sql for sql, _ in cursor.executed)
 
 
 def test_generic_pipeline_run_persistence_upserts_run_and_clears_child_rows():
