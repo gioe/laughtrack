@@ -23,8 +23,12 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
-from laughtrack.scrapers.implementations.api.seatengine_classic.scraper import SeatEngineClassicScraper
+from laughtrack.scrapers.implementations.api.seatengine_classic.scraper import (
+    SeatEngineClassicScraper,
+    _SEATENGINE_HOST_RPS,
+)
 from laughtrack.scrapers.implementations.api.seatengine_classic.data import SeatEngineClassicPageData
+from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
 
 
 SCRAPING_URL = "https://newbrunswick.stressfactory.com/events"
@@ -263,6 +267,50 @@ async def test_the_function_sf_get_data_layout1_returns_two_shows():
     )
     assert result.event_list[0]["name"] == "HellaDesi Comedy Night"
     assert result.event_list[1]["name"] == "HellaDesi Comedy Night"
+
+
+# ---------------------------------------------------------------------------
+# Per-host RPS override (TASK-2556 — price-enrichment fan-out stall)
+# ---------------------------------------------------------------------------
+
+
+def test_seatengine_host_rps_default_is_three():
+    """The module-level RPS override must stay at 3 — DCCL/OTH math is pinned to it.
+
+    The Comedy Loft of DC (322 future showtimes) and Off The Hook (315) take
+    >= N seconds at N RPS due to per-host serialisation; 3 RPS keeps the
+    worst-case venue at ~108s, comfortably under the 180s default cap.
+    Dropping below 3 RPS resurrects the stall.
+    """
+    assert _SEATENGINE_HOST_RPS == 3.0
+
+
+def test_scraper_init_applies_host_rps_override():
+    """Instantiating the scraper sets the venue host's RPS to _SEATENGINE_HOST_RPS.
+
+    Pins the TASK-2556 fix: each SeatEngine-classic venue domain is registered
+    with the global RateLimiter at the bumped rate when its scraper instance
+    is built, so the price-enrichment fan-out is no longer serialised at the
+    1 RPS default.
+    """
+    SeatEngineClassicScraper(_club())
+    domain = _club().scraping_domain
+    assert RateLimiter().get_domain_limit(domain) == _SEATENGINE_HOST_RPS
+
+
+def test_scraper_init_keys_override_to_clubs_own_host():
+    """Two distinct venues each register their own host independently.
+
+    Guards against the override accidentally being keyed to a shared
+    seatengine host (e.g. cdn.seatengine.com); the rate limiter is per-host
+    and each club's custom domain must be bumped individually.
+    """
+    SeatEngineClassicScraper(_club())  # newbrunswick.stressfactory.com
+    SeatEngineClassicScraper(_the_function_club())  # the-function.seatengine-sites.com
+
+    limiter = RateLimiter()
+    assert limiter.get_domain_limit("newbrunswick.stressfactory.com") == _SEATENGINE_HOST_RPS
+    assert limiter.get_domain_limit("the-function.seatengine-sites.com") == _SEATENGINE_HOST_RPS
 
 
 @pytest.mark.asyncio

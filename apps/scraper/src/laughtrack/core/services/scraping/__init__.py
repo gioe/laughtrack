@@ -61,10 +61,13 @@ _DB_WRITE_TIMEOUT = 300
 # Bricktown, Magoobys, Fort Lauderdale Improv, Desert Ridge, Emerald City,
 # Spokane, Louisville), all of which fetch 200-300 shows per call. 240s
 # preserves the 90m runtime-budget gain vs the prior 300s while recovering
-# the chains that 180s sacrificed. Two seatengine_classic venues
-# (The Comedy Loft of DC, Off The Hook Comedy Club) still time out at 240s
-# but also timed out at 300s — they are a separate scraper bug (TASK-2550
-# territory), not a cap-tuning concern.
+# the chains that 180s sacrificed. The two largest seatengine_classic venues
+# (The Comedy Loft of DC at 322 future showtimes, Off The Hook Comedy Club at
+# 315) previously timed out at every cap because the per-host rate limiter
+# serialised their price-enrichment fan-out at 1 RPS; TASK-2556 bumped the
+# per-host RPS for seatengine_classic venues to 3, which keeps them under 180s
+# end-to-end. The 240s override is retained as belt-and-suspenders for any
+# venue whose catalogue grows past ~540 future showtimes.
 _DEFAULT_PER_CLUB_TIMEOUT = 180
 _PER_SCRAPER_TIMEOUT_OVERRIDES: Dict[str, int] = {
     "seatengine_classic": 240,

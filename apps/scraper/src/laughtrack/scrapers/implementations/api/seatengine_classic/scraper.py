@@ -30,6 +30,19 @@ from .transformer import SeatEngineClassicTransformer
 
 _PRICE_FETCH_CONCURRENCY = 5
 
+# Per-host RPS override applied to every SeatEngine-classic venue domain.
+# The default global rate limit is 1 RPS per host (DomainConfig.requests_per_second).
+# At 1 RPS the price-enrichment fan-out is sequential: a venue with N upcoming
+# showtimes takes >=N seconds, because the per-host limiter serialises against
+# _PRICE_FETCH_CONCURRENCY. The Comedy Loft of DC and Off The Hook Comedy Club
+# (322 and 315 future showtimes through 2027 via /events + /calendar JSON-LD)
+# would never fit even the 240s seatengine_classic cap at 1 RPS. 3 RPS keeps
+# DCCL's 322 fetches under 110s end-to-end while staying well below any plausible
+# WAF threshold for venue sites whose robots.txt explicitly allows full crawl
+# access (no Crawl-delay directive on any of the 54 seatengine_classic hosts).
+# TASK-2556.
+_SEATENGINE_HOST_RPS = 3.0
+
 
 class SeatEngineClassicScraper(BaseScraper):
     """
@@ -55,6 +68,10 @@ class SeatEngineClassicScraper(BaseScraper):
             SeatEngineClassicTransformer(club)
         )
         self._location_filter = self._parse_location_filter(club.scraping_url)
+        if club.scraping_domain:
+            self.rate_limiter.set_domain_limit(
+                club.scraping_domain, _SEATENGINE_HOST_RPS
+            )
 
     @staticmethod
     def _parse_location_filter(scraping_url: str) -> Optional[str]:
