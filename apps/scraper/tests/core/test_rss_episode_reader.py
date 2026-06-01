@@ -275,10 +275,39 @@ def test_reachable_feed_clause_params_match_thresholds():
 
     assert "consecutive_failures" in clause
     assert "last_failure_at" in clause
-    assert clause.count("%s") == len(params) == 4
+    # Each cache value is referenced twice (regex guard + cast), so the cache
+    # key is bound twice per branch alongside the two threshold binds.
+    assert clause.count("%s") == len(params) == 6
     assert params == [
+        mod._CACHE_KEY,
         mod._CACHE_KEY,
         mod.UNREACHABLE_FAILURE_THRESHOLD,
         mod._CACHE_KEY,
+        mod._CACHE_KEY,
         mod.UNREACHABLE_COOLDOWN_DAYS,
     ]
+
+
+def test_reachable_feed_clause_guards_casts_against_malformed_cache_values():
+    """A malformed cache value must not reach the ::int / ::timestamptz cast.
+
+    The raw casts crash the entire load query (22P02 / 22007) on a non-numeric
+    consecutive_failures or non-ISO last_failure_at. Guarding each cast behind a
+    regex CASE keeps a single bad row from benching every feed. (Asserted
+    structurally: the scraper unit suite has no live Postgres to evaluate SQL.)
+    """
+    clause, _ = mod.reachable_feed_clause()
+    normalized = " ".join(clause.split())
+
+    # Both casts are still present...
+    assert "::int" in normalized
+    assert "::timestamptz" in normalized
+    # ...but each is now reached only through a regex-guarded CASE, never raw.
+    assert "CASE WHEN (source_payload -> %s ->> 'consecutive_failures') ~ '^[0-9]+$'" in normalized
+    assert "last_failure_at') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}" in normalized
+    # The fail-safe defaults survive so a guarded-out value leaves the feed eligible.
+    assert "0) <" in normalized
+    assert "'epoch'::timestamptz" in normalized
+    # Regression guard: the old unguarded form must not creep back in.
+    assert "'consecutive_failures')::int, 0)" not in normalized
+    assert "'last_failure_at')::timestamptz, 'epoch'" not in normalized

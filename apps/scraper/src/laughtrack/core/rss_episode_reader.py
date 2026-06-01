@@ -360,13 +360,36 @@ def reachable_feed_clause() -> tuple[str, list[Any]]:
     once per cooldown window and never permanently blacklisted). COALESCE keeps
     the predicate non-NULL for feeds that have never failed. Keeps the
     source_payload cache schema encapsulated in this module.
+
+    Both casts are regex-guarded so a malformed cache value (a non-numeric
+    ``consecutive_failures`` or non-ISO ``last_failure_at`` from a manual edit,
+    legacy row, or future external writer) cannot raise 22P02/22007 and take
+    down the entire load query. We only ever write well-formed values
+    (``int()`` / ``datetime.isoformat()``), so the guard is a no-op in steady
+    state; when it does trip, the value falls through ``COALESCE`` to the safe
+    default (``0`` failures / ``'epoch'``), leaving the one offending feed
+    *eligible* (re-probed) rather than crashing the query for every feed.
     """
+    # CASE returns NULL when the extracted text fails the regex, so the cast is
+    # never attempted on garbage; COALESCE then supplies the fail-safe default.
     clause = (
-        "(COALESCE((source_payload -> %s ->> 'consecutive_failures')::int, 0) < %s"
-        " OR COALESCE((source_payload -> %s ->> 'last_failure_at')::timestamptz, 'epoch'::timestamptz)"
+        "(COALESCE("
+        "CASE WHEN (source_payload -> %s ->> 'consecutive_failures') ~ '^[0-9]+$'"
+        " THEN (source_payload -> %s ->> 'consecutive_failures')::int END, 0) < %s"
+        " OR COALESCE("
+        "CASE WHEN (source_payload -> %s ->> 'last_failure_at')"
+        " ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}:[0-9]{2}'"
+        " THEN (source_payload -> %s ->> 'last_failure_at')::timestamptz END, 'epoch'::timestamptz)"
         " <= NOW() - make_interval(days => %s))"
     )
-    params: list[Any] = [_CACHE_KEY, UNREACHABLE_FAILURE_THRESHOLD, _CACHE_KEY, UNREACHABLE_COOLDOWN_DAYS]
+    params: list[Any] = [
+        _CACHE_KEY,
+        _CACHE_KEY,
+        UNREACHABLE_FAILURE_THRESHOLD,
+        _CACHE_KEY,
+        _CACHE_KEY,
+        UNREACHABLE_COOLDOWN_DAYS,
+    ]
     return clause, params
 
 
