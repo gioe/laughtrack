@@ -49,3 +49,11 @@ class TestBaseScraperRateLimitOverride:
         club = _make_club("https://unknownvenue.example.com/shows")
         scraper = _ConcreteScraper(club=club)
         assert scraper.rate_limiter.get_domain_limit("unknownvenue.example.com") == 1.0
+
+    def test_explicit_zero_rate_limit_is_applied(self):
+        """An explicit rate_limit=0.0 must be honored as a real override
+        (the 'is not None' guard exists specifically so 0.0 is not silently
+        ignored by a truthy check)."""
+        club = _make_club("https://eastvillecomedy.com/shows", rate_limit=0.0)
+        scraper = _ConcreteScraper(club=club)
+        assert scraper.rate_limiter.get_domain_limit("eastvillecomedy.com") == 0.0
