@@ -871,6 +871,107 @@ class TestScrapeClubsWithMetrics:
             assert m.error == 1, f"club {m.club_name} did not flip to error"
             assert m.ok == 0, f"club {m.club_name} still counted as ok"
 
+    @pytest.mark.asyncio
+    async def test_executor_shutdown_bounded_when_worker_thread_hangs(self):
+        """Lock the structural fix from TASK-2558: a worker thread that
+        outlives TASK-2553's LockHeldError fail-fast window (e.g. a Neon
+        writer stuck inside serialized_db_call beyond _LOCK_HOLD_TIMEOUT)
+        must NOT block the orchestrator's post-gather executor.shutdown
+        indefinitely. The default ThreadPoolExecutor.shutdown(wait=True)
+        joins every worker without a timeout, so a single hung thread would
+        keep _scrape_clubs_concurrently from returning — leaving GHA's 90m
+        runtime cap as the only backstop.
+
+        Pre-fix expectation (would fail with this test): elapsed wall-clock
+        reaches _HANG_DURATION_S because shutdown(wait=True) joins the hung
+        worker.
+
+        Post-fix expectation: elapsed wall-clock is bounded by the patched
+        _EXECUTOR_SHUTDOWN_TIMEOUT plus the per-club DB write timeout; the
+        ERROR log naming the abandoned shutdown is emitted; the alive-thread
+        WARN surfaces the leak.
+        """
+        import laughtrack.core.services.scraping as scraping_mod
+        from laughtrack.foundation.infrastructure.database import write_lock as write_lock_mod
+
+        svc = self._make_service()
+
+        # The hung worker holds _DB_WRITE_LOCK well past _EXECUTOR_SHUTDOWN_TIMEOUT
+        # so executor.shutdown(wait=True) cannot return on its own. The release
+        # event in the finally block lets the thread drain after the assertions
+        # run so the lock doesn't leak into sibling tests.
+        release = threading.Event()
+        _HANG_DURATION_S = 5.0
+
+        def hanging_persist(club_result):
+            release.wait(timeout=_HANG_DURATION_S)
+            from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+            return DatabaseOperationResult()
+
+        svc._result_processor.insert_club_result.side_effect = hanging_persist
+
+        result = ClubScrapingResult(
+            club_name="Hung Worker Club", shows=[MagicMock()], execution_time=1.0
+        )
+        mock_scraper = MagicMock()
+        mock_scraper.scrape_with_result.return_value = result
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
+
+        club = self._make_club(name="Hung Worker Club")
+
+        # Fresh RLock so prior-test thread contention can't leak in. Patch
+        # _DB_WRITE_TIMEOUT short so the orchestrator's wait_for around the
+        # persist fires quickly, then patch _EXECUTOR_SHUTDOWN_TIMEOUT short
+        # so the bounding kicks in well before _HANG_DURATION_S.
+        fresh_lock = threading.RLock()
+        try:
+            with patch.object(write_lock_mod, "_DB_WRITE_LOCK", fresh_lock), \
+                 patch.object(scraping_mod, "_DB_WRITE_TIMEOUT", 0.1), \
+                 patch.object(scraping_mod, "_EXECUTOR_SHUTDOWN_TIMEOUT", 0.2), \
+                 patch.object(scraping_mod, "Logger") as mock_logger:
+                t0 = time.monotonic()
+                results, summary, _ = await svc._scrape_clubs_concurrently([club])
+                elapsed = time.monotonic() - t0
+        finally:
+            # Unblock the hung executor thread so the patched lock can drain
+            # before the next test runs.
+            release.set()
+
+        # Bound at 2.0s — comfortably above _DB_WRITE_TIMEOUT (0.1s) +
+        # _EXECUTOR_SHUTDOWN_TIMEOUT (0.2s) for slow CI runners, but well
+        # below _HANG_DURATION_S (5.0s) where the pre-fix path would land.
+        assert elapsed < 2.0, (
+            f"shutdown not bounded: {elapsed:.2f}s for one hung worker "
+            f"(expected ~0.3s, pre-fix would hit {_HANG_DURATION_S}s)"
+        )
+
+        # The bounded shutdown emits a dedicated ERROR naming the abandoned
+        # pool so the cascade is greppable in nightly logs.
+        error_calls = [str(c) for c in mock_logger.error.call_args_list]
+        shutdown_errors = [
+            c for c in error_calls
+            if "executor.shutdown" in c and "abandoning thread pool" in c
+        ]
+        assert len(shutdown_errors) == 1, (
+            f"expected one bounded-shutdown ERROR log, got: {error_calls}"
+        )
+
+        # The alive-thread WARN surfaces the still-running scraper-club
+        # thread that the bounded shutdown abandoned.
+        warn_calls = [str(c) for c in mock_logger.warn.call_args_list]
+        alive_warns = [c for c in warn_calls if "scraper-club threads still alive" in c]
+        assert len(alive_warns) == 1, (
+            f"expected one alive-threads WARN, got: {warn_calls}"
+        )
+
+        # The orchestrator still returned the club's result with the
+        # per-club persist-timeout error stamped (sibling to TASK-2550's
+        # contract), so the nightly alert path engages.
+        assert len(results) == 1
+        assert results[0].error is not None
+        assert "persist timed out" in results[0].error
+        assert summary.per_club[0].error == 1
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os
