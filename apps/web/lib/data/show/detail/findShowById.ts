@@ -83,6 +83,12 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                         },
                     },
                 },
+                taggedShows: {
+                    where: { tag: { visibility: "PUBLIC" } },
+                    select: {
+                        tag: { select: { slug: true, name: true } },
+                    },
+                },
             },
         });
 
@@ -97,6 +103,13 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
         }
 
         const clubName = row.club.name;
+        const tags = (row.taggedShows ?? [])
+            .map((tt) => tt.tag)
+            .filter(
+                (tag): tag is { slug: string; name: string } =>
+                    typeof tag?.slug === "string" && typeof tag?.name === "string",
+            )
+            .map((tag) => ({ slug: tag.slug, name: tag.name }));
         const show: ShowDetailDTO = {
             id: row.id,
             name: row.name,
@@ -113,6 +126,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
             distanceMiles: null,
             timezone: row.club.timezone,
             showPageUrl: row.showPageUrl,
+            tags,
         };
         return { show, clubId: row.club.id };
     } catch (error) {
