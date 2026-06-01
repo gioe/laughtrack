@@ -415,12 +415,13 @@ Then `cd <repo>/ios && swift build --target LaughTrackAPIClient` to verify the
 regenerated files compile.
 
 **Generator-version drift.** `swift-openapi-generator` 1.9+ emits multi-line
-argument lists where older versions wrote single-line ones; the currently
-committed `Client.swift` / `Types.swift` have *mixed* formatting because prior
-regens used different versions. A naive copy-back therefore produces ~600 lines
-of unrelated reformatting per single-operation regen. If you only added one
-operation to `openapi.json` and the regen diff is dominated by formatting noise,
-use **surgical extraction** instead: revert the wholesale copy-back
+argument lists where older versions wrote single-line ones. As of TASK-2568
+the committed `Client.swift` / `Types.swift` match a clean regen against the
+pinned 1.9.0 generator (the default in `ios/bin/check-openapi-regen-drift.sh`),
+and `.github/workflows/ios-openapi-drift.yml` runs that script as a blocking
+gate on every change to the spec, config, or generated files. If you bump the
+pinned generator version and the regen diff is dominated by formatting noise
+from the new version's emit style, use **surgical extraction** instead: revert the wholesale copy-back
 (`git checkout GeneratedSources/`) and manually insert *only* the new
 operation's blocks into the existing files — the protocol entry, the
 convenience extension, the `Components.Schemas.<Name>` struct, the full
