@@ -125,10 +125,12 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # Set up logging context for this scraper instance (augment with scraper key)
         self.logger_context = {**club.as_context(), "scraper": self.key or "-"}
 
-        # Always wire in the unified rate limiter; override RPS when the club
-        # specifies an explicit rate_limit.
+        # Always wire in the unified rate limiter; override RPS only when the
+        # club explicitly sets rate_limit. Truthy check would treat 0.0 as
+        # 'no override' and (combined with a stale float-default) silently
+        # negated DEFAULT_DOMAIN_CONFIGS entries before TASK-2569.
         self.rate_limiter: RateLimiter = RateLimiter()
-        if club.rate_limit:
+        if club.rate_limit is not None:
             self.rate_limiter.set_domain_limit(club.scraping_domain, club.rate_limit)
 
         # Initialize transformation pipeline
