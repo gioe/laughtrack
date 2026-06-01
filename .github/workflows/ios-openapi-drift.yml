@@ -1,0 +1,35 @@
+name: iOS OpenAPI regen drift
+
+# Catch the TASK-2549 incident pattern: openapi.json edited without a matching
+# regen of GeneratedSources/Client.swift and Types.swift, stranding the iOS
+# client behind the server contract. Path-scoped so the cycle stays fast — the
+# macOS regen pulls swift-openapi-generator deps, so only run when an APIClient
+# file (or this workflow's wiring) actually changes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
+      - "ios/Sources/LaughTrackAPIClient/openapi-generator-config.yaml"
+      - "ios/Sources/LaughTrackAPIClient/GeneratedSources/**"
+      - "ios/bin/check-openapi-regen-drift.sh"
+      - ".github/workflows/ios-openapi-drift.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "ios/Sources/LaughTrackAPIClient/openapi.json"
+      - "ios/Sources/LaughTrackAPIClient/openapi-generator-config.yaml"
+      - "ios/Sources/LaughTrackAPIClient/GeneratedSources/**"
+      - "ios/bin/check-openapi-regen-drift.sh"
+      - ".github/workflows/ios-openapi-drift.yml"
+
+jobs:
+  check-openapi-regen-drift:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Regenerate LaughTrackAPIClient into a temp directory and diff
+        run: ios/bin/check-openapi-regen-drift.sh
