@@ -54,18 +54,20 @@ class PostgresMetricsRepository:
                     cur.execute("DELETE FROM scraper_run_errors WHERE run_id = %s", (run_id,))
 
                     valid_club_ids = self._fetch_valid_club_ids(cur, snapshot.per_club_stats)
-                    nulled = [
-                        f"{stat.club} (id={stat.club_id})"
-                        for stat in snapshot.per_club_stats
-                        if stat.club_id is not None
-                        and int(stat.club_id) not in valid_club_ids
-                    ]
+                    resolved_stats: list[tuple[PerClubStat, int | None]] = []
+                    nulled: list[str] = []
+                    for stat in snapshot.per_club_stats:
+                        cid = stat.club_id
+                        if cid is not None and cid not in valid_club_ids:
+                            nulled.append(f"{stat.club} (id={cid})")
+                            cid = None
+                        resolved_stats.append((stat, cid))
                     if nulled:
                         Logger.info(
                             f"Nulling {len(nulled)} unknown club_id(s) on scraper_run_clubs "
                             f"to satisfy FK to clubs: {', '.join(nulled)}"
                         )
-                    club_rows = list(self._club_rows(run_id, snapshot.per_club_stats, valid_club_ids))
+                    club_rows = list(self._club_rows(run_id, resolved_stats))
                     if club_rows:
                         execute_values(cur, self._INSERT_CLUBS_SQL, club_rows)
 
@@ -159,11 +161,14 @@ class PostgresMetricsRepository:
 
         Synthetic production_company proxies use ``id = -company.id`` (negative)
         and would FK-violate against ``scraper_run_clubs.club_id REFERENCES
-        clubs(id)``; hard-deleted real clubs would too. Nullifying unknown ids
-        before INSERT keeps the FK satisfied (the column is nullable with
-        ON DELETE SET NULL semantics).
+        clubs(id)`` because those ids were never inserted into ``clubs``;
+        hard-deleted real clubs would FK-violate at INSERT for the same reason.
+        The column is nullable, so substituting NULL for any unknown id keeps
+        the INSERT valid. (``ON DELETE SET NULL`` only fires when a club is
+        deleted after the FK row exists, so it cannot rescue these never-existed
+        ids — the nulling has to happen pre-INSERT.)
         """
-        candidates = {int(stat.club_id) for stat in stats if stat.club_id is not None}
+        candidates = {stat.club_id for stat in stats if stat.club_id is not None}
         if not candidates:
             return set()
         cur.execute(
@@ -175,13 +180,9 @@ class PostgresMetricsRepository:
     def _club_rows(
         self,
         run_id: int,
-        stats: Iterable[PerClubStat],
-        valid_club_ids: set[int],
+        resolved_stats: Iterable[tuple[PerClubStat, int | None]],
     ) -> Iterable[tuple[Any, ...]]:
-        for ordinal, stat in enumerate(stats):
-            club_id = stat.club_id
-            if club_id is not None and int(club_id) not in valid_club_ids:
-                club_id = None
+        for ordinal, (stat, club_id) in enumerate(resolved_stats):
             yield (
                 run_id,
                 ordinal,
