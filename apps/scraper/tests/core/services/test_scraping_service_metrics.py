@@ -712,6 +712,45 @@ class TestScrapeClubsWithMetrics:
         timeout_errors = [c for c in error_calls if "DB write for club" in c and "shows lost" in c]
         assert len(timeout_errors) == 1, f"Expected one timeout ERROR log, got: {error_calls}"
 
+    @pytest.mark.asyncio
+    async def test_persist_exception_surfaces_as_error_and_flips_metric(self):
+        """Lock the regression behind TASK-2555: a per-club persist that raises
+        an unexpected exception (non-timeout DB/ORM/connection error) must NOT
+        be silently logged as ERROR while the per-club metric still records ok.
+        Sibling to test_persist_timeout_surfaces_as_error_and_flips_metric:
+        result.error gets stamped, the per-club metric flips ok→error, and the
+        nightly alert path engages instead of hiding the failure."""
+        from laughtrack.core.services.scraping import ScrapingService
+        import laughtrack.core.services.scraping as scraping_mod
+        svc = self._make_service()
+
+        result = ClubScrapingResult(club_name="Bad Persist Club", shows=[MagicMock()], execution_time=1.0)
+        mock_scraper = MagicMock()
+        mock_scraper.scrape_with_result.return_value = result
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
+
+        # insert_club_result raises a non-timeout exception (e.g. DB connection
+        # aborted, ORM constraint violation). The executor propagates it back
+        # through run_in_executor and the outer 'except Exception' catches it.
+        svc._result_processor.insert_club_result.side_effect = RuntimeError("DB connection lost")
+
+        club = self._make_club(name="Bad Persist Club")
+
+        with patch.object(scraping_mod, "Logger") as mock_logger:
+            results, summary, _ = await svc._scrape_clubs_concurrently([club])
+
+        assert len(results) == 1
+        assert results[0].error is not None
+        assert "persist failed" in results[0].error
+        assert "DB connection lost" in results[0].error
+        assert len(summary.per_club) == 1
+        assert summary.per_club[0].error == 1
+        assert summary.per_club[0].ok == 0
+
+        error_calls = [str(c) for c in mock_logger.error.call_args_list]
+        persist_errors = [c for c in error_calls if "Failed to persist shows for club" in c]
+        assert len(persist_errors) == 1, f"Expected one persist-failure ERROR log, got: {error_calls}"
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os
