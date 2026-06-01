@@ -17,6 +17,14 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 class BaseDatabaseHandler(Generic[T], ABC):
     """Base class for database operations with entity-specific abstractions."""
 
+    # psycopg2's execute_values internally paginates the VALUES list and
+    # issues one statement per page. 500 keeps each statement's wall time
+    # well clear of Neon's 30s statement_timeout for our INSERT/UPDATE/DELETE
+    # batch patterns; the prior 1000 occasionally crossed the limit during
+    # the nightly scrape (TASK-2544). Lowering the page size trades a small
+    # round-trip count increase for headroom on slow-compute moments.
+    _EXECUTE_VALUES_PAGE_SIZE = 500
+
     def __init__(self):
         """Initialize the handler. ConfigManager is handled as singleton."""
         pass
@@ -154,7 +162,12 @@ class BaseDatabaseHandler(Generic[T], ABC):
             with self._acquire_connection(conn) as active_conn:
                 with active_conn.cursor(cursor_factory=self._get_cursor_factory()) as cursor:
                     results = execute_values(
-                        cursor, query, items, template=template, page_size=1000, fetch=return_results
+                        cursor,
+                        query,
+                        items,
+                        template=template,
+                        page_size=self._EXECUTE_VALUES_PAGE_SIZE,
+                        fetch=return_results,
                     )
 
                     # Log operation summary if requested

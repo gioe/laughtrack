@@ -41,6 +41,16 @@ class ComedianQueries:
     # (no show_id filter).  A show is sold out when every ticket for that show has
     # sold_out = TRUE and at least one ticket exists; shows with no tickets are not
     # counted as sold out.
+    #
+    # The LATERAL subquery is load-bearing: a previous version used a top-level
+    # `(SELECT show_id, BOOL_AND(sold_out) FROM tickets GROUP BY show_id)` LEFT
+    # JOIN, which Postgres materialized over the entire tickets table on every
+    # call because the outer `comedian_id = ANY(%s)` filter cannot push into an
+    # aggregated subquery. As tickets scaled this single statement crossed
+    # Neon's 30s statement_timeout mid-nightly (TASK-2544). The LATERAL form
+    # computes BOOL_AND per-show using the tickets(show_id, type) unique index,
+    # so the work scales with len(lineup_items for target comedians) instead of
+    # len(tickets).
     BATCH_UPDATE_COMEDIAN_SHOW_COUNTS = '''
         UPDATE comedians AS c
         SET
@@ -50,17 +60,14 @@ class ComedianQueries:
             SELECT
                 li.comedian_id,
                 COUNT(DISTINCT li.show_id) AS total_shows,
-                COUNT(DISTINCT CASE
-                    WHEN ta.all_sold_out THEN li.show_id
-                END) AS sold_out_shows
+                COUNT(DISTINCT li.show_id) FILTER (WHERE ta.all_sold_out)
+                    AS sold_out_shows
             FROM lineup_items li
-            LEFT JOIN (
-                SELECT
-                    show_id,
-                    BOOL_AND(sold_out) AS all_sold_out
-                FROM tickets
-                GROUP BY show_id
-            ) ta ON ta.show_id = li.show_id
+            LEFT JOIN LATERAL (
+                SELECT BOOL_AND(t.sold_out) AS all_sold_out
+                FROM tickets t
+                WHERE t.show_id = li.show_id
+            ) ta ON true
             WHERE li.comedian_id = ANY(%s)
             GROUP BY li.comedian_id
         ) v

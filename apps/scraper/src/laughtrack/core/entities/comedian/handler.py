@@ -660,17 +660,36 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.error(f"Error fetching comedian recency scores: {str(e)}")
             raise
 
+    # Defense-in-depth cap on the per-statement comedian fan-out for
+    # BATCH_UPDATE_COMEDIAN_SHOW_COUNTS. The LATERAL rewrite (TASK-2544) made
+    # the query scale with len(lineup_items for target comedians) instead of
+    # len(tickets), but a single show-scrape batch can still pull in 500+
+    # unique comedians, and the aggregate cost grows with that fan-out.
+    # Chunking keeps each statement well under Neon's 30s statement_timeout
+    # even if a single nightly batch sweeps in an unusually large lineup set.
+    _SHOW_COUNTS_REFRESH_CHUNK_SIZE = 250
+
     def _refresh_comedian_show_counts(self, comedian_uuids: List[str]) -> None:
         """Update sold_out_shows and total_shows for the given comedians across all shows.
 
         Aggregates show counts from the full historical lineup_items / tickets data
         (no show_id filter) so that the popularity scorer always uses accurate stats.
+
+        Issues one statement per chunk of ``_SHOW_COUNTS_REFRESH_CHUNK_SIZE``
+        UUIDs to bound the per-statement work; see the class-level constant for
+        why a single big statement is risky on Neon.
         """
+        if not comedian_uuids:
+            return
+
+        chunk_size = self._SHOW_COUNTS_REFRESH_CHUNK_SIZE
         try:
-            self.execute_with_cursor(
-                ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS,
-                (comedian_uuids,),
-            )
+            for start in range(0, len(comedian_uuids), chunk_size):
+                chunk = comedian_uuids[start:start + chunk_size]
+                self.execute_with_cursor(
+                    ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS,
+                    (chunk,),
+                )
         except Exception as e:
             Logger.error(f"Error refreshing comedian show counts: {str(e)}")
             raise
