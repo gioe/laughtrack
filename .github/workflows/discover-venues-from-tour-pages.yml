@@ -62,7 +62,11 @@ jobs:
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          make discover-venues
+          # Invoke the module directly rather than `make discover-venues`:
+          # the Makefile target gates on a local .venv/ (activate_venv), but CI
+          # installs deps system-wide, so `make` bails with "No virtual
+          # environment found" before running. Matches national-discovery.yml.
+          python -m scripts.core.discover_venues_from_tour_pages --create-clubs -v
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
