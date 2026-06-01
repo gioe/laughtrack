@@ -8,14 +8,16 @@ interface ShowDetailTabsProps {
     clubName?: string;
     lineup: ComedianLineupDTO[];
     relatedShows: ShowDTO[];
+    isOpenMic?: boolean;
 }
 
 export default function ShowDetailTabs({
     clubName,
     lineup,
     relatedShows,
+    isOpenMic = false,
 }: ShowDetailTabsProps) {
-    const hasLineup = lineup.length > 0;
+    const hasLineup = !isOpenMic && lineup.length > 0;
     const hasRelatedShows = relatedShows.length > 0;
 
     if (hasLineup && hasRelatedShows) {

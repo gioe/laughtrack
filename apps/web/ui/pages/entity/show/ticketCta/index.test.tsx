@@ -89,6 +89,41 @@ describe("ShowTicketCta", () => {
         ).toContain("The venue has not made this ticket price available yet.");
     });
 
+    it("renders the RSVP variant for open-mic shows: no price, RSVP copy, link target preserved", () => {
+        render(
+            <ShowTicketCta
+                isPast={false}
+                isOpenMic
+                show={{
+                    ...baseShow,
+                    tickets: [
+                        {
+                            price: 0,
+                            purchaseUrl: "https://example.com/openmic",
+                            soldOut: false,
+                            type: "RSVP",
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        const link = screen.getByRole("link", {
+            name: /rsvp for late show/i,
+        });
+        expect(link.textContent).toContain("RSVP");
+        expect(link.textContent).not.toContain("Free");
+        expect(link.textContent).not.toContain("$");
+        expect(link.getAttribute("href")).toBe(
+            "https://example.com/openmic",
+        );
+        expect(
+            screen.queryByRole("button", {
+                name: /why is the price unavailable/i,
+            }),
+        ).toBeNull();
+    });
+
     it("records detail CTA ticket clicks without preventing the outbound link", () => {
         render(
             <ShowTicketCta

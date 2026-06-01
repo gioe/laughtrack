@@ -13,6 +13,7 @@ import ShowDetailHeader from "@/ui/pages/entity/show/header";
 import ShowTicketCta from "@/ui/pages/entity/show/ticketCta";
 import ShowDescription from "@/ui/pages/entity/show/description";
 import ShowDetailTabs from "@/ui/pages/entity/show/detailTabs";
+import { isOpenMicShow } from "@/util/show/isOpenMicShow";
 
 function parseShowId(raw: string): number | null {
     const id = Number(raw);
@@ -119,17 +120,19 @@ export default async function ShowDetailPage(props: {
     // once per request.
     // eslint-disable-next-line react-hooks/purity
     const isPast = new Date(show.date).getTime() < Date.now();
+    const isOpenMic = isOpenMicShow(show);
 
     return (
         <>
             <JsonLd data={jsonLdData} />
             <ShowDetailHeader show={show} />
-            <ShowTicketCta show={show} isPast={isPast} />
+            <ShowTicketCta show={show} isPast={isPast} isOpenMic={isOpenMic} />
             <ShowDescription description={show.description} />
             <ShowDetailTabs
                 lineup={show.lineup ?? []}
                 relatedShows={relatedShows}
                 clubName={show.clubName}
+                isOpenMic={isOpenMic}
             />
         </>
     );

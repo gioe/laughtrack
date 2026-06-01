@@ -15,6 +15,7 @@ import { trackTicketClick } from "@/util/ticketClickTracking";
 interface ShowTicketCtaProps {
     show: ShowDetailDTO;
     isPast: boolean;
+    isOpenMic?: boolean;
 }
 
 // Picks the best external URL: a live ticket row, else the scraped show page.
@@ -25,12 +26,19 @@ function pickTicketUrl(show: ShowDetailDTO): string | null {
     return show.showPageUrl || null;
 }
 
-const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
+const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({
+    show,
+    isPast,
+    isOpenMic = false,
+}) => {
     const url = pickTicketUrl(show);
     const tickets = (show.tickets ?? []).map((t) => new Ticket(t));
     const liveTickets = tickets.filter((t) => !t.soldOut);
-    const priceLabel = formatTicketString(liveTickets);
-    const hasUnknownPrice = hasUnknownAvailableTicketPrice(show.tickets ?? []);
+    // Open-mic shows are free / pay-what-you-can; suppress price and any
+    // "price unavailable" affordance so the CTA reads as an RSVP, not a sale.
+    const priceLabel = isOpenMic ? null : formatTicketString(liveTickets);
+    const hasUnknownPrice =
+        !isOpenMic && hasUnknownAvailableTicketPrice(show.tickets ?? []);
     const explicitlySoldOut =
         show.soldOut === true ||
         (tickets.length > 0 && tickets.every((t) => t.soldOut));
@@ -62,9 +70,14 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
         );
     }
 
-    const ctaLabel = show.name
-        ? `Get tickets for ${show.name}`
-        : `Get tickets for comedy show at ${show.clubName ?? "this venue"}`;
+    const ctaCopy = isOpenMic ? "RSVP" : "Get Tickets";
+    const ctaLabel = isOpenMic
+        ? show.name
+            ? `RSVP for ${show.name}`
+            : `RSVP for open mic at ${show.clubName ?? "this venue"}`
+        : show.name
+          ? `Get tickets for ${show.name}`
+          : `Get tickets for comedy show at ${show.clubName ?? "this venue"}`;
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-8 mb-10">
@@ -84,7 +97,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
                             });
                         }}
                     >
-                        Get Tickets
+                        {ctaCopy}
                         {priceLabel && (
                             <span className="text-white/90 font-dmSans font-normal">
                                 · {priceLabel}
@@ -95,7 +108,8 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
                 {hasUnknownPrice && <PriceUnavailableInfo />}
             </div>
             <p className="mt-2 text-xs text-gray-500 font-dmSans">
-                Opens the venue&apos;s ticketing page in a new tab.
+                Opens the venue&apos;s {isOpenMic ? "signup" : "ticketing"} page
+                in a new tab.
             </p>
         </section>
     );
