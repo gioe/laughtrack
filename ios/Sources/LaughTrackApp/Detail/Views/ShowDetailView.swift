@@ -47,6 +47,7 @@ struct ShowDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .success(let response):
                 let show = response.data
+                let isOpenMic = ShowDetailPresentation.isOpenMic(show)
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         // TimelineView pulses every 60s so the countdown badge
@@ -64,7 +65,7 @@ struct ShowDetailView: View {
                         .ignoresSafeArea(.container, edges: .top)
 
                         VStack(alignment: .leading, spacing: 20) {
-                            ShowSummarySection(show: show, openClub: {
+                            ShowSummarySection(show: show, isOpenMic: isOpenMic, openClub: {
                                 coordinator.open(.club(show.club.id))
                             }, openTicketURL: { url in
                                 Task {
@@ -90,10 +91,12 @@ struct ShowDetailView: View {
                                 DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
                             }
 
-                            ShowLineupSection(
-                                lineup: show.lineup ?? []
-                            ) { comedian in
-                                coordinator.open(.comedian(comedian.id))
+                            if !isOpenMic {
+                                ShowLineupSection(
+                                    lineup: show.lineup ?? []
+                                ) { comedian in
+                                    coordinator.open(.comedian(comedian.id))
+                                }
                             }
 
                             RelatedShowsSection(relatedShows: response.relatedShows) { related in
@@ -136,7 +139,7 @@ struct ShowDetailTicketClickRecorder {
                             showId: showID,
                             clubId: clubID,
                             destinationUrl: destinationURL.absoluteString,
-                            sourceSurface: "ios_show_detail"
+                            sourceSurface: .iosShowDetail
                         )
                     )
                 )
@@ -185,16 +188,28 @@ enum ShowDetailPresentation {
     }
 
     static func summaryFacts(for show: Components.Schemas.ShowDetail) -> [ShowDetailFact] {
-        [
+        let isOpenMic = isOpenMic(show)
+        return [
             ShowDetailFact(
                 label: "When",
                 value: ShowFormatting.listDate(show.date, timezoneID: show.timezone)
             ),
             ShowDetailFact(label: "Venue", value: show.club.name),
             optionalFact(label: "Distance", value: ShowFormatting.distance(show.distanceMiles)),
-            ShowDetailFact(label: "Tickets", value: ShowPricePresentation.detailTicketSummary(for: show))
+            ShowDetailFact(
+                label: "Tickets",
+                value: isOpenMic ? "RSVP" : ShowPricePresentation.detailTicketSummary(for: show)
+            )
         ]
         .compactMap { $0 }
+    }
+
+    /// Tag-based open-mic detection mirrors `ShowRow.isOpenMic` so row + detail
+    /// surfaces share a single signal. Falls back to the title heuristic for
+    /// shows whose tag list hasn't been backfilled yet.
+    static func isOpenMic(_ show: Components.Schemas.ShowDetail) -> Bool {
+        if ShowFormatting.isOpenMic(tags: show.tags) { return true }
+        return ShowFormatting.isOpenMic(show.name)
     }
 
     static func primaryTicketURL(for show: Components.Schemas.ShowDetail) -> URL? {
@@ -226,6 +241,7 @@ enum ShowDetailPresentation {
 
 private struct ShowSummarySection: View {
     let show: Components.Schemas.ShowDetail
+    let isOpenMic: Bool
     let openClub: () -> Void
     let openTicketURL: (URL) -> Void
     let addToCalendar: () -> Void
@@ -248,21 +264,27 @@ private struct ShowSummarySection: View {
                             .buttonStyle(.plain)
                             .accessibilityHint("Adds this show to your phone calendar")
                         } else if fact.label == "Tickets" {
-                            let infoMessage = ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
-                                ? ShowPricePresentation.priceUnavailableExplanation
-                                : nil
+                            let infoMessage = isOpenMic
+                                ? nil
+                                : (ShowPricePresentation.detailTicketPriceUnavailable(fact.value)
+                                    ? ShowPricePresentation.priceUnavailableExplanation
+                                    : nil)
+                            let ctaLabel = isOpenMic ? "RSVP" : "Buy tickets"
+                            let ctaHint = isOpenMic
+                                ? "Opens the RSVP page"
+                                : "Opens the ticket purchase page"
                             if let ticketURL {
                                 Button {
                                     openTicketURL(ticketURL)
                                 } label: {
                                     ShowSummaryFactTile(
                                         fact: fact,
-                                        action: .init(systemImage: "arrow.up.right", label: "Buy tickets"),
+                                        action: .init(systemImage: "arrow.up.right", label: ctaLabel),
                                         infoMessage: infoMessage
                                     )
                                 }
                                 .buttonStyle(.plain)
-                                .accessibilityHint("Opens the ticket purchase page")
+                                .accessibilityHint(ctaHint)
                             } else {
                                 ShowSummaryFactTile(fact: fact, infoMessage: infoMessage)
                             }
