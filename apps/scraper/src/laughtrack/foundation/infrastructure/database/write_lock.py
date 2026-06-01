@@ -45,7 +45,9 @@ instead of unbounded waits. "Organizer-mode venue X missing" in a nightly
 summary should look for the venue-named timeout log line first.
 """
 
+import os
 import threading
+import time
 from typing import Callable, TypeVar
 
 _T = TypeVar("_T")
@@ -56,7 +58,25 @@ _T = TypeVar("_T")
 # before declaring the prior writer stuck. Well below the orchestrator's 300s
 # per-call timeout, so the fail-fast fires inside the executor thread before
 # the orchestrator's asyncio.wait_for would. Module-level for tests.
+#
+# TASK-2557: read at use-time via _lock_hold_timeout() so the
+# ``LOCK_HOLD_TIMEOUT`` env var can tune the threshold for nightly runs
+# without a code change, mirroring the MAX_CONCURRENT_CLUBS pattern in
+# core/services/scraping/__init__.py. Patching this module attribute still
+# changes the effective bound (it is the fallback), so existing tests keep
+# working.
 _LOCK_HOLD_TIMEOUT = 30.0
+
+
+def _lock_hold_timeout() -> float:
+    """Resolve the lock-hold timeout, preferring the ``LOCK_HOLD_TIMEOUT``
+    env var and falling back to ``_LOCK_HOLD_TIMEOUT``.
+
+    Read at use-time so nightly runs can tune via env without restart and
+    tests can patch either the module attribute or the env var.
+    """
+    return float(os.environ.get("LOCK_HOLD_TIMEOUT", _LOCK_HOLD_TIMEOUT))
+
 
 # RLock (not Lock) so a wrapped callable that recursively invokes
 # serialized_db_call on the same thread does not deadlock. The lock's job is
@@ -67,23 +87,31 @@ _DB_WRITE_LOCK = threading.RLock()
 
 class LockHeldError(RuntimeError):
     """Raised when ``serialized_db_call`` cannot acquire ``_DB_WRITE_LOCK``
-    within ``_LOCK_HOLD_TIMEOUT`` seconds — signals a stuck prior writer
+    within the resolved hold-timeout (``LOCK_HOLD_TIMEOUT`` env var or the
+    ``_LOCK_HOLD_TIMEOUT`` default) — signals a stuck prior writer
     (typically a hung DB call whose executor thread asyncio.wait_for could
-    not cancel)."""
+    not cancel). The message surfaces both the measured wait and the
+    configured threshold so operators can tune ``LOCK_HOLD_TIMEOUT`` from
+    real data rather than guess-and-check."""
 
 
 def serialized_db_call(fn: Callable[..., _T], *args, **kwargs) -> _T:
     """Run ``fn(*args, **kwargs)`` while holding the process-wide DB write lock.
 
-    Raises :class:`LockHeldError` if the lock cannot be acquired within
-    ``_LOCK_HOLD_TIMEOUT`` seconds. The caller's persist-exception branch
+    Raises :class:`LockHeldError` if the lock cannot be acquired within the
+    resolved hold-timeout (``LOCK_HOLD_TIMEOUT`` env var or
+    ``_LOCK_HOLD_TIMEOUT`` default). The caller's persist-exception branch
     (see ``_scrape_clubs_concurrently``) stamps ``result.error`` accordingly
     so the per-club metric flips ok→error.
     """
-    acquired = _DB_WRITE_LOCK.acquire(timeout=_LOCK_HOLD_TIMEOUT)
+    timeout = _lock_hold_timeout()
+    started_at = time.monotonic()
+    acquired = _DB_WRITE_LOCK.acquire(timeout=timeout)
+    waited = time.monotonic() - started_at
     if not acquired:
         raise LockHeldError(
-            f"_DB_WRITE_LOCK still held after {_LOCK_HOLD_TIMEOUT}s; "
+            f"_DB_WRITE_LOCK still held after {waited:.2f}s "
+            f"(LOCK_HOLD_TIMEOUT={timeout:.2f}s); "
             f"prior writer thread is stuck (likely a hung DB call that "
             f"asyncio.wait_for could not cancel)"
         )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import threading
 import time
 from unittest.mock import patch
@@ -130,3 +131,79 @@ def test_same_thread_recursive_acquire_still_works():
         return serialized_db_call(inner)
 
     assert serialized_db_call(outer) is inner_value
+
+
+def test_lock_hold_timeout_env_var_overrides_default(monkeypatch):
+    """TASK-2557: LOCK_HOLD_TIMEOUT env var tunes the wait without code change.
+
+    Setting the env var must shorten (or lengthen) the bound applied by
+    serialized_db_call, mirroring how MAX_CONCURRENT_CLUBS overrides
+    _DEFAULT_MAX_CONCURRENT_CLUBS. Read at use-time so monkeypatch.setenv
+    works without re-importing the module.
+    """
+    monkeypatch.setenv("LOCK_HOLD_TIMEOUT", "0.05")
+    assert write_lock._lock_hold_timeout() == pytest.approx(0.05)
+
+    release = threading.Event()
+    acquired = threading.Event()
+    holder = _hold_lock_in_background(release, acquired)
+    try:
+        assert acquired.wait(timeout=2.0)
+        t0 = time.monotonic()
+        with pytest.raises(LockHeldError):
+            serialized_db_call(lambda: "never reached")
+        elapsed = time.monotonic() - t0
+        # The env-var bound (0.05s), not the 30s default, drove the wait.
+        assert elapsed < 1.0, f"env-var override ignored — waited {elapsed:.2f}s"
+    finally:
+        release.set()
+        holder.join(timeout=5.0)
+
+
+def test_lock_hold_timeout_falls_back_to_module_attribute(monkeypatch):
+    """No env var → the _LOCK_HOLD_TIMEOUT module attribute is the source.
+
+    Guards the documented default (30.0) and keeps `patch.object(write_lock,
+    "_LOCK_HOLD_TIMEOUT", ...)` viable for existing tests that drive the
+    bound via the attribute rather than the env var.
+    """
+    monkeypatch.delenv("LOCK_HOLD_TIMEOUT", raising=False)
+    assert write_lock._LOCK_HOLD_TIMEOUT == 30.0
+    assert write_lock._lock_hold_timeout() == 30.0
+
+    with patch.object(write_lock, "_LOCK_HOLD_TIMEOUT", 0.05):
+        assert write_lock._lock_hold_timeout() == pytest.approx(0.05)
+
+
+def test_lock_held_error_message_includes_measured_wait_and_configured_timeout():
+    """TASK-2557: the LockHeldError message surfaces the actual wait time and
+    the configured threshold so operators can tune LOCK_HOLD_TIMEOUT from
+    real data instead of guess-and-check."""
+    release = threading.Event()
+    acquired = threading.Event()
+    holder = _hold_lock_in_background(release, acquired)
+    try:
+        assert acquired.wait(timeout=2.0)
+        with patch.object(write_lock, "_LOCK_HOLD_TIMEOUT", 0.05):
+            with pytest.raises(LockHeldError) as excinfo:
+                serialized_db_call(lambda: "never reached")
+
+        msg = str(excinfo.value)
+        # Measured wait is reported as "after Ns" with 2 decimal places.
+        wait_match = re.search(r"after (\d+\.\d{2})s", msg)
+        assert wait_match, f"missing measured wait in message: {msg!r}"
+        measured = float(wait_match.group(1))
+        # The measured wait must be at least the configured bound and bounded
+        # well below the 30s default — proves it's the *measured* value, not
+        # a hardcoded number.
+        assert 0.04 <= measured < 1.0, (
+            f"measured wait {measured}s is not in the expected range for "
+            f"a 0.05s timeout: {msg!r}"
+        )
+        # Configured threshold is named so operators know which knob to turn.
+        assert "LOCK_HOLD_TIMEOUT=0.05s" in msg, (
+            f"missing configured-threshold readout: {msg!r}"
+        )
+    finally:
+        release.set()
+        holder.join(timeout=5.0)
