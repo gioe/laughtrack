@@ -35,6 +35,17 @@ _OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to
 _DISCORD_DESCRIPTION_LIMIT = 2048  # conservative limit; Discord's actual embed description cap is 4096
 _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard limit but avoids huge payloads
 
+# Per-club persist deadline inside _scrape_clubs_concurrently's scrape_one.
+# Raised from 60s after run 26762966336 (2026-06-01 nightly) lost the persist
+# for seven clubs in two 1-minute-cadence cascades: a single stalled write
+# blocks the cross-thread RLock inside serialized_db_call, and the
+# asyncio.wait_for cancellation does NOT stop the executor thread — it only
+# stops awaiting it — so the thread keeps the RLock and every queued persist
+# then times out _DB_WRITE_TIMEOUT seconds later. 300s gives transient Neon
+# stalls room to recover; legitimate large-batch upserts finish in tens of
+# seconds, so this only fires on a real stall. Module-level for tests.
+_DB_WRITE_TIMEOUT = 300
+
 # Cause hint included in the ERROR log and ClubScrapingResult.error when the
 # runtime scraper registry has no class for a configured scraper_key. Tells
 # the operator where to look first (TASK-2169 incident: stale main checkout
@@ -577,7 +588,6 @@ class ScrapingService:
                         # serialized_db_call additionally serializes against
                         # writes from worker-thread scrapers (e.g. EventbriteScraper
                         # organizer-mode per-venue upserts) running on different loops.
-                        _DB_WRITE_TIMEOUT = 60  # seconds; unblocks db_lock if Neon connection drops
                         try:
                             async with db_lock:
                                 # Push club context before run_in_executor so the thread
@@ -595,11 +605,26 @@ class ScrapingService:
                                             timeout=_DB_WRITE_TIMEOUT,
                                         )
                                     except asyncio.TimeoutError:
-                                        Logger.warn(
+                                        # Silent data loss: the scrape succeeded but
+                                        # the writes never landed. ERROR (was WARN)
+                                        # so it surfaces in nightly summaries, and
+                                        # mutate result.error so the per-club metric
+                                        # below flips ok→error and the alert path
+                                        # picks it up like any fetch/parse failure.
+                                        Logger.error(
                                             f"scrape_one: DB write for club '{club.name}' timed out after "
-                                            f"{_DB_WRITE_TIMEOUT}s - skipping persist"
+                                            f"{_DB_WRITE_TIMEOUT}s - skipping persist "
+                                            f"({len(result.shows)} shows lost)"
                                         )
                                         club_db_result = DatabaseOperationResult()
+                                        persist_err = (
+                                            f"persist timed out after {_DB_WRITE_TIMEOUT}s; "
+                                            f"{len(result.shows)} shows not written"
+                                        )
+                                        result.error = (
+                                            f"{result.error}; {persist_err}"
+                                            if result.error else persist_err
+                                        )
                                 total_db_result = total_db_result + club_db_result
                         except Exception as insert_err:
                             Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
