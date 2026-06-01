@@ -274,15 +274,19 @@ async def test_the_function_sf_get_data_layout1_returns_two_shows():
 # ---------------------------------------------------------------------------
 
 
-def test_seatengine_host_rps_default_is_three():
-    """The module-level RPS override must stay at 3 — DCCL/OTH math is pinned to it.
+def test_seatengine_host_rps_default_is_five():
+    """The module-level RPS override must stay at 5 — DCCL/OTH math is pinned to it.
 
     The Comedy Loft of DC (322 future showtimes) and Off The Hook (315) take
-    >= N seconds at N RPS due to per-host serialisation; 3 RPS keeps the
-    worst-case venue at ~108s, comfortably under the 180s default cap.
-    Dropping below 3 RPS resurrects the stall.
+    >= N/R seconds at R RPS due to per-host serialisation. 3 RPS fit DCCL but
+    not OTH: GHA runner IPs see ~2.4x the per-fetch latency vs residential
+    probes against offthehookcomedy.com (run 26775592365 hit the 240s cap at
+    249s wall clock). 5 RPS drops the rate-limit floor to ~63s and lets the
+    concurrency=5 fan-out saturate the network-bound portion, keeping OTH
+    comfortably under the 180s default. Dropping below 5 RPS resurrects the
+    OTH stall.
     """
-    assert _SEATENGINE_HOST_RPS == 3.0
+    assert _SEATENGINE_HOST_RPS == 5.0
 
 
 def test_scraper_init_applies_host_rps_override():

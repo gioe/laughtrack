@@ -36,12 +36,19 @@ _PRICE_FETCH_CONCURRENCY = 5
 # showtimes takes >=N seconds, because the per-host limiter serialises against
 # _PRICE_FETCH_CONCURRENCY. The Comedy Loft of DC and Off The Hook Comedy Club
 # (322 and 315 future showtimes through 2027 via /events + /calendar JSON-LD)
-# would never fit even the 240s seatengine_classic cap at 1 RPS. 3 RPS keeps
-# DCCL's 322 fetches under 110s end-to-end while staying well below any plausible
-# WAF threshold for venue sites whose robots.txt explicitly allows full crawl
-# access (no Crawl-delay directive on any of the 54 seatengine_classic hosts).
-# TASK-2556.
-_SEATENGINE_HOST_RPS = 3.0
+# would never fit even the 240s seatengine_classic cap at 1 RPS.
+#
+# Iteration history (TASK-2556):
+# - 3 RPS landed in 3195b18b0 and fixed DCCL on GHA (322 shows in 120s) but OTH
+#   still hit the 240s cap at 249s wall clock. GHA's IP pool experiences ~2.4x
+#   the per-fetch latency against offthehookcomedy.com that residential probes
+#   do (0.79s/show vs 0.33s/show), so the binding constraint shifted from the
+#   rate limiter to real HTTP round-trip time. At 5 RPS the rate-limit floor
+#   for OTH drops to ~63s and the concurrency-bound latency floor is ~50s, so
+#   the effective wall-clock fits in ~75s with >100s headroom under 180s.
+# - 5 RPS = 1 req/200ms, still comfortably below any plausible WAF threshold;
+#   venue robots.txt files allow full crawl access with no Crawl-delay directive.
+_SEATENGINE_HOST_RPS = 5.0
 
 
 class SeatEngineClassicScraper(BaseScraper):
