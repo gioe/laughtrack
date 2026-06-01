@@ -1257,6 +1257,55 @@ class TestSendDiscordRunSummary:
         assert "All clubs at or above threshold" not in desc
         assert "parser rejected all candidates" in desc
 
+    def test_cross_host_redirect_absent_when_zero_events(self):
+        """Zero cross-host redirect events emits no Discord aggregate line."""
+        svc = self._make_service(threshold=70.0)
+        good = _make_metric("Healthy Club", ok=1, error=0)
+        summary = _make_multi_club_summary([good])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "cross-host redirect" not in desc
+        assert "↪️" not in desc
+        assert metadata.get("cross_host_redirects") == 0
+
+    def test_cross_host_redirect_line_when_count_meets_threshold(self):
+        """>=3 distinct (club, original_host, final_host) tuples emits the aggregate line."""
+        svc = self._make_service(threshold=70.0)
+        a = _make_metric("Club A", ok=1, error=0)
+        a.cross_host_redirects = {("a.example.com", "a.canonical.com")}
+        b = _make_metric("Club B", ok=1, error=0)
+        b.cross_host_redirects = {("b.example.com", "b.canonical.com")}
+        c = _make_metric("Club C", ok=1, error=0)
+        c.cross_host_redirects = {("c.example.com", "c.canonical.com")}
+        summary = _make_multi_club_summary([a, b, c])
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
+        metadata = mock_alert_cls.call_args.kwargs.get('metadata', {})
+        assert "3 cross-host redirect" in desc
+        assert "Club A: a.example.com → a.canonical.com" in desc
+        assert "Club B: b.example.com → b.canonical.com" in desc
+        assert "Club C: c.example.com → c.canonical.com" in desc
+        assert metadata.get("cross_host_redirects") == 3
+
     def test_skips_when_discord_not_configured(self):
         """No alert is sent when Discord is not configured."""
         svc = self._make_service()
