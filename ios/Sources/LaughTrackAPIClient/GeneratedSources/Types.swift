@@ -1687,10 +1687,10 @@ public enum Components {
                 case parentComedian
                 case lineupItems
             }
-            public init(from decoder: any Swift.Decoder) throws {
+            public init(from decoder: any Decoder) throws {
                 self.storage = try .init(from: decoder)
             }
-            public func encode(to encoder: any Swift.Encoder) throws {
+            public func encode(to encoder: any Encoder) throws {
                 try self.storage.encode(to: encoder)
             }
             /// Internal reference storage to allow type recursion.
@@ -1934,10 +1934,10 @@ public enum Components {
             public init(additionalProperties: [String: Swift.Int] = .init()) {
                 self.additionalProperties = additionalProperties
             }
-            public init(from decoder: any Swift.Decoder) throws {
+            public init(from decoder: any Decoder) throws {
                 additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
             }
-            public func encode(to encoder: any Swift.Encoder) throws {
+            public func encode(to encoder: any Encoder) throws {
                 try encoder.encodeAdditionalProperties(additionalProperties)
             }
         }
