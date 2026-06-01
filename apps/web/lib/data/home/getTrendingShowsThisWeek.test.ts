@@ -69,4 +69,25 @@ describe("getTrendingShowsThisWeek", () => {
         expect(take).toBeUndefined();
         expect(options).toEqual({ zipCode: "10001" });
     });
+
+    describe("tags emission (TASK-2567)", () => {
+        // Wrapper is pure delegation to findShowsForHome; comprehensive
+        // tags-emission tests (PUBLIC filter, null filtering, empty case)
+        // live on findShowsForHome.test.ts. This block guards against a
+        // future regression that adds a mapper here which strips tags.
+
+        it("passes tags through from findShowsForHome unchanged", async () => {
+            const tagged = [
+                { id: 1, tags: [{ slug: "open mic", name: "Open Mic" }] },
+            ];
+            mockFindShowsForHome.mockResolvedValue(tagged as never);
+
+            const result = await getTrendingShowsThisWeek("UTC");
+
+            expect(result).toBe(tagged);
+            expect(result[0].tags).toEqual([
+                { slug: "open mic", name: "Open Mic" },
+            ]);
+        });
+    });
 });
