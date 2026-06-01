@@ -10,9 +10,9 @@ describe("isOpenMicShow", () => {
         ).toBe(true);
     });
 
-    it("returns false for missing, null, or empty tags", () => {
+    it("returns false for missing or empty tags", () => {
         expect(isOpenMicShow({})).toBe(false);
-        expect(isOpenMicShow({ tags: null })).toBe(false);
+        expect(isOpenMicShow({ tags: undefined })).toBe(false);
         expect(isOpenMicShow({ tags: [] })).toBe(false);
     });
 

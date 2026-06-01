@@ -7,7 +7,10 @@ import type { ShowTagDTO } from "@/lib/data/show/detail/interface";
 export const OPEN_MIC_SLUG = "open mic";
 
 export interface OpenMicShowLike {
-    tags?: readonly ShowTagDTO[] | null;
+    // Matches ShowDetailDTO.tags exactly — `undefined` when no tags hydrate,
+    // never `null`. Keep this in lockstep with `ShowDetailDTO.tags` so callers
+    // can't accidentally pass shapes the producer never emits.
+    tags?: readonly ShowTagDTO[];
 }
 
 // isOpenMicShow — true when the show carries the canonical "open mic" tag.

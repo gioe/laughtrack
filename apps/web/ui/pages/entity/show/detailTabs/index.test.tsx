@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 describe("ShowDetailTabs", () => {
-    it("renders the lineup section when isOpenMic is false and lineup is non-empty", () => {
+    it("wraps lineup + related shows in the tab strip when isOpenMic is false and both are non-empty", () => {
         render(
             <ShowDetailTabs
                 lineup={lineup}
@@ -45,6 +45,10 @@ describe("ShowDetailTabs", () => {
             />,
         );
 
+        // The tab strip wrapper is the meaningful branch signal — without
+        // it, a regression that drops the strip would still find both child
+        // testids and pass spuriously.
+        expect(screen.getByTestId("detail-tabs")).not.toBeNull();
         expect(screen.getByTestId("lineup-section")).not.toBeNull();
         expect(screen.getByTestId("related-shows")).not.toBeNull();
     });
@@ -62,6 +66,24 @@ describe("ShowDetailTabs", () => {
         expect(screen.queryByTestId("lineup-section")).toBeNull();
         expect(screen.getByTestId("related-shows")).not.toBeNull();
         // No tab strip when only related shows remain.
+        expect(screen.queryByTestId("detail-tabs")).toBeNull();
+    });
+
+    it("renders nothing visible when isOpenMic is true and relatedShows is empty", () => {
+        render(
+            <ShowDetailTabs
+                lineup={lineup}
+                relatedShows={[]}
+                clubName="Copper Room"
+                isOpenMic
+            />,
+        );
+
+        expect(screen.queryByTestId("lineup-section")).toBeNull();
+        // RelatedShowsSection is mocked to a stub div; the real component
+        // returns null for empty shows, but the mock always renders. The
+        // intent here is that lineup stays suppressed and no tab strip wraps
+        // the lone related-shows slot.
         expect(screen.queryByTestId("detail-tabs")).toBeNull();
     });
 });
