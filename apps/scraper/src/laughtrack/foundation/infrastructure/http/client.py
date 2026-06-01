@@ -161,6 +161,43 @@ def _with_tixr_decodo_session(proxy_url: Optional[str]) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
+# Per-process bot-block short-circuit
+# ---------------------------------------------------------------------------
+#
+# Hosts whose Playwright fallback has already confirmed a bot-block during
+# this process. Subsequent requests to the same host still attempt curl (WAFs
+# can relent, and a 200 means we don't need the fallback at all), but skip
+# the expensive Playwright launch on the second-and-later miss. Last night's
+# 2026-05-31 nightly burned ~12 unnecessary Chromium launches on tixr.com /
+# etix.com URLs — each launch costs ~2-3s of amortized startup + nav timeout.
+#
+# In-memory only, never persisted: a fresh process starts with no shortcuts,
+# which is the right default (DataDome cookies / IP reputation can change
+# between runs, so a stale cross-run cache could permablock real venues).
+# Set LAUGHTRACK_HTTP_BOT_BLOCK_SHORTCIRCUIT=0 to disable for debugging.
+_recent_bot_blocked_hosts: set[str] = set()
+
+
+def _bot_block_shortcircuit_enabled() -> bool:
+    return os.environ.get("LAUGHTRACK_HTTP_BOT_BLOCK_SHORTCIRCUIT", "1") != "0"
+
+
+def _host_of(url: str) -> Optional[str]:
+    try:
+        host = urlparse(url).hostname
+    except (ValueError, TypeError):
+        return None
+    return host.lower() if host else None
+
+
+def _reset_bot_block_shortcircuit() -> None:
+    """Test helper. Production callers should NOT invoke this — once a host
+    is confirmed bot-blocked via Playwright, the cache shields it from
+    further Playwright launches for the lifetime of the process."""
+    _recent_bot_blocked_hosts.clear()
+
+
+# ---------------------------------------------------------------------------
 # Lazy JS-fallback browser cache
 # ---------------------------------------------------------------------------
 
@@ -435,10 +472,35 @@ class HttpClient:
         # ------------------------------------------------------------------
         # Automatic JS fallback
         # ------------------------------------------------------------------
-        browser = _get_js_browser()
+        host = _host_of(normalized_url)
+        shortcircuit = (
+            _bot_block_shortcircuit_enabled()
+            and host is not None
+            and host in _recent_bot_blocked_hosts
+        )
+        browser = None if shortcircuit else _get_js_browser()
         html: Optional[str] = None
         fallback_invoked = False
-        if browser is not None:
+        if shortcircuit:
+            Logger.info(
+                f"[HttpClient] Skipping Playwright fallback for {normalized_url} "
+                f"— host {host!r} previously confirmed bot-blocked this run "
+                f"(curl reason: {fallback_reason!r})",
+                logger_context,
+            )
+            if diagnostics is not None:
+                diagnostics.record_bot_block(
+                    f"playwright_shortcircuit_{fallback_reason}",
+                    source="bot_block_shortcircuit",
+                    stage="playwright_fallback",
+                )
+            # Return the curl response body so the caller's own bot-block
+            # check still fires (preserves the bot_blocked vs fetch_failed
+            # distinction in callers like update_club_enrichment). When the
+            # body has no signature, the caller's `if not html` path handles
+            # the empty/None case naturally.
+            html = response.text
+        elif browser is not None:
             fallback_invoked = True
             if diagnostics is not None:
                 diagnostics.record_playwright_fallback()
@@ -462,8 +524,10 @@ class HttpClient:
         # (fetch_json) indistinguishably from "API returned unexpected HTML",
         # and the nightly triage report would only show the curl-cffi
         # signature. Record a prefixed signature so persistent WAF failures
-        # are visible in the same report as curl-cffi-level blocks.
-        if html is not None:
+        # are visible in the same report as curl-cffi-level blocks. Guarded
+        # on fallback_invoked so the short-circuit path doesn't falsely log
+        # "Playwright also returned a bot-block page" when Playwright never ran.
+        if fallback_invoked and html is not None:
             rendered_bot_signature = _bot_block_reason(html)
             if rendered_bot_signature is not None:
                 Logger.warn(
@@ -478,6 +542,8 @@ class HttpClient:
                         source="playwright_rendered_html",
                         stage="playwright_fallback",
                     )
+                if host is not None:
+                    _recent_bot_blocked_hosts.add(host)
 
         # Preserve the mixin contract: non-2xx without rescue → raise so the
         # shared retry layer (ErrorHandler.execute_with_retry) can classify

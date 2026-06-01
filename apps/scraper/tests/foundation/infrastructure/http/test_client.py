@@ -24,6 +24,10 @@ def _make_response(status_code: int, text: str = "", json_data=None):
 def _reset_browser_cache():
     client_module._js_browser = None
     client_module._js_browsers_by_loop = weakref.WeakKeyDictionary()
+    # Also clear the per-process bot-block short-circuit cache so tests that
+    # confirm Playwright bot-blocks don't leak into later tests on the same
+    # hostname (most tests reuse "example.com").
+    client_module._reset_bot_block_shortcircuit()
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +293,110 @@ class TestFetchHtmlFallback:
         assert "empty body" in log_msg
 
 
+class TestBotBlockShortCircuit:
+    """The per-process bot-block cache skips Playwright fallback on the
+    second-and-later request to a host whose JS fallback already confirmed
+    a bot-block. Eliminates the duplicate-Playwright-launch pattern seen in
+    the 2026-05-31 nightly (Tixr/Etix retried each blocked URL twice within
+    ~3s, burning ~12 Chromium launches × ~2-3s each = 30s of wall-clock)."""
+
+    def setup_method(self):
+        _reset_browser_cache()
+
+    @pytest.mark.asyncio
+    async def test_first_blocked_request_runs_playwright(self):
+        """Cache is empty initially — first request to a host must invoke
+        Playwright so we can confirm the host is actually bot-blocked."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="datadome challenge body")
+        mock_browser = _make_browser_mock("<html>datadome challenge JS</html>")
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/a")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert "blocked.example.com" in client_module._recent_bot_blocked_hosts
+
+    @pytest.mark.asyncio
+    async def test_second_blocked_request_skips_playwright(self):
+        """After the first request confirms bot-block, a second request to
+        the same host must NOT launch Playwright. This is the win."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="datadome challenge body")
+        mock_browser = _make_browser_mock("<html>datadome challenge JS</html>")
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/a")
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/b")
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/c")
+
+        # Playwright ran exactly once across three requests to the same host.
+        mock_browser.fetch_html.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_second_request_returns_curl_body_so_caller_still_sees_bot_block(self):
+        """The short-circuit must return the curl response body (not None)
+        so callers that re-check via _bot_block_reason still classify the
+        request as bot-blocked rather than fetch-failed (preserves the
+        bot_blocked / fetch_failed metric distinction in callers like
+        update_club_enrichment)."""
+        session = AsyncMock()
+        # curl 200 with DataDome body — caller should classify as bot-block
+        session.get.return_value = _make_response(200, text="datadome challenge body")
+        mock_browser = _make_browser_mock("<html>datadome challenge JS</html>")
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/a")
+                    result = await HttpClient.fetch_html(session, "https://blocked.example.com/b")
+
+        assert _bot_block_reason(result) == "datadome"
+
+    @pytest.mark.asyncio
+    async def test_other_hosts_unaffected(self):
+        """Caching one host as bot-blocked must not short-circuit other hosts."""
+        session = AsyncMock()
+        # Bot-block response for the first host, clean response for the second
+        session.get.side_effect = [
+            _make_response(403, text="datadome challenge body"),
+            _make_response(200, text="<html>clean page</html>"),
+        ]
+        mock_browser = _make_browser_mock("<html>datadome challenge JS</html>")
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/a")
+                    result = await HttpClient.fetch_html(session, "https://clean.example.com/a")
+
+        assert result == "<html>clean page</html>"
+        assert "blocked.example.com" in client_module._recent_bot_blocked_hosts
+        assert "clean.example.com" not in client_module._recent_bot_blocked_hosts
+
+    @pytest.mark.asyncio
+    async def test_short_circuit_disabled_by_env_var(self, monkeypatch):
+        """LAUGHTRACK_HTTP_BOT_BLOCK_SHORTCIRCUIT=0 disables the cache so
+        every request hits Playwright. Escape hatch for debugging."""
+        monkeypatch.setenv("LAUGHTRACK_HTTP_BOT_BLOCK_SHORTCIRCUIT", "0")
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="datadome challenge body")
+        mock_browser = _make_browser_mock("<html>datadome challenge JS</html>")
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/a")
+                    await HttpClient.fetch_html(session, "https://blocked.example.com/b")
+
+        # Both requests must invoke Playwright because the env var disables the cache.
+        assert mock_browser.fetch_html.call_count == 2
+
+
 class TestPlaywrightBotBlockDiagnostic:
     """Playwright fallback that *itself* returns a bot-block page.
 
@@ -301,7 +409,7 @@ class TestPlaywrightBotBlockDiagnostic:
     """
 
     def setup_method(self):
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     @pytest.mark.asyncio
     async def test_fetch_html_records_prefixed_signature_when_playwright_blocked(self):
