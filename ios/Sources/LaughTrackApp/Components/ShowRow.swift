@@ -229,7 +229,8 @@ struct ShowRow: View {
     }
 
     static func isOpenMic(_ show: Components.Schemas.Show) -> Bool {
-        ShowFormatting.isOpenMic(show.name)
+        if ShowFormatting.isOpenMic(tags: show.tags) { return true }
+        return ShowFormatting.isOpenMic(show.name)
     }
 
     static func topLineup(

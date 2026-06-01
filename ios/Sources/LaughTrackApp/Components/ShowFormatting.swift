@@ -1,4 +1,5 @@
 import Foundation
+import LaughTrackAPIClient
 
 struct ShowDateStack: Equatable {
     var weekday: String
@@ -64,6 +65,20 @@ enum ShowFormatting {
         if lowered.contains("open mic") { return true }
         if lowered.contains("open-mic") { return true }
         return false
+    }
+
+    /// Primary open-mic signal: the show carries a tag whose slug matches the
+    /// "open mic" taxonomy. Row and detail surfaces should call this first and
+    /// only fall back to `isOpenMic(_:)` on the title when the tag list is
+    /// empty (e.g., older fixtures that predate tag-population on the venue).
+    static func isOpenMic(tags: [Components.Schemas.Tag]?) -> Bool {
+        guard let tags else { return false }
+        return tags.contains { tag in
+            let slug = tag.slug
+                .lowercased()
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return slug == "open mic" || slug == "open-mic"
+        }
     }
 
     static func apiDate(_ date: Date) -> String {
