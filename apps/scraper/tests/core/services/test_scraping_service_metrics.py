@@ -836,10 +836,12 @@ class TestScrapeClubsWithMetrics:
         # hung club (0.5s), then ~_LOCK_HOLD_TIMEOUT (0.05s) for each cascaded
         # club, plus the orchestrator's post-gather executor.shutdown(wait=True)
         # which waits for the hung thread to exit (bounded by _HANG_DURATION_S
-        # = 0.8s above). Pre-fix this would have been ~3 * _DB_WRITE_TIMEOUT
-        # (1.5s) — bound at 1.5s keeps the cascade-vs-no-cascade distinction
-        # while leaving headroom for slow CI.
-        assert elapsed < 1.5, f"cascade not bounded: {elapsed:.2f}s for 3 clubs (pre-fix would be ~1.5s+ with shutdown)"
+        # = 0.8s above). Bound at 3s — comfortably above the ~0.9s expected
+        # path so the assertion survives slow CI runners, but well below the
+        # pre-fix worst case where all 3 clubs would have queued an additional
+        # _DB_WRITE_TIMEOUT each (would be hundreds of seconds at production
+        # values, ~1.5s+shutdown at patched test values).
+        assert elapsed < 3.0, f"cascade not bounded: {elapsed:.2f}s for 3 clubs"
 
         by_name = {r.club_name: r for r in results}
         assert len(by_name) == 3

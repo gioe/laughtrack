@@ -30,6 +30,19 @@ cascade documented in run 26762966336). The bounded wait converts that into
 one 300s timeout + (N-1) fast LockHeldError failures, which the caller's
 existing exception branch stamps onto ``result.error`` so the per-club metric
 still flips ok→error.
+
+Caller-visible side effect: EventbriteScraper organizer-mode upserts
+(scrapers/implementations/api/eventbrite/scraper.py::_upsert_one) also call
+``serialized_db_call`` and are *not* wrapped in their own ``asyncio.wait_for``.
+Pre-fix a stuck writer made those upserts hang forever (visible as a hung
+process); post-fix each contested venue upsert fails fast with LockHeldError
+and is swallowed by ``_upsert_one``'s broad ``except Exception`` (it returns
+``[]`` and logs "failed to upsert club for venue X"). That means per-venue
+silent drops are possible while a sibling DB writer is stuck; the orchestrator
+per-club metric never names these venues because they live inside one scraper
+run. TASK-2554 is tracking the structural fix (bound ``_upsert_one`` too, or
+push the timeout into the lock layer uniformly). Until then, "organizer-mode
+venue X missing" in a nightly summary should look here first.
 """
 
 import threading
