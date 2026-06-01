@@ -627,7 +627,18 @@ class ScrapingService:
                                         )
                                 total_db_result = total_db_result + club_db_result
                         except Exception as insert_err:
+                            # Sibling to the TimeoutError branch above: stamp
+                            # result.error so the per-club metric below flips
+                            # ok→error. Without this, an unexpected persist
+                            # exception (ORM/DB connection error, etc.) is
+                            # logged loudly but the club is still counted as
+                            # ok and the outage alert path never engages.
                             Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
+                            persist_err = f"persist failed: {insert_err}"
+                            result.error = (
+                                f"{result.error}; {persist_err}"
+                                if result.error else persist_err
+                            )
 
                         metrics.scraper_type = key
                         if result.error:
