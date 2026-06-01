@@ -186,6 +186,35 @@ class TestBatchUpdateComedianShowCountsSql:
         sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
         assert "bool_and" in sql, "Expected BOOL_AND to determine show-level sold-out status"
 
+    def test_query_bounds_tickets_aggregation_per_show(self):
+        """Regression guard for TASK-2544: the tickets BOOL_AND must NOT be
+        materialized over the whole tickets table.
+
+        The prior shape was a top-level subquery `(SELECT show_id, BOOL_AND(sold_out)
+        FROM tickets GROUP BY show_id)` that Postgres aggregated over the entire
+        tickets table on every call, because the outer comedian_id filter
+        cannot push into an aggregated subquery. As tickets scaled, that single
+        statement crossed Neon's 30s statement_timeout mid-nightly.
+
+        The fix uses LEFT JOIN LATERAL with a correlated `WHERE t.show_id = li.show_id`
+        so BOOL_AND only runs for shows in the targeted comedians' lineups.
+        Don't reintroduce the unbounded GROUP BY form.
+        """
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
+        # LATERAL is the contract — the correlated subquery is what bounds the
+        # tickets aggregation to relevant shows only.
+        assert "lateral" in sql, "Expected LEFT JOIN LATERAL to bound tickets aggregation"
+        # The correlated predicate is what makes the LATERAL bounded; a LATERAL
+        # without it would still scan all tickets per row.
+        assert "t.show_id = li.show_id" in sql, (
+            "LATERAL subquery must correlate on show_id to use the tickets index"
+        )
+        # The exact prior offending shape: a non-correlated `FROM tickets GROUP BY show_id`.
+        # If either marker reappears the unbounded aggregation is back.
+        assert "from tickets\n            group by show_id" not in sql, (
+            "Reintroduced unbounded tickets GROUP BY — would scan all tickets every call"
+        )
+
 
 class TestUpdateComedianTourIdsSql:
     def test_query_only_fills_missing_platform_ids(self):
@@ -204,8 +233,8 @@ class TestUpdateComedianTourIdsSql:
 # ---------------------------------------------------------------------------
 
 class TestRefreshComedianShowCounts:
-    def test_calls_execute_with_cursor_with_correct_query(self):
-        """_refresh_comedian_show_counts delegates to execute_with_cursor with BATCH_UPDATE_COMEDIAN_SHOW_COUNTS."""
+    def test_single_chunk_passes_uuids_to_execute_with_cursor(self):
+        """A list smaller than the chunk size produces exactly one statement."""
         handler = _make_handler()
         handler.execute_with_cursor.return_value = None
 
@@ -215,6 +244,52 @@ class TestRefreshComedianShowCounts:
             ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS,
             (["uuid-1", "uuid-2"],),
         )
+
+    def test_empty_input_does_not_query(self):
+        """No UUIDs → no statement issued (avoids ANY(empty array) overhead)."""
+        handler = _make_handler()
+        handler._refresh_comedian_show_counts([])
+        handler.execute_with_cursor.assert_not_called()
+
+    def test_large_input_is_chunked(self):
+        """Regression guard for TASK-2544: _refresh_comedian_show_counts must
+        chunk its UUID list so a single nightly batch can never issue one giant
+        statement that crosses Neon's 30s statement_timeout. The LATERAL
+        rewrite is the primary defense; this caller-side chunk is the
+        secondary defense.
+        """
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        chunk_size = ComedianHandler._SHOW_COUNTS_REFRESH_CHUNK_SIZE
+        # Build an input larger than the chunk size so chunking must fire.
+        uuids = [f"uuid-{i}" for i in range(chunk_size * 2 + 5)]
+
+        handler._refresh_comedian_show_counts(uuids)
+
+        # Expect ceil(len(uuids) / chunk_size) calls, each with a chunk of <= chunk_size.
+        expected_calls = (len(uuids) + chunk_size - 1) // chunk_size
+        assert handler.execute_with_cursor.call_count == expected_calls
+        for call in handler.execute_with_cursor.call_args_list:
+            args, _ = call
+            query, params = args
+            assert query == ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS
+            (chunk,) = params
+            assert len(chunk) <= chunk_size
+
+        # And every UUID must appear in exactly one chunk — chunking can't drop or duplicate.
+        seen = [
+            uuid
+            for call in handler.execute_with_cursor.call_args_list
+            for uuid in call.args[1][0]
+        ]
+        assert seen == uuids
+
+    def test_chunk_size_is_bounded(self):
+        """The chunk-size constant is meaningful: bound it so future edits
+        can't silently set it back to thousands and reintroduce the timeout.
+        """
+        assert 0 < ComedianHandler._SHOW_COUNTS_REFRESH_CHUNK_SIZE <= 500
 
     def test_exception_from_execute_with_cursor_propagates(self):
         """A DB error in execute_with_cursor bubbles up from _refresh_comedian_show_counts."""
