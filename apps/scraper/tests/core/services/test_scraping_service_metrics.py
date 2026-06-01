@@ -1595,3 +1595,42 @@ class TestTruncateDescriptionLines:
 
         assert len(sent_messages) == 1
         assert len(sent_messages[0]) <= 2048
+
+
+class TestPerClubTimeoutResolution:
+    """Lock the per-scraper timeout override map.
+
+    Background: TASK-2543 tightened the per-club fetch cap from 300s to 180s.
+    Run 26762966336 (2026-06-01) then showed 16 of 18 cap-hitters were
+    seatengine_classic (deep-catalog Helium/Comedy Zone chains scraping
+    200-300 shows per call). TASK-2551 keeps the 180s default for everyone
+    else but grants seatengine_classic 240s so those chains finish.
+    """
+
+    def test_seatengine_classic_gets_240s_override(self):
+        from laughtrack.core.services.scraping import _per_club_timeout_for
+        assert _per_club_timeout_for("seatengine_classic") == 240
+
+    def test_other_scrapers_get_180s_default(self):
+        from laughtrack.core.services.scraping import _per_club_timeout_for
+        # Sample of scrapers that should NOT receive the override.
+        assert _per_club_timeout_for("eventbrite") == 180
+        assert _per_club_timeout_for("seatengine_v3") == 180
+        assert _per_club_timeout_for("broadway") == 180
+        assert _per_club_timeout_for("squarespace") == 180
+
+    def test_unknown_scraper_key_falls_back_to_default(self):
+        from laughtrack.core.services.scraping import _per_club_timeout_for
+        assert _per_club_timeout_for("does_not_exist") == 180
+        assert _per_club_timeout_for("") == 180
+
+    def test_default_and_overrides_constants(self):
+        from laughtrack.core.services.scraping import (
+            _DEFAULT_PER_CLUB_TIMEOUT,
+            _PER_SCRAPER_TIMEOUT_OVERRIDES,
+        )
+        assert _DEFAULT_PER_CLUB_TIMEOUT == 180
+        # seatengine_classic must be the only override until another platform
+        # is audited and added with rationale (mirrors the _DB_WRITE_TIMEOUT
+        # pattern — explicit values, no env-driven shadow config).
+        assert _PER_SCRAPER_TIMEOUT_OVERRIDES == {"seatengine_classic": 240}
