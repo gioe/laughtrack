@@ -2614,6 +2614,14 @@
           }
         }
       },
+      "Tag": {
+        "type": "object",
+        "required": ["slug", "name"],
+        "properties": {
+          "slug": { "type": "string" },
+          "name": { "type": "string" }
+        }
+      },
       "Show": {
         "type": "object",
         "required": ["id", "clubId", "date", "imageUrl"],
@@ -2633,6 +2641,10 @@
           "lineup": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianLineup" }
+          },
+          "tags": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tag" }
           },
           "description": { "type": "string" },
           "address": { "type": "string" },
@@ -2738,6 +2750,10 @@
           "lineup": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ComedianLineup" }
+          },
+          "tags": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Tag" }
           },
           "description": { "type": "string" },
           "address": { "type": "string" },
