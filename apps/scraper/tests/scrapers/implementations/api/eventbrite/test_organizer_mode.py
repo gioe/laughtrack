@@ -504,6 +504,104 @@ async def test_organizer_mode_routes_per_venue_upserts_through_serialized_db_cal
 
 
 @pytest.mark.asyncio
+async def test_organizer_mode_bounded_upsert_completes_when_venue_hangs(monkeypatch):
+    """A hung ``upsert_for_eventbrite_venue`` must not pin ``asyncio.gather``
+    open forever — ``_upsert_one`` wraps its ``loop.run_in_executor`` await
+    in ``asyncio.wait_for(..., timeout=_EB_UPSERT_TIMEOUT)`` so the hung
+    venue's coroutine returns ``[]`` after the deadline and the EB scraper
+    completes promptly.
+
+    Pre-fix (TASK-2554): the await was unbounded, so the scraper hung until
+    the orchestrator's per-club ``asyncio.wait_for`` cancelled the entire
+    scrape — and the metric only saw the organizer scrape as one row, so the
+    individual stuck venue name never reached the log.
+
+    Sibling-venue note: contention with the same hung upsert through the
+    shared ``_DB_WRITE_LOCK`` means *other* venues' upserts will also block
+    on lock acquisition and either trip their own wait_for or surface
+    ``LockHeldError`` from TASK-2553's fail-fast. That cross-venue interaction
+    is intentional (the lock is process-wide for a reason); this test only
+    asserts the structural guarantee that the EB scraper completes promptly
+    and names the hung venue — both of which were missing pre-fix.
+
+    The test patches ``_EB_UPSERT_TIMEOUT`` down to a small value so the
+    deadline fires quickly. The executor thread that ran the hung upsert
+    is left running (CPython has no safe way to terminate it); the default
+    thread-pool worker is a daemon so the process can still exit cleanly.
+    """
+    import threading
+    import time
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    api_events = [
+        _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
+    ]
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+
+    # The upsert hangs until release.set() — set only in the test's finally
+    # block, so the worker thread parks cleanly after the assertions.
+    hang_release = threading.Event()
+    hang_started = threading.Event()
+
+    def _upsert(api_venue):
+        hang_started.set()
+        hang_release.wait(timeout=10.0)
+        return bull_pen_club
+
+    # Shrink the per-venue deadline so the test resolves in milliseconds. The
+    # production default (60s) is documented at the EB call site; the
+    # structural assertion below is invariant to the exact timeout value.
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper._EB_UPSERT_TIMEOUT",
+        0.2,
+    )
+
+    scraper = EventbriteScraper(proxy)
+    try:
+        with patch.object(
+            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+        ), patch.object(
+            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+        ), patch(
+            "laughtrack.scrapers.implementations.api.eventbrite.scraper.Logger"
+        ) as logger_mock:
+            t0 = time.monotonic()
+            shows = await scraper.scrape_async()
+            elapsed = time.monotonic() - t0
+
+        # Structural assertion #1: the scraper completed despite the hung
+        # upsert. A 2s budget gives the executor and asyncio plenty of slack
+        # while still failing loudly if the wait_for was removed (pre-fix the
+        # await would block until hang_release.set() or the 10s safety wait).
+        assert elapsed < 2.0, f"scraper took {elapsed:.2f}s — wait_for may not have fired"
+
+        # Structural assertion #2: the hung venue produced no shows (its
+        # _upsert_one branch returned [] after the wait_for cancelled).
+        assert shows == []
+
+        # Structural assertion #3: the venue is named in the error log — the
+        # whole reason this fix exists, since the orchestrator per-club
+        # metric never names individual venues inside an organizer scrape.
+        error_messages = [call.args[0] for call in logger_mock.error.call_args_list]
+        assert any(
+            "Bull Pen Tap House" in msg and "timed out" in msg and "1 event" in msg
+            for msg in error_messages
+        ), f"expected venue-named timeout error for Bull Pen, got: {error_messages}"
+
+        # Sanity: confirm the hung worker actually started (otherwise we are
+        # asserting on a path that never ran).
+        assert hang_started.is_set(), "hung upsert thread never reached the barrier"
+    finally:
+        # Release the hung worker so it does not linger as a noisy daemon.
+        hang_release.set()
+
+
+@pytest.mark.asyncio
 async def test_organizer_mode_skips_venue_when_upsert_fails():
     """A DB error upserting one venue's club must not drop other venues' shows."""
     proxy = _build_synthetic_proxy_for_company(_encore_company())
