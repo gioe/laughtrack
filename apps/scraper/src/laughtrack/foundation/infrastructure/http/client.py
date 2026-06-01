@@ -231,7 +231,7 @@ def _maybe_warn_cross_host_redirect(
         return
     try:
         final_url_str = str(final_url)
-    except Exception:
+    except (TypeError, ValueError):
         return
     original_host = _host_of(original_url)
     final_host = _host_of(final_url_str)
