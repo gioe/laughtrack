@@ -135,11 +135,6 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/{id}`.
     /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
     func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
-    /// Record an outbound ticket purchase click
-    ///
-    /// - Remark: HTTP `POST /ticket-clicks`.
-    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
-    func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output
     /// Composite home-screen feed (hero + six curated sections)
     ///
     /// Single round-trip replacement for seven per-section calls. Returns hero context (zip/city/state + up to 3 near-you shows) plus arrays for trendingComedians, comediansNearYou, showsTonight, moreNearYou, trendingThisWeek, and popularClubs. Rate limit: 60 req/min anon, 300 req/min authenticated. Cache-Control: private, max-age=60 — response is personalized by session profile zipCode and Vercel geo-IP, so shared CDN caching is disabled.
@@ -204,6 +199,13 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /favorite-clubs/{clubId}`.
     /// - Remark: Generated from `#/paths//favorite-clubs/{clubId}/delete(removeFavoriteClub)`.
     func removeFavoriteClub(_ input: Operations.RemoveFavoriteClub.Input) async throws -> Operations.RemoveFavoriteClub.Output
+    /// Record an outbound ticket purchase click
+    ///
+    /// Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -211,98 +213,6 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /zip-lookup`.
     /// - Remark: Generated from `#/paths//zip-lookup/get(lookupZip)`.
     func lookupZip(_ input: Operations.LookupZip.Input) async throws -> Operations.LookupZip.Output
-}
-
-extension Operations {
-    /// Record an outbound ticket purchase click
-    ///
-    /// - Remark: HTTP `POST /ticket-clicks`.
-    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
-    public enum RecordTicketClick {
-        public static let id: Swift.String = "recordTicketClick"
-        public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/ticket-clicks/POST/header`.
-            public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>]
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>] = .defaultValues()) {
-                    self.accept = accept
-                }
-            }
-            public var headers: Operations.RecordTicketClick.Input.Headers
-            /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody`.
-            @frozen public enum Body: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody/json`.
-                public struct JsonPayload: Codable, Hashable, Sendable {
-                    public var showId: Swift.Int
-                    public var clubId: Swift.Int
-                    public var destinationUrl: Swift.String
-                    public var sourceSurface: Swift.String
-                    public init(
-                        showId: Swift.Int,
-                        clubId: Swift.Int,
-                        destinationUrl: Swift.String,
-                        sourceSurface: Swift.String
-                    ) {
-                        self.showId = showId
-                        self.clubId = clubId
-                        self.destinationUrl = destinationUrl
-                        self.sourceSurface = sourceSurface
-                    }
-                    public enum CodingKeys: String, CodingKey {
-                        case showId
-                        case clubId
-                        case destinationUrl
-                        case sourceSurface
-                    }
-                }
-                case json(Operations.RecordTicketClick.Input.Body.JsonPayload)
-            }
-            public var body: Operations.RecordTicketClick.Input.Body
-            public init(
-                headers: Operations.RecordTicketClick.Input.Headers = .init(),
-                body: Operations.RecordTicketClick.Input.Body
-            ) {
-                self.headers = headers
-                self.body = body
-            }
-        }
-        @frozen public enum Output: Sendable, Hashable {
-            public struct Created: Sendable, Hashable {
-                public init() {}
-            }
-            case created(Operations.RecordTicketClick.Output.Created)
-            public struct BadRequest: Sendable, Hashable {}
-            case badRequest(Operations.RecordTicketClick.Output.BadRequest)
-            public struct Unauthorized: Sendable, Hashable {}
-            case unauthorized(Operations.RecordTicketClick.Output.Unauthorized)
-            public struct TooManyRequests: Sendable, Hashable {}
-            case tooManyRequests(Operations.RecordTicketClick.Output.TooManyRequests)
-            public struct InternalServerError: Sendable, Hashable {}
-            case internalServerError(Operations.RecordTicketClick.Output.InternalServerError)
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            public var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            public static var allCases: [Self] { [.json] }
-        }
-    }
 }
 
 /// Convenience overloads for operation inputs.
@@ -705,6 +615,21 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// Record an outbound ticket purchase click
+    ///
+    /// Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    public func recordTicketClick(
+        headers: Operations.RecordTicketClick.Input.Headers = .init(),
+        body: Operations.RecordTicketClick.Input.Body
+    ) async throws -> Operations.RecordTicketClick.Output {
+        try await recordTicketClick(Operations.RecordTicketClick.Input(
+            headers: headers,
+            body: body
+        ))
+    }
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -761,6 +686,48 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case error
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/TicketClickRequest`.
+        public struct TicketClickRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/TicketClickRequest/showId`.
+            public var showId: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TicketClickRequest/clubId`.
+            public var clubId: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/TicketClickRequest/destinationUrl`.
+            public var destinationUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/TicketClickRequest/sourceSurface`.
+            @frozen public enum SourceSurfacePayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case showDetail = "show_detail"
+                case showCard = "show_card"
+                case compactShowCard = "compact_show_card"
+                case iosShowDetail = "ios_show_detail"
+            }
+            /// - Remark: Generated from `#/components/schemas/TicketClickRequest/sourceSurface`.
+            public var sourceSurface: Components.Schemas.TicketClickRequest.SourceSurfacePayload
+            /// Creates a new `TicketClickRequest`.
+            ///
+            /// - Parameters:
+            ///   - showId:
+            ///   - clubId:
+            ///   - destinationUrl:
+            ///   - sourceSurface:
+            public init(
+                showId: Swift.Int,
+                clubId: Swift.Int,
+                destinationUrl: Swift.String,
+                sourceSurface: Components.Schemas.TicketClickRequest.SourceSurfacePayload
+            ) {
+                self.showId = showId
+                self.clubId = clubId
+                self.destinationUrl = destinationUrl
+                self.sourceSurface = sourceSurface
+            }
+            public enum CodingKeys: String, CodingKey {
+                case showId
+                case clubId
+                case destinationUrl
+                case sourceSurface
             }
         }
         /// - Remark: Generated from `#/components/schemas/TokenResponse`.
@@ -1783,6 +1750,29 @@ public enum Components {
                 typealias CodingKeys = Components.Schemas.ComedianLineup.CodingKeys
             }
         }
+        /// - Remark: Generated from `#/components/schemas/Tag`.
+        public struct Tag: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/Tag/slug`.
+            public var slug: Swift.String
+            /// - Remark: Generated from `#/components/schemas/Tag/name`.
+            public var name: Swift.String
+            /// Creates a new `Tag`.
+            ///
+            /// - Parameters:
+            ///   - slug:
+            ///   - name:
+            public init(
+                slug: Swift.String,
+                name: Swift.String
+            ) {
+                self.slug = slug
+                self.name = name
+            }
+            public enum CodingKeys: String, CodingKey {
+                case slug
+                case name
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/Show`.
         public struct Show: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/Show/id`.
@@ -1805,6 +1795,8 @@ public enum Components {
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/Show/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
+            /// - Remark: Generated from `#/components/schemas/Show/tags`.
+            public var tags: [Components.Schemas.Tag]?
             /// - Remark: Generated from `#/components/schemas/Show/description`.
             public var description: Swift.String?
             /// - Remark: Generated from `#/components/schemas/Show/address`.
@@ -1832,6 +1824,7 @@ public enum Components {
             ///   - name:
             ///   - socialData:
             ///   - lineup:
+            ///   - tags:
             ///   - description:
             ///   - address:
             ///   - room:
@@ -1850,6 +1843,7 @@ public enum Components {
                 name: Swift.String? = nil,
                 socialData: Components.Schemas.SocialData? = nil,
                 lineup: [Components.Schemas.ComedianLineup]? = nil,
+                tags: [Components.Schemas.Tag]? = nil,
                 description: Swift.String? = nil,
                 address: Swift.String? = nil,
                 room: Swift.String? = nil,
@@ -1868,6 +1862,7 @@ public enum Components {
                 self.name = name
                 self.socialData = socialData
                 self.lineup = lineup
+                self.tags = tags
                 self.description = description
                 self.address = address
                 self.room = room
@@ -1887,6 +1882,7 @@ public enum Components {
                 case name
                 case socialData
                 case lineup
+                case tags
                 case description
                 case address
                 case room
@@ -2116,6 +2112,8 @@ public enum Components {
             public var socialData: Components.Schemas.SocialData?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/lineup`.
             public var lineup: [Components.Schemas.ComedianLineup]?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/tags`.
+            public var tags: [Components.Schemas.Tag]?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/description`.
             public var description: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ShowDetail/address`.
@@ -2146,6 +2144,7 @@ public enum Components {
             ///   - name:
             ///   - socialData:
             ///   - lineup:
+            ///   - tags:
             ///   - description:
             ///   - address:
             ///   - room:
@@ -2164,6 +2163,7 @@ public enum Components {
                 name: Swift.String? = nil,
                 socialData: Components.Schemas.SocialData? = nil,
                 lineup: [Components.Schemas.ComedianLineup]? = nil,
+                tags: [Components.Schemas.Tag]? = nil,
                 description: Swift.String? = nil,
                 address: Swift.String? = nil,
                 room: Swift.String? = nil,
@@ -2182,6 +2182,7 @@ public enum Components {
                 self.name = name
                 self.socialData = socialData
                 self.lineup = lineup
+                self.tags = tags
                 self.description = description
                 self.address = address
                 self.room = room
@@ -2201,6 +2202,7 @@ public enum Components {
                 case name
                 case socialData
                 case lineup
+                case tags
                 case description
                 case address
                 case room
@@ -2311,6 +2313,7 @@ public enum Components {
             ///   - id:
             ///   - name:
             ///   - imageUrl:
+            ///   - heroImageUrl:
             ///   - website:
             ///   - address:
             ///   - zipCode:
@@ -13513,6 +13516,338 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.internalServerError`.
             /// - SeeAlso: `.internalServerError`.
             public var internalServerError: Operations.RemoveFavoriteClub.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Record an outbound ticket purchase click
+    ///
+    /// Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    public enum RecordTicketClick {
+        public static let id: Swift.String = "recordTicketClick"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/ticket-clicks/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.RecordTicketClick.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.RecordTicketClick.Input.Headers
+            /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.TicketClickRequest)
+            }
+            public var body: Operations.RecordTicketClick.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.RecordTicketClick.Input.Headers = .init(),
+                body: Operations.RecordTicketClick.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Created: Sendable, Hashable {
+                /// Creates a new `Created`.
+                public init() {}
+            }
+            /// Click recorded
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/201`.
+            ///
+            /// HTTP response code: `201 created`.
+            case created(Operations.RecordTicketClick.Output.Created)
+            /// Click recorded
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/201`.
+            ///
+            /// HTTP response code: `201 created`.
+            public static var created: Self {
+                .created(.init())
+            }
+            /// The associated value of the enum case if `self` is `.created`.
+            ///
+            /// - Throws: An error if `self` is not `.created`.
+            /// - SeeAlso: `.created`.
+            public var created: Operations.RecordTicketClick.Output.Created {
+                get throws {
+                    switch self {
+                    case let .created(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "created",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RecordTicketClick.Output.BadRequest.Body
+                /// Creates a new `BadRequest`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RecordTicketClick.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid click payload
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.RecordTicketClick.Output.BadRequest)
+            /// The associated value of the enum case if `self` is `.badRequest`.
+            ///
+            /// - Throws: An error if `self` is not `.badRequest`.
+            /// - SeeAlso: `.badRequest`.
+            public var badRequest: Operations.RecordTicketClick.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/401/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/401/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RecordTicketClick.Output.Unauthorized.Body
+                /// Creates a new `Unauthorized`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RecordTicketClick.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            /// Invalid Bearer token
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/401`.
+            ///
+            /// HTTP response code: `401 unauthorized`.
+            case unauthorized(Operations.RecordTicketClick.Output.Unauthorized)
+            /// The associated value of the enum case if `self` is `.unauthorized`.
+            ///
+            /// - Throws: An error if `self` is not `.unauthorized`.
+            /// - SeeAlso: `.unauthorized`.
+            public var unauthorized: Operations.RecordTicketClick.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/429/headers`.
+                public struct Headers: Sendable, Hashable {
+                    /// Number of seconds the client should wait before retrying.
+                    ///
+                    /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/429/headers/Retry-After`.
+                    public var retryAfter: Swift.Int?
+                    /// Creates a new `Headers`.
+                    ///
+                    /// - Parameters:
+                    ///   - retryAfter: Number of seconds the client should wait before retrying.
+                    public init(retryAfter: Swift.Int? = nil) {
+                        self.retryAfter = retryAfter
+                    }
+                }
+                /// Received HTTP response headers
+                public var headers: Operations.RecordTicketClick.Output.TooManyRequests.Headers
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RecordTicketClick.Output.TooManyRequests.Body
+                /// Creates a new `TooManyRequests`.
+                ///
+                /// - Parameters:
+                ///   - headers: Received HTTP response headers
+                ///   - body: Received HTTP response body
+                public init(
+                    headers: Operations.RecordTicketClick.Output.TooManyRequests.Headers = .init(),
+                    body: Operations.RecordTicketClick.Output.TooManyRequests.Body
+                ) {
+                    self.headers = headers
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.RecordTicketClick.Output.TooManyRequests)
+            /// The associated value of the enum case if `self` is `.tooManyRequests`.
+            ///
+            /// - Throws: An error if `self` is not `.tooManyRequests`.
+            /// - SeeAlso: `.tooManyRequests`.
+            public var tooManyRequests: Operations.RecordTicketClick.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/ticket-clicks/POST/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.RecordTicketClick.Output.InternalServerError.Body
+                /// Creates a new `InternalServerError`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.RecordTicketClick.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.RecordTicketClick.Output.InternalServerError)
+            /// The associated value of the enum case if `self` is `.internalServerError`.
+            ///
+            /// - Throws: An error if `self` is not `.internalServerError`.
+            /// - SeeAlso: `.internalServerError`.
+            public var internalServerError: Operations.RecordTicketClick.Output.InternalServerError {
                 get throws {
                     switch self {
                     case let .internalServerError(response):

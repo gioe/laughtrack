@@ -4996,6 +4996,153 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Record an outbound ticket purchase click
+    ///
+    /// Records first-party analytics for ticket CTA clicks. Authenticated requests are attributed to the caller profile; anonymous requests are attributed to an opaque visitor cookie.
+    ///
+    /// - Remark: HTTP `POST /ticket-clicks`.
+    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
+    public func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.RecordTicketClick.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/ticket-clicks",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 201:
+                    return .created(.init())
+                case 400:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.RecordTicketClick.Output.BadRequest.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .badRequest(.init(body: body))
+                case 401:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.RecordTicketClick.Output.Unauthorized.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .unauthorized(.init(body: body))
+                case 429:
+                    let headers: Operations.RecordTicketClick.Output.TooManyRequests.Headers = .init(retryAfter: try converter.getOptionalHeaderFieldAsURI(
+                        in: response.headerFields,
+                        name: "Retry-After",
+                        as: Swift.Int.self
+                    ))
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.RecordTicketClick.Output.TooManyRequests.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .tooManyRequests(.init(
+                        headers: headers,
+                        body: body
+                    ))
+                case 500:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.RecordTicketClick.Output.InternalServerError.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ErrorResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .internalServerError(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Resolve a US ZIP code to its city and state
     ///
     /// Resolves a 5-digit US ZIP code to its city and state using the bundled `zipcodes` dataset. iOS clients call this to refine a manually entered ZIP into a city/state label without invoking CoreLocation.
@@ -5134,63 +5281,6 @@ public struct Client: APIProtocol {
                             headerFields: response.headerFields,
                             body: responseBody
                         )
-                    )
-                }
-            }
-        )
-    }
-}
-
-extension Client {
-    /// Record an outbound ticket purchase click
-    ///
-    /// - Remark: HTTP `POST /ticket-clicks`.
-    /// - Remark: Generated from `#/paths//ticket-clicks/post(recordTicketClick)`.
-    public func recordTicketClick(_ input: Operations.RecordTicketClick.Input) async throws -> Operations.RecordTicketClick.Output {
-        try await client.send(
-            input: input,
-            forOperation: Operations.RecordTicketClick.id,
-            serializer: { input in
-                let path = try converter.renderedPath(
-                    template: "/ticket-clicks",
-                    parameters: []
-                )
-                var request: HTTPTypes.HTTPRequest = .init(
-                    soar_path: path,
-                    method: .post
-                )
-                suppressMutabilityWarning(&request)
-                converter.setAcceptHeader(
-                    in: &request.headerFields,
-                    contentTypes: input.headers.accept
-                )
-                let body: OpenAPIRuntime.HTTPBody?
-                switch input.body {
-                case let .json(value):
-                    body = try converter.setRequiredRequestBodyAsJSON(
-                        value,
-                        headerFields: &request.headerFields,
-                        contentType: "application/json; charset=utf-8"
-                    )
-                }
-                return (request, body)
-            },
-            deserializer: { response, responseBody in
-                switch response.status.code {
-                case 201:
-                    return .created(.init())
-                case 400:
-                    return .badRequest(.init())
-                case 401:
-                    return .unauthorized(.init())
-                case 429:
-                    return .tooManyRequests(.init())
-                case 500:
-                    return .internalServerError(.init())
-                default:
-                    return .undocumented(
-                        statusCode: response.status.code,
-                        .init(headerFields: response.headerFields, body: responseBody)
                     )
                 }
             }
