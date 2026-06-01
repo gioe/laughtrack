@@ -25,8 +25,16 @@ on:
       - ".github/workflows/ios-openapi-drift.yml"
 
 jobs:
+  # Initial watcher: ios/CLAUDE.md ("Generator-version drift") notes the
+  # currently committed Client.swift / Types.swift have mixed formatting from
+  # prior generator versions, so a clean regen against the pinned generator
+  # version will produce a diff on day one. continue-on-error keeps the failure
+  # signal visible without blocking PRs. Convert to a blocking gate after the
+  # committed files are re-baselined against the pinned generator (same
+  # watcher-then-gate progression used by sim-tests-ios-26-watch).
   check-openapi-regen-drift:
     runs-on: macos-latest
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
