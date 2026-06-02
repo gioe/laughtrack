@@ -226,10 +226,13 @@ public struct AppBootstrap {
     /// `state` cycles through `.restoring` → `.signingIn` → `.authenticated` /
     /// `.signedOut` on every auth event, but those transitions don't all map to
     /// a user identity change (e.g. token refresh keeps the same user). The
-    /// scan-pairwise pattern fires `setUserID` exactly once per nil → non-nil
-    /// edge and `reset` exactly once per non-nil → nil edge, ignoring the
-    /// initial replay of the published value (nil at subscription time) and
-    /// in-place user updates like `markComedianOnboardingCompleted`.
+    /// scan-pairwise pattern fires `setUserID` plus the cohort-filter user
+    /// properties (`comedian_onboarding_completed`, `has_zip`) exactly once per
+    /// nil → non-nil edge and `reset` exactly once per non-nil → nil edge,
+    /// ignoring the initial replay of the published value (nil at subscription
+    /// time) and in-place user updates like `markComedianOnboardingCompleted`
+    /// (the latter means a user who completes onboarding mid-session keeps the
+    /// `false` property value until the next sign-in).
     static func attachAnalyticsLifecycle(
         authManager: AuthManager,
         analytics: AnalyticsManagerProtocol
@@ -243,6 +246,14 @@ public struct AppBootstrap {
                 switch (previous, current) {
                 case (nil, let user?):
                     analytics.setUserID(Self.stableAnalyticsUserID(forEmail: user.email))
+                    analytics.setUserProperty(
+                        user.comedianOnboardingCompleted ? "true" : "false",
+                        forName: "comedian_onboarding_completed"
+                    )
+                    analytics.setUserProperty(
+                        user.zipCode != nil ? "true" : "false",
+                        forName: "has_zip"
+                    )
                 case (_?, nil):
                     analytics.reset()
                 default:
