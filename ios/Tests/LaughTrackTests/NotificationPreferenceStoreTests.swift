@@ -217,6 +217,114 @@ struct NotificationPreferenceStoreTests {
         #expect(json["platform"] == "ios")
     }
 
+    @Test("push toggle emits push_settings_toggle_changed for both enable and disable")
+    func pushToggleEmitsSettingsToggleChanged() async throws {
+        let storage = makeStorage(name: "toggle-changed")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let analytics = RecordingAnalyticsManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester,
+            analytics: analytics
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await pushTokenManager.registerCalls == 1 }
+        model.setFavoriteComedianPushAlertsEnabled(false)
+        try await waitUntil { await pushTokenManager.deactivateCalls == 1 }
+
+        let toggleEvents = analytics.events.filter { $0.name == PushAnalyticsEvents.settingsToggleChanged }
+        #expect(toggleEvents.count == 2)
+        #expect(toggleEvents[0].bool(PushAnalyticsEvents.Param.enabled) == true)
+        #expect(toggleEvents[0].bool(PushAnalyticsEvents.Param.fromDeniedState) == false)
+        #expect(toggleEvents[1].bool(PushAnalyticsEvents.Param.enabled) == false)
+        #expect(toggleEvents[1].bool(PushAnalyticsEvents.Param.fromDeniedState) == false)
+    }
+
+    @Test("push toggle emits push_os_prompt_result with trigger=settings_toggle after notDetermined OS prompt")
+    func pushToggleEmitsOSPromptResultOnNotDetermined() async throws {
+        let storage = makeStorage(name: "os-prompt-settings")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let analytics = RecordingAnalyticsManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .notDetermined)
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester,
+            analytics: analytics
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await requester.requestCount == 1 }
+        try await waitUntil { analytics.events.contains { $0.name == PushAnalyticsEvents.osPromptResult } }
+
+        let osResult = analytics.events.filter { $0.name == PushAnalyticsEvents.osPromptResult }
+        #expect(osResult.count == 1)
+        #expect(osResult.first?.bool(PushAnalyticsEvents.Param.granted) == true)
+        #expect(osResult.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.settingsToggle.rawValue)
+    }
+
+    @Test("push toggle does NOT emit push_os_prompt_result when status is already authorized")
+    func pushToggleAuthorizedDoesNotEmitOSPromptResult() async throws {
+        let storage = makeStorage(name: "os-prompt-authorized")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let analytics = RecordingAnalyticsManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester,
+            analytics: analytics
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await pushTokenManager.registerCalls == 1 }
+
+        #expect(!analytics.events.contains(where: { $0.name == PushAnalyticsEvents.osPromptResult }))
+    }
+
+    @Test("settings_toggle_changed includes from_denied_state=true after the denied alert was shown")
+    func settingsToggleChangedReportsFromDeniedStateAfterAlert() async throws {
+        let storage = makeStorage(name: "from-denied-state")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let analytics = RecordingAnalyticsManager()
+        // Status sequence: first toggle attempt sees .denied (surfaces alert);
+        // second attempt sees .authorized (user opened Settings, enabled push,
+        // came back, and re-tapped the toggle) — exactly the recovery flow
+        // from_denied_state is meant to measure.
+        let statusProvider = SequencedPushAuthorizationStatusProvider(sequence: [.denied, .authorized])
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester,
+            analytics: analytics
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { model.isPushDeniedAlertPresented }
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await pushTokenManager.registerCalls == 1 }
+
+        let toggleEvents = analytics.events.filter { $0.name == PushAnalyticsEvents.settingsToggleChanged }
+        #expect(toggleEvents.count == 2)
+        #expect(toggleEvents[0].bool(PushAnalyticsEvents.Param.fromDeniedState) == false)
+        #expect(toggleEvents[1].bool(PushAnalyticsEvents.Param.fromDeniedState) == true)
+    }
+
     @Test("settings model replaces both server-backed channels from authenticated user")
     func settingsModelReplacesBothServerBackedChannels() {
         let storage = makeStorage(name: "server-backed")
@@ -343,6 +451,24 @@ private struct MockPushAuthorizationStatusProvider: PushAuthorizationStatusProvi
 
     func currentAuthorizationStatus() async -> PushAuthorizationStatus {
         status
+    }
+}
+
+private actor SequencedPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
+    private var sequence: [PushAuthorizationStatus]
+    private let fallback: PushAuthorizationStatus
+
+    init(sequence: [PushAuthorizationStatus]) {
+        precondition(!sequence.isEmpty)
+        self.sequence = sequence
+        self.fallback = sequence.last!
+    }
+
+    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
+        if sequence.count > 1 {
+            return sequence.removeFirst()
+        }
+        return sequence.first ?? fallback
     }
 }
 

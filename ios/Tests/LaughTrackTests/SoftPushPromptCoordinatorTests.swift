@@ -312,6 +312,88 @@ struct SoftPushPromptCoordinatorTests {
         #expect(next == .promptingSheet)
     }
 
+    @Test("presenting the sheet emits push_soft_prompt_shown with trigger=engagement_moment and the current deferral count")
+    func presentingSheetEmitsSoftPromptShownEvent() async {
+        let analytics = RecordingAnalyticsManager()
+        let env = makeEnvironment(status: .notDetermined, analytics: analytics)
+        // Don't pre-set a deferral — recordDeferral resets
+        // sessionCountSinceLastDeferral to 0, which trips the cadence's
+        // post-deferral session gate and would suppress the sheet entirely.
+        // The fresh-state path (deferralCount=0) is the canonical first
+        // present-time and exercises the same emission code.
+
+        await fireFavoriteEvents(env.coordinator, count: 3)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        let shown = analytics.events.filter { $0.name == PushAnalyticsEvents.softPromptShown }
+        #expect(shown.count == 1)
+        #expect(shown.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.engagementMoment.rawValue)
+        #expect(shown.first?.int(PushAnalyticsEvents.Param.deferralCount) == 0)
+    }
+
+    @Test("enableTapped emits push_soft_prompt_enable_tapped and push_os_prompt_result on notDetermined grant")
+    func enableTappedEmitsEnableTappedAndOSPromptResultEvents() async {
+        let analytics = RecordingAnalyticsManager()
+        let env = makeEnvironment(status: .notDetermined, requestResult: true, analytics: analytics)
+        env.coordinator.presentation = .promptingSheet
+
+        await env.coordinator.enableTapped()
+
+        let enableTapped = analytics.events.filter { $0.name == PushAnalyticsEvents.softPromptEnableTapped }
+        #expect(enableTapped.count == 1)
+        #expect(enableTapped.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.engagementMoment.rawValue)
+        #expect(enableTapped.first?.int(PushAnalyticsEvents.Param.deferralCount) == 0)
+
+        let osResult = analytics.events.filter { $0.name == PushAnalyticsEvents.osPromptResult }
+        #expect(osResult.count == 1)
+        #expect(osResult.first?.bool(PushAnalyticsEvents.Param.granted) == true)
+        #expect(osResult.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.engagementMoment.rawValue)
+    }
+
+    @Test("enableTapped on notDetermined deny emits push_os_prompt_result with granted=false")
+    func enableTappedNotDeterminedDenyEmitsOSPromptResultFalse() async {
+        let analytics = RecordingAnalyticsManager()
+        let env = makeEnvironment(status: .notDetermined, requestResult: false, analytics: analytics)
+        env.coordinator.presentation = .promptingSheet
+
+        await env.coordinator.enableTapped()
+
+        let osResult = analytics.events.filter { $0.name == PushAnalyticsEvents.osPromptResult }
+        #expect(osResult.count == 1)
+        #expect(osResult.first?.bool(PushAnalyticsEvents.Param.granted) == false)
+        #expect(osResult.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.engagementMoment.rawValue)
+    }
+
+    @Test("enableTapped does NOT emit push_os_prompt_result when status is already authorized")
+    func enableTappedAuthorizedDoesNotEmitOSPromptResult() async {
+        let analytics = RecordingAnalyticsManager()
+        let env = makeEnvironment(status: .authorized, analytics: analytics)
+        env.coordinator.presentation = .promptingSheet
+
+        await env.coordinator.enableTapped()
+
+        #expect(analytics.events.contains(where: { $0.name == PushAnalyticsEvents.softPromptEnableTapped }))
+        #expect(!analytics.events.contains(where: { $0.name == PushAnalyticsEvents.osPromptResult }))
+    }
+
+    @Test("deferTapped emits push_soft_prompt_defer_tapped with the pre-increment deferral count")
+    func deferTappedEmitsDeferTappedEventWithPreIncrementCount() {
+        let analytics = RecordingAnalyticsManager()
+        let env = makeEnvironment(status: .notDetermined, analytics: analytics)
+        env.stateStore.recordDeferral()
+        env.stateStore.recordDeferral()
+        env.coordinator.presentation = .promptingSheet
+
+        env.coordinator.deferTapped()
+
+        let deferTapped = analytics.events.filter { $0.name == PushAnalyticsEvents.softPromptDeferTapped }
+        #expect(deferTapped.count == 1)
+        #expect(deferTapped.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.engagementMoment.rawValue)
+        // deferral_count reflects the cadence state the sheet was shown against, not the post-tap increment.
+        #expect(deferTapped.first?.int(PushAnalyticsEvents.Param.deferralCount) == 2)
+        #expect(env.stateStore.deferralCount == 3)
+    }
+
     private static let fixedNow = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func fireFavoriteEvents(
@@ -326,14 +408,21 @@ struct SoftPushPromptCoordinatorTests {
     private func makeEnvironment(
         status: PushAuthorizationStatus,
         requestResult: Bool = true,
+        analytics: (any AnalyticsManagerProtocol)? = nil,
         now: @escaping () -> Date = { Date() }
     ) -> Environment {
-        makeEnvironment(statusSequence: [status], requestResult: requestResult, now: now)
+        makeEnvironment(
+            statusSequence: [status],
+            requestResult: requestResult,
+            analytics: analytics,
+            now: now
+        )
     }
 
     private func makeEnvironment(
         statusSequence: [PushAuthorizationStatus],
         requestResult: Bool = true,
+        analytics: (any AnalyticsManagerProtocol)? = nil,
         now: @escaping () -> Date = { Date() }
     ) -> Environment {
         let suiteName = "SoftPushPromptCoordinatorTests.\(UUID().uuidString)"
@@ -351,6 +440,7 @@ struct SoftPushPromptCoordinatorTests {
             authorizationStatusProvider: statusProvider,
             authorizationRequester: requester,
             systemSettingsOpener: opener,
+            analytics: analytics,
             now: now
         )
         return Environment(
@@ -411,6 +501,35 @@ private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
     func openAppSystemSettings() {
         openCount += 1
     }
+}
+
+@MainActor
+final class RecordingAnalyticsManager: AnalyticsManagerProtocol {
+    struct Recorded {
+        let name: String
+        let parameters: [String: Any]?
+
+        func string(_ key: String) -> String? { parameters?[key] as? String }
+        func bool(_ key: String) -> Bool? { parameters?[key] as? Bool }
+        func int(_ key: String) -> Int? { parameters?[key] as? Int }
+    }
+
+    private(set) var events: [Recorded] = []
+
+    func addProvider(_ provider: AnalyticsProvider) {}
+
+    func track(_ event: AnalyticsEvent) {
+        events.append(Recorded(name: event.name, parameters: event.parameters))
+    }
+
+    func track(_ name: String, parameters: [String: Any]?) {
+        events.append(Recorded(name: name, parameters: parameters))
+    }
+
+    func trackScreen(_ name: String, parameters: [String: Any]?) {}
+    func setUserProperty(_ value: String?, forName name: String) {}
+    func setUserID(_ userID: String?) {}
+    func reset() {}
 }
 
 @MainActor

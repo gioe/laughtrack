@@ -245,6 +245,55 @@ struct OnboardingTests {
         #expect(model.isPushDeniedAlertPresented)
     }
 
+    @Test("notification step emits push_os_prompt_result with trigger=onboarding after the OS prompt resolves")
+    func notificationStepEmitsOSPromptResultWithOnboardingTrigger() async throws {
+        let analytics = RecordingAnalyticsManager()
+        let permissionRequester = RecordingPushPermissionRequester(result: true)
+        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .notDetermined)
+        let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "os-prompt-onboarding"))
+        let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
+        let model = ComedianOnboardingModel(
+            pushPermissionRequester: permissionRequester,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushTokenManager: pushTokenManager,
+            analytics: analytics
+        )
+
+        await model.setNotificationPreferences(
+            emailEnabled: true,
+            pushEnabled: true,
+            store: store
+        )
+
+        let osResult = analytics.events.filter { $0.name == PushAnalyticsEvents.osPromptResult }
+        #expect(osResult.count == 1)
+        #expect(osResult.first?.bool(PushAnalyticsEvents.Param.granted) == true)
+        #expect(osResult.first?.string(PushAnalyticsEvents.Param.trigger) == PushAnalyticsEvents.Trigger.onboarding.rawValue)
+    }
+
+    @Test("notification step does NOT emit push_os_prompt_result when status is already authorized or denied")
+    func notificationStepSkipsOSPromptResultWhenNoSystemPromptShown() async throws {
+        for status in [PushAuthorizationStatus.authorized, .denied] {
+            let analytics = RecordingAnalyticsManager()
+            let permissionRequester = RecordingPushPermissionRequester(result: true)
+            let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: status)
+            let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "no-os-prompt-\(status)"))
+            let model = ComedianOnboardingModel(
+                pushPermissionRequester: permissionRequester,
+                pushAuthorizationStatusProvider: statusProvider,
+                analytics: analytics
+            )
+
+            await model.setNotificationPreferences(
+                emailEnabled: true,
+                pushEnabled: true,
+                store: store
+            )
+
+            #expect(!analytics.events.contains(where: { $0.name == PushAnalyticsEvents.osPromptResult }))
+        }
+    }
+
     @Test("openSystemSettings on onboarding model forwards to the injected settings opener")
     func onboardingOpenSystemSettingsForwardsToOpener() async {
         let opener = RecordingOnboardingSystemSettingsOpener()
