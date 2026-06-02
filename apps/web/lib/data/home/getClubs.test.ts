@@ -75,16 +75,17 @@ describe("getClubs", () => {
             await expect(getClubs()).rejects.toThrow("DB unavailable");
         });
 
-        it("requests all active clubs by default for non-home callers", async () => {
+        it("requests active clubs with at least one upcoming show", async () => {
             mockFindMany.mockResolvedValue([] as never);
 
             await getClubs();
 
-            expect(mockFindMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: { status: "active" },
-                }),
-            );
+            const call = mockFindMany.mock.calls[0][0];
+            expect(call?.where).toMatchObject({
+                status: "active",
+                shows: { some: { date: { gt: expect.any(Date) } } },
+            });
+            expect(call?.where).not.toHaveProperty("hasImage");
         });
 
         it("can require venue images for the home carousel", async () => {
@@ -92,11 +93,28 @@ describe("getClubs", () => {
 
             await getClubs(8, 0, { requireImage: true });
 
-            expect(mockFindMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: { status: "active", hasImage: true },
-                }),
-            );
+            const call = mockFindMany.mock.calls[0][0];
+            expect(call?.where).toMatchObject({
+                status: "active",
+                hasImage: true,
+                shows: { some: { date: { gt: expect.any(Date) } } },
+            });
+        });
+
+        it("excludes clubs with no upcoming shows from discovery surfaces", async () => {
+            // After TourDatesScraper deletion (TASK-2581), 74 clubs sourced
+            // solely via tour_dates have zero upcoming shows. They must NOT
+            // surface in the home carousel or /api/v1/clubs feed; the WHERE
+            // clause's `shows: { some: ... }` filter is what enforces that.
+            mockFindMany.mockResolvedValue([] as never);
+
+            await getClubs();
+
+            const call = mockFindMany.mock.calls[0][0];
+            const showsFilter = (
+                call?.where as { shows?: { some?: { date?: { gt?: Date } } } }
+            )?.shows?.some?.date?.gt;
+            expect(showsFilter).toBeInstanceOf(Date);
         });
     });
 
