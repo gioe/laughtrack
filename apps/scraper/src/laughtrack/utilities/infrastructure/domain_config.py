@@ -68,5 +68,4 @@ DEFAULT_DOMAIN_CONFIGS: Dict[str, "DomainConfig"] = {
     # Comedy venues
     "comedycellar.com": DomainConfig(requests_per_second=1.0),
     "thestandnyc.com": DomainConfig(requests_per_second=1.0),
-    "eastvillecomedy.com": DomainConfig(requests_per_second=2.0),
 }

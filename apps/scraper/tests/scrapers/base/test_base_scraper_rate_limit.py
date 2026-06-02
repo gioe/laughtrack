@@ -26,12 +26,13 @@ def _make_club(scraping_url: str) -> Club:
 
 class TestBaseScraperRateLimiterInit:
     def test_default_domain_config_survives_init(self):
-        """An explicit DEFAULT_DOMAIN_CONFIGS entry (eastvillecomedy.com=2.0)
-        must survive BaseScraper.__init__ for a club whose scraping_domain
-        matches."""
-        club = _make_club("https://eastvillecomedy.com/shows")
+        """An explicit DEFAULT_DOMAIN_CONFIGS entry (www.tixr.com anti-detection
+        mode) must survive BaseScraper.__init__ for any club. The remaining
+        simple-RPS entries all use the default 1.0, so anti-detection is the
+        only distinguishing field left to pin the don't-stomp invariant against."""
+        club = _make_club("https://www.tixr.com/some-show")
         scraper = _ConcreteScraper(club=club)
-        assert scraper.rate_limiter.get_domain_limit("eastvillecomedy.com") == 2.0
+        assert scraper.rate_limiter._get_config("www.tixr.com").enable_anti_detection is True
 
     def test_unknown_domain_falls_back_to_default_rps(self):
         """A club with no DEFAULT_DOMAIN_CONFIGS entry must inherit the
