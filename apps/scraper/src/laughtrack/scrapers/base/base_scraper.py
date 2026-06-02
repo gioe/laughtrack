@@ -142,11 +142,11 @@ class BaseScraper(HttpConvenienceMixin, ABC):
     def _register_host_rps(self, rps: float) -> None:
         """Register a per-scraper RPS override for this club's scraping_domain.
 
-        Subclasses that need to bump the rate limit above the global per-host
-        default (RateLimiter._default_config.requests_per_second = 1.0) call
-        this from their own __init__ AFTER super().__init__. The post-super()
-        placement is the only correct location because self.rate_limiter is
-        constructed inside super().__init__; calling earlier raises AttributeError.
+        Subclasses that need to bump the rate limit above the per-host default
+        (currently 1.0 RPS) call this from their own __init__ AFTER
+        super().__init__. The post-super() placement is the only correct
+        location because self.rate_limiter is constructed inside
+        super().__init__; calling earlier raises AttributeError.
 
         The empty-domain guard skips registration when self.club.scraping_domain
         is falsy (e.g. an empty or relative scraping_url yields ""). Without it,
@@ -155,7 +155,17 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
         Args:
             rps: Per-host requests-per-second to apply to self.club.scraping_domain.
+                 Must be strictly positive — 0 or negative would silently disable
+                 or invert the per-host limit and is rejected with ValueError so
+                 a buggy subclass fails loudly at construction time.
+
+        Raises:
+            ValueError: If rps is not strictly positive.
         """
+        if rps <= 0:
+            raise ValueError(
+                f"_register_host_rps requires rps > 0, got {rps!r}"
+            )
         domain = self.club.scraping_domain
         if domain:
             self.rate_limiter.set_domain_limit(domain, rps)

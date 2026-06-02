@@ -1,6 +1,8 @@
 """Regression: BaseScraper.__init__ must not stomp DEFAULT_DOMAIN_CONFIGS,
 and unit tests for the BaseScraper._register_host_rps helper (TASK-2577)."""
 
+import pytest
+
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -86,3 +88,13 @@ class TestRegisterHostRpsHelper:
             scraper.rate_limiter.get_domain_limit("register-rps-overwrites.example.com")
             == 7.0
         )
+
+    @pytest.mark.parametrize("bad_rps", [0, 0.0, -0.001, -1.0])
+    def test_rejects_non_positive_rps(self, bad_rps):
+        """rps must be strictly positive — 0 or negative would silently
+        disable or invert the per-host limit, so the helper raises rather
+        than calling set_domain_limit."""
+        club = _make_club("https://register-rps-validation.example.com/events")
+        scraper = _ConcreteScraper(club=club)
+        with pytest.raises(ValueError, match="rps > 0"):
+            scraper._register_host_rps(bad_rps)
