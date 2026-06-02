@@ -284,7 +284,7 @@ class TestClubAliasResolution:
         assert "WHERE LOWER(TRIM(c.city))" in mock_exec.call_args_list[0].args[0]
         assert "INSERT INTO clubs" in mock_exec.call_args_list[1].args[0]
 
-    def test_tour_date_no_alias_falls_back_to_upsert(self):
+    def test_discovered_venue_no_alias_falls_back_to_upsert(self):
         new_row = _make_club_row(
             id=300,
             name="Fresh Venue",
@@ -300,7 +300,7 @@ class TestClubAliasResolution:
         handler = ClubHandler()
 
         with patch.object(handler, "execute_with_cursor", side_effect=[[], [new_row]]) as mock_exec:
-            result = handler.upsert_for_tour_date_venue(venue)
+            result = handler.upsert_discovered_venue(venue)
 
         assert result is not None
         assert result.id == 300
@@ -487,13 +487,6 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         assert "FROM UPSERTED_CLUB" in sql
         assert "RETURNING *" in sql
 
-    def test_tour_date_upsert_selects_from_cte_not_clubs_table(self):
-        sql = self._normalized(ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE)
-        assert "JOIN UPSERTED_CLUB" not in sql
-        assert "FROM UPSERTED_CLUB" in sql
-        assert "RETURNING *" in sql
-
-
 class TestSeatEngineUpsertRespectsDispositionMetadata:
     """Regression tests for TASK-1968: UPSERT_CLUB_BY_SEATENGINE_VENUE and
     UPSERT_CLUB_BY_SEATENGINE_V3_VENUE must not unconditionally re-enable a row
@@ -566,26 +559,29 @@ class TestSeatEngineUpsertRespectsDispositionMetadata:
             assert "JSONB_OBJECT_KEYS" not in insert_segment, label
 
 
-class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
-    """Regression tests for TASK-1978: UPSERT_CLUB_BY_EVENTBRITE_VENUE,
-    UPSERT_CLUB_BY_TICKETMASTER_VENUE, and UPSERT_CLUB_BY_TOUR_DATE_VENUE must
-    respect the same dispositional disable contract as the seatengine pair fixed
-    in TASK-1968. Each query's caller drives a recurring nightly sweep that
-    re-emits previously-disposed venues — eventbrite organizer-mode replays
-    every distinct (name, city, state) per organizer feed, ticketmaster_national
-    paginates the TM Discovery API for US Comedy events, and the two
-    tour_date callers (TourDatesScraper + ComedianWebsiteScraper) iterate the
-    full bandsintown_id / personal-website comedian set and re-discover
-    venues per artist. The bare 'enabled = TRUE' that originally lived on each
-    of these queries' (club_id, platform, priority) ON CONFLICT branch reverted
-    any dispositional disable on a still-listed venue within 24h, exactly the
-    pattern that TASK-1968 first observed on seatengine_national (ss=924 club
-    602 'Laugh And Enjoy' was disabled on 2026-05-02 and back to enabled=true
-    by 2026-05-03 07:42:54). The fix mirrors the seatengine carve-out: when the
-    existing scraping_sources row carries any 'task_<id>_disposition' metadata
-    key, the UPDATE branch preserves scraping_sources.enabled instead of
-    re-setting it to TRUE; otherwise (no disposition stamp, including all
-    first-time-discovery rows) the upsert continues to flip enabled to TRUE."""
+class TestEventbriteTicketmasterUpsertRespectsDispositionMetadata:
+    """Regression tests for TASK-1978: UPSERT_CLUB_BY_EVENTBRITE_VENUE and
+    UPSERT_CLUB_BY_TICKETMASTER_VENUE must respect the same dispositional
+    disable contract as the seatengine pair fixed in TASK-1968. Each query's
+    caller drives a recurring nightly sweep that re-emits previously-disposed
+    venues — eventbrite organizer-mode replays every distinct (name, city,
+    state) per organizer feed and ticketmaster_national paginates the TM
+    Discovery API for US Comedy events. The bare 'enabled = TRUE' that
+    originally lived on each of these queries' (club_id, platform, priority)
+    ON CONFLICT branch reverted any dispositional disable on a still-listed
+    venue within 24h, exactly the pattern that TASK-1968 first observed on
+    seatengine_national (ss=924 club 602 'Laugh And Enjoy' was disabled on
+    2026-05-02 and back to enabled=true by 2026-05-03 07:42:54). The fix
+    mirrors the seatengine carve-out: when the existing scraping_sources row
+    carries any 'task_<id>_disposition' metadata key, the UPDATE branch
+    preserves scraping_sources.enabled instead of re-setting it to TRUE;
+    otherwise (no disposition stamp, including all first-time-discovery rows)
+    the upsert continues to flip enabled to TRUE.
+
+    UPSERT_CLUB_BY_TOUR_DATE_VENUE was previously covered here but was
+    removed alongside TourDatesScraper in TASK-2581 — the replacement
+    UPSERT_DISCOVERED_VENUE does not touch scraping_sources at all, so the
+    disposition contract no longer applies to the discovery upsert path."""
 
     def _normalized(self, sql: str) -> str:
         # Collapse whitespace so multi-line SQL formatting doesn't defeat
@@ -609,7 +605,6 @@ class TestEventbriteTicketmasterTourDateUpsertRespectsDispositionMetadata:
         return [
             ("eventbrite", ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE),
             ("ticketmaster", ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE),
-            ("tour_date", ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE),
         ]
 
     def test_conflict_branch_preserves_existing_enabled_on_disposition_metadata(self):
@@ -670,7 +665,6 @@ class TestUpsertClubQueriesArePyformatSafe:
         ("seatengine", 8),
         ("seatengine_v3", 8),
         ("ticketmaster", 7),
-        ("tour_date", 7),
     ]
 
     def _query(self, label: str) -> str:
@@ -702,58 +696,6 @@ class TestUpsertClubQueriesArePyformatSafe:
                 f"placeholders but the call site passes {expected_arity}. "
                 f"Either the SQL or the caller drifted — update both."
             )
-
-
-class TestTourDateUpsertDiscoveryMetadata:
-    def _normalized(self, sql: str) -> str:
-        return " ".join(sql.split()).upper()
-
-    def _conflict_clause(self, sql: str) -> str:
-        normalized = self._normalized(sql)
-        start = normalized.index("ON CONFLICT (CLUB_ID")
-        end = normalized.index("RETURNING CLUB_ID", start)
-        return normalized[start:end]
-
-    def test_upsert_passes_discovery_metadata_as_json_param(self):
-        row = _make_club_row(name="The Comedy Store")
-        venue = {
-            "name": "The Comedy Store",
-            "address": "Los Angeles, CA",
-            "zip_code": "90046",
-            "timezone": "America/Los_Angeles",
-            "discovery_metadata": {
-                "source": "tour_dates",
-                "comedian_refs": [{"uuid": "hg-uuid", "name": "Hannah Gadsby"}],
-                "event_urls": ["https://www.bandsintown.com/e/99"],
-                "platform_hints": ["bandsintown"],
-            },
-        }
-        handler = ClubHandler()
-
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
-            result = handler.upsert_for_tour_date_venue(venue)
-
-        assert result is not None
-        params = mock_exec.call_args.args[1]
-        metadata = json.loads(params[6])
-        assert metadata["source"] == "tour_dates"
-        assert metadata["comedian_refs"] == [{"uuid": "hg-uuid", "name": "Hannah Gadsby"}]
-        assert metadata["event_urls"] == ["https://www.bandsintown.com/e/99"]
-        assert metadata["platform_hints"] == ["bandsintown"]
-        assert metadata["reference_count"] == 1
-        assert isinstance(metadata["first_seen_at"], str)
-        assert isinstance(metadata["last_seen_at"], str)
-
-    def test_conflict_branch_merges_metadata_and_preserves_existing_first_seen(self):
-        conflict = self._conflict_clause(ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE)
-
-        assert "METADATA =" in conflict
-        assert "SCRAPING_SOURCES.METADATA" in conflict
-        assert "EXCLUDED.METADATA" in conflict
-        assert "FIRST_SEEN_AT" in conflict
-        assert "LAST_SEEN_AT" in conflict
-        assert "REFERENCE_COUNT" in conflict
-        assert "SCRAPING_SOURCES.METADATA ->> 'FIRST_SEEN_AT'" in conflict
 
 
 class TestUpsertForEventbriteVenueInvalidInput:
@@ -1854,15 +1796,15 @@ class TestUpsertForTicketmasterVenueJunkFilter:
         mock_exec.assert_not_called()
 
 
-class TestUpsertForTourDateVenueJunkFilter:
-    """is_junk_venue returning True causes upsert_for_tour_date_venue to return None."""
+class TestUpsertDiscoveredVenueJunkFilter:
+    """is_junk_venue returning True causes upsert_discovered_venue to return None."""
 
     def test_junk_name_returns_none(self):
         venue = {"name": "Demo Comedy Club"}
         handler = ClubHandler()
         with patch(_JUNK_FILTER, return_value=True) as mock_filter, \
              patch.object(handler, "execute_with_cursor") as mock_exec:
-            result = handler.upsert_for_tour_date_venue(venue)
+            result = handler.upsert_discovered_venue(venue)
 
         assert result is None
         mock_filter.assert_called_once_with("Demo Comedy Club")

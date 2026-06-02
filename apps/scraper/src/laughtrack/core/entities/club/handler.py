@@ -2,8 +2,7 @@
 
 import json
 import re
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 from sql.club_queries import ClubQueries
 
@@ -81,77 +80,6 @@ def _normalize_venue_name_for_match(name: str, city: str = "", state: str = "") 
             break  # one strip per call; nested suffix structure is handled by ordering
 
     return s
-
-
-def _string_list(values: Any) -> list[str]:
-    if isinstance(values, str):
-        raw_values = [values]
-    elif isinstance(values, list):
-        raw_values = values
-    else:
-        return []
-
-    result: list[str] = []
-    seen: set[str] = set()
-    for value in raw_values:
-        if not isinstance(value, str):
-            continue
-        stripped = value.strip()
-        if stripped and stripped not in seen:
-            result.append(stripped)
-            seen.add(stripped)
-    return result
-
-
-def _comedian_refs(values: Any) -> list[dict[str, str]]:
-    if not isinstance(values, list):
-        return []
-
-    refs: list[dict[str, str]] = []
-    seen: set[tuple[str, str]] = set()
-    for value in values:
-        if not isinstance(value, dict):
-            continue
-        uuid = str(value.get("uuid") or "").strip()
-        name = str(value.get("name") or "").strip()
-        if not uuid and not name:
-            continue
-        key = (uuid, name)
-        if key in seen:
-            continue
-        ref: dict[str, str] = {}
-        if uuid:
-            ref["uuid"] = uuid
-        if name:
-            ref["name"] = name
-        refs.append(ref)
-        seen.add(key)
-    return refs
-
-
-def _build_tour_date_discovery_metadata(venue: dict) -> str:
-    raw = venue.get("discovery_metadata") or {}
-    if not isinstance(raw, dict):
-        raw = {}
-
-    now = datetime.now(tz=timezone.utc).isoformat()
-    metadata: dict[str, Any] = {
-        "source": (raw.get("source") or "tour_dates"),
-        "first_seen_at": now,
-        "last_seen_at": now,
-        "reference_count": 1,
-    }
-
-    for key in ("sample_urls", "event_urls", "platform_hints"):
-        values = _string_list(raw.get(key))
-        if values:
-            metadata[key] = values
-
-    refs = _comedian_refs(raw.get("comedian_refs"))
-    if refs:
-        metadata["comedian_refs"] = refs
-
-    return json.dumps(metadata, sort_keys=True)
 
 
 class ClubHandler(BaseDatabaseHandler[Club]):
@@ -646,52 +574,6 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return Club.from_db_row(results[0])
         except Exception as e:
             Logger.error(f"Error upserting discovered venue '{name}': {e}")
-            raise
-
-    def upsert_for_tour_date_venue(self, venue: dict) -> Optional[Club]:
-        """
-        Upsert a clubs row for a venue discovered via the tour-date aggregator
-        (Songkick or BandsInTown).  On conflict (name), preserves any existing
-        scraper and timezone values rather than overwriting them.
-
-        Args:
-            venue: dict with at minimum 'name' key; optional 'address', 'zip_code', 'timezone'
-
-        Returns:
-            Club: the upserted (or existing) club, or None on invalid input
-        """
-        name = (venue.get("name") or "").strip()
-        if not name:
-            return None
-
-        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
-        if is_junk_venue(name):
-            return None
-
-        address = (venue.get("address") or "").strip()
-        zip_code = (venue.get("zip_code") or "").strip()
-        timezone = (venue.get("timezone") or None)
-        discovery_metadata = _build_tour_date_discovery_metadata(venue)
-
-        from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
-        city, state = parse_city_state_from_address(address)
-
-        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
-        if fuzzy_match is not None:
-            self._log_fuzzy_match_reuse("Tour date", name, name, city, state, fuzzy_match)
-            return fuzzy_match
-
-        try:
-            results = self.execute_with_cursor(
-                ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE,
-                (name, address, zip_code, city, state, timezone, discovery_metadata),
-                return_results=True,
-            )
-            if not results:
-                return None
-            return Club.from_db_row(results[0])
-        except Exception as e:
-            Logger.error(f"Error upserting club for tour date venue '{name}': {e}")
             raise
 
     def enrich_timezones(self, scraper: str = "eventbrite") -> int:
