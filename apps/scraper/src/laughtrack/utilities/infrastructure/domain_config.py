@@ -65,9 +65,6 @@ DEFAULT_DOMAIN_CONFIGS: Dict[str, "DomainConfig"] = {
         error_backoff_base=15.0,
         peak_hour_multiplier=2.0,
     ),
-    # Eventbrite: simple RPS (API key usage — 0.5 RPS = 1 req/2s)
-    "eventbrite.com": DomainConfig(requests_per_second=0.5),
-    "www.eventbriteapi.com": DomainConfig(requests_per_second=0.5),
     # Comedy venues
     "comedycellar.com": DomainConfig(requests_per_second=1.0),
     "thestandnyc.com": DomainConfig(requests_per_second=1.0),
