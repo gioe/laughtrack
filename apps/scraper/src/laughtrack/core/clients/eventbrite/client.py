@@ -18,7 +18,13 @@ class EventbriteClient(BaseApiClient):
     # API Constants
     BASE_URL = "https://www.eventbriteapi.com/v3"
     REQUEST_TIMEOUT = 30
-    RATE_LIMIT = 5.0  # requests per second
+    # Eventbrite documents per-OAuth-token hourly caps (1,000/hr legacy or
+    # 5,000/hr for newer keys); excess returns HTTP 429 HIT_RATE_LIMIT. There is
+    # no documented per-second cap, so this is a burst guard. 1.0 RPS = 3,600/hr
+    # fits safely under the 5,000/hr tier and matches the BaseApiClient default
+    # the limiter fell through to before TASK-2574 fixed the domain key — the
+    # rate at which production has historically run without 429s.
+    RATE_LIMIT = 1.0  # requests per second
 
     # Browser headers for web scraping fallback
     BROWSER_HEADERS = {
