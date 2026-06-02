@@ -173,20 +173,32 @@ public final class NotificationPreferenceStore: ObservableObject {
 public final class SettingsNotificationPreferenceModel: ObservableObject {
     @Published public private(set) var preferences: NotificationPreferences
     @Published public private(set) var syncMessage: String?
+    @Published public var isPushDeniedAlertPresented: Bool = false
 
     private let store: NotificationPreferenceStore
     private let syncClient: (any NotificationPreferenceSyncing)?
     private let pushTokenManager: (any PushDeviceTokenManaging)?
+    private let pushAuthorizationStatusProvider: any PushAuthorizationStatusProviding
+    private let pushAuthorizationRequester: any PushAuthorizationRequesting
+    private let systemSettingsOpener: any SystemSettingsOpening
     private var preferencesCancellable: AnyCancellable?
 
     public init(
         store: NotificationPreferenceStore,
         syncClient: (any NotificationPreferenceSyncing)? = nil,
-        pushTokenManager: (any PushDeviceTokenManaging)? = nil
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil,
+        pushAuthorizationStatusProvider: (any PushAuthorizationStatusProviding)? = nil,
+        pushAuthorizationRequester: (any PushAuthorizationRequesting)? = nil,
+        systemSettingsOpener: (any SystemSettingsOpening)? = nil
     ) {
         self.store = store
         self.syncClient = syncClient
         self.pushTokenManager = pushTokenManager
+        self.pushAuthorizationStatusProvider = pushAuthorizationStatusProvider
+            ?? SystemPushAuthorizationStatusProvider()
+        self.pushAuthorizationRequester = pushAuthorizationRequester
+            ?? SystemPushAuthorizationRequester()
+        self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
         self.preferences = store.preferences
         preferencesCancellable = store.$preferences
             .sink { [weak self] preferences in
@@ -200,6 +212,35 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
     }
 
     public func setFavoriteComedianPushAlertsEnabled(_ enabled: Bool) {
+        if enabled {
+            Task { [weak self] in
+                await self?.handlePushEnableRequest()
+            }
+        } else {
+            applyPushPreference(false)
+        }
+    }
+
+    public func openSystemSettings() {
+        systemSettingsOpener.openAppSystemSettings()
+    }
+
+    private func handlePushEnableRequest() async {
+        let status = await pushAuthorizationStatusProvider.currentAuthorizationStatus()
+        switch status {
+        case .authorized:
+            applyPushPreference(true)
+        case .notDetermined:
+            let granted = await pushAuthorizationRequester.requestAuthorization()
+            if granted {
+                applyPushPreference(true)
+            }
+        case .denied:
+            isPushDeniedAlertPresented = true
+        }
+    }
+
+    private func applyPushPreference(_ enabled: Bool) {
         store.setFavoriteComedianPushAlertsEnabled(enabled)
         syncFavoriteComedianAlerts(enabled, channel: .push)
         syncPushDeviceToken(enabled: enabled)

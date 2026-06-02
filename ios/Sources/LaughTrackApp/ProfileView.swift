@@ -464,6 +464,17 @@ private struct ProfileNotificationsSection: View {
             }
         }
         .accessibilityIdentifier(LaughTrackViewTestID.settingsNotificationsSection)
+        .alert(
+            "Turn on push notifications in Settings",
+            isPresented: $model.isPushDeniedAlertPresented
+        ) {
+            Button("Cancel", role: .cancel) {}
+            Button("Open Settings") {
+                model.openSystemSettings()
+            }
+        } message: {
+            Text("LaughTrack can't enable push notifications until you allow them in Settings.")
+        }
     }
 
     private func notificationToggle(

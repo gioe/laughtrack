@@ -40,17 +40,29 @@ final class ComedianOnboardingModel: ObservableObject {
     @Published var searchText = ""
     @Published var emailAlertsEnabled = true
     @Published var pushAlertsEnabled = true
+    @Published var isPushDeniedAlertPresented: Bool = false
 
     let suggestedFavoriteTarget = 3
     private let pushPermissionRequester: any OnboardingPushPermissionRequesting
+    private let pushAuthorizationStatusProvider: any PushAuthorizationStatusProviding
+    private let systemSettingsOpener: any SystemSettingsOpening
     private let pushTokenManager: (any PushDeviceTokenManaging)?
 
     init(
         pushPermissionRequester: any OnboardingPushPermissionRequesting = SystemOnboardingPushPermissionRequester(),
+        pushAuthorizationStatusProvider: (any PushAuthorizationStatusProviding)? = nil,
+        systemSettingsOpener: (any SystemSettingsOpening)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil
     ) {
         self.pushPermissionRequester = pushPermissionRequester
+        self.pushAuthorizationStatusProvider = pushAuthorizationStatusProvider
+            ?? SystemPushAuthorizationStatusProvider()
+        self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
         self.pushTokenManager = pushTokenManager
+    }
+
+    func openSystemSettings() {
+        systemSettingsOpener.openAppSystemSettings()
     }
 
     var favoriteCount: Int {
@@ -106,7 +118,7 @@ final class ComedianOnboardingModel: ObservableObject {
         store: NotificationPreferenceStore,
         syncClient: (any NotificationPreferenceSyncing)? = nil
     ) async {
-        let pushGranted = pushEnabled ? await pushPermissionRequester.requestAuthorization() : false
+        let pushGranted = pushEnabled ? await resolvePushPermission() : false
         store.setFavoriteComedianEmailAlertsEnabled(emailEnabled)
         store.setFavoriteComedianPushAlertsEnabled(pushGranted)
 
@@ -116,6 +128,19 @@ final class ComedianOnboardingModel: ObservableObject {
         }
         if pushGranted {
             await pushTokenManager?.registerForRemoteNotifications()
+        }
+    }
+
+    private func resolvePushPermission() async -> Bool {
+        let status = await pushAuthorizationStatusProvider.currentAuthorizationStatus()
+        switch status {
+        case .authorized:
+            return true
+        case .notDetermined:
+            return await pushPermissionRequester.requestAuthorization()
+        case .denied:
+            isPushDeniedAlertPresented = true
+            return false
         }
     }
 

@@ -72,6 +72,87 @@ struct NotificationPreferenceStoreTests {
         #expect(!model.preferences.favoriteComedianPushAlertsEnabled)
     }
 
+    @Test("settings push toggle enables directly when authorization is already granted")
+    func settingsPushToggleEnablesWhenAuthorized() async throws {
+        let storage = makeStorage(name: "push-authorized")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await pushTokenManager.registerCalls == 1 }
+
+        #expect(model.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(!model.isPushDeniedAlertPresented)
+        #expect(await requester.requestCount == 0)
+    }
+
+    @Test("settings push toggle requests authorization when status is notDetermined")
+    func settingsPushToggleRequestsWhenNotDetermined() async throws {
+        let storage = makeStorage(name: "push-notDetermined")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .notDetermined)
+        let requester = RecordingPushAuthorizationRequester(result: true)
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { await requester.requestCount == 1 }
+        try await waitUntil { await pushTokenManager.registerCalls == 1 }
+
+        #expect(model.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(!model.isPushDeniedAlertPresented)
+    }
+
+    @Test("settings push toggle shows deep-link alert when authorization is denied")
+    func settingsPushToggleShowsDeepLinkAlertWhenDenied() async throws {
+        let storage = makeStorage(name: "push-denied")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let pushTokenManager = RecordingPushDeviceTokenManager()
+        let statusProvider = MockPushAuthorizationStatusProvider(status: .denied)
+        let requester = RecordingPushAuthorizationRequester(result: false)
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            pushTokenManager: pushTokenManager,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushAuthorizationRequester: requester
+        )
+
+        model.setFavoriteComedianPushAlertsEnabled(true)
+        try await waitUntil { model.isPushDeniedAlertPresented }
+
+        #expect(!model.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(await pushTokenManager.registerCalls == 0)
+        #expect(await requester.requestCount == 0)
+    }
+
+    @Test("openSystemSettings forwards to the injected settings opener")
+    func openSystemSettingsForwardsToOpener() async {
+        let storage = makeStorage(name: "open-settings")
+        let store = NotificationPreferenceStore(appStateStorage: storage)
+        let opener = RecordingSystemSettingsOpener()
+        let model = SettingsNotificationPreferenceModel(
+            store: store,
+            systemSettingsOpener: opener
+        )
+
+        model.openSystemSettings()
+
+        #expect(opener.openCount == 1)
+    }
+
     @Test("push token manager uploads refreshed APNs tokens with bearer auth")
     func pushTokenManagerUploadsDeviceToken() async throws {
         let storage = makeStorage(name: "push-upload")
@@ -254,5 +335,36 @@ private actor RecordingPushDeviceTokenManager: PushDeviceTokenManaging {
 
     func deactivateCurrentDeviceToken() async {
         deactivateCalls += 1
+    }
+}
+
+private struct MockPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
+    let status: PushAuthorizationStatus
+
+    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
+        status
+    }
+}
+
+private actor RecordingPushAuthorizationRequester: PushAuthorizationRequesting {
+    private let result: Bool
+    private(set) var requestCount = 0
+
+    init(result: Bool) {
+        self.result = result
+    }
+
+    func requestAuthorization() async -> Bool {
+        requestCount += 1
+        return result
+    }
+}
+
+@MainActor
+private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
+    private(set) var openCount = 0
+
+    func openAppSystemSettings() {
+        openCount += 1
     }
 }

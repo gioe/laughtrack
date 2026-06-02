@@ -175,10 +175,12 @@ struct OnboardingTests {
     @Test("notification step persists preferences and asks the injected push permission boundary")
     func notificationStepStoresPreferencesAndRequestsPushPermission() async throws {
         let permissionRequester = RecordingPushPermissionRequester(result: true)
+        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .notDetermined)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step"))
         let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
         let model = ComedianOnboardingModel(
             pushPermissionRequester: permissionRequester,
+            pushAuthorizationStatusProvider: statusProvider,
             pushTokenManager: pushTokenManager
         )
 
@@ -192,6 +194,67 @@ struct OnboardingTests {
         #expect(store.preferences.favoriteComedianPushAlertsEnabled)
         #expect(await permissionRequester.requestCount == 1)
         #expect(await pushTokenManager.registerCalls == 1)
+        #expect(!model.isPushDeniedAlertPresented)
+    }
+
+    @Test("notification step skips OS prompt and enables push when status is already authorized")
+    func notificationStepSkipsPromptWhenAuthorized() async throws {
+        let permissionRequester = RecordingPushPermissionRequester(result: false)
+        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .authorized)
+        let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step-authorized"))
+        let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
+        let model = ComedianOnboardingModel(
+            pushPermissionRequester: permissionRequester,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushTokenManager: pushTokenManager
+        )
+
+        await model.setNotificationPreferences(
+            emailEnabled: true,
+            pushEnabled: true,
+            store: store
+        )
+
+        #expect(store.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(await permissionRequester.requestCount == 0)
+        #expect(await pushTokenManager.registerCalls == 1)
+        #expect(!model.isPushDeniedAlertPresented)
+    }
+
+    @Test("notification step surfaces deep-link alert and disables push when status is denied")
+    func notificationStepSurfacesDeepLinkAlertWhenDenied() async throws {
+        let permissionRequester = RecordingPushPermissionRequester(result: false)
+        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .denied)
+        let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step-denied"))
+        let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
+        let model = ComedianOnboardingModel(
+            pushPermissionRequester: permissionRequester,
+            pushAuthorizationStatusProvider: statusProvider,
+            pushTokenManager: pushTokenManager
+        )
+
+        await model.setNotificationPreferences(
+            emailEnabled: true,
+            pushEnabled: true,
+            store: store
+        )
+
+        #expect(!store.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(await permissionRequester.requestCount == 0)
+        #expect(await pushTokenManager.registerCalls == 0)
+        #expect(model.isPushDeniedAlertPresented)
+    }
+
+    @Test("openSystemSettings on onboarding model forwards to the injected settings opener")
+    func onboardingOpenSystemSettingsForwardsToOpener() async {
+        let opener = RecordingOnboardingSystemSettingsOpener()
+        let model = ComedianOnboardingModel(
+            systemSettingsOpener: opener
+        )
+
+        model.openSystemSettings()
+
+        #expect(opener.openCount == 1)
     }
 
     @Test("complete and skip both mark server onboarding complete")
@@ -383,6 +446,23 @@ private actor RecordingOnboardingPushDeviceTokenManager: PushDeviceTokenManaging
 
     func deactivateCurrentDeviceToken() async {
         deactivateCalls += 1
+    }
+}
+
+private struct OnboardingMockPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
+    let status: PushAuthorizationStatus
+
+    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
+        status
+    }
+}
+
+@MainActor
+private final class RecordingOnboardingSystemSettingsOpener: SystemSettingsOpening {
+    private(set) var openCount = 0
+
+    func openAppSystemSettings() {
+        openCount += 1
     }
 }
 
