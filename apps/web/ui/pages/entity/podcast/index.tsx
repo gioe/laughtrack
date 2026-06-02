@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ExternalLink, Headphones, Heart, Podcast, Rss } from "lucide-react";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import EntityCard from "@/ui/components/cards/entity";
+import EmptyState from "@/ui/components/emptyState";
 import { Button } from "@/ui/components/ui/button";
 import { useFavorite } from "@/hooks/useFavorite";
 import {
@@ -243,13 +244,23 @@ function PodcastEpisodesSection({
             >
                 Episodes
             </h2>
-            <ul role="list" className="mt-4 space-y-3">
-                {episodes.map((episode) => (
-                    <li key={episode.id}>
-                        <EpisodeRow podcast={podcast} episode={episode} />
-                    </li>
-                ))}
-            </ul>
+            {episodes.length === 0 ? (
+                <div className="mt-4">
+                    <EmptyState
+                        title="No Episodes Found"
+                        message={`${podcast.title} has no episodes on LaughTrack yet.`}
+                        icons={[Headphones, Podcast, Rss]}
+                    />
+                </div>
+            ) : (
+                <ul role="list" className="mt-4 space-y-3">
+                    {episodes.map((episode) => (
+                        <li key={episode.id}>
+                            <EpisodeRow podcast={podcast} episode={episode} />
+                        </li>
+                    ))}
+                </ul>
+            )}
         </section>
     );
 }
