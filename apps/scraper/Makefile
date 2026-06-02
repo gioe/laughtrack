@@ -241,7 +241,7 @@ help-analyze:
 	@echo "  seatengine-check    - Check single SeatEngine venue (ID=<venue_id>)"
 	@echo "  seatengine-audit    - Bulk audit all SeatEngine venues for health"
 	@echo "  check-scraping-priorities - Detect enabled scraping_sources sharing (club_id, priority)"
-	@echo "  check-scraping-source-invariants - Detect clubs with future shows but no enabled scraping_sources"
+	@echo "  check-scraping-source-invariants - Detect (1) clubs with future shows but no enabled scraping_sources and (2) active visible clubs missing any enabled scraping_sources row"
 	@echo "  check-stale-scraper-keys - Detect enabled scraper keys with no recent write activity"
 	@echo "  check-show-attribution - Detect shows.last_scraped_by values missing from scrapers.key"
 
