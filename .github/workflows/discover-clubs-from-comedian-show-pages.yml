@@ -43,16 +43,6 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - name: Ping heartbeat start
-        env:
-          DISCOVER_VENUES_HEALTHCHECKS_PING_URL: ${{ secrets.DISCOVER_VENUES_HEALTHCHECKS_PING_URL }}
-        run: |
-          if [ -z "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL" ]; then
-            echo "DISCOVER_VENUES_HEALTHCHECKS_PING_URL not set — skipping start ping"
-            exit 0
-          fi
-          curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL/start"
-
       - name: Scrape comedian websites
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -103,21 +93,6 @@ jobs:
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
         run: |
           python -m scripts.core.record_pipeline_run --status "$GITHUB_JOB_STATUS"
-
-      - name: Ping heartbeat monitor
-        if: always()
-        env:
-          DISCOVER_VENUES_HEALTHCHECKS_PING_URL: ${{ secrets.DISCOVER_VENUES_HEALTHCHECKS_PING_URL }}
-        run: |
-          if [ -z "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL" ]; then
-            echo "DISCOVER_VENUES_HEALTHCHECKS_PING_URL not set — skipping heartbeat ping"
-            exit 0
-          fi
-          if [ "${{ job.status }}" = "success" ]; then
-            curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL"
-          else
-            curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL/fail"
-          fi
 
       - name: Notify on failure
         if: failure()
