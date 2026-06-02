@@ -64,6 +64,19 @@ struct ServiceRegistrationTests {
         #expect(resolved != nil)
     }
 
+    @Test("configure registers AnalyticsManagerProtocol as a singleton")
+    @MainActor
+    func configureRegistersAnalyticsManager() {
+        let container = ServiceContainer()
+        ServiceRegistration.configure(container)
+        let a = container.resolveOptional(AnalyticsManagerProtocol.self)
+        let b = container.resolveOptional(AnalyticsManagerProtocol.self)
+        #expect(a != nil)
+        // appLevel scope → identical instance across resolutions; tracking calls
+        // dispatched through one handle reach providers attached via the other.
+        #expect((a as AnyObject) === (b as AnyObject))
+    }
+
     @Test("configure registers expected app services")
     @MainActor
     func configureRegistersAllServices() {

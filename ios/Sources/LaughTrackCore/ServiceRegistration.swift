@@ -10,6 +10,12 @@ public enum ServiceRegistration {
         container.register(ToastManager.self, scope: .featureLevel) { ToastManager() }
         container.register(ImageCache.self, scope: .appLevel) { ImageCache() }
         container.register(AppStateStorageProtocol.self, scope: .appLevel) { AppStateStorage() }
+        // Providers are attached in AppBootstrap.configureAnalyticsIfNeeded after
+        // FirebaseApp.configure(), so the DEBUG console sink and the Firebase-backed
+        // provider both end up on the same singleton the rest of the app resolves.
+        container.register(AnalyticsManagerProtocol.self, scope: .appLevel) {
+            AnalyticsManager(subsystem: "com.laughtrack.analytics")
+        }
 
         container.register(DataCache<LaughTrackCacheKey>.self, scope: .appLevel) {
             DataCache<LaughTrackCacheKey>(configuration: .init(defaultTTL: 60 * 60))

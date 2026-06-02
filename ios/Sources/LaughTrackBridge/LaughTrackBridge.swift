@@ -61,6 +61,13 @@ public typealias CachedAsyncImage = SharedKit.CachedAsyncImage
 public typealias AppStateStorage = SharedKit.AppStateStorage
 public typealias AppStateStorageProtocol = SharedKit.AppStateStorageProtocol
 
+// MARK: - Analytics
+
+public typealias AnalyticsManager = SharedKit.AnalyticsManager
+public typealias AnalyticsManagerProtocol = SharedKit.AnalyticsManagerProtocol
+public typealias AnalyticsProvider = SharedKit.AnalyticsProvider
+public typealias AnalyticsEvent = SharedKit.AnalyticsEvent
+
 // MARK: - Testing helpers
 
 public typealias MockModeDetector = SharedKit.MockModeDetector

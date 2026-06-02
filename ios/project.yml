@@ -20,6 +20,9 @@ packages:
   sentry-cocoa:
     url: https://github.com/getsentry/sentry-cocoa
     from: "9.13.0"
+  firebase-ios-sdk:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "11.0.0"
 targets:
   LaughTrackCore:
     type: framework
@@ -41,6 +44,8 @@ targets:
         product: OpenAPIURLSession
       - package: sentry-cocoa
         product: Sentry
+      - package: firebase-ios-sdk
+        product: FirebaseAnalytics
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.laughtrack.core

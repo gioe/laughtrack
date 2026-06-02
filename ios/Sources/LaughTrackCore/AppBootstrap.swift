@@ -3,6 +3,8 @@ import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIURLSession
 import Sentry
+import FirebaseCore
+import os
 
 @MainActor
 public struct AppBootstrap {
@@ -13,6 +15,8 @@ public struct AppBootstrap {
     public let theme: LaughTrackTheme
     private static let sentryTestCrashArgument = "SENTRY_TEST_CRASH"
     private static var sentryStarted = false
+    private static var firebaseConfigured = false
+    private static let analyticsLogger = Logger(subsystem: "com.laughtrack.analytics", category: "bootstrap")
 
     public init(
         container: ServiceContainer? = nil,
@@ -21,9 +25,11 @@ public struct AppBootstrap {
     ) {
         Self.configureSentryIfNeeded()
         Self.scheduleSentryTestCrashIfRequested()
+        Self.configureFirebaseIfNeeded()
 
         let container = container ?? ServiceContainer()
         ServiceRegistration.configure(container)
+        Self.configureAnalytics(container)
         self.container = container
         self.apiBaseURL = AppConfiguration.apiBaseURL
         self.theme = theme
@@ -188,5 +194,29 @@ public struct AppBootstrap {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             fatalError("LaughTrack Sentry test crash")
         }
+    }
+
+    /// FirebaseApp.configure() hard-crashes when GoogleService-Info.plist is
+    /// missing from the main bundle. The plist is operator-provisioned (Firebase
+    /// console → iOS app → download), so guard the call until it's dropped into
+    /// ios/Resources/. While dormant, only the DEBUG console sink emits events.
+    private static func configureFirebaseIfNeeded() {
+        guard !firebaseConfigured else { return }
+        guard Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist") != nil else {
+            analyticsLogger.notice("GoogleService-Info.plist not bundled — Firebase Analytics dormant; drop the plist into ios/Resources/ to activate.")
+            return
+        }
+        FirebaseApp.configure()
+        firebaseConfigured = true
+    }
+
+    private static func configureAnalytics(_ container: ServiceContainer) {
+        let manager = container.resolve(AnalyticsManagerProtocol.self)
+        if firebaseConfigured {
+            manager.addProvider(FirebaseAnalyticsProvider())
+        }
+        #if DEBUG
+        manager.addProvider(ConsoleAnalyticsProvider())
+        #endif
     }
 }
