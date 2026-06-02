@@ -46,7 +46,7 @@ class EventbriteClient(BaseApiClient):
 
         Notes for verification
         - Ensure a bearer token exists in config path (api.eventbrite_token).
-        - Verify domain-specific RPS limit equals ``RATE_LIMIT`` (5.0 by default).
+        - Verify domain-specific RPS limit equals ``RATE_LIMIT``.
         - For clubs without ``eventbrite_id``, the client still initializes but
           list calls will short‑circuit and return an empty list.
         """
