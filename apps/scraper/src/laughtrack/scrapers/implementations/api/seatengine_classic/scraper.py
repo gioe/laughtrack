@@ -38,6 +38,19 @@ _PRICE_FETCH_CONCURRENCY = 5
 # (322 and 315 future showtimes through 2027 via /events + /calendar JSON-LD)
 # would never fit even the 240s seatengine_classic cap at 1 RPS.
 #
+# This override is intentionally scraper-intrinsic (TASK-2573). The 5 RPS value
+# is a function of _PRICE_FETCH_CONCURRENCY=5 and the 240s scraper timeout, not
+# of any individual venue, so every classic-SeatEngine club needs it by
+# construction. Two alternatives were considered and rejected:
+#   1. Per-club Club.rate_limit -- convention 39 forbids flat scraper config on
+#      clubs; would also need a Prisma migration plus per-onboarding remembering.
+#   2. DEFAULT_DOMAIN_CONFIGS entry -- keyed by host, but every classic-SeatEngine
+#      venue runs on its own custom domain, so this would expand to one entry
+#      per venue, hand-maintained.
+# The post-super().__init__ placement is also no longer a workaround for the
+# TASK-2569 BaseScraper bug; it is the only correct location, because
+# self.rate_limiter is created inside super().__init__.
+#
 # Iteration history (TASK-2556):
 # - 3 RPS landed in 3195b18b0 and fixed DCCL on GHA (322 shows in 120s) but OTH
 #   still hit the 240s cap at 249s wall clock. GHA's IP pool experiences ~2.4x
