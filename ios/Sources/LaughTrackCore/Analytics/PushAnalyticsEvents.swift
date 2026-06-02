@@ -11,6 +11,15 @@ public enum PushAnalyticsEvents {
     /// Emitted when the soft prompt sheet is presented to the user.
     public static let softPromptShown = "push_soft_prompt_shown"
     /// Emitted when the user taps the Enable button on the soft prompt sheet.
+    ///
+    /// Semantically a "user intent" signal — fires on every tap regardless of
+    /// the underlying OS status, because the funnel question is "how many
+    /// users tapped Enable", not "how many OS dialogs were shown". When the
+    /// status is already `.authorized` or `.denied`, no OS dialog appears and
+    /// no `osPromptResult` event follows; the per-step ratio
+    /// `enable_tapped : os_prompt_result` is therefore expected to be ≥ 1:1,
+    /// not exactly 1:1. Funnel queries that join on a 1:1 assumption will
+    /// undercount the already-authorized branch.
     public static let softPromptEnableTapped = "push_soft_prompt_enable_tapped"
     /// Emitted when the user taps the Maybe-later button on the soft prompt sheet.
     public static let softPromptDeferTapped = "push_soft_prompt_defer_tapped"
@@ -18,6 +27,14 @@ public enum PushAnalyticsEvents {
     /// the callsite that surfaced it (soft prompt, onboarding, or settings).
     public static let osPromptResult = "push_os_prompt_result"
     /// Emitted when the Settings notification toggle is flipped.
+    ///
+    /// Fires for both enable=true and enable=false transitions; the
+    /// `from_denied_state` parameter is included on both paths and reflects
+    /// "has this user previously encountered the OS-denied alert in this
+    /// model's lifetime" — a session-level recovery-context signal that's
+    /// useful on either direction (e.g. "of users who later disabled push,
+    /// how many had previously had to recover from a denied state"). It is
+    /// not gated to enable=true.
     public static let settingsToggleChanged = "push_settings_toggle_changed"
 
     public enum Param {

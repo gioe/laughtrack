@@ -503,6 +503,13 @@ private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
     }
 }
 
+/// In-memory `AnalyticsManagerProtocol` stub used by every push-funnel
+/// test suite. Lives at internal scope (not `private`) so the three
+/// consumers — `SoftPushPromptCoordinatorTests`,
+/// `NotificationPreferenceStoreTests`, and `OnboardingTests` — can share
+/// a single recorder definition instead of duplicating it per file.
+/// If a future suite needs an analytics recorder, reuse this type
+/// rather than re-implementing it.
 @MainActor
 final class RecordingAnalyticsManager: AnalyticsManagerProtocol {
     struct Recorded {
