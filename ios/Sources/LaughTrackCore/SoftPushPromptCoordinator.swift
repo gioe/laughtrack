@@ -47,12 +47,15 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func handleComedianFavoriteAdded(isPostOnboarding: Bool) async {
         guard isPostOnboarding else { return }
-        // Short-circuit the persistent increment when the prompt will never
-        // surface again from this favorite — push enabled, deferral cap hit,
-        // or sheet already shown this session. Otherwise the engagement
-        // counter would keep growing and write to AppStateStorage on every
-        // favorite add. These mirror the cadence's eligibility filters but
-        // run before the persistent write to avoid pointless I/O.
+        // Skip the persistent increment only for the permanent-suppression
+        // cases — pref already enabled, deferral cap hit, or sheet already
+        // shown this session — where no later cadence check could ever
+        // flip the prompt back on for this favorite. The cadence's session
+        // and backoff gates are deliberately NOT mirrored here: a later
+        // cold launch or wall-clock tick can flip them open, and we want
+        // the engagement counter to reflect signals accumulated during
+        // the suppression window so the prompt fires on the same favorite
+        // that clears the gate.
         guard !notificationPreferenceStore.preferences.favoriteComedianPushAlertsEnabled else { return }
         guard !stateStore.hasReachedDeferralCap(PushPermissionPromptCadence.maxDeferrals) else { return }
         guard !hasPresentedThisSession else { return }

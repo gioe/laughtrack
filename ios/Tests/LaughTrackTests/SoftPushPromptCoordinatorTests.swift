@@ -223,6 +223,50 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.opener.openCount == 1)
     }
 
+    // MARK: - Cadence wiring (criterion 8456/8457 end-to-end)
+
+    @Test("after a deferral, the coordinator suppresses the sheet while sessionCountSinceLastDeferral is still 0 (post-deferral session gate is wired)")
+    func suppressesAfterDeferralWhenSessionGateNotMet() async {
+        // recordDeferral stamps lastDeferredAt at the deferral instant; the
+        // mutable clock is then advanced 30 days forward so the backoff gate
+        // can never bind — only the session-count gate (0 cold launches
+        // recorded) can suppress here. If a future refactor drops
+        // sessionCountSinceLastDeferral from the coordinator's Cadence.Inputs
+        // construction, this test catches it.
+        let clock = MutableClock(Self.fixedNow)
+        let env = makeEnvironment(status: .notDetermined, now: { clock.now })
+        env.stateStore.recordDeferral()
+        clock.advance(by: 30 * 86_400)
+
+        await fireFavoriteEvents(env.coordinator, count: 5)
+
+        #expect(!env.coordinator.isPromptPresented)
+    }
+
+    @Test("after a deferral, the coordinator suppresses the sheet inside the 3-day backoff window (recency gate is wired)")
+    func suppressesInsideBackoffWindowAfterFirstDeferral() async {
+        // Enough cold-launch sessions to clear the session-count gate, but
+        // the wall clock advances only 1 day past the deferral — well inside
+        // the 3-day backoff after a single decline. The deferral instant is
+        // stamped by the store using the same clock, so lastDeferredAt =
+        // Self.fixedNow and the cadence sees elapsed = 1 day. If a future
+        // refactor drops lastDeferredAt or `now` from the coordinator's
+        // Cadence.Inputs construction, this test catches it.
+        let clock = MutableClock(Self.fixedNow)
+        let env = makeEnvironment(status: .notDetermined, now: { clock.now })
+        env.stateStore.recordDeferral()
+        env.stateStore.recordColdLaunchSession()
+        env.stateStore.recordColdLaunchSession()
+        env.stateStore.recordColdLaunchSession()
+        clock.advance(by: 1 * 86_400)
+
+        await fireFavoriteEvents(env.coordinator, count: 5)
+
+        #expect(!env.coordinator.isPromptPresented)
+    }
+
+    private static let fixedNow = Date(timeIntervalSince1970: 1_700_000_000)
+
     private func fireFavoriteEvents(
         _ coordinator: SoftPushPromptCoordinator,
         count: Int
@@ -234,20 +278,22 @@ struct SoftPushPromptCoordinatorTests {
 
     private func makeEnvironment(
         status: PushAuthorizationStatus,
-        requestResult: Bool = true
+        requestResult: Bool = true,
+        now: @escaping () -> Date = { Date() }
     ) -> Environment {
-        makeEnvironment(statusSequence: [status], requestResult: requestResult)
+        makeEnvironment(statusSequence: [status], requestResult: requestResult, now: now)
     }
 
     private func makeEnvironment(
         statusSequence: [PushAuthorizationStatus],
-        requestResult: Bool = true
+        requestResult: Bool = true,
+        now: @escaping () -> Date = { Date() }
     ) -> Environment {
         let suiteName = "SoftPushPromptCoordinatorTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         let storage = AppStateStorage(userDefaults: defaults)
-        let stateStore = PushPermissionStateStore(appStateStorage: storage)
+        let stateStore = PushPermissionStateStore(appStateStorage: storage, now: now)
         let preferenceStore = NotificationPreferenceStore(appStateStorage: storage)
         let statusProvider = ScriptedPushAuthorizationStatusProvider(sequence: statusSequence)
         let requester = RecordingPushAuthorizationRequester(result: requestResult)
@@ -257,7 +303,8 @@ struct SoftPushPromptCoordinatorTests {
             notificationPreferenceStore: preferenceStore,
             authorizationStatusProvider: statusProvider,
             authorizationRequester: requester,
-            systemSettingsOpener: opener
+            systemSettingsOpener: opener,
+            now: now
         )
         return Environment(
             coordinator: coordinator,
@@ -316,5 +363,20 @@ private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
 
     func openAppSystemSettings() {
         openCount += 1
+    }
+}
+
+@MainActor
+private final class MutableClock {
+    private var current: Date
+
+    init(_ initial: Date) {
+        self.current = initial
+    }
+
+    var now: Date { current }
+
+    func advance(by interval: TimeInterval) {
+        current = current.addingTimeInterval(interval)
     }
 }

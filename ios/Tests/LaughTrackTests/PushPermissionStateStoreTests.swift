@@ -88,9 +88,10 @@ struct PushPermissionStateStoreTests {
         #expect(reloaded.sessionCountSinceLastDeferral == 0)
     }
 
-    @Test("recordColdLaunchSession increments the post-deferral session counter")
+    @Test("recordColdLaunchSession increments the post-deferral session counter once a deferral has been recorded")
     func recordColdLaunchSessionIncrementsCounter() {
         let store = PushPermissionStateStore(appStateStorage: makeStorage(name: "session-incr"))
+        store.recordDeferral()
 
         store.recordColdLaunchSession()
         store.recordColdLaunchSession()
@@ -99,9 +100,20 @@ struct PushPermissionStateStoreTests {
         #expect(store.sessionCountSinceLastDeferral == 3)
     }
 
+    @Test("recordColdLaunchSession is a no-op before any deferral — avoids churning AppStateStorage for a value the cadence never reads")
+    func recordColdLaunchSessionNoOpBeforeFirstDeferral() {
+        let store = PushPermissionStateStore(appStateStorage: makeStorage(name: "session-noop"))
+
+        store.recordColdLaunchSession()
+        store.recordColdLaunchSession()
+
+        #expect(store.sessionCountSinceLastDeferral == 0)
+    }
+
     @Test("recordDeferral resets the post-deferral session counter so the cadence's session gate restarts")
     func recordDeferralResetsSessionCounter() {
         let store = PushPermissionStateStore(appStateStorage: makeStorage(name: "session-reset"))
+        store.recordDeferral()
         store.recordColdLaunchSession()
         store.recordColdLaunchSession()
         #expect(store.sessionCountSinceLastDeferral == 2)
@@ -109,13 +121,14 @@ struct PushPermissionStateStoreTests {
         store.recordDeferral()
 
         #expect(store.sessionCountSinceLastDeferral == 0)
-        #expect(store.deferralCount == 1)
+        #expect(store.deferralCount == 2)
     }
 
     @Test("sessionCountSinceLastDeferral persists across store instances")
     func sessionCounterPersistsAcrossInstances() {
         let storage = makeStorage(name: "session-persist")
         let first = PushPermissionStateStore(appStateStorage: storage)
+        first.recordDeferral()
         first.recordColdLaunchSession()
         first.recordColdLaunchSession()
 

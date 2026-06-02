@@ -95,8 +95,13 @@ public final class PushPermissionStateStore: ObservableObject {
     }
 
     /// Increment the post-deferral session counter. Called once per cold
-    /// launch from the app entry point.
+    /// launch from the app entry point. No-op when the user has never
+    /// deferred — the cadence only reads sessionCountSinceLastDeferral when
+    /// deferralCount > 0, and recordDeferral resets the counter to 0, so
+    /// writing on every cold launch before the first deferral churns
+    /// AppStateStorage for a value that is never read.
     public func recordColdLaunchSession() {
+        guard state.deferralCount > 0 else { return }
         update { state in
             state.sessionCountSinceLastDeferral += 1
         }

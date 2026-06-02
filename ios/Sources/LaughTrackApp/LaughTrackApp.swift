@@ -37,10 +37,12 @@ struct LaughTrackApp: App {
         #endif
 
         // App.init is the only once-per-cold-launch hook the soft prompt
-        // cadence has — feeds the sessionCountSinceLastDeferral gate.
-        bootstrap.container.resolve(PushPermissionStateStore.self).recordColdLaunchSession()
-
-        if MockModeDetector.isMockMode {
+        // cadence has — feeds the sessionCountSinceLastDeferral gate. Skip
+        // under mock mode so UI-test and screenshot launches don't silently
+        // mutate persisted soft-prompt state.
+        if !MockModeDetector.isMockMode {
+            bootstrap.container.resolve(PushPermissionStateStore.self).recordColdLaunchSession()
+        } else {
             Self.applyMockModeSeedData(container: bootstrap.container)
         }
     }
