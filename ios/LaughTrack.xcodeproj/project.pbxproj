@@ -150,6 +150,7 @@
 		AD5A4B33897A9BDF49530E6F /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 362B635800535696613C37C8 /* APIClient */; };
 		ADFA9E4F6B385378DA3B9C17 /* DetailLoadingSkeleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B02BA69766ED2849455A9 /* DetailLoadingSkeleton.swift */; };
 		B02B4C039B49D16147102DC7 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89AAF6B2F061BEDB66EB34A /* LibraryView.swift */; };
+		B18F179A99A349A9C3064FEE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 37CBBE48FC915D45FFBE291C /* GoogleService-Info.plist */; };
 		B1A9FD37F03954E8214CA934 /* ShowPricePresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30EDF3B2DE33F6A57133A3 /* ShowPricePresentation.swift */; };
 		B3519F018193141EFCBCDDB2 /* SavedFavoritesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B705EA400FAD98C582CD61E6 /* SavedFavoritesSection.swift */; };
 		B5FC8176CE8E0E5C21F62C33 /* LaughTrackAPIClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; };
@@ -359,6 +360,7 @@
 		3700564FAB149798B936D4CC /* TokenRefreshMiddlewareIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenRefreshMiddlewareIntegrationTests.swift; sourceTree = "<group>"; };
 		373E44114089F7B2E6F7B524 /* ComedianDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComedianDetailView.swift; sourceTree = "<group>"; };
 		378D9B392F323015240854D2 /* PillDropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PillDropdown.swift; sourceTree = "<group>"; };
+		37CBBE48FC915D45FFBE291C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		392FD90AD816C46171226847 /* LaughTrackBrowseComponentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBrowseComponentsTests.swift; sourceTree = "<group>"; };
 		3C5B02BA69766ED2849455A9 /* DetailLoadingSkeleton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailLoadingSkeleton.swift; sourceTree = "<group>"; };
 		3E5F06E48F96202840FD255A /* ShowsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsListView.swift; sourceTree = "<group>"; };
@@ -859,6 +861,7 @@
 			isa = PBXGroup;
 			children = (
 				412E08B18318996CA4DB94CD /* Assets.xcassets */,
+				37CBBE48FC915D45FFBE291C /* GoogleService-Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1176,6 +1179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				41DC07457C594E4BA82A70E8 /* Assets.xcassets in Resources */,
+				B18F179A99A349A9C3064FEE /* GoogleService-Info.plist in Resources */,
 				6377EC201CBBF6EB676926B7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
