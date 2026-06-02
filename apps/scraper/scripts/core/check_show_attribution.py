@@ -22,10 +22,9 @@ IS effectively that registry: every active venue scrape source carries a
 configured source.
 
 The ``_INTENTIONAL_EXCEPTIONS`` allowlist exists for keys that legitimately
-write ``shows.last_scraped_by`` but bypass ``scraping_sources``. Today the
-only such case is ``tour_dates`` (the Bandsintown comedian-tour-date
-scraper, keyed by comedian rather than club —
-src/laughtrack/scrapers/implementations/api/tour_dates/scraper.py).
+write ``shows.last_scraped_by`` but bypass ``scraping_sources`` — e.g. a
+scraper keyed by comedian rather than club. It is currently empty; add
+entries with a one-line rationale when such a scraper is introduced.
 
 Why it matters
 --------------
@@ -66,11 +65,7 @@ from laughtrack.adapters.db import get_connection
 # Scraper keys that write shows.last_scraped_by but bypass scraping_sources.
 # Add a one-line rationale per entry so future maintainers know why each is
 # allowlisted. Keep this list short — every entry weakens the check.
-_INTENTIONAL_EXCEPTIONS: frozenset[str] = frozenset({
-    # Bandsintown comedian tour-date scraper — keyed by comedian, not club,
-    # so it never has a corresponding scraping_sources row.
-    "tour_dates",
-})
+_INTENTIONAL_EXCEPTIONS: frozenset[str] = frozenset()
 
 
 _ORPHAN_QUERY = """
