@@ -39,6 +39,14 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     // Buffer the intent here, drive the sheet to .hidden, and let the
     // sheet's onDismiss callback consume the buffer to transition into
     // .deniedAlert — the view layer only ever crosses one boundary per tick.
+    //
+    // Invariant: only set while `presentation == .promptingSheet`. The
+    // buffer is consumed exclusively by handleSheetDismissed, which only
+    // fires when SwiftUI actually dismisses the sheet — so if a future
+    // caller invokes enableTapped while no sheet is up, the buffer would
+    // sit set and surface the alert on the NEXT real sheet dismissal.
+    // Today the buffer is only set inside enableTapped, which is only
+    // reachable from SoftPushPromptSheet, so the invariant holds.
     private var pendingDeniedAlertAfterDismiss = false
 
     public init(
@@ -111,6 +119,16 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func enableTapped() async {
         hasRespondedExplicitly = true
+        // The sheet stays at .promptingSheet across the OS authorization
+        // prompt (and the prior status check) on purpose: the buffered-alert
+        // handoff requires the sheet to still be up when we set
+        // pendingDeniedAlertAfterDismiss, otherwise onDismiss fires before
+        // the buffer can be populated and the alert is silently dropped.
+        // The OS push dialog is a system overlay, so the sheet chrome
+        // behind it is non-interactable — the visual cost is the sheet
+        // remaining visible behind/around the system prompt rather than
+        // animating away on tap. Restoring the previous "dismiss-first"
+        // behavior would re-open the sheet/alert race this refactor closes.
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {
         case .authorized:
