@@ -109,6 +109,7 @@ struct AppShellView: View {
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var clubFavorites: ClubFavoriteStore
     @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
+    @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
     @StateObject private var searchNavigationBridge = SearchNavigationBridge()
     @State private var didApplyInitialTab = false
 
@@ -224,6 +225,29 @@ struct AppShellView: View {
                 }
             )
             .environment(\.appTheme, theme)
+        }
+        .sheet(isPresented: $softPushPromptCoordinator.isPromptPresented) {
+            SoftPushPromptSheet(coordinator: softPushPromptCoordinator)
+                .environment(\.appTheme, theme)
+        }
+        .alert(
+            "Turn on push notifications in Settings",
+            isPresented: $softPushPromptCoordinator.isDeniedAlertPresented
+        ) {
+            Button("Cancel", role: .cancel) {}
+            Button("Open Settings") {
+                softPushPromptCoordinator.openSystemSettings()
+            }
+        } message: {
+            Text("LaughTrack can't enable push notifications until you allow them in Settings.")
+        }
+        .onReceive(favorites.didAddFavoriteComedian) { _ in
+            let isPostOnboarding = authManager.currentUser?.comedianOnboardingCompleted == true
+            Task { [softPushPromptCoordinator] in
+                await softPushPromptCoordinator.handleComedianFavoriteAdded(
+                    isPostOnboarding: isPostOnboarding
+                )
+            }
         }
     }
 

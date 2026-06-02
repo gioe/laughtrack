@@ -23,6 +23,13 @@ public final class ComedianFavoriteStore: ObservableObject {
     @Published public private(set) var savedFavoriteComedians: [Components.Schemas.ComedianSearchItem] = []
     @Published public private(set) var savedFavoritesPhase: SavedFavoritesPhase = .idle
 
+    // Emits the comedian UUID on every successful add-toggle (false → true).
+    // Does NOT fire on remove-toggles or on bulk loads from the server — only
+    // explicit user-driven adds, so a single subscriber (the soft push-prompt
+    // coordinator) can count post-onboarding favorite events without
+    // false-positives from sign-in hydration.
+    public let didAddFavoriteComedian = PassthroughSubject<String, Never>()
+
     private var hasLoadedSavedFavorites = false
 
     public init() {}
@@ -166,10 +173,14 @@ public final class ComedianFavoriteStore: ObservableObject {
             }
 
             let nextValue = response.data.isFavorited
+            let wasAdd = !currentValue && nextValue
             values[uuid] = nextValue
             if nextValue {
                 if let index = savedFavoriteComedians.firstIndex(where: { $0.uuid == uuid }) {
                     savedFavoriteComedians[index].isFavorite = true
+                }
+                if wasAdd {
+                    didAddFavoriteComedian.send(uuid)
                 }
             } else {
                 savedFavoriteComedians.removeAll { $0.uuid == uuid }

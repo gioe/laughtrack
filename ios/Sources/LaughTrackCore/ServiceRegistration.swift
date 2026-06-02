@@ -43,6 +43,19 @@ public enum ServiceRegistration {
                 appStateStorage: container.resolve(AppStateStorageProtocol.self)
             )
         }
+        container.register(PushPermissionStateStore.self, scope: .appLevel) {
+            PushPermissionStateStore(
+                appStateStorage: container.resolve(AppStateStorageProtocol.self)
+            )
+        }
+        container.register(SoftPushPromptCoordinator.self, scope: .appLevel) {
+            SoftPushPromptCoordinator(
+                stateStore: container.resolve(PushPermissionStateStore.self),
+                notificationPreferenceStore: container.resolve(NotificationPreferenceStore.self),
+                notificationSyncClient: container.resolveOptional((any NotificationPreferenceSyncing).self),
+                pushTokenManager: container.resolveOptional((any PushDeviceTokenManaging).self)
+            )
+        }
         container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
             ProfileLocationPreferenceSyncClient(
                 tokenManager: AuthTokenManager(
