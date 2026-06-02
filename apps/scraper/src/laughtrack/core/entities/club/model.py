@@ -332,26 +332,6 @@ class Club(DatabaseEntity):
         """Create a unique key from a database row."""
         return (row.get("name"), row.get("scraping_url"))
 
-    def to_tuple(self) -> tuple:
-        """Transform Club entity to database tuple."""
-        return (
-            self.name,
-            self.address,
-            self.website,
-            self.scraping_url,
-            self.popularity,
-            self.zip_code,
-            self.phone_number,
-            self.timezone,
-            self.visible,
-            self.scraper,
-            self.max_retries,
-            self.rate_limit,
-            self.timeout,
-            self.city,
-            self.state,
-        )
-
     def to_unique_key(self) -> tuple:
         """Generate a unique key for the Club entity."""
         return (self.name, self.scraping_url)
