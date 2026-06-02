@@ -176,6 +176,25 @@ struct AppBootstrapAnalyticsLifecycleTests {
             AppBootstrap.stableAnalyticsUserID(forEmail: "bob@example.com"),
         ])
         #expect(env.analytics.resetCallCount == 1)
+
+        // The cohort-filter user properties must re-fire on every sign-in
+        // edge — once for userA, once for userB. A regression that gates the
+        // property dispatch on a static "has run before" flag (firing only
+        // on the first sign-in) would still pass the setUserIDCalls /
+        // resetCallCount assertions above; this assertion is the explicit
+        // anchor for the per-sign-in contract. Both fixture users use the
+        // default AuthenticatedUser initializer, so comedianOnboardingCompleted
+        // defaults to false and zipCode defaults to nil — all four values
+        // are "false".
+        #expect(env.analytics.userPropertyCalls.map(\.name) == [
+            "comedian_onboarding_completed",
+            "has_zip",
+            "comedian_onboarding_completed",
+            "has_zip",
+        ])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == [
+            "false", "false", "false", "false",
+        ])
     }
 
     @Test("stableAnalyticsUserID hashes the lowercased email as sha256:<64 hex chars>")
