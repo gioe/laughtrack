@@ -337,6 +337,42 @@ Two gotchas:
 - The `decodedRoutes(in:as:)` helper in `HostedViewTestSupport.swift` reverses
   the codable representation back into `[Route]` in push order.
 
+### UI-Test Launch-Arg Seams
+
+`LaughTrackApp.resetPersistentStateForUITestsIfNeeded()` and a handful of
+DEBUG-only hooks key off launch arguments and process env vars so XCUITest
+suites can drive otherwise-untestable flows. The current seam surface:
+
+- **`UITEST_RESET_STATE`** (launch arg) — wipes `UserDefaults.standard`
+  cadence/preference keys (nearby preference, home-nearby prompt dismissal,
+  auth session metadata, first-entry guest choice, soft push-prompt cadence
+  state). Use on the first launch of any new test to guarantee a baseline.
+- **`UITEST_GUEST_BROWSING`** (launch arg) — re-seeds
+  `FirstEntryAuthChoiceStore.storageKey` after the wipe so the shell mounts
+  past the first-entry auth gate without a tap. Tests that need the auth gate
+  itself must NOT set this.
+- **`UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT=N`** (env var, DEBUG only)
+  — drives `DebugSimulatedFavoriteHook` to fire N synthetic
+  `SoftPushPromptCoordinator.handleComedianFavoriteAdded(isPostOnboarding:
+  true)` calls once the appShell mounts. Lets test_sim exercise the soft
+  push-prompt cadence end-to-end without standing up a signed-in user or a
+  live `POST /favorites` round-trip (TASK-2607).
+
+The flags are duplicated as raw string literals across the producer
+(LaughTrackApp.swift) and consumers (LaughTrackUITests). The
+LaughTrackUITests target runs in a separate XCUITest process and doesn't
+import the LaughTrackApp module, so a typo at either end fails silently —
+the test just times out on `waitForExistence`. TASK-2614 tracks lifting the
+canonical list into a shared SPM target. Until then: copy the literal
+verbatim from `LaughTrackApp.swift` when writing a new test.
+
+XCTest runs every method in a target's suite within the **same process**, so
+`UserDefaults.standard` (where the cadence state lives) persists across
+methods unless explicitly cleared. Every test method MUST pass
+`UITEST_RESET_STATE` on its first `app.launch()` — otherwise it silently
+inherits state from whatever method ran before it under XCTest's alphabetic
+ordering and becomes order-dependent.
+
 ### Launching Directly Into A Detail Screen (DEBUG)
 
 For per-task sim verification of `PodcastDetailView`, `ShowDetailView`,
