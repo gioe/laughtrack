@@ -227,7 +227,7 @@ struct AppShellView: View {
             .environment(\.appTheme, theme)
         }
         .sheet(
-            isPresented: $softPushPromptCoordinator.isPromptPresented,
+            isPresented: softPushPresentationBinding(.promptingSheet),
             onDismiss: {
                 softPushPromptCoordinator.handleSheetDismissed()
             }
@@ -237,7 +237,7 @@ struct AppShellView: View {
         }
         .alert(
             "Turn on push notifications in Settings",
-            isPresented: $softPushPromptCoordinator.isDeniedAlertPresented
+            isPresented: softPushPresentationBinding(.deniedAlert)
         ) {
             Button("Cancel", role: .cancel) {}
             Button("Open Settings") {
@@ -267,6 +267,25 @@ struct AppShellView: View {
         Binding(
             get: { shellState.resolvedSearchPrimitive },
             set: { shellState.setSearchPrimitive($0) }
+        )
+    }
+
+    // SwiftUI sheet/alert modifiers each take an `isPresented: Binding<Bool>`,
+    // but the coordinator now owns one enum-typed presentation state across
+    // both surfaces. Project the enum into a Bool binding per case; the
+    // setter only flips back to .hidden when the binding's own surface was
+    // the one being dismissed, so an alert dismissal can't clobber a sheet
+    // showing in the same render pass (or vice versa).
+    private func softPushPresentationBinding(
+        _ target: SoftPushPromptCoordinator.Presentation
+    ) -> Binding<Bool> {
+        Binding(
+            get: { softPushPromptCoordinator.presentation == target },
+            set: { newValue in
+                if !newValue && softPushPromptCoordinator.presentation == target {
+                    softPushPromptCoordinator.presentation = .hidden
+                }
+            }
         )
     }
 

@@ -14,7 +14,7 @@ struct SoftPushPromptCoordinatorTests {
             await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: false)
         }
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
         #expect(env.stateStore.postOnboardingFavoriteCount == 0)
     }
 
@@ -25,7 +25,7 @@ struct SoftPushPromptCoordinatorTests {
         await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
         await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
         #expect(env.stateStore.postOnboardingFavoriteCount == 2)
     }
 
@@ -37,7 +37,7 @@ struct SoftPushPromptCoordinatorTests {
         await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
         await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
 
-        #expect(env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .promptingSheet)
         #expect(env.coordinator.hasPresentedThisSession)
         #expect(env.stateStore.postOnboardingFavoriteCount == 3)
     }
@@ -49,7 +49,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("does not present when the deferral cap has been reached")
@@ -61,7 +61,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("does not present when OS authorization is already denied")
@@ -70,8 +70,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
-        #expect(!env.coordinator.isDeniedAlertPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("does not silently flip app preference when status is authorized but pref is off")
@@ -80,7 +79,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
         #expect(!env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
 
@@ -89,23 +88,23 @@ struct SoftPushPromptCoordinatorTests {
         let env = makeEnvironment(status: .notDetermined)
 
         await fireFavoriteEvents(env.coordinator, count: 3)
-        #expect(env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .promptingSheet)
 
-        env.coordinator.isPromptPresented = false
+        env.coordinator.presentation = .hidden
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("enableTapped on notDetermined requests authorization and applies pref on grant")
     func enableTappedNotDeterminedGrantApplies() async throws {
         let env = makeEnvironment(status: .notDetermined, requestResult: true)
-        env.coordinator.isPromptPresented = true
+        env.coordinator.presentation = .promptingSheet
 
         await env.coordinator.enableTapped()
+        env.coordinator.handleSheetDismissed()
 
-        #expect(!env.coordinator.isPromptPresented)
-        #expect(!env.coordinator.isDeniedAlertPresented)
+        #expect(env.coordinator.presentation == .hidden)
         #expect(await env.requester.requestCount == 1)
         #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
@@ -114,24 +113,38 @@ struct SoftPushPromptCoordinatorTests {
     func enableTappedNotDeterminedDenyShowsAlert() async throws {
         // requestAuthorization returns false both when the user taps Don't
         // Allow and when the underlying UN call throws — either way the
-        // coordinator presents the same TASK-2587 Open Settings alert.
+        // coordinator presents the same TASK-2587 Open Settings alert via
+        // the buffered post-dismiss transition (covers criterion 8489's
+        // "Don't-Allow response to the OS prompt" branch).
         let env = makeEnvironment(status: .notDetermined, requestResult: false)
-        env.coordinator.isPromptPresented = true
+        env.coordinator.presentation = .promptingSheet
 
         await env.coordinator.enableTapped()
+        // The sheet must dismiss before the alert is presented — the view
+        // layer flips the binding from .promptingSheet → .hidden first, then
+        // SwiftUI fires onDismiss, which is wired to handleSheetDismissed.
+        #expect(env.coordinator.presentation == .hidden)
+        env.coordinator.handleSheetDismissed()
 
-        #expect(env.coordinator.isDeniedAlertPresented)
+        #expect(env.coordinator.presentation == .deniedAlert)
         #expect(!env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
 
-    @Test("enableTapped when status is already denied surfaces the Open-Settings alert immediately")
-    func enableTappedDeniedShowsAlertImmediately() async {
+    @Test("enableTapped when status is already denied surfaces the Open-Settings alert via the buffered onDismiss transition")
+    func enableTappedDeniedShowsAlertViaBufferedDismiss() async {
+        // Covers criterion 8489's ".denied at sheet entry" branch: the OS
+        // status is already .denied when the user lands in the sheet and
+        // taps Enable. The coordinator must drive the sheet closed first,
+        // then transition into .deniedAlert from handleSheetDismissed —
+        // never both at once on the same scene.
         let env = makeEnvironment(status: .denied)
-        env.coordinator.isPromptPresented = true
+        env.coordinator.presentation = .promptingSheet
 
         await env.coordinator.enableTapped()
+        #expect(env.coordinator.presentation == .hidden)
+        env.coordinator.handleSheetDismissed()
 
-        #expect(env.coordinator.isDeniedAlertPresented)
+        #expect(env.coordinator.presentation == .deniedAlert)
         #expect(await env.requester.requestCount == 0)
         #expect(!env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
@@ -139,23 +152,24 @@ struct SoftPushPromptCoordinatorTests {
     @Test("enableTapped when status is already authorized applies pref without prompting and without alert")
     func enableTappedAuthorizedAppliesPrefWithoutPrompting() async {
         let env = makeEnvironment(status: .authorized)
-        env.coordinator.isPromptPresented = true
+        env.coordinator.presentation = .promptingSheet
 
         await env.coordinator.enableTapped()
+        env.coordinator.handleSheetDismissed()
 
         #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
         #expect(await env.requester.requestCount == 0)
-        #expect(!env.coordinator.isDeniedAlertPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("deferTapped records a deferral and dismisses the prompt")
     func deferTappedRecordsDeferralAndDismisses() {
         let env = makeEnvironment(status: .notDetermined)
-        env.coordinator.isPromptPresented = true
+        env.coordinator.presentation = .promptingSheet
 
         env.coordinator.deferTapped()
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
         #expect(env.stateStore.deferralCount == 1)
     }
 
@@ -163,12 +177,13 @@ struct SoftPushPromptCoordinatorTests {
     func sheetDismissedWithoutExplicitResponseRecordsDeferral() async {
         let env = makeEnvironment(status: .notDetermined)
         await fireFavoriteEvents(env.coordinator, count: 3)
-        #expect(env.coordinator.isPromptPresented)
-        env.coordinator.isPromptPresented = false
+        #expect(env.coordinator.presentation == .promptingSheet)
+        env.coordinator.presentation = .hidden
 
         env.coordinator.handleSheetDismissed()
 
         #expect(env.stateStore.deferralCount == 1)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("handleSheetDismissed after deferTapped does not double-count the deferral")
@@ -240,7 +255,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     @Test("after a deferral, the coordinator suppresses the sheet inside the 3-day backoff window (recency gate is wired)")
@@ -262,7 +277,7 @@ struct SoftPushPromptCoordinatorTests {
 
         await fireFavoriteEvents(env.coordinator, count: 5)
 
-        #expect(!env.coordinator.isPromptPresented)
+        #expect(env.coordinator.presentation == .hidden)
     }
 
     private static let fixedNow = Date(timeIntervalSince1970: 1_700_000_000)

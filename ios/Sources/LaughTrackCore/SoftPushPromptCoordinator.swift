@@ -4,8 +4,18 @@ import LaughTrackBridge
 
 @MainActor
 public final class SoftPushPromptCoordinator: ObservableObject {
-    @Published public var isPromptPresented: Bool = false
-    @Published public var isDeniedAlertPresented: Bool = false
+    // Single source of truth for which (if any) push-permission UI surface
+    // is currently presented. Collapses the previous two independent
+    // `@Published` Bools so the view layer transitions through one state
+    // at a time and the sheet-dismiss/alert-present race on the same scene
+    // can't drop the alert binding.
+    public enum Presentation: Equatable {
+        case hidden
+        case promptingSheet
+        case deniedAlert
+    }
+
+    @Published public var presentation: Presentation = .hidden
     @Published public private(set) var hasPresentedThisSession: Bool = false
 
     private let stateStore: PushPermissionStateStore
@@ -22,6 +32,14 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     // false flag as an implicit deferral — otherwise a chronic swiper would
     // be re-prompted every session and the deferralCap would never bind.
     private var hasRespondedExplicitly = false
+
+    // When enableTapped resolves to a denied/declined OS state, presenting
+    // the Open-Settings alert while the sheet is still animating out
+    // collides on the same scene and SwiftUI silently drops one binding.
+    // Buffer the intent here, drive the sheet to .hidden, and let the
+    // sheet's onDismiss callback consume the buffer to transition into
+    // .deniedAlert — the view layer only ever crosses one boundary per tick.
+    private var pendingDeniedAlertAfterDismiss = false
 
     public init(
         stateStore: PushPermissionStateStore,
@@ -77,7 +95,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         case .notDetermined:
             hasPresentedThisSession = true
             hasRespondedExplicitly = false
-            isPromptPresented = true
+            presentation = .promptingSheet
         case .authorized:
             // OS allows push but the user has the app's push pref off. Treat as a
             // deliberate Settings choice — don't silently re-enable, don't show
@@ -93,15 +111,16 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func enableTapped() async {
         hasRespondedExplicitly = true
-        isPromptPresented = false
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {
         case .authorized:
             applyPushPreferenceEnabled()
+            presentation = .hidden
         case .notDetermined:
             let granted = await authorizationRequester.requestAuthorization()
             if granted {
                 applyPushPreferenceEnabled()
+                presentation = .hidden
             } else {
                 // requestAuthorization returns false both when the user taps
                 // Don't Allow and when the underlying UN call throws (the
@@ -109,17 +128,19 @@ public final class SoftPushPromptCoordinator: ObservableObject {
                 // Open Settings alert TASK-2587 ships in Settings either way
                 // — silently dropping the error path was a /review-commits
                 // finding because it produced no user feedback at all.
-                isDeniedAlertPresented = true
+                pendingDeniedAlertAfterDismiss = true
+                presentation = .hidden
             }
         case .denied:
-            isDeniedAlertPresented = true
+            pendingDeniedAlertAfterDismiss = true
+            presentation = .hidden
         }
     }
 
     public func deferTapped() {
         hasRespondedExplicitly = true
         stateStore.recordDeferral()
-        isPromptPresented = false
+        presentation = .hidden
     }
 
     public func handleSheetDismissed() {
@@ -130,6 +151,10 @@ public final class SoftPushPromptCoordinator: ObservableObject {
             stateStore.recordDeferral()
         }
         hasRespondedExplicitly = false
+        if pendingDeniedAlertAfterDismiss {
+            pendingDeniedAlertAfterDismiss = false
+            presentation = .deniedAlert
+        }
     }
 
     public func openSystemSettings() {
