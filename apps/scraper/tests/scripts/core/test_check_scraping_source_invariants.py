@@ -2,8 +2,8 @@
 Unit tests for ``scripts/core/check_scraping_source_invariants.py``.
 
 The script talks to the live scraper DB at runtime; these tests load it as
-a module and stub the row-fetchers so the reporting / classification /
-exit-code logic is exercised without a database.
+a module and stub the row-fetchers so the reporting / exit-code logic is
+exercised without a database.
 """
 
 import importlib.machinery
@@ -63,17 +63,15 @@ def _orphan_row(**overrides):
     return row
 
 
-def _tour_date_row(**overrides):
+def _active_no_source_row(**overrides):
     row = {
         "club_id": 9001,
-        "club_name": "Stuck Club",
+        "club_name": "Dormant Club",
         "city": "Austin",
         "state": "TX",
-        "website": "https://stuck.example",
+        "website": "https://dormant.example",
         "visible": True,
         "status": "active",
-        "tour_date_created_at": None,
-        "tour_date_age_days": 120,
     }
     row.update(overrides)
     return row
@@ -86,7 +84,7 @@ def _tour_date_row(**overrides):
 
 def test_main_returns_two_when_orphan_future_inventory_exists(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     assert mod.main([]) == 2
     captured = capsys.readouterr()
@@ -99,7 +97,7 @@ def test_main_returns_two_when_orphan_future_inventory_exists(mod, monkeypatch, 
 
 def test_main_returns_zero_when_no_orphan_future_inventory(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     assert mod.main([]) == 0
     captured = capsys.readouterr()
@@ -111,7 +109,7 @@ def test_main_returns_one_on_db_error(mod, monkeypatch, capsys):
         raise RuntimeError("connection refused")
 
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", _raise)
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     assert mod.main([]) == 1
     captured = capsys.readouterr()
@@ -121,7 +119,7 @@ def test_main_returns_one_on_db_error(mod, monkeypatch, capsys):
 
 def test_main_json_mode_emits_parseable_payload(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     rc = mod.main(["--json"])
     captured = capsys.readouterr()
@@ -130,17 +128,13 @@ def test_main_json_mode_emits_parseable_payload(mod, monkeypatch, capsys):
     payload = json.loads(captured.out)
     assert payload["orphan_future_show_clubs"][0]["club_name"] == "Big Couch"
     assert payload["orphan_future_show_clubs"][0]["future_show_count"] == 81
-    assert payload["tour_date_only_clubs"] == {
-        "stale_days_threshold": 30,
-        "recent_discovery": [],
-        "onboarding_review_needed": [],
-    }
+    assert payload["active_no_source_clubs"] == []
     assert "future shows but no enabled scraping_sources row" in captured.err
 
 
 def test_main_json_mode_emits_empty_payload_when_clean(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     rc = mod.main(["--json"])
     captured = capsys.readouterr()
@@ -148,44 +142,25 @@ def test_main_json_mode_emits_empty_payload_when_clean(mod, monkeypatch, capsys)
     assert rc == 0
     payload = json.loads(captured.out)
     assert payload["orphan_future_show_clubs"] == []
-    assert payload["tour_date_only_clubs"]["recent_discovery"] == []
-    assert payload["tour_date_only_clubs"]["onboarding_review_needed"] == []
+    assert payload["active_no_source_clubs"] == []
     assert "No clubs have future shows without an enabled scraping_sources row" in captured.err
 
 
 # ---------------------------------------------------------------------------
-# Tour_dates-only invariant (Invariant 2)
+# Active-clubs-missing-a-scraper invariant (Invariant 2)
 # ---------------------------------------------------------------------------
 
 
-def test_classify_tour_date_rows_splits_by_age(mod):
-    rows = [
-        _tour_date_row(club_id=1, tour_date_age_days=120),
-        _tour_date_row(club_id=2, tour_date_age_days=5),
-        _tour_date_row(club_id=3, tour_date_age_days=30),  # boundary — at threshold, still recent
-        _tour_date_row(club_id=4, tour_date_age_days=31),  # one day past threshold
-        _tour_date_row(club_id=5, tour_date_age_days=None),  # missing age — treat as recent
-    ]
-
-    recent, stale = mod._classify_tour_date_rows(rows, stale_days=30)
-
-    assert [r["club_id"] for r in stale] == [1, 4]
-    assert all(r["classification"] == "onboarding_review_needed" for r in stale)
-    assert [r["club_id"] for r in recent] == [2, 3, 5]
-    assert all(r["classification"] == "recent_discovery" for r in recent)
-
-
-def test_main_flags_stale_tour_date_only_clubs(mod, monkeypatch, capsys):
-    """A club whose only enabled source is tour_dates older than the threshold trips exit 2."""
+def test_main_flags_active_clubs_with_no_enabled_source(mod, monkeypatch, capsys):
+    """An active visible club with no enabled scraping_sources row trips exit 2."""
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
     monkeypatch.setattr(
         mod,
-        "_fetch_tour_date_only_rows",
+        "_fetch_active_no_source_rows",
         lambda: [
-            _tour_date_row(
+            _active_no_source_row(
                 club_id=9001,
-                club_name="Stuck Club",
-                tour_date_age_days=120,
+                club_name="Dormant Club",
             )
         ],
     )
@@ -194,89 +169,31 @@ def test_main_flags_stale_tour_date_only_clubs(mod, monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert rc == 2
-    assert "1 active club(s) have only tour_dates enabled and are older than 30 days" in captured.out
+    assert "1 active club(s) have no enabled scraping_sources row" in captured.out
     assert "club=9001" in captured.out
-    assert "Stuck Club" in captured.out
-    assert "tour_dates_age=120d" in captured.out
+    assert "Dormant Club" in captured.out
+    assert "website=https://dormant.example" in captured.out
 
 
-def test_main_separates_recent_discovery_from_stuck_rows(mod, monkeypatch, capsys):
-    """Recent tour_dates discoveries are reported separately and don't trip exit 2."""
+def test_main_returns_zero_when_no_active_no_source_clubs(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(
-        mod,
-        "_fetch_tour_date_only_rows",
-        lambda: [
-            _tour_date_row(club_id=1, club_name="Fresh Club", tour_date_age_days=3),
-        ],
-    )
+    monkeypatch.setattr(mod, "_fetch_active_no_source_rows", lambda: [])
 
     rc = mod.main([])
     captured = capsys.readouterr()
 
     assert rc == 0
-    # Recent rows surface as an INFO section, not an ERROR section.
-    assert "INFO: 1 active club(s) have only tour_dates enabled but are within 30 days" in captured.out
-    assert "ERROR:" not in captured.out
-    assert "Fresh Club" in captured.out
+    assert "No active clubs are missing an enabled scraping_sources row." in captured.out
 
 
-def test_main_reports_both_sections_when_mixed(mod, monkeypatch, capsys):
+def test_main_json_payload_includes_active_no_source_rows(mod, monkeypatch, capsys):
     monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
     monkeypatch.setattr(
         mod,
-        "_fetch_tour_date_only_rows",
+        "_fetch_active_no_source_rows",
         lambda: [
-            _tour_date_row(club_id=1, club_name="Stuck One", tour_date_age_days=90),
-            _tour_date_row(club_id=2, club_name="Fresh Two", tour_date_age_days=7),
-        ],
-    )
-
-    rc = mod.main([])
-    captured = capsys.readouterr()
-
-    assert rc == 2
-    assert "Stuck One" in captured.out
-    assert "Fresh Two" in captured.out
-    assert "1 active club(s) have only tour_dates enabled and are older than 30 days" in captured.out
-    assert "1 active club(s) have only tour_dates enabled but are within 30 days" in captured.out
-
-
-def test_main_returns_zero_when_no_tour_date_only_clubs(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(mod, "_fetch_tour_date_only_rows", lambda: [])
-
-    rc = mod.main([])
-    captured = capsys.readouterr()
-
-    assert rc == 0
-    assert "No active clubs are stuck with only tour_dates as their enabled source." in captured.out
-
-
-def test_main_honors_custom_stale_days_threshold(mod, monkeypatch, capsys):
-    """--stale-days=14 reclassifies a 20-day-old row as stuck."""
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(
-        mod,
-        "_fetch_tour_date_only_rows",
-        lambda: [_tour_date_row(club_id=1, tour_date_age_days=20)],
-    )
-
-    rc = mod.main(["--stale-days", "14"])
-    captured = capsys.readouterr()
-
-    assert rc == 2
-    assert "older than 14 days" in captured.out
-
-
-def test_main_json_payload_includes_classified_tour_date_rows(mod, monkeypatch, capsys):
-    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [])
-    monkeypatch.setattr(
-        mod,
-        "_fetch_tour_date_only_rows",
-        lambda: [
-            _tour_date_row(club_id=1, tour_date_age_days=90),
-            _tour_date_row(club_id=2, tour_date_age_days=2),
+            _active_no_source_row(club_id=1, club_name="Dormant One"),
+            _active_no_source_row(club_id=2, club_name="Dormant Two"),
         ],
     )
 
@@ -284,23 +201,38 @@ def test_main_json_payload_includes_classified_tour_date_rows(mod, monkeypatch, 
     payload = json.loads(capsys.readouterr().out)
 
     assert rc == 2
-    section = payload["tour_date_only_clubs"]
-    assert section["stale_days_threshold"] == 30
-    assert [r["club_id"] for r in section["onboarding_review_needed"]] == [1]
-    assert section["onboarding_review_needed"][0]["classification"] == "onboarding_review_needed"
-    assert [r["club_id"] for r in section["recent_discovery"]] == [2]
-    assert section["recent_discovery"][0]["classification"] == "recent_discovery"
+    section = payload["active_no_source_clubs"]
+    assert [r["club_id"] for r in section] == [1, 2]
+    assert section[0]["club_name"] == "Dormant One"
 
 
-def test_tour_date_only_query_filters_correctly(mod):
-    """SQL guards the discovery loop: only-tour_dates AND active AND visible."""
-    query = mod._TOUR_DATE_ONLY_CLUBS_QUERY
-    assert "ss.enabled = TRUE" in query
-    # Reject clubs that also have a non-tour_dates enabled source.
-    assert "has_non_tour_date = FALSE" in query
+def test_main_reports_both_invariants_when_mixed(mod, monkeypatch, capsys):
+    """Orphan future inventory and dormant-active clubs surface together, exit 2 once."""
+    monkeypatch.setattr(mod, "_fetch_orphan_future_show_rows", lambda: [_orphan_row()])
+    monkeypatch.setattr(
+        mod,
+        "_fetch_active_no_source_rows",
+        lambda: [_active_no_source_row(club_id=9001, club_name="Dormant Club")],
+    )
+
+    rc = mod.main([])
+    captured = capsys.readouterr()
+
+    assert rc == 2
+    assert "future shows but no enabled scraping_sources row" in captured.out
+    assert "active club(s) have no enabled scraping_sources row" in captured.out
+    assert "Big Couch" in captured.out
+    assert "Dormant Club" in captured.out
+
+
+def test_active_no_source_query_filters_correctly(mod):
+    """SQL guards: only active + visible + no enabled source + no future shows."""
+    query = mod._ACTIVE_NO_SOURCE_QUERY
     # Active visible clubs only — hidden/inactive venues aren't shipped to users.
-    assert "COALESCE(c.visible, TRUE) = TRUE" in query
     assert "c.status = 'active'" in query
-    # Must surface tour_dates row age so the Python classifier can split rows.
-    assert "tour_date_created_at" in query
-    assert "tour_date_age_days" in query
+    assert "COALESCE(c.visible, TRUE) = TRUE" in query
+    # No enabled scraping_sources row at all.
+    assert "ss.enabled = TRUE" in query
+    assert "NOT EXISTS" in query
+    # Exclude clubs already caught by Invariant 1 (orphan future inventory).
+    assert "s.date > NOW()" in query
