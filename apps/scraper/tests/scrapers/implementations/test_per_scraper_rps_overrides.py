@@ -177,3 +177,51 @@ class TestRpsValuesArePinned:
         )
 
         assert _JSON_LD_HOST_RPS == 2.0
+
+
+class TestEmptyDomainGuard:
+    """`if club.scraping_domain:` in each subclass must be a no-op for clubs
+    whose scraping_url yields an empty domain (e.g. empty/relative URL).
+    Otherwise the override would register an empty-string key on the singleton
+    RateLimiter, polluting state for other domains' lookups."""
+
+    @staticmethod
+    def _empty_domain_club(scraper_key: str) -> Club:
+        return _make_club(
+            scraping_url="",
+            name=f"No-domain club ({scraper_key})",
+            scraper_key=scraper_key,
+        )
+
+    @staticmethod
+    def _patch_set_domain_limit(monkeypatch) -> list:
+        from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
+
+        calls: list = []
+
+        def _record(self, domain, rps):
+            calls.append((domain, rps))
+
+        monkeypatch.setattr(RateLimiter, "set_domain_limit", _record)
+        return calls
+
+    @pytest.mark.skipif(
+        importlib.util.find_spec("curl_cffi") is None,
+        reason="curl_cffi not installed (JsonLdScraper imports it transitively)",
+    )
+    def test_json_ld_skips_override_when_domain_empty(self, monkeypatch):
+        from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
+
+        calls = self._patch_set_domain_limit(monkeypatch)
+        JsonLdScraper(self._empty_domain_club("json_ld"))
+        assert not any(domain == "" for domain, _ in calls)
+
+    def test_squarespace_skips_override_when_domain_empty(self, monkeypatch):
+        calls = self._patch_set_domain_limit(monkeypatch)
+        SquarespaceScraper(self._empty_domain_club("squarespace"))
+        assert not any(domain == "" for domain, _ in calls)
+
+    def test_fox_tucson_skips_override_when_domain_empty(self, monkeypatch):
+        calls = self._patch_set_domain_limit(monkeypatch)
+        FoxTucsonTheatreScraper(self._empty_domain_club("fox_tucson_theatre"))
+        assert not any(domain == "" for domain, _ in calls)
