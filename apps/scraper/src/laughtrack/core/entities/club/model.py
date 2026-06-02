@@ -133,9 +133,6 @@ class Club(DatabaseEntity):
     state: Optional[str] = None
     status: str = "active"
     club_type: str = "club"
-    rate_limit: Optional[float] = None
-    max_retries: int = 3
-    timeout: int = 30
     scraping_sources: list[ScrapingSource] = field(default_factory=list)
     active_scraping_source: Optional[ScrapingSource] = None
     chain_id: Optional[int] = None
@@ -304,9 +301,6 @@ class Club(DatabaseEntity):
             status=row.get("status", "active"),
             club_type=row.get("club_type", "club"),
             chain_id=row.get("chain_id"),
-            rate_limit=row.get("rate_limit"),
-            max_retries=row.get("max_retries", 3),
-            timeout=row.get("timeout", 30),
             scraping_sources=scraping_sources,
         )
 

@@ -346,7 +346,7 @@ def test_grove34_event_to_show_returns_none_with_bad_date():
 @pytest.fixture
 def grove34_club():
     from laughtrack.core.entities.club.model import Club, ScrapingSource
-    _c = Club(id=2, name='Grove 34', address='34 Grove St, New York, NY', website='https://grove34.com', popularity=50, zip_code='10014', phone_number='', visible=True, timezone='America/New_York', rate_limit=1.0, max_retries=1, timeout=5)
+    _c = Club(id=2, name='Grove 34', address='34 Grove St, New York, NY', website='https://grove34.com', popularity=50, zip_code='10014', phone_number='', visible=True, timezone='America/New_York')
     _c.active_scraping_source = ScrapingSource(id=1, club_id=_c.id, platform='custom', scraper_key='', source_url='https://grove34.com/', external_id=None)
     _c.scraping_sources = [_c.active_scraping_source]
     return _c

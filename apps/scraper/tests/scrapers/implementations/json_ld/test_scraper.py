@@ -157,9 +157,6 @@ def _make_club(metadata: dict | None = None) -> Club:
         phone_number="",
         visible=True,
         timezone="America/New_York",
-        rate_limit=1.0,
-        max_retries=1,
-        timeout=5,
     )
     club.active_scraping_source = ScrapingSource(
         id=1,

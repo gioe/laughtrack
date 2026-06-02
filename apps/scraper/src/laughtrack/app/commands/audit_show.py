@@ -48,9 +48,6 @@ SELECT
     cl.city,
     cl.state,
     cl.status,
-    cl.rate_limit,
-    cl.max_retries,
-    cl.timeout,
     COALESCE(
         json_agg(
             json_build_object(
@@ -82,7 +79,7 @@ GROUP BY
     s.id, s.date, s.room, s.name, s.club_id,
     cl.name, cl.address, cl.website, cl.popularity, cl.zip_code,
     cl.phone_number, cl.timezone, cl.visible, cl.city, cl.state,
-    cl.status, cl.rate_limit, cl.max_retries, cl.timeout
+    cl.status
 """
 
 _LINEUP_SQL = """
@@ -286,9 +283,6 @@ def main(argv: list[str] | None = None) -> None:
             "state": show_row.get("state"),
             "visible": show_row.get("visible", True),
             "status": show_row.get("status", "active"),
-            "rate_limit": show_row.get("rate_limit", 1.0),
-            "max_retries": show_row.get("max_retries", 3),
-            "timeout": show_row.get("timeout", 30),
             "scraping_sources": show_row.get("scraping_sources", []),
         }
     )
