@@ -337,6 +337,29 @@ Two gotchas:
 - The `decodedRoutes(in:as:)` helper in `HostedViewTestSupport.swift` reverses
   the codable representation back into `[Route]` in push order.
 
+### Launching Directly Into A Detail Screen (DEBUG)
+
+For per-task sim verification of `PodcastDetailView`, `ShowDetailView`,
+`ComedianDetailView`, or `ClubDetailView` against a **specific** entity ID
+that isn't reachable from the trending/search rails, set
+`LAUNCHTRACK_DEBUG_ROUTE=<kind>:<id>` on `launch_app_sim`. Recognised kinds:
+`podcast` / `show` / `comedian` / `club` (plural and `*Detail` synonyms also
+work). Example:
+
+```
+launch_app_sim({ env: { "LAUNCHTRACK_DEBUG_ROUTE": "podcast:30" } })
+```
+
+The hook lives on `ContentView` in `LaughTrackApp.swift` under `#if DEBUG`
+and pushes onto the navigation coordinator on initial render. Release builds
+never compile it in. Two gotchas:
+- The route is queued, but `CoordinatedNavigationStack` only mounts inside
+  `appShell`, so on a fresh install the first-entry auth gate intercepts —
+  tap **Continue as guest** (or have the operator sign in) once and the
+  queued route renders immediately under the shell.
+- Mock-mode launches don't need the env var (and shouldn't set it) —
+  screenshot lanes use the seeded nearby preference instead.
+
 ## Launch Screen Iteration
 
 iOS caches the launch screen on the simulator (and on devices). After editing
