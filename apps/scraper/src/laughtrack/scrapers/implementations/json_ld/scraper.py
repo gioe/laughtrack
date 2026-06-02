@@ -35,20 +35,9 @@ if TYPE_CHECKING:
 # The TASK-2560 nightly survey (run 26762966336) found 3 json_ld venues stalling
 # at the 1 RPS default during per-show detail-page enrichment (0.7-1.2 s/show):
 # Huntsville Levity Live, Coastal Creative, and Wit's End Comedy Lounge.
-# Each json_ld venue runs on its own custom domain, so a per-scraper override
-# keyed to self.club.scraping_domain generalizes automatically to future
-# venues onboarded under this scraper, without requiring per-venue
-# DEFAULT_DOMAIN_CONFIGS entries.
-#
 # 2 RPS = 1 req/500ms — conservative bump above the 1 RPS floor, comfortably
 # below any plausible WAF threshold, and aligned with the existing
-# eastvillecomedy.com=2.0 DEFAULT_DOMAIN_CONFIGS entry. Half of
-# SeatEngineClassicScraper's 5 RPS (which is pinned to its specific
-# concurrency cap and per-club timeout — see TASK-2556).
-#
-# Post-super().__init__ placement is required because self.rate_limiter is
-# created inside super().__init__. After TASK-2569, BaseScraper.__init__ no
-# longer silently negates this override via a stale Club.rate_limit default.
+# eastvillecomedy.com=2.0 DEFAULT_DOMAIN_CONFIGS entry.
 _JSON_LD_HOST_RPS = 2.0
 
 
@@ -69,8 +58,7 @@ class JsonLdScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(JsonLdTransformer(club))
-        if club.scraping_domain:
-            self.rate_limiter.set_domain_limit(club.scraping_domain, _JSON_LD_HOST_RPS)
+        self._register_host_rps(_JSON_LD_HOST_RPS)
 
     async def scrape_async(self) -> list[Show]:
         """Scrape either a single JSON-LD page or metadata-configured detail pages."""

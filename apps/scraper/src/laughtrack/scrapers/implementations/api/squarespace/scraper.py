@@ -37,20 +37,13 @@ from .transformer import SquarespaceEventTransformer
 # Per-host RPS override applied to each Squarespace venue's own domain.
 # The TASK-2560 nightly survey (run 26762966336) found The Den Theatre stalling
 # at 1.05 s/show (98s wall clock across 93 shows) on the per-event detail fetch
-# in _enrich_with_ticket_urls. Each Squarespace venue runs on its own custom
-# domain (thedentheatre.com, theelysian.com, etc.), so a per-scraper override
-# keyed to self.club.scraping_domain generalizes automatically to future
-# venues onboarded under this scraper.
+# in _enrich_with_ticket_urls.
 #
 # 2 RPS = 1 req/500ms — conservative bump above the 1 RPS floor. The inner
 # detail-fetch semaphore is already 5, so 2 RPS drops the rate-limit floor
 # for The Den from ~93s to ~47s without changing the concurrency model.
 # Matches the JsonLdScraper and FoxTucsonTheatre overrides for consistency
 # (TASK-2570 ships all three together).
-#
-# Post-super().__init__ placement is required because self.rate_limiter is
-# created inside super().__init__. After TASK-2569, BaseScraper.__init__ no
-# longer silently negates this override via a stale Club.rate_limit default.
 _SQUARESPACE_HOST_RPS = 2.0
 
 
@@ -72,8 +65,7 @@ class SquarespaceScraper(BaseScraper):
         qs = parse_qs(parsed.query)
         self.collection_id = (qs.get("collectionId") or [""])[0]
 
-        if club.scraping_domain:
-            self.rate_limiter.set_domain_limit(club.scraping_domain, _SQUARESPACE_HOST_RPS)
+        self._register_host_rps(_SQUARESPACE_HOST_RPS)
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return GetItemsByMonth URLs for the current month and next two months."""

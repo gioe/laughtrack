@@ -1,18 +1,24 @@
 """Regression: per-scraper __init__ RPS overrides survive BaseScraper.__init__.
 
-TASK-2570 ships three scraper subclasses that bump their venue host's RPS
+TASK-2570 shipped three scraper subclasses that bump their venue host's RPS
 above the 1.0 default at construction time (modeled on SeatEngineClassic's
 TASK-2556 pattern): JsonLdScraper, SquarespaceScraper, FoxTucsonTheatreScraper.
+TASK-2577 then migrated all four (those three plus SeatEngineClassic) onto a
+shared BaseScraper._register_host_rps helper; these tests pin that the
+post-migration behavior is unchanged from the inline-override pattern.
 
 Each override must be:
   (a) applied (the registered RPS matches the constant declared in the module),
   (b) keyed to the club's own scraping_domain (so distinct venues don't share),
   (c) the winning value when a DEFAULT_DOMAIN_CONFIGS-style entry already
-      registers a lower RPS for the same host (subclass override runs AFTER
-      super().__init__, so it has the last word).
+      registers a lower RPS for the same host — the helper runs from each
+      subclass's __init__ AFTER super().__init__, so it has the last word
+      (TASK-2580).
 
 Each test uses a unique fake host so the singleton RateLimiter's per-domain
-state from one test does not leak into another's assertion.
+state from one test does not leak into another's assertion. The cross-scraper
+empty-domain-guard coverage lives once on the helper in
+test_base_scraper_rate_limit.py — no need to repeat it per subclass.
 """
 
 import importlib.util
@@ -31,12 +37,7 @@ from laughtrack.scrapers.implementations.venues.fox_tucson_theatre.scraper impor
 from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
 
 
-def _make_club(
-    *,
-    scraping_url: str,
-    name: str = "Test Club",
-    scraper_key: str = "",
-) -> Club:
+def _make_club(*, scraping_url: str, name: str = "Test Club", scraper_key: str = "") -> Club:
     club = Club(
         id=1,
         name=name,
@@ -169,51 +170,3 @@ class TestRpsValuesArePinned:
         )
 
         assert _JSON_LD_HOST_RPS == 2.0
-
-
-class TestEmptyDomainGuard:
-    """`if club.scraping_domain:` in each subclass must be a no-op for clubs
-    whose scraping_url yields an empty domain (e.g. empty/relative URL).
-    Otherwise the override would register an empty-string key on the singleton
-    RateLimiter, polluting state for other domains' lookups."""
-
-    @staticmethod
-    def _empty_domain_club(scraper_key: str) -> Club:
-        return _make_club(
-            scraping_url="",
-            name=f"No-domain club ({scraper_key})",
-            scraper_key=scraper_key,
-        )
-
-    @staticmethod
-    def _patch_set_domain_limit(monkeypatch) -> list:
-        from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
-
-        calls: list = []
-
-        def _record(self, domain, rps):
-            calls.append((domain, rps))
-
-        monkeypatch.setattr(RateLimiter, "set_domain_limit", _record)
-        return calls
-
-    @pytest.mark.skipif(
-        importlib.util.find_spec("curl_cffi") is None,
-        reason="curl_cffi not installed (JsonLdScraper imports it transitively)",
-    )
-    def test_json_ld_skips_override_when_domain_empty(self, monkeypatch):
-        from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
-
-        calls = self._patch_set_domain_limit(monkeypatch)
-        JsonLdScraper(self._empty_domain_club("json_ld"))
-        assert not any(domain == "" for domain, _ in calls)
-
-    def test_squarespace_skips_override_when_domain_empty(self, monkeypatch):
-        calls = self._patch_set_domain_limit(monkeypatch)
-        SquarespaceScraper(self._empty_domain_club("squarespace"))
-        assert not any(domain == "" for domain, _ in calls)
-
-    def test_fox_tucson_skips_override_when_domain_empty(self, monkeypatch):
-        calls = self._patch_set_domain_limit(monkeypatch)
-        FoxTucsonTheatreScraper(self._empty_domain_club("fox_tucson_theatre"))
-        assert not any(domain == "" for domain, _ in calls)

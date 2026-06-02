@@ -23,10 +23,6 @@ from .transformer import FoxTucsonTheatreTransformer
 # 2 RPS = 1 req/500ms — conservative bump above the 1 RPS floor, comfortably
 # below any plausible WAF threshold, and aligned with the JsonLdScraper and
 # SquarespaceScraper overrides shipped together in TASK-2570.
-#
-# Post-super().__init__ placement is required because self.rate_limiter is
-# created inside super().__init__. After TASK-2569, BaseScraper.__init__ no
-# longer silently negates this override via a stale Club.rate_limit default.
 _FOX_TUCSON_HOST_RPS = 2.0
 
 
@@ -39,8 +35,7 @@ class FoxTucsonTheatreScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(FoxTucsonTheatreTransformer(club))
-        if club.scraping_domain:
-            self.rate_limiter.set_domain_limit(club.scraping_domain, _FOX_TUCSON_HOST_RPS)
+        self._register_host_rps(_FOX_TUCSON_HOST_RPS)
 
     async def collect_scraping_targets(self) -> List[str]:
         source_url = self.club.scraping_url or self.DEFAULT_EVENTS_URL

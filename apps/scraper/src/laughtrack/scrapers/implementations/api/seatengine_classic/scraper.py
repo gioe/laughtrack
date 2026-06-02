@@ -31,25 +31,22 @@ from .transformer import SeatEngineClassicTransformer
 _PRICE_FETCH_CONCURRENCY = 5
 
 # Per-host RPS override applied to every SeatEngine-classic venue domain.
-# The default global rate limit is 1 RPS per host (DomainConfig.requests_per_second).
-# At 1 RPS the price-enrichment fan-out is sequential: a venue with N upcoming
-# showtimes takes >=N seconds, because the per-host limiter serialises against
-# _PRICE_FETCH_CONCURRENCY. The Comedy Loft of DC and Off The Hook Comedy Club
-# (322 and 315 future showtimes through 2027 via /events + /calendar JSON-LD)
-# would never fit even the 240s seatengine_classic cap at 1 RPS.
+# At the 1 RPS per-host default, the price-enrichment fan-out is sequential:
+# a venue with N upcoming showtimes takes >=N seconds because the per-host
+# limiter serialises against _PRICE_FETCH_CONCURRENCY. The Comedy Loft of DC
+# and Off The Hook Comedy Club (322 and 315 future showtimes through 2027
+# via /events + /calendar JSON-LD) would never fit even the 240s
+# seatengine_classic cap at 1 RPS.
 #
-# This override is intentionally scraper-intrinsic (TASK-2573). The 5 RPS value
-# is a function of _PRICE_FETCH_CONCURRENCY=5 and the 240s scraper timeout, not
-# of any individual venue, so every classic-SeatEngine club needs it by
-# construction. Two alternatives were considered and rejected:
-#   1. Per-club Club.rate_limit -- convention 39 forbids flat scraper config on
-#      clubs; would also need a Prisma migration plus per-onboarding remembering.
-#   2. DEFAULT_DOMAIN_CONFIGS entry -- keyed by host, but every classic-SeatEngine
-#      venue runs on its own custom domain, so this would expand to one entry
-#      per venue, hand-maintained.
-# The post-super().__init__ placement is also no longer a workaround for the
-# TASK-2569 BaseScraper bug; it is the only correct location, because
-# self.rate_limiter is created inside super().__init__.
+# This override is intentionally scraper-intrinsic (TASK-2573). The 5 RPS
+# value is a function of _PRICE_FETCH_CONCURRENCY=5 and the 240s scraper
+# timeout, not of any individual venue, so every classic-SeatEngine club
+# needs it by construction. Two alternatives were considered and rejected:
+#   1. Per-club Club.rate_limit -- convention 39 forbids flat scraper
+#      config on clubs.
+#   2. DEFAULT_DOMAIN_CONFIGS entry -- keyed by host, but every
+#      classic-SeatEngine venue runs on its own custom domain, so this
+#      would expand to one entry per venue, hand-maintained.
 #
 # Iteration history (TASK-2556):
 # - 3 RPS landed in 3195b18b0 and fixed DCCL on GHA (322 shows in 120s) but OTH
@@ -88,10 +85,7 @@ class SeatEngineClassicScraper(BaseScraper):
             SeatEngineClassicTransformer(club)
         )
         self._location_filter = self._parse_location_filter(club.scraping_url)
-        if club.scraping_domain:
-            self.rate_limiter.set_domain_limit(
-                club.scraping_domain, _SEATENGINE_HOST_RPS
-            )
+        self._register_host_rps(_SEATENGINE_HOST_RPS)
 
     @staticmethod
     def _parse_location_filter(scraping_url: str) -> Optional[str]:
