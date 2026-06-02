@@ -60,3 +60,26 @@ Per-platform scrape configuration belongs in `scraping_sources` (keyed by
 only. When onboarding or switching a venue, insert/update the appropriate
 `scraping_sources` row — do not add new flat scraper config columns to `clubs`.
 Run `tusk conventions search scraping_sources` for the full column reference.
+
+## Cross-client parity — quick reminder
+
+LaughTrack has two user-facing clients in this monorepo: **`apps/web`** (Next.js)
+and **`ios/`** (native SwiftUI). They render the same domain (shows, clubs,
+comedians, podcasts) through separate UI stacks, so a UX or copy change in one
+client is **not** automatically reflected in the other.
+
+When making a user-facing change in one client, check whether the same surface
+exists in the other client and decide explicitly:
+
+- **Mirror it** — file or include an equivalent change in the sibling client
+  (e.g. TASK-2596 / TASK-2600 fixed web empty-state copy → TASK-2603 mirrored
+  it on iOS `ShowsListView`).
+- **Skip it with a reason** — the surface doesn't exist there, the other client
+  already handles the case, or the platforms have a deliberate UX divergence.
+  Capture the reason in the task description or scope note so reviewers don't
+  re-investigate.
+
+Same rule for API/contract changes: the iOS app consumes `apps/web` `/api/v1`
+via a generated OpenAPI client (`ios/Sources/LaughTrackAPIClient/`). Any
+`/api/v1` edit must ship the regenerated client in lockstep — see
+`ios/CLAUDE.md` for the regeneration recipe.
