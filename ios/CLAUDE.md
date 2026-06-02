@@ -468,6 +468,35 @@ attachment lives in `AppBootstrap.configureAnalytics`:
   `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
   during development without touching production analytics.
 
+### User-ID lifecycle wiring (TASK-2605)
+
+`AppBootstrap.attachAnalyticsLifecycle` subscribes to `AuthManager`'s
+`currentUser` published projection at construction and translates auth-state
+edges into `AnalyticsManagerProtocol` calls. The Combine subscription is
+stored on `AppBootstrap.analyticsLifecycleCancellables` so its lifetime
+matches the app's, not a single view's.
+
+Transitions:
+
+- **nil → user**: `analytics.setUserID("sha256:<hex>")` — the identifier is
+  the SHA-256 hex digest of `email.lowercased()`, prefixed with the
+  algorithm. Lowercasing first keeps the value stable across any backend
+  case-normalization step.
+- **user → nil**: `analytics.reset()` — clears any persisted Firebase user
+  properties.
+- **user → user' (same email, in-place update)**: no-op — driven by a
+  scan-pairwise emitter, so flows like `markComedianOnboardingCompleted`
+  do not re-fire `setUserID`.
+
+**Never pass raw PII to `analytics.setUserID`.** Google's documented GA4
+policy prohibits transmitting names, email addresses, or phone numbers as
+the `user_id`, and `FirebaseAnalyticsProvider.setUserID` forwards directly
+to `Analytics.setUserID`. If a future change adds a new sign-in surface,
+route the identifier through `AppBootstrap.stableAnalyticsUserID(forEmail:)`
+(or whatever opaque server-issued ID replaces it — see the TASK-2612
+follow-up to surface a server-issued userId via `/v1/me`) rather than
+shipping the raw email.
+
 ### Verifying a fresh plist drop on a simulator
 
 Two non-obvious gotchas surfaced during TASK-2604 (initial plist provisioning):
