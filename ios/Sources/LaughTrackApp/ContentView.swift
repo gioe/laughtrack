@@ -180,7 +180,8 @@ struct ContentView: View {
                     favorites: favorites,
                     notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
                     notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
-                    pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self)
+                    pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self),
+                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
                 )
                 .environmentObject(favorites)
                 .transition(.opacity)
@@ -300,7 +301,8 @@ struct ContentView: View {
                     notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
                     notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
                     pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self),
-                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self)
+                    profileLocationPreferenceSyncClient: serviceContainer.resolveOptional((any ProfileLocationPreferenceSyncing).self),
+                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
                 )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)

@@ -42,6 +42,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     private let systemSettingsOpener: any SystemSettingsOpening
     private let notificationSyncClient: (any NotificationPreferenceSyncing)?
     private let pushTokenManager: (any PushDeviceTokenManaging)?
+    private let analytics: (any AnalyticsManagerProtocol)?
     private let now: () -> Date
 
     // Tracks whether the user responded via the sheet's Enable / Maybe later
@@ -74,6 +75,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         systemSettingsOpener: (any SystemSettingsOpening)? = nil,
         notificationSyncClient: (any NotificationPreferenceSyncing)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
+        analytics: (any AnalyticsManagerProtocol)? = nil,
         now: @escaping () -> Date = { Date() }
     ) {
         self.stateStore = stateStore
@@ -85,6 +87,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
         self.notificationSyncClient = notificationSyncClient
         self.pushTokenManager = pushTokenManager
+        self.analytics = analytics
         self.now = now
     }
 
@@ -121,6 +124,13 @@ public final class SoftPushPromptCoordinator: ObservableObject {
             hasPresentedThisSession = true
             hasRespondedExplicitly = false
             presentation = .promptingSheet
+            analytics?.track(
+                PushAnalyticsEvents.softPromptShown,
+                parameters: [
+                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
+                    PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
+                ]
+            )
         case .authorized:
             // OS allows push but the user has the app's push pref off. Treat as a
             // deliberate Settings choice — don't silently re-enable, don't show
@@ -136,6 +146,13 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func enableTapped() async {
         hasRespondedExplicitly = true
+        analytics?.track(
+            PushAnalyticsEvents.softPromptEnableTapped,
+            parameters: [
+                PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
+                PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
+            ]
+        )
         // The sheet stays at .promptingSheet across the OS authorization
         // prompt (and the prior status check) on purpose: the buffered-alert
         // handoff requires the sheet to still be up when we set
@@ -153,6 +170,13 @@ public final class SoftPushPromptCoordinator: ObservableObject {
             presentation = .hidden
         case .notDetermined:
             let granted = await authorizationRequester.requestAuthorization()
+            analytics?.track(
+                PushAnalyticsEvents.osPromptResult,
+                parameters: [
+                    PushAnalyticsEvents.Param.granted: granted,
+                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue
+                ]
+            )
             if granted {
                 applyPushPreferenceEnabled()
                 presentation = .hidden
@@ -174,6 +198,17 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func deferTapped() {
         hasRespondedExplicitly = true
+        // Fire BEFORE recordDeferral so deferral_count reflects how many
+        // times the user had deferred prior to this tap (i.e. the cadence
+        // state the prompt was shown against), not the freshly-incremented
+        // count this tap is about to produce.
+        analytics?.track(
+            PushAnalyticsEvents.softPromptDeferTapped,
+            parameters: [
+                PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.engagementMoment.rawValue,
+                PushAnalyticsEvents.Param.deferralCount: stateStore.deferralCount
+            ]
+        )
         stateStore.recordDeferral()
         presentation = .hidden
     }

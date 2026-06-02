@@ -1,5 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 @MainActor
@@ -26,18 +27,21 @@ final class ComedianOnboardingModel: ObservableObject {
     private let pushAuthorizationStatusProvider: any PushAuthorizationStatusProviding
     private let systemSettingsOpener: any SystemSettingsOpening
     private let pushTokenManager: (any PushDeviceTokenManaging)?
+    private let analytics: (any AnalyticsManagerProtocol)?
 
     init(
         pushPermissionRequester: (any PushAuthorizationRequesting)? = nil,
         pushAuthorizationStatusProvider: (any PushAuthorizationStatusProviding)? = nil,
         systemSettingsOpener: (any SystemSettingsOpening)? = nil,
-        pushTokenManager: (any PushDeviceTokenManaging)? = nil
+        pushTokenManager: (any PushDeviceTokenManaging)? = nil,
+        analytics: (any AnalyticsManagerProtocol)? = nil
     ) {
         self.pushPermissionRequester = pushPermissionRequester ?? SystemPushAuthorizationRequester()
         self.pushAuthorizationStatusProvider = pushAuthorizationStatusProvider
             ?? SystemPushAuthorizationStatusProvider()
         self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
         self.pushTokenManager = pushTokenManager
+        self.analytics = analytics
     }
 
     func openSystemSettings() {
@@ -116,7 +120,15 @@ final class ComedianOnboardingModel: ObservableObject {
         case .authorized:
             return true
         case .notDetermined:
-            return await pushPermissionRequester.requestAuthorization()
+            let granted = await pushPermissionRequester.requestAuthorization()
+            analytics?.track(
+                PushAnalyticsEvents.osPromptResult,
+                parameters: [
+                    PushAnalyticsEvents.Param.granted: granted,
+                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.onboarding.rawValue
+                ]
+            )
+            return granted
         case .denied:
             isPushDeniedAlertPresented = true
             return false

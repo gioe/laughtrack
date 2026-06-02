@@ -173,7 +173,19 @@ public final class NotificationPreferenceStore: ObservableObject {
 public final class SettingsNotificationPreferenceModel: ObservableObject {
     @Published public private(set) var preferences: NotificationPreferences
     @Published public private(set) var syncMessage: String?
-    @Published public var isPushDeniedAlertPresented: Bool = false
+    @Published public var isPushDeniedAlertPresented: Bool = false {
+        didSet {
+            // Sticky for the model's lifetime so a subsequent successful
+            // toggle flip — which only happens after the user opens
+            // Settings, enables push at OS level, returns, and re-taps the
+            // toggle — emits from_denied_state=true on
+            // push_settings_toggle_changed. Funnel signal for "user
+            // recovered the denied path."
+            if isPushDeniedAlertPresented {
+                hasPreviouslyHitDeniedAlert = true
+            }
+        }
+    }
 
     private let store: NotificationPreferenceStore
     private let syncClient: (any NotificationPreferenceSyncing)?
@@ -181,7 +193,9 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
     private let pushAuthorizationStatusProvider: any PushAuthorizationStatusProviding
     private let pushAuthorizationRequester: any PushAuthorizationRequesting
     private let systemSettingsOpener: any SystemSettingsOpening
+    private let analytics: (any AnalyticsManagerProtocol)?
     private var preferencesCancellable: AnyCancellable?
+    private var hasPreviouslyHitDeniedAlert = false
 
     public init(
         store: NotificationPreferenceStore,
@@ -189,7 +203,8 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
         pushAuthorizationStatusProvider: (any PushAuthorizationStatusProviding)? = nil,
         pushAuthorizationRequester: (any PushAuthorizationRequesting)? = nil,
-        systemSettingsOpener: (any SystemSettingsOpening)? = nil
+        systemSettingsOpener: (any SystemSettingsOpening)? = nil,
+        analytics: (any AnalyticsManagerProtocol)? = nil
     ) {
         self.store = store
         self.syncClient = syncClient
@@ -199,6 +214,7 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
         self.pushAuthorizationRequester = pushAuthorizationRequester
             ?? SystemPushAuthorizationRequester()
         self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
+        self.analytics = analytics
         self.preferences = store.preferences
         preferencesCancellable = store.$preferences
             .sink { [weak self] preferences in
@@ -212,6 +228,13 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
     }
 
     public func setFavoriteComedianPushAlertsEnabled(_ enabled: Bool) {
+        analytics?.track(
+            PushAnalyticsEvents.settingsToggleChanged,
+            parameters: [
+                PushAnalyticsEvents.Param.enabled: enabled,
+                PushAnalyticsEvents.Param.fromDeniedState: hasPreviouslyHitDeniedAlert
+            ]
+        )
         if enabled {
             Task { [weak self] in
                 await self?.handlePushEnableRequest()
@@ -232,6 +255,13 @@ public final class SettingsNotificationPreferenceModel: ObservableObject {
             applyPushPreference(true)
         case .notDetermined:
             let granted = await pushAuthorizationRequester.requestAuthorization()
+            analytics?.track(
+                PushAnalyticsEvents.osPromptResult,
+                parameters: [
+                    PushAnalyticsEvents.Param.granted: granted,
+                    PushAnalyticsEvents.Param.trigger: PushAnalyticsEvents.Trigger.settingsToggle.rawValue
+                ]
+            )
             if granted {
                 applyPushPreference(true)
             }

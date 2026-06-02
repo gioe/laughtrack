@@ -28,7 +28,8 @@ struct ProfileView: View {
         notificationPreferenceStore: NotificationPreferenceStore,
         notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
-        profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)? = nil
+        profileLocationPreferenceSyncClient: (any ProfileLocationPreferenceSyncing)? = nil,
+        analytics: (any AnalyticsManagerProtocol)? = nil
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
@@ -43,7 +44,8 @@ struct ProfileView: View {
             wrappedValue: SettingsNotificationPreferenceModel(
                 store: notificationPreferenceStore,
                 syncClient: notificationPreferenceSyncClient,
-                pushTokenManager: pushTokenManager
+                pushTokenManager: pushTokenManager,
+                analytics: analytics
             )
         )
     }

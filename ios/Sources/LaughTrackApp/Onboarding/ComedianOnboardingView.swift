@@ -21,6 +21,7 @@ struct ComedianOnboardingView: View {
         notificationPreferenceStore: NotificationPreferenceStore,
         notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)?,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
+        analytics: (any AnalyticsManagerProtocol)? = nil,
         model: ComedianOnboardingModel? = nil
     ) {
         self.apiClient = apiClient
@@ -30,7 +31,8 @@ struct ComedianOnboardingView: View {
         self.pushTokenManager = pushTokenManager
         _model = StateObject(
             wrappedValue: model ?? ComedianOnboardingModel(
-                pushTokenManager: pushTokenManager
+                pushTokenManager: pushTokenManager,
+                analytics: analytics
             )
         )
     }

@@ -59,7 +59,8 @@ public enum ServiceRegistration {
                 stateStore: container.resolve(PushPermissionStateStore.self),
                 notificationPreferenceStore: container.resolve(NotificationPreferenceStore.self),
                 notificationSyncClient: container.resolveOptional((any NotificationPreferenceSyncing).self),
-                pushTokenManager: container.resolveOptional((any PushDeviceTokenManaging).self)
+                pushTokenManager: container.resolveOptional((any PushDeviceTokenManaging).self),
+                analytics: container.resolveOptional(AnalyticsManagerProtocol.self)
             )
         }
         container.register((any ProfileLocationPreferenceSyncing).self, scope: .appLevel) {
