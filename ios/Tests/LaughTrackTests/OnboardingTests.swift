@@ -420,7 +420,7 @@ private struct MockOnboardingTransport: ClientTransport {
     }
 }
 
-private actor RecordingPushPermissionRequester: OnboardingPushPermissionRequesting {
+private actor RecordingPushPermissionRequester: PushAuthorizationRequesting {
     private let result: Bool
     private(set) var requestCount = 0
 

@@ -1,27 +1,6 @@
 import Foundation
 import LaughTrackAPIClient
 import LaughTrackCore
-#if canImport(UserNotifications)
-import UserNotifications
-#endif
-
-protocol OnboardingPushPermissionRequesting: Sendable {
-    func requestAuthorization() async -> Bool
-}
-
-struct SystemOnboardingPushPermissionRequester: OnboardingPushPermissionRequesting {
-    func requestAuthorization() async -> Bool {
-        #if canImport(UserNotifications)
-        do {
-            return try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
-        } catch {
-            return false
-        }
-        #else
-        return false
-        #endif
-    }
-}
 
 @MainActor
 final class ComedianOnboardingModel: ObservableObject {
@@ -43,18 +22,18 @@ final class ComedianOnboardingModel: ObservableObject {
     @Published var isPushDeniedAlertPresented: Bool = false
 
     let suggestedFavoriteTarget = 3
-    private let pushPermissionRequester: any OnboardingPushPermissionRequesting
+    private let pushPermissionRequester: any PushAuthorizationRequesting
     private let pushAuthorizationStatusProvider: any PushAuthorizationStatusProviding
     private let systemSettingsOpener: any SystemSettingsOpening
     private let pushTokenManager: (any PushDeviceTokenManaging)?
 
     init(
-        pushPermissionRequester: any OnboardingPushPermissionRequesting = SystemOnboardingPushPermissionRequester(),
+        pushPermissionRequester: (any PushAuthorizationRequesting)? = nil,
         pushAuthorizationStatusProvider: (any PushAuthorizationStatusProviding)? = nil,
         systemSettingsOpener: (any SystemSettingsOpening)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil
     ) {
-        self.pushPermissionRequester = pushPermissionRequester
+        self.pushPermissionRequester = pushPermissionRequester ?? SystemPushAuthorizationRequester()
         self.pushAuthorizationStatusProvider = pushAuthorizationStatusProvider
             ?? SystemPushAuthorizationStatusProvider()
         self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()

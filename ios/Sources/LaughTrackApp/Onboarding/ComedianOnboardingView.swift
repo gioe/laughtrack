@@ -85,9 +85,12 @@ struct ComedianOnboardingView: View {
             "Turn on push notifications in Settings",
             isPresented: $model.isPushDeniedAlertPresented
         ) {
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                Task { await model.complete(apiClient: apiClient, authManager: authManager) }
+            }
             Button("Open Settings") {
                 model.openSystemSettings()
+                Task { await model.complete(apiClient: apiClient, authManager: authManager) }
             }
         } message: {
             Text("LaughTrack can't enable push notifications until you allow them in Settings.")
@@ -164,6 +167,7 @@ struct ComedianOnboardingView: View {
         return LaughTrackButton(model.phase == .saving ? "Saving..." : "Continue", systemImage: "checkmark") {
             Task {
                 await saveNotificationPreferences()
+                guard !model.isPushDeniedAlertPresented else { return }
                 await model.complete(apiClient: apiClient, authManager: authManager)
             }
         }

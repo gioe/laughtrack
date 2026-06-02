@@ -40,6 +40,9 @@ public struct SystemPushAuthorizationStatusProvider: PushAuthorizationStatusProv
         case .denied:
             return .denied
         @unknown default:
+            // Conservative fallback: treat unrecognized future cases as denied so the
+            // user gets the explanatory Open Settings alert rather than a silent no-op
+            // or an infinite re-prompt loop until we explicitly handle the new case.
             return .denied
         }
         #else
