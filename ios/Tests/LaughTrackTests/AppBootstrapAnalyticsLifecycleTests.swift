@@ -177,7 +177,16 @@ struct AppBootstrapAnalyticsLifecycleTests {
         env.oauthRunner.callbackURL = URL(
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessTokenA)&refreshToken=\(refreshTokenA)"
         )!
-        let userA = AuthenticatedUser(displayName: nil, email: "alice@example.com", avatarURL: nil)
+        // Anchor user-switching ordering on the post-rollout userId branch —
+        // production sign-ins normally carry a server-issued userId, so the
+        // ordered-emission regression guard should pin that path rather than
+        // the rollout-window email-hash fallback.
+        let userA = AuthenticatedUser(
+            userId: "user-id-alice-clx9q2tk30000",
+            displayName: nil,
+            email: "alice@example.com",
+            avatarURL: nil
+        )
         env.authManager.loadUserRequest = { userA }
 
         let cancellables = AppBootstrap.attachAnalyticsLifecycle(
@@ -200,14 +209,19 @@ struct AppBootstrapAnalyticsLifecycleTests {
         env.oauthRunner.callbackURL = URL(
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessTokenB)&refreshToken=\(refreshTokenB)"
         )!
-        let userB = AuthenticatedUser(displayName: nil, email: "bob@example.com", avatarURL: nil)
+        let userB = AuthenticatedUser(
+            userId: "user-id-bob-clx9q2tk30001",
+            displayName: nil,
+            email: "bob@example.com",
+            avatarURL: nil
+        )
         env.authManager.loadUserRequest = { userB }
 
         await env.authManager.signIn(with: .google)
 
         #expect(env.analytics.setUserIDCalls == [
-            AppBootstrap.stableAnalyticsUserID(forEmail: "alice@example.com"),
-            AppBootstrap.stableAnalyticsUserID(forEmail: "bob@example.com"),
+            "user-id-alice-clx9q2tk30000",
+            "user-id-bob-clx9q2tk30001",
         ])
         #expect(env.analytics.resetCallCount == 1)
 
