@@ -203,13 +203,40 @@ struct ShowsListView: View {
     }
 
     private var emptyMessage: String {
-        if !model.comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-            !model.clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        ShowsListEmptyMessage.resolve(
+            comedianSearchText: model.comedianSearchText,
+            clubSearchText: model.clubSearchText,
+            hasActiveNearbyPreference: model.activeNearbyPreference != nil,
+            pinnedComedianName: model.pinnedComedianName,
+            pinnedClubName: model.pinnedClubName
+        )
+    }
+}
+
+/// Pure resolver for the `ShowsListView` empty-state copy. Extracted so the
+/// branching (search-filter → ZIP-filter → pinned-entity → generic) can be
+/// covered without hosting the view — HostedView's accessibility-tree wiring
+/// is broken on iOS 26.x simulators (see `ios/CLAUDE.md`).
+enum ShowsListEmptyMessage {
+    static func resolve(
+        comedianSearchText: String,
+        clubSearchText: String,
+        hasActiveNearbyPreference: Bool,
+        pinnedComedianName: String?,
+        pinnedClubName: String?
+    ) -> String {
+        if !comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+            !clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return "No shows matched this search. Try another comedian, club, or a broader date range."
         }
 
-        if model.activeNearbyPreference != nil {
+        if hasActiveNearbyPreference {
             return "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
+        }
+
+        if let pinnedName = (pinnedComedianName ?? pinnedClubName)?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !pinnedName.isEmpty {
+            return "\(pinnedName) has no upcoming shows on LaughTrack yet."
         }
 
         return "No shows are available right now."
