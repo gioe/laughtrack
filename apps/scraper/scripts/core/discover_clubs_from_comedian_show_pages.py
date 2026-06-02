@@ -496,7 +496,7 @@ def _create_clubs(venues: list[DiscoveredVenue]) -> int:
             "timezone": None,
         }
         try:
-            club = handler.upsert_for_tour_date_venue(venue_dict)
+            club = handler.upsert_discovered_venue(venue_dict)
             if club:
                 created += 1
                 Logger.info(f"  Upserted club: {v.venue_name} (id={club.id})")

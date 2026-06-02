@@ -3,7 +3,7 @@ ComedianWebsiteScraper: discovers venues from comedian personal websites
 that contain JSON-LD structured data (schema.org Event markup).
 
 For each event found on a comedian's website:
-- Upserts a clubs row for the venue (via ClubHandler.upsert_for_tour_date_venue).
+- Upserts a clubs row for the venue (via ClubHandler.upsert_discovered_venue).
 - Updates the comedian's website_last_scraped and website_scrape_strategy metadata.
 
 Shows are NOT created — dedicated venue scrapers handle show creation.
@@ -77,7 +77,7 @@ class ComedianWebsiteScrapeRunSummary:
 class ComedianWebsiteScraper(BaseScraper):
     """
     Scrapes comedian personal websites for JSON-LD Event markup and
-    discovers venues via ClubHandler.upsert_for_tour_date_venue().
+    discovers venues via ClubHandler.upsert_discovered_venue().
 
     Shows are NOT created — dedicated venue scrapers handle show creation.
 
@@ -514,7 +514,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     {"uuid": comedian.uuid, "name": comedian.name}
                 ]
 
-            club = self._club_handler.upsert_for_tour_date_venue(venue_dict)
+            club = self._club_handler.upsert_discovered_venue(venue_dict)
             return club is not None
 
         except Exception as e:
@@ -552,7 +552,7 @@ class ComedianWebsiteScraper(BaseScraper):
                 },
             }
 
-            club = self._club_handler.upsert_for_tour_date_venue(venue_dict)
+            club = self._club_handler.upsert_discovered_venue(venue_dict)
             return club is not None
 
         except Exception as e:

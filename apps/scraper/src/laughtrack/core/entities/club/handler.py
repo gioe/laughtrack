@@ -597,6 +597,57 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for Ticketmaster venue {venue_id}: {e}")
             raise
 
+    def upsert_discovered_venue(self, venue: dict) -> Optional[Club]:
+        """
+        Upsert a clubs row for a venue surfaced as a discovery side
+        effect (comedian websites, tour-page widget detection, etc.).
+        Inserts only the clubs row — does NOT register a
+        scraping_sources entry, because the discovery is metadata-only
+        and does not commit to scraping from any specific platform.
+
+        Args:
+            venue: dict with at minimum 'name' key; optional 'address',
+                'zip_code', 'timezone'. Extra keys (including any
+                ``discovery_metadata``) are ignored.
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid
+            input or when the junk-venue quality filter rejects the
+            name.
+        """
+        name = (venue.get("name") or "").strip()
+        if not name:
+            return None
+
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(name):
+            return None
+
+        address = (venue.get("address") or "").strip()
+        zip_code = (venue.get("zip_code") or "").strip()
+        timezone = (venue.get("timezone") or None)
+
+        from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
+        city, state = parse_city_state_from_address(address)
+
+        fuzzy_match = self._find_fuzzy_match_in_location(name, city, state)
+        if fuzzy_match is not None:
+            self._log_fuzzy_match_reuse("Discovered", name, name, city, state, fuzzy_match)
+            return fuzzy_match
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_DISCOVERED_VENUE,
+                (name, address, zip_code, city, state, timezone),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting discovered venue '{name}': {e}")
+            raise
+
     def upsert_for_tour_date_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a venue discovered via the tour-date aggregator

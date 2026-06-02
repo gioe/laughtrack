@@ -501,7 +501,7 @@ def _bandsintown_event_to_venue(
         if sample_url:
             venue_dict["discovery_metadata"]["sample_urls"] = [sample_url]
 
-        club = club_handler.upsert_for_tour_date_venue(venue_dict)
+        club = club_handler.upsert_discovered_venue(venue_dict)
         return club is not None
 
     except Exception as e:

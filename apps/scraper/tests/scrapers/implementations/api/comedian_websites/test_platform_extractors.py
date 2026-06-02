@@ -208,12 +208,12 @@ class TestBandsintownEventToVenue:
         club_handler = MagicMock()
         club = MagicMock()
         club.id = 99
-        club_handler.upsert_for_tour_date_venue.return_value = club
+        club_handler.upsert_discovered_venue.return_value = club
 
         result = _bandsintown_event_to_venue(event, club_handler, "test")
         assert result is True
-        club_handler.upsert_for_tour_date_venue.assert_called_once()
-        venue_dict = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        club_handler.upsert_discovered_venue.assert_called_once()
+        venue_dict = club_handler.upsert_discovered_venue.call_args.args[0]
         assert venue_dict["discovery_metadata"] == {
             "source": "comedian_websites",
             "event_urls": ["https://www.bandsintown.com/e/123"],
@@ -311,7 +311,7 @@ class TestKomiExtractVenues:
         club.id = 42
         club.timezone = "America/Chicago"
         club_handler = MagicMock()
-        club_handler.upsert_for_tour_date_venue.return_value = club
+        club_handler.upsert_discovered_venue.return_value = club
 
         result = await KomiExtractorForComedian.extract_venues(
             scraping_url="https://chriskattan.komi.io/",
@@ -321,8 +321,8 @@ class TestKomiExtractVenues:
             log_prefix="test",
         )
         assert result == 1
-        club_handler.upsert_for_tour_date_venue.assert_called_once()
-        venue_dict = club_handler.upsert_for_tour_date_venue.call_args.args[0]
+        club_handler.upsert_discovered_venue.assert_called_once()
+        venue_dict = club_handler.upsert_discovered_venue.call_args.args[0]
         assert venue_dict["discovery_metadata"] == {
             "source": "comedian_websites",
             "comedian_refs": [{"uuid": "u1", "name": "Chris Kattan"}],

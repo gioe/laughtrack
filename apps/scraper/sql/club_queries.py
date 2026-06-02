@@ -440,6 +440,25 @@ class ClubQueries:
         WHERE EXISTS (SELECT 1 FROM upserted_source)
     """
 
+    # Discovery-only venue upsert: inserts/updates the clubs row but does
+    # NOT register a scraping_sources entry. Used by callers (comedian
+    # websites, tour-page discovery scripts) that surface venues as a
+    # side effect without committing to scrape from any specific platform.
+    # Returning shape mirrors the *_VENUE upserts (clubs.* plus an empty
+    # scraping_sources array) so ``Club.from_db_row`` can consume it.
+    UPSERT_DISCOVERED_VENUE = """
+        INSERT INTO clubs (
+            name, address, website, visible,
+            zip_code, city, state, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, '', TRUE, %s, %s, %s, '', 0, %s)
+        ON CONFLICT (name) DO UPDATE SET
+            timezone = COALESCE(clubs.timezone, EXCLUDED.timezone),
+            city     = COALESCE(clubs.city,     EXCLUDED.city),
+            state    = COALESCE(clubs.state,    EXCLUDED.state)
+        RETURNING *, '[]'::json AS scraping_sources
+    """
+
     # See UPSERT_CLUB_BY_EVENTBRITE_VENUE comment above for why the final
     # SELECT projects from the CTE rather than JOINing the clubs table.
     UPSERT_CLUB_BY_TOUR_DATE_VENUE = """

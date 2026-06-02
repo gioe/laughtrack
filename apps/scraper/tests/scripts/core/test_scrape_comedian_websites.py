@@ -147,7 +147,7 @@ def test_platform_extractors_return_event_count_for_success_classification(monke
 
 def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
     scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
-    scraper._club_handler = types.SimpleNamespace(upsert_for_tour_date_venue=lambda venue: types.SimpleNamespace(id=77))
+    scraper._club_handler = types.SimpleNamespace(upsert_discovered_venue=lambda venue: types.SimpleNamespace(id=77))
     scraper._club = types.SimpleNamespace(name="Comedian Websites")
     scraper.logger_context = {}
 
@@ -165,7 +165,7 @@ def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
         ),
     )
     captured = []
-    scraper._club_handler.upsert_for_tour_date_venue = lambda venue: captured.append(venue) or types.SimpleNamespace(id=77)
+    scraper._club_handler.upsert_discovered_venue = lambda venue: captured.append(venue) or types.SimpleNamespace(id=77)
 
     count = scraper._extract_venues_from_events(
         [event],
@@ -187,7 +187,7 @@ def test_registered_extractor_runs_before_json_ld_empty(monkeypatch):
     scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
     scraper._club = types.SimpleNamespace(name="Comedian Websites")
     scraper._club_handler = types.SimpleNamespace(
-        upsert_for_tour_date_venue=lambda venue: types.SimpleNamespace(id=77)
+        upsert_discovered_venue=lambda venue: types.SimpleNamespace(id=77)
     )
     scraper._comedian_handler = types.SimpleNamespace()
     scraper.logger_context = {}
