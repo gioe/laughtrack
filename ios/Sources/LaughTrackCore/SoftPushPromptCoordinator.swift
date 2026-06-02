@@ -4,23 +4,9 @@ import LaughTrackBridge
 
 @MainActor
 public final class SoftPushPromptCoordinator: ObservableObject {
-    public struct Configuration: Sendable, Equatable {
-        public var engagementTrigger: Int
-        public var deferralCap: Int
-
-        public init(engagementTrigger: Int = 3, deferralCap: Int = 3) {
-            self.engagementTrigger = engagementTrigger
-            self.deferralCap = deferralCap
-        }
-
-        public static let `default` = Configuration()
-    }
-
     @Published public var isPromptPresented: Bool = false
     @Published public var isDeniedAlertPresented: Bool = false
     @Published public private(set) var hasPresentedThisSession: Bool = false
-
-    public let configuration: Configuration
 
     private let stateStore: PushPermissionStateStore
     private let notificationPreferenceStore: NotificationPreferenceStore
@@ -29,6 +15,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     private let systemSettingsOpener: any SystemSettingsOpening
     private let notificationSyncClient: (any NotificationPreferenceSyncing)?
     private let pushTokenManager: (any PushDeviceTokenManaging)?
+    private let now: () -> Date
 
     // Tracks whether the user responded via the sheet's Enable / Maybe later
     // buttons. Swipe-to-dismiss bypasses both, so onDismiss treats a
@@ -44,7 +31,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         systemSettingsOpener: (any SystemSettingsOpening)? = nil,
         notificationSyncClient: (any NotificationPreferenceSyncing)? = nil,
         pushTokenManager: (any PushDeviceTokenManaging)? = nil,
-        configuration: Configuration = .default
+        now: @escaping () -> Date = { Date() }
     ) {
         self.stateStore = stateStore
         self.notificationPreferenceStore = notificationPreferenceStore
@@ -55,21 +42,32 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         self.systemSettingsOpener = systemSettingsOpener ?? SystemSettingsOpener()
         self.notificationSyncClient = notificationSyncClient
         self.pushTokenManager = pushTokenManager
-        self.configuration = configuration
+        self.now = now
     }
 
     public func handleComedianFavoriteAdded(isPostOnboarding: Bool) async {
         guard isPostOnboarding else { return }
-        // Short-circuit the persistent increment when we will never prompt
-        // again — push already enabled, deferral cap hit, or sheet already
-        // shown this session. Otherwise the counter would keep growing
-        // forever and write to AppStateStorage on every favorite add.
+        // Short-circuit the persistent increment when the prompt will never
+        // surface again from this favorite — push enabled, deferral cap hit,
+        // or sheet already shown this session. Otherwise the engagement
+        // counter would keep growing and write to AppStateStorage on every
+        // favorite add. These mirror the cadence's eligibility filters but
+        // run before the persistent write to avoid pointless I/O.
         guard !notificationPreferenceStore.preferences.favoriteComedianPushAlertsEnabled else { return }
-        guard !stateStore.hasReachedDeferralCap(configuration.deferralCap) else { return }
+        guard !stateStore.hasReachedDeferralCap(PushPermissionPromptCadence.maxDeferrals) else { return }
         guard !hasPresentedThisSession else { return }
 
-        let count = stateStore.recordPostOnboardingFavorite()
-        guard count >= configuration.engagementTrigger else { return }
+        stateStore.recordPostOnboardingFavorite()
+
+        let inputs = PushPermissionPromptCadence.Inputs(
+            now: now(),
+            deferralCount: stateStore.deferralCount,
+            lastDeferredAt: stateStore.lastDeferredAt,
+            engagementSignalCount: stateStore.postOnboardingFavoriteCount,
+            sessionCountSinceLastDeferral: stateStore.sessionCountSinceLastDeferral,
+            hasPresentedThisSession: hasPresentedThisSession
+        )
+        guard case .eligible = PushPermissionPromptCadence.evaluate(inputs) else { return }
 
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {

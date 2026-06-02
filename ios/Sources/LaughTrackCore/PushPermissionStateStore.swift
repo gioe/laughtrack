@@ -6,15 +6,42 @@ public struct PushPermissionState: Codable, Equatable, Sendable {
     public var deferralCount: Int
     public var lastDeferredAt: Date?
     public var postOnboardingFavoriteCount: Int
+    public var sessionCountSinceLastDeferral: Int
 
     public init(
         deferralCount: Int = 0,
         lastDeferredAt: Date? = nil,
-        postOnboardingFavoriteCount: Int = 0
+        postOnboardingFavoriteCount: Int = 0,
+        sessionCountSinceLastDeferral: Int = 0
     ) {
         self.deferralCount = deferralCount
         self.lastDeferredAt = lastDeferredAt
         self.postOnboardingFavoriteCount = postOnboardingFavoriteCount
+        self.sessionCountSinceLastDeferral = sessionCountSinceLastDeferral
+    }
+
+    // Custom decode: tolerate state written by older builds that lacked
+    // sessionCountSinceLastDeferral. A missing key decodes as 0, which is the
+    // correct semantic — pre-upgrade users have an unknown session-count
+    // history, so re-prompting goes through the slowest path (3 cold launches
+    // + backoff) before the gate clears.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.deferralCount = try container.decodeIfPresent(Int.self, forKey: .deferralCount) ?? 0
+        self.lastDeferredAt = try container.decodeIfPresent(Date.self, forKey: .lastDeferredAt)
+        self.postOnboardingFavoriteCount = try container.decodeIfPresent(
+            Int.self, forKey: .postOnboardingFavoriteCount
+        ) ?? 0
+        self.sessionCountSinceLastDeferral = try container.decodeIfPresent(
+            Int.self, forKey: .sessionCountSinceLastDeferral
+        ) ?? 0
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case deferralCount
+        case lastDeferredAt
+        case postOnboardingFavoriteCount
+        case sessionCountSinceLastDeferral
     }
 
     public static let `default` = PushPermissionState()
@@ -46,11 +73,16 @@ public final class PushPermissionStateStore: ObservableObject {
     public var deferralCount: Int { state.deferralCount }
     public var lastDeferredAt: Date? { state.lastDeferredAt }
     public var postOnboardingFavoriteCount: Int { state.postOnboardingFavoriteCount }
+    public var sessionCountSinceLastDeferral: Int { state.sessionCountSinceLastDeferral }
 
     public func recordDeferral() {
         update { state in
             state.deferralCount += 1
             state.lastDeferredAt = self.now()
+            // Reset the post-deferral session counter so the cadence's
+            // sessionCountSinceLastDeferral gate starts counting from this
+            // decline forward.
+            state.sessionCountSinceLastDeferral = 0
         }
     }
 
@@ -60,6 +92,14 @@ public final class PushPermissionStateStore: ObservableObject {
             state.postOnboardingFavoriteCount += 1
         }
         return state.postOnboardingFavoriteCount
+    }
+
+    /// Increment the post-deferral session counter. Called once per cold
+    /// launch from the app entry point.
+    public func recordColdLaunchSession() {
+        update { state in
+            state.sessionCountSinceLastDeferral += 1
+        }
     }
 
     public func hasReachedDeferralCap(_ cap: Int) -> Bool {

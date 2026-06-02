@@ -77,6 +77,7 @@ struct PushPermissionStateStoreTests {
         let store = PushPermissionStateStore(appStateStorage: storage)
         store.recordDeferral()
         store.recordPostOnboardingFavorite()
+        store.recordColdLaunchSession()
 
         store.reset()
 
@@ -84,6 +85,62 @@ struct PushPermissionStateStoreTests {
         #expect(reloaded.deferralCount == 0)
         #expect(reloaded.lastDeferredAt == nil)
         #expect(reloaded.postOnboardingFavoriteCount == 0)
+        #expect(reloaded.sessionCountSinceLastDeferral == 0)
+    }
+
+    @Test("recordColdLaunchSession increments the post-deferral session counter")
+    func recordColdLaunchSessionIncrementsCounter() {
+        let store = PushPermissionStateStore(appStateStorage: makeStorage(name: "session-incr"))
+
+        store.recordColdLaunchSession()
+        store.recordColdLaunchSession()
+        store.recordColdLaunchSession()
+
+        #expect(store.sessionCountSinceLastDeferral == 3)
+    }
+
+    @Test("recordDeferral resets the post-deferral session counter so the cadence's session gate restarts")
+    func recordDeferralResetsSessionCounter() {
+        let store = PushPermissionStateStore(appStateStorage: makeStorage(name: "session-reset"))
+        store.recordColdLaunchSession()
+        store.recordColdLaunchSession()
+        #expect(store.sessionCountSinceLastDeferral == 2)
+
+        store.recordDeferral()
+
+        #expect(store.sessionCountSinceLastDeferral == 0)
+        #expect(store.deferralCount == 1)
+    }
+
+    @Test("sessionCountSinceLastDeferral persists across store instances")
+    func sessionCounterPersistsAcrossInstances() {
+        let storage = makeStorage(name: "session-persist")
+        let first = PushPermissionStateStore(appStateStorage: storage)
+        first.recordColdLaunchSession()
+        first.recordColdLaunchSession()
+
+        let reloaded = PushPermissionStateStore(appStateStorage: storage)
+
+        #expect(reloaded.sessionCountSinceLastDeferral == 2)
+    }
+
+    @Test("decode of legacy state JSON that lacks sessionCountSinceLastDeferral defaults to 0")
+    func decodeLegacyStateMissingSessionCountDefaultsToZero() throws {
+        // The state field was added in this task; persisted state from
+        // earlier builds lacks the key. decodeIfPresent must default to 0
+        // so an upgrade doesn't crash on first launch.
+        let legacyJSON = """
+        {
+            "deferralCount": 1,
+            "postOnboardingFavoriteCount": 5
+        }
+        """.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(PushPermissionState.self, from: legacyJSON)
+
+        #expect(decoded.deferralCount == 1)
+        #expect(decoded.postOnboardingFavoriteCount == 5)
+        #expect(decoded.sessionCountSinceLastDeferral == 0)
     }
 
     private func makeStorage(name: String) -> AppStateStorage {

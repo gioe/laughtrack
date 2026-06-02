@@ -36,6 +36,10 @@ struct LaughTrackApp: App {
         remoteNotificationDelegate.pushTokenManager = bootstrap.container.resolveOptional((any PushDeviceTokenManaging).self)
         #endif
 
+        // App.init is the only once-per-cold-launch hook the soft prompt
+        // cadence has — feeds the sessionCountSinceLastDeferral gate.
+        bootstrap.container.resolve(PushPermissionStateStore.self).recordColdLaunchSession()
+
         if MockModeDetector.isMockMode {
             Self.applyMockModeSeedData(container: bootstrap.container)
         }
