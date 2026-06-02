@@ -21,7 +21,9 @@ struct AppBootstrapAnalyticsLifecycleTests {
         let user = AuthenticatedUser(
             displayName: "Test User",
             email: "user@example.com",
-            avatarURL: nil
+            avatarURL: nil,
+            comedianOnboardingCompleted: true,
+            zipCode: "94110"
         )
         env.authManager.loadUserRequest = { user }
 
@@ -38,6 +40,16 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // AuthenticatedUser). reset() must NOT fire on a sign-in transition.
         #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
+
+        // The same nil → user transition dispatches the cohort-filter user
+        // properties. snake_case keys are pinned by the assertion strings —
+        // a future rename would break this test and force re-review against
+        // the convention in ios/CLAUDE.md (Analytics > Event-naming).
+        #expect(env.analytics.userPropertyCalls.map(\.name) == [
+            "comedian_onboarding_completed",
+            "has_zip",
+        ])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["true", "true"])
     }
 
     @Test("sign-out transition calls analytics.reset() after a prior sign-in")
@@ -107,6 +119,18 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // not re-fire it, and reset() must stay at 0.
         #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
+
+        // The user-property dispatch is also tied to the sign-in edge, NOT to
+        // in-place currentUser updates. Two property calls (from sign-in) is
+        // the contract: a third pair after markComedianOnboardingCompleted
+        // would mean the live-update path opted in without a follow-up to
+        // reconcile the duplicate-dispatch question.
+        #expect(env.analytics.userPropertyCalls.count == 2)
+        #expect(env.analytics.userPropertyCalls.map(\.name) == [
+            "comedian_onboarding_completed",
+            "has_zip",
+        ])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["false", "false"])
     }
 
     @Test("user-switching within one session emits setUserID(A), reset(), setUserID(B) in order")
