@@ -504,7 +504,7 @@ attachment lives in `AppBootstrap.configureAnalytics`:
   `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
   during development without touching production analytics.
 
-### User-ID lifecycle wiring (TASK-2605)
+### User-ID and cohort-property lifecycle wiring (TASK-2605, TASK-2613)
 
 `AppBootstrap.attachAnalyticsLifecycle` subscribes to `AuthManager`'s
 `currentUser` published projection at construction and translates auth-state
@@ -517,12 +517,20 @@ Transitions:
 - **nil → user**: `analytics.setUserID("sha256:<hex>")` — the identifier is
   the SHA-256 hex digest of `email.lowercased()`, prefixed with the
   algorithm. Lowercasing first keeps the value stable across any backend
-  case-normalization step.
+  case-normalization step. The same edge ALSO dispatches the cohort-filter
+  user properties `comedian_onboarding_completed` and `has_zip` (both
+  stringified `"true"`/`"false"` per Firebase's user-property contract), so
+  GA4 audiences can segment on user state without us shipping the underlying
+  field values.
 - **user → nil**: `analytics.reset()` — clears any persisted Firebase user
-  properties.
+  properties (including the cohort-filter ones above).
 - **user → user' (same email, in-place update)**: no-op — driven by a
   scan-pairwise emitter, so flows like `markComedianOnboardingCompleted`
-  do not re-fire `setUserID`.
+  do not re-fire `setUserID` or the cohort-filter properties. A user who
+  completes onboarding mid-session therefore keeps the previous `false`
+  property value in Firebase until the next sign-in; the live-update path
+  is deferred to a follow-up so the duplicate-dispatch question has
+  somewhere to land.
 
 **Never pass raw PII to `analytics.setUserID`.** Google's documented GA4
 policy prohibits transmitting names, email addresses, or phone numbers as
