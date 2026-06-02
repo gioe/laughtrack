@@ -11,6 +11,7 @@ import base64
 import html as html_module
 import json
 import os
+import textwrap
 import time
 from dataclasses import dataclass
 from typing import Dict
@@ -243,6 +244,14 @@ class ApnsPushService:
                 private_key = f.read()
         if private_key:
             private_key = private_key.replace("\\n", "\n")
+            if "-----BEGIN" not in private_key:
+                stripped = "".join(private_key.split())
+                body = "\n".join(textwrap.wrap(stripped, 64))
+                private_key = (
+                    "-----BEGIN PRIVATE KEY-----\n"
+                    f"{body}\n"
+                    "-----END PRIVATE KEY-----\n"
+                )
 
         missing = [
             name
