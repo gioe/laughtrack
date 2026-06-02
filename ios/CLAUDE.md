@@ -445,6 +445,40 @@ attachment lives in `AppBootstrap.configureAnalytics`:
   `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
   during development without touching production analytics.
 
+### Verifying a fresh plist drop on a simulator
+
+Two non-obvious gotchas surfaced during TASK-2604 (initial plist provisioning):
+
+1. **`simctl` keeps a stale install when only `Resources/` changes.** Xcode's
+   incremental installer reinstalls `Frameworks/` and the bundled `*.bundle`
+   resource bundles, but keeps the previous build's top-level resources cache
+   (`Info.plist`, `Assets.car`, and a freshly-added `GoogleService-Info.plist`
+   all get dropped on the floor). `AppBootstrap` then still logs
+   `Firebase Analytics dormant` at launch even though the plist *is* in the
+   DerivedData `.app` bundle. Force a clean install:
+   ```bash
+   xcrun simctl uninstall <UDID> app.laughtrack.ios
+   xcrun simctl install <UDID> <DerivedData>/.../Build/Products/Debug-iphonesimulator/LaughTrack.app
+   ```
+   Same shape as the launch-screen `simctl erase` gotcha above — silent stale
+   cache that looks identical to "the change didn't take effect."
+
+2. **Pass `-FIRDebugEnabled` as a launch argument** to route events to Firebase
+   DebugView in real time. Without it events still flow to GA4 but they batch
+   server-side and DebugView stays empty — operators read that as "Analytics
+   isn't working" when it actually is. Canonical post-plist verification: launch
+   with `-FIRDebugEnabled`, then watch
+   `https://console.firebase.google.com/project/<project-id>/analytics/debugview` —
+   `session_start`, `first_open`, and `user_engagement` should appear within
+   seconds of cold launch.
+
+Also note: `IS_ANALYTICS_ENABLED` in the plist is a **legacy flag** that the
+modern Firebase Analytics SDK (10.x+) does not consult. A plist that ships with
+`IS_ANALYTICS_ENABLED=false` will still emit Analytics events at runtime as long
+as the GA4 data stream is linked at the project tier. Do not chase that flag
+when debugging "no events in DebugView" — check `simctl uninstall + install` and
+`-FIRDebugEnabled` first.
+
 ### Event-naming convention
 
 All event and parameter names are **snake_case**, scoped by **feature** then
