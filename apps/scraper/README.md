@@ -133,9 +133,8 @@ copy that file to `.env` to configure them locally.
   `make run-script SCRIPT=scripts/core/discover_comedian_podcast_candidates.py ARGS='--limit 25 --dry-run'`.
   `PODCASTINDEX_USER_AGENT` is optional and defaults to `LaughTrack/1.0`;
   set it for manual or ops runs that need a more specific caller identity.
-- `DISCORD_WEBHOOK_URL`, `HEALTHCHECKS_PING_URL`,
-  `BUNNYCDN_STORAGE_*` — alerting / heartbeat / image-upload helpers; see
-  `.env.example` for full descriptions.
+- `DISCORD_WEBHOOK_URL`, `BUNNYCDN_STORAGE_*` — alerting / image-upload
+  helpers; see `.env.example` for full descriptions.
 
 ## Documentation
 
