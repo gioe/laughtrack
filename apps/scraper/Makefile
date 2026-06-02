@@ -127,7 +127,7 @@ check-env:
 		fi \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues query
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit check-scraping-priorities check-scraping-source-invariants check-stale-scraper-keys check-show-attribution clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv check-env setup-venv arch-lint run-script lookup-bandsintown-ids discover-clubs query
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -257,7 +257,7 @@ help-discover:
 	@echo "  club CLUB=<name|id>  - Print full JSON record for a club by name or integer id"
 	@echo "  club ID=<id>         - Same as 'club CLUB=<id>' — exact lookup by integer id"
 	@echo "  query SQL='<sql>'    - Run ad-hoc SQL against the web Postgres DB; prints JSON rows"
-	@echo "  discover-venues      - Discover new venues from comedian tour pages"
+	@echo "  discover-clubs       - Discover new clubs from comedian show pages"
 
 help-clean:
 	@echo "🧹 MAINTENANCE & CLEANUP:"
@@ -628,10 +628,10 @@ discover-widget-ids:
 	@echo "🔍 Discovering widget IDs from comedian websites..."
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_widget_ids $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
 
-# Discover new venues from comedian tour pages
-discover-venues:
-	@echo "🔍 Discovering venues from comedian tour pages..."
-	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_venues_from_tour_pages --create-clubs -v
+# Discover new clubs from comedian show pages
+discover-clubs:
+	@echo "🔍 Discovering clubs from comedian show pages..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_clubs_from_comedian_show_pages --create-clubs -v
 
 # Look up Bandsintown artist IDs by comedian name via API
 lookup-bandsintown-ids:

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Discover new venues from comedian tour pages.
+Discover new clubs from comedian show pages.
 
 Fetches comedian websites with JSON-LD Event markup, extracts venue names
 and ticket URLs, identifies ticketing platforms, and cross-references against
 the existing clubs table. Outputs unmatched venues as onboarding candidates.
 
 Usage:
-    python -m scripts.core.discover_venues_from_tour_pages
-    python -m scripts.core.discover_venues_from_tour_pages --limit 50
-    python -m scripts.core.discover_venues_from_tour_pages --comedian-name "Anthony Rodia"
-    python -m scripts.core.discover_venues_from_tour_pages --min-refs 2
-    python -m scripts.core.discover_venues_from_tour_pages --create-clubs --create-tasks
+    python -m scripts.core.discover_clubs_from_comedian_show_pages
+    python -m scripts.core.discover_clubs_from_comedian_show_pages --limit 50
+    python -m scripts.core.discover_clubs_from_comedian_show_pages --comedian-name "Anthony Rodia"
+    python -m scripts.core.discover_clubs_from_comedian_show_pages --min-refs 2
+    python -m scripts.core.discover_clubs_from_comedian_show_pages --create-clubs --create-tasks
 """
 
 import argparse

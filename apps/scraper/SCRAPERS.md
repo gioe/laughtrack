@@ -1870,7 +1870,7 @@ Guards two invariants in one pass:
    data, or a hidden duplicate row is still emitting listings.
 2. **Stale `tour_dates`-only clubs** — active visible clubs whose only enabled
    source is `tour_dates`. The discovery loop is:
-   `discover_clubs_from_tour_dates` → `audit_tour_date_clubs --create-tasks` →
+   `discover_clubs_from_comedian_show_pages` → `audit_tour_date_clubs --create-tasks` →
    dedicated scraper. A club still on `tour_dates` only after `--stale-days`
    (default 30) means the loop rotted: the audit never ran, the onboarding
    task was never picked up, or the upgrade never landed.
