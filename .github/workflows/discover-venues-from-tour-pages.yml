@@ -53,6 +53,21 @@ jobs:
           fi
           curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL/start"
 
+      - name: Scrape comedian websites
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          # Invoke the module directly rather than `make`: the Makefile gates
+          # on a local .venv/ (activate_venv) which CI lacks. Runs ahead of
+          # discover_venues so widget_detector can stamp bandsintown_id onto
+          # comedians first, feeding downstream discovery.
+          python -m scripts.core.scrape_comedian_websites --all -v
+
       - name: Discover venues from tour pages
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
