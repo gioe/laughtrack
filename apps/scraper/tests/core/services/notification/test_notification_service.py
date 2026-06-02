@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 
 from laughtrack.core.services.notification.geo import _haversine_miles
-from laughtrack.core.services.notification.service import ComedianArrivalNotificationService
+from laughtrack.core.services.notification.service import ApnsPushService, ComedianArrivalNotificationService
 
 
 # ---------------------------------------------------------------------------
@@ -403,3 +403,83 @@ class TestRunMultipleCandidates:
         assert summary["emails_sent"] == 0
         assert summary["errors"] == 1
         mock_record.assert_not_called()
+
+
+class TestApnsPemNormalization:
+    """`ApnsPushService.from_env()` PEM normalization (TASK-2579).
+
+    Local-dev env files often store APNS_PRIVATE_KEY as bare base64
+    (no `-----BEGIN PRIVATE KEY-----` headers, no newlines), while CI
+    secrets carry the full PEM envelope. `from_env()` must accept both.
+    """
+
+    @staticmethod
+    def _generate_pem_and_bare_base64() -> tuple[str, str]:
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+
+        key = ec.generate_private_key(ec.SECP256R1())
+        pem = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("ascii")
+        body_lines = [line for line in pem.splitlines() if line and not line.startswith("-----")]
+        bare_base64 = "".join(body_lines)
+        return pem, bare_base64
+
+    def _set_env(self, monkeypatch, private_key: str) -> None:
+        monkeypatch.setenv("APNS_TEAM_ID", "TEAM12345")
+        monkeypatch.setenv("APNS_KEY_ID", "KEYID67890")
+        monkeypatch.setenv("APNS_BUNDLE_ID", "com.example.app")
+        monkeypatch.setenv("APNS_PRIVATE_KEY", private_key)
+        monkeypatch.delenv("APNS_PRIVATE_KEY_PATH", raising=False)
+        monkeypatch.delenv("APNS_USE_SANDBOX", raising=False)
+
+    def test_from_env_apns_pem_passthrough_with_full_envelope(self, monkeypatch):
+        """A full PEM envelope is left untouched and loads cleanly."""
+        pem, _ = self._generate_pem_and_bare_base64()
+        self._set_env(monkeypatch, pem)
+
+        service = ApnsPushService.from_env()
+
+        assert service._private_key_pem == pem
+        token = service._auth_token()
+        assert token.count(".") == 2
+
+    def test_from_env_apns_pem_autowraps_bare_base64(self, monkeypatch):
+        """Bare base64 (no headers, no newlines) is wrapped into PEM and loads cleanly."""
+        _, bare_base64 = self._generate_pem_and_bare_base64()
+        assert "-----BEGIN" not in bare_base64
+        assert "\n" not in bare_base64
+
+        self._set_env(monkeypatch, bare_base64)
+
+        service = ApnsPushService.from_env()
+
+        normalized = service._private_key_pem
+        assert normalized.startswith("-----BEGIN PRIVATE KEY-----\n")
+        assert normalized.rstrip().endswith("-----END PRIVATE KEY-----")
+        body_lines = [
+            line
+            for line in normalized.splitlines()
+            if line and not line.startswith("-----")
+        ]
+        assert all(len(line) <= 64 for line in body_lines)
+        assert "".join(body_lines) == bare_base64
+
+        token = service._auth_token()
+        assert token.count(".") == 2
+
+    def test_from_env_apns_pem_normalizes_escaped_newlines(self, monkeypatch):
+        """Env-file-escaped `\\n` sequences in a full PEM are converted to real newlines."""
+        pem, _ = self._generate_pem_and_bare_base64()
+        escaped = pem.replace("\n", "\\n")
+
+        self._set_env(monkeypatch, escaped)
+
+        service = ApnsPushService.from_env()
+
+        assert service._private_key_pem == pem
+        token = service._auth_token()
+        assert token.count(".") == 2
