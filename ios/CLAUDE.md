@@ -429,6 +429,54 @@ convenience extension, the `Components.Schemas.<Name>` struct, the full
 (spec + client edit in one commit) is still required; the surgical path just
 keeps the diff readable for review. Pattern used successfully on TASK-2132.
 
+## Analytics
+
+LaughTrack iOS dispatches analytics through SharedKit's `AnalyticsManager`. It's
+registered as `AnalyticsManagerProtocol` (appLevel scope) in `ServiceRegistration`
+and resolved via the standard `@Environment(\.serviceContainer)` path. Provider
+attachment lives in `AppBootstrap.configureAnalytics`:
+
+- **FirebaseAnalyticsProvider** — production sink, attached only when
+  `GoogleService-Info.plist` is present in the main bundle. The plist is
+  operator-provisioned; without it `FirebaseApp.configure()` is skipped and the
+  provider is never registered, so the manager is a no-op for real analytics.
+  Drop the plist into `ios/Resources/` to activate.
+- **ConsoleAnalyticsProvider** — DEBUG-only sink that logs to
+  `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
+  during development without touching production analytics.
+
+### Event-naming convention
+
+All event and parameter names are **snake_case**, scoped by **feature** then
+**action**, and constrained by the Firebase backend:
+
+- Alphanumeric + underscore only; must start with a letter.
+- 40-character cap on event names and parameter keys.
+- Parameter values must be `String`, `Int`, `Double`, or `Bool` — nested
+  dictionaries are silently dropped by Firebase.
+
+Shape: `<feature>_<action>[_<object>]` — `feature` is a small lowercase namespace
+(`push`, `auth`, `search`, `show`, `comedian`, `club`, `nearby`, `library`,
+`onboarding`, `settings`, `profile`), `action` is a verb (`viewed`,
+`tapped`, `submitted`, `dismissed`, `succeeded`, `failed`, `enabled`,
+`disabled`, `started`, `completed`, `errored`), `object` qualifies when the
+action alone is ambiguous.
+
+Examples:
+- `push_prompt_shown` / `push_prompt_accepted` / `push_prompt_dismissed`
+- `auth_signin_started` / `auth_signin_succeeded` / `auth_signin_failed`
+- `show_card_tapped` / `comedian_card_tapped`
+- `search_query_submitted` / `nearby_zip_changed`
+
+Parameter keys follow the same `<scope>_<noun>` snake_case shape:
+`source` (one of `home`, `library`, `search`, `nearby`, `onboarding`),
+`provider` (`google`, `apple`), `result` (`success`, `cancelled`, `error`),
+`error_code`, `screen_name`, `entity_id`, `entity_kind`. Keep payloads small —
+log identifiers, not full DTOs.
+
+Use `trackScreen(_:parameters:)` for screen views; it forwards through
+Firebase's `AnalyticsEventScreenView` with the screen name attached.
+
 ## Architecture
 
 This project uses [ios-libs](https://github.com/gioe/ios-libs) for shared infrastructure.
