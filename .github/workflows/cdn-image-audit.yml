@@ -70,21 +70,6 @@ jobs:
         run: |
           python -m scripts.core.record_pipeline_run --status "$GITHUB_JOB_STATUS"
 
-      - name: Ping heartbeat monitor
-        if: always()
-        env:
-          CDN_AUDIT_HEALTHCHECKS_PING_URL: ${{ secrets.CDN_AUDIT_HEALTHCHECKS_PING_URL }}
-        run: |
-          if [ -z "$CDN_AUDIT_HEALTHCHECKS_PING_URL" ]; then
-            echo "CDN_AUDIT_HEALTHCHECKS_PING_URL not set — skipping heartbeat ping"
-            exit 0
-          fi
-          if [ "${{ job.status }}" = "success" ]; then
-            curl -fsS --retry 3 --max-time 10 "$CDN_AUDIT_HEALTHCHECKS_PING_URL"
-          else
-            curl -fsS --retry 3 --max-time 10 "$CDN_AUDIT_HEALTHCHECKS_PING_URL/fail"
-          fi
-
       - name: Notify on failure
         if: failure()
         run: |
