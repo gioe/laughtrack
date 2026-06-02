@@ -138,6 +138,22 @@ export default async function ComedianDetailsPage(props: {
         ...shows.map(buildShowJsonLd),
     ];
 
+    // middleware.setParamDefaults always injects `zip`, `distance`, `sort`,
+    // `page`, `size`, so those are excluded — only treat user-driven filter
+    // params as evidence that filters are applied.
+    const hasActiveFilters = Boolean(
+        requestData.params.fromDate ||
+            requestData.params.toDate ||
+            requestData.params.filters ||
+            requestData.params.comedian ||
+            requestData.params.club ||
+            requestData.params.chain,
+    );
+    const emptyShowsMessage =
+        shows.length === 0 && !hasActiveFilters
+            ? `${data.name ?? "This comedian"} has no upcoming shows on LaughTrack yet.`
+            : undefined;
+
     return (
         <>
             <JsonLd data={jsonLdData} />
@@ -151,6 +167,7 @@ export default async function ComedianDetailsPage(props: {
                 comedianName={data.name}
                 relatedComedians={relatedComedians}
                 podcastAppearances={podcastAppearances}
+                emptyShowsMessage={emptyShowsMessage}
             />
         </>
     );

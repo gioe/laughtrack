@@ -13,7 +13,14 @@ let pastMountCount = 0;
 let podcastMountCount = 0;
 
 vi.mock("@/ui/pages/search/table", () => ({
-    default: () => <div data-testid="upcoming-shows">Upcoming shows</div>,
+    default: ({ errorMessage }: { errorMessage?: string }) => (
+        <div
+            data-testid="upcoming-shows"
+            data-error-message={errorMessage ?? ""}
+        >
+            Upcoming shows
+        </div>
+    ),
 }));
 
 vi.mock("@/ui/pages/search/filterBar", () => ({
@@ -71,7 +78,10 @@ function makeAppearance(
     };
 }
 
-const renderTabs = (podcastAppearances: PodcastAppearanceDTO[] = []) =>
+const renderTabs = (
+    podcastAppearances: PodcastAppearanceDTO[] = [],
+    overrides: Partial<React.ComponentProps<typeof ComedianDetailTabs>> = {},
+) =>
     render(
         <ComedianDetailTabs
             shows={[{ id: 1 } as ShowDTO]}
@@ -80,6 +90,7 @@ const renderTabs = (podcastAppearances: PodcastAppearanceDTO[] = []) =>
             comedianName="Jane Comic"
             relatedComedians={[{ id: 2 } as ComedianDTO]}
             podcastAppearances={podcastAppearances}
+            {...overrides}
         />,
     );
 
@@ -125,6 +136,32 @@ describe("ComedianDetailTabs", () => {
         fireEvent.click(getByRole("tab", { name: /shows/i }));
 
         expect(pastMountCount).toBe(1);
+    });
+
+    it("forwards an explicit empty-shows message to the ShowTable", () => {
+        const { container } = renderTabs([], {
+            shows: [],
+            emptyShowsMessage:
+                "Jane Comic has no upcoming shows on LaughTrack yet.",
+        });
+
+        const table = container.querySelector(
+            '[data-testid="upcoming-shows"]',
+        ) as HTMLElement | null;
+        expect(table).not.toBeNull();
+        expect(table?.dataset.errorMessage).toBe(
+            "Jane Comic has no upcoming shows on LaughTrack yet.",
+        );
+    });
+
+    it("leaves ShowTable's default empty message when no override is provided", () => {
+        const { container } = renderTabs([], { shows: [] });
+
+        const table = container.querySelector(
+            '[data-testid="upcoming-shows"]',
+        ) as HTMLElement | null;
+        expect(table).not.toBeNull();
+        expect(table?.dataset.errorMessage).toBe("");
     });
 
     it("keeps the podcasts tab mounted after first activation", () => {

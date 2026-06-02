@@ -17,6 +17,7 @@ interface ComedianDetailTabsProps {
     comedianName: string;
     relatedComedians: ComedianDTO[];
     podcastAppearances: PodcastAppearanceDTO[];
+    emptyShowsMessage?: string;
 }
 
 const panelClasses = "max-w-7xl mx-auto pt-6";
@@ -28,6 +29,7 @@ const ComedianDetailTabs = ({
     comedianName,
     relatedComedians,
     podcastAppearances,
+    emptyShowsMessage,
 }: ComedianDetailTabsProps) => {
     return (
         <DetailTabs
@@ -43,7 +45,11 @@ const ComedianDetailTabs = ({
                         total={total}
                         filterData={filters}
                     />
-                    <ShowTable shows={shows} cardContext="comedian-detail" />
+                    <ShowTable
+                        shows={shows}
+                        cardContext="comedian-detail"
+                        errorMessage={emptyShowsMessage}
+                    />
                 </div>
 
                 <div className="mt-10">
