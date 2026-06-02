@@ -36,7 +36,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // setUserID must be called exactly once with the user's stable identifier
         // (currently `email` — the only stable per-account field on
         // AuthenticatedUser). reset() must NOT fire on a sign-in transition.
-        #expect(env.analytics.setUserIDCalls == ["user@example.com"])
+        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
     }
 
@@ -66,7 +66,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
         await env.authManager.signIn(with: .google)
         await env.authManager.signOut()
 
-        #expect(env.analytics.setUserIDCalls == ["user@example.com"])
+        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 1)
     }
 
@@ -105,8 +105,69 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // markComedianOnboardingCompleted mutates currentUser in place. The
         // sign-in setUserID call is the only one; the in-place update must
         // not re-fire it, and reset() must stay at 0.
-        #expect(env.analytics.setUserIDCalls == ["user@example.com"])
+        #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
+    }
+
+    @Test("user-switching within one session emits setUserID(A), reset(), setUserID(B) in order")
+    @MainActor
+    func userSwitchingEmitsExpectedOrderedCalls() async {
+        let env = AnalyticsLifecycleEnv.make()
+
+        let accessTokenA = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
+        let refreshTokenA = "opaque-refresh-token-\(UUID().uuidString)"
+        env.oauthRunner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessTokenA)&refreshToken=\(refreshTokenA)"
+        )!
+        let userA = AuthenticatedUser(displayName: nil, email: "alice@example.com", avatarURL: nil)
+        env.authManager.loadUserRequest = { userA }
+
+        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
+            authManager: env.authManager,
+            analytics: env.analytics
+        )
+        defer { _ = cancellables }
+
+        await env.authManager.signIn(with: .google)
+        await env.authManager.signOut()
+
+        // Swap the user payload and the OAuth callback to a second account,
+        // then sign in again from the same in-process AuthManager. The
+        // scan-pairwise emitter relies on AuthManager.signIn routing through
+        // clearSession (currentUser -> nil) on its way out; a future change
+        // that dedups on previous != current alone could silently regress
+        // this — pin the ordered emission as the regression anchor.
+        let accessTokenB = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
+        let refreshTokenB = "opaque-refresh-token-\(UUID().uuidString)"
+        env.oauthRunner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessTokenB)&refreshToken=\(refreshTokenB)"
+        )!
+        let userB = AuthenticatedUser(displayName: nil, email: "bob@example.com", avatarURL: nil)
+        env.authManager.loadUserRequest = { userB }
+
+        await env.authManager.signIn(with: .google)
+
+        #expect(env.analytics.setUserIDCalls == [
+            AppBootstrap.stableAnalyticsUserID(forEmail: "alice@example.com"),
+            AppBootstrap.stableAnalyticsUserID(forEmail: "bob@example.com"),
+        ])
+        #expect(env.analytics.resetCallCount == 1)
+    }
+
+    @Test("stableAnalyticsUserID hashes the lowercased email as sha256:<64 hex chars>")
+    @MainActor
+    func stableAnalyticsUserIDHashesLowercasedEmail() {
+        let mixed = AppBootstrap.stableAnalyticsUserID(forEmail: "User@Example.COM")
+        let lower = AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")
+
+        // Case-insensitive collapse: backend normalization that lowercases
+        // emails must not invalidate the per-user analytics stream.
+        #expect(mixed == lower)
+        #expect(mixed.hasPrefix("sha256:"))
+        #expect(mixed.dropFirst("sha256:".count).count == 64)
+        // No raw PII leaks into the identifier.
+        #expect(!mixed.contains("@"))
+        #expect(!mixed.lowercased().contains("user"))
     }
 
     @Test("dropping the cancellable set tears down the subscription")

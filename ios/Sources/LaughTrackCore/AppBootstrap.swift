@@ -1,4 +1,5 @@
 import Combine
+import CryptoKit
 import Foundation
 import LaughTrackBridge
 import LaughTrackAPIClient
@@ -241,7 +242,7 @@ public struct AppBootstrap {
             .sink { previous, current in
                 switch (previous, current) {
                 case (nil, let user?):
-                    analytics.setUserID(user.email)
+                    analytics.setUserID(Self.stableAnalyticsUserID(forEmail: user.email))
                 case (_?, nil):
                     analytics.reset()
                 default:
@@ -250,6 +251,19 @@ public struct AppBootstrap {
             }
             .store(in: &cancellables)
         return cancellables
+    }
+
+    /// SHA-256 of the lowercased email, prefixed with the algorithm so the
+    /// hashing scheme is self-describing in downstream sinks. Forwarding the
+    /// raw email to Firebase Analytics would violate Google's documented
+    /// policy against passing PII (names, email, phone numbers) as the GA4
+    /// `user_id` (FirebaseAnalyticsProvider.setUserID forwards directly to
+    /// `Analytics.setUserID`); lowercasing first keeps the identifier stable
+    /// across any backend case-normalization step.
+    static func stableAnalyticsUserID(forEmail email: String) -> String {
+        let digest = SHA256.hash(data: Data(email.lowercased().utf8))
+        let hex = digest.map { String(format: "%02x", $0) }.joined()
+        return "sha256:\(hex)"
     }
 
     private static func configureAnalytics(_ container: ServiceContainer) {
