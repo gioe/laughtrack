@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import LaughTrackBridge
 import LaughTrackAPIClient
@@ -13,6 +14,7 @@ public struct AppBootstrap {
     public let authManager: AuthManager
     public let apiClient: Client
     public let theme: LaughTrackTheme
+    private let analyticsLifecycleCancellables: Set<AnyCancellable>
     private static let sentryTestCrashArgument = "SENTRY_TEST_CRASH"
     private static var sentryStarted = false
     private static var firebaseConfigured = false
@@ -51,6 +53,11 @@ public struct AppBootstrap {
         )
         authManager.pushTokenManager = container.resolveOptional((any PushDeviceTokenManaging).self)
         self.authManager = authManager
+
+        self.analyticsLifecycleCancellables = Self.attachAnalyticsLifecycle(
+            authManager: authManager,
+            analytics: container.resolve(AnalyticsManagerProtocol.self)
+        )
 
         let unauthorizedMiddleware = UnauthorizedResponseMiddleware {
             await authManager.handleUnauthorizedResponse()
@@ -208,6 +215,41 @@ public struct AppBootstrap {
         }
         FirebaseApp.configure()
         firebaseConfigured = true
+    }
+
+    /// Subscribes the analytics manager to AuthManager's user lifecycle. Returns
+    /// the cancellable set so the caller can store it on a long-lived owner —
+    /// dropping the set tears the subscription down.
+    ///
+    /// `currentUser` is the single source of truth for "is a user signed in":
+    /// `state` cycles through `.restoring` → `.signingIn` → `.authenticated` /
+    /// `.signedOut` on every auth event, but those transitions don't all map to
+    /// a user identity change (e.g. token refresh keeps the same user). The
+    /// scan-pairwise pattern fires `setUserID` exactly once per nil → non-nil
+    /// edge and `reset` exactly once per non-nil → nil edge, ignoring the
+    /// initial replay of the published value (nil at subscription time) and
+    /// in-place user updates like `markComedianOnboardingCompleted`.
+    static func attachAnalyticsLifecycle(
+        authManager: AuthManager,
+        analytics: AnalyticsManagerProtocol
+    ) -> Set<AnyCancellable> {
+        var cancellables: Set<AnyCancellable> = []
+        authManager.$currentUser
+            .scan((AuthenticatedUser?.none, AuthenticatedUser?.none)) { acc, next in
+                (acc.1, next)
+            }
+            .sink { previous, current in
+                switch (previous, current) {
+                case (nil, let user?):
+                    analytics.setUserID(user.email)
+                case (_?, nil):
+                    analytics.reset()
+                default:
+                    break
+                }
+            }
+            .store(in: &cancellables)
+        return cancellables
     }
 
     private static func configureAnalytics(_ container: ServiceContainer) {
