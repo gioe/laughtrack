@@ -165,6 +165,7 @@ public struct AppBootstrap {
             }
             let avatarURL = body.data.avatarUrl.flatMap { URL(string: $0) }
             return AuthenticatedUser(
+                userId: body.data.userId,
                 displayName: body.data.displayName,
                 email: body.data.email,
                 avatarURL: avatarURL,

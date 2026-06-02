@@ -895,6 +895,10 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/MeData`.
         public struct MeData: Codable, Hashable, Sendable {
+            /// Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case.
+            ///
+            /// - Remark: Generated from `#/components/schemas/MeData/userId`.
+            public var userId: Swift.String?
             /// User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///
             /// - Remark: Generated from `#/components/schemas/MeData/displayName`.
@@ -930,6 +934,7 @@ public enum Components {
             /// Creates a new `MeData`.
             ///
             /// - Parameters:
+            ///   - userId: Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case.
             ///   - displayName: User-facing display name from OAuth (User.name). May be null if the provider didn't supply one.
             ///   - email: Unique email address (User.email).
             ///   - avatarUrl: Avatar/profile photo URL from OAuth (User.image). May be null.
@@ -939,6 +944,7 @@ public enum Components {
             ///   - zipCode: Saved profile ZIP code used for Near Me.
             ///   - nearbyDistanceMiles: Saved profile distance in miles used for Near Me.
             public init(
+                userId: Swift.String? = nil,
                 displayName: Swift.String? = nil,
                 email: Swift.String,
                 avatarUrl: Swift.String? = nil,
@@ -948,6 +954,7 @@ public enum Components {
                 zipCode: Swift.String? = nil,
                 nearbyDistanceMiles: Swift.Int? = nil
             ) {
+                self.userId = userId
                 self.displayName = displayName
                 self.email = email
                 self.avatarUrl = avatarUrl
@@ -958,6 +965,7 @@ public enum Components {
                 self.nearbyDistanceMiles = nearbyDistanceMiles
             }
             public enum CodingKeys: String, CodingKey {
+                case userId
                 case displayName
                 case email
                 case avatarUrl
