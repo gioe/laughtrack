@@ -607,6 +607,25 @@ log identifiers, not full DTOs.
 Use `trackScreen(_:parameters:)` for screen views; it forwards through
 Firebase's `AnalyticsEventScreenView` with the screen name attached.
 
+### Centralize event names in per-feature enums
+
+Per-feature event names, parameter keys, and shared parameter-value
+vocabularies live in a single `PushAnalyticsEvents`-shaped Swift enum
+under `LaughTrackCore/Analytics/<Feature>AnalyticsEvents.swift`, NOT
+sprinkled as raw string literals at callsites. The shape is:
+
+- `static let <eventName>: String` per event (the snake_case event name)
+- A nested `Param` enum of `static let` parameter keys
+- A nested enum (or set of enums) for any closed parameter-value
+  vocabulary, with each case's `rawValue` carrying the literal snake_case
+  value emitted to Firebase
+
+Reference: `LaughTrackCore/Analytics/PushAnalyticsEvents.swift` (TASK-2598)
+groups the 5 push-funnel event names + 5 parameter keys + 3 trigger
+values (`engagement_moment`, `onboarding`, `settings_toggle`) this way.
+Tests assert against the same constants, so renaming an event is one
+edit, not a grep-and-replace.
+
 ## Architecture
 
 This project uses [ios-libs](https://github.com/gioe/ios-libs) for shared infrastructure.
