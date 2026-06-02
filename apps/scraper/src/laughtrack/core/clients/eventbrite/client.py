@@ -35,7 +35,8 @@ class EventbriteClient(BaseApiClient):
         - Input: a ``Club`` domain object where ``club.eventbrite_id`` may be set.
         - Output: instantiated client with headers and rate limiter configured.
         - Side effects: config lookup for API token, global rate limit set for
-          "eventbrite.com" via shared ``RateLimiter`` instance, debug logs.
+          "www.eventbriteapi.com" (the BASE_URL host that RateLimiter._extract_domain
+          will key on at request time) via shared ``RateLimiter`` instance, debug logs.
 
         Notes for verification
         - Ensure a bearer token exists in config path (api.eventbrite_token).
@@ -45,7 +46,7 @@ class EventbriteClient(BaseApiClient):
         """
         # Initialize with shared project rate limiter; set/ensure domain limit
         limiter = RateLimiter()
-        limiter.set_domain_limit("eventbrite.com", self.RATE_LIMIT)
+        limiter.set_domain_limit("www.eventbriteapi.com", self.RATE_LIMIT)
         super().__init__(club, limiter, proxy_pool=proxy_pool)
 
         # DEBUG: client initialization details

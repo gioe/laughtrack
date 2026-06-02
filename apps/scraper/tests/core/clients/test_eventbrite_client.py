@@ -79,7 +79,7 @@ async def test_init_sets_rate_limit(monkeypatch, stub_base_init):
     # Assert
     assert isinstance(c, EventbriteClient)
     limiter = created["limiter"]
-    assert ("eventbrite.com", EventbriteClient.RATE_LIMIT) in limiter.calls
+    assert ("www.eventbriteapi.com", EventbriteClient.RATE_LIMIT) in limiter.calls
 
 
 def test_initialize_headers_builds_bearer_json(monkeypatch, stub_base_init):
