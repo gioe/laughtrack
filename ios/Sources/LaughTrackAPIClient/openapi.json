@@ -2380,6 +2380,11 @@
         "type": "object",
         "required": ["email", "emailShowNotifications", "pushShowNotifications", "comedianOnboardingCompleted", "zipCode", "nearbyDistanceMiles"],
         "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opaque server-issued user identifier (User.id, a CUID). Stable across email/displayName changes — iOS clients pass this to analytics setUserID instead of an email hash. Nullable for rollout-window safety: older API responses may omit it, and iOS falls back to a SHA-256 email hash in that case."
+          },
           "displayName": {
             "type": "string",
             "nullable": true,

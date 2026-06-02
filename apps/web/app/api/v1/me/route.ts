@@ -50,6 +50,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     const user = await db.user.findUnique({
         where: { id: authCtx.userId },
         select: {
+            id: true,
             name: true,
             email: true,
             image: true,
@@ -74,6 +75,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
     return NextResponse.json(
         {
             data: {
+                userId: user.id,
                 displayName: user.name,
                 email: user.email,
                 avatarUrl: user.image,

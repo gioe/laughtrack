@@ -156,12 +156,13 @@ describe("GET /api/v1/me", () => {
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("99");
     });
 
-    it("returns 200 with displayName, email, and avatarUrl on success", async () => {
+    it("returns 200 with userId, displayName, email, and avatarUrl on success", async () => {
         mockResolveAuth.mockResolvedValue({
             userId: "user-123",
             profileId: "profile-123",
         });
         mockFindUser.mockResolvedValue({
+            id: "user-123",
             name: "Ada Lovelace",
             email: "ada@example.com",
             image: "https://cdn.example.com/avatar.png",
@@ -180,6 +181,7 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body).toEqual({
             data: {
+                userId: "user-123",
                 displayName: "Ada Lovelace",
                 email: "ada@example.com",
                 avatarUrl: "https://cdn.example.com/avatar.png",
@@ -194,6 +196,7 @@ describe("GET /api/v1/me", () => {
         expect(mockFindUser).toHaveBeenCalledWith({
             where: { id: "user-123" },
             select: {
+                id: true,
                 name: true,
                 email: true,
                 image: true,
@@ -216,6 +219,7 @@ describe("GET /api/v1/me", () => {
             profileId: "profile-123",
         });
         mockFindUser.mockResolvedValue({
+            id: "user-123",
             name: null,
             email: "anon@example.com",
             image: null,
@@ -234,6 +238,7 @@ describe("GET /api/v1/me", () => {
         const body = await res.json();
         expect(body).toEqual({
             data: {
+                userId: "user-123",
                 displayName: null,
                 email: "anon@example.com",
                 avatarUrl: null,
@@ -252,6 +257,7 @@ describe("GET /api/v1/me", () => {
             profileId: "profile-abc",
         });
         mockFindUser.mockResolvedValue({
+            id: "user-abc",
             name: "X",
             email: "x@example.com",
             image: null,
