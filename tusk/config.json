@@ -168,6 +168,13 @@
       "bin/tusk",
       "tests/conftest.py",
       "ios/Sources/LaughTrackAPIClient/openapi.json"
+    ],
+    "sparse_always_cone": [
+      "ios/Sources",
+      "ios/Resources",
+      "ios/Tests",
+      "ios/LaughTrack.xcodeproj",
+      "ios/bin"
     ]
   }
 }
