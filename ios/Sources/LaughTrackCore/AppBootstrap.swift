@@ -246,7 +246,7 @@ public struct AppBootstrap {
             .sink { previous, current in
                 switch (previous, current) {
                 case (nil, let user?):
-                    analytics.setUserID(Self.stableAnalyticsUserID(forEmail: user.email))
+                    analytics.setUserID(Self.analyticsUserID(for: user))
                     analytics.setUserProperty(
                         user.comedianOnboardingCompleted ? "true" : "false",
                         forName: "comedian_onboarding_completed"
@@ -263,6 +263,16 @@ public struct AppBootstrap {
             }
             .store(in: &cancellables)
         return cancellables
+    }
+
+    /// Preferred identifier for `analytics.setUserID` on a sign-in edge: the
+    /// opaque server-issued `User.id` surfaced by `/v1/me` (TASK-2612). It
+    /// survives email/displayName changes that would otherwise restart the
+    /// analytics user stream. Falls back to the SHA-256 email hash for the
+    /// rollout window when older API responses (or fixture-built test users)
+    /// omit `userId`.
+    static func analyticsUserID(for user: AuthenticatedUser) -> String {
+        user.userId ?? stableAnalyticsUserID(forEmail: user.email)
     }
 
     /// SHA-256 of the lowercased email, prefixed with the algorithm so the

@@ -514,17 +514,22 @@ matches the app's, not a single view's.
 
 Transitions:
 
-- **nil → user**: `analytics.setUserID("sha256:<hex>")` — the identifier is
-  the SHA-256 hex digest of `email.lowercased()`, prefixed with the
-  algorithm. Lowercasing first keeps the value stable across any backend
-  case-normalization step. The same edge ALSO dispatches the cohort-filter
-  user properties `comedian_onboarding_completed` and `has_zip` (both
+- **nil → user**: `analytics.setUserID(AppBootstrap.analyticsUserID(for: user))`.
+  The helper prefers `user.userId` (the opaque server-issued `User.id`
+  surfaced by `/v1/me` per TASK-2612), and falls back to
+  `stableAnalyticsUserID(forEmail:)` (SHA-256 hex digest of
+  `email.lowercased()`, prefixed `sha256:`) when `userId` is nil. The
+  fallback exists for the rollout window — older `/v1/me` responses
+  predating TASK-2612 omit the field. Once every deployed iOS client has
+  observed at least one `userId`-carrying response, the email-hash branch
+  can be retired. The same edge ALSO dispatches the cohort-filter user
+  properties `comedian_onboarding_completed` and `has_zip` (both
   stringified `"true"`/`"false"` per Firebase's user-property contract), so
-  GA4 audiences can segment on user state without us shipping the underlying
-  field values.
+  GA4 audiences can segment on user state without us shipping the
+  underlying field values.
 - **user → nil**: `analytics.reset()` — clears any persisted Firebase user
   properties (including the cohort-filter ones above).
-- **user → user' (same email, in-place update)**: no-op — driven by a
+- **user → user' (same identity, in-place update)**: no-op — driven by a
   scan-pairwise emitter, so flows like `markComedianOnboardingCompleted`
   do not re-fire `setUserID` or the cohort-filter properties. A user who
   completes onboarding mid-session therefore keeps the previous `false`
@@ -535,11 +540,10 @@ Transitions:
 **Never pass raw PII to `analytics.setUserID`.** Google's documented GA4
 policy prohibits transmitting names, email addresses, or phone numbers as
 the `user_id`, and `FirebaseAnalyticsProvider.setUserID` forwards directly
-to `Analytics.setUserID`. If a future change adds a new sign-in surface,
-route the identifier through `AppBootstrap.stableAnalyticsUserID(forEmail:)`
-(or whatever opaque server-issued ID replaces it — see the TASK-2612
-follow-up to surface a server-issued userId via `/v1/me`) rather than
-shipping the raw email.
+to `Analytics.setUserID`. New sign-in surfaces must route through
+`AppBootstrap.analyticsUserID(for:)` so they pick up the server `userId`
+when present and the SHA-256 email-hash fallback otherwise — never ship
+the raw email.
 
 ### Verifying a fresh plist drop on a simulator
 

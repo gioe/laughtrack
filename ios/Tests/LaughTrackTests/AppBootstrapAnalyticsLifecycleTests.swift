@@ -8,9 +8,9 @@ import LaughTrackAPIClient
 @Suite("AppBootstrap analytics lifecycle wiring")
 struct AppBootstrapAnalyticsLifecycleTests {
 
-    @Test("sign-in transition forwards the user's stable identifier to analytics.setUserID")
+    @Test("sign-in with server-issued userId forwards it verbatim to analytics.setUserID")
     @MainActor
-    func signInForwardsUserIDToAnalytics() async {
+    func signInWithUserIdForwardsItVerbatim() async {
         let env = AnalyticsLifecycleEnv.make()
 
         let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
@@ -18,6 +18,43 @@ struct AppBootstrapAnalyticsLifecycleTests {
         env.oauthRunner.callbackURL = URL(
             string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
         )!
+        let user = AuthenticatedUser(
+            userId: "clx9q2tk30000abcdef123456",
+            displayName: "Test User",
+            email: "user@example.com",
+            avatarURL: nil
+        )
+        env.authManager.loadUserRequest = { user }
+
+        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
+            authManager: env.authManager,
+            analytics: env.analytics
+        )
+        defer { _ = cancellables }
+
+        await env.authManager.signIn(with: .google)
+
+        // Server-issued userId is preferred: setUserID must receive it verbatim,
+        // NOT the SHA-256 email hash. Documents that the analytics user stream
+        // is keyed on the opaque server identifier, so email changes never
+        // restart it. reset() must NOT fire on a sign-in transition.
+        #expect(env.analytics.setUserIDCalls == ["clx9q2tk30000abcdef123456"])
+        #expect(env.analytics.resetCallCount == 0)
+    }
+
+    @Test("sign-in with no userId falls back to the SHA-256 email hash")
+    @MainActor
+    func signInWithoutUserIdFallsBackToEmailHash() async {
+        let env = AnalyticsLifecycleEnv.make()
+
+        let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        env.oauthRunner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
+        // Rollout-window fixture: /v1/me response predates TASK-2612 and omits
+        // userId — AuthenticatedUser.userId is nil, the analytics sink must
+        // fall back to the SHA-256 email hash so the user stream keeps flowing.
         let user = AuthenticatedUser(
             displayName: "Test User",
             email: "user@example.com",
@@ -35,9 +72,6 @@ struct AppBootstrapAnalyticsLifecycleTests {
 
         await env.authManager.signIn(with: .google)
 
-        // setUserID must be called exactly once with the user's stable identifier
-        // (currently `email` — the only stable per-account field on
-        // AuthenticatedUser). reset() must NOT fire on a sign-in transition.
         #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
 
