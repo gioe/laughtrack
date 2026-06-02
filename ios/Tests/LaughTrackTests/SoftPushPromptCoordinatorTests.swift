@@ -110,15 +110,12 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
 
-    @Test("enableTapped when the OS prompt resolves to denied surfaces the same Open-Settings alert pattern as TASK-2587")
+    @Test("enableTapped on notDetermined surfaces the Open-Settings alert when authorization is not granted")
     func enableTappedNotDeterminedDenyShowsAlert() async throws {
-        // After the user taps Don't Allow on the OS prompt, the system status
-        // flips from .notDetermined to .denied. The coordinator should detect
-        // that and present the same alert TASK-2587 ships in Settings.
-        let env = makeEnvironment(
-            statusSequence: [.notDetermined, .denied],
-            requestResult: false
-        )
+        // requestAuthorization returns false both when the user taps Don't
+        // Allow and when the underlying UN call throws — either way the
+        // coordinator presents the same TASK-2587 Open Settings alert.
+        let env = makeEnvironment(status: .notDetermined, requestResult: false)
         env.coordinator.isPromptPresented = true
 
         await env.coordinator.enableTapped()
@@ -139,6 +136,18 @@ struct SoftPushPromptCoordinatorTests {
         #expect(!env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
     }
 
+    @Test("enableTapped when status is already authorized applies pref without prompting and without alert")
+    func enableTappedAuthorizedAppliesPrefWithoutPrompting() async {
+        let env = makeEnvironment(status: .authorized)
+        env.coordinator.isPromptPresented = true
+
+        await env.coordinator.enableTapped()
+
+        #expect(env.preferenceStore.preferences.favoriteComedianPushAlertsEnabled)
+        #expect(await env.requester.requestCount == 0)
+        #expect(!env.coordinator.isDeniedAlertPresented)
+    }
+
     @Test("deferTapped records a deferral and dismisses the prompt")
     func deferTappedRecordsDeferralAndDismisses() {
         let env = makeEnvironment(status: .notDetermined)
@@ -148,6 +157,61 @@ struct SoftPushPromptCoordinatorTests {
 
         #expect(!env.coordinator.isPromptPresented)
         #expect(env.stateStore.deferralCount == 1)
+    }
+
+    @Test("swipe-to-dismiss (handleSheetDismissed without an explicit response) records a deferral so the cap binds across sessions")
+    func sheetDismissedWithoutExplicitResponseRecordsDeferral() async {
+        let env = makeEnvironment(status: .notDetermined)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+        #expect(env.coordinator.isPromptPresented)
+        env.coordinator.isPromptPresented = false
+
+        env.coordinator.handleSheetDismissed()
+
+        #expect(env.stateStore.deferralCount == 1)
+    }
+
+    @Test("handleSheetDismissed after deferTapped does not double-count the deferral")
+    func sheetDismissedAfterDeferDoesNotDoubleCount() async {
+        let env = makeEnvironment(status: .notDetermined)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+
+        env.coordinator.deferTapped()
+        env.coordinator.handleSheetDismissed()
+
+        #expect(env.stateStore.deferralCount == 1)
+    }
+
+    @Test("handleSheetDismissed after enableTapped does not record a deferral")
+    func sheetDismissedAfterEnableDoesNotRecordDeferral() async {
+        let env = makeEnvironment(status: .notDetermined, requestResult: true)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+
+        await env.coordinator.enableTapped()
+        env.coordinator.handleSheetDismissed()
+
+        #expect(env.stateStore.deferralCount == 0)
+    }
+
+    @Test("post-onboarding favorite counter stops growing once the sheet has been shown this session")
+    func postOnboardingFavoriteCounterStopsAfterPresentation() async {
+        let env = makeEnvironment(status: .notDetermined)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+
+        await fireFavoriteEvents(env.coordinator, count: 10)
+
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("post-onboarding favorite counter stops growing once push is already enabled")
+    func postOnboardingFavoriteCounterStopsAfterPushEnabled() async {
+        let env = makeEnvironment(status: .notDetermined)
+        env.preferenceStore.setFavoriteComedianPushAlertsEnabled(true)
+
+        await fireFavoriteEvents(env.coordinator, count: 5)
+
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
     }
 
     @Test("openSystemSettings forwards to the injected opener")

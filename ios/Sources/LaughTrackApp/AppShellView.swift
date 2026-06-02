@@ -226,7 +226,12 @@ struct AppShellView: View {
             )
             .environment(\.appTheme, theme)
         }
-        .sheet(isPresented: $softPushPromptCoordinator.isPromptPresented) {
+        .sheet(
+            isPresented: $softPushPromptCoordinator.isPromptPresented,
+            onDismiss: {
+                softPushPromptCoordinator.handleSheetDismissed()
+            }
+        ) {
             SoftPushPromptSheet(coordinator: softPushPromptCoordinator)
                 .environment(\.appTheme, theme)
         }

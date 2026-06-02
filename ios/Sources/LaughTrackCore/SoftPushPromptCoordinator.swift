@@ -30,6 +30,12 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     private let notificationSyncClient: (any NotificationPreferenceSyncing)?
     private let pushTokenManager: (any PushDeviceTokenManaging)?
 
+    // Tracks whether the user responded via the sheet's Enable / Maybe later
+    // buttons. Swipe-to-dismiss bypasses both, so onDismiss treats a
+    // false flag as an implicit deferral — otherwise a chronic swiper would
+    // be re-prompted every session and the deferralCap would never bind.
+    private var hasRespondedExplicitly = false
+
     public init(
         stateStore: PushPermissionStateStore,
         notificationPreferenceStore: NotificationPreferenceStore,
@@ -54,16 +60,22 @@ public final class SoftPushPromptCoordinator: ObservableObject {
 
     public func handleComedianFavoriteAdded(isPostOnboarding: Bool) async {
         guard isPostOnboarding else { return }
+        // Short-circuit the persistent increment when we will never prompt
+        // again — push already enabled, deferral cap hit, or sheet already
+        // shown this session. Otherwise the counter would keep growing
+        // forever and write to AppStateStorage on every favorite add.
+        guard !notificationPreferenceStore.preferences.favoriteComedianPushAlertsEnabled else { return }
+        guard !stateStore.hasReachedDeferralCap(configuration.deferralCap) else { return }
+        guard !hasPresentedThisSession else { return }
+
         let count = stateStore.recordPostOnboardingFavorite()
         guard count >= configuration.engagementTrigger else { return }
-        guard !stateStore.hasReachedDeferralCap(configuration.deferralCap) else { return }
-        guard !notificationPreferenceStore.preferences.favoriteComedianPushAlertsEnabled else { return }
-        guard !hasPresentedThisSession else { return }
 
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {
         case .notDetermined:
             hasPresentedThisSession = true
+            hasRespondedExplicitly = false
             isPromptPresented = true
         case .authorized:
             // OS allows push but the user has the app's push pref off. Treat as a
@@ -79,6 +91,7 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     }
 
     public func enableTapped() async {
+        hasRespondedExplicitly = true
         isPromptPresented = false
         let status = await authorizationStatusProvider.currentAuthorizationStatus()
         switch status {
@@ -89,13 +102,13 @@ public final class SoftPushPromptCoordinator: ObservableObject {
             if granted {
                 applyPushPreferenceEnabled()
             } else {
-                // The user tapped Don't Allow on the OS prompt — status now
-                // resolves to .denied. Reuse the TASK-2587 Open Settings alert
-                // pattern so they understand why nothing happened.
-                let postPromptStatus = await authorizationStatusProvider.currentAuthorizationStatus()
-                if postPromptStatus == .denied {
-                    isDeniedAlertPresented = true
-                }
+                // requestAuthorization returns false both when the user taps
+                // Don't Allow and when the underlying UN call throws (the
+                // requester swallows the error to Bool). Surface the same
+                // Open Settings alert TASK-2587 ships in Settings either way
+                // — silently dropping the error path was a /review-commits
+                // finding because it produced no user feedback at all.
+                isDeniedAlertPresented = true
             }
         case .denied:
             isDeniedAlertPresented = true
@@ -103,8 +116,19 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     }
 
     public func deferTapped() {
+        hasRespondedExplicitly = true
         stateStore.recordDeferral()
         isPromptPresented = false
+    }
+
+    public func handleSheetDismissed() {
+        // Swipe-to-dismiss never invokes enableTapped/deferTapped, so the
+        // explicit-response flag stays false. Count it as an implicit defer
+        // so the persistent deferralCap actually binds across sessions.
+        if !hasRespondedExplicitly {
+            stateStore.recordDeferral()
+        }
+        hasRespondedExplicitly = false
     }
 
     public func openSystemSettings() {
