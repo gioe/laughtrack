@@ -1,6 +1,6 @@
 """
 Detects Bandsintown and Songkick embedded widgets in comedian website HTML
-and extracts artist identifiers for use by TourDatesScraper.
+and extracts artist identifiers.
 
 Bandsintown widgets use:
   <div class="bit-widget-initializer" data-artist-name="Artist Name" ...>
