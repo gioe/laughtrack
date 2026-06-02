@@ -27,7 +27,6 @@ enum LaughTrackViewTestID {
     static let onboardingPushToggle = "laughtrack.onboarding.push-toggle"
     static let onboardingContinueButton = "laughtrack.onboarding.continue-button"
     static let onboardingSkipButton = "laughtrack.onboarding.skip-button"
-    static let softPushPromptSheet = "laughtrack.soft-push-prompt.sheet"
     static let softPushPromptEnableButton = "laughtrack.soft-push-prompt.enable-button"
     static let softPushPromptDeferButton = "laughtrack.soft-push-prompt.defer-button"
     static let accountHeaderButton = "laughtrack.account.header-button"
@@ -324,6 +323,13 @@ struct ContentView: View {
         .environmentObject(podcastFavorites)
         .environmentObject(podcastPlayer)
         .environmentObject(serviceContainer.resolve(SoftPushPromptCoordinator.self))
+        #if DEBUG
+        .task {
+            await DebugSimulatedFavoriteHook.fireIfRequested(
+                coordinator: serviceContainer.resolve(SoftPushPromptCoordinator.self)
+            )
+        }
+        #endif
     }
 
     private var nearbyLocationController: NearbyLocationController {

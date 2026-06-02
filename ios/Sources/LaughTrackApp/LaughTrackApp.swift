@@ -76,6 +76,21 @@ struct LaughTrackApp: App {
         defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
         defaults.removeObject(forKey: FirstEntryAuthChoiceStore.storageKey)
+        // Soft push-prompt cadence state (deferralCount, lastDeferredAt,
+        // postOnboardingFavoriteCount, sessionCountSinceLastDeferral). Reset so
+        // the soft-prompt test_sim suite starts deterministically from a fresh
+        // cadence regardless of prior test-run residue on the sim sandbox.
+        defaults.removeObject(forKey: "laughtrack.notifications.softPushPermissionState")
+
+        // The block above wipes the first-entry guest choice, which is correct
+        // for tests that exercise the auth gate. Tests that need the shell to
+        // mount directly (e.g. the soft push-prompt cadence suite, which has
+        // no business with the auth gate) can opt back in by setting
+        // UITEST_GUEST_BROWSING — re-seed after the wipe so the order of args
+        // doesn't matter.
+        if arguments.contains("UITEST_GUEST_BROWSING") {
+            defaults.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
+        }
     }
 
     /// In mock mode, pre-populate the saved nearby preference to Hollywood (90028)
@@ -93,6 +108,35 @@ struct LaughTrackApp: App {
 #endif
 
 #if DEBUG
+/// UI-test seam for the soft push-prompt cadence suite. The favorite-tap flow
+/// requires a signed-in user + a live POST /favorites round-trip, neither of
+/// which is feasible in a test_sim run inside the 90s tool timeout. Synthesize
+/// the post-onboarding favorite signals at app start instead, so the test
+/// exercises the AppShellView → SoftPushPromptCoordinator → PushPermissionStateStore
+/// wiring (and the cadence's Inputs construction) end-to-end without standing
+/// up auth or the favorites API. Fires once per process — the test relaunches
+/// the app to start a fresh process when it needs a second round of signals.
+enum DebugSimulatedFavoriteHook {
+    static let environmentKey = "UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT"
+
+    private static var hasFired = false
+
+    static func favoriteCount(processInfo: ProcessInfo = .processInfo) -> Int? {
+        guard let raw = processInfo.environment[environmentKey] else { return nil }
+        return Int(raw)
+    }
+
+    @MainActor
+    static func fireIfRequested(coordinator: SoftPushPromptCoordinator) async {
+        guard !hasFired else { return }
+        guard let count = favoriteCount(), count > 0 else { return }
+        hasFired = true
+        for _ in 0..<count {
+            await coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
+        }
+    }
+}
+
 /// Parses `LAUNCHTRACK_DEBUG_ROUTE` (e.g. `podcast:30`) into an `AppRoute` so a
 /// dev build can be relaunched onto a specific entity detail screen without
 /// editing source. Wired into `LaughTrackApp.body` as a DEBUG-only `.task` on

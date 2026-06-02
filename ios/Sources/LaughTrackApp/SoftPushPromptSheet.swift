@@ -70,7 +70,13 @@ struct SoftPushPromptSheet: View {
             .padding(.top, theme.spacing.xl * 1.5)
             .padding(.bottom, theme.spacing.xl)
         }
-        .accessibilityIdentifier(LaughTrackViewTestID.softPushPromptSheet)
+        // Intentionally NOT applying .accessibilityIdentifier(softPushPromptSheet)
+        // to the root ZStack: SwiftUI propagates a container identifier down
+        // to every descendant accessibility node, masking the Enable / Maybe
+        // later buttons' own identifiers (TASK-2607 + the iOS 26 gotcha
+        // documented in ios/CLAUDE.md). XCUITest finds the sheet via the
+        // buttons themselves; the sheet root has no callers that need to
+        // query it by identifier.
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
