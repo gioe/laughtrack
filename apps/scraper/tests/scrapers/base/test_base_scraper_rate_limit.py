@@ -1,4 +1,5 @@
-"""Regression: BaseScraper.__init__ must not stomp DEFAULT_DOMAIN_CONFIGS."""
+"""Regression: BaseScraper.__init__ must not stomp DEFAULT_DOMAIN_CONFIGS,
+and unit tests for the BaseScraper._register_host_rps helper (TASK-2577)."""
 
 from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -40,3 +41,48 @@ class TestBaseScraperRateLimiterInit:
         club = _make_club("https://unknownvenue.example.com/shows")
         scraper = _ConcreteScraper(club=club)
         assert scraper.rate_limiter.get_domain_limit("unknownvenue.example.com") == 1.0
+
+
+class TestRegisterHostRpsHelper:
+    """BaseScraper._register_host_rps centralizes the per-scraper override
+    pattern that 4 scrapers (seatengine_classic, json_ld, squarespace,
+    fox_tucson_theatre) previously duplicated inline. The helper applies
+    the override and guards on an empty scraping_domain."""
+
+    def test_applies_override_when_domain_present(self):
+        club = _make_club("https://register-rps-applies.example.com/events")
+        scraper = _ConcreteScraper(club=club)
+        scraper._register_host_rps(7.0)
+        assert (
+            scraper.rate_limiter.get_domain_limit("register-rps-applies.example.com")
+            == 7.0
+        )
+
+    def test_skips_override_when_domain_empty(self, monkeypatch):
+        """An empty scraping_url yields an empty scraping_domain; the helper
+        must NOT call set_domain_limit (which would key state under "")."""
+        from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
+
+        calls: list = []
+
+        def _record(self, domain, rps):
+            calls.append((domain, rps))
+
+        monkeypatch.setattr(RateLimiter, "set_domain_limit", _record)
+
+        club = _make_club("")
+        scraper = _ConcreteScraper(club=club)
+        scraper._register_host_rps(7.0)
+        assert calls == []
+
+    def test_repeated_call_overrides_prior_value(self):
+        """Calling the helper twice for the same scraper updates the registered
+        RPS to the latest value (last write wins via set_domain_limit)."""
+        club = _make_club("https://register-rps-overwrites.example.com/events")
+        scraper = _ConcreteScraper(club=club)
+        scraper._register_host_rps(3.0)
+        scraper._register_host_rps(7.0)
+        assert (
+            scraper.rate_limiter.get_domain_limit("register-rps-overwrites.example.com")
+            == 7.0
+        )
