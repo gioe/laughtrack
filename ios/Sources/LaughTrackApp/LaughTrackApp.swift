@@ -80,7 +80,7 @@ struct LaughTrackApp: App {
         // postOnboardingFavoriteCount, sessionCountSinceLastDeferral). Reset so
         // the soft-prompt test_sim suite starts deterministically from a fresh
         // cadence regardless of prior test-run residue on the sim sandbox.
-        defaults.removeObject(forKey: "laughtrack.notifications.softPushPermissionState")
+        defaults.removeObject(forKey: PushPermissionStateStore.storageKey)
 
         // The block above wipes the first-entry guest choice, which is correct
         // for tests that exercise the auth gate. Tests that need the shell to
@@ -116,6 +116,7 @@ struct LaughTrackApp: App {
 /// wiring (and the cadence's Inputs construction) end-to-end without standing
 /// up auth or the favorites API. Fires once per process — the test relaunches
 /// the app to start a fresh process when it needs a second round of signals.
+@MainActor
 enum DebugSimulatedFavoriteHook {
     static let environmentKey = "UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT"
 
@@ -126,7 +127,6 @@ enum DebugSimulatedFavoriteHook {
         return Int(raw)
     }
 
-    @MainActor
     static func fireIfRequested(coordinator: SoftPushPromptCoordinator) async {
         guard !hasFired else { return }
         guard let count = favoriteCount(), count > 0 else { return }

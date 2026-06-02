@@ -49,6 +49,14 @@ public struct PushPermissionState: Codable, Equatable, Sendable {
 
 @MainActor
 public final class PushPermissionStateStore: ObservableObject {
+    // Mirrors the FirstEntryAuthChoiceStore.storageKey pattern in
+    // ContentView.swift: the UI-test reset path in LaughTrackApp needs to
+    // wipe this key, and reaching across a module boundary for a literal
+    // would silently desync if the store ever renamed it. `nonisolated`
+    // because the class is `@MainActor` but a string constant doesn't need
+    // actor isolation and the inner StorageKey enum reads it at file scope.
+    public nonisolated static let storageKey = "laughtrack.notifications.softPushPermissionState"
+
     @Published public private(set) var state: PushPermissionState
 
     private let appStateStorage: AppStateStorageProtocol
@@ -124,6 +132,6 @@ public final class PushPermissionStateStore: ObservableObject {
     }
 
     private enum StorageKey {
-        static let state = "laughtrack.notifications.softPushPermissionState"
+        static let state = PushPermissionStateStore.storageKey
     }
 }

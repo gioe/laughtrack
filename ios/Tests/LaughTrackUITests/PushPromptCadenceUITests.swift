@@ -19,6 +19,17 @@ import XCTest
 /// part of the wiring this test is here to defend.
 @MainActor
 final class PushPromptCadenceUITests: XCTestCase {
+    // Test-isolation contract for this suite: XCTest runs the suite's
+    // methods in the same process, and the cadence state under test is
+    // persisted to `UserDefaults.standard` (via PushPermissionStateStore),
+    // which survives `XCUIApplication.terminate()` + `launch()`. Every test
+    // method added here MUST pass `UITEST_RESET_STATE` on its first
+    // `app.launch()` — otherwise it silently inherits the previous method's
+    // deferralCount / sessionCountSinceLastDeferral and becomes
+    // alphabetic-ordering-dependent. There is no shared setUp() because
+    // each test owns its own multi-launch sequence and a baseline launch
+    // would just be discarded.
+
     // Accessibility identifier from `LaughTrackViewTestID`. Duplicated as a
     // literal because the UI-testing target doesn't import the app module —
     // XCUITest queries the cross-process accessibility tree by string.
