@@ -35,9 +35,6 @@ _BASE_SHOW_ROW = {
     "city": "New York",
     "state": "NY",
     "status": "active",
-    "rate_limit": 1.0,
-    "max_retries": 3,
-    "timeout": 30,
     "scraping_sources": [
         {
             "id": 1,

@@ -24,7 +24,7 @@ def _make_club(scraping_url: str) -> Club:
     return club
 
 
-class TestBaseScraperRateLimitOverride:
+class TestBaseScraperRateLimiterInit:
     def test_default_domain_config_survives_init(self):
         """An explicit DEFAULT_DOMAIN_CONFIGS entry (eastvillecomedy.com=2.0)
         must survive BaseScraper.__init__ for a club whose scraping_domain

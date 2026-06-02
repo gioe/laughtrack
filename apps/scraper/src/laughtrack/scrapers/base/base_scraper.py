@@ -130,8 +130,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # Initialize transformation pipeline
         self.transformation_pipeline = create_standard_pipeline(club)
 
-        # Initialize error handler with retry configuration
-        retry_config = RetryConfig(max_attempts=4, base_delay=1.0, max_delay=30.0)
+        # Initialize error handler with retry configuration. max_attempts counts
+        # the initial try plus retries, so DEFAULT_MAX_RETRIES=3 means 4 attempts.
+        DEFAULT_MAX_RETRIES = 3
+        retry_config = RetryConfig(max_attempts=DEFAULT_MAX_RETRIES + 1, base_delay=1.0, max_delay=30.0)
         self.error_handler = ErrorHandler(retry_config)
 
         # Initialize URL discovery manager
