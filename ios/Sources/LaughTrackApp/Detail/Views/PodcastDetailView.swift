@@ -358,7 +358,12 @@ private struct PodcastEpisodeListSection: View {
         VStack(alignment: .leading, spacing: 12) {
             LaughTrackSectionHeader(title: "Episodes")
 
-            if playableEntries.isEmpty {
+            if episodes.isEmpty {
+                EmptyCard(
+                    title: "No Episodes Found",
+                    message: "\(podcast.title) has no episodes on LaughTrack yet."
+                )
+            } else if playableEntries.isEmpty {
                 EmptyCard(
                     title: "No playable episodes yet",
                     message: "LaughTrack has not matched this podcast with playable episodes yet."
