@@ -502,17 +502,7 @@ class ComedianWebsiteScraper(BaseScraper):
                 "address": address,
                 "zip_code": zip_code,
                 "timezone": tz,
-                "discovery_metadata": {
-                    "source": "comedian_websites",
-                    "sample_urls": [scraping_url] if scraping_url else [],
-                    "event_urls": [event.url] if getattr(event, "url", None) else [],
-                    "platform_hints": ["json_ld"],
-                },
             }
-            if comedian is not None:
-                venue_dict["discovery_metadata"]["comedian_refs"] = [
-                    {"uuid": comedian.uuid, "name": comedian.name}
-                ]
 
             club = self._club_handler.upsert_discovered_venue(venue_dict)
             return club is not None
@@ -543,13 +533,6 @@ class ComedianWebsiteScraper(BaseScraper):
                 "address": address,
                 "zip_code": "",
                 "timezone": timezone_from_address(address),
-                "discovery_metadata": {
-                    "source": "comedian_websites",
-                    "comedian_refs": [{"uuid": comedian.uuid, "name": comedian.name}],
-                    "sample_urls": [scraping_url],
-                    "event_urls": [event.ticket_url],
-                    "platform_hints": [event.platform_hint],
-                },
             }
 
             club = self._club_handler.upsert_discovered_venue(venue_dict)

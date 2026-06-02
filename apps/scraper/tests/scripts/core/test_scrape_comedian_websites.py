@@ -145,7 +145,7 @@ def test_platform_extractors_return_event_count_for_success_classification(monke
     assert event_count == 3
 
 
-def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
+def test_json_ld_venue_upsert_forwards_venue_to_handler():
     scraper = object.__new__(scraper_mod.ComedianWebsiteScraper)
     scraper._club_handler = types.SimpleNamespace(upsert_discovered_venue=lambda venue: types.SimpleNamespace(id=77))
     scraper._club = types.SimpleNamespace(name="Comedian Websites")
@@ -174,13 +174,8 @@ def test_json_ld_venue_upsert_receives_comedian_discovery_metadata():
     )
 
     assert count == 1
-    assert captured[0]["discovery_metadata"] == {
-        "source": "comedian_websites",
-        "comedian_refs": [{"uuid": "comic", "name": "Tour Comic"}],
-        "sample_urls": ["https://comic.example/tour"],
-        "event_urls": ["https://comic.example/shows/venue-night"],
-        "platform_hints": ["json_ld"],
-    }
+    assert captured[0]["name"] == "Venue Night"
+    assert "discovery_metadata" not in captured[0]
 
 
 def test_registered_extractor_runs_before_json_ld_empty(monkeypatch):

@@ -487,6 +487,24 @@ class TestUpsertSqlAvoidsCteSnapshotBug:
         assert "FROM UPSERTED_CLUB" in sql
         assert "RETURNING *" in sql
 
+    def test_discovered_venue_upsert_does_not_touch_scraping_sources(self):
+        # Regression guard for TASK-2581: the discovery-only upsert must NOT
+        # re-introduce the scraping_sources side-effect that was the entire
+        # reason UPSERT_CLUB_BY_TOUR_DATE_VENUE was deleted. The handler
+        # docstring and SQL comment both promise "does NOT register a
+        # scraping_sources entry"; without this assertion a regression that
+        # restores that INSERT would land green.
+        sql = self._normalized(ClubQueries.UPSERT_DISCOVERED_VENUE)
+        assert "INSERT INTO SCRAPING_SOURCES" not in sql
+        assert "UPSERTED_SOURCE" not in sql
+        assert "INSERT INTO CLUBS" in sql
+        # The "scraping_sources" token may still appear as the projected
+        # empty-array column ('[]'::JSON AS SCRAPING_SOURCES) — confirm the
+        # only mention is that read-only projection.
+        assert sql.count("SCRAPING_SOURCES") == 1
+        assert "AS SCRAPING_SOURCES" in sql
+
+
 class TestSeatEngineUpsertRespectsDispositionMetadata:
     """Regression tests for TASK-1968: UPSERT_CLUB_BY_SEATENGINE_VENUE and
     UPSERT_CLUB_BY_SEATENGINE_V3_VENUE must not unconditionally re-enable a row
