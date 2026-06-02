@@ -58,6 +58,12 @@ struct LaughTrackApp: App {
                 .environmentObject(clubFavorites)
                 .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
                 .preferredColorScheme(.dark)
+                #if DEBUG
+                .task {
+                    guard let route = DebugLaunchRoute.routeFromEnvironment() else { return }
+                    coordinator.push(route)
+                }
+                #endif
         }
     }
 
@@ -82,6 +88,41 @@ struct LaughTrackApp: App {
         let store = container.resolve(NearbyPreferenceStore.self)
         store.setManualZip("90028", distanceMiles: 25, city: "Los Angeles", state: "CA")
         UserDefaults.standard.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
+    }
+}
+#endif
+
+#if DEBUG
+/// Parses `LAUNCHTRACK_DEBUG_ROUTE` (e.g. `podcast:30`) into an `AppRoute` so a
+/// dev build can be relaunched onto a specific entity detail screen without
+/// editing source. Wired into `LaughTrackApp.body` as a DEBUG-only `.task` on
+/// `ContentView`; never compiled into release builds.
+enum DebugLaunchRoute {
+    static let environmentKey = "LAUNCHTRACK_DEBUG_ROUTE"
+
+    static func routeFromEnvironment(processInfo: ProcessInfo = .processInfo) -> AppRoute? {
+        guard let raw = processInfo.environment[environmentKey] else { return nil }
+        return parse(raw)
+    }
+
+    static func parse(_ raw: String) -> AppRoute? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let separator = trimmed.firstIndex(of: ":") else { return nil }
+        let kind = trimmed[..<separator].lowercased()
+        let idString = trimmed[trimmed.index(after: separator)...].trimmingCharacters(in: .whitespaces)
+        guard let id = Int(idString) else { return nil }
+        switch kind {
+        case "podcast", "podcasts", "podcastdetail":
+            return .podcastDetail(id)
+        case "show", "shows", "showdetail":
+            return .showDetail(id)
+        case "comedian", "comedians", "comediandetail":
+            return .comedianDetail(id)
+        case "club", "clubs", "clubdetail":
+            return .clubDetail(id)
+        default:
+            return nil
+        }
     }
 }
 #endif
