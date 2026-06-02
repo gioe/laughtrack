@@ -1860,36 +1860,30 @@ violation so they can be wired into CI or a scheduled job. Notable checks:
 cd apps/scraper
 make check-scraping-source-invariants                    # human report
 make check-scraping-source-invariants ARGS='--json'      # machine-readable
-make check-scraping-source-invariants ARGS='--stale-days 14'
 ```
 
-Guards two invariants in one pass:
+Guards two invariants in one pass; trips exit 2 when either is violated:
 
 1. **Orphan future inventory** — clubs with future shows but no enabled
    `scraping_sources` row. Usually means a stale writer, legacy pre-source
    data, or a hidden duplicate row is still emitting listings.
-2. **Stale `tour_dates`-only clubs** — active visible clubs whose only enabled
-   source is `tour_dates`. The discovery loop is:
-   `discover_clubs_from_comedian_show_pages` → `audit_tour_date_clubs --create-tasks` →
-   dedicated scraper. A club still on `tour_dates` only after `--stale-days`
-   (default 30) means the loop rotted: the audit never ran, the onboarding
-   task was never picked up, or the upgrade never landed.
+2. **Active clubs missing a scraper** — active visible clubs
+   (`clubs.status = 'active'` AND `COALESCE(visible, TRUE) = TRUE`) with no
+   enabled `scraping_sources` row at all. An active venue with no enabled
+   source cannot ingest new inventory: either a dedicated scraper was never
+   wired up after onboarding, or every previously enabled source has since
+   been disabled without the club itself being deactivated. Invariant 1
+   already covers the subset that still has future shows on the books; this
+   invariant catches the quieter case where the club has no future inventory
+   yet (or anymore) and would otherwise drift unscraped without a paging
+   signal. Action: wire a dedicated `scraping_sources` row for the venue, or
+   deactivate / hide the club if it is no longer running shows.
 
-   The output splits these rows into two groups:
-   - **`onboarding_review_needed`** — `tour_dates` row older than the
-     threshold. Trips exit 2. Action: rerun
-     `python -m scripts.core.audit_tour_date_clubs --create-tasks` and work
-     the resulting tusk tasks, or hide/close the club if it is no longer
-     active.
-   - **`recent_discovery`** — within the threshold. Reported as INFO; does
-     not trip exit 2. This is the normal state of newly-discovered venues.
-
-   **Scope:** the check only looks at active visible clubs
-   (`clubs.status = 'active'` AND `COALESCE(visible, TRUE) = TRUE`). A
-   moderator hiding a club mid-onboarding will silence the watchdog for
-   that row — intentional, since hidden clubs are not shipped to users
-   and don't accumulate user-visible rot. If a hidden club still needs
-   onboarding attention, re-enable visibility or address it directly.
+   **Scope:** Invariant 2 only looks at active visible clubs. A moderator
+   hiding a club will silence the watchdog for that row — intentional,
+   since hidden clubs are not shipped to users and don't accumulate
+   user-visible rot. If a hidden club still needs onboarding attention,
+   re-enable visibility or address it directly.
 
 Other related checks:
 
