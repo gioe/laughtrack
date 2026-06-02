@@ -30,11 +30,11 @@ public final class ConsoleAnalyticsProvider: AnalyticsProvider {
     }
 
     public func setUserProperty(_ value: String?, forName name: String) {
-        logger.debug("user_property name=\(name, privacy: .public) value=\(value ?? "<nil>", privacy: .public)")
+        logger.debug("user_property name=\(name, privacy: .public) value=\(value ?? "<nil>", privacy: .private)")
     }
 
     public func setUserID(_ userID: String?) {
-        logger.debug("user_id=\(userID ?? "<nil>", privacy: .public)")
+        logger.debug("user_id=\(userID ?? "<nil>", privacy: .private)")
     }
 
     public func reset() {

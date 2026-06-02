@@ -212,7 +212,11 @@ public struct AppBootstrap {
 
     private static func configureAnalytics(_ container: ServiceContainer) {
         let manager = container.resolve(AnalyticsManagerProtocol.self)
-        if firebaseConfigured {
+        // Query Firebase directly rather than reading the local firebaseConfigured
+        // static. The two helpers no longer have to be invoked in a fixed order:
+        // a future bootstrap reordering or a second call site that forgets
+        // configureFirebaseIfNeeded will not silently skip provider attachment.
+        if FirebaseApp.app() != nil {
             manager.addProvider(FirebaseAnalyticsProvider())
         }
         #if DEBUG
