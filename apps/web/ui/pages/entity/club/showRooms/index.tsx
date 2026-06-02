@@ -3,6 +3,7 @@ import ShowTable from "@/ui/pages/search/table";
 
 interface ClubShowRoomsProps {
     shows: ShowDTO[];
+    emptyMessage?: string;
 }
 
 interface RoomGroup {
@@ -47,9 +48,18 @@ export function hasMultipleRooms(shows: ShowDTO[]) {
     return rooms.size > 1;
 }
 
-export default function ClubShowRooms({ shows }: ClubShowRoomsProps) {
+export default function ClubShowRooms({
+    shows,
+    emptyMessage,
+}: ClubShowRoomsProps) {
     if (!hasMultipleRooms(shows)) {
-        return <ShowTable shows={shows} hideClubName />;
+        return (
+            <ShowTable
+                shows={shows}
+                hideClubName
+                errorMessage={emptyMessage}
+            />
+        );
     }
 
     const roomGroups = groupShowsByRoom(shows);

@@ -11,14 +11,17 @@ vi.mock("@/ui/pages/search/table", () => ({
     default: ({
         shows,
         hideClubName,
+        errorMessage,
     }: {
         shows: ShowDTO[];
         hideClubName?: boolean;
+        errorMessage?: string;
     }) => (
         <div
             data-testid="show-table"
             data-show-ids={shows.map((show) => show.id).join(",")}
             data-hide-club-name={String(hideClubName)}
+            data-error-message={errorMessage ?? ""}
         />
     ),
 }));
@@ -84,6 +87,27 @@ describe("ClubShowRooms", () => {
                 makeShow(3, null),
             ]),
         ).toBe(false);
+    });
+
+    it("forwards an explicit empty message to the single-room ShowTable", () => {
+        render(
+            <ClubShowRooms
+                shows={[]}
+                emptyMessage="Comedy Cellar has no upcoming shows on LaughTrack yet."
+            />,
+        );
+
+        const table = screen.getByTestId("show-table");
+        expect(table.dataset.errorMessage).toBe(
+            "Comedy Cellar has no upcoming shows on LaughTrack yet.",
+        );
+    });
+
+    it("leaves ShowTable's default empty message when no override is provided", () => {
+        render(<ClubShowRooms shows={[]} />);
+
+        const table = screen.getByTestId("show-table");
+        expect(table.dataset.errorMessage).toBe("");
     });
 
     it("preserves unassigned shows in their own group when other rooms vary", () => {

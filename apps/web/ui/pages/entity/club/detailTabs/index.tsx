@@ -8,6 +8,7 @@ interface ClubDetailTabsProps {
     filters: FilterDTO[];
     shows: ShowDTO[];
     total: number;
+    emptyShowsMessage?: string;
 }
 
 // Other locations in the club's chain are now surfaced via the location
@@ -17,6 +18,7 @@ export default function ClubDetailTabs({
     filters,
     shows,
     total,
+    emptyShowsMessage,
 }: ClubDetailTabsProps) {
     return (
         <>
@@ -25,7 +27,7 @@ export default function ClubDetailTabs({
                 total={total}
                 filterData={filters}
             />
-            <ClubShowRooms shows={shows} />
+            <ClubShowRooms shows={shows} emptyMessage={emptyShowsMessage} />
         </>
     );
 }
