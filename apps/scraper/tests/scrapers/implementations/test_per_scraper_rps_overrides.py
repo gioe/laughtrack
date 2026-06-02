@@ -7,8 +7,9 @@ TASK-2556 pattern): JsonLdScraper, SquarespaceScraper, FoxTucsonTheatreScraper.
 Each override must be:
   (a) applied (the registered RPS matches the constant declared in the module),
   (b) keyed to the club's own scraping_domain (so distinct venues don't share),
-  (c) the winning value when an explicit club.rate_limit is also present
-      (subclass override runs AFTER super().__init__, so it has the last word).
+  (c) the winning value when a DEFAULT_DOMAIN_CONFIGS-style entry already
+      registers a lower RPS for the same host (subclass override runs AFTER
+      super().__init__, so it has the last word).
 
 Each test uses a unique fake host so the singleton RateLimiter's per-domain
 state from one test does not leak into another's assertion.
@@ -27,6 +28,7 @@ from laughtrack.scrapers.implementations.venues.fox_tucson_theatre.scraper impor
     FoxTucsonTheatreScraper,
     _FOX_TUCSON_HOST_RPS,
 )
+from laughtrack.utilities.infrastructure.rate_limiter import RateLimiter
 
 
 def _make_club(
@@ -34,9 +36,8 @@ def _make_club(
     scraping_url: str,
     name: str = "Test Club",
     scraper_key: str = "",
-    rate_limit=None,
 ) -> Club:
-    kwargs = dict(
+    club = Club(
         id=1,
         name=name,
         address="",
@@ -46,9 +47,6 @@ def _make_club(
         phone_number="",
         visible=True,
     )
-    if rate_limit is not None:
-        kwargs["rate_limit"] = rate_limit
-    club = Club(**kwargs)
     club.active_scraping_source = ScrapingSource(
         id=1,
         club_id=club.id,
@@ -83,23 +81,21 @@ class TestJsonLdRpsOverride:
             == _JSON_LD_HOST_RPS
         )
 
-    def test_subclass_override_beats_explicit_club_rate_limit(self):
+    def test_subclass_override_beats_existing_low_domain_config(self):
         from laughtrack.scrapers.implementations.json_ld.scraper import (
             JsonLdScraper,
             _JSON_LD_HOST_RPS,
         )
 
+        host = "coastal-creative-rps.example.com"
+        RateLimiter().set_domain_limit(host, 0.5)
         club = _make_club(
-            scraping_url="https://coastal-creative-rps.example.com/calendar",
+            scraping_url=f"https://{host}/calendar",
             name="Coastal Creative (test)",
             scraper_key="json_ld",
-            rate_limit=0.5,
         )
         scraper = JsonLdScraper(club)
-        assert (
-            scraper.rate_limiter.get_domain_limit("coastal-creative-rps.example.com")
-            == _JSON_LD_HOST_RPS
-        )
+        assert scraper.rate_limiter.get_domain_limit(host) == _JSON_LD_HOST_RPS
 
 
 class TestSquarespaceRpsOverride:
@@ -115,18 +111,16 @@ class TestSquarespaceRpsOverride:
             == _SQUARESPACE_HOST_RPS
         )
 
-    def test_subclass_override_beats_explicit_club_rate_limit(self):
+    def test_subclass_override_beats_existing_low_domain_config(self):
+        host = "elysian-rps.example.com"
+        RateLimiter().set_domain_limit(host, 0.5)
         club = _make_club(
-            scraping_url="https://elysian-rps.example.com/api/open/GetItemsByMonth?collectionId=xyz",
+            scraping_url=f"https://{host}/api/open/GetItemsByMonth?collectionId=xyz",
             name="The Elysian Theater (test)",
             scraper_key="squarespace",
-            rate_limit=0.5,
         )
         scraper = SquarespaceScraper(club)
-        assert (
-            scraper.rate_limiter.get_domain_limit("elysian-rps.example.com")
-            == _SQUARESPACE_HOST_RPS
-        )
+        assert scraper.rate_limiter.get_domain_limit(host) == _SQUARESPACE_HOST_RPS
 
 
 class TestFoxTucsonRpsOverride:
@@ -142,18 +136,16 @@ class TestFoxTucsonRpsOverride:
             == _FOX_TUCSON_HOST_RPS
         )
 
-    def test_subclass_override_beats_explicit_club_rate_limit(self):
+    def test_subclass_override_beats_existing_low_domain_config(self):
+        host = "fox-tucson-existing-config-rps.example.com"
+        RateLimiter().set_domain_limit(host, 0.5)
         club = _make_club(
-            scraping_url="https://fox-tucson-explicit-rps.example.com/events/",
-            name="Fox Tucson Theatre (test, explicit)",
+            scraping_url=f"https://{host}/events/",
+            name="Fox Tucson Theatre (test, pre-seeded)",
             scraper_key="fox_tucson_theatre",
-            rate_limit=0.5,
         )
         scraper = FoxTucsonTheatreScraper(club)
-        assert (
-            scraper.rate_limiter.get_domain_limit("fox-tucson-explicit-rps.example.com")
-            == _FOX_TUCSON_HOST_RPS
-        )
+        assert scraper.rate_limiter.get_domain_limit(host) == _FOX_TUCSON_HOST_RPS
 
 
 class TestRpsValuesArePinned:
