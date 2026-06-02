@@ -280,6 +280,38 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.coordinator.presentation == .hidden)
     }
 
+    // MARK: - nextPresentation helper (AppShellView softPushPresentationBinding setter)
+
+    @Test("nextPresentation returns .hidden when the dismissed surface matches the active alert (normal dismiss path)")
+    func nextPresentationDismissesActiveAlert() {
+        // SwiftUI flips the .alert binding to false when the user dismisses
+        // the Open-Settings alert. The setter resolves the next presentation
+        // through nextPresentation(after:current:), which must return .hidden
+        // so the coordinator transitions out of .deniedAlert.
+        let next = SoftPushPromptCoordinator.nextPresentation(
+            after: .deniedAlert,
+            current: .deniedAlert
+        )
+
+        #expect(next == .hidden)
+    }
+
+    @Test("nextPresentation rejects cross-surface dismiss (alert binding written false while a sheet is up leaves the sheet state intact)")
+    func nextPresentationRejectsCrossSurfaceClobber() {
+        // SwiftUI re-evaluates every projected binding on each render pass.
+        // If the .alert binding is read while presentation == .promptingSheet
+        // and its setter is invoked with `false` (the binding's current
+        // value), the setter must NOT flip the coordinator to .hidden —
+        // doing so would kill the live sheet. Verifies the cross-surface
+        // guard called out in TASK-2594 review #4938 comment #2798.
+        let next = SoftPushPromptCoordinator.nextPresentation(
+            after: .deniedAlert,
+            current: .promptingSheet
+        )
+
+        #expect(next == .promptingSheet)
+    }
+
     private static let fixedNow = Date(timeIntervalSince1970: 1_700_000_000)
 
     private func fireFavoriteEvents(

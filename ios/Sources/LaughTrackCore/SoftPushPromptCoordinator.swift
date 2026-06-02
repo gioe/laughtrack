@@ -15,6 +15,23 @@ public final class SoftPushPromptCoordinator: ObservableObject {
         case deniedAlert
     }
 
+    // SwiftUI sheet/alert modifiers each take their own `isPresented:
+    // Binding<Bool>`, so the view layer projects this enum into one Bool
+    // binding per case. When SwiftUI writes `false` into a binding it can
+    // only mean "the surface I represent was just dismissed" — but the
+    // setter must also reject out-of-band writes coming from a sibling
+    // binding (e.g. the alert binding flipping while a sheet is up) so an
+    // alert dismissal can't clobber a sheet showing in the same render
+    // pass. Returning the next state from a pure function keeps the rule
+    // out of AppShellView and trivially unit-testable from LaughTrackCore
+    // without dragging SwiftUI into the test target.
+    public static func nextPresentation(
+        after dismissedSurface: Presentation,
+        current: Presentation
+    ) -> Presentation {
+        current == dismissedSurface ? .hidden : current
+    }
+
     @Published public var presentation: Presentation = .hidden
     @Published public private(set) var hasPresentedThisSession: Bool = false
 
