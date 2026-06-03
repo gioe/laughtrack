@@ -31,7 +31,7 @@ describe("comedian image asset URLs", () => {
         );
     });
 
-    it("falls back to the legacy name-based PNG when no active asset exists", () => {
+    it("falls back to the name-based PNG when no active asset exists", () => {
         const urls = buildComedianImageUrls({
             name: "Taylor Tomlinson",
             hasImage: true,

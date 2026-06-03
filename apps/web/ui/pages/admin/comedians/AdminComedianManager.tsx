@@ -1,5 +1,6 @@
 "use client";
 
+import { validateComedianImageFile } from "@/lib/admin/comedianImageClientValidation";
 import type { AdminComedianListItem } from "@/lib/admin/comedianManagement";
 import { Button } from "@/ui/components/ui/button";
 import {
@@ -75,18 +76,18 @@ function formatPercent(value: number) {
     return `${Math.round(value * 100)}%`;
 }
 
-function legacyComedianImageUrl(row: AdminComedianListItem) {
-    return row.legacyImageUrl;
+function nameComedianImageUrl(row: AdminComedianListItem) {
+    return row.nameImageUrl;
 }
 
 function currentAvatarUrl(row: AdminComedianListItem) {
     if (row.activeImageAsset) return row.activeImageAsset.avatarUrl ?? "";
-    return row.hasImage ? legacyComedianImageUrl(row) : "";
+    return row.hasImage ? nameComedianImageUrl(row) : "";
 }
 
 function currentHeroUrl(row: AdminComedianListItem) {
     if (row.activeImageAsset) return row.activeImageAsset.heroUrl ?? "";
-    return row.hasImage ? legacyComedianImageUrl(row) : "";
+    return row.hasImage ? nameComedianImageUrl(row) : "";
 }
 
 function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
@@ -788,6 +789,30 @@ export default function AdminComedianManager({ comedians }: Props) {
         if (!includeHeadshot && !includeHero) return;
 
         setStatus({ kind: "idle" });
+
+        const validationFailures: string[] = [];
+        if (includeHeadshot && inputs.headshotFile) {
+            const result = await validateComedianImageFile(
+                inputs.headshotFile,
+                "headshot",
+            );
+            if (!result.ok) validationFailures.push(result.reason);
+        }
+        if (includeHero && inputs.heroFile) {
+            const result = await validateComedianImageFile(
+                inputs.heroFile,
+                "hero",
+            );
+            if (!result.ok) validationFailures.push(result.reason);
+        }
+        if (validationFailures.length > 0) {
+            setStatus({
+                kind: "error",
+                message: validationFailures.join("; "),
+            });
+            return;
+        }
+
         setPendingId(row.id);
 
         let res: Response;
@@ -956,8 +981,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     }
                                   : null
                               : null,
-                          legacyImageUrl: body.hasImage
-                              ? currentRow.legacyImageUrl
+                          nameImageUrl: body.hasImage
+                              ? currentRow.nameImageUrl
                               : "",
                       }
                     : currentRow,
@@ -1067,7 +1092,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const rowOpen = openComedianRows.has(row.id);
                         const currentAvatar = currentAvatarUrl(row);
                         const currentHero = currentHeroUrl(row);
-                        const legacyAvatar = legacyComedianImageUrl(row);
+                        const nameAvatar = nameComedianImageUrl(row);
                         const acceptedPodcasts =
                             acceptedAttributedPodcasts(row);
                         const pendingPodcastCandidateReviews =
@@ -1529,6 +1554,63 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                         </div>
 
+                                        {!row.isBlocked && (
+                                            <div className="mt-5 border-t border-copper/15 pt-4">
+                                                <div className="mb-3 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                    Blocklist state
+                                                </div>
+                                                <div className="flex flex-wrap items-end gap-2 sm:flex-nowrap">
+                                                    <label className="grid min-w-[220px] flex-1 gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Blocklist reason
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                blockReasons[
+                                                                    row.id
+                                                                ] ?? ""
+                                                            }
+                                                            onChange={(event) =>
+                                                                setBlockReasons(
+                                                                    (
+                                                                        current,
+                                                                    ) => ({
+                                                                        ...current,
+                                                                        [row.id]:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    }),
+                                                                )
+                                                            }
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            maxLength={1000}
+                                                        />
+                                                    </label>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="shrink-0 gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                        disabled={
+                                                            disabled ||
+                                                            pendingId ===
+                                                                row.id ||
+                                                            !blockReasons[
+                                                                row.id
+                                                            ]?.trim()
+                                                        }
+                                                        onClick={() =>
+                                                            void blockComedian(
+                                                                row,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Ban className="h-4 w-4" />
+                                                        Add to blocklist
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="mt-5 border-t border-copper/15 pt-4">
                                             <div className="mb-3 text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                 Podcast RSS
@@ -1965,6 +2047,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             }
                                                             className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-caption normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
                                                         />
+                                                        <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                            1:1 square, at least
+                                                            600x600
+                                                        </span>
                                                     </label>
                                                     <Button
                                                         type="button"
@@ -2089,6 +2175,10 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             }
                                                             className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-caption normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
                                                         />
+                                                        <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                            16:9 (2000x1125), at
+                                                            least 600x600
+                                                        </span>
                                                     </label>
                                                     <Button
                                                         type="button"
@@ -2174,13 +2264,13 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </div>
                                             ) : null}
 
-                                            {legacyAvatar && (
+                                            {nameAvatar && (
                                                 <div className="mt-3 border-t border-copper/15 pt-3">
                                                     <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
                                                         Current image
                                                     </div>
                                                     <img
-                                                        src={legacyAvatar}
+                                                        src={nameAvatar}
                                                         alt={`${row.name} current image preview`}
                                                         className="h-[56px] w-[56px] rounded-md border border-copper/20 object-cover"
                                                     />
@@ -2208,54 +2298,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             )}
                                         </div>
                                     </div>
-
-                                    {!row.isBlocked && (
-                                        <div className="space-y-4">
-                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                Blocklist state
-                                            </div>
-                                            <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
-                                                Blocklist reason
-                                                <input
-                                                    type="text"
-                                                    value={
-                                                        blockReasons[row.id] ??
-                                                        ""
-                                                    }
-                                                    onChange={(event) =>
-                                                        setBlockReasons(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.id]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                    className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                    maxLength={1000}
-                                                />
-                                            </label>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                className="gap-2 border-red-800/40 bg-white text-red-950 hover:bg-red-50 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                                disabled={
-                                                    disabled ||
-                                                    pendingId === row.id ||
-                                                    !blockReasons[
-                                                        row.id
-                                                    ]?.trim()
-                                                }
-                                                onClick={() =>
-                                                    void blockComedian(row)
-                                                }
-                                            >
-                                                <Ban className="h-4 w-4" />
-                                                Add to blocklist
-                                            </Button>
-                                        </div>
-                                    )}
                                 </div>
                             </li>
                         );

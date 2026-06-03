@@ -44,7 +44,7 @@ const comedians: AdminComedianListItem[] = [
             width: 1200,
             height: 1600,
         },
-        legacyImageUrl: "https://test.b-cdn.net/comedians/Parent%20Comic.png",
+        nameImageUrl: "https://test.b-cdn.net/comedians/Parent%20Comic.png",
         popularity: 82,
         totalShows: 10,
         parent: null,
@@ -104,7 +104,7 @@ const comedians: AdminComedianListItem[] = [
         websiteScrapingUrl: null,
         hasImage: false,
         activeImageAsset: null,
-        legacyImageUrl: "",
+        nameImageUrl: "",
         popularity: 12,
         totalShows: 1,
         parent: null,
@@ -141,6 +141,21 @@ beforeEach(() => {
             },
         }),
     }) as never;
+
+    // The image-upload flow validates dimensions client-side via `new Image()`
+    // before posting. Tests fabricate tiny File payloads that the browser would
+    // refuse to decode, so stub Image to report headshot-shaped dimensions —
+    // hero-slot tests override this individually.
+    class FakeImage {
+        public onload: (() => void) | null = null;
+        public onerror: (() => void) | null = null;
+        public naturalWidth = 1000;
+        public naturalHeight = 1000;
+        set src(_value: string) {
+            queueMicrotask(() => this.onload?.());
+        }
+    }
+    (global as unknown as { Image: typeof FakeImage }).Image = FakeImage;
 });
 
 afterEach(() => {
@@ -283,6 +298,38 @@ describe("AdminComedianManager", () => {
         expect(body.get("comedianId")).toBe("2");
         expect(body.get("headshotFile")).toBe(file);
         expect(body.get("heroFile")).toBeNull();
+    });
+
+    it("blocks headshot upload when the file's dimensions are wrong", async () => {
+        class WrongShapeImage {
+            public onload: (() => void) | null = null;
+            public onerror: (() => void) | null = null;
+            public naturalWidth = 400;
+            public naturalHeight = 600;
+            set src(_value: string) {
+                queueMicrotask(() => this.onload?.());
+            }
+        }
+        (global as unknown as { Image: typeof WrongShapeImage }).Image =
+            WrongShapeImage;
+
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
+            type: "image/jpeg",
+        });
+        fireEvent.change(screen.getAllByLabelText("Upload headshot file")[0], {
+            target: { files: [file] },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Upload headshot" })[0],
+        );
+
+        await waitFor(() =>
+            expect(screen.getByText(/Headshot is 400x600/)).toBeTruthy(),
+        );
+        expect(global.fetch).not.toHaveBeenCalled();
     });
 
     it("uploads a hero URL without resubmitting the current headshot", async () => {

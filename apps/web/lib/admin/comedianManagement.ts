@@ -30,7 +30,7 @@ export type AdminComedianListItem = {
         width: number | null;
         height: number | null;
     } | null;
-    legacyImageUrl: string;
+    nameImageUrl: string;
     popularity: number;
     totalShows: number;
     parent: {
@@ -297,7 +297,7 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                               : null,
                       }
                     : null,
-                legacyImageUrl: imageUrls.imageUrl,
+                nameImageUrl: imageUrls.imageUrl,
                 popularity: comedian.popularity,
                 totalShows: comedian.totalShows,
                 parent: comedian.parentComedian,

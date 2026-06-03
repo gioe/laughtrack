@@ -1,14 +1,23 @@
 import net from "node:net";
 import sharp from "sharp";
+import {
+    ASPECT_RATIO_TOLERANCE,
+    AVATAR_SIZE,
+    HERO_HEIGHT,
+    HERO_WIDTH,
+    MIN_SOURCE_DIMENSION,
+} from "./comedianImageConstraints";
+
+export {
+    AVATAR_SIZE,
+    HERO_HEIGHT,
+    HERO_WIDTH,
+    MIN_SOURCE_DIMENSION,
+} from "./comedianImageConstraints";
 
 export const MAX_DOWNLOAD_BYTES = 20 * 1024 * 1024;
-export const MIN_SOURCE_DIMENSION = 600;
-export const AVATAR_SIZE = 1000;
-export const HERO_WIDTH = 2000;
-export const HERO_HEIGHT = 1125;
 export const JPEG_QUALITY = 85;
 export const DOWNLOAD_TIMEOUT_MS = 15_000;
-const ASPECT_RATIO_TOLERANCE = 0.05;
 
 const ALLOWED_MIME_TYPES = new Set([
     "image/jpeg",

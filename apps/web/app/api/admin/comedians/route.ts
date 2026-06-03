@@ -227,7 +227,7 @@ function serializeComedian(
     denyListEntry: DenyListRow | null,
 ): AdminComedianListItem {
     const activeImageAsset = comedian.imageAssets?.[0] ?? null;
-    const legacyImageUrl = buildComedianImageUrls({
+    const nameImageUrl = buildComedianImageUrls({
         name: comedian.name,
         hasImage: Boolean(comedian.hasImage),
         activeAsset: null,
@@ -260,7 +260,7 @@ function serializeComedian(
                           : null),
               }
             : null,
-        legacyImageUrl,
+        nameImageUrl,
         popularity: comedian.popularity,
         totalShows: comedian.totalShows,
         parent: comedian.parentComedian,

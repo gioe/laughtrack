@@ -36,15 +36,15 @@ export function buildComedianImageUrls({
     hasImage,
     activeAsset,
 }: BuildComedianImageUrlsInput): ComedianImageUrls {
-    const legacyUrl = buildComedianImageUrl(name, Boolean(hasImage));
+    const nameImageUrl = buildComedianImageUrl(name, Boolean(hasImage));
     const asset =
         activeAsset && activeAsset.isActive !== false ? activeAsset : null;
     const avatarUrl = asset?.avatarPath
         ? buildComedianImageAssetUrl(asset.avatarPath)
-        : legacyUrl;
+        : nameImageUrl;
     const heroUrl = asset?.heroPath
         ? buildComedianImageAssetUrl(asset.heroPath)
-        : legacyUrl;
+        : nameImageUrl;
 
     return {
         imageUrl: avatarUrl,
