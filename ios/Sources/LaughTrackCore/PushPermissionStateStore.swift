@@ -111,15 +111,6 @@ public final class PushPermissionStateStore: ObservableObject {
         return state.postOnboardingFavoriteCount
     }
 
-    /// Backward-compat alias for the original TASK-2586 spelling. New
-    /// call sites should prefer `recordEngagementSignal` — kept without
-    /// deprecation so test fixtures and any external callers keep
-    /// compiling cleanly while the rename propagates.
-    @discardableResult
-    public func recordPostOnboardingFavorite() -> Int {
-        recordEngagementSignal()
-    }
-
     /// Increment the post-deferral session counter. Called once per cold
     /// launch from the app entry point. No-op when the user has never
     /// deferred — the cadence only reads sessionCountSinceLastDeferral when

@@ -111,10 +111,20 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     /// Records a show-detail view as an engagement signal, debounced to one
     /// signal per unique `showID` per app process. Revisits of a show that
     /// already fired this session are a no-op — including the no-op cases
-    /// where the persistent counter is suppressed by a guard, so the user
-    /// can't farm a second signal by backing out and re-entering after a
-    /// gate clears mid-session.
+    /// where the persistent counter is suppressed by a permanent-suppression
+    /// guard inside `handleEngagementSignal` (push pref enabled / deferral
+    /// cap reached / sheet already shown this session), so the user can't
+    /// farm a second signal by backing out and re-entering after one of
+    /// those gates clears mid-session.
+    ///
+    /// `isPostOnboarding`, by contrast, is NOT a permanent-suppression gate
+    /// — it can flip false→true within a single app process when the user
+    /// completes comedian onboarding. Filtering it BEFORE the dedupe-set
+    /// write keeps onboarding-time visits from poisoning the gate: the
+    /// user's first post-onboarding visit to a show they already opened
+    /// during onboarding still counts as a fresh engagement signal.
     public func handleShowDetailViewed(showID: Int, isPostOnboarding: Bool) async {
+        guard isPostOnboarding else { return }
         guard !seenShowDetailIDsThisSession.contains(showID) else { return }
         seenShowDetailIDsThisSession.insert(showID)
         await handleEngagementSignal(isPostOnboarding: isPostOnboarding)

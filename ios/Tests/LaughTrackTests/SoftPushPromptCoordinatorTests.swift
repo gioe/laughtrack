@@ -371,6 +371,29 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.stateStore.postOnboardingFavoriteCount == 0)
     }
 
+    @Test("handleShowDetailViewed does not poison the dedupe set when a show is visited during onboarding")
+    func showDetailOnboardingVisitDoesNotPoisonDedupe() async {
+        // Bug guard for review #4951 finding #2815: if the dedupe-set write
+        // happened BEFORE the isPostOnboarding guard, an onboarding-time
+        // visit to show 7 would silently mark 7 as "seen", and a post-
+        // onboarding revisit of the same show would no-op instead of
+        // counting as the user's first qualifying engagement signal. The
+        // permanent-suppression guards (push pref, deferral cap,
+        // hasPresentedThisSession) deliberately DO sit behind the dedupe
+        // write so a user can't farm a second signal once a gate clears,
+        // but isPostOnboarding can flip false→true within one app process,
+        // so it has to filter BEFORE the dedupe write.
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.handleShowDetailViewed(showID: 7, isPostOnboarding: false)
+        await env.coordinator.handleShowDetailViewed(showID: 7, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 8, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 9, isPostOnboarding: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
     @Test("handleShowDetailViewed short-circuits the persistent counter when the app push pref is already on")
     func showDetailShortCircuitsWhenPushPrefEnabled() async {
         let env = makeEnvironment(status: .notDetermined)

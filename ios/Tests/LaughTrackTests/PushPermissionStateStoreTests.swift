@@ -31,30 +31,13 @@ struct PushPermissionStateStoreTests {
         #expect(store.lastDeferredAt != nil)
     }
 
-    @Test("recordPostOnboardingFavorite returns the cumulative running count")
-    func recordPostOnboardingFavoriteReturnsRunningCount() {
-        let storage = makeStorage(name: "favorites")
-        let store = PushPermissionStateStore(appStateStorage: storage)
-
-        #expect(store.recordPostOnboardingFavorite() == 1)
-        #expect(store.recordPostOnboardingFavorite() == 2)
-        #expect(store.recordPostOnboardingFavorite() == 3)
-        #expect(store.postOnboardingFavoriteCount == 3)
-    }
-
-    @Test("recordEngagementSignal increments the same counter as recordPostOnboardingFavorite")
-    func recordEngagementSignalIncrementsSharedCounter() {
+    @Test("recordEngagementSignal returns the cumulative running count")
+    func recordEngagementSignalReturnsRunningCount() {
         let storage = makeStorage(name: "engagement-signals")
         let store = PushPermissionStateStore(appStateStorage: storage)
 
-        // Mixing the two spellings against the same store must yield a
-        // single monotonically-increasing count — the new wiring from
-        // ShowDetailView and ClubFavoriteStore (TASK-2606) shares the
-        // counter with the existing ComedianFavoriteStore (TASK-2586)
-        // call site, so a regression that split them into separate
-        // counters would silently halve the cadence's signal count.
         #expect(store.recordEngagementSignal() == 1)
-        #expect(store.recordPostOnboardingFavorite() == 2)
+        #expect(store.recordEngagementSignal() == 2)
         #expect(store.recordEngagementSignal() == 3)
         #expect(store.postOnboardingFavoriteCount == 3)
     }
@@ -65,8 +48,8 @@ struct PushPermissionStateStoreTests {
         let fixedDate = Date(timeIntervalSince1970: 2_000_000)
         let first = PushPermissionStateStore(appStateStorage: storage) { fixedDate }
         first.recordDeferral()
-        first.recordPostOnboardingFavorite()
-        first.recordPostOnboardingFavorite()
+        first.recordEngagementSignal()
+        first.recordEngagementSignal()
 
         let reloaded = PushPermissionStateStore(appStateStorage: storage)
 
@@ -93,7 +76,7 @@ struct PushPermissionStateStoreTests {
         let storage = makeStorage(name: "reset")
         let store = PushPermissionStateStore(appStateStorage: storage)
         store.recordDeferral()
-        store.recordPostOnboardingFavorite()
+        store.recordEngagementSignal()
         store.recordColdLaunchSession()
 
         store.reset()
