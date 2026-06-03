@@ -3,9 +3,15 @@ name: iOS
 # Consolidated from five iOS workflow files in TASK-2634:
 #   ios-build.yml, ios-pbxproj-sync.yml, ios-libs-pin-sync.yml,
 #   ios-openapi-drift.yml, ios-bundle-version.yml.
-# The five original workflow names appear as job display `name:` values below
-# so branch-protection rules referencing them can be re-pointed to
-# "iOS / <job name>" without ambiguity.
+# Each of the five original top-level workflow names is preserved as a job
+# `name:` value below, so a branch-protection rule that pointed at the old
+# "<workflow name> / <job id>" check can be re-pointed at the new
+# "iOS / <job name>" check without ambiguity. Note that sub-jobs nested
+# inside the original ios-build.yml (sim-tests-ios-18, sim-tests-ios-26-watch)
+# now report under "iOS / sim-tests-ios-18" instead of
+# "iOS swift build --build-tests / sim-tests-ios-18" — re-point those too if
+# protection ever references them (TASK-2634 verified main protection only
+# requires Type Check / Lint / Build today).
 
 on:
   push:
@@ -60,8 +66,6 @@ jobs:
           filters: |
             build:
               - 'apps/web/app/api/v1/**/*.ts'
-              - 'ios/Sources/LaughTrackAPIClient/openapi.json'
-              - 'ios/Sources/LaughTrackAPIClient/GeneratedSources/Types.swift'
               - 'ios/Sources/**'
               - 'ios/Tests/**'
               - '.github/workflows/ios.yml'
@@ -178,9 +182,9 @@ jobs:
       - name: Verify every ios/Sources/**/*.swift and ios/Tests/**/*.swift is wired into project.pbxproj
         run: ios/bin/check-pbxproj-sync.sh
 
-      # Scoped to push/schedule on main so failing PR checks don't spam Discord.
+      # Scoped to push on main so failing PR checks don't spam Discord.
       - name: Notify Discord on failure
-        if: ${{ failure() && (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main' }}
+        if: ${{ failure() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
