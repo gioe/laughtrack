@@ -255,3 +255,39 @@ class TestItemsBeforeFilter:
 
         assert shows == []
         assert diagnostics.items_before_filter == 3
+
+
+class TestPersistLockTimeoutRecording:
+    """TASK-2626: persist-layer lock timeouts must accumulate on
+    ScrapeDiagnostics so scrape_with_result can surface them to
+    ClubScrapingResult.error instead of dropping the events silently."""
+
+    def test_default_is_empty(self):
+        """Fresh diagnostics has no lock timeouts (the common case)."""
+        diagnostics = ScrapeDiagnostics()
+        assert diagnostics.persist_lock_timeouts == []
+
+    def test_recorder_appends_venue_and_event_count(self):
+        """Each record_persist_lock_timeout call appends a
+        (venue_label, dropped_events) tuple in order — order is meaningful
+        for the run-end aggregation message, which names the venues."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_persist_lock_timeout("The Comedy Inn", 5)
+        diagnostics.record_persist_lock_timeout("Bull Pen Tap House", 3)
+        assert diagnostics.persist_lock_timeouts == [
+            ("The Comedy Inn", 5),
+            ("Bull Pen Tap House", 3),
+        ]
+
+    def test_recorder_preserves_duplicate_venue_entries(self):
+        """A retry that times out twice for the same venue records both
+        events; the aggregation layer (not this recorder) decides whether
+        to dedupe by venue label. Recording is append-only so we don't
+        silently drop the second incident."""
+        diagnostics = ScrapeDiagnostics()
+        diagnostics.record_persist_lock_timeout("The Comedy Inn", 5)
+        diagnostics.record_persist_lock_timeout("The Comedy Inn", 5)
+        assert diagnostics.persist_lock_timeouts == [
+            ("The Comedy Inn", 5),
+            ("The Comedy Inn", 5),
+        ]

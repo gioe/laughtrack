@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import List, Optional, Tuple
 
 __all__ = [
     "ScrapeDiagnostics",
@@ -61,6 +61,15 @@ class ScrapeDiagnostics:
     # fetches 300+ price-detail pages from the same uncanonical host emits one
     # actionable signal instead of 300 (TASK-2559 incident on OTH).
     cross_host_redirects_warned: set[tuple[str, str]] = field(default_factory=set)
+    # Per-venue persist-layer lock timeouts. Recorded as (venue_label,
+    # dropped_event_count) tuples by scrapers that swallow LockHeldError /
+    # asyncio.TimeoutError inside a fan-out (currently EventbriteScraper's
+    # organizer mode) so the events are not silently dropped: scrape_with_result
+    # surfaces this list to ClubScrapingResult.error with a 'lock_timeout:'
+    # prefix, which keeps the per-venue WARN logs intact AND populates the
+    # metric row's error field so Grafana can alert on lock-timeout
+    # specifically rather than on the generic zero-show outcome.
+    persist_lock_timeouts: List[Tuple[str, int]] = field(default_factory=list)
 
     def record_response(self, status_code: int) -> None:
         if self.http_status is None:
@@ -116,6 +125,23 @@ class ScrapeDiagnostics:
             return False
         self.cross_host_redirects_warned.add(key)
         return True
+
+    def record_persist_lock_timeout(self, venue_label: str, dropped_events: int) -> None:
+        """Record that a venue's persist-layer write timed out on
+        ``_DB_WRITE_LOCK`` (either ``LockHeldError`` from the fail-fast
+        acquire or ``asyncio.TimeoutError`` from the per-venue wait_for
+        bound).
+
+        Caller's existing per-venue ERROR log still names the venue and the
+        timeout shape; this records the (venue, dropped_event_count) tuple
+        so the run-end aggregation in ``scrape_with_result`` can surface the
+        incident to ``ClubScrapingResult.error`` with the ``lock_timeout:``
+        prefix. Without that surface, an Eventbrite organizer scrape whose
+        only failure was a lock-timeout dropped its N events silently
+        (the metric row recorded success=true, num_shows=0, error=null —
+        the original incident in TASK-2626).
+        """
+        self.persist_lock_timeouts.append((venue_label, dropped_events))
 
 
 _current: ContextVar[Optional[ScrapeDiagnostics]] = ContextVar(
