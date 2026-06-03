@@ -35,22 +35,18 @@ final class PushPromptCadenceUITests: XCTestCase {
     // XCUITest queries the cross-process accessibility tree by string.
     private static let softPushDeferButton = "laughtrack.soft-push-prompt.defer-button"
 
-    // Env-var key from `DebugSimulatedFavoriteHook.environmentKey`. Same
-    // module-boundary reason as above.
-    private static let synthesizedFavoriteCountKey = "UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT"
-
     func testDeferThenColdLaunchSuppressesRePrompt() {
         let app = XCUIApplication()
 
-        // First launch — UITEST_RESET_STATE wipes prior cadence residue
-        // (including laughtrack.notifications.softPushPermissionState).
-        // UITEST_GUEST_BROWSING seeds the first-entry choice so the shell
-        // mounts directly past the auth gate. The env var arms
+        // First launch — UITestLaunchArgs.resetState wipes prior cadence
+        // residue (including laughtrack.notifications.softPushPermissionState).
+        // UITestLaunchArgs.guestBrowsing seeds the first-entry choice so the
+        // shell mounts directly past the auth gate. The env var arms
         // `DebugSimulatedFavoriteHook` to fire 3 synthetic
         // `handleComedianFavoriteAdded(isPostOnboarding: true)` calls once
         // the shell's `.task` runs.
-        app.launchArguments = ["UITEST_RESET_STATE", "UITEST_GUEST_BROWSING"]
-        app.launchEnvironment = [Self.synthesizedFavoriteCountKey: "3"]
+        app.launchArguments = [UITestLaunchArgs.resetState, UITestLaunchArgs.guestBrowsing]
+        app.launchEnvironment = [UITestLaunchArgs.simulatePostOnboardingFavoriteCount: "3"]
         app.launch()
 
         let deferButton = app.buttons[Self.softPushDeferButton]
@@ -69,11 +65,12 @@ final class PushPromptCadenceUITests: XCTestCase {
         // Cold launch. Terminating and relaunching reinvokes
         // `LaughTrackApp.init`, which calls `recordColdLaunchSession()` — that
         // is the only signal that ticks `sessionCountSinceLastDeferral`. Do
-        // NOT pass UITEST_RESET_STATE on this launch — the deferral state must
-        // persist for the suppression assertion below to be meaningful.
+        // NOT pass UITestLaunchArgs.resetState on this launch — the deferral
+        // state must persist for the suppression assertion below to be
+        // meaningful.
         app.terminate()
-        app.launchArguments = ["UITEST_GUEST_BROWSING"]
-        app.launchEnvironment = [Self.synthesizedFavoriteCountKey: "3"]
+        app.launchArguments = [UITestLaunchArgs.guestBrowsing]
+        app.launchEnvironment = [UITestLaunchArgs.simulatePostOnboardingFavoriteCount: "3"]
         app.launch()
 
         // After one defer + one cold launch:
