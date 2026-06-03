@@ -41,10 +41,16 @@ type Status = {
     message?: string;
 };
 
-type WebsiteEdit = {
+type ProfileEdit = {
     website: string;
     websiteScrapingUrl: string;
+    instagramAccount: string;
+    tiktokAccount: string;
+    youtubeAccount: string;
+    linktree: string;
 };
+
+type ProfileField = keyof ProfileEdit;
 
 type ManualImageUrls = {
     headshot: string;
@@ -156,8 +162,8 @@ export default function AdminComedianManager({ comedians }: Props) {
         {},
     );
     const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
-    const [websiteEdits, setWebsiteEdits] = useState<
-        Record<number, WebsiteEdit>
+    const [profileEdits, setProfileEdits] = useState<
+        Record<number, ProfileEdit>
     >({});
     // Comedian rows default to collapsed; the operator expands the ones they
     // want to work on. (Previously every row was seeded open.)
@@ -254,41 +260,59 @@ export default function AdminComedianManager({ comedians }: Props) {
         return normalizedAdminName(nameValue(row)) !== row.name;
     }
 
-    function websiteValue(row: AdminComedianListItem) {
-        return websiteEdits[row.id]?.website ?? row.website ?? "";
+    function rowDefaultFor(
+        row: AdminComedianListItem,
+        field: ProfileField,
+    ): string {
+        return row[field] ?? "";
     }
 
-    function websiteScrapingUrlValue(row: AdminComedianListItem) {
-        return (
-            websiteEdits[row.id]?.websiteScrapingUrl ??
-            row.websiteScrapingUrl ??
-            ""
-        );
+    function profileFieldValue(
+        row: AdminComedianListItem,
+        field: ProfileField,
+    ) {
+        return profileEdits[row.id]?.[field] ?? rowDefaultFor(row, field);
     }
 
-    function isWebsiteDirty(row: AdminComedianListItem) {
-        return (
-            normalizedUrl(websiteValue(row)) !== (row.website ?? null) ||
-            normalizedUrl(websiteScrapingUrlValue(row)) !==
-                (row.websiteScrapingUrl ?? null)
+    function snapshotProfileEdit(row: AdminComedianListItem): ProfileEdit {
+        return {
+            website: profileFieldValue(row, "website"),
+            websiteScrapingUrl: profileFieldValue(row, "websiteScrapingUrl"),
+            instagramAccount: profileFieldValue(row, "instagramAccount"),
+            tiktokAccount: profileFieldValue(row, "tiktokAccount"),
+            youtubeAccount: profileFieldValue(row, "youtubeAccount"),
+            linktree: profileFieldValue(row, "linktree"),
+        };
+    }
+
+    const PROFILE_FIELDS: ProfileField[] = [
+        "website",
+        "websiteScrapingUrl",
+        "instagramAccount",
+        "tiktokAccount",
+        "youtubeAccount",
+        "linktree",
+    ];
+
+    function isProfileDirty(row: AdminComedianListItem) {
+        return PROFILE_FIELDS.some(
+            (field) =>
+                normalizedUrl(profileFieldValue(row, field)) !==
+                (row[field] ?? null),
         );
     }
 
     function isRecordDirty(row: AdminComedianListItem) {
-        return isNameDirty(row) || isWebsiteDirty(row);
+        return isNameDirty(row) || isProfileDirty(row);
     }
 
-    function updateWebsiteEdit(
+    function updateProfileEdit(
         row: AdminComedianListItem,
-        patch: Partial<WebsiteEdit>,
+        patch: Partial<ProfileEdit>,
     ) {
-        setWebsiteEdits((current) => ({
+        setProfileEdits((current) => ({
             ...current,
-            [row.id]: {
-                website: websiteValue(row),
-                websiteScrapingUrl: websiteScrapingUrlValue(row),
-                ...patch,
-            },
+            [row.id]: { ...snapshotProfileEdit(row), ...patch },
         }));
     }
 
@@ -395,10 +419,20 @@ export default function AdminComedianManager({ comedians }: Props) {
                 body: JSON.stringify({
                     comedianId: row.id,
                     name,
-                    website: normalizedUrl(websiteValue(row)),
+                    website: normalizedUrl(profileFieldValue(row, "website")),
                     websiteScrapingUrl: normalizedUrl(
-                        websiteScrapingUrlValue(row),
+                        profileFieldValue(row, "websiteScrapingUrl"),
                     ),
+                    instagramAccount: normalizedUrl(
+                        profileFieldValue(row, "instagramAccount"),
+                    ),
+                    tiktokAccount: normalizedUrl(
+                        profileFieldValue(row, "tiktokAccount"),
+                    ),
+                    youtubeAccount: normalizedUrl(
+                        profileFieldValue(row, "youtubeAccount"),
+                    ),
+                    linktree: normalizedUrl(profileFieldValue(row, "linktree")),
                 }),
             });
         } catch (error) {
@@ -432,7 +466,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             delete next[row.id];
             return next;
         });
-        setWebsiteEdits((current) => {
+        setProfileEdits((current) => {
             const next = { ...current };
             delete next[row.id];
             return next;
@@ -1370,11 +1404,12 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         <input
                                                             aria-label="Comedian website"
                                                             type="url"
-                                                            value={websiteValue(
+                                                            value={profileFieldValue(
                                                                 row,
+                                                                "website",
                                                             )}
                                                             onChange={(event) =>
-                                                                updateWebsiteEdit(
+                                                                updateProfileEdit(
                                                                     row,
                                                                     {
                                                                         website:
@@ -1393,11 +1428,12 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         <input
                                                             aria-label="Comedian website scraping URL"
                                                             type="url"
-                                                            value={websiteScrapingUrlValue(
+                                                            value={profileFieldValue(
                                                                 row,
+                                                                "websiteScrapingUrl",
                                                             )}
                                                             onChange={(event) =>
-                                                                updateWebsiteEdit(
+                                                                updateProfileEdit(
                                                                     row,
                                                                     {
                                                                         websiteScrapingUrl:
@@ -1408,6 +1444,102 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                                 )
                                                             }
                                                             placeholder="https://example.com/tour"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Instagram
+                                                        <input
+                                                            aria-label="Comedian Instagram handle"
+                                                            type="text"
+                                                            value={profileFieldValue(
+                                                                row,
+                                                                "instagramAccount",
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateProfileEdit(
+                                                                    row,
+                                                                    {
+                                                                        instagramAccount:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="handle (without @)"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        TikTok
+                                                        <input
+                                                            aria-label="Comedian TikTok handle"
+                                                            type="text"
+                                                            value={profileFieldValue(
+                                                                row,
+                                                                "tiktokAccount",
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateProfileEdit(
+                                                                    row,
+                                                                    {
+                                                                        tiktokAccount:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="handle (without @)"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        YouTube
+                                                        <input
+                                                            aria-label="Comedian YouTube handle"
+                                                            type="text"
+                                                            value={profileFieldValue(
+                                                                row,
+                                                                "youtubeAccount",
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateProfileEdit(
+                                                                    row,
+                                                                    {
+                                                                        youtubeAccount:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="@handle or channel id"
+                                                            className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                        />
+                                                    </label>
+                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Linktree
+                                                        <input
+                                                            aria-label="Comedian Linktree URL"
+                                                            type="url"
+                                                            value={profileFieldValue(
+                                                                row,
+                                                                "linktree",
+                                                            )}
+                                                            onChange={(event) =>
+                                                                updateProfileEdit(
+                                                                    row,
+                                                                    {
+                                                                        linktree:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder="https://linktr.ee/..."
                                                             className="rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                                                         />
                                                     </label>

@@ -20,6 +20,10 @@ type ComedianSnapshot = {
     name: string;
     website: string | null;
     websiteScrapingUrl: string | null;
+    instagramAccount: string | null;
+    tiktokAccount: string | null;
+    youtubeAccount: string | null;
+    linktree: string | null;
     hasImage: boolean;
     imageAssets: Array<{
         id: number;
@@ -164,6 +168,10 @@ const putSchema = z
             .max(2000)
             .nullable()
             .optional(),
+        instagramAccount: z.string().trim().max(255).nullable().optional(),
+        tiktokAccount: z.string().trim().max(255).nullable().optional(),
+        youtubeAccount: z.string().trim().max(255).nullable().optional(),
+        linktree: z.string().trim().url().max(2000).nullable().optional(),
         reason: z.string().trim().max(1000).optional(),
     })
     .strict();
@@ -212,6 +220,10 @@ function snapshotForAudit(comedian: ComedianSnapshot) {
         name: comedian.name,
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
+        instagramAccount: comedian.instagramAccount,
+        tiktokAccount: comedian.tiktokAccount,
+        youtubeAccount: comedian.youtubeAccount,
+        linktree: comedian.linktree,
         hasImage: Boolean(comedian.hasImage),
         activeImageAsset: comedian.imageAssets?.[0] ?? null,
         popularity: comedian.popularity,
@@ -240,6 +252,10 @@ function serializeComedian(
         name: comedian.name,
         website: comedian.website,
         websiteScrapingUrl: comedian.websiteScrapingUrl,
+        instagramAccount: comedian.instagramAccount,
+        tiktokAccount: comedian.tiktokAccount,
+        youtubeAccount: comedian.youtubeAccount,
+        linktree: comedian.linktree,
         hasImage: Boolean(comedian.hasImage),
         activeImageAsset: activeImageAsset
             ? {
@@ -336,6 +352,10 @@ const comedianSnapshotSelect = {
     name: true,
     website: true,
     websiteScrapingUrl: true,
+    instagramAccount: true,
+    tiktokAccount: true,
+    youtubeAccount: true,
+    linktree: true,
     hasImage: true,
     imageAssets: {
         where: { isActive: true },
@@ -1014,6 +1034,28 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
         "websiteScrapingUrl" in parsed.data
             ? normalizeOptionalUrl(parsed.data.websiteScrapingUrl)
             : undefined;
+    const normalizeOptionalHandle = (value: string | null | undefined) => {
+        const trimmed = value?.trim() ?? "";
+        if (!trimmed) return null;
+        // Strip a single leading "@" so we store the bare handle.
+        return trimmed.startsWith("@") ? trimmed.slice(1) : trimmed;
+    };
+    const instagramAccount =
+        "instagramAccount" in parsed.data
+            ? normalizeOptionalHandle(parsed.data.instagramAccount)
+            : undefined;
+    const tiktokAccount =
+        "tiktokAccount" in parsed.data
+            ? normalizeOptionalHandle(parsed.data.tiktokAccount)
+            : undefined;
+    const youtubeAccount =
+        "youtubeAccount" in parsed.data
+            ? normalizeOptionalHandle(parsed.data.youtubeAccount)
+            : undefined;
+    const linktree =
+        "linktree" in parsed.data
+            ? normalizeOptionalUrl(parsed.data.linktree)
+            : undefined;
 
     try {
         const result = await db.$transaction(
@@ -1048,6 +1090,16 @@ export const PUT = withRequestMetrics(async function PUT(req: NextRequest) {
                         ...(websiteScrapingUrl !== undefined
                             ? { websiteScrapingUrl }
                             : {}),
+                        ...(instagramAccount !== undefined
+                            ? { instagramAccount }
+                            : {}),
+                        ...(tiktokAccount !== undefined
+                            ? { tiktokAccount }
+                            : {}),
+                        ...(youtubeAccount !== undefined
+                            ? { youtubeAccount }
+                            : {}),
+                        ...(linktree !== undefined ? { linktree } : {}),
                     },
                 });
 

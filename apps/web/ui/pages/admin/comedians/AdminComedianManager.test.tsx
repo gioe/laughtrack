@@ -32,6 +32,10 @@ const comedians: AdminComedianListItem[] = [
         name: "Parent Comic",
         website: "https://parent.example.com",
         websiteScrapingUrl: "https://parent.example.com/tour",
+        instagramAccount: "parentcomic",
+        tiktokAccount: null,
+        youtubeAccount: null,
+        linktree: null,
         hasImage: true,
         activeImageAsset: {
             id: 101,
@@ -102,6 +106,10 @@ const comedians: AdminComedianListItem[] = [
         name: "Alias Comic",
         website: null,
         websiteScrapingUrl: null,
+        instagramAccount: null,
+        tiktokAccount: null,
+        youtubeAccount: null,
+        linktree: null,
         hasImage: false,
         activeImageAsset: null,
         nameImageUrl: "",
@@ -854,6 +862,66 @@ describe("AdminComedianManager", () => {
                         name: "Alias Comic",
                         website: "https://alias.example.com",
                         websiteScrapingUrl: "https://alias.example.com/tour",
+                        instagramAccount: null,
+                        tiktokAccount: null,
+                        youtubeAccount: null,
+                        linktree: null,
+                    }),
+                }),
+            );
+        });
+    });
+
+    it("saves social media handles via the inline record edit", async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                ok: true,
+                comedian: {
+                    ...comedians[1],
+                    instagramAccount: "aliashandle",
+                    tiktokAccount: "aliastok",
+                    youtubeAccount: "@AliasComic",
+                    linktree: "https://linktr.ee/alias",
+                },
+            }),
+        } as never);
+        render(<AdminComedianManager comedians={comedians} />);
+        expandAllRows();
+
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian Instagram handle")[0],
+            { target: { value: "@aliashandle" } },
+        );
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian TikTok handle")[0],
+            { target: { value: "aliastok" } },
+        );
+        fireEvent.change(
+            screen.getAllByLabelText("Comedian YouTube handle")[0],
+            { target: { value: "@AliasComic" } },
+        );
+        fireEvent.change(screen.getAllByLabelText("Comedian Linktree URL")[0], {
+            target: { value: "https://linktr.ee/alias" },
+        });
+        fireEvent.click(
+            screen.getAllByRole("button", { name: "Save record" })[0],
+        );
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                "/api/admin/comedians",
+                expect.objectContaining({
+                    method: "PUT",
+                    body: JSON.stringify({
+                        comedianId: 2,
+                        name: "Alias Comic",
+                        website: null,
+                        websiteScrapingUrl: null,
+                        instagramAccount: "@aliashandle",
+                        tiktokAccount: "aliastok",
+                        youtubeAccount: "@AliasComic",
+                        linktree: "https://linktr.ee/alias",
                     }),
                 }),
             );

@@ -18,6 +18,10 @@ export type AdminComedianListItem = {
     name: string;
     website: string | null;
     websiteScrapingUrl: string | null;
+    instagramAccount: string | null;
+    tiktokAccount: string | null;
+    youtubeAccount: string | null;
+    linktree: string | null;
     hasImage: boolean;
     activeImageAsset: {
         id: number;
@@ -112,6 +116,10 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 name: true,
                 website: true,
                 websiteScrapingUrl: true,
+                instagramAccount: true,
+                tiktokAccount: true,
+                youtubeAccount: true,
+                linktree: true,
                 hasImage: true,
                 imageAssets: {
                     where: { isActive: true },
@@ -281,6 +289,10 @@ export async function listAdminComedians(): Promise<AdminComedianListResult> {
                 name: comedian.name,
                 website: comedian.website,
                 websiteScrapingUrl: comedian.websiteScrapingUrl,
+                instagramAccount: comedian.instagramAccount,
+                tiktokAccount: comedian.tiktokAccount,
+                youtubeAccount: comedian.youtubeAccount,
+                linktree: comedian.linktree,
                 hasImage: comedian.hasImage,
                 activeImageAsset: activeImageAsset
                     ? {
