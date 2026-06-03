@@ -519,7 +519,7 @@ attachment lives in `AppBootstrap.configureAnalytics`:
   `com.laughtrack.analytics` via `os.Logger`. Visible in Console.app and Xcode
   during development without touching production analytics.
 
-### User-ID and cohort-property lifecycle wiring (TASK-2605, TASK-2613)
+### User-ID and cohort-property lifecycle wiring (TASK-2605, TASK-2613, TASK-2615)
 
 `AppBootstrap.attachAnalyticsLifecycle` subscribes to `AuthManager`'s
 `currentUser` published projection at construction and translates auth-state
@@ -544,13 +544,16 @@ Transitions:
   underlying field values.
 - **user → nil**: `analytics.reset()` — clears any persisted Firebase user
   properties (including the cohort-filter ones above).
-- **user → user' (same identity, in-place update)**: no-op — driven by a
-  scan-pairwise emitter, so flows like `markComedianOnboardingCompleted`
-  do not re-fire `setUserID` or the cohort-filter properties. A user who
-  completes onboarding mid-session therefore keeps the previous `false`
-  property value in Firebase until the next sign-in; the live-update path
-  is deferred to a follow-up so the duplicate-dispatch question has
-  somewhere to land.
+- **user → user' (same identity, in-place update)**: `setUserID` stays
+  anchored to the nil → user edge and does NOT re-fire here, but each
+  cohort-filter property re-emits only when its underlying value flipped
+  (`comedianOnboardingCompleted` toggle, `zipCode` becoming non-nil or
+  nil). Flows like `markComedianOnboardingCompleted` therefore update the
+  GA4 cohort value immediately without waiting for the next sign-in. The
+  per-field diff suppresses no-op writes so a token-refresh-driven
+  `/v1/me` refetch returning identical cohort fields never adds a row to
+  the GA4 user-property log; only an edge that actually flipped a value
+  costs a property write.
 
 **Never pass raw PII to `analytics.setUserID`.** Google's documented GA4
 policy prohibits transmitting names, email addresses, or phone numbers as
