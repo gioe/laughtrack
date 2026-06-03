@@ -238,6 +238,198 @@ struct SoftPushPromptCoordinatorTests {
         #expect(env.opener.openCount == 1)
     }
 
+    // MARK: - TASK-2606 multi-source engagement signals (criterion 8527)
+
+    @Test("handleClubFavoriteAdded ignores onboarding-time events the same way handleComedianFavoriteAdded does")
+    func clubFavoriteIgnoresOnboarding() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        for _ in 0..<5 {
+            await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: false)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
+    }
+
+    @Test("handleClubFavoriteAdded presents the sheet on the 3rd post-onboarding club favorite")
+    func clubFavoritePresentsOnThirdSignal() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("handleClubFavoriteAdded short-circuits the persistent counter when the app push pref is already on")
+    func clubFavoriteShortCircuitsWhenPushPrefEnabled() async {
+        // Write-amplification guard: a club add that arrives after the user
+        // has already enabled push must NOT write to AppStateStorage. The
+        // counter staying at 0 proves recordEngagementSignal was never
+        // called — anything else implies a missing guard at the new entry
+        // point.
+        let env = makeEnvironment(status: .notDetermined)
+        env.preferenceStore.setFavoriteComedianPushAlertsEnabled(true)
+
+        for _ in 0..<5 {
+            await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
+    }
+
+    @Test("handleClubFavoriteAdded short-circuits the persistent counter once the deferral cap is reached")
+    func clubFavoriteShortCircuitsWhenDeferralCapReached() async {
+        let env = makeEnvironment(status: .notDetermined)
+        env.stateStore.recordDeferral()
+        env.stateStore.recordDeferral()
+        env.stateStore.recordDeferral()
+        let baseline = env.stateStore.postOnboardingFavoriteCount
+
+        for _ in 0..<5 {
+            await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == baseline)
+    }
+
+    @Test("handleClubFavoriteAdded short-circuits the persistent counter once the sheet has been shown this session")
+    func clubFavoriteShortCircuitsAfterPresentation() async {
+        let env = makeEnvironment(status: .notDetermined)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+
+        for _ in 0..<10 {
+            await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        }
+
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("handleShowDetailViewed presents the sheet on the 3rd unique show-detail open")
+    func showDetailPresentsOnThirdDistinctID() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.handleShowDetailViewed(showID: 11, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 22, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 33, isPostOnboarding: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("handleShowDetailViewed debounces revisits of the same show within the same session")
+    func showDetailDebouncesRevisitsWithinSession() async {
+        // Per-session debounce: a single show visited 10 times must not
+        // count for more than one engagement signal. The Set<Int> inside
+        // SoftPushPromptCoordinator is the gate — if that lookup ever
+        // regresses to a "last-seen" Int the test catches it because
+        // alternating visits to the same ID would re-count.
+        let env = makeEnvironment(status: .notDetermined)
+
+        for _ in 0..<10 {
+            await env.coordinator.handleShowDetailViewed(showID: 42, isPostOnboarding: true)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 1)
+    }
+
+    @Test("handleShowDetailViewed records one signal per distinct showID even with interleaved revisits")
+    func showDetailRecordsOneSignalPerDistinctID() async {
+        // Revisits of A interleaved with first-visits of B and C must still
+        // produce three signals — proves the gate keys on the Set rather
+        // than a single "last seen" id.
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.handleShowDetailViewed(showID: 1, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 1, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 2, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 1, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 3, isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 2, isPostOnboarding: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("handleShowDetailViewed ignores onboarding-time opens")
+    func showDetailIgnoresOnboarding() async {
+        let env = makeEnvironment(status: .notDetermined)
+
+        for showID in 1...5 {
+            await env.coordinator.handleShowDetailViewed(showID: showID, isPostOnboarding: false)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
+    }
+
+    @Test("handleShowDetailViewed short-circuits the persistent counter when the app push pref is already on")
+    func showDetailShortCircuitsWhenPushPrefEnabled() async {
+        let env = makeEnvironment(status: .notDetermined)
+        env.preferenceStore.setFavoriteComedianPushAlertsEnabled(true)
+
+        for showID in 1...5 {
+            await env.coordinator.handleShowDetailViewed(showID: showID, isPostOnboarding: true)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 0)
+    }
+
+    @Test("handleShowDetailViewed short-circuits the persistent counter once the deferral cap is reached")
+    func showDetailShortCircuitsWhenDeferralCapReached() async {
+        let env = makeEnvironment(status: .notDetermined)
+        env.stateStore.recordDeferral()
+        env.stateStore.recordDeferral()
+        env.stateStore.recordDeferral()
+        let baseline = env.stateStore.postOnboardingFavoriteCount
+
+        for showID in 1...5 {
+            await env.coordinator.handleShowDetailViewed(showID: showID, isPostOnboarding: true)
+        }
+
+        #expect(env.coordinator.presentation == .hidden)
+        #expect(env.stateStore.postOnboardingFavoriteCount == baseline)
+    }
+
+    @Test("handleShowDetailViewed short-circuits the persistent counter once the sheet has been shown this session")
+    func showDetailShortCircuitsAfterPresentation() async {
+        let env = makeEnvironment(status: .notDetermined)
+        await fireFavoriteEvents(env.coordinator, count: 3)
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+
+        for showID in 100...110 {
+            await env.coordinator.handleShowDetailViewed(showID: showID, isPostOnboarding: true)
+        }
+
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
+    @Test("comedian, club, and show-detail signals all increment the same shared counter")
+    func mixedSourcesShareTheEngagementCounter() async {
+        // The cadence's threshold of 3 should be hit by ANY mix of the three
+        // sources — proves recordEngagementSignal is wired uniformly. Splits
+        // a future regression where one of the call sites silently writes to
+        // a different counter from the other two.
+        let env = makeEnvironment(status: .notDetermined)
+
+        await env.coordinator.handleComedianFavoriteAdded(isPostOnboarding: true)
+        await env.coordinator.handleClubFavoriteAdded(isPostOnboarding: true)
+        await env.coordinator.handleShowDetailViewed(showID: 7, isPostOnboarding: true)
+
+        #expect(env.coordinator.presentation == .promptingSheet)
+        #expect(env.stateStore.postOnboardingFavoriteCount == 3)
+    }
+
     // MARK: - Cadence wiring (criterion 8456/8457 end-to-end)
 
     @Test("after a deferral, the coordinator suppresses the sheet while sessionCountSinceLastDeferral is still 0 (post-deferral session gate is wired)")

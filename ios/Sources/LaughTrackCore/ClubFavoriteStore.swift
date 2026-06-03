@@ -23,6 +23,13 @@ public final class ClubFavoriteStore: ObservableObject {
     @Published public private(set) var savedFavoriteClubs: [Components.Schemas.FavoriteClubItem] = []
     @Published public private(set) var savedFavoritesPhase: SavedFavoritesPhase = .idle
 
+    // Emits the club ID on every successful add-toggle (false → true). Does
+    // NOT fire on remove-toggles or on bulk loads from the server — only
+    // explicit user-driven adds, so SoftPushPromptCoordinator can count
+    // post-onboarding engagement events without false-positives from
+    // sign-in hydration. Mirrors ComedianFavoriteStore.didAddFavoriteComedian.
+    public let didAddFavoriteClub = PassthroughSubject<Int, Never>()
+
     private var hasLoadedSavedFavorites = false
 
     public init() {}
@@ -164,8 +171,13 @@ public final class ClubFavoriteStore: ObservableObject {
             }
 
             let nextValue = response.data.isFavorited
+            let wasAdd = !currentValue && nextValue
             values[clubId] = nextValue
-            if !nextValue {
+            if nextValue {
+                if wasAdd {
+                    didAddFavoriteClub.send(clubId)
+                }
+            } else {
                 savedFavoriteClubs.removeAll { $0.id == clubId }
                 if savedFavoriteClubs.isEmpty, hasLoadedSavedFavorites {
                     savedFavoritesPhase = .empty

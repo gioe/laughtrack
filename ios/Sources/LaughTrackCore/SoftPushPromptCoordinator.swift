@@ -35,6 +35,15 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     @Published public var presentation: Presentation = .hidden
     @Published public private(set) var hasPresentedThisSession: Bool = false
 
+    // Per-session debounce for show-detail engagement signals. ShowDetailView
+    // fires once per `.onAppear`, which would over-count on every navigation
+    // pop-and-revisit of the same show (back-stack pops trigger a fresh
+    // onAppear in SwiftUI). Lives on the coordinator instead of the view so
+    // the gate survives view recycling, and so revisits of show A interleaved
+    // with first-visits of show B B C still record three signals — set
+    // membership keys on showID, not on a single "last seen" id.
+    private var seenShowDetailIDsThisSession: Set<Int> = []
+
     private let stateStore: PushPermissionStateStore
     private let notificationPreferenceStore: NotificationPreferenceStore
     private let authorizationStatusProvider: any PushAuthorizationStatusProviding
@@ -92,21 +101,41 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     }
 
     public func handleComedianFavoriteAdded(isPostOnboarding: Bool) async {
+        await handleEngagementSignal(isPostOnboarding: isPostOnboarding)
+    }
+
+    public func handleClubFavoriteAdded(isPostOnboarding: Bool) async {
+        await handleEngagementSignal(isPostOnboarding: isPostOnboarding)
+    }
+
+    /// Records a show-detail view as an engagement signal, debounced to one
+    /// signal per unique `showID` per app process. Revisits of a show that
+    /// already fired this session are a no-op — including the no-op cases
+    /// where the persistent counter is suppressed by a guard, so the user
+    /// can't farm a second signal by backing out and re-entering after a
+    /// gate clears mid-session.
+    public func handleShowDetailViewed(showID: Int, isPostOnboarding: Bool) async {
+        guard !seenShowDetailIDsThisSession.contains(showID) else { return }
+        seenShowDetailIDsThisSession.insert(showID)
+        await handleEngagementSignal(isPostOnboarding: isPostOnboarding)
+    }
+
+    private func handleEngagementSignal(isPostOnboarding: Bool) async {
         guard isPostOnboarding else { return }
         // Skip the persistent increment only for the permanent-suppression
         // cases — pref already enabled, deferral cap hit, or sheet already
         // shown this session — where no later cadence check could ever
-        // flip the prompt back on for this favorite. The cadence's session
+        // flip the prompt back on for this signal. The cadence's session
         // and backoff gates are deliberately NOT mirrored here: a later
         // cold launch or wall-clock tick can flip them open, and we want
         // the engagement counter to reflect signals accumulated during
-        // the suppression window so the prompt fires on the same favorite
+        // the suppression window so the prompt fires on the same signal
         // that clears the gate.
         guard !notificationPreferenceStore.preferences.favoriteComedianPushAlertsEnabled else { return }
         guard !stateStore.hasReachedDeferralCap(PushPermissionPromptCadence.maxDeferrals) else { return }
         guard !hasPresentedThisSession else { return }
 
-        stateStore.recordPostOnboardingFavorite()
+        stateStore.recordEngagementSignal()
 
         let inputs = PushPermissionPromptCadence.Inputs(
             now: now(),

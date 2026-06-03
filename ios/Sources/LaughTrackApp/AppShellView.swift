@@ -254,6 +254,14 @@ struct AppShellView: View {
                 )
             }
         }
+        .onReceive(clubFavorites.didAddFavoriteClub) { _ in
+            let isPostOnboarding = authManager.currentUser?.comedianOnboardingCompleted == true
+            Task { [softPushPromptCoordinator] in
+                await softPushPromptCoordinator.handleClubFavoriteAdded(
+                    isPostOnboarding: isPostOnboarding
+                )
+            }
+        }
     }
 
     private var selectedTabBinding: Binding<AppTab> {

@@ -11,6 +11,7 @@ struct ShowDetailView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var softPushPromptCoordinator: SoftPushPromptCoordinator
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
 
@@ -115,6 +116,18 @@ struct ShowDetailView: View {
         .modifier(EntityDetailNavigationChrome(entity: .show, title: navigationTitle))
         .task {
             await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
+        }
+        .task(id: showID) {
+            // Show-detail open counts as an engagement signal for the push
+            // permission cadence. Debounced inside SoftPushPromptCoordinator
+            // by showID so back-stack revisits of the same show don't burn
+            // a second signal; .task(id:) restarts when navigating between
+            // distinct shows so each new show ID reaches the coordinator.
+            let isPostOnboarding = authManager.currentUser?.comedianOnboardingCompleted == true
+            await softPushPromptCoordinator.handleShowDetailViewed(
+                showID: showID,
+                isPostOnboarding: isPostOnboarding
+            )
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
