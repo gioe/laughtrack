@@ -45,7 +45,11 @@ class CicTheaterScraper(BaseScraper):
             today=self._today(),
         )
         if not events:
-            Logger.info(f"{self._log_prefix}: no recurring CIC Theater shows found", self.logger_context)
+            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+            Logger.warn(
+                f"{self._log_prefix}: no events extracted from {url} (html_len={len(html) if html else 0})",
+                self.logger_context,
+            )
             return None
 
         return CicTheaterPageData(event_list=events)

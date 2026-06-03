@@ -60,8 +60,9 @@ class CoralGablesComedyClubScraper(BaseScraper):
             return None
 
         if not data:
-            Logger.info(
-                f"{self._log_prefix}: no data returned from products API",
+            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+            Logger.warn(
+                f"{self._log_prefix}: no data extracted from products API {url} (payload_type={type(data).__name__})",
                 self.logger_context,
             )
             return None
@@ -71,8 +72,9 @@ class CoralGablesComedyClubScraper(BaseScraper):
         )
 
         if not events:
-            Logger.info(
-                f"{self._log_prefix}: no upcoming events found",
+            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+            Logger.warn(
+                f"{self._log_prefix}: no events extracted from products API {url} (payload_type={type(data).__name__})",
                 self.logger_context,
             )
             return None

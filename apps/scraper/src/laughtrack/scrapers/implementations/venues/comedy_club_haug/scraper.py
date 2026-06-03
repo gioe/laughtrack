@@ -63,8 +63,9 @@ class ComedyClubHaugScraper(BaseScraper):
 
             raw_events = ComedyClubHaugExtractor.extract_shows(html)
             if not raw_events:
-                Logger.info(
-                    f"{self._log_prefix}: no events found in RSC payload",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from RSC payload {url} (html_len={len(html)})",
                     self.logger_context,
                 )
                 return None

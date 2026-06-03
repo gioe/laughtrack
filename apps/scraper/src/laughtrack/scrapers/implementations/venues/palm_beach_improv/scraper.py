@@ -67,8 +67,9 @@ class PalmBeachImprovScraper(BaseScraper):
 
             performances = PalmBeachImprovExtractor.parse_ajax_response(html)
             if not performances:
-                Logger.info(
-                    f"{self._log_prefix}: no Kravis performances in {url}",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no Kravis performances extracted from {url} (html_len={len(html)})",
                     self.logger_context,
                 )
                 return None
@@ -101,8 +102,9 @@ class PalmBeachImprovScraper(BaseScraper):
                 improv_performances
             )
             if not events:
-                Logger.info(
-                    f"{self._log_prefix}: no Palm Beach Improv shows found in {url}",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from {url} (n_candidates={len(improv_performances)}, n_performances={len(performances)})",
                     self.logger_context,
                 )
                 return None

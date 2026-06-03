@@ -50,14 +50,20 @@ class LaughBostonScraper(BaseScraper):
         try:
             data = await self.fetch_json(url)
             if not data:
-                Logger.info(f"{self._log_prefix}: No data returned from Pixl Calendar", self.logger_context)
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no data extracted from Pixl Calendar {url} (payload_type={type(data).__name__})",
+                    self.logger_context,
+                )
                 return None
 
             tixr_events = LaughBostonEventExtractor.parse_events_from_pixl(data, self.club)
 
             if not tixr_events:
-                Logger.info(
-                    f"{self._log_prefix}: No events parsed from Pixl Calendar response", self.logger_context
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from Pixl Calendar {url} (payload_type={type(data).__name__})",
+                    self.logger_context,
                 )
                 return None
 

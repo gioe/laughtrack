@@ -40,8 +40,9 @@ class BarclaysCenterScraper(BaseScraper):
 
             events = BarclaysCenterExtractor.extract_listing_events(html, url)
             if not events:
-                Logger.info(
-                    f"{self._log_prefix}: no comedy events found on {url}",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from {url} (html_len={len(html)})",
                     self.logger_context,
                 )
                 return None

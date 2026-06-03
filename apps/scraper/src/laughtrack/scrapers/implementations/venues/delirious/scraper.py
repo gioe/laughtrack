@@ -85,8 +85,9 @@ class DeliriousComedyClubScraper(BaseScraper):
         try:
             response = await self.fetch_json(url, headers=_FRIENDLYSKY_HEADERS)
             if response is None:
-                Logger.info(
-                    f"{self._log_prefix}: empty response from API ({url})",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no data extracted from FriendlySky API {url} (payload_type=None)",
                     self.logger_context,
                 )
                 return None
@@ -95,8 +96,9 @@ class DeliriousComedyClubScraper(BaseScraper):
             events = DeliriousExtractor.extract_events(response, base_url)
 
             if not events:
-                Logger.info(
-                    f"{self._log_prefix}: no active games found ({url})",
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from FriendlySky API {url} (payload_type={type(response).__name__})",
                     self.logger_context,
                 )
                 return None

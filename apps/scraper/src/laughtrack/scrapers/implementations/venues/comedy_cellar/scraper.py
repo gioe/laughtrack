@@ -98,7 +98,11 @@ class ComedyCellarScraper(BaseScraper):
             event_list = ComedyCellarExtractor.extract_events(target, processed_lineup_data, processed_shows_data)
             
             if not event_list:
-                Logger.info(f"{self._log_prefix}: No events found on page", self.logger_context)
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted for {target} (lineup_keys={list(processed_lineup_data.keys())[:3] if isinstance(processed_lineup_data, dict) else type(processed_lineup_data).__name__})",
+                    self.logger_context,
+                )
                 return None
             return ComedyCellarDateData(event_list)
 

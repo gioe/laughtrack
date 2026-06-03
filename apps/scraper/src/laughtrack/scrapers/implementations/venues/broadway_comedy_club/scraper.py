@@ -84,7 +84,11 @@ class BroadwayComedyClubScraper(BaseScraper):
             event_list = BroadwayEventExtractor.extract_events(html_content)
 
             if not event_list:
-                Logger.info(f"{self._log_prefix}: No events found on page", self.logger_context)
+                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from {normalized_url} (html_len={len(html_content) if html_content else 0})",
+                    self.logger_context,
+                )
                 return None
 
             Logger.info(f"{self._log_prefix}: Extracted {len(event_list)} raw events", self.logger_context)

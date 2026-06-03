@@ -151,8 +151,9 @@ class EsthersFolliesScraper(BaseScraper):
         )
 
         if not events:
-            Logger.info(
-                f"{self._log_prefix}: no upcoming show slots found",
+            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
+            Logger.warn(
+                f"{self._log_prefix}: no events extracted from VBO date slider (html_len={len(slider_html)})",
                 self.logger_context,
             )
             return None
