@@ -94,13 +94,26 @@ def _lock_timeout_retry_backoff() -> float:
     Reads ``EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS`` from env, falling back to
     ``_EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS``. Use-time read so monkeypatched
     env in tests applies without a re-import.
+
+    Falls back to the module default on a malformed value (e.g. ``"2s"`` or
+    an empty string). Without this, a misconfigured env var would raise
+    ``ValueError`` inside ``_upsert_one`` and propagate out through
+    ``asyncio.gather`` — crashing the entire organizer scrape rather than
+    just slowing the retry. The fail-soft is the safer operational
+    contract for a tunable knob that's only consulted on the rare
+    LockHeldError path.
     """
-    return float(
-        os.environ.get(
-            "EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS",
-            _EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS,
+    raw = os.environ.get("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS")
+    if raw is None:
+        return _EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS
+    try:
+        return float(raw)
+    except ValueError:
+        Logger.warn(
+            f"EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS={raw!r} is not a valid float; "
+            f"falling back to {_EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS}s default"
         )
-    )
+        return _EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS
 
 
 class EventbriteScraper(BaseScraper):
@@ -320,6 +333,15 @@ class EventbriteScraper(BaseScraper):
                     )
                     return []
                 except Exception as retry_exc:
+                    # Intentionally NOT recorded as a lock_timeout incident
+                    # — the lock-class branches (LockHeldError, TimeoutError)
+                    # above do record, but a generic exception on retry is a
+                    # different failure class (transient DB error, malformed
+                    # venue payload, etc.) that surfaces as a per-venue ERROR
+                    # log and is the same shape as the outer 'failed to upsert
+                    # club' branch below. Recording it under lock_timeout:
+                    # would attribute the wrong incident class to the Grafana
+                    # alert and dilute the signal the prefix is meant to carry.
                     Logger.error(
                         f"{self._log_prefix}: failed to upsert club for venue "
                         f"'{venue_label}' on retry: {retry_exc}",

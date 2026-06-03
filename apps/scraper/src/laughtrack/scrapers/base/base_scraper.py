@@ -14,7 +14,7 @@ import concurrent.futures
 import contextvars
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Awaitable, Callable, List, Optional
+from typing import Awaitable, Callable, List, Optional, Tuple
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -36,15 +36,17 @@ from laughtrack.scrapers.base.pipeline import create_standard_pipeline
 from laughtrack.shared.logging import Logger
 
 
-# TASK-2626: 'lock_timeout:' prefix is the wire-level signal Grafana pivots on
+# TASK-2626: 'lock_timeout: ' prefix is the wire-level signal Grafana pivots on
 # to alert specifically on persist-layer lock cascades, distinct from the
-# generic zero-show outcome. The prefix is a deliberate API surface for the
-# alerting layer (scraper_run_clubs.error_message LIKE 'lock_timeout:%').
-_LOCK_TIMEOUT_ERROR_PREFIX = "lock_timeout:"
+# generic zero-show outcome. The constant carries the trailing space so the
+# prefix value matches what is emitted verbatim — downstream consumers using
+# `error_message.startswith(_LOCK_TIMEOUT_ERROR_PREFIX)` get exact equality
+# instead of a near-miss that requires `LIKE 'lock_timeout:%'` everywhere.
+_LOCK_TIMEOUT_ERROR_PREFIX = "lock_timeout: "
 
 
 def _format_lock_timeout_error(
-    incidents: List[tuple],
+    incidents: List[Tuple[str, int]],
 ) -> Optional[str]:
     """Build the result.error string when a scrape recorded one or more
     persist-layer lock timeouts (TASK-2626).
@@ -66,7 +68,7 @@ def _format_lock_timeout_error(
     total_events = sum(count for _, count in incidents)
     venue_detail = ", ".join(f"{label} ({count})" for label, count in incidents)
     return (
-        f"{_LOCK_TIMEOUT_ERROR_PREFIX} {len(incidents)} venue(s) "
+        f"{_LOCK_TIMEOUT_ERROR_PREFIX}{len(incidents)} venue(s) "
         f"({total_events} event(s)) dropped: {venue_detail}"
     )
 
