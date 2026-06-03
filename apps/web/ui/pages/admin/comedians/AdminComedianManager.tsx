@@ -112,6 +112,25 @@ function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
     );
 }
 
+function StagedPreview({
+    file,
+    alt,
+    className,
+}: {
+    file: File;
+    alt: string;
+    className: string;
+}) {
+    const [src, setSrc] = useState<string>("");
+    useEffect(() => {
+        const url = URL.createObjectURL(file);
+        setSrc(url);
+        return () => URL.revokeObjectURL(url);
+    }, [file]);
+    if (!src) return null;
+    return <img src={src} alt={alt} className={className} />;
+}
+
 function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
     return [...rows].sort((a, b) => {
         if (sort === "name-desc") return compareByName(b, a);
@@ -683,6 +702,49 @@ export default function AdminComedianManager({ comedians }: Props) {
                 (inputs.hero.trim() &&
                     inputs.hero.trim() !== currentHeroUrl(row)),
         );
+    }
+
+    async function stageImageFile(
+        row: AdminComedianListItem,
+        slot: "headshot" | "hero",
+        file: File,
+    ) {
+        const result = await validateComedianImageFile(file, slot);
+        if (!result.ok) {
+            setStatus({ kind: "error", message: result.reason });
+            setImageStatusByRow((current) => ({
+                ...current,
+                [row.id]: { kind: "error", message: result.reason },
+            }));
+            return;
+        }
+        updateManualImageUrls(
+            row,
+            slot === "headshot" ? { headshotFile: file } : { heroFile: file },
+        );
+        setStatus({ kind: "idle" });
+        setImageStatusByRow((current) => ({
+            ...current,
+            [row.id]: {
+                kind: "ok",
+                message: `${slot === "headshot" ? "Headshot" : "Hero"} staged at ${file.name}. Click "Publish to Bunny" to commit, or "Discard" to remove.`,
+            },
+        }));
+    }
+
+    function discardStagedFile(
+        row: AdminComedianListItem,
+        slot: "headshot" | "hero",
+    ) {
+        updateManualImageUrls(
+            row,
+            slot === "headshot" ? { headshotFile: null } : { heroFile: null },
+        );
+        setImageStatusByRow((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
     }
 
     function podcastFeedEditKey(
@@ -2300,7 +2362,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             event.target.value =
                                                                 "";
                                                             if (!file) return;
-                                                            await publishImage(
+                                                            await stageImageFile(
                                                                 row,
                                                                 "headshot",
                                                                 file,
@@ -2324,8 +2386,66 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         }}
                                                     >
                                                         <Upload className="h-4 w-4" />
-                                                        Upload headshot
+                                                        Choose headshot file
                                                     </Button>
+                                                    {manualImageUrlValue(row)
+                                                        .headshotFile ? (
+                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                Pending headshot
+                                                            </div>
+                                                            <StagedPreview
+                                                                file={
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    )
+                                                                        .headshotFile as File
+                                                                }
+                                                                alt={`${row.name} pending headshot`}
+                                                                className="h-24 w-24 rounded-md border border-copper/30 object-cover"
+                                                            />
+                                                            <div className="flex flex-wrap gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void publishImage(
+                                                                            row,
+                                                                            "headshot",
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Upload className="h-4 w-4" />
+                                                                    Publish to
+                                                                    Bunny
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        discardStagedFile(
+                                                                            row,
+                                                                            "headshot",
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                    Discard
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
                                                     {imageStatusByRow[
                                                         row.id
                                                     ] ? (
@@ -2483,7 +2603,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             event.target.value =
                                                                 "";
                                                             if (!file) return;
-                                                            await publishImage(
+                                                            await stageImageFile(
                                                                 row,
                                                                 "hero",
                                                                 file,
@@ -2507,8 +2627,66 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                         }}
                                                     >
                                                         <Upload className="h-4 w-4" />
-                                                        Upload hero
+                                                        Choose hero file
                                                     </Button>
+                                                    {manualImageUrlValue(row)
+                                                        .heroFile ? (
+                                                        <div className="grid gap-2 rounded-md border border-copper/30 bg-coconut-cream/40 p-3">
+                                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                                Pending hero
+                                                            </div>
+                                                            <StagedPreview
+                                                                file={
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    )
+                                                                        .heroFile as File
+                                                                }
+                                                                alt={`${row.name} pending hero`}
+                                                                className="h-24 w-40 rounded-md border border-copper/30 object-cover"
+                                                            />
+                                                            <div className="flex flex-wrap gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    className="gap-2 bg-copper-dark text-white hover:bg-cedar disabled:bg-gray-300 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        void publishImage(
+                                                                            row,
+                                                                            "hero",
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Upload className="h-4 w-4" />
+                                                                    Publish to
+                                                                    Bunny
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    className="gap-2 border-soft-charcoal/40 bg-white text-cedar hover:bg-gray-50"
+                                                                    disabled={
+                                                                        disabled ||
+                                                                        pendingId ===
+                                                                            row.id
+                                                                    }
+                                                                    onClick={() =>
+                                                                        discardStagedFile(
+                                                                            row,
+                                                                            "hero",
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                    Discard
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ) : null}
                                                     {row.activeImageAsset
                                                         ?.heroPath ? (
                                                         <Button

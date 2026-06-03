@@ -290,11 +290,21 @@ describe("AdminComedianManager", () => {
         const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
             type: "image/jpeg",
         });
-        // Picking a file auto-publishes via the file input's onChange now —
-        // no separate Upload-button click needed.
+        // Two-step flow: picking a file stages it (no network call yet),
+        // then "Publish to Bunny" sends it to the server.
         fireEvent.change(screen.getAllByLabelText("Upload headshot file")[0], {
             target: { files: [file] },
         });
+        await waitFor(() =>
+            expect(
+                screen.getByRole("button", { name: /Publish to Bunny/ }),
+            ).toBeTruthy(),
+        );
+        expect(global.fetch).not.toHaveBeenCalled();
+
+        fireEvent.click(
+            screen.getByRole("button", { name: /Publish to Bunny/ }),
+        );
 
         await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
         const [, options] = vi.mocked(global.fetch).mock.calls[0];
@@ -333,6 +343,11 @@ describe("AdminComedianManager", () => {
                 screen.getAllByText(/Headshot is 400x600/).length,
             ).toBeGreaterThan(0),
         );
+        // Invalid files never stage, so no Publish-to-Bunny button appears and
+        // no network call is made.
+        expect(
+            screen.queryByRole("button", { name: /Publish to Bunny/ }),
+        ).toBeNull();
         expect(global.fetch).not.toHaveBeenCalled();
     });
 
