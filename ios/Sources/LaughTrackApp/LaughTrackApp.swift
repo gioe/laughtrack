@@ -69,7 +69,7 @@ struct LaughTrackApp: App {
 
     private static func resetPersistentStateForUITestsIfNeeded() {
         let arguments = ProcessInfo.processInfo.arguments
-        guard arguments.contains("UITEST_RESET_STATE") || arguments.contains(MockModeDetector.mockModeArgument) else { return }
+        guard arguments.contains(UITestLaunchArgs.resetState) || arguments.contains(MockModeDetector.mockModeArgument) else { return }
 
         let defaults = UserDefaults.standard
         defaults.removeObject(forKey: "laughtrack.discovery.nearby-preference")
@@ -86,9 +86,9 @@ struct LaughTrackApp: App {
         // for tests that exercise the auth gate. Tests that need the shell to
         // mount directly (e.g. the soft push-prompt cadence suite, which has
         // no business with the auth gate) can opt back in by setting
-        // UITEST_GUEST_BROWSING — re-seed after the wipe so the order of args
-        // doesn't matter.
-        if arguments.contains("UITEST_GUEST_BROWSING") {
+        // UITestLaunchArgs.guestBrowsing — re-seed after the wipe so the
+        // order of args doesn't matter.
+        if arguments.contains(UITestLaunchArgs.guestBrowsing) {
             defaults.set(true, forKey: FirstEntryAuthChoiceStore.storageKey)
         }
     }
@@ -118,7 +118,7 @@ struct LaughTrackApp: App {
 /// the app to start a fresh process when it needs a second round of signals.
 @MainActor
 enum DebugSimulatedFavoriteHook {
-    static let environmentKey = "UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT"
+    static let environmentKey = UITestLaunchArgs.simulatePostOnboardingFavoriteCount
 
     private static var hasFired = false
 
