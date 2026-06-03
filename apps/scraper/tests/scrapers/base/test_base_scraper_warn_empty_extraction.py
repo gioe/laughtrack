@@ -143,3 +143,33 @@ class TestWarnEmptyExtraction:
         # TASK-2631 invariant — GHA WARNING+ filter relies on this level
         logger.warn.assert_called_once()
         logger.info.assert_not_called()
+
+    # ---- None-vs-not-passed semantics (review #4960 finding) --------------
+    # Original venues used `len(html) if html else 0` and
+    # `type(data).__name__` patterns, so when fetch_html/fetch_json returned
+    # None the suffix was still emitted as html_len=0 / payload_type=NoneType.
+    # The helper must preserve that signal — caller-passed None still renders.
+
+    def test_html_none_renders_zero(self, scraper, warn_msg):
+        with patch(_LOGGER) as logger:
+            scraper._warn_empty_extraction(_URL, html=None)
+        assert warn_msg(logger).endswith("(html_len=0)")
+
+    def test_csv_none_renders_zero(self, scraper, warn_msg):
+        with patch(_LOGGER) as logger:
+            scraper._warn_empty_extraction(_URL, csv=None)
+        assert warn_msg(logger).endswith("(csv_len=0)")
+
+    def test_payload_none_renders_nonetype(self, scraper, warn_msg):
+        with patch(_LOGGER) as logger:
+            scraper._warn_empty_extraction(_URL, payload=None)
+        assert warn_msg(logger).endswith("(payload_type=NoneType)")
+
+    def test_omitted_html_is_skipped(self, scraper, warn_msg):
+        # Sanity: not passing html at all (vs passing None) skips the suffix
+        with patch(_LOGGER) as logger:
+            scraper._warn_empty_extraction(_URL)
+        msg = warn_msg(logger)
+        assert "html_len" not in msg
+        assert "payload_type" not in msg
+        assert "csv_len" not in msg

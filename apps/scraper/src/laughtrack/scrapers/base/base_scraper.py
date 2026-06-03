@@ -45,6 +45,15 @@ from laughtrack.shared.logging import Logger
 _LOCK_TIMEOUT_ERROR_PREFIX = "lock_timeout: "
 
 
+# Sentinel for _warn_empty_extraction kwargs that must distinguish
+# "caller did not pass this kwarg" from "caller passed None". A bare
+# None default would conflate the two and silently drop the suffix
+# when fetch_json/fetch_html returns None — losing the payload_type
+# / html_len diagnostic that the TASK-2631 audit added precisely to
+# tell those two cases apart.
+_UNSET: Any = object()
+
+
 def _format_lock_timeout_error(
     incidents: List[Tuple[str, int]],
 ) -> Optional[str]:
@@ -222,9 +231,9 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         source: str,
         *,
         subject: str = "events",
-        html: Optional[str] = None,
-        csv: Optional[str] = None,
-        payload: Any = None,
+        html: Any = _UNSET,
+        csv: Any = _UNSET,
+        payload: Any = _UNSET,
         n_items: Optional[int] = None,
         page: Optional[int] = None,
         extra: Optional[Dict[str, Any]] = None,
@@ -236,12 +245,18 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # GHA WARNING+ filter still surfaces the zero-extraction event.
         # Per LaughTrack convention #9 the structured suffix is embedded in
         # the message string, not the logger_context dict.
+        #
+        # html / csv / payload use a sentinel default so caller-passed None
+        # still emits the suffix (html_len=0 / csv_len=0 / payload_type=
+        # NoneType). This preserves the pre-migration signal venues
+        # originally captured via `len(html) if html else 0` and
+        # `type(data).__name__` when fetch_html / fetch_json returned None.
         parts: List[str] = []
-        if html is not None:
+        if html is not _UNSET:
             parts.append(f"html_len={len(html) if html else 0}")
-        if csv is not None:
+        if csv is not _UNSET:
             parts.append(f"csv_len={len(csv) if csv else 0}")
-        if payload is not None:
+        if payload is not _UNSET:
             parts.append(f"payload_type={type(payload).__name__}")
         if n_items is not None:
             parts.append(f"n_items={n_items}")

@@ -85,7 +85,7 @@ class DeliriousComedyClubScraper(BaseScraper):
         try:
             response = await self.fetch_json(url, headers=_FRIENDLYSKY_HEADERS)
             if response is None:
-                self._warn_empty_extraction(f"FriendlySky API {url}", subject="data", extra={"payload_type": "None"})
+                self._warn_empty_extraction(f"FriendlySky API {url}", subject="data", payload=response)
                 return None
 
             base_url = self._get_base_url()
