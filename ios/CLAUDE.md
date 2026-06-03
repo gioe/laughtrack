@@ -358,13 +358,28 @@ suites can drive otherwise-untestable flows. The current seam surface:
   push-prompt cadence end-to-end without standing up a signed-in user or a
   live `POST /favorites` round-trip (TASK-2607).
 
-The flags are duplicated as raw string literals across the producer
-(LaughTrackApp.swift) and consumers (LaughTrackUITests). The
-LaughTrackUITests target runs in a separate XCUITest process and doesn't
-import the LaughTrackApp module, so a typo at either end fails silently —
-the test just times out on `waitForExistence`. TASK-2614 tracks lifting the
-canonical list into a shared SPM target. Until then: copy the literal
-verbatim from `LaughTrackApp.swift` when writing a new test.
+The canonical list lives in
+`ios/Sources/LaughTrackApp/UITestLaunchArgs.swift` as typed constants
+(`UITestLaunchArgs.resetState`, `.guestBrowsing`,
+`.simulatePostOnboardingFavoriteCount`). The file is given **dual target
+membership** in `ios/LaughTrack.xcodeproj/project.pbxproj` — both the
+`LaughTrack` app target and the `LaughTrackUITests` target compile it into
+their own binary as an internal-scoped enum (the UI-test bundle runs in a
+separate XCUITest process and cannot `import LaughTrackApp`, so a shared
+module would not work — see TASK-2614). Reference the constants by symbol
+in both producer call sites (`LaughTrackApp.swift`,
+`DebugSimulatedFavoriteHook`) and consumer call sites
+(`LaunchArguments`/`launchEnvironment` in `LaughTrackUITests`); a typo then
+becomes a compile error instead of a silent `waitForExistence` timeout.
+
+To add a new UI-test launch arg or env-var key: add a `static let` to
+`UITestLaunchArgs`, then add the producer-side read alongside the existing
+`resetPersistentStateForUITestsIfNeeded()` / `DebugSimulatedFavoriteHook`
+pattern; no Xcode project edit is needed for adding a new constant.
+Adding a brand-new Swift file under `Sources/LaughTrackApp/` that
+LaughTrackUITests also needs DOES require dual target membership — copy
+the `UITestLaunchArgs.swift` PBXBuildFile pair pattern (one build-file row
+per Sources phase, both pointing at the same PBXFileReference).
 
 XCTest runs every method in a target's suite within the **same process**, so
 `UserDefaults.standard` (where the cadence state lives) persists across
