@@ -1331,6 +1331,30 @@ class TestSafeContent:
         mock_page.wait_for_load_state.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_does_not_retry_page_goto_navigating_errors(self):
+        """A page.goto timeout phrased with 'navigating' must NOT trigger the retry.
+
+        The original looser marker (just "navigating") would match
+        page.goto's "Timeout 30000ms exceeded while navigating to URL ..."
+        and retry inappropriately on a totally different failure mode.
+        Anchoring on the unique `Page.content:` prefix the actual error
+        carries excludes that drift — this test is the regression pin.
+        """
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(
+            side_effect=Exception(
+                "Timeout 30000ms exceeded while navigating to URL https://example.com/"
+            )
+        )
+        mock_page.wait_for_load_state = AsyncMock()
+
+        with pytest.raises(Exception, match="Timeout 30000ms"):
+            await _safe_content(mock_page)
+
+        assert mock_page.content.await_count == 1
+        mock_page.wait_for_load_state.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_fetch_html_recovers_when_first_content_call_races(self):
         """End-to-end: fetch_html surfaces the resolved HTML on a nav-race recovery.
 

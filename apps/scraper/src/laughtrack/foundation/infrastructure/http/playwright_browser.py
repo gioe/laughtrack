@@ -195,15 +195,23 @@ _AWS_WAF_RELOAD_TIMEOUT_MS = 30_000
 # that triggers a JS-driven ``location.reload()`` immediately after
 # DOMContentLoaded. A bare ``await page.content()`` issued at that moment
 # races the navigation and raises "Page.content: Unable to retrieve content
-# because the page is navigating and changing the content." 3 attempts at
-# 250 ms apart covers the typical reload latency without inflating fetch
-# wall-time on the steady-state (non-racing) path.
+# because the page is navigating and changing the content." Up to 3
+# attempts, gated on ``domcontentloaded`` between retries (5s ceiling),
+# with a 250 ms fallback sleep when load-state itself raises. The 5s
+# ceiling — not the 250 ms fallback — is what bounds steady-state
+# wall-time on the racing path; tuning _CONTENT_RETRY_DELAY_S only
+# affects the failure-of-failure branch.
 _CONTENT_RETRY_ATTEMPTS = 3
 _CONTENT_RETRY_DELAY_S = 0.25
 _CONTENT_RETRY_LOAD_STATE_TIMEOUT_MS = 5_000
-# Substring matched against the Playwright error message to identify the
-# nav-race. Match is case-insensitive on the lowered repr — any future
-# rewording that keeps the "navigating" keyword still triggers the retry.
+# Markers matched against the lowered Playwright error message to identify
+# the nav-race. Anchored on the ``page.content`` prefix that the error
+# class literally carries — Playwright also raises "navigating"-shaped
+# messages from page.goto timeouts and other navigation paths that this
+# helper must NOT retry, so the ``page.content`` half excludes that drift
+# in one direction while the ``navigating`` half tolerates future
+# rewording of the suffix in the other direction.
+_CONTENT_NAV_RACE_PREFIX = "page.content"
 _CONTENT_NAV_RACE_MARKER = "navigating"
 
 
@@ -220,16 +228,24 @@ async def _safe_content(page: object) -> str:
     :data:`_CONTENT_RETRY_ATTEMPTS` total attempts. Any unrelated exception
     is re-raised on the first encounter.
     """
-    last_exc: Optional[BaseException] = None
     for attempt in range(_CONTENT_RETRY_ATTEMPTS):
         try:
             return await page.content()
         except Exception as exc:
-            if _CONTENT_NAV_RACE_MARKER not in str(exc).lower():
+            lowered = str(exc).lower()
+            if (
+                _CONTENT_NAV_RACE_PREFIX not in lowered
+                or _CONTENT_NAV_RACE_MARKER not in lowered
+            ):
                 raise
-            last_exc = exc
             if attempt == _CONTENT_RETRY_ATTEMPTS - 1:
-                break
+                # All retries exhausted — surface the race error so the
+                # caller's bot-block / empty-body detector treats it
+                # identically to the pre-fix behavior. Raising inside the
+                # except block guarantees the active exception is bound,
+                # without relying on an ``assert`` that ``python -O``
+                # would strip.
+                raise
             try:
                 await page.wait_for_load_state(
                     "domcontentloaded",
@@ -237,12 +253,10 @@ async def _safe_content(page: object) -> str:
                 )
             except Exception:
                 await asyncio.sleep(_CONTENT_RETRY_DELAY_S)
-    # All retries exhausted — surface the last race error so the caller's
-    # bot-block / empty-body detector treats it identically to the pre-fix
-    # behavior. The HttpClient fallback path already logs and records the
-    # failure on ScrapeDiagnostics.
-    assert last_exc is not None
-    raise last_exc
+    # Unreachable: the range yields at least one attempt, every iteration
+    # either returns or raises. Present so the type checker sees a return
+    # on every path.
+    raise RuntimeError("_safe_content: unreachable")
 
 
 def _parse_proxy(proxy_url: str) -> dict:
@@ -555,7 +569,10 @@ class PlaywrightBrowser:
                 return await page.content()
             except Exception:
                 return html
-        return await page.content()
+        # Success path: wait_for_function returned because the WAF crypto
+        # cleared. Route through _safe_content so a cookie-driven reload
+        # racing this content() call still recovers (TASK-2625 fault class).
+        return await _safe_content(page)
 
     @staticmethod
     async def _solve_datadome_if_present(
@@ -652,7 +669,11 @@ class PlaywrightBrowser:
                 wait_until="domcontentloaded",
                 timeout=_DATADOME_RELOAD_TIMEOUT_MS,
             )
-            return await page.content()
+            # _safe_content guards against the same nav-race fault class
+            # the entry-point fetch_html call site hits (TASK-2625) — the
+            # post-cookie reload often drops the page back into another
+            # DOMContentLoaded → JS-redirect cycle.
+            return await _safe_content(page)
         except Exception as exc:
             Logger.warn(
                 f"[PlaywrightBrowser] Reload after DataDome solve failed: "
@@ -798,7 +819,9 @@ class PlaywrightBrowser:
                 wait_until="domcontentloaded",
                 timeout=_AWS_WAF_RELOAD_TIMEOUT_MS,
             )
-            return await page.content()
+            # _safe_content for the same nav-race fault class the entry
+            # site hits (TASK-2625); mirrors the DataDome post-reload path.
+            return await _safe_content(page)
         except Exception as exc:
             Logger.warn(
                 f"[PlaywrightBrowser] Reload after AWS WAF solve failed: "
