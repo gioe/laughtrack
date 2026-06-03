@@ -28,6 +28,32 @@ For a refactor that touches code reachable from a HostedView test, always run
 confirm pre-existing vs regression via `git stash push -u` + re-run against
 HEAD + `git stash pop` — `tusk test-precheck` doesn't cover MCP-invoked tests.
 
+### XcodeBuildMCP Session Defaults Persist Across Tusk Worktrees
+
+XcodeBuildMCP stores its active project/scheme/simulator profile globally
+(under `~/.xcodebuildmcp/config.yaml`), not per-directory. The `projectPath`
+in that profile persists across sessions, so when you start work in a new
+tusk task worktree (`tusk task-worktree create <id> <slug>`) the active
+profile still points at the *previous* task's worktree.
+
+Building with `build_sim` / `build_run_sim` / `test_sim` without first
+refreshing the profile silently builds against the stale tree. Two failure
+modes:
+
+- **False green** — the previous worktree's pbxproj happens to be in a
+  state that satisfies your new criterion (e.g. an unrelated prior fix
+  already wired the file), and `tusk criteria done` records green
+  verification that didn't actually exercise your change.
+- **Confusing red** — the previous worktree is on a different feature
+  branch whose Swift state doesn't match your assumption, and you get
+  build errors that reference paths or symbols you don't recognize.
+
+Always run `session_show_defaults` after `tusk task-worktree create` and
+call `session_set_defaults` with `projectPath` pointing at the new
+worktree's `ios/LaughTrack.xcodeproj` if the returned `projectPath`
+doesn't match your current worktree. This was observed live on TASK-2619
+(the active profile was still pinned to TASK-2614 from the prior session).
+
 ### iOS Simulator Cold Start Dominates `test_sim` Wall Time
 
 A "test_sim hung" report on a HostedView suite is almost always cold-start
