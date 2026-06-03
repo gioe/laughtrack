@@ -36,6 +36,41 @@ from laughtrack.scrapers.base.pipeline import create_standard_pipeline
 from laughtrack.shared.logging import Logger
 
 
+# TASK-2626: 'lock_timeout:' prefix is the wire-level signal Grafana pivots on
+# to alert specifically on persist-layer lock cascades, distinct from the
+# generic zero-show outcome. The prefix is a deliberate API surface for the
+# alerting layer (scraper_run_clubs.error_message LIKE 'lock_timeout:%').
+_LOCK_TIMEOUT_ERROR_PREFIX = "lock_timeout:"
+
+
+def _format_lock_timeout_error(
+    incidents: List[tuple],
+) -> Optional[str]:
+    """Build the result.error string when a scrape recorded one or more
+    persist-layer lock timeouts (TASK-2626).
+
+    Returns None when the incident list is empty (the common case — most
+    scrapes never touch this branch). Otherwise returns a single message of
+    the shape::
+
+        lock_timeout: 2 venue(s) (8 event(s)) dropped: The Comedy Inn (5),
+        Bull Pen Tap House (3)
+
+    The total counts come before the venue list so a humans-scan-first
+    operator can size the incident immediately; the venue list is kept
+    truncated-but-complete so the run-end summary table doesn't truncate
+    the actionable detail mid-string.
+    """
+    if not incidents:
+        return None
+    total_events = sum(count for _, count in incidents)
+    venue_detail = ", ".join(f"{label} ({count})" for label, count in incidents)
+    return (
+        f"{_LOCK_TIMEOUT_ERROR_PREFIX} {len(incidents)} venue(s) "
+        f"({total_events} event(s)) dropped: {venue_detail}"
+    )
+
+
 class BaseScraper(HttpConvenienceMixin, ABC):
     """
     Abstract base class for all scrapers implementing the standardized scraping pipeline.
@@ -468,10 +503,26 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     self.logger_context,
                 )
 
+                # TASK-2626: surface persist-layer lock timeouts to result.error
+                # even when scrape() returned cleanly. Recorders inside fan-out
+                # scrapers (currently EventbriteScraper organizer mode) catch
+                # LockHeldError / asyncio.TimeoutError per-venue, log a WARN,
+                # and return [] for that venue so sibling venues' shows still
+                # flow through. Without this surface, the metric row recorded
+                # success=true / num_shows=0 / error=null whenever the only
+                # failure was a lock timeout — the silent-drop that motivated
+                # the task. The 'lock_timeout:' prefix is the Grafana pivot:
+                # it distinguishes lock-cascade incidents from generic
+                # zero-show outcomes so the platform alert is actionable.
+                lock_timeout_error = _format_lock_timeout_error(
+                    diagnostics.persist_lock_timeouts
+                )
+
                 return ClubScrapingResult(
                     club_name=self.club.name,
                     shows=shows,
                     execution_time=execution_time,
+                    error=lock_timeout_error,
                     club_id=getattr(self.club, 'id', None),
                     scraper_key=self.key,
                     http_status=diagnostics.http_status,

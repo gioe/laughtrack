@@ -822,3 +822,246 @@ def test_production_company_stamp_applies_to_per_venue_shows():
     # Per-venue club_ids are preserved (not overwritten by the proxy id).
     assert shows[0].club_id == bull_pen_club.id
     assert shows[1].club_id == silver_club.id
+
+
+# TASK-2626 — LockHeldError retry + persist_lock_timeouts diagnostics surface.
+#
+# The pre-existing test_organizer_mode_bounded_upsert_completes_when_venue_hangs
+# above covers the asyncio.TimeoutError branch's structural guarantees (scraper
+# completes promptly, venue named in ERROR log). These tests cover the new
+# behaviors the lock-cascade incident in TASK-2626 motivated:
+#   - a single LockHeldError retries once and succeeds when the second attempt
+#     clears
+#   - both attempts failing records to diagnostics and the asyncio.TimeoutError
+#     path also records (so scrape_with_result can surface the lock-timeout
+#     incident on result.error)
+
+
+@pytest.mark.asyncio
+async def test_organizer_mode_retries_lock_held_error_and_succeeds(monkeypatch):
+    """A transient LockHeldError on the first upsert attempt is retried after
+    a short backoff and produces the venue's shows when the retry succeeds.
+
+    This is the 'fallback persist' criterion from TASK-2626: the prior
+    writer's outermost timeout typically fires within seconds of the
+    LockHeldError, so a single retry after a brief sleep recovers the venue
+    without dropping its events.
+    """
+    from laughtrack.foundation.infrastructure.database.write_lock import LockHeldError
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    api_events = [
+        _domain_event("Bull Pen show A", "https://www.eventbrite.com/e/1", bull_pen),
+        _domain_event("Bull Pen show B", "https://www.eventbrite.com/e/2", bull_pen),
+    ]
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+
+    # First call raises LockHeldError; second succeeds. Mirrors the production
+    # cascade where the held lock clears between the failed acquire and the retry.
+    upsert_calls = {"count": 0}
+
+    def _upsert(api_venue):
+        upsert_calls["count"] += 1
+        if upsert_calls["count"] == 1:
+            raise LockHeldError(
+                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
+                "prior writer thread is stuck"
+            )
+        return bull_pen_club
+
+    # Shrink the retry backoff so the test resolves in milliseconds.
+    monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    ):
+        shows = await scraper.scrape_async()
+
+    # Retry succeeded → both events became shows.
+    assert len(shows) == 2
+    assert all(s.club_id == bull_pen_club.id for s in shows)
+    # Confirm the retry actually fired (not a same-call no-op).
+    assert upsert_calls["count"] == 2
+
+
+@pytest.mark.asyncio
+async def test_organizer_mode_records_lock_timeout_when_retry_also_fails(monkeypatch):
+    """When both the original upsert and the retry hit LockHeldError, the
+    venue's events are dropped (matching prior behavior) AND the incident
+    is recorded on the active ScrapeDiagnostics so scrape_with_result can
+    surface it on ClubScrapingResult.error with the 'lock_timeout:' prefix
+    that Grafana pivots on.
+    """
+    from laughtrack.foundation.infrastructure.database.write_lock import LockHeldError
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    comedy_inn = _api_venue(
+        venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON"
+    )
+    api_events = [
+        _domain_event(f"Comedy Inn show {i}", f"https://www.eventbrite.com/e/{i}", comedy_inn)
+        for i in range(5)
+    ]
+
+    def _always_fails(api_venue):
+        raise LockHeldError(
+            "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
+            "prior writer thread is stuck"
+        )
+
+    monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
+
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    scraper = EventbriteScraper(proxy)
+    try:
+        with patch.object(
+            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+        ), patch.object(
+            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_always_fails
+        ):
+            shows = await scraper.scrape_async()
+    finally:
+        reset_diagnostics(token)
+
+    # Events were dropped (the events-lost outcome is what surfaces on result.error).
+    assert shows == []
+    # The single (venue, dropped_events) incident is recorded — the 5 dropped
+    # events match the api_events count for this venue group.
+    assert diagnostics.persist_lock_timeouts == [("The Comedy Inn", 5)]
+
+
+@pytest.mark.asyncio
+async def test_organizer_mode_records_lock_timeout_on_asyncio_timeout(monkeypatch):
+    """The asyncio.TimeoutError path (executor thread parked past
+    _EB_UPSERT_TIMEOUT) also records to diagnostics. The thread may still
+    hold _DB_WRITE_LOCK so subsequent venues will see LockHeldError; either
+    way, this venue's events were dropped and the incident must surface on
+    result.error rather than only appearing as a per-venue ERROR log.
+    """
+    import threading
+    from laughtrack.foundation.infrastructure.http.diagnostics import (
+        ScrapeDiagnostics,
+        bind_diagnostics,
+        reset_diagnostics,
+    )
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    api_events = [
+        _domain_event("Bull Pen show", "https://www.eventbrite.com/e/1", bull_pen),
+    ]
+
+    hang_release = threading.Event()
+
+    def _upsert(api_venue):
+        hang_release.wait(timeout=10.0)
+        return None  # never reached within test timeout
+
+    # Tight per-venue deadline so the test resolves quickly.
+    monkeypatch.setattr(
+        "laughtrack.scrapers.implementations.api.eventbrite.scraper._EB_UPSERT_TIMEOUT",
+        0.5,
+    )
+
+    diagnostics = ScrapeDiagnostics()
+    token = bind_diagnostics(diagnostics)
+    scraper = EventbriteScraper(proxy)
+    try:
+        with patch.object(
+            scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+        ), patch.object(
+            scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+        ):
+            shows = await scraper.scrape_async()
+    finally:
+        hang_release.set()
+        reset_diagnostics(token)
+
+    assert shows == []
+    assert diagnostics.persist_lock_timeouts == [("Bull Pen Tap House", 1)]
+
+
+def test_organizer_mode_scrape_with_result_surfaces_lock_timeout_on_error_field(monkeypatch):
+    """End-to-end: when an organizer feed has one venue group dropped via
+    LockHeldError and one venue group that succeeded, scrape_with_result
+    returns a ClubScrapingResult that has BOTH the successful venue's shows
+    AND result.error populated with the 'lock_timeout:' prefix.
+
+    Pre-fix: result.error was None and num_shows reflected only the
+    successful venues — the dropped venue was invisible to Grafana
+    (TASK-2626 incident: Comedy Inn dropped 5 events with success=true,
+    error=null on scraper_run_clubs).
+    """
+    from laughtrack.foundation.infrastructure.database.write_lock import LockHeldError
+
+    proxy = _build_synthetic_proxy_for_company(_encore_company())
+    assert proxy is not None
+
+    comedy_inn = _api_venue(
+        venue_id="V_COMEDY_INN", name="The Comedy Inn", city="Toronto", region="ON"
+    )
+    bull_pen = _api_venue(
+        venue_id="V_BULL_PEN", name="Bull Pen Tap House", city="Chesterfield", region="VA"
+    )
+    api_events = [
+        _domain_event("Comedy Inn 1", "https://www.eventbrite.com/e/1", comedy_inn),
+        _domain_event("Comedy Inn 2", "https://www.eventbrite.com/e/2", comedy_inn),
+        _domain_event("Bull Pen 1", "https://www.eventbrite.com/e/3", bull_pen),
+    ]
+    bull_pen_club = _fake_venue_club(1001, "Bull Pen Tap House", "Chesterfield", "VA")
+
+    def _upsert(api_venue):
+        if api_venue.name == "The Comedy Inn":
+            # Both initial and retry attempts hit the same LockHeldError —
+            # the stuck prior writer doesn't clear within the test window.
+            raise LockHeldError(
+                "_DB_WRITE_LOCK still held after 0.05s (LOCK_HOLD_TIMEOUT=0.05s); "
+                "prior writer thread is stuck"
+            )
+        return bull_pen_club
+
+    monkeypatch.setenv("EB_LOCK_TIMEOUT_RETRY_BACKOFF_SECS", "0.01")
+
+    scraper = EventbriteScraper(proxy)
+    with patch.object(
+        scraper.eventbrite_client, "fetch_all_events", new=AsyncMock(return_value=api_events)
+    ), patch.object(
+        scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert
+    ):
+        result = scraper.scrape_with_result()
+
+    # The successful venue's shows pass through unaffected.
+    assert len(result.shows) == 1
+    assert result.shows[0].club_id == bull_pen_club.id
+
+    # The dropped venue surfaces on result.error with the Grafana-pivot prefix
+    # AND names the venue + dropped event count so the metric row reflects
+    # an actionable incident rather than a silent zero.
+    assert result.error is not None
+    assert result.error.startswith("lock_timeout:")
+    assert "The Comedy Inn" in result.error
+    assert "1 venue(s)" in result.error
+    assert "2 event(s)" in result.error
+
+    # success is computed from result.error — the metric must flag this run.
+    assert result.success is False
