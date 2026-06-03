@@ -21,6 +21,17 @@ struct ClubFavoriteStoreTests {
         #expect(store.storedValue(for: 42) == nil)
     }
 
+    @Test("resetSavedFavorites clears the pending set so prior-session in-flight toggle spinners do not leak across sign-outs")
+    func resetSavedFavoritesClearsPending() {
+        let store = ClubFavoriteStore()
+        store.pending.insert(42)
+        #expect(store.isPending(42) == true)
+
+        store.resetSavedFavorites()
+
+        #expect(store.isPending(42) == false)
+    }
+
     @Test("didAddFavoriteClub fires exactly once on a successful add-toggle (false → true)")
     func didAddFavoriteClubFiresOnceOnAdd() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(

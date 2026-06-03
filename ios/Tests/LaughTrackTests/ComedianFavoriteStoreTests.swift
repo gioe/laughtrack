@@ -82,6 +82,26 @@ struct ComedianFavoriteStoreTests {
         #expect(recorder.values.isEmpty)
     }
 
+    @Test("add → remove → add cycle only emits on the two adds, in order")
+    func didAddFavoriteComedianFiresOnEachAddAcrossCycle() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
+            name: "comedian-fav-cycle"
+        )
+        let store = ComedianFavoriteStore()
+        // FavoriteComedianMockTransport returns isFavorited == operationID == "addFavorite"
+        // so a single transport instance handles both legs of each toggle cycle.
+        let apiClient = makeClient(transport: FavoriteComedianMockTransport())
+        let recorder = SubjectRecorder<String>()
+        let cancellable = store.didAddFavoriteComedian.sink { recorder.append($0) }
+        defer { cancellable.cancel() }
+
+        _ = await store.toggle(uuid: "comedian-uuid-1", currentValue: false, apiClient: apiClient, authManager: authManager)
+        _ = await store.toggle(uuid: "comedian-uuid-1", currentValue: true,  apiClient: apiClient, authManager: authManager)
+        _ = await store.toggle(uuid: "comedian-uuid-2", currentValue: false, apiClient: apiClient, authManager: authManager)
+
+        #expect(recorder.values == ["comedian-uuid-1", "comedian-uuid-2"])
+    }
+
     @Test("didAddFavoriteComedian does NOT fire during loadSavedFavorites hydration")
     func didAddFavoriteComedianDoesNotFireOnHydration() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthenticatedAuthManager(
