@@ -42,6 +42,23 @@ struct PushPermissionStateStoreTests {
         #expect(store.postOnboardingFavoriteCount == 3)
     }
 
+    @Test("recordEngagementSignal increments the same counter as recordPostOnboardingFavorite")
+    func recordEngagementSignalIncrementsSharedCounter() {
+        let storage = makeStorage(name: "engagement-signals")
+        let store = PushPermissionStateStore(appStateStorage: storage)
+
+        // Mixing the two spellings against the same store must yield a
+        // single monotonically-increasing count — the new wiring from
+        // ShowDetailView and ClubFavoriteStore (TASK-2606) shares the
+        // counter with the existing ComedianFavoriteStore (TASK-2586)
+        // call site, so a regression that split them into separate
+        // counters would silently halve the cadence's signal count.
+        #expect(store.recordEngagementSignal() == 1)
+        #expect(store.recordPostOnboardingFavorite() == 2)
+        #expect(store.recordEngagementSignal() == 3)
+        #expect(store.postOnboardingFavoriteCount == 3)
+    }
+
     @Test("state persists across store instances when backed by the same storage")
     func statePersistsAcrossStoreInstances() {
         let storage = makeStorage(name: "persist")

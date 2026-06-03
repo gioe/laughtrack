@@ -94,12 +94,30 @@ public final class PushPermissionStateStore: ObservableObject {
         }
     }
 
+    /// Increment the post-onboarding engagement counter that feeds
+    /// `PushPermissionPromptCadence.Inputs.engagementSignalCount`. Safe to
+    /// call from multiple sources (comedian-favorite add, club-favorite add,
+    /// show-detail first appearance) — each call is a single +1 against the
+    /// same counter; cross-source ordering and de-duplication is the caller's
+    /// responsibility (e.g. per-session debouncing of show-detail revisits in
+    /// `SoftPushPromptCoordinator`). The underlying storage field is still
+    /// named `postOnboardingFavoriteCount` because renaming the Codable key
+    /// would invalidate persisted state for users upgrading from TASK-2586.
     @discardableResult
-    public func recordPostOnboardingFavorite() -> Int {
+    public func recordEngagementSignal() -> Int {
         update { state in
             state.postOnboardingFavoriteCount += 1
         }
         return state.postOnboardingFavoriteCount
+    }
+
+    /// Backward-compat alias for the original TASK-2586 spelling. New
+    /// call sites should prefer `recordEngagementSignal` — kept without
+    /// deprecation so test fixtures and any external callers keep
+    /// compiling cleanly while the rename propagates.
+    @discardableResult
+    public func recordPostOnboardingFavorite() -> Int {
+        recordEngagementSignal()
     }
 
     /// Increment the post-deferral session counter. Called once per cold
