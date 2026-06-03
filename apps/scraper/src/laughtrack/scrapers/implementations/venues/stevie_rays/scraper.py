@@ -67,8 +67,15 @@ class StevieRaysScraper(BaseScraper):
 
             events = StevieRaysExtractor.extract_events(html, listing_url=url)
             if not events:
-                Logger.info(
-                    f"{self._log_prefix}: no events found on {url}",
+                # WARN, not INFO: the default GHA console log level is WARNING+,
+                # so an INFO "no events" line is invisible — masking the
+                # difference between a legitimate empty calendar, a selector
+                # regression on a full page, and a geo-block / interstitial
+                # shell. html_len lets a future operator tell them apart from
+                # the GHA artifact alone (TASK-2627).
+                Logger.warn(
+                    f"{self._log_prefix}: no events extracted from {url} "
+                    f"(html_len={len(html)})",
                     self.logger_context,
                 )
                 return None
