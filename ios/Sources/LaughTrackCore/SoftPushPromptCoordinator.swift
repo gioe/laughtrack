@@ -33,6 +33,15 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     }
 
     @Published public var presentation: Presentation = .hidden
+    // Process-scoped: reset only on cold launch. A sign-out → sign-in within
+    // one app process is intentionally NOT a reset edge — if user A was
+    // already prompted this session, user B will not see the sheet until
+    // the next cold launch. Mid-session account swap is rare enough that
+    // the bounded cost (at most one skipped re-prompt per affected session)
+    // does not justify wiring the coordinator to AuthManager.$currentUser.
+    // If user-switching ever becomes a designed flow, mirror the
+    // scan-pairwise subscription in AppBootstrap.attachAnalyticsLifecycle
+    // and clear this on the nil → user' edge.
     @Published public private(set) var hasPresentedThisSession: Bool = false
 
     // Per-session debounce for show-detail engagement signals. ShowDetailView
@@ -42,6 +51,15 @@ public final class SoftPushPromptCoordinator: ObservableObject {
     // the gate survives view recycling, and so revisits of show A interleaved
     // with first-visits of show B B C still record three signals — set
     // membership keys on showID, not on a single "last seen" id.
+    //
+    // Process-scoped parallel to hasPresentedThisSession above: a sign-out
+    // → sign-in within one app process is intentionally NOT a reset edge.
+    // If user A viewed show 7 and user B signs in and re-opens show 7 in
+    // the same process, that revisit is a no-op until cold launch. Bounded
+    // cost (one skipped signal per overlapping show, on a rare account
+    // swap) and uniform behavior across both per-session debounces beat
+    // wiring an AuthManager subscription onto the coordinator. Same
+    // remediation path as hasPresentedThisSession if this ever changes.
     private var seenShowDetailIDsThisSession: Set<Int> = []
 
     private let stateStore: PushPermissionStateStore
