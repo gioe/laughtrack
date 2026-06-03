@@ -4,7 +4,8 @@
     "api",
     "database",
     "scraper",
-    "infrastructure"
+    "infrastructure",
+    "ios"
   ],
   "task_types": [
     "bug",
@@ -56,6 +57,7 @@
     "backend": "API routes, server actions, business logic, database and auth",
     "scraper": "Python data ingestion pipeline in apps/scraper/",
     "infrastructure": "CI/CD workflows, Dockerfile, deployment configuration",
+    "ios": "Native SwiftUI iOS app in ios/, depends on ios-libs and the web /api/v1 OpenAPI client",
     "general": "General-purpose tasks not specific to any domain"
   },
   "dupes": {
@@ -93,7 +95,8 @@
     "frontend": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test && npm run type-check",
     "api": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test && npm run type-check",
     "database": "cd apps/web && { [ -e node_modules ] || ln -s \"$(git rev-parse --git-common-dir)/../apps/web/node_modules\" node_modules; } && npm test",
-    "scraper": "cd apps/scraper && \"$(git rev-parse --git-common-dir)/../apps/scraper/.venv/bin/python3\" -m pytest"
+    "scraper": "cd apps/scraper && \"$(git rev-parse --git-common-dir)/../apps/scraper/.venv/bin/python3\" -m pytest",
+    "ios": "cd ios && swift build --build-tests"
   },
   "issue_scoring": {
     "factors": {
