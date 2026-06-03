@@ -229,6 +229,69 @@ struct AppBootstrapAnalyticsLifecycleTests {
         #expect(env.analytics.resetCallCount == 0)
     }
 
+    @Test("in-place /v1/me refetch with zipCode flipping from nil to non-nil re-emits has_zip only")
+    @MainActor
+    func inPlaceRefetchWithZipCodeFlipReEmitsHasZipOnly() async {
+        let env = AnalyticsLifecycleEnv.make()
+
+        let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        env.oauthRunner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
+        let initialUser = AuthenticatedUser(
+            userId: "user-id-stable-clx9q2tk30000",
+            displayName: "Test User",
+            email: "user@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true,
+            zipCode: nil
+        )
+        env.authManager.loadUserRequest = { initialUser }
+
+        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
+            authManager: env.authManager,
+            analytics: env.analytics
+        )
+        defer { _ = cancellables }
+
+        await env.authManager.signIn(with: .google)
+
+        // Sign-in dispatches the cohort pair once (true, false): onboarding
+        // completed but zipCode nil at sign-in time.
+        #expect(env.analytics.userPropertyCalls.count == 2)
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["true", "false"])
+
+        // Swap in a /v1/me refetch result where the user has filled in a zip
+        // code (nil → "94110") with comedianOnboardingCompleted unchanged.
+        // The has_zip live-update conditional must fire exactly once with
+        // value "true"; the comedian_onboarding_completed branch must NOT
+        // re-fire. Symmetric anchor to inPlaceRefetchWithUnchangedCohortFieldsDoesNotEmit
+        // and initialNilIsNoopAndInPlaceUpdateEmitsChangedCohortProperty:
+        // together they pin both halves of the per-field diff contract so a
+        // regression in either conditional surfaces independently.
+        let zipFilledUser = AuthenticatedUser(
+            userId: "user-id-stable-clx9q2tk30000",
+            displayName: "Test User",
+            email: "user@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true,
+            zipCode: "94110"
+        )
+        env.authManager.loadUserRequest = { zipFilledUser }
+        await env.authManager.refreshCurrentUser()
+
+        #expect(env.analytics.userPropertyCalls.count == 3)
+        #expect(env.analytics.userPropertyCalls.map(\.name) == [
+            "comedian_onboarding_completed",
+            "has_zip",
+            "has_zip",
+        ])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["true", "false", "true"])
+        #expect(env.analytics.setUserIDCalls == ["user-id-stable-clx9q2tk30000"])
+        #expect(env.analytics.resetCallCount == 0)
+    }
+
     @Test("user-switching within one session emits setUserID(A), reset(), setUserID(B) in order")
     @MainActor
     func userSwitchingEmitsExpectedOrderedCalls() async {

@@ -263,6 +263,15 @@ public struct AppBootstrap {
                 case (_?, nil):
                     analytics.reset()
                 case (let previous?, let current?):
+                    // Same-identity update (user → user'): AuthManager always
+                    // routes user-switches through clearSession (currentUser →
+                    // nil) before storing the new session, so previous and
+                    // current here are by construction the same user — `userId`
+                    // is invariant on this edge. If a future AuthManager change
+                    // introduces a direct user-switch path without an
+                    // intermediate nil, the cohort dispatch below would land
+                    // against the prior user's setUserID identity; reintroduce
+                    // a `setUserID(...)` call here in that case.
                     if previous.comedianOnboardingCompleted != current.comedianOnboardingCompleted {
                         analytics.setUserProperty(
                             current.comedianOnboardingCompleted ? "true" : "false",
