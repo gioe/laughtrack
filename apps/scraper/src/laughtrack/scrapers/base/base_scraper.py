@@ -14,7 +14,7 @@ import concurrent.futures
 import contextvars
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Awaitable, Callable, List, Optional, Tuple
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -216,6 +216,47 @@ class BaseScraper(HttpConvenienceMixin, ABC):
     def _log_prefix(self) -> str:
         """Logging prefix shared by all Logger calls in this scraper."""
         return f"{self.__class__.__name__} [{self._club.name}]"
+
+    def _warn_empty_extraction(
+        self,
+        source: str,
+        *,
+        subject: str = "events",
+        html: Optional[str] = None,
+        csv: Optional[str] = None,
+        payload: Any = None,
+        n_items: Optional[int] = None,
+        page: Optional[int] = None,
+        extra: Optional[Dict[str, Any]] = None,
+        note: Optional[str] = None,
+    ) -> None:
+        # TASK-2632 — single definition site for the TASK-2631 diagnostic:
+        # adding a fetch_id / attempt_count / request_id later touches this
+        # method, not 42 venue scrapers. WARN (not INFO) is required so the
+        # GHA WARNING+ filter still surfaces the zero-extraction event.
+        # Per LaughTrack convention #9 the structured suffix is embedded in
+        # the message string, not the logger_context dict.
+        parts: List[str] = []
+        if html is not None:
+            parts.append(f"html_len={len(html) if html else 0}")
+        if csv is not None:
+            parts.append(f"csv_len={len(csv) if csv else 0}")
+        if payload is not None:
+            parts.append(f"payload_type={type(payload).__name__}")
+        if n_items is not None:
+            parts.append(f"n_items={n_items}")
+        if page is not None:
+            parts.append(f"page={page}")
+        if extra:
+            parts.extend(f"{k}={v}" for k, v in extra.items())
+        suffix_body = ", ".join(parts)
+        if note:
+            suffix_body = f"{suffix_body}; {note}" if suffix_body else note
+        suffix = f" ({suffix_body})" if suffix_body else ""
+        Logger.warn(
+            f"{self._log_prefix}: no {subject} extracted from {source}{suffix}",
+            self.logger_context,
+        )
 
     async def get_session(self, headers=None, proxy_url=None):
         """
