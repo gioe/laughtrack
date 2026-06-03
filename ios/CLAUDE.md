@@ -54,6 +54,54 @@ worktree's `ios/LaughTrack.xcodeproj` if the returned `projectPath`
 doesn't match your current worktree. This was observed live on TASK-2619
 (the active profile was still pinned to TASK-2614 from the prior session).
 
+### Mid-Merge pbxproj Rebase Conflicts After Upstream `xcodegen generate`
+
+`ios/LaughTrack.xcodeproj/project.pbxproj` is xcodegen-generated, so any
+upstream commit that runs `xcodegen generate` (typically a fastlane
+`bump_build_number` lane or a coordinated `MARKETING_VERSION` bump — see
+commit f9f755e08, "iOS: bump MARKETING_VERSION to 2.0 (major release) and
+harden fastlane bump_build_number") regenerates the random hex prefixes
+attached to every PBXFileReference / PBXBuildFile row. The wiring stays
+functionally equivalent (same target membership, same Sources phase
+entries), but the *IDs* don't survive — `2617A1B0…` becomes `2EEB4E62…`
+on the new origin/main.
+
+A feature branch that hand-wired a new Swift file using the TASK-2614 /
+TASK-2617 / TASK-2619 stable-hex pattern (`<task#>A1B0F50C0A6E0FE03F00`
+for fileRef, `<task#>A1B1F50C0A6E0FE03F01` for buildFile) commits cleanly
+against the pre-regen tree, but `tusk merge --rebase` against post-regen
+`origin/main` produces a conflict on every line range where the upstream
+hex IDs no longer match the anchors the feature branch's Edit calls
+targeted. The conflict regions look misleading — `<<<<<<< HEAD` shows
+empty content where the prior-task entries used to sit, because those
+IDs simply don't exist on origin/main anymore.
+
+Recovery is mechanical:
+
+1. `git checkout --ours -- ios/LaughTrack.xcodeproj/project.pbxproj` —
+   accepts origin/main's regenerated structure verbatim as the base.
+2. Re-find the new alphabetical anchors for the four insert sites
+   (PBXBuildFile, PBXFileReference, PBXGroup child, Sources-phase entry).
+   Use the surrounding file's *current* neighbors (e.g. `ClubDetailViewTests`
+   and `ClubRowTests`) — those file-named anchors stay stable across
+   regens even when the hex prefixes change.
+3. Re-apply the four `<task#>A1B0…` / `<task#>A1B1…` inserts at the new
+   positions, then `git add` the pbxproj and `git rebase --continue`.
+4. Re-run `build_sim` + the new file's test suite to confirm the wiring
+   still resolves.
+
+The long-term safer pattern when adding a brand-new file that will be
+long-lived is to declare it in `ios/project.yml` (xcodegen reads source
+directories declaratively) so the next regen preserves the wiring
+without a manual edit. Hand-edits to pbxproj are appropriate for tasks
+like TASK-2614/2617/2619/2621 where the new file is incidental to the
+task scope, but expect them to interact with this rebase pattern on any
+task whose merge window crosses a build-version bump on `main`.
+
+This was observed live on TASK-2621 (the rebase against f9f755e08 +
+b8b05c9f7 produced the conflict; manual recovery as above succeeded
+on the first re-apply).
+
 ### iOS Simulator Cold Start Dominates `test_sim` Wall Time
 
 A "test_sim hung" report on a HostedView suite is almost always cold-start
