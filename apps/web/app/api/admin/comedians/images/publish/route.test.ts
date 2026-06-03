@@ -52,6 +52,14 @@ vi.mock("@/lib/admin/comedianImagePipeline", async () => {
 vi.mock("@/lib/admin/bunnyStorage", () => ({
     uploadToBunnyStorage: vi.fn(),
     deleteFromBunnyStorage: vi.fn(),
+    BunnyStorageError: class BunnyStorageError extends Error {
+        public readonly status: number | null;
+        constructor(message: string, status: number | null = null) {
+            super(message);
+            this.name = "BunnyStorageError";
+            this.status = status;
+        }
+    },
 }));
 
 import { auth } from "@/auth";

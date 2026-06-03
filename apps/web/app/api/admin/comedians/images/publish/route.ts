@@ -1,5 +1,6 @@
 import { writeAdminActionAudit } from "@/lib/admin/audit";
 import {
+    BunnyStorageError,
     deleteFromBunnyStorage,
     uploadToBunnyStorage,
 } from "@/lib/admin/bunnyStorage";
@@ -335,8 +336,14 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             error,
         );
         await cleanupUploads("partial upload");
+        const detail =
+            error instanceof BunnyStorageError
+                ? error.message
+                : error instanceof Error
+                  ? error.message
+                  : "unknown error";
         return NextResponse.json(
-            { error: "Bunny storage upload failed" },
+            { error: `Bunny storage upload failed: ${detail}` },
             { status: 502 },
         );
     }
