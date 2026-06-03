@@ -2273,7 +2273,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             alt={`${row.name} current headshot image`}
                                                             className="h-24 w-24 rounded-md border border-copper/20 object-cover"
                                                         />
-                                                    ) : (
+                                                    ) : manualImageUrlValue(row)
+                                                          .headshotFile ? null : (
                                                         <div className="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
                                                             Empty
                                                         </div>
@@ -2515,7 +2516,8 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             alt={`${row.name} current hero image`}
                                                             className="h-24 w-40 rounded-md border border-copper/20 object-cover"
                                                         />
-                                                    ) : (
+                                                    ) : manualImageUrlValue(row)
+                                                          .heroFile ? null : (
                                                         <div className="flex h-24 w-40 items-center justify-center rounded-md border border-dashed border-soft-charcoal/30 bg-gray-50 font-dmSans text-caption text-soft-charcoal">
                                                             Empty
                                                         </div>
