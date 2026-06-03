@@ -174,8 +174,8 @@ struct OnboardingTests {
 
     @Test("notification step persists preferences and asks the injected push permission boundary")
     func notificationStepStoresPreferencesAndRequestsPushPermission() async throws {
-        let permissionRequester = RecordingPushPermissionRequester(result: true)
-        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .notDetermined)
+        let permissionRequester = RecordingPushAuthorizationRequester(result: true)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .notDetermined)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step"))
         let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
         let model = ComedianOnboardingModel(
@@ -199,8 +199,8 @@ struct OnboardingTests {
 
     @Test("notification step skips OS prompt and enables push when status is already authorized")
     func notificationStepSkipsPromptWhenAuthorized() async throws {
-        let permissionRequester = RecordingPushPermissionRequester(result: false)
-        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .authorized)
+        let permissionRequester = RecordingPushAuthorizationRequester(result: false)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .authorized)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step-authorized"))
         let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
         let model = ComedianOnboardingModel(
@@ -223,8 +223,8 @@ struct OnboardingTests {
 
     @Test("notification step surfaces deep-link alert and disables push when status is denied")
     func notificationStepSurfacesDeepLinkAlertWhenDenied() async throws {
-        let permissionRequester = RecordingPushPermissionRequester(result: false)
-        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .denied)
+        let permissionRequester = RecordingPushAuthorizationRequester(result: false)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .denied)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "notification-step-denied"))
         let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
         let model = ComedianOnboardingModel(
@@ -247,9 +247,9 @@ struct OnboardingTests {
 
     @Test("notification step emits push_os_prompt_result with trigger=onboarding after the OS prompt resolves")
     func notificationStepEmitsOSPromptResultWithOnboardingTrigger() async throws {
-        let analytics = RecordingAnalyticsManager()
-        let permissionRequester = RecordingPushPermissionRequester(result: true)
-        let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: .notDetermined)
+        let analytics = RecordingPushAnalyticsManager()
+        let permissionRequester = RecordingPushAuthorizationRequester(result: true)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .notDetermined)
         let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "os-prompt-onboarding"))
         let pushTokenManager = RecordingOnboardingPushDeviceTokenManager()
         let model = ComedianOnboardingModel(
@@ -274,9 +274,9 @@ struct OnboardingTests {
     @Test("notification step does NOT emit push_os_prompt_result when status is already authorized or denied")
     func notificationStepSkipsOSPromptResultWhenNoSystemPromptShown() async throws {
         for status in [PushAuthorizationStatus.authorized, .denied] {
-            let analytics = RecordingAnalyticsManager()
-            let permissionRequester = RecordingPushPermissionRequester(result: true)
-            let statusProvider = OnboardingMockPushAuthorizationStatusProvider(status: status)
+            let analytics = RecordingPushAnalyticsManager()
+            let permissionRequester = RecordingPushAuthorizationRequester(result: true)
+            let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: status)
             let store = NotificationPreferenceStore(appStateStorage: makeStorage(name: "no-os-prompt-\(status)"))
             let model = ComedianOnboardingModel(
                 pushPermissionRequester: permissionRequester,
@@ -469,20 +469,6 @@ private struct MockOnboardingTransport: ClientTransport {
     }
 }
 
-private actor RecordingPushPermissionRequester: PushAuthorizationRequesting {
-    private let result: Bool
-    private(set) var requestCount = 0
-
-    init(result: Bool) {
-        self.result = result
-    }
-
-    func requestAuthorization() async -> Bool {
-        requestCount += 1
-        return result
-    }
-}
-
 private actor RecordingOnboardingPushDeviceTokenManager: PushDeviceTokenManaging {
     private(set) var registerCalls = 0
     private(set) var deactivateCalls = 0
@@ -495,14 +481,6 @@ private actor RecordingOnboardingPushDeviceTokenManager: PushDeviceTokenManaging
 
     func deactivateCurrentDeviceToken() async {
         deactivateCalls += 1
-    }
-}
-
-private struct OnboardingMockPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
-    let status: PushAuthorizationStatus
-
-    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
-        status
     }
 }
 

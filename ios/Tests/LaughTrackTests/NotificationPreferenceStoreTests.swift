@@ -77,7 +77,7 @@ struct NotificationPreferenceStoreTests {
         let storage = makeStorage(name: "push-authorized")
         let store = NotificationPreferenceStore(appStateStorage: storage)
         let pushTokenManager = RecordingPushDeviceTokenManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .authorized)
         let requester = RecordingPushAuthorizationRequester(result: true)
         let model = SettingsNotificationPreferenceModel(
             store: store,
@@ -99,7 +99,7 @@ struct NotificationPreferenceStoreTests {
         let storage = makeStorage(name: "push-notDetermined")
         let store = NotificationPreferenceStore(appStateStorage: storage)
         let pushTokenManager = RecordingPushDeviceTokenManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .notDetermined)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .notDetermined)
         let requester = RecordingPushAuthorizationRequester(result: true)
         let model = SettingsNotificationPreferenceModel(
             store: store,
@@ -121,7 +121,7 @@ struct NotificationPreferenceStoreTests {
         let storage = makeStorage(name: "push-denied")
         let store = NotificationPreferenceStore(appStateStorage: storage)
         let pushTokenManager = RecordingPushDeviceTokenManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .denied)
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .denied)
         let requester = RecordingPushAuthorizationRequester(result: false)
         let model = SettingsNotificationPreferenceModel(
             store: store,
@@ -221,8 +221,8 @@ struct NotificationPreferenceStoreTests {
     func pushToggleEmitsSettingsToggleChanged() async throws {
         let storage = makeStorage(name: "toggle-changed")
         let store = NotificationPreferenceStore(appStateStorage: storage)
-        let analytics = RecordingAnalyticsManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let analytics = RecordingPushAnalyticsManager()
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .authorized)
         let requester = RecordingPushAuthorizationRequester(result: true)
         let pushTokenManager = RecordingPushDeviceTokenManager()
         let model = SettingsNotificationPreferenceModel(
@@ -250,8 +250,8 @@ struct NotificationPreferenceStoreTests {
     func pushToggleEmitsOSPromptResultOnNotDetermined() async throws {
         let storage = makeStorage(name: "os-prompt-settings")
         let store = NotificationPreferenceStore(appStateStorage: storage)
-        let analytics = RecordingAnalyticsManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .notDetermined)
+        let analytics = RecordingPushAnalyticsManager()
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .notDetermined)
         let requester = RecordingPushAuthorizationRequester(result: true)
         let pushTokenManager = RecordingPushDeviceTokenManager()
         let model = SettingsNotificationPreferenceModel(
@@ -276,8 +276,8 @@ struct NotificationPreferenceStoreTests {
     func pushToggleAuthorizedDoesNotEmitOSPromptResult() async throws {
         let storage = makeStorage(name: "os-prompt-authorized")
         let store = NotificationPreferenceStore(appStateStorage: storage)
-        let analytics = RecordingAnalyticsManager()
-        let statusProvider = MockPushAuthorizationStatusProvider(status: .authorized)
+        let analytics = RecordingPushAnalyticsManager()
+        let statusProvider = SingleStatusPushAuthorizationStatusProvider(status: .authorized)
         let requester = RecordingPushAuthorizationRequester(result: true)
         let pushTokenManager = RecordingPushDeviceTokenManager()
         let model = SettingsNotificationPreferenceModel(
@@ -298,7 +298,7 @@ struct NotificationPreferenceStoreTests {
     func settingsToggleChangedReportsFromDeniedStateAfterAlert() async throws {
         let storage = makeStorage(name: "from-denied-state")
         let store = NotificationPreferenceStore(appStateStorage: storage)
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         // Status sequence: first toggle attempt sees .denied (surfaces alert);
         // second attempt sees .authorized (user opened Settings, enabled push,
         // came back, and re-tapped the toggle) — exactly the recovery flow
@@ -443,46 +443,6 @@ private actor RecordingPushDeviceTokenManager: PushDeviceTokenManaging {
 
     func deactivateCurrentDeviceToken() async {
         deactivateCalls += 1
-    }
-}
-
-private struct MockPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
-    let status: PushAuthorizationStatus
-
-    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
-        status
-    }
-}
-
-private actor SequencedPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
-    private var sequence: [PushAuthorizationStatus]
-    private let fallback: PushAuthorizationStatus
-
-    init(sequence: [PushAuthorizationStatus]) {
-        precondition(!sequence.isEmpty)
-        self.sequence = sequence
-        self.fallback = sequence.last!
-    }
-
-    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
-        if sequence.count > 1 {
-            return sequence.removeFirst()
-        }
-        return sequence.first ?? fallback
-    }
-}
-
-private actor RecordingPushAuthorizationRequester: PushAuthorizationRequesting {
-    private let result: Bool
-    private(set) var requestCount = 0
-
-    init(result: Bool) {
-        self.result = result
-    }
-
-    func requestAuthorization() async -> Bool {
-        requestCount += 1
-        return result
     }
 }
 

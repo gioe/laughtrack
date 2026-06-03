@@ -40,6 +40,7 @@
 		260FB020EC4EB1996F824F65 /* LaughTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2614A1B1F50C0A6E0FE03F01 /* UITestLaunchArgs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2614A1B0F50C0A6E0FE03F00 /* UITestLaunchArgs.swift */; };
 		2614A1B2F50C0A6E0FE03F02 /* UITestLaunchArgs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2614A1B0F50C0A6E0FE03F00 /* UITestLaunchArgs.swift */; };
+		2617A1B1F50C0A6E0FE03F01 /* PushPermissionTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2617A1B0F50C0A6E0FE03F00 /* PushPermissionTestSupport.swift */; };
 		2619A1B1F50C0A6E0FE03F01 /* PushAnalyticsEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2619A1B0F50C0A6E0FE03F00 /* PushAnalyticsEvents.swift */; };
 		294F3A72B4D34C290321DB3D /* ShowTitlePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4A6353D0B602F597E9714C /* ShowTitlePresentationTests.swift */; };
 		29A24F3F99C79F87902F932A /* SignedOutAuthOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DF853E33C8EFE7127FC3FD6 /* SignedOutAuthOptions.swift */; };
@@ -354,6 +355,7 @@
 		23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedUser.swift; sourceTree = "<group>"; };
 		253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryView.swift; sourceTree = "<group>"; };
 		2614A1B0F50C0A6E0FE03F00 /* UITestLaunchArgs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestLaunchArgs.swift; sourceTree = "<group>"; };
+		2617A1B0F50C0A6E0FE03F00 /* PushPermissionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPermissionTestSupport.swift; sourceTree = "<group>"; };
 		2619A1B0F50C0A6E0FE03F00 /* PushAnalyticsEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAnalyticsEvents.swift; sourceTree = "<group>"; };
 		281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackApp.swift; sourceTree = "<group>"; };
 		2AE66AEEC26F743787CDC4EE /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
@@ -634,6 +636,7 @@
 				AF110C4D6F9495746B88F926 /* ProfileViewTests.swift */,
 				D6B5183BF82B4315C125512B /* PushPermissionPromptCadenceTests.swift */,
 				F8028E5CE6757E7382895D1F /* PushPermissionStateStoreTests.swift */,
+				2617A1B0F50C0A6E0FE03F00 /* PushPermissionTestSupport.swift */,
 				90B6537DBFBB91D1848405D7 /* SearchRootViewTests.swift */,
 				EE6ED3B8ED09F12D8A03111F /* ServiceRegistrationTests.swift */,
 				ECED0A3A8EEF5B333E588DB8 /* SettingsViewStateTests.swift */,
@@ -1386,6 +1389,7 @@
 				6E26430B88F35A8B1BB17F31 /* ProfileViewTests.swift in Sources */,
 				1F3762B55535AF3F76F3B19E /* PushPermissionPromptCadenceTests.swift in Sources */,
 				527B0FC890A60821C39FDFE8 /* PushPermissionStateStoreTests.swift in Sources */,
+				2617A1B1F50C0A6E0FE03F01 /* PushPermissionTestSupport.swift in Sources */,
 				1E02A267A51AA495C1E0D807 /* SearchRootViewTests.swift in Sources */,
 				8327AF474D76C38707EE0262 /* ServiceRegistrationTests.swift in Sources */,
 				4E555BF23B469378A967859A /* SettingsViewStateTests.swift in Sources */,

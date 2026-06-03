@@ -314,7 +314,7 @@ struct SoftPushPromptCoordinatorTests {
 
     @Test("presenting the sheet emits push_soft_prompt_shown with trigger=engagement_moment and the current deferral count")
     func presentingSheetEmitsSoftPromptShownEvent() async {
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         let env = makeEnvironment(status: .notDetermined, analytics: analytics)
         // Don't pre-set a deferral — recordDeferral resets
         // sessionCountSinceLastDeferral to 0, which trips the cadence's
@@ -333,7 +333,7 @@ struct SoftPushPromptCoordinatorTests {
 
     @Test("enableTapped emits push_soft_prompt_enable_tapped and push_os_prompt_result on notDetermined grant")
     func enableTappedEmitsEnableTappedAndOSPromptResultEvents() async {
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         let env = makeEnvironment(status: .notDetermined, requestResult: true, analytics: analytics)
         env.coordinator.presentation = .promptingSheet
 
@@ -352,7 +352,7 @@ struct SoftPushPromptCoordinatorTests {
 
     @Test("enableTapped on notDetermined deny emits push_os_prompt_result with granted=false")
     func enableTappedNotDeterminedDenyEmitsOSPromptResultFalse() async {
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         let env = makeEnvironment(status: .notDetermined, requestResult: false, analytics: analytics)
         env.coordinator.presentation = .promptingSheet
 
@@ -366,7 +366,7 @@ struct SoftPushPromptCoordinatorTests {
 
     @Test("enableTapped does NOT emit push_os_prompt_result when status is already authorized")
     func enableTappedAuthorizedDoesNotEmitOSPromptResult() async {
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         let env = makeEnvironment(status: .authorized, analytics: analytics)
         env.coordinator.presentation = .promptingSheet
 
@@ -378,7 +378,7 @@ struct SoftPushPromptCoordinatorTests {
 
     @Test("deferTapped emits push_soft_prompt_defer_tapped with the pre-increment deferral count")
     func deferTappedEmitsDeferTappedEventWithPreIncrementCount() {
-        let analytics = RecordingAnalyticsManager()
+        let analytics = RecordingPushAnalyticsManager()
         let env = makeEnvironment(status: .notDetermined, analytics: analytics)
         env.stateStore.recordDeferral()
         env.stateStore.recordDeferral()
@@ -431,7 +431,7 @@ struct SoftPushPromptCoordinatorTests {
         let storage = AppStateStorage(userDefaults: defaults)
         let stateStore = PushPermissionStateStore(appStateStorage: storage, now: now)
         let preferenceStore = NotificationPreferenceStore(appStateStorage: storage)
-        let statusProvider = ScriptedPushAuthorizationStatusProvider(sequence: statusSequence)
+        let statusProvider = SequencedPushAuthorizationStatusProvider(sequence: statusSequence)
         let requester = RecordingPushAuthorizationRequester(result: requestResult)
         let opener = RecordingSystemSettingsOpener()
         let coordinator = SoftPushPromptCoordinator(
@@ -462,38 +462,6 @@ struct SoftPushPromptCoordinatorTests {
     }
 }
 
-private actor ScriptedPushAuthorizationStatusProvider: PushAuthorizationStatusProviding {
-    private var sequence: [PushAuthorizationStatus]
-    private let fallback: PushAuthorizationStatus
-
-    init(sequence: [PushAuthorizationStatus]) {
-        precondition(!sequence.isEmpty)
-        self.sequence = sequence
-        self.fallback = sequence.last!
-    }
-
-    func currentAuthorizationStatus() async -> PushAuthorizationStatus {
-        if sequence.count > 1 {
-            return sequence.removeFirst()
-        }
-        return sequence.first ?? fallback
-    }
-}
-
-private actor RecordingPushAuthorizationRequester: PushAuthorizationRequesting {
-    private let result: Bool
-    private(set) var requestCount = 0
-
-    init(result: Bool) {
-        self.result = result
-    }
-
-    func requestAuthorization() async -> Bool {
-        requestCount += 1
-        return result
-    }
-}
-
 @MainActor
 private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
     private(set) var openCount = 0
@@ -501,42 +469,6 @@ private final class RecordingSystemSettingsOpener: SystemSettingsOpening {
     func openAppSystemSettings() {
         openCount += 1
     }
-}
-
-/// In-memory `AnalyticsManagerProtocol` stub used by every push-funnel
-/// test suite. Lives at internal scope (not `private`) so the three
-/// consumers — `SoftPushPromptCoordinatorTests`,
-/// `NotificationPreferenceStoreTests`, and `OnboardingTests` — can share
-/// a single recorder definition instead of duplicating it per file.
-/// If a future suite needs an analytics recorder, reuse this type
-/// rather than re-implementing it.
-@MainActor
-final class RecordingAnalyticsManager: AnalyticsManagerProtocol {
-    struct Recorded {
-        let name: String
-        let parameters: [String: Any]?
-
-        func string(_ key: String) -> String? { parameters?[key] as? String }
-        func bool(_ key: String) -> Bool? { parameters?[key] as? Bool }
-        func int(_ key: String) -> Int? { parameters?[key] as? Int }
-    }
-
-    private(set) var events: [Recorded] = []
-
-    func addProvider(_ provider: AnalyticsProvider) {}
-
-    func track(_ event: AnalyticsEvent) {
-        events.append(Recorded(name: event.name, parameters: event.parameters))
-    }
-
-    func track(_ name: String, parameters: [String: Any]?) {
-        events.append(Recorded(name: name, parameters: parameters))
-    }
-
-    func trackScreen(_ name: String, parameters: [String: Any]?) {}
-    func setUserProperty(_ value: String?, forName name: String) {}
-    func setUserID(_ userID: String?) {}
-    func reset() {}
 }
 
 @MainActor
