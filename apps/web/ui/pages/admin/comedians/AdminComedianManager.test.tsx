@@ -237,7 +237,7 @@ describe("AdminComedianManager", () => {
             target: { value: "https://alias.example.com/headshot.jpg" },
         });
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Upload headshot" })[0],
+            screen.getAllByRole("button", { name: "Save headshot URL" })[0],
         );
 
         await waitFor(() => {
@@ -290,12 +290,11 @@ describe("AdminComedianManager", () => {
         const file = new File([new Uint8Array([1, 2, 3])], "headshot.jpg", {
             type: "image/jpeg",
         });
+        // Picking a file auto-publishes via the file input's onChange now —
+        // no separate Upload-button click needed.
         fireEvent.change(screen.getAllByLabelText("Upload headshot file")[0], {
             target: { files: [file] },
         });
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Upload headshot" })[0],
-        );
 
         await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
         const [, options] = vi.mocked(global.fetch).mock.calls[0];
@@ -328,12 +327,11 @@ describe("AdminComedianManager", () => {
         fireEvent.change(screen.getAllByLabelText("Upload headshot file")[0], {
             target: { files: [file] },
         });
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Upload headshot" })[0],
-        );
 
         await waitFor(() =>
-            expect(screen.getByText(/Headshot is 400x600/)).toBeTruthy(),
+            expect(
+                screen.getAllByText(/Headshot is 400x600/).length,
+            ).toBeGreaterThan(0),
         );
         expect(global.fetch).not.toHaveBeenCalled();
     });
@@ -367,7 +365,7 @@ describe("AdminComedianManager", () => {
             target: { value: "https://new.example.com/hero.jpg" },
         });
         const heroButton = screen.getAllByRole("button", {
-            name: "Upload hero",
+            name: "Save hero URL",
         })[1];
 
         expect(heroButton.hasAttribute("disabled")).toBe(false);
@@ -525,14 +523,16 @@ describe("AdminComedianManager", () => {
             target: { value: "https://alias.example.com/hero.jpg" },
         });
         fireEvent.click(
-            screen.getAllByRole("button", { name: "Upload hero" })[0],
+            screen.getAllByRole("button", { name: "Save hero URL" })[0],
         );
 
-        expect(
-            await screen.findByText(
-                "Hero source 1200x1200 must be close to a 16:9 ratio",
-            ),
-        ).toBeTruthy();
+        await waitFor(() =>
+            expect(
+                screen.getAllByText(
+                    "Hero source 1200x1200 must be close to a 16:9 ratio",
+                ).length,
+            ).toBeGreaterThan(0),
+        );
         expect(
             screen.queryByAltText("Alias Comic current hero image"),
         ).toBeNull();
@@ -587,9 +587,11 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(
-            await screen.findByText("Alias Comic images published."),
-        ).toBeTruthy();
+        await waitFor(() =>
+            expect(
+                screen.getAllByText("Alias Comic images published.").length,
+            ).toBeGreaterThan(0),
+        );
     });
 
     it("updates row preview after publish without losing other comedian edits", async () => {
@@ -658,9 +660,11 @@ describe("AdminComedianManager", () => {
         expect(screen.getByDisplayValue("https://alias.example.com")).toBe(
             websiteInput,
         );
-        expect(
-            await screen.findByText("Alias Comic images published."),
-        ).toBeTruthy();
+        await waitFor(() =>
+            expect(
+                screen.getAllByText("Alias Comic images published.").length,
+            ).toBeGreaterThan(0),
+        );
     });
 
     it("sorts comedians by popularity", () => {

@@ -180,6 +180,9 @@ export default function AdminComedianManager({ comedians }: Props) {
         Record<number, string>
     >({});
     const [pendingId, setPendingId] = useState<number | null>(null);
+    const [imageStatusByRow, setImageStatusByRow] = useState<
+        Record<number, { kind: "ok" | "error"; message: string }>
+    >({});
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
 
@@ -851,8 +854,18 @@ export default function AdminComedianManager({ comedians }: Props) {
     async function publishImage(
         row: AdminComedianListItem,
         slot?: "headshot" | "hero",
+        overrideFile?: File,
     ) {
-        const inputs = manualImageUrlValue(row);
+        const stateInputs = manualImageUrlValue(row);
+        const inputs: ManualImageUrls = {
+            ...stateInputs,
+            ...(overrideFile && slot === "headshot"
+                ? { headshotFile: overrideFile }
+                : {}),
+            ...(overrideFile && slot === "hero"
+                ? { heroFile: overrideFile }
+                : {}),
+        };
         const includeHeadshot =
             slot === "headshot" ||
             (!slot && imageSlotHasInput(row, "headshot"));
@@ -861,6 +874,11 @@ export default function AdminComedianManager({ comedians }: Props) {
         if (!includeHeadshot && !includeHero) return;
 
         setStatus({ kind: "idle" });
+        setImageStatusByRow((current) => {
+            const next = { ...current };
+            delete next[row.id];
+            return next;
+        });
 
         const validationFailures: string[] = [];
         if (includeHeadshot && inputs.headshotFile) {
@@ -878,10 +896,12 @@ export default function AdminComedianManager({ comedians }: Props) {
             if (!result.ok) validationFailures.push(result.reason);
         }
         if (validationFailures.length > 0) {
-            setStatus({
-                kind: "error",
-                message: validationFailures.join("; "),
-            });
+            const message = validationFailures.join("; ");
+            setStatus({ kind: "error", message });
+            setImageStatusByRow((current) => ({
+                ...current,
+                [row.id]: { kind: "error", message },
+            }));
             return;
         }
 
@@ -933,21 +953,25 @@ export default function AdminComedianManager({ comedians }: Props) {
             }
         } catch (error) {
             setPendingId(null);
-            setStatus({
-                kind: "error",
-                message:
-                    error instanceof Error ? error.message : "Network error",
-            });
+            const message =
+                error instanceof Error ? error.message : "Network error";
+            setStatus({ kind: "error", message });
+            setImageStatusByRow((current) => ({
+                ...current,
+                [row.id]: { kind: "error", message },
+            }));
             return;
         }
 
         setPendingId(null);
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
-            setStatus({
-                kind: "error",
-                message: body.error ?? `Request failed (${res.status})`,
-            });
+            const message = body.error ?? `Request failed (${res.status})`;
+            setStatus({ kind: "error", message });
+            setImageStatusByRow((current) => ({
+                ...current,
+                [row.id]: { kind: "error", message },
+            }));
             return;
         }
 
@@ -977,12 +1001,14 @@ export default function AdminComedianManager({ comedians }: Props) {
             delete next[row.id];
             return next;
         });
-        setStatus({
-            kind: "ok",
-            message: `${row.name} ${
-                slot ? `${slot} image` : "images"
-            } published.`,
-        });
+        const successMessage = `${row.name} ${
+            slot ? `${slot} image` : "images"
+        } published.`;
+        setStatus({ kind: "ok", message: successMessage });
+        setImageStatusByRow((current) => ({
+            ...current,
+            [row.id]: { kind: "ok", message: successMessage },
+        }));
         startTransition(() => router.refresh());
     }
 
@@ -2190,81 +2216,136 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             Empty
                                                         </div>
                                                     )}
-                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Headshot image URL
-                                                        <input
-                                                            aria-label="Headshot image URL"
-                                                            type="url"
-                                                            value={
-                                                                manualImageUrlValue(
-                                                                    row,
-                                                                ).headshot
-                                                            }
-                                                            onChange={(event) =>
-                                                                updateManualImageUrls(
-                                                                    row,
-                                                                    {
-                                                                        headshot:
-                                                                            event
-                                                                                .target
-                                                                                .value,
-                                                                        headshotFile:
-                                                                            null,
-                                                                    },
-                                                                )
-                                                            }
-                                                            placeholder="https://example.com/headshot.jpg"
-                                                            className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                        />
-                                                    </label>
-                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Upload headshot file
-                                                        <input
-                                                            aria-label="Upload headshot file"
-                                                            type="file"
-                                                            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                            onChange={(event) =>
-                                                                updateManualImageUrls(
-                                                                    row,
-                                                                    {
-                                                                        headshotFile:
-                                                                            event
-                                                                                .target
-                                                                                .files?.[0] ??
-                                                                            null,
-                                                                    },
-                                                                )
-                                                            }
-                                                            className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-caption normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
-                                                        />
-                                                        <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                            1:1 square, at least
-                                                            600x600
-                                                        </span>
-                                                    </label>
+                                                    <div className="grid gap-1">
+                                                        <label
+                                                            htmlFor={`headshot-url-${row.id}`}
+                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                        >
+                                                            Headshot image URL
+                                                        </label>
+                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                            <input
+                                                                id={`headshot-url-${row.id}`}
+                                                                aria-label="Headshot image URL"
+                                                                type="url"
+                                                                value={
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    ).headshot
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateManualImageUrls(
+                                                                        row,
+                                                                        {
+                                                                            headshot:
+                                                                                event
+                                                                                    .target
+                                                                                    .value,
+                                                                            headshotFile:
+                                                                                null,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="https://example.com/headshot.jpg"
+                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                aria-label="Save headshot URL"
+                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                disabled={
+                                                                    disabled ||
+                                                                    pendingId ===
+                                                                        row.id ||
+                                                                    !manualImageUrlValue(
+                                                                        row,
+                                                                    ).headshot.trim() ||
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    ).headshot.trim() ===
+                                                                        currentAvatar
+                                                                }
+                                                                onClick={() =>
+                                                                    void publishImage(
+                                                                        row,
+                                                                        "headshot",
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Save className="h-4 w-4" />
+                                                                Save URL
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                        1:1 square, at least
+                                                        600x600
+                                                    </span>
+                                                    <input
+                                                        id={`headshot-file-${row.id}`}
+                                                        aria-label="Upload headshot file"
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                        className="sr-only"
+                                                        onChange={async (
+                                                            event,
+                                                        ) => {
+                                                            const file =
+                                                                event.target
+                                                                    .files?.[0] ??
+                                                                null;
+                                                            event.target.value =
+                                                                "";
+                                                            if (!file) return;
+                                                            await publishImage(
+                                                                row,
+                                                                "headshot",
+                                                                file,
+                                                            );
+                                                        }}
+                                                    />
                                                     <Button
                                                         type="button"
                                                         variant="outline"
                                                         className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                         disabled={
                                                             disabled ||
-                                                            pendingId ===
-                                                                row.id ||
-                                                            !imageSlotHasInput(
-                                                                row,
-                                                                "headshot",
-                                                            )
+                                                            pendingId === row.id
                                                         }
-                                                        onClick={() =>
-                                                            void publishImage(
-                                                                row,
-                                                                "headshot",
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            const input =
+                                                                document.getElementById(
+                                                                    `headshot-file-${row.id}`,
+                                                                ) as HTMLInputElement | null;
+                                                            input?.click();
+                                                        }}
                                                     >
                                                         <Upload className="h-4 w-4" />
                                                         Upload headshot
                                                     </Button>
+                                                    {imageStatusByRow[
+                                                        row.id
+                                                    ] ? (
+                                                        <p
+                                                            className={
+                                                                imageStatusByRow[
+                                                                    row.id
+                                                                ].kind ===
+                                                                "error"
+                                                                    ? "rounded-md border border-red-700/30 bg-red-50 px-3 py-2 font-dmSans text-caption font-semibold text-red-900"
+                                                                    : "rounded-md border border-green-700/30 bg-green-50 px-3 py-2 font-dmSans text-caption font-semibold text-green-900"
+                                                            }
+                                                        >
+                                                            {
+                                                                imageStatusByRow[
+                                                                    row.id
+                                                                ].message
+                                                            }
+                                                        </p>
+                                                    ) : null}
                                                     {row.activeImageAsset
                                                         ?.avatarPath ? (
                                                         <Button
@@ -2319,76 +2400,111 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                             Empty
                                                         </div>
                                                     )}
-                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Hero image URL
-                                                        <input
-                                                            aria-label="Hero image URL"
-                                                            type="url"
-                                                            value={
-                                                                manualImageUrlValue(
-                                                                    row,
-                                                                ).hero
-                                                            }
-                                                            onChange={(event) =>
-                                                                updateManualImageUrls(
-                                                                    row,
-                                                                    {
-                                                                        hero: event
-                                                                            .target
-                                                                            .value,
-                                                                        heroFile:
-                                                                            null,
-                                                                    },
-                                                                )
-                                                            }
-                                                            placeholder="https://example.com/hero.jpg"
-                                                            className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
-                                                        />
-                                                    </label>
-                                                    <label className="grid gap-1 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Upload hero file
-                                                        <input
-                                                            aria-label="Upload hero file"
-                                                            type="file"
-                                                            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                                                            onChange={(event) =>
-                                                                updateManualImageUrls(
-                                                                    row,
-                                                                    {
-                                                                        heroFile:
-                                                                            event
+                                                    <div className="grid gap-1">
+                                                        <label
+                                                            htmlFor={`hero-url-${row.id}`}
+                                                            className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal"
+                                                        >
+                                                            Hero image URL
+                                                        </label>
+                                                        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                                                            <input
+                                                                id={`hero-url-${row.id}`}
+                                                                aria-label="Hero image URL"
+                                                                type="url"
+                                                                value={
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    ).hero
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    updateManualImageUrls(
+                                                                        row,
+                                                                        {
+                                                                            hero: event
                                                                                 .target
-                                                                                .files?.[0] ??
-                                                                            null,
-                                                                    },
-                                                                )
-                                                            }
-                                                            className="w-full min-w-0 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-caption normal-case tracking-normal text-cedar file:mr-3 file:rounded-sm file:border-0 file:bg-coconut-cream file:px-2 file:py-1 file:font-semibold file:text-cedar"
-                                                        />
-                                                        <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
-                                                            16:9 (2000x1125), at
-                                                            least 600x600
-                                                        </span>
-                                                    </label>
+                                                                                .value,
+                                                                            heroFile:
+                                                                                null,
+                                                                        },
+                                                                    )
+                                                                }
+                                                                placeholder="https://example.com/hero.jpg"
+                                                                className="w-full min-w-0 flex-1 rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body normal-case tracking-normal text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
+                                                            />
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                aria-label="Save hero URL"
+                                                                className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                disabled={
+                                                                    disabled ||
+                                                                    pendingId ===
+                                                                        row.id ||
+                                                                    !manualImageUrlValue(
+                                                                        row,
+                                                                    ).hero.trim() ||
+                                                                    manualImageUrlValue(
+                                                                        row,
+                                                                    ).hero.trim() ===
+                                                                        currentHero
+                                                                }
+                                                                onClick={() =>
+                                                                    void publishImage(
+                                                                        row,
+                                                                        "hero",
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Save className="h-4 w-4" />
+                                                                Save URL
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <span className="font-dmSans text-caption normal-case tracking-normal text-soft-charcoal">
+                                                        16:9 (2000x1125), at
+                                                        least 600x600
+                                                    </span>
+                                                    <input
+                                                        id={`hero-file-${row.id}`}
+                                                        aria-label="Upload hero file"
+                                                        type="file"
+                                                        accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                                                        className="sr-only"
+                                                        onChange={async (
+                                                            event,
+                                                        ) => {
+                                                            const file =
+                                                                event.target
+                                                                    .files?.[0] ??
+                                                                null;
+                                                            event.target.value =
+                                                                "";
+                                                            if (!file) return;
+                                                            await publishImage(
+                                                                row,
+                                                                "hero",
+                                                                file,
+                                                            );
+                                                        }}
+                                                    />
                                                     <Button
                                                         type="button"
                                                         variant="outline"
                                                         className="gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
                                                         disabled={
                                                             disabled ||
-                                                            pendingId ===
-                                                                row.id ||
-                                                            !imageSlotHasInput(
-                                                                row,
-                                                                "hero",
-                                                            )
+                                                            pendingId === row.id
                                                         }
-                                                        onClick={() =>
-                                                            void publishImage(
-                                                                row,
-                                                                "hero",
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            const input =
+                                                                document.getElementById(
+                                                                    `hero-file-${row.id}`,
+                                                                ) as HTMLInputElement | null;
+                                                            input?.click();
+                                                        }}
                                                     >
                                                         <Upload className="h-4 w-4" />
                                                         Upload hero
