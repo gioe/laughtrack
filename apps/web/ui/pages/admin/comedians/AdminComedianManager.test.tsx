@@ -197,10 +197,8 @@ describe("AdminComedianManager", () => {
                 .className.includes("w-40"),
         ).toBe(true);
         expect(
-            screen
-                .getByAltText("Parent Comic current image preview")
-                .getAttribute("src"),
-        ).toBe("https://test.b-cdn.net/comedians/Parent%20Comic.png");
+            screen.getByAltText("Parent Comic headshot").getAttribute("src"),
+        ).toBe("https://test.b-cdn.net/comedian-images/1/avatar.jpg");
     });
 
     it("uploads a headshot URL without requiring a hero", async () => {

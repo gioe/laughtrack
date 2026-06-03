@@ -94,6 +94,18 @@ function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
     return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
+function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
+    const src = row.activeImageAsset?.avatarUrl ?? "";
+    if (!src) return null;
+    return (
+        <img
+            src={src}
+            alt={`${row.name} headshot`}
+            className="h-10 w-10 shrink-0 rounded-full border border-copper/25 object-cover"
+        />
+    );
+}
+
 function sortRows(rows: AdminComedianListItem[], sort: SortMode) {
     return [...rows].sort((a, b) => {
         if (sort === "name-desc") return compareByName(b, a);
@@ -1092,7 +1104,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                         const rowOpen = openComedianRows.has(row.id);
                         const currentAvatar = currentAvatarUrl(row);
                         const currentHero = currentHeroUrl(row);
-                        const nameAvatar = nameComedianImageUrl(row);
                         const acceptedPodcasts =
                             acceptedAttributedPodcasts(row);
                         const pendingPodcastCandidateReviews =
@@ -1118,6 +1129,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         ) : (
                                             <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                         )}
+                                        <ComedianRowHeadshot row={row} />
                                         <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
                                             {row.name}
                                         </h2>
@@ -1181,6 +1193,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         ) : (
                                             <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                         )}
+                                        <ComedianRowHeadshot row={row} />
                                         <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
                                             {row.name}
                                         </h2>
@@ -1236,6 +1249,7 @@ export default function AdminComedianManager({ comedians }: Props) {
                                     ) : (
                                         <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
                                     )}
+                                    <ComedianRowHeadshot row={row} />
                                     <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
                                         {row.name}
                                     </h2>
@@ -2264,18 +2278,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                                 </div>
                                             ) : null}
 
-                                            {nameAvatar && (
-                                                <div className="mt-3 border-t border-copper/15 pt-3">
-                                                    <div className="mb-2 font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
-                                                        Current image
-                                                    </div>
-                                                    <img
-                                                        src={nameAvatar}
-                                                        alt={`${row.name} current image preview`}
-                                                        className="h-[56px] w-[56px] rounded-md border border-copper/20 object-cover"
-                                                    />
-                                                </div>
-                                            )}
                                             {row.hasImage && (
                                                 <Button
                                                     type="button"
