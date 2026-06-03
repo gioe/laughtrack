@@ -11,11 +11,13 @@ import pytest
 
 from laughtrack.foundation.infrastructure.http import playwright_browser as _pb_mod
 from laughtrack.foundation.infrastructure.http.playwright_browser import (
+    _CONTENT_RETRY_ATTEMPTS,
     _LAUNCH_ARGS,
     PlaywrightBrowser,
     _QuietShutdownFilter,
     _install_quiet_shutdown_filter,
     _parse_proxy,
+    _safe_content,
 )
 
 
@@ -1222,3 +1224,136 @@ class TestCloseStepTimeouts:
         assert browser._browser is None
         assert browser._pw_cm is None
         assert browser._pw is None
+
+
+# ---------------------------------------------------------------------------
+# _safe_content — bounded retry on the "page navigating" race (TASK-2625)
+# ---------------------------------------------------------------------------
+
+
+class TestSafeContent:
+    """Cover the bounded-retry helper for Playwright's nav-race error.
+
+    Reproduces the Rodney's HTTP 202 interstitial pattern: the first
+    page.content() call races a JS-driven location.reload() and raises
+    "Page.content: Unable to retrieve content because the page is navigating
+    and changing the content." A second call after the navigation settles
+    returns the real HTML.
+    """
+
+    _NAV_RACE_MSG = (
+        "Page.content: Unable to retrieve content because the page is "
+        "navigating and changing the content."
+    )
+
+    @pytest.mark.asyncio
+    async def test_returns_immediately_on_first_success(self):
+        """No retry on the steady-state path — content() returns on attempt 1."""
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(return_value="<html>ok</html>")
+        mock_page.wait_for_load_state = AsyncMock()
+
+        result = await _safe_content(mock_page)
+
+        assert result == "<html>ok</html>"
+        assert mock_page.content.await_count == 1
+        mock_page.wait_for_load_state.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_retries_on_page_navigating_error(self):
+        """First call raises the nav-race; second call returns resolved HTML."""
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(
+            side_effect=[Exception(self._NAV_RACE_MSG), "<html>resolved</html>"]
+        )
+        mock_page.wait_for_load_state = AsyncMock()
+
+        result = await _safe_content(mock_page)
+
+        assert result == "<html>resolved</html>"
+        assert mock_page.content.await_count == 2
+        mock_page.wait_for_load_state.assert_awaited_once()
+        # Helper waits for domcontentloaded between attempts so the next
+        # content() call lands on the post-navigation DOM.
+        _, kwargs = mock_page.wait_for_load_state.call_args
+        assert kwargs.get("timeout") is not None
+        # Positional state arg
+        args, _ = mock_page.wait_for_load_state.call_args
+        assert args[0] == "domcontentloaded"
+
+    @pytest.mark.asyncio
+    async def test_falls_back_to_sleep_when_wait_for_load_state_raises(self):
+        """If wait_for_load_state itself raises, the helper still retries content()."""
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(
+            side_effect=[Exception(self._NAV_RACE_MSG), "<html>resolved</html>"]
+        )
+        mock_page.wait_for_load_state = AsyncMock(
+            side_effect=RuntimeError("execution context destroyed")
+        )
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.playwright_browser.asyncio.sleep",
+            new=AsyncMock(),
+        ) as mock_sleep:
+            result = await _safe_content(mock_page)
+
+        assert result == "<html>resolved</html>"
+        assert mock_page.content.await_count == 2
+        mock_sleep.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_reraises_after_exhausting_retries(self):
+        """All _CONTENT_RETRY_ATTEMPTS attempts hit the race — final error surfaces."""
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(side_effect=Exception(self._NAV_RACE_MSG))
+        mock_page.wait_for_load_state = AsyncMock()
+
+        with pytest.raises(Exception) as exc_info:
+            await _safe_content(mock_page)
+
+        assert self._NAV_RACE_MSG in str(exc_info.value)
+        assert mock_page.content.await_count == _CONTENT_RETRY_ATTEMPTS
+
+    @pytest.mark.asyncio
+    async def test_does_not_retry_unrelated_errors(self):
+        """A non-nav-race exception (e.g. context closed) must surface on attempt 1."""
+        mock_page = AsyncMock()
+        mock_page.content = AsyncMock(
+            side_effect=RuntimeError("Target page, context or browser has been closed")
+        )
+        mock_page.wait_for_load_state = AsyncMock()
+
+        with pytest.raises(RuntimeError):
+            await _safe_content(mock_page)
+
+        assert mock_page.content.await_count == 1
+        mock_page.wait_for_load_state.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_recovers_when_first_content_call_races(self):
+        """End-to-end: fetch_html surfaces the resolved HTML on a nav-race recovery.
+
+        Mirrors the Rodney's HTTP 202 path — first content() raises the
+        nav-race; the helper retries and returns the post-reload HTML;
+        fetch_html bubbles it back to the caller. Without _safe_content,
+        fetch_html would propagate the race exception (the pre-fix behavior
+        observed in GHA run 26870314013).
+        """
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(
+            side_effect=[
+                Exception(self._NAV_RACE_MSG),
+                "<html>real rodneys calendar</html>",
+            ]
+        )
+        mock_page.wait_for_load_state = AsyncMock()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html(
+                "https://rodneysnewyorkcomedyclub.com/calendar"
+            )
+
+        assert result == "<html>real rodneys calendar</html>"
+        assert mock_page.content.await_count == 2

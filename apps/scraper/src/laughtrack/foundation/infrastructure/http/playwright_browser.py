@@ -190,6 +190,60 @@ _DATADOME_IFRAME_WAIT_MS = 5_000
 # on the post-challenge page without masking a genuine hang.
 _AWS_WAF_RELOAD_TIMEOUT_MS = 30_000
 
+# Bounded-retry parameters for ``_safe_content`` (TASK-2625). Some origins
+# (notably Rodney's Comedy Club's HTTP 202 interstitial) return a tiny shell
+# that triggers a JS-driven ``location.reload()`` immediately after
+# DOMContentLoaded. A bare ``await page.content()`` issued at that moment
+# races the navigation and raises "Page.content: Unable to retrieve content
+# because the page is navigating and changing the content." 3 attempts at
+# 250 ms apart covers the typical reload latency without inflating fetch
+# wall-time on the steady-state (non-racing) path.
+_CONTENT_RETRY_ATTEMPTS = 3
+_CONTENT_RETRY_DELAY_S = 0.25
+_CONTENT_RETRY_LOAD_STATE_TIMEOUT_MS = 5_000
+# Substring matched against the Playwright error message to identify the
+# nav-race. Match is case-insensitive on the lowered repr — any future
+# rewording that keeps the "navigating" keyword still triggers the retry.
+_CONTENT_NAV_RACE_MARKER = "navigating"
+
+
+async def _safe_content(page: object) -> str:
+    """Call ``page.content()`` with bounded retry on the nav-race error.
+
+    Playwright raises "Page.content: Unable to retrieve content because the
+    page is navigating and changing the content." when ``content()`` is
+    invoked while the page is mid-navigation. This commonly happens after
+    ``page.goto(..., wait_until='domcontentloaded')`` returns on an origin
+    that ships a JS-driven interstitial (HTTP 202 shell, meta-refresh,
+    location.reload()). On detecting that error class, this helper waits
+    briefly for the next ``domcontentloaded`` and retries — up to
+    :data:`_CONTENT_RETRY_ATTEMPTS` total attempts. Any unrelated exception
+    is re-raised on the first encounter.
+    """
+    last_exc: Optional[BaseException] = None
+    for attempt in range(_CONTENT_RETRY_ATTEMPTS):
+        try:
+            return await page.content()
+        except Exception as exc:
+            if _CONTENT_NAV_RACE_MARKER not in str(exc).lower():
+                raise
+            last_exc = exc
+            if attempt == _CONTENT_RETRY_ATTEMPTS - 1:
+                break
+            try:
+                await page.wait_for_load_state(
+                    "domcontentloaded",
+                    timeout=_CONTENT_RETRY_LOAD_STATE_TIMEOUT_MS,
+                )
+            except Exception:
+                await asyncio.sleep(_CONTENT_RETRY_DELAY_S)
+    # All retries exhausted — surface the last race error so the caller's
+    # bot-block / empty-body detector treats it identically to the pre-fix
+    # behavior. The HttpClient fallback path already logs and records the
+    # failure on ScrapeDiagnostics.
+    assert last_exc is not None
+    raise last_exc
+
 
 def _parse_proxy(proxy_url: str) -> dict:
     """Convert a proxy URL string to Playwright's proxy dict format.
@@ -799,7 +853,9 @@ class PlaywrightBrowser:
                     wait_until="domcontentloaded",
                     timeout=self._timeout_ms,
                 )
-                html = await page.content()
+                # _safe_content handles the JS-driven nav race that Rodney's
+                # HTTP 202 interstitial triggers — see _safe_content docstring.
+                html = await _safe_content(page)
                 if any(marker in html for marker in _AWS_WAF_MARKERS):
                     html = await self._wait_for_waf_challenge(page, html)
                     # If the markers are still present after the passive
