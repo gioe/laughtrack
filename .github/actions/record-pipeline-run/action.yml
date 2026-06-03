@@ -1,0 +1,43 @@
+name: Record pipeline run
+description: >-
+  Record the calling job's outcome to the pipeline_runs table via
+  apps/scraper's scripts.core.record_pipeline_run module. Composite
+  actions cannot reference ${{ secrets.* }} directly, so the five
+  DATABASE_* secrets must be threaded through inputs from the caller.
+  Wrap the calling step in `if: always()` and `continue-on-error: true`
+  so the record attempt runs regardless of upstream failures and never
+  fails the job itself.
+inputs:
+  job-status:
+    description: The calling job's status (typically `${{ job.status }}`).
+    required: true
+  database-name:
+    description: DATABASE_NAME secret value.
+    required: true
+  database-user:
+    description: DATABASE_USER secret value.
+    required: true
+  database-host:
+    description: DATABASE_HOST secret value.
+    required: true
+  database-password:
+    description: DATABASE_PASSWORD secret value.
+    required: true
+  database-port:
+    description: DATABASE_PORT secret value.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Record pipeline run
+      shell: bash
+      working-directory: apps/scraper
+      env:
+        GITHUB_JOB_STATUS: ${{ inputs.job-status }}
+        DATABASE_NAME: ${{ inputs.database-name }}
+        DATABASE_USER: ${{ inputs.database-user }}
+        DATABASE_HOST: ${{ inputs.database-host }}
+        DATABASE_PASSWORD: ${{ inputs.database-password }}
+        DATABASE_PORT: ${{ inputs.database-port }}
+      run: |
+        python -m scripts.core.record_pipeline_run --status "$GITHUB_JOB_STATUS"
