@@ -61,22 +61,14 @@ class MadridComedyLabScraper(BaseScraper):
         try:
             data = await self.fetch_json(url)
             if not data:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from Fienta API {url} (payload_type={type(data).__name__})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(f"Fienta API {url}", subject="data", payload=data)
                 return None
 
             events = MadridComedyLabEventExtractor.parse_events(
                 data, self.logger_context
             )
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from Fienta API {url} (payload_type={type(data).__name__})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(f"Fienta API {url}", payload=data)
                 return None
 
             Logger.info(

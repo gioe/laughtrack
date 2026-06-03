@@ -118,11 +118,7 @@ class ZaniesScraper(BaseScraper):
                 )
 
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (html_len={len(html)})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, html=html)
                 return None
 
             Logger.info(

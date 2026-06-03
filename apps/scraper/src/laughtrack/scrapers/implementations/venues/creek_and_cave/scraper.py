@@ -78,23 +78,15 @@ class CreekAndCaveScraper(BaseScraper):
         try:
             data = await self.fetch_json(url)
             if not data:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
                 # Expected for future months with no events; concerning if ALL months hit this.
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from {url} (payload_type={type(data).__name__}; future month or S3 miss)",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="data", payload=data, note="future month or S3 miss")
                 return None
 
             events = CreekAndCaveEventExtractor.parse_monthly_json(
                 data, self.logger_context
             )
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (payload_type={type(data).__name__})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, payload=data)
                 return None
 
             Logger.info(

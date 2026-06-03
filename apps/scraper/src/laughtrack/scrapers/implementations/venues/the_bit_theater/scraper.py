@@ -79,10 +79,8 @@ class BitTheaterScraper(BaseScraper):
                 current_url = next_url
 
             if not all_events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted across {page} listing page(s) from {url}",
-                    self.logger_context,
+                self._warn_empty_extraction(
+                    f"{page} listing page(s) starting at {url}",
                 )
                 return None
 

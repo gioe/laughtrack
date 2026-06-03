@@ -119,21 +119,13 @@ class HahaComedyClubScraper(BaseScraper):
                 return None
 
         if not html_content:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no data extracted from {url} (html_len=0)",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(url, subject="data", html="")
             return None
 
         events = self._parse_events_from_html(html_content)
 
         if not events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from {url} (html_len={len(html_content)})",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(url, html=html_content)
             return None
 
         Logger.info(

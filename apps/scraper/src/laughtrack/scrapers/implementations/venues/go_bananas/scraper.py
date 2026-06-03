@@ -45,11 +45,7 @@ class GoBananasScraper(BaseScraper):
             today=self._today(),
         )
         if not events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from {url} (html_len={len(html) if html else 0})",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(url, html=html)
             return None
 
         return GoBananasPageData(event_list=events)

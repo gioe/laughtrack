@@ -97,11 +97,7 @@ class EastAustinComedyScraper(BaseScraper):
             )
 
         if not all_events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from Netlify API across all {len(_DAY_NAMES)} weekdays",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(f"Netlify API across all {len(_DAY_NAMES)} weekdays")
             return None
 
         Logger.info(

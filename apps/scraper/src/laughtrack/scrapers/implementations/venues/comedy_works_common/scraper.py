@@ -52,11 +52,7 @@ class ComedyWorksLocationScraper(BaseScraper):
             return []
 
         if not html:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no data extracted from events page {events_url} (html_len=0)",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(f"events page {events_url}", subject="data", html="")
             return []
 
         slugs = self.config.extractor_cls.extract_comedian_slugs(html)
@@ -82,11 +78,7 @@ class ComedyWorksLocationScraper(BaseScraper):
             return None
 
         if not html:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no data extracted from {detail_url} (html_len=0)",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(detail_url, subject="data", html="")
             return None
 
         events = self.config.extractor_cls.extract_events_from_detail(html, slug)

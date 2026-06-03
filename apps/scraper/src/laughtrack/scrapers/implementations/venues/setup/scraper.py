@@ -63,21 +63,13 @@ class SetupScraper(BaseScraper):
 
             csv_text = await self.fetch_html(url)
             if not csv_text:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from {url} (csv_len=0)",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="data", csv="")
                 return None
 
             events = SetupExtractor.extract_events(csv_text)
 
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (csv_len={len(csv_text)})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, csv=csv_text)
                 return None
 
             Logger.info(

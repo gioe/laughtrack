@@ -104,11 +104,7 @@ class ComedyMothershipScraper(BaseScraper):
                         all_events.append(event)
 
         if not all_events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from {url} (last_page={page})",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(url, extra={"last_page": page})
             return None
 
         Logger.info(

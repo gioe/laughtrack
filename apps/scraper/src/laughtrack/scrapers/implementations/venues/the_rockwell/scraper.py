@@ -73,11 +73,7 @@ class TheRockwellScraper(BaseScraper):
                 page += 1
 
             if not all_events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (pages_fetched={page})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, extra={"pages_fetched": page})
                 return None
 
             Logger.info(

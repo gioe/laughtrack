@@ -96,11 +96,7 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
             return None
 
         if not html:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no data extracted from AJAX endpoint for {target} (html_len=0)",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(f"AJAX endpoint for {target}", subject="data", html="")
             return None
 
         events = HouseOfComedyPhoenixExtractor.extract_events(
@@ -110,11 +106,7 @@ class HouseOfComedyPhoenixScraper(BaseScraper):
             source_url=self._source_url,
         )
         if not events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from {target} (html_len={len(html)})",
-                self.logger_context,
-            )
+            self._warn_empty_extraction(target, html=html)
             return None
 
         return HouseOfComedyPhoenixPageData(event_list=events)

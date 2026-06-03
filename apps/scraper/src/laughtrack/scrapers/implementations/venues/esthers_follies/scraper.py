@@ -151,11 +151,7 @@ class EsthersFolliesScraper(BaseScraper):
         )
 
         if not events:
-            # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-            Logger.warn(
-                f"{self._log_prefix}: no events extracted from VBO date slider (html_len={len(slider_html)})",
-                self.logger_context,
-            )
+            self._warn_empty_extraction("VBO date slider", html=slider_html)
             return None
 
         Logger.info(

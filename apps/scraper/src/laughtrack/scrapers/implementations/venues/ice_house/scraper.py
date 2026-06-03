@@ -65,21 +65,13 @@ class IceHouseScraper(BaseScraper):
 
             response = await self.fetch_json(url)
             if not response:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from {url} (payload_type={type(response).__name__})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="data", payload=response)
                 return None
 
             events = IceHouseExtractor.extract_events(response)
 
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (payload_type={type(response).__name__})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, payload=response)
                 return None
 
             Logger.info(

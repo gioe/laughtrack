@@ -52,11 +52,7 @@ class LaughFactoryRenoScraper(BaseScraper):
         try:
             html_content = await self.tixologi_client.fetch_shows_page(url)
             if not html_content:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from {url} (html_len=0)",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="data", html="")
                 return None
 
             events = LaughFactoryRenoEventExtractor.extract_shows(
@@ -66,11 +62,7 @@ class LaughFactoryRenoScraper(BaseScraper):
             )
 
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (html_len={len(html_content)})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, html=html_content)
                 return None
 
             Logger.info(

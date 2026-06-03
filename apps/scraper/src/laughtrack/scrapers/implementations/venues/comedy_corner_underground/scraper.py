@@ -76,11 +76,7 @@ class ComedyCornerScraper(BaseScraper):
 
             slugs = ComedyCornerExtractor.extract_event_slugs(listing_html)
             if not slugs:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no event slugs extracted from {url} (html_len={len(listing_html)})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="event slugs", html=listing_html)
                 return None
 
             Logger.info(
@@ -145,10 +141,9 @@ class ComedyCornerScraper(BaseScraper):
             ]
 
             if not all_events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no ticketed events extracted from {len(slugs)} slug pages on {url}",
-                    self.logger_context,
+                self._warn_empty_extraction(
+                    f"{len(slugs)} slug pages on {url}",
+                    subject="ticketed events",
                 )
                 return None
 

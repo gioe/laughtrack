@@ -65,11 +65,7 @@ class VivenuScraper(BaseScraper):
 
             html = await self.fetch_html_bare(url)
             if not html:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no data extracted from {url} (html_len=0)",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, subject="data", html="")
                 return None
 
             parsed = urlparse(url)
@@ -78,11 +74,7 @@ class VivenuScraper(BaseScraper):
             events = VivenuExtractor.extract_events(html, ticket_base_url)
 
             if not events:
-                # WARN (not INFO) so zero-extraction surfaces in GHA WARNING+ log (TASK-2631).
-                Logger.warn(
-                    f"{self._log_prefix}: no events extracted from {url} (html_len={len(html)})",
-                    self.logger_context,
-                )
+                self._warn_empty_extraction(url, html=html)
                 return None
 
             Logger.info(
