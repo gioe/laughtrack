@@ -321,6 +321,16 @@ struct ContentView: View {
                 shellState: shellState
             )
         }
+        // Mount the persistent podcast mini player on the navigation stack
+        // itself, not on AppShellView, so it survives detail-route pushes
+        // (showDetail/comedianDetail/clubDetail/podcastDetail replace the
+        // shell at the top of the stack). Bottom padding clears the tab
+        // bar on the root and the home indicator on pushed details.
+        .safeAreaInset(edge: .bottom) {
+            PodcastMiniPlayerView(player: podcastPlayer, apiClient: apiClient)
+                .padding(.horizontal, theme.spacing.md)
+                .padding(.bottom, theme.spacing.md)
+        }
         .environmentObject(favorites)
         .environmentObject(podcastFavorites)
         .environmentObject(podcastPlayer)

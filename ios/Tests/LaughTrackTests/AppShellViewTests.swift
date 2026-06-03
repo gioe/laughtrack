@@ -143,8 +143,8 @@ struct AppShellViewTests {
         #expect(recorder.getFavoritesCalls >= 1)
     }
 
-    @Test("shell mounts the podcast mini player inside the tab chrome")
-    func shellMountsPodcastMiniPlayerInsideTabChrome() async throws {
+    @Test("podcast mini player chrome gates on the shared playback controller")
+    func podcastMiniPlayerChromeGatesOnPlaybackController() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-mini-player")
         let coordinator = NavigationCoordinator<AppRoute>()
         let container = LaughTrackHostedViewTestSupport.makeServiceContainer(name: "shell-mini-player")
@@ -179,12 +179,14 @@ struct AppShellViewTests {
 
         // iOS 26.x / 18.6 broke HostedView accessibility-tree wiring, so the
         // mounted mini player can't be asserted via findView (TASK-2535). The
-        // shell mounts PodcastMiniPlayerView unconditionally in its bottom
-        // safe-area inset, and that view renders its chrome iff the shared
+        // mini player itself renders its chrome iff the shared
         // PodcastPlaybackController has an active item (PodcastMiniPlayerView.body
-        // is `if let item = player.currentItem`). The old findView assertion
-        // proved the visible direction; cover both gating directions at the
-        // model layer so the hidden-when-empty branch isn't silently dropped.
+        // is `if let item = player.currentItem`); cover both gating directions
+        // at the model layer so the hidden-when-empty branch isn't silently
+        // dropped. Note: TASK-2629 moved the mount site from this shell's
+        // .safeAreaInset up to ContentView.appShell's CoordinatedNavigationStack
+        // so it survives detail-route pushes — see ContentView.swift around
+        // the `} root:` builder.
 
         // Active item → mini player chrome is shown.
         #expect(player.currentItem?.id == 901)
