@@ -1,1 +1,1 @@
-• Bug fixes and performance improvements
+• Show details: the Lineup card no longer appears on shows without an announced lineup (was previously an empty placeholder).

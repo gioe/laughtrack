@@ -92,10 +92,8 @@ struct ShowDetailView: View {
                                 DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
                             }
 
-                            if !isOpenMic {
-                                ShowLineupSection(
-                                    lineup: show.lineup ?? []
-                                ) { comedian in
+                            if !isOpenMic, let lineup = show.lineup, !lineup.isEmpty {
+                                ShowLineupSection(lineup: lineup) { comedian in
                                     coordinator.open(.comedian(comedian.id))
                                 }
                             }
@@ -506,24 +504,20 @@ private struct ShowLineupSection: View {
             VStack(alignment: .leading, spacing: 12) {
                 LaughTrackSectionHeader(title: "Lineup")
 
-                if lineup.isEmpty {
-                    EmptyCard(message: "No announced lineup.")
-                } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: theme.spacing.md) {
-                            ForEach(lineup, id: \.uuid) { comedian in
-                                Button {
-                                    openDetail(comedian)
-                                } label: {
-                                    ComedianLineupTile(comedian: comedian)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(comedian.name)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: theme.spacing.md) {
+                        ForEach(lineup, id: \.uuid) { comedian in
+                            Button {
+                                openDetail(comedian)
+                            } label: {
+                                ComedianLineupTile(comedian: comedian)
                             }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(comedian.name)
                         }
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
                     }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
                 }
             }
         }
