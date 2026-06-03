@@ -141,7 +141,9 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [query, setQuery] = useState("");
     const [sort, setSort] = useState<SortMode>("name-asc");
     const [blockedOnly, setBlockedOnly] = useState(false);
-    const [parentOnly, setParentOnly] = useState(false);
+    const [openChildrenSections, setOpenChildrenSections] = useState<
+        Set<number>
+    >(() => new Set<number>());
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(50);
     const [parentSearches, setParentSearches] = useState<
@@ -175,19 +177,34 @@ export default function AdminComedianManager({ comedians }: Props) {
     const [status, setStatus] = useState<Status>({ kind: "idle" });
     const [isPending, startTransition] = useTransition();
 
+    const childrenByParentId = useMemo(() => {
+        const map = new Map<number, AdminComedianListItem[]>();
+        rows.forEach((row) => {
+            if (!row.parent) return;
+            const list = map.get(row.parent.id) ?? [];
+            list.push(row);
+            map.set(row.parent.id, list);
+        });
+        for (const list of map.values()) list.sort(compareByName);
+        return map;
+    }, [rows]);
+
     const visibleRows = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
         const filtered = rows.filter((row) => {
+            if (row.parent !== null) return false;
             if (row.isBlocked !== blockedOnly) return false;
-            if (parentOnly && row.parent !== null) return false;
             if (normalizedQuery) {
+                const childNames = (childrenByParentId.get(row.id) ?? []).map(
+                    (child) => child.name,
+                );
                 return [
                     row.name,
                     row.website ?? "",
                     row.websiteScrapingUrl ?? "",
-                    row.parent?.name ?? "",
                     row.blockReason ?? "",
                     row.blockAddedBy ?? "",
+                    ...childNames,
                     ...acceptedAttributedPodcasts(row).flatMap((podcast) => [
                         podcast.title,
                         podcast.feedUrl ?? "",
@@ -200,7 +217,7 @@ export default function AdminComedianManager({ comedians }: Props) {
             return true;
         });
         return sortRows(filtered, sort);
-    }, [blockedOnly, parentOnly, query, rows, sort]);
+    }, [blockedOnly, childrenByParentId, query, rows, sort]);
     const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
     const currentPage = clampAdminPage(page, totalPages);
     const pageStart = (currentPage - 1) * pageSize;
@@ -208,7 +225,7 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     useEffect(() => {
         setPage(1);
-    }, [blockedOnly, parentOnly, query, sort, pageSize]);
+    }, [blockedOnly, query, sort, pageSize]);
 
     function parentValue(row: AdminComedianListItem) {
         return Object.hasOwn(selectedParents, row.id)
@@ -277,6 +294,15 @@ export default function AdminComedianManager({ comedians }: Props) {
 
     function toggleComedianRow(rowId: number) {
         setOpenComedianRows((current) => {
+            const next = new Set(current);
+            if (next.has(rowId)) next.delete(rowId);
+            else next.add(rowId);
+            return next;
+        });
+    }
+
+    function toggleChildrenSection(rowId: number) {
+        setOpenChildrenSections((current) => {
             const next = new Set(current);
             if (next.has(rowId)) next.delete(rowId);
             else next.add(rowId);
@@ -1057,17 +1083,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                         />
                         Blocked
                     </label>
-                    <label className="inline-flex h-10 items-center gap-2 rounded-md border border-soft-charcoal/30 bg-white px-3 font-dmSans text-body font-semibold text-cedar">
-                        <input
-                            type="checkbox"
-                            checked={parentOnly}
-                            onChange={(event) =>
-                                setParentOnly(event.target.checked)
-                            }
-                            className="h-4 w-4 accent-copper-dark"
-                        />
-                        Parent
-                    </label>
                 </div>
             </AdminToolbar>
 
@@ -1170,65 +1185,6 @@ export default function AdminComedianManager({ comedians }: Props) {
                                         >
                                             <ShieldCheck className="h-4 w-4" />
                                             Remove from blocklist
-                                        </Button>
-                                    </div>
-                                </li>
-                            );
-                        }
-
-                        if (row.parent) {
-                            return (
-                                <li key={row.id} className="px-4 py-4">
-                                    <button
-                                        type="button"
-                                        aria-expanded={rowOpen}
-                                        aria-controls={`comedian-row-${row.id}`}
-                                        onClick={() =>
-                                            toggleComedianRow(row.id)
-                                        }
-                                        className="flex w-full items-center gap-3 text-left"
-                                    >
-                                        {rowOpen ? (
-                                            <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
-                                        ) : (
-                                            <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
-                                        )}
-                                        <ComedianRowHeadshot row={row} />
-                                        <h2 className="min-w-0 flex-1 break-words font-gilroy-bold text-h3 text-cedar">
-                                            {row.name}
-                                        </h2>
-                                        <span className="shrink-0 rounded-full border border-blue-800/40 bg-blue-50 px-2 py-1 font-dmSans text-caption font-semibold text-blue-950">
-                                            Child
-                                        </span>
-                                    </button>
-                                    <div
-                                        id={`comedian-row-${row.id}`}
-                                        hidden={!rowOpen}
-                                        className={`mt-4 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_auto] ${
-                                            rowOpen ? "" : "hidden"
-                                        }`}
-                                    >
-                                        <div className="rounded-md border border-blue-800/25 bg-blue-50 p-3 font-dmSans text-body text-blue-950">
-                                            <div className="font-dmSans text-caption font-semibold uppercase tracking-wide text-blue-900">
-                                                Current parent
-                                            </div>
-                                            <div className="mt-1 font-semibold">
-                                                {row.parent.name}
-                                            </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="w-fit gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
-                                            disabled={
-                                                disabled || pendingId === row.id
-                                            }
-                                            onClick={() =>
-                                                void saveParent(row, null)
-                                            }
-                                        >
-                                            <X className="h-4 w-4" />
-                                            Remove parent relationship
                                         </Button>
                                     </div>
                                 </li>
@@ -1966,6 +1922,94 @@ export default function AdminComedianManager({ comedians }: Props) {
                                             </div>
                                         )}
                                     </div>
+                                    {(() => {
+                                        const children =
+                                            childrenByParentId.get(row.id) ??
+                                            [];
+                                        if (children.length === 0) return null;
+                                        const childrenOpen =
+                                            openChildrenSections.has(row.id);
+                                        return (
+                                            <div className="col-span-full rounded-md border border-copper/20 bg-coconut-cream/35 p-4 font-dmSans">
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={childrenOpen}
+                                                    aria-controls={`comedian-children-${row.id}`}
+                                                    onClick={() =>
+                                                        toggleChildrenSection(
+                                                            row.id,
+                                                        )
+                                                    }
+                                                    className="flex w-full items-center gap-2 text-left"
+                                                >
+                                                    {childrenOpen ? (
+                                                        <ChevronDown className="h-4 w-4 shrink-0 text-cedar" />
+                                                    ) : (
+                                                        <ChevronRight className="h-4 w-4 shrink-0 text-cedar" />
+                                                    )}
+                                                    <span className="font-dmSans text-caption font-semibold uppercase tracking-wide text-soft-charcoal">
+                                                        Children (
+                                                        {children.length.toLocaleString()}
+                                                        )
+                                                    </span>
+                                                </button>
+                                                {childrenOpen && (
+                                                    <ul
+                                                        id={`comedian-children-${row.id}`}
+                                                        className="mt-3 divide-y divide-copper/15 overflow-hidden rounded-md border border-copper/15 bg-white"
+                                                    >
+                                                        {children.map(
+                                                            (child) => (
+                                                                <li
+                                                                    key={
+                                                                        child.id
+                                                                    }
+                                                                    className="flex flex-wrap items-center gap-3 px-3 py-2 sm:flex-nowrap"
+                                                                >
+                                                                    <ComedianRowHeadshot
+                                                                        row={
+                                                                            child
+                                                                        }
+                                                                    />
+                                                                    <span className="min-w-0 flex-1 break-words font-gilroy-bold text-body text-cedar">
+                                                                        {
+                                                                            child.name
+                                                                        }
+                                                                    </span>
+                                                                    <span className="shrink-0 font-dmSans text-caption font-semibold text-soft-charcoal">
+                                                                        ID{" "}
+                                                                        {
+                                                                            child.id
+                                                                        }
+                                                                    </span>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="outline"
+                                                                        className="shrink-0 gap-2 border-copper/40 bg-white text-cedar hover:bg-copper/10 disabled:border-soft-charcoal/30 disabled:bg-gray-100 disabled:text-soft-charcoal disabled:opacity-100"
+                                                                        disabled={
+                                                                            disabled ||
+                                                                            pendingId ===
+                                                                                child.id
+                                                                        }
+                                                                        onClick={() =>
+                                                                            void saveParent(
+                                                                                child,
+                                                                                null,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <X className="h-4 w-4" />
+                                                                        Remove
+                                                                        parent
+                                                                    </Button>
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                     <div className="col-span-full space-y-4">
                                         <div className="rounded-md border border-copper/20 bg-coconut-cream/35 p-3">
                                             <div className="mb-3">

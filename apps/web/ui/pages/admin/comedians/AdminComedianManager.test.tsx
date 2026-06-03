@@ -721,10 +721,11 @@ describe("AdminComedianManager", () => {
         expect(mocks.refresh).toHaveBeenCalled();
     });
 
-    it("shows child comedians as a minimal row with remove parent available", () => {
+    it("nests children under the parent's Children sub-dropdown instead of as top-level rows", () => {
         render(
             <AdminComedianManager
                 comedians={[
+                    comedians[0],
                     {
                         ...comedians[1],
                         parent: { id: 1, name: "Parent Comic" },
@@ -732,28 +733,26 @@ describe("AdminComedianManager", () => {
                 ]}
             />,
         );
-        expandAllRows();
 
+        // Top-level list shows only the parent — the child is hidden.
         expect(
-            screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
         ).toBeTruthy();
-        expect(screen.getByText("Child")).toBeTruthy();
-        expect(screen.getByText("Parent Comic")).toBeTruthy();
         expect(
-            screen.getByRole("button", { name: "Remove parent relationship" }),
+            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeNull();
+
+        // Expand the parent and the Children sub-dropdown.
+        expandAllRows();
+        fireEvent.click(screen.getByRole("button", { name: /^Children/ }));
+
+        expect(screen.getByText("Alias Comic")).toBeTruthy();
+        expect(
+            screen.getByRole("button", { name: "Remove parent" }),
         ).toBeTruthy();
-        expect(screen.queryByLabelText("Comedian name")).toBeNull();
-        expect(screen.queryByLabelText("Headshot image URL")).toBeNull();
-        expect(screen.queryByPlaceholderText("Search parent name")).toBeNull();
-        expect(
-            screen.queryByRole("button", { name: "Podcasts attributed" }),
-        ).toBeNull();
-        expect(
-            screen.queryByRole("button", { name: "Add to blocklist" }),
-        ).toBeNull();
     });
 
-    it("renders the full row after removing a child parent relationship", async () => {
+    it("removes a child parent relationship via the Children sub-dropdown and promotes the child to the top level", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
@@ -767,6 +766,7 @@ describe("AdminComedianManager", () => {
         render(
             <AdminComedianManager
                 comedians={[
+                    comedians[0],
                     {
                         ...comedians[1],
                         parent: { id: 1, name: "Parent Comic" },
@@ -775,10 +775,9 @@ describe("AdminComedianManager", () => {
             />,
         );
         expandAllRows();
+        fireEvent.click(screen.getByRole("button", { name: /^Children/ }));
 
-        fireEvent.click(
-            screen.getByRole("button", { name: "Remove parent relationship" }),
-        );
+        fireEvent.click(screen.getByRole("button", { name: "Remove parent" }));
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
@@ -793,9 +792,12 @@ describe("AdminComedianManager", () => {
                 }),
             );
         });
-        expect(screen.getByLabelText("Comedian name")).toBeTruthy();
-        expect(screen.getByLabelText("Headshot image URL")).toBeTruthy();
-        expect(screen.queryByText("Child")).toBeNull();
+        // The child is now its own top-level row with the full editor.
+        await waitFor(() => {
+            expect(
+                screen.getByRole("heading", { level: 2, name: "Alias Comic" }),
+            ).toBeTruthy();
+        });
     });
 
     it("saves an inline comedian record edit", async () => {
@@ -1302,7 +1304,7 @@ describe("AdminComedianManager", () => {
         expect(screen.queryByText("Alias Comic")).toBeNull();
     });
 
-    it("filters to parent comedians with a checkbox", () => {
+    it("hides children from the top level by default", () => {
         render(
             <AdminComedianManager
                 comedians={[
@@ -1315,9 +1317,13 @@ describe("AdminComedianManager", () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole("checkbox", { name: "Parent" }));
-
-        expect(screen.getByText("Parent Comic")).toBeTruthy();
-        expect(screen.queryByText("Alias Comic")).toBeNull();
+        expect(
+            screen.getByRole("heading", { level: 2, name: "Parent Comic" }),
+        ).toBeTruthy();
+        expect(
+            screen.queryByRole("heading", { level: 2, name: "Alias Comic" }),
+        ).toBeNull();
+        // The Parent filter checkbox is gone — child suppression is implicit.
+        expect(screen.queryByRole("checkbox", { name: "Parent" })).toBeNull();
     });
 });
