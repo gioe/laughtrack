@@ -95,7 +95,7 @@ function compareByName(a: AdminComedianListItem, b: AdminComedianListItem) {
 }
 
 function ComedianRowHeadshot({ row }: { row: AdminComedianListItem }) {
-    const src = row.activeImageAsset?.avatarUrl ?? "";
+    const src = currentAvatarUrl(row);
     if (!src) return null;
     return (
         <img
