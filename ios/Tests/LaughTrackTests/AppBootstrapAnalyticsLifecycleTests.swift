@@ -116,9 +116,9 @@ struct AppBootstrapAnalyticsLifecycleTests {
         #expect(env.analytics.resetCallCount == 1)
     }
 
-    @Test("subscription is no-op for the initial nil emission and same-user updates")
+    @Test("subscription is no-op for the initial nil emission; in-place updates emit only changed cohort properties")
     @MainActor
-    func initialNilAndSameUserUpdatesDoNotEmit() async {
+    func initialNilIsNoopAndInPlaceUpdateEmitsChangedCohortProperty() async {
         let env = AnalyticsLifecycleEnv.make()
 
         let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
@@ -144,27 +144,89 @@ struct AppBootstrapAnalyticsLifecycleTests {
         // setUserID and no reset should fire before any auth transition.
         #expect(env.analytics.setUserIDCalls.isEmpty)
         #expect(env.analytics.resetCallCount == 0)
+        #expect(env.analytics.userPropertyCalls.isEmpty)
 
         await env.authManager.signIn(with: .google)
         env.authManager.markComedianOnboardingCompleted()
 
-        // markComedianOnboardingCompleted mutates currentUser in place. The
-        // sign-in setUserID call is the only one; the in-place update must
-        // not re-fire it, and reset() must stay at 0.
+        // setUserID is anchored to the nil → user edge: the in-place
+        // markComedianOnboardingCompleted mutation must not re-fire it, and
+        // reset() must stay at 0.
         #expect(env.analytics.setUserIDCalls == [AppBootstrap.stableAnalyticsUserID(forEmail: "user@example.com")])
         #expect(env.analytics.resetCallCount == 0)
 
-        // The user-property dispatch is also tied to the sign-in edge, NOT to
-        // in-place currentUser updates. Two property calls (from sign-in) is
-        // the contract: a third pair after markComedianOnboardingCompleted
-        // would mean the live-update path opted in without a follow-up to
-        // reconcile the duplicate-dispatch question.
+        // Sign-in dispatches the cohort pair (false, false). The in-place
+        // update flips comedianOnboardingCompleted from false → true so the
+        // live-update path emits a third call for that single property;
+        // zipCode stayed nil on both sides so has_zip must NOT re-fire.
+        // A regression that re-emits both properties on every in-place
+        // mutation (no diff) would surface here as count == 4.
+        #expect(env.analytics.userPropertyCalls.count == 3)
+        #expect(env.analytics.userPropertyCalls.map(\.name) == [
+            "comedian_onboarding_completed",
+            "has_zip",
+            "comedian_onboarding_completed",
+        ])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["false", "false", "true"])
+    }
+
+    @Test("in-place /v1/me refetch with unchanged cohort fields does not re-emit user properties")
+    @MainActor
+    func inPlaceRefetchWithUnchangedCohortFieldsDoesNotEmit() async {
+        let env = AnalyticsLifecycleEnv.make()
+
+        let accessToken = AnalyticsLifecycleEnv.jwt(expirationOffset: 3600)
+        let refreshToken = "opaque-refresh-token-\(UUID().uuidString)"
+        env.oauthRunner.callbackURL = URL(
+            string: "laughtrack://auth/callback?provider=google&accessToken=\(accessToken)&refreshToken=\(refreshToken)"
+        )!
+        let initialUser = AuthenticatedUser(
+            userId: "user-id-stable-clx9q2tk30000",
+            displayName: "Original Name",
+            email: "user@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true,
+            zipCode: "94110"
+        )
+        env.authManager.loadUserRequest = { initialUser }
+
+        let cancellables = AppBootstrap.attachAnalyticsLifecycle(
+            authManager: env.authManager,
+            analytics: env.analytics
+        )
+        defer { _ = cancellables }
+
+        await env.authManager.signIn(with: .google)
+
+        // Sign-in dispatches the cohort pair once (true, true).
         #expect(env.analytics.userPropertyCalls.count == 2)
         #expect(env.analytics.userPropertyCalls.map(\.name) == [
             "comedian_onboarding_completed",
             "has_zip",
         ])
-        #expect(env.analytics.userPropertyCalls.map(\.value) == ["false", "false"])
+        #expect(env.analytics.userPropertyCalls.map(\.value) == ["true", "true"])
+
+        // Swap in a /v1/me refetch result that flips displayName but keeps
+        // comedianOnboardingCompleted and zipCode identical. The live-update
+        // diff must suppress setUserProperty so unrelated field changes (or
+        // a token-refresh-driven refetch returning the same cohort fields)
+        // never write a row to the GA4 user-property log. A regression that
+        // dropped the diff and re-emitted both properties on every user →
+        // user' transition would show up here as count == 4.
+        let renamedUser = AuthenticatedUser(
+            userId: "user-id-stable-clx9q2tk30000",
+            displayName: "New Display Name",
+            email: "user@example.com",
+            avatarURL: nil,
+            comedianOnboardingCompleted: true,
+            zipCode: "94110"
+        )
+        env.authManager.loadUserRequest = { renamedUser }
+        await env.authManager.refreshCurrentUser()
+
+        #expect(env.analytics.userPropertyCalls.count == 2)
+        #expect(env.analytics.setUserIDCalls == ["user-id-stable-clx9q2tk30000"])
+        #expect(env.analytics.resetCallCount == 0)
     }
 
     @Test("user-switching within one session emits setUserID(A), reset(), setUserID(B) in order")
@@ -296,7 +358,7 @@ struct AppBootstrapAnalyticsLifecycleTests {
 @MainActor
 private struct AnalyticsLifecycleEnv {
     let authManager: AuthManager
-    let analytics: RecordingAnalyticsManager
+    let analytics: LifecycleRecordingAnalyticsManager
     let oauthRunner: AnalyticsLifecycleOAuthRunner
 
     static func make() -> AnalyticsLifecycleEnv {
@@ -317,7 +379,7 @@ private struct AnalyticsLifecycleEnv {
         )
         return AnalyticsLifecycleEnv(
             authManager: manager,
-            analytics: RecordingAnalyticsManager(),
+            analytics: LifecycleRecordingAnalyticsManager(),
             oauthRunner: runner
         )
     }
@@ -345,8 +407,16 @@ private final class AnalyticsLifecycleOAuthRunner: OAuthSessionRunning, @uncheck
     }
 }
 
+// Local recorder: SoftPushPromptCoordinatorTests declares an internal
+// `RecordingAnalyticsManager` (TASK-2598) whose stub bodies record only
+// `track` events — its `setUserProperty`/`setUserID` overrides are no-ops,
+// so reusing it across files would silently drop every assertion this suite
+// makes. A bare `private final class RecordingAnalyticsManager` here would
+// collide on type lookup with the internal class (Swift treats the visible
+// internal candidate as colliding even though `private` is file-scoped), so
+// disambiguate by name.
 @MainActor
-private final class RecordingAnalyticsManager: AnalyticsManagerProtocol {
+private final class LifecycleRecordingAnalyticsManager: AnalyticsManagerProtocol {
     private(set) var setUserIDCalls: [String?] = []
     private(set) var resetCallCount = 0
     private(set) var userPropertyCalls: [(name: String, value: String?)] = []

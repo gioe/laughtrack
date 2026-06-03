@@ -231,9 +231,14 @@ public struct AppBootstrap {
     /// properties (`comedian_onboarding_completed`, `has_zip`) exactly once per
     /// nil → non-nil edge and `reset` exactly once per non-nil → nil edge,
     /// ignoring the initial replay of the published value (nil at subscription
-    /// time) and in-place user updates like `markComedianOnboardingCompleted`
-    /// (the latter means a user who completes onboarding mid-session keeps the
-    /// `false` property value until the next sign-in).
+    /// time). On in-place user updates (user → user', e.g.
+    /// `markComedianOnboardingCompleted` or a `/v1/me` refetch) `setUserID`
+    /// stays anchored to the nil → user edge and does not re-fire, but the
+    /// cohort-filter properties re-emit when their underlying value flipped
+    /// (`comedianOnboardingCompleted` toggle, `zipCode` becoming non-nil or
+    /// nil). The diff suppresses no-op writes so a token-refresh-driven
+    /// refetch that returns identical cohort fields never adds a row to the
+    /// GA4 user-property log.
     static func attachAnalyticsLifecycle(
         authManager: AuthManager,
         analytics: AnalyticsManagerProtocol
@@ -257,6 +262,19 @@ public struct AppBootstrap {
                     )
                 case (_?, nil):
                     analytics.reset()
+                case (let previous?, let current?):
+                    if previous.comedianOnboardingCompleted != current.comedianOnboardingCompleted {
+                        analytics.setUserProperty(
+                            current.comedianOnboardingCompleted ? "true" : "false",
+                            forName: "comedian_onboarding_completed"
+                        )
+                    }
+                    if (previous.zipCode != nil) != (current.zipCode != nil) {
+                        analytics.setUserProperty(
+                            current.zipCode != nil ? "true" : "false",
+                            forName: "has_zip"
+                        )
+                    }
                 default:
                     break
                 }
