@@ -106,7 +106,7 @@ export async function getComediansByZip(
         uuid: row.uuid,
         name: row.name,
         imageUrl: buildComedianImageUrl(row.name, row.has_image),
-        hasImage: Boolean(row.has_image),
+        hasImage: row.has_image,
         socialData: {
             id: row.id,
             instagramAccount: row.instagram_account,
