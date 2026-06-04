@@ -81,27 +81,34 @@ function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
     if (hosts.length === 0) return null;
 
     return (
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-start gap-4">
             {hosts.map((host) => (
-                <span
+                <Link
                     key={host.id}
-                    className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 font-dmSans text-sm font-semibold text-foreground shadow-sm ring-1 ring-gray-200"
+                    href={`/comedian/${encodeURIComponent(host.name)}`}
+                    aria-label={`${host.name}, Host`}
+                    className="group flex flex-col items-center gap-1.5 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                 >
-                    <span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-copper/10 text-xs font-bold text-copper">
+                    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-copper/10 text-sm font-bold text-copper ring-1 ring-gray-200">
                         {host.imageUrl ? (
                             <Image
                                 src={host.imageUrl}
                                 alt={host.name}
                                 fill
-                                sizes="28px"
+                                sizes="44px"
                                 className="object-cover"
                             />
                         ) : (
                             host.name.charAt(0)
                         )}
                     </span>
-                    <span className="min-w-0 truncate">{host.name}</span>
-                </span>
+                    <span
+                        aria-hidden="true"
+                        className="font-dmSans text-xs font-semibold uppercase tracking-wider text-gray-600 group-hover:text-copper"
+                    >
+                        Host
+                    </span>
+                </Link>
             ))}
         </div>
     );

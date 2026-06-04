@@ -178,8 +178,12 @@ describe("detail page related-content tablists", () => {
             />,
         );
 
-        expect(screen.getByText("Actual Host")).toBeTruthy();
         expect(screen.getByRole("img", { name: "Actual Host" })).toBeTruthy();
+        expect(
+            screen.getByRole("link", { name: "Actual Host, Host" }),
+        ).toBeTruthy();
+        expect(screen.getByText("Host")).toBeTruthy();
+        expect(screen.queryByText("Actual Host")).toBeNull();
         expect(screen.queryByText(/Hosted by/i)).toBeNull();
         expect(screen.queryByText(/100 episodes/i)).toBeNull();
         expect(screen.queryByText("Feed Author")).toBeNull();
