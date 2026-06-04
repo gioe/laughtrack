@@ -153,7 +153,7 @@ model Club {
   description             String?                    @map("description")
   hours                   Json?                      @map("hours")
   timezone                String?                    @map("timezone")
-  visible                 Boolean?                   @default(true)
+  visible                 Boolean                    @default(true)
   totalShows              Int                        @default(0) @map("total_shows")
   hasImage                Boolean                    @default(false) @map("has_image")
   googlePlaceId           String?                    @map("google_place_id")
@@ -254,7 +254,7 @@ model Comedian {
   websiteScrapingUrlHealthCheckedAt    DateTime?                         @map("website_scraping_url_health_checked_at") @db.Timestamptz
   tourSourceReviewEvidence             Json?                             @map("tour_source_review_evidence")
   bio                                  String?
-  visible                              Boolean?                          @default(true)
+  visible                              Boolean                           @default(true)
   parentComedianId                     Int?                              @map("parent_comedian_id")
   parentComedian                       Comedian?                         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames                     Comedian[]                        @relation("ComedianAliases")
