@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { buildClubImageUrl } from "@/util/imageUtil";
@@ -64,17 +65,12 @@ const HOME_SHOW_SELECT = {
                     },
                     parentComedian: {
                         select: {
-                            id: true,
-                            uuid: true,
-                            name: true,
-                            hasImage: true,
-                            visible: true,
+                            ...PARENT_COMEDIAN_LINEUP_SELECT,
                             _count: {
                                 select: {
                                     lineupItems: true,
                                 },
                             },
-                            taggedComedians: { select: { tag: true } },
                         },
                     },
                     taggedComedians: { select: { tag: true } },

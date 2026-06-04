@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
@@ -63,19 +64,10 @@ const UPCOMING_RUN_SHOW_SELECT = {
                     },
                     parentComedian: {
                         select: {
-                            id: true,
-                            uuid: true,
-                            name: true,
-                            hasImage: true,
-                            visible: true,
+                            ...PARENT_COMEDIAN_LINEUP_SELECT,
                             _count: {
                                 select: {
                                     lineupItems: true,
-                                },
-                            },
-                            taggedComedians: {
-                                select: {
-                                    tag: true,
                                 },
                             },
                         },

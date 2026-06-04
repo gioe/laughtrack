@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { Prisma } from "@prisma/client";
@@ -84,18 +85,11 @@ export async function findCoBilledComediansForComedian({
             },
             parentComedian: {
                 select: {
-                    id: true,
-                    uuid: true,
-                    name: true,
-                    hasImage: true,
-                    visible: true,
+                    ...PARENT_COMEDIAN_LINEUP_SELECT,
                     _count: {
                         select: {
                             lineupItems: true,
                         },
-                    },
-                    taggedComedians: {
-                        select: { tag: true },
                     },
                 },
             },

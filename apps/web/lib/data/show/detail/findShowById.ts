@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
@@ -69,15 +70,8 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                                 _count: upcomingShowsCount,
                                 parentComedian: {
                                     select: {
-                                        id: true,
-                                        uuid: true,
-                                        name: true,
-                                        hasImage: true,
-                                        visible: true,
+                                        ...PARENT_COMEDIAN_LINEUP_SELECT,
                                         _count: upcomingShowsCount,
-                                        taggedComedians: {
-                                            select: { tag: true },
-                                        },
                                     },
                                 },
                                 taggedComedians: { select: { tag: true } },

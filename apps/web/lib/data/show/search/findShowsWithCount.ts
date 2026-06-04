@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
@@ -69,19 +70,10 @@ const SHOW_SELECT = {
                     },
                     parentComedian: {
                         select: {
-                            id: true,
-                            uuid: true,
-                            name: true,
-                            hasImage: true,
-                            visible: true,
+                            ...PARENT_COMEDIAN_LINEUP_SELECT,
                             _count: {
                                 select: {
                                     lineupItems: true,
-                                },
-                            },
-                            taggedComedians: {
-                                select: {
-                                    tag: true,
                                 },
                             },
                         },
