@@ -209,8 +209,23 @@ public struct AppBootstrap {
     /// missing from the main bundle. The plist is operator-provisioned (Firebase
     /// console → iOS app → download), so guard the call until it's dropped into
     /// ios/Resources/. While dormant, only the DEBUG console sink emits events.
+    ///
+    /// Also skipped under XCTest: when `XCTestConfigurationFilePath` is set in
+    /// the environment, the bootstrap is running inside the test-runner
+    /// process. On iOS 26.1 sims Analytics' HTTP retry loop against
+    /// `app-analytics-services.com` stalls long enough that the xctest runner's
+    /// TLS handshake budget expires before the host process becomes responsive,
+    /// producing the 25+ minute hang documented in ios/CLAUDE.md (TASK-2651,
+    /// TASK-2646). The env var is set by `xctest` on test-bundle load, so the
+    /// check distinguishes a host-app launch from a test-runner launch without
+    /// any test-only build conditional. Side benefit: no Firebase Analytics
+    /// chatter in DebugView or test logs.
     private static func configureFirebaseIfNeeded() {
         guard !firebaseConfigured else { return }
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else {
+            analyticsLogger.notice("XCTestConfigurationFilePath set — skipping FirebaseApp.configure() under XCTest to avoid iOS 26.1 sim TLS hang.")
+            return
+        }
         guard Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist") != nil else {
             analyticsLogger.notice("GoogleService-Info.plist not bundled — Firebase Analytics dormant; drop the plist into ios/Resources/ to activate.")
             return

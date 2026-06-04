@@ -129,13 +129,13 @@ The reliable pattern for iterative work on a HostedView suite:
 When `test_sim` is the right tool for a quick run on a primed sim and prebuilt
 DerivedData, it stays well under the timeout.
 
-#### iOS 26.1 Sim Firebase TLS Hang — Reboot The Sim
+#### iOS 26.1 Sim Firebase TLS Hang — Fixed By XCTest Guard
 
-A separate failure mode masquerades as the cold-start case above on iPhone 17 /
-iOS 26.1 specifically: `test_sim` hangs for the entire test-runner watchdog
+A separate failure mode masqueraded as the cold-start case above on iPhone 17 /
+iOS 26.1 specifically: `test_sim` hung for the entire test-runner watchdog
 window (observed 1625s / ~27 min before `The test runner hung before
 establishing connection.` killed it). The iOS 18.x sim on the same DerivedData
-and same `GoogleService-Info.plist` does **not** reproduce this.
+and same `GoogleService-Info.plist` did **not** reproduce this.
 
 Signature in the result bundle / sim system log (look in
 `xcrun simctl spawn booted log show --predicate 'process == "LaughTrack"'`
@@ -145,16 +145,26 @@ or the `-resultBundlePath` diagnostics):
 - `NSURLErrorDomain Code=-1200 "A TLS error caused the secure connection to fail."`
 - `NSURLErrorDomain Code=-1001` (request timed out)
 
-Root cause is that `AppBootstrap.configureAnalytics` fires
-`FirebaseApp.configure()` at app launch, Analytics begins its HTTP retry loop
-against `app-analytics-services.com`, and on iOS 26.1 sims the TLS stack stalls
+Root cause was that `AppBootstrap.configureAnalytics` fired
+`FirebaseApp.configure()` at app launch, Analytics began its HTTP retry loop
+against `app-analytics-services.com`, and on iOS 26.1 sims the TLS stack stalled
 those connections long enough that the xctest runner's handshake budget
-expires before the host process becomes responsive.
+expired before the host process became responsive.
 
-**Workaround that has reliably cleared it**: shut the sim down and re-boot,
-then re-run. The second run completes in normal warm-path wall time. The reboot
-appears to reset whatever state in the sim's TLS / networking stack triggers
-the stall — re-running `test_sim` without the reboot reproduces the hang.
+**Fix (TASK-2654)**: `AppBootstrap.configureFirebaseIfNeeded` now short-circuits
+when `ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"]` is
+set. `xctest` sets that env var on test-bundle load, so the guard distinguishes
+a host-app launch from a test-runner launch without any test-only build
+conditional. Under XCTest, `FirebaseApp.configure()` is never called and
+Analytics' HTTP retry loop never starts; the host build is unchanged. Side
+benefit: no Firebase Analytics chatter in DebugView or test logs.
+
+If you ever need to bypass the guard (e.g. to repro the original hang or to
+test a Firebase integration end-to-end), unset the env var on the test-runner
+invocation — but the default path should leave it in place.
+
+**Legacy reboot recipe** (still valid for any sim TLS stall that surfaces a
+similar signature without `app-analytics-services.com` retries):
 
 ```bash
 xcrun simctl shutdown <UDID>   # or: xcrun simctl shutdown booted
@@ -165,14 +175,11 @@ xcrun simctl boot <UDID>
 XcodeBuildMCP has `boot_sim` but no `shutdown_sim` wrapper — `stop_app_sim`
 only kills the host app process and does not clear the sim's networking
 state. Run the `xcrun simctl shutdown` step directly (then `boot_sim` or
-`xcrun simctl boot` works for the re-boot). Don't try to disable Firebase or
-strip the plist as a one-off — the next agent will hit it cold. Treat the reboot as the documented recipe until/unless someone
-short-circuits Firebase startup under XCTest (e.g. guarding
-`FirebaseApp.configure()` on the absence of `XCTestConfigurationFilePath`,
-which `xctest` sets on test-bundle load).
+`xcrun simctl boot` works for the re-boot).
 
-Originally observed on 2026-06-04 during TASK-2646 verification; the second
-run after the reboot completed in 877s and passed 9/9.
+Originally observed on 2026-06-04 during TASK-2646 verification (the second
+run after the reboot completed in 877s and passed 9/9). Fixed at the source on
+2026-06-04 via TASK-2654.
 
 ### Focused Swift Testing Filters Can Match Zero Tests
 
