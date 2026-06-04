@@ -373,7 +373,19 @@ struct ComedianDetailViewTests {
         #expect(player.sleepTimerInterval == 0.1)
         #expect(player.sleepTimerEndsAt != nil)
 
-        try await Task.sleep(nanoseconds: 300_000_000)
+        // The controller's fade-out chains 20 sequential Task.sleep(5ms)
+        // MainActor hops before calling pause() (sleepTimerFadeStepCount).
+        // Under full-suite parallel test load on macOS those nested hops
+        // routinely drift past a fixed 300ms host sleep, so this assertion
+        // was a wall-clock race against the @MainActor scheduler (TASK-2650;
+        // ~40% fail rate at suite scope, 0% in isolation). Poll the
+        // published sleep-timer state instead: a 2s budget absorbs load
+        // without masking a genuine regression, and the loop exits as
+        // soon as the controller's fade task reaches `pause()`.
+        let timeoutAt = Date().addingTimeInterval(2.0)
+        while player.sleepTimerEndsAt != nil && Date() < timeoutAt {
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
 
         #expect(player.sleepTimerInterval == nil)
         #expect(player.sleepTimerEndsAt == nil)
