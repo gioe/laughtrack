@@ -227,7 +227,10 @@ describe("POST /api/v1/favorites", () => {
             profileId: "profile-1",
             userId: "user-1",
         });
-        mockFindUnique.mockResolvedValue({ uuid: "comedian-uuid-1" } as never);
+        mockFindUnique.mockResolvedValue({
+            uuid: "comedian-uuid-1",
+            visible: true,
+        } as never);
         mockUpsert.mockResolvedValue({} as never);
 
         const res = await POST(makeRequest());
@@ -236,5 +239,39 @@ describe("POST /api/v1/favorites", () => {
         expect(res.status).toBe(200);
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         expect(body).toEqual({ data: { isFavorited: true } });
+    });
+
+    it("returns 404 when the requested comedian is hidden (visible=false)", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindUnique.mockResolvedValue({
+            uuid: "comedian-uuid-1",
+            visible: false,
+        } as never);
+
+        const res = await POST(makeRequest());
+        const body = await res.json();
+
+        expect(res.status).toBe(404);
+        expect(body.error).toMatch(/not found/i);
+        expect(mockUpsert).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when the requested comedian has visible=null", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-1",
+            userId: "user-1",
+        });
+        mockFindUnique.mockResolvedValue({
+            uuid: "comedian-uuid-1",
+            visible: null,
+        } as never);
+
+        const res = await POST(makeRequest());
+
+        expect(res.status).toBe(404);
+        expect(mockUpsert).not.toHaveBeenCalled();
     });
 });

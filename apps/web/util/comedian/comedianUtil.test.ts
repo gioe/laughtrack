@@ -91,6 +91,7 @@ describe("filterAndMapLineupItems", () => {
                     id: 99,
                     uuid: "uuid-99",
                     name: "Parent Comic",
+                    visible: true,
                     taggedComedians: [],
                     _count: { lineupItems: 41 },
                 },
@@ -185,13 +186,17 @@ describe("containsAliasTag", () => {
 });
 
 describe("getEffectiveComedian", () => {
-    it("returns parentComedian when it is set", () => {
+    it("returns parentComedian when it is set and visible", () => {
         const comedian = {
             id: 2,
             name: "Alias",
-            parentComedian: { id: 1, name: "Real" },
+            parentComedian: { id: 1, name: "Real", visible: true },
         };
-        expect(getEffectiveComedian(comedian)).toEqual({ id: 1, name: "Real" });
+        expect(getEffectiveComedian(comedian)).toEqual({
+            id: 1,
+            name: "Real",
+            visible: true,
+        });
     });
 
     it("returns the comedian itself when parentComedian is null", () => {
@@ -201,6 +206,27 @@ describe("getEffectiveComedian", () => {
 
     it("returns the comedian itself when parentComedian is undefined", () => {
         const comedian = { id: 1, name: "Real" };
+        expect(getEffectiveComedian(comedian)).toEqual(comedian);
+    });
+
+    it("returns the alias itself when parentComedian.visible is false", () => {
+        // Hidden parent must not leak through alias substitution — a visible
+        // alias of a hidden parent should display as itself, not surface the
+        // suppressed parent's name and social handles.
+        const comedian = {
+            id: 2,
+            name: "Alias",
+            parentComedian: { id: 1, name: "Hidden", visible: false },
+        };
+        expect(getEffectiveComedian(comedian)).toEqual(comedian);
+    });
+
+    it("returns the alias itself when parentComedian.visible is null", () => {
+        const comedian = {
+            id: 2,
+            name: "Alias",
+            parentComedian: { id: 1, name: "Hidden", visible: null },
+        };
         expect(getEffectiveComedian(comedian)).toEqual(comedian);
     });
 });

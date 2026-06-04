@@ -67,6 +67,7 @@ const UPCOMING_RUN_SHOW_SELECT = {
                             uuid: true,
                             name: true,
                             hasImage: true,
+                            visible: true,
                             _count: {
                                 select: {
                                     lineupItems: true,
@@ -115,7 +116,7 @@ export async function findUpcomingRunsForComedian(
         select: { id: true, uuid: true, visible: true },
     });
 
-    if (!comedian || comedian.visible === false) return [];
+    if (!comedian || !comedian.visible) return [];
 
     const where: Prisma.ShowWhereInput = {
         date: buildDateClause(filters),

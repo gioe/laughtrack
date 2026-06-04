@@ -102,6 +102,7 @@ describe("findCoBilledComediansForComedian", () => {
                     uuid: "target-uuid",
                     name: "Target Comedian",
                     hasImage: true,
+                    visible: true,
                     _count: { lineupItems: 20 },
                     taggedComedians: [],
                 },

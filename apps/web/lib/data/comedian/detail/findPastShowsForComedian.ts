@@ -92,6 +92,7 @@ export async function findPastShowsForComedian(
                                         uuid: true,
                                         name: true,
                                         hasImage: true,
+                                        visible: true,
                                         taggedComedians: {
                                             select: { tag: true },
                                         },

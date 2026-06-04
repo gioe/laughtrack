@@ -140,7 +140,7 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             where: { uuid: comedianId },
             select: { uuid: true, visible: true },
         });
-        if (!comedian || comedian.visible === false) {
+        if (!comedian || !comedian.visible) {
             return NextResponse.json(
                 { error: "Comedian not found" },
                 { status: 404, headers: rateLimitHeaders(rl) },

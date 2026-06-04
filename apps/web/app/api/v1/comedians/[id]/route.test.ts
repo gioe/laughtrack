@@ -54,6 +54,7 @@ describe("GET /api/v1/comedians/[id]", () => {
             id: 226475,
             uuid: "comedian-uuid",
             name: "Marcus D. Wiley",
+            visible: true,
             totalShows: 0,
             soldOutShows: 0,
             linktree: null,
@@ -100,6 +101,7 @@ describe("GET /api/v1/comedians/[id]", () => {
             id: 226475,
             uuid: "comedian-uuid",
             name: "Marcus D. Wiley",
+            visible: true,
             linktree: null,
             instagramAccount: null,
             instagramFollowers: null,
@@ -267,5 +269,39 @@ describe("GET /api/v1/comedians/[id]", () => {
         expect(res.headers.get(RATE_LIMIT_SENTINEL_HEADER)).toBe(
             RATE_LIMIT_SENTINEL_VALUE,
         );
+    });
+
+    it("returns 404 when the requested comedian is hidden (visible=false)", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 226475,
+            uuid: "comedian-uuid",
+            name: "Hidden Comic",
+            visible: false,
+            episodeAppearances: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+        const body = await res.json();
+
+        expect(res.status).toBe(404);
+        expect(body).toEqual({ error: "Comedian not found" });
+    });
+
+    it("returns 404 when the requested comedian has visible=null", async () => {
+        mockFindUnique.mockResolvedValue({
+            id: 226475,
+            uuid: "comedian-uuid",
+            name: "Null-Visible Comic",
+            visible: null,
+            episodeAppearances: [],
+        } as never);
+
+        const res = await GET(makeRequest(), {
+            params: Promise.resolve({ id: "226475" }),
+        });
+
+        expect(res.status).toBe(404);
     });
 });

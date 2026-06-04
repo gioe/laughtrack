@@ -73,6 +73,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                                         uuid: true,
                                         name: true,
                                         hasImage: true,
+                                        visible: true,
                                         _count: upcomingShowsCount,
                                         taggedComedians: {
                                             select: { tag: true },

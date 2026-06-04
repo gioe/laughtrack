@@ -12,6 +12,7 @@ type LineupComedian = {
     uuid: string;
     name: string;
     hasImage?: boolean | null;
+    visible?: boolean | null;
     parentComedian?: LineupComedian | null;
     taggedComedians?: TaggedComedian[] | null;
     favoriteComedians?: unknown[] | null;
@@ -94,5 +95,15 @@ export const getEffectiveComedian = <
     TComedian extends object,
     TParent extends object = TComedian,
 >(
-    comedian: TComedian & { parentComedian?: TParent | null },
-): TComedian | TParent => comedian.parentComedian || comedian;
+    comedian: TComedian & {
+        parentComedian?: (TParent & { visible?: boolean | null }) | null;
+    },
+): TComedian | TParent => {
+    const parent = comedian.parentComedian;
+    // Skip the alias→parent substitution when the parent has been hidden
+    // (visible=false or null). Otherwise a visible alias of a hidden parent
+    // would surface the suppressed parent's name and social handles through
+    // every lineup display.
+    if (!parent || !parent.visible) return comedian;
+    return parent;
+};

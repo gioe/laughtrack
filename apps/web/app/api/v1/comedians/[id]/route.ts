@@ -204,7 +204,7 @@ export const GET = withRequestMetrics(async function GET(
             },
         });
 
-        if (!comedian || comedian.visible === false) {
+        if (!comedian || !comedian.visible) {
             return NextResponse.json(
                 { error: "Comedian not found" },
                 { status: 404, headers: rateLimitHeaders(rl) },

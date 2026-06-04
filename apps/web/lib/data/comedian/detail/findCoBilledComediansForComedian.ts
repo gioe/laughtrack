@@ -88,6 +88,7 @@ export async function findCoBilledComediansForComedian({
                     uuid: true,
                     name: true,
                     hasImage: true,
+                    visible: true,
                     _count: {
                         select: {
                             lineupItems: true,

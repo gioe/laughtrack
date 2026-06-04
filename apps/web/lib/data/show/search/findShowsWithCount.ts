@@ -73,6 +73,7 @@ const SHOW_SELECT = {
                             uuid: true,
                             name: true,
                             hasImage: true,
+                            visible: true,
                             _count: {
                                 select: {
                                     lineupItems: true,

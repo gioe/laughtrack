@@ -29,6 +29,7 @@ beforeEach(() => {
     mockFindUnique.mockResolvedValue({
         id: 123,
         uuid: "comedian-uuid",
+        visible: true,
     } as never);
 });
 
