@@ -1147,76 +1147,102 @@ describe("AdminComedianManager", () => {
         expect(screen.getAllByText("Wild Ride! with Steve-O")).toHaveLength(1);
     });
 
-    it("reviews podcast host candidates from the comedian row", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
+    // TASK-2658: these three tests (this one + "removes a host candidate after
+    // rejection" + "adds a comedian to the blocklist") flaked once during
+    // TASK-2656's commit-time test gate at suspiciously long durations
+    // (10.2s / 6.3s / 6.2s). Under a 3-way-parallel-suite contention repro the
+    // failure mode is consistently "Test timed out in 5000ms" — vitest's
+    // default testTimeout. The assertions themselves are correct; what blows
+    // the budget under CPU starvation is that waitFor's poll loop, React's
+    // re-render after setRows, and testTimeout enforcement all share the same
+    // starved event loop, so 50ms-interval polls and the 5s timeout itself
+    // slip. Raising testTimeout to 15s on just these three tests is targeted
+    // (not a vitest.config bump) and gives ~3x default headroom — well above
+    // the worst observed 10.2s wall time. If a fourth test in this file ever
+    // shows the same shape, file a follow-up to widen the override rather than
+    // bumping the global config.
+    it(
+        "reviews podcast host candidates from the comedian row",
+        async () => {
+            vi.mocked(global.fetch).mockResolvedValueOnce({
                 ok: true,
-                comedian: {
-                    ...comedians[0],
-                    podcastCandidateReviews: [],
-                },
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-
-        expect(screen.getByText("Podcast host reviews")).toBeTruthy();
-        expect(screen.getByText("Candidate Podcast")).toBeTruthy();
-        expect(
-            screen.getByRole("link", {
-                name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
-            }),
-        ).toBeTruthy();
-        fireEvent.click(screen.getByRole("button", { name: "Accept as host" }));
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        action: "podcast-review-accept-host",
-                        comedianId: 1,
-                        candidateReviewId: 1001,
-                    }),
+                json: async () => ({
+                    ok: true,
+                    comedian: {
+                        ...comedians[0],
+                        podcastCandidateReviews: [],
+                    },
                 }),
+            } as never);
+            render(<AdminComedianManager comedians={comedians} />);
+            expandAllRows();
+
+            expect(screen.getByText("Podcast host reviews")).toBeTruthy();
+            expect(screen.getByText("Candidate Podcast")).toBeTruthy();
+            expect(
+                screen.getByRole("link", {
+                    name: /RSS: https:\/\/feeds\.example\.com\/candidate\.xml/,
+                }),
+            ).toBeTruthy();
+            fireEvent.click(
+                screen.getByRole("button", { name: "Accept as host" }),
             );
-        });
-        await waitFor(() => {
-            expect(screen.queryByText("Podcast host reviews")).toBeNull();
-            expect(screen.queryByText("Candidate Podcast")).toBeNull();
-        });
-    });
 
-    it("removes a host candidate after rejection", async () => {
-        const rejectedComedian = {
-            ...comedians[0],
-            podcastCandidateReviews: [],
-        };
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
+            await waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    "/api/admin/comedians",
+                    expect.objectContaining({
+                        method: "PATCH",
+                        body: JSON.stringify({
+                            action: "podcast-review-accept-host",
+                            comedianId: 1,
+                            candidateReviewId: 1001,
+                        }),
+                    }),
+                );
+            });
+            await waitFor(() => {
+                expect(screen.queryByText("Podcast host reviews")).toBeNull();
+                expect(screen.queryByText("Candidate Podcast")).toBeNull();
+            });
+        },
+        15000,
+    );
+
+    it(
+        "removes a host candidate after rejection",
+        async () => {
+            const rejectedComedian = {
+                ...comedians[0],
+                podcastCandidateReviews: [],
+            };
+            vi.mocked(global.fetch).mockResolvedValueOnce({
                 ok: true,
-                comedian: rejectedComedian,
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
+                json: async () => ({
+                    ok: true,
+                    comedian: rejectedComedian,
+                }),
+            } as never);
+            render(<AdminComedianManager comedians={comedians} />);
+            expandAllRows();
 
-        expect(
-            screen.queryByRole("button", { name: "Block podcast" }),
-        ).toBeNull();
-        fireEvent.click(screen.getByRole("button", { name: "Reject as host" }));
+            expect(
+                screen.queryByRole("button", { name: "Block podcast" }),
+            ).toBeNull();
+            fireEvent.click(
+                screen.getByRole("button", { name: "Reject as host" }),
+            );
 
-        await waitFor(() => {
-            expect(screen.queryByText("Podcast host reviews")).toBeNull();
-        });
-        expect(screen.queryByText("Candidate Podcast")).toBeNull();
-        expect(
-            screen.queryByRole("button", { name: "Block podcast" }),
-        ).toBeNull();
-    });
+            await waitFor(() => {
+                expect(screen.queryByText("Podcast host reviews")).toBeNull();
+            });
+            expect(screen.queryByText("Candidate Podcast")).toBeNull();
+            expect(
+                screen.queryByRole("button", { name: "Block podcast" }),
+            ).toBeNull();
+        },
+        15000,
+    );
 
     it("links to the latest ticket purchase url", () => {
         render(<AdminComedianManager comedians={comedians} />);
@@ -1232,45 +1258,49 @@ describe("AdminComedianManager", () => {
         expect(screen.getByText(/Parent Comic Live/)).toBeTruthy();
     });
 
-    it("adds a comedian to the blocklist", async () => {
-        vi.mocked(global.fetch).mockResolvedValueOnce({
-            ok: true,
-            json: async () => ({
+    it(
+        "adds a comedian to the blocklist",
+        async () => {
+            vi.mocked(global.fetch).mockResolvedValueOnce({
                 ok: true,
-                comedian: {
-                    ...comedians[0],
-                    isBlocked: true,
-                    blockReason: "Venue, not a person",
-                    blockAddedBy: "profile-1",
-                    blockAddedAt: "2026-05-19T12:00:00.000Z",
-                },
-            }),
-        } as never);
-        render(<AdminComedianManager comedians={comedians} />);
-        expandAllRows();
-
-        const reasonInputs = screen.getAllByLabelText("Blocklist reason");
-        fireEvent.change(reasonInputs[0], {
-            target: { value: "Venue, not a person" },
-        });
-        fireEvent.click(
-            screen.getAllByRole("button", { name: "Add to blocklist" })[0],
-        );
-
-        await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledWith(
-                "/api/admin/comedians",
-                expect.objectContaining({
-                    method: "PATCH",
-                    body: JSON.stringify({
-                        action: "blocklist-add",
-                        comedianId: 2,
-                        reason: "Venue, not a person",
-                    }),
+                json: async () => ({
+                    ok: true,
+                    comedian: {
+                        ...comedians[0],
+                        isBlocked: true,
+                        blockReason: "Venue, not a person",
+                        blockAddedBy: "profile-1",
+                        blockAddedAt: "2026-05-19T12:00:00.000Z",
+                    },
                 }),
+            } as never);
+            render(<AdminComedianManager comedians={comedians} />);
+            expandAllRows();
+
+            const reasonInputs = screen.getAllByLabelText("Blocklist reason");
+            fireEvent.change(reasonInputs[0], {
+                target: { value: "Venue, not a person" },
+            });
+            fireEvent.click(
+                screen.getAllByRole("button", { name: "Add to blocklist" })[0],
             );
-        });
-    });
+
+            await waitFor(() => {
+                expect(global.fetch).toHaveBeenCalledWith(
+                    "/api/admin/comedians",
+                    expect.objectContaining({
+                        method: "PATCH",
+                        body: JSON.stringify({
+                            action: "blocklist-add",
+                            comedianId: 2,
+                            reason: "Venue, not a person",
+                        }),
+                    }),
+                );
+            });
+        },
+        15000,
+    );
 
     it("removes a comedian from the blocklist", async () => {
         vi.mocked(global.fetch).mockResolvedValueOnce({
