@@ -30,7 +30,10 @@ export async function generateMetadata(props: {
     const getComedianName = unstable_cache(
         () =>
             db.comedian.findFirst({
-                where: { name: { equals: name, mode: "insensitive" } },
+                where: {
+                    name: { equals: name, mode: "insensitive" },
+                    visible: true,
+                },
                 select: { name: true, hasImage: true },
             }),
         ["comedian-metadata", name],

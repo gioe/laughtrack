@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 orderBy: { popularity: "desc" },
             }),
             db.comedian.findMany({
-                where: { totalShows: { gt: 0 } },
+                where: { visible: true, totalShows: { gt: 0 } },
                 select: { name: true },
                 orderBy: { popularity: "desc" },
             }),

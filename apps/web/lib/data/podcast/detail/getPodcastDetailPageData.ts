@@ -88,7 +88,10 @@ async function getPodcastDetailPageDataByWhere(
                     episodeUrl: true,
                     audioUrl: true,
                     appearances: {
-                        where: { reviewStatus: "accepted" },
+                        where: {
+                            reviewStatus: "accepted",
+                            comedian: { visible: true },
+                        },
                         select: {
                             comedian: {
                                 select: {

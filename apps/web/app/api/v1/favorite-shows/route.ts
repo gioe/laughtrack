@@ -48,6 +48,7 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             lineupItems: {
                 some: {
                     comedian: {
+                        visible: true,
                         favoriteComedians: {
                             some: { profileId: authCtx.profileId },
                         },

@@ -109,8 +109,8 @@ export const GET = withRequestMetrics(async function GET(
     }
 
     try {
-        const comedian = await db.comedian.findUnique({
-            where: { id: numericId },
+        const comedian = await db.comedian.findFirst({
+            where: { id: numericId, visible: true },
             select: {
                 id: true,
                 uuid: true,
@@ -166,6 +166,7 @@ export const GET = withRequestMetrics(async function GET(
                                     },
                                     where: {
                                         reviewStatus: "accepted",
+                                        comedian: { visible: true },
                                     },
                                     orderBy: [
                                         { appearanceRole: "asc" },

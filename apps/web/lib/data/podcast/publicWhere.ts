@@ -11,11 +11,13 @@ export const PUBLIC_PODCAST_DENY_LIST_WHERE = {
 export const ACCEPTED_PODCAST_HOST_WHERE = {
     reviewStatus: "accepted",
     associationType: "host",
+    comedian: { visible: true },
 } satisfies Prisma.ComedianPodcastWhereInput;
 
 export const ACCEPTED_PODCAST_COHOST_WHERE = {
     reviewStatus: "accepted",
     associationType: "cohost",
+    comedian: { visible: true },
 } satisfies Prisma.ComedianPodcastWhereInput;
 
 export const PUBLIC_PODCAST_HOST_ROLE_WHERE = {

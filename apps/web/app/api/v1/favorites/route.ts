@@ -48,7 +48,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
         }
 
         const favorites = await db.favoriteComedian.findMany({
-            where: { profileId: authCtx.profileId },
+            where: {
+                profileId: authCtx.profileId,
+                comedian: { visible: true },
+            },
             orderBy: { comedian: { name: "asc" } },
             select: {
                 comedian: {
@@ -133,8 +136,8 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             );
         }
 
-        const comedian = await db.comedian.findUnique({
-            where: { uuid: comedianId },
+        const comedian = await db.comedian.findFirst({
+            where: { uuid: comedianId, visible: true },
             select: { uuid: true },
         });
         if (!comedian) {

@@ -29,7 +29,7 @@ export async function findCoBilledComediansForComedian({
         WITH target AS (
             SELECT id, uuid
             FROM "comedians"
-            WHERE id = ${comedianId}
+            WHERE id = ${comedianId} AND visible = true
         ),
         target_shows AS (
             SELECT li."show_id"

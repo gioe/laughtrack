@@ -18,6 +18,7 @@ export async function getStats(): Promise<StatsDTO> {
             }),
             db.comedian.count({
                 where: {
+                    visible: true,
                     taggedComedians: {
                         none: {
                             tag: {

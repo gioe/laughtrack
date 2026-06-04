@@ -76,7 +76,10 @@ export const GET = withRequestMetrics(async function GET(req: NextRequest) {
             });
         }
 
-        const where = { user: { userid: userId } };
+        const where = {
+            user: { userid: userId },
+            comedian: { visible: true },
+        };
 
         const [favorites, total] = await Promise.all([
             db.favoriteComedian.findMany({
