@@ -46,7 +46,7 @@ function makeComedianRow(
         totalShows: number;
         soldOutShows: number;
         hasImage: boolean;
-        visible: boolean | null;
+        visible: boolean;
         parentComedianId: number | null;
         songkickId: string | null;
         bandsintownId: string | null;
