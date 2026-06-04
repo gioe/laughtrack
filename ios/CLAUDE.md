@@ -129,6 +129,49 @@ The reliable pattern for iterative work on a HostedView suite:
 When `test_sim` is the right tool for a quick run on a primed sim and prebuilt
 DerivedData, it stays well under the timeout.
 
+#### iOS 26.1 Sim Firebase TLS Hang — Reboot The Sim
+
+A separate failure mode masquerades as the cold-start case above on iPhone 17 /
+iOS 26.1 specifically: `test_sim` hangs for the entire test-runner watchdog
+window (observed 1625s / ~27 min before `The test runner hung before
+establishing connection.` killed it). The iOS 18.x sim on the same DerivedData
+and same `GoogleService-Info.plist` does **not** reproduce this.
+
+Signature in the result bundle / sim system log (look in
+`xcrun simctl spawn booted log show --predicate 'process == "LaughTrack"'`
+or the `-resultBundlePath` diagnostics):
+
+- `app-analytics-services.com` request retries
+- `NSURLErrorDomain Code=-1200 "A TLS error caused the secure connection to fail."`
+- `NSURLErrorDomain Code=-1001` (request timed out)
+
+Root cause is that `AppBootstrap.configureAnalytics` fires
+`FirebaseApp.configure()` at app launch, Analytics begins its HTTP retry loop
+against `app-analytics-services.com`, and on iOS 26.1 sims the TLS stack stalls
+those connections long enough that the xctest runner's handshake budget
+expires before the host process becomes responsive.
+
+**Workaround that has reliably cleared it**: shut the sim down and re-boot,
+then re-run. The second run completes in normal warm-path wall time. The reboot
+appears to reset whatever state in the sim's TLS / networking stack triggers
+the stall — re-running `test_sim` without the reboot reproduces the hang.
+
+```bash
+xcrun simctl shutdown <UDID>   # or: xcrun simctl shutdown booted
+xcrun simctl boot <UDID>
+# then retry test_sim / xcodebuild test-without-building
+```
+
+The XcodeBuildMCP equivalent is `stop_app_sim` followed by `boot_sim`. Don't
+try to disable Firebase or strip the plist as a one-off — the next agent will
+hit it cold. Treat the reboot as the documented recipe until/unless someone
+short-circuits Firebase startup under XCTest (e.g. guarding
+`FirebaseApp.configure()` on the absence of `XCTestConfigurationFilePath`,
+which `xctest` sets on test-bundle load).
+
+Originally observed on 2026-06-04 during TASK-2646 verification; the second
+run after the reboot completed in 877s and passed 9/9.
+
 ### Focused Swift Testing Filters Can Match Zero Tests
 
 `swift test --filter <pattern>` can exit 0 even when the filter matches zero
