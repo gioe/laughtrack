@@ -105,9 +105,7 @@ function PodcastHosts({ hosts }: { hosts: PodcastHostDTO[] }) {
                     <span
                         aria-hidden="true"
                         className="font-dmSans text-xs font-semibold uppercase tracking-wider text-gray-600 group-hover:text-copper"
-                    >
-                        Host
-                    </span>
+                    >Host</span>
                 </Link>
             ))}
         </div>
