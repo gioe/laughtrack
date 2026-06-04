@@ -39,7 +39,6 @@
 		255083D6293B5C6A330E0A97 /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 5065622ECA00D55918B63F96 /* HTTPTypes */; };
 		25B01A08ED99159630E955F2 /* StubURLProtocolSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7593C96779BA48EAD4AC7E16 /* StubURLProtocolSupport.swift */; };
 		260FB020EC4EB1996F824F65 /* LaughTrackCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		2621A1B1F50C0A6E0FE03F01 /* ClubFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2621A1B0F50C0A6E0FE03F00 /* ClubFavoriteStoreTests.swift */; };
 		294F3A72B4D34C290321DB3D /* ShowTitlePresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4A6353D0B602F597E9714C /* ShowTitlePresentationTests.swift */; };
 		29A24F3F99C79F87902F932A /* SignedOutAuthOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DF853E33C8EFE7127FC3FD6 /* SignedOutAuthOptions.swift */; };
 		2A90E3D243B9BFCC2836B55B /* LaughTrackBridge.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -126,6 +125,7 @@
 		8D81806CD0D225EBF53B6513 /* ComediansDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */; };
 		8DA3FE021FF27F14D1E9CB48 /* PodcastTonightNearYouCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6740344931ABD2D8276582D0 /* PodcastTonightNearYouCard.swift */; };
 		8E0967C60A9B0B948488554B /* PodcastMiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F71C15C570035C0FC7955C22 /* PodcastMiniPlayerView.swift */; };
+		8FDBE625591FEC3AB6513767 /* ClubFavoriteStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */; };
 		9009C5A81846DBC1B9A15358 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34F7E79132A5EA5AA3552B4 /* AppTab.swift */; };
 		9080A2F106D54AFAA1548F67 /* UITestLaunchArgs.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73E9CB12FB819B5BAA818CB /* UITestLaunchArgs.swift */; };
 		91F5129BA47F8724B27E8BF2 /* LaughTrackAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FC93EDB4A27FDCCB09F568 /* LaughTrackAPIClient.swift */; };
@@ -335,6 +335,7 @@
 		05DDCB75107CBE67C0FD9CEB /* LoginModalPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModalPresenter.swift; sourceTree = "<group>"; };
 		0922F9FD8AA0FC38E52DC666 /* ClubFavoriteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStore.swift; sourceTree = "<group>"; };
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
+		0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStoreTests.swift; sourceTree = "<group>"; };
 		0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
 		0E6C65B9D3165E104240C07E /* APIMockEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIMockEncoder.swift; sourceTree = "<group>"; };
 		0F4233943B1264FC9441BD6C /* DetailFetchSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailFetchSupportTests.swift; sourceTree = "<group>"; };
@@ -355,7 +356,6 @@
 		23B9224C211F8ECAD8510E1A /* DateRangeFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateRangeFilter.swift; sourceTree = "<group>"; };
 		23C754F57E247ED20F9C3291 /* AuthenticatedUser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedUser.swift; sourceTree = "<group>"; };
 		253B49BBBF819450AC9E778A /* ComediansDiscoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComediansDiscoveryView.swift; sourceTree = "<group>"; };
-		2621A1B0F50C0A6E0FE03F00 /* ClubFavoriteStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClubFavoriteStoreTests.swift; sourceTree = "<group>"; };
 		281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackApp.swift; sourceTree = "<group>"; };
 		2AE66AEEC26F743787CDC4EE /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
 		2CBD475AC232F6E6652F50BE /* ShowsListEmptyMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowsListEmptyMessageTests.swift; sourceTree = "<group>"; };
@@ -607,7 +607,7 @@
 				BD9FBF9E6CD8A67F17A979D0 /* AuthManagerSignOutIntegrationTests.swift */,
 				C9380AC29718B8FA353B3FF2 /* AuthManagerTests.swift */,
 				A6828B86711E4F3F8219EEE5 /* ClubDetailViewTests.swift */,
-				2621A1B0F50C0A6E0FE03F00 /* ClubFavoriteStoreTests.swift */,
+				0D814E25911EA53326F6AC0E /* ClubFavoriteStoreTests.swift */,
 				E7E9ADC24243532EC17C6E17 /* ClubRowTests.swift */,
 				4F6241EF98C5364C9ADF43F1 /* ComedianDetailViewTests.swift */,
 				B7DFA8DEA5A7A187DDF42A01 /* ComedianFavoriteStoreTests.swift */,
@@ -1361,7 +1361,7 @@
 				F2F81216C8A86112F5D53B3D /* AuthManagerSignOutIntegrationTests.swift in Sources */,
 				3B71F1B7EA08781B00BB37C3 /* AuthManagerTests.swift in Sources */,
 				19EC027AFC1CFE299CA2976B /* ClubDetailViewTests.swift in Sources */,
-				2621A1B1F50C0A6E0FE03F01 /* ClubFavoriteStoreTests.swift in Sources */,
+				8FDBE625591FEC3AB6513767 /* ClubFavoriteStoreTests.swift in Sources */,
 				1F1CC060B9835682FC9C8177 /* ClubRowTests.swift in Sources */,
 				CF2D1462F9F8A2ABF8163B42 /* ComedianDetailViewTests.swift in Sources */,
 				751A527C1B22183FBA02767E /* ComedianFavoriteStoreTests.swift in Sources */,
@@ -1510,7 +1510,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
@@ -1636,7 +1636,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Sources/LaughTrackApp/LaughTrack.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 4HDNC3V5Q6;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/LaughTrackApp/Info.plist;
