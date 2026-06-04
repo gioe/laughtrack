@@ -412,7 +412,7 @@ export default function AdminClubManager({ groups }: Props) {
             if (controls.visibility === "visible" && club.visible !== true) {
                 return false;
             }
-            if (controls.visibility === "hidden" && club.visible !== false) {
+            if (controls.visibility === "blocked" && club.visible !== false) {
                 return false;
             }
             if (
@@ -778,7 +778,7 @@ function ChainGroupSection({
                             >
                                 <option value="all">All</option>
                                 <option value="visible">Visible</option>
-                                <option value="hidden">Hidden</option>
+                                <option value="blocked">Blocked</option>
                             </select>
                         </label>
                         <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
@@ -832,7 +832,7 @@ function ChainGroupSection({
                                         </span>
                                         {!club.visible && (
                                             <span className="rounded-full border border-gray-500/30 bg-gray-100 px-2 py-1 font-dmSans text-caption font-semibold text-gray-900">
-                                                Hidden
+                                                Blocked
                                             </span>
                                         )}
                                     </div>
@@ -982,7 +982,7 @@ function ChainGroupSection({
                                             value={
                                                 draft.visible
                                                     ? "visible"
-                                                    : "hidden"
+                                                    : "blocked"
                                             }
                                             onChange={(event) =>
                                                 updateDraft(club, {
@@ -996,8 +996,8 @@ function ChainGroupSection({
                                             <option value="visible">
                                                 visible
                                             </option>
-                                            <option value="hidden">
-                                                hidden
+                                            <option value="blocked">
+                                                blocked
                                             </option>
                                         </select>
                                     </label>

@@ -201,7 +201,7 @@ describe("AdminClubManager", () => {
         );
         fireEvent.change(
             screen.getByLabelText("Filter Funny Bone clubs by visibility"),
-            { target: { value: "hidden" } },
+            { target: { value: "blocked" } },
         );
         expect(screen.getByText("Funny Bone Boston")).toBeTruthy();
         expect(screen.queryByText("Funny Bone Albany")).toBeNull();
@@ -274,7 +274,7 @@ describe("AdminClubManager", () => {
         const statusSelects = screen.getAllByLabelText("Status");
         fireEvent.change(statusSelects[0], { target: { value: "closed" } });
         fireEvent.change(screen.getAllByLabelText("Visibility")[0], {
-            target: { value: "hidden" },
+            target: { value: "blocked" },
         });
         fireEvent.change(screen.getAllByLabelText("Type")[0], {
             target: { value: "festival" },
