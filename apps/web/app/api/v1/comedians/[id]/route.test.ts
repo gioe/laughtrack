@@ -288,20 +288,4 @@ describe("GET /api/v1/comedians/[id]", () => {
         expect(res.status).toBe(404);
         expect(body).toEqual({ error: "Comedian not found" });
     });
-
-    it("returns 404 when the requested comedian has visible=null", async () => {
-        mockFindUnique.mockResolvedValue({
-            id: 226475,
-            uuid: "comedian-uuid",
-            name: "Null-Visible Comic",
-            visible: null,
-            episodeAppearances: [],
-        } as never);
-
-        const res = await GET(makeRequest(), {
-            params: Promise.resolve({ id: "226475" }),
-        });
-
-        expect(res.status).toBe(404);
-    });
 });

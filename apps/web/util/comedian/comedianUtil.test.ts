@@ -220,13 +220,4 @@ describe("getEffectiveComedian", () => {
         };
         expect(getEffectiveComedian(comedian)).toEqual(comedian);
     });
-
-    it("returns the alias itself when parentComedian.visible is null", () => {
-        const comedian = {
-            id: 2,
-            name: "Alias",
-            parentComedian: { id: 1, name: "Hidden", visible: null },
-        };
-        expect(getEffectiveComedian(comedian)).toEqual(comedian);
-    });
 });

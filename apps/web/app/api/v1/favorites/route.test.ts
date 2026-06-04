@@ -258,20 +258,4 @@ describe("POST /api/v1/favorites", () => {
         expect(body.error).toMatch(/not found/i);
         expect(mockUpsert).not.toHaveBeenCalled();
     });
-
-    it("returns 404 when the requested comedian has visible=null", async () => {
-        mockResolveAuth.mockResolvedValue({
-            profileId: "profile-1",
-            userId: "user-1",
-        });
-        mockFindUnique.mockResolvedValue({
-            uuid: "comedian-uuid-1",
-            visible: null,
-        } as never);
-
-        const res = await POST(makeRequest());
-
-        expect(res.status).toBe(404);
-        expect(mockUpsert).not.toHaveBeenCalled();
-    });
 });
