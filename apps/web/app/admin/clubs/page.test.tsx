@@ -60,7 +60,7 @@ describe("AdminClubsPage", () => {
         const markup = renderToStaticMarkup(element);
 
         expect(markup).toContain("Admin · Clubs");
-        expect(markup).toContain("2 clubs · 1 chains · 1 hidden · 1 closed");
+        expect(markup).toContain("2 clubs · 1 chains · 1 blocked · 1 closed");
         expect(markup).toContain("admin-club-manager");
         expect(markup).not.toContain('href="/admin/deny-list"');
     });

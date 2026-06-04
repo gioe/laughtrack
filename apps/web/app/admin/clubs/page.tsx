@@ -11,7 +11,7 @@ export default async function AdminClubsPage() {
         0,
     );
     const chainCount = groups.filter((group) => group.chain).length;
-    const hiddenCount = groups.reduce(
+    const blockedCount = groups.reduce(
         (sum, group) =>
             sum + group.clubs.filter((club) => !club.visible).length,
         0,
@@ -28,7 +28,7 @@ export default async function AdminClubsPage() {
                 eyebrow="Admin · Clubs"
                 title="Club operations"
                 description="Review venue identity, chain grouping, scrape coverage, visibility, and operational status."
-                summary={`${clubCount.toLocaleString()} clubs · ${chainCount.toLocaleString()} chains · ${hiddenCount.toLocaleString()} hidden · ${closedCount.toLocaleString()} closed`}
+                summary={`${clubCount.toLocaleString()} clubs · ${chainCount.toLocaleString()} chains · ${blockedCount.toLocaleString()} blocked · ${closedCount.toLocaleString()} closed`}
             />
 
             <AdminClubManager groups={groups} />
