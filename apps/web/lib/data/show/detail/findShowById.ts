@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
 import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
@@ -63,10 +64,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                         role: true,
                         comedian: {
                             select: {
-                                id: true,
-                                uuid: true,
-                                name: true,
-                                hasImage: true,
+                                ...LINEUP_COMEDIAN_SELECT,
                                 _count: upcomingShowsCount,
                                 parentComedian: {
                                     select: {
@@ -74,7 +72,6 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                                         _count: upcomingShowsCount,
                                     },
                                 },
-                                taggedComedians: { select: { tag: true } },
                             },
                         },
                     },

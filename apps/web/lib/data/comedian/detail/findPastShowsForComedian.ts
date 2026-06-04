@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
 import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { ShowDTO } from "@/objects/class/show/show.interface";
@@ -83,15 +84,9 @@ export async function findPastShowsForComedian(
                         role: true,
                         comedian: {
                             select: {
-                                id: true,
-                                uuid: true,
-                                name: true,
-                                hasImage: true,
+                                ...LINEUP_COMEDIAN_SELECT,
                                 parentComedian: {
                                     select: PARENT_COMEDIAN_LINEUP_SELECT,
-                                },
-                                taggedComedians: {
-                                    select: { tag: true },
                                 },
                             },
                         },

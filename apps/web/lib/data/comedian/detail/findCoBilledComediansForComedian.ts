@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { LINEUP_COMEDIAN_SELECT } from "@/lib/data/comedian/lineupComedianSelect";
 import { PARENT_COMEDIAN_LINEUP_SELECT } from "@/lib/data/comedian/parentComedianSelect";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
@@ -74,10 +75,7 @@ export async function findCoBilledComediansForComedian({
     const comedians = await db.comedian.findMany({
         where: { uuid: { in: uuids }, visible: true },
         select: {
-            id: true,
-            uuid: true,
-            name: true,
-            hasImage: true,
+            ...LINEUP_COMEDIAN_SELECT,
             _count: {
                 select: {
                     lineupItems: true,
@@ -92,9 +90,6 @@ export async function findCoBilledComediansForComedian({
                         },
                     },
                 },
-            },
-            taggedComedians: {
-                select: { tag: true },
             },
         },
     });
