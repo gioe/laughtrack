@@ -39,6 +39,7 @@ describe("getSearchedPodcasts", () => {
                         some: {
                             reviewStatus: "accepted",
                             associationType: "host",
+                            comedian: { visible: true },
                         },
                     },
                 },
@@ -49,6 +50,7 @@ describe("getSearchedPodcasts", () => {
                                 none: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
+                                    comedian: { visible: true },
                                 },
                             },
                         },
@@ -57,6 +59,7 @@ describe("getSearchedPodcasts", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "cohost",
+                                    comedian: { visible: true },
                                 },
                             },
                         },
@@ -118,6 +121,7 @@ describe("getSearchedPodcasts", () => {
                                     some: {
                                         reviewStatus: "accepted",
                                         associationType: "host",
+                                        comedian: { visible: true },
                                     },
                                 },
                             },
@@ -128,6 +132,7 @@ describe("getSearchedPodcasts", () => {
                                             none: {
                                                 reviewStatus: "accepted",
                                                 associationType: "host",
+                                                comedian: { visible: true },
                                             },
                                         },
                                     },
@@ -136,6 +141,7 @@ describe("getSearchedPodcasts", () => {
                                             some: {
                                                 reviewStatus: "accepted",
                                                 associationType: "cohost",
+                                                comedian: { visible: true },
                                             },
                                         },
                                     },

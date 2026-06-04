@@ -66,7 +66,10 @@ describe("findCoBilledComediansForComedian", () => {
         ]);
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { uuid: { in: ["frequent-co-bill", "second-co-bill"] } },
+                where: {
+                    uuid: { in: ["frequent-co-bill", "second-co-bill"] },
+                    visible: true,
+                },
             }),
         );
     });

@@ -136,11 +136,11 @@ export const POST = withRequestMetrics(async function POST(req: NextRequest) {
             );
         }
 
-        const comedian = await db.comedian.findFirst({
-            where: { uuid: comedianId, visible: true },
-            select: { uuid: true },
+        const comedian = await db.comedian.findUnique({
+            where: { uuid: comedianId },
+            select: { uuid: true, visible: true },
         });
-        if (!comedian) {
+        if (!comedian || comedian.visible === false) {
             return NextResponse.json(
                 { error: "Comedian not found" },
                 { status: 404, headers: rateLimitHeaders(rl) },

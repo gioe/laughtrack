@@ -141,7 +141,10 @@ describe("POST /api/v1/favorites", () => {
         expect(res.headers.get("X-RateLimit-Remaining")).toBe("42");
         expect(mockFindMany).toHaveBeenCalledWith(
             expect.objectContaining({
-                where: { profileId: "profile-1" },
+                where: {
+                    profileId: "profile-1",
+                    comedian: { visible: true },
+                },
             }),
         );
         expect(body).toEqual({

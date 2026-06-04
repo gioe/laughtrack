@@ -118,6 +118,7 @@ describe("GET /api/v1/favorite-shows", () => {
         expect(where.lineupItems).toEqual({
             some: {
                 comedian: {
+                    visible: true,
                     favoriteComedians: {
                         some: { profileId: "profile-99" },
                     },

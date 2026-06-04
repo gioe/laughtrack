@@ -46,6 +46,7 @@ function makeComedianRow(
         totalShows: number;
         soldOutShows: number;
         hasImage: boolean;
+        visible: boolean | null;
         parentComedianId: number | null;
         songkickId: string | null;
         bandsintownId: string | null;
@@ -121,6 +122,7 @@ function makeComedianRow(
         website: "https://alice.example.com",
         popularity: 80,
         hasImage: true,
+        visible: true,
         totalShows: 0,
         soldOutShows: 0,
         parentComedianId: null,

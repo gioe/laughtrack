@@ -44,6 +44,7 @@ describe("getPodcastDetailPageData", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
+                                    comedian: { visible: true },
                                 },
                             },
                         },
@@ -54,6 +55,7 @@ describe("getPodcastDetailPageData", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -62,6 +64,7 @@ describe("getPodcastDetailPageData", () => {
                                         some: {
                                             reviewStatus: "accepted",
                                             associationType: "cohost",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -93,6 +96,7 @@ describe("getPodcastDetailPageData", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
+                                    comedian: { visible: true },
                                 },
                             },
                         },
@@ -103,6 +107,7 @@ describe("getPodcastDetailPageData", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -111,6 +116,7 @@ describe("getPodcastDetailPageData", () => {
                                         some: {
                                             reviewStatus: "accepted",
                                             associationType: "cohost",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -182,7 +188,10 @@ describe("getPodcastDetailPageData", () => {
                     episodes: expect.objectContaining({
                         select: expect.objectContaining({
                             appearances: expect.objectContaining({
-                                where: { reviewStatus: "accepted" },
+                                where: {
+                                    reviewStatus: "accepted",
+                                    comedian: { visible: true },
+                                },
                             }),
                         }),
                     }),

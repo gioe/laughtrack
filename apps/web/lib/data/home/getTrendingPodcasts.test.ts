@@ -66,6 +66,7 @@ describe("getTrendingPodcasts", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -127,6 +128,7 @@ describe("getTrendingPodcasts", () => {
                                 some: {
                                     reviewStatus: "accepted",
                                     associationType: "host",
+                                    comedian: { visible: true },
                                 },
                             },
                         },
@@ -137,6 +139,7 @@ describe("getTrendingPodcasts", () => {
                                         none: {
                                             reviewStatus: "accepted",
                                             associationType: "host",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },
@@ -145,6 +148,7 @@ describe("getTrendingPodcasts", () => {
                                         some: {
                                             reviewStatus: "accepted",
                                             associationType: "cohost",
+                                            comedian: { visible: true },
                                         },
                                     },
                                 },

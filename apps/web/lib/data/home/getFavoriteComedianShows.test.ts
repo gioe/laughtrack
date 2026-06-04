@@ -41,6 +41,7 @@ describe("getFavoriteComedianShows", () => {
                 lineupItems: {
                     some: {
                         comedian: {
+                            visible: true,
                             favoriteComedians: {
                                 some: { profileId: "profile-1" },
                             },
