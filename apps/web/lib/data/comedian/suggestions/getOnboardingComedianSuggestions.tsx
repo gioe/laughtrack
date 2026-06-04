@@ -42,6 +42,7 @@ export async function getOnboardingComedianSuggestions(
                 SELECT c.id
                 FROM "comedians" c
                 WHERE c.popularity >= ${ONBOARDING_POPULARITY_FLOOR}
+                  AND c.visible = true
                   AND c."parent_comedian_id" IS NULL
                   AND NOT EXISTS (
                       SELECT 1 FROM "tagged_comedians" tc
@@ -68,7 +69,7 @@ export async function getOnboardingComedianSuggestions(
         }
 
         const comedians = await db.comedian.findMany({
-            where: { id: { in: sampledIds } },
+            where: { id: { in: sampledIds }, visible: true },
             select: {
                 ...COMEDIAN_SELECT,
                 ...buildUpcomingCountSelect(),

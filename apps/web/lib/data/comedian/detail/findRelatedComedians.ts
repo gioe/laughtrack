@@ -61,6 +61,7 @@ export async function findRelatedComedians(
             JOIN comedians c ON c.uuid = li.comedian_id
             WHERE li.show_id IN (SELECT show_id FROM target_shows)
                 AND li.comedian_id != ${comedianUuid}
+                AND c.visible = true
                 AND c.parent_comedian_id IS NULL
                 AND NOT EXISTS (
                     SELECT 1 FROM tagged_comedians tc

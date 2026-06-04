@@ -38,6 +38,7 @@ const UPCOMING_RUN_SHOW_SELECT = {
     lineupItems: {
         where: {
             comedian: {
+                visible: true,
                 taggedComedians: {
                     none: {
                         tag: {
@@ -111,10 +112,10 @@ export async function findUpcomingRunsForComedian(
 ): Promise<UpcomingComedianRun[]> {
     const comedian = await db.comedian.findUnique({
         where: { id: comedianId },
-        select: { id: true, uuid: true },
+        select: { id: true, uuid: true, visible: true },
     });
 
-    if (!comedian) return [];
+    if (!comedian || comedian.visible === false) return [];
 
     const where: Prisma.ShowWhereInput = {
         date: buildDateClause(filters),

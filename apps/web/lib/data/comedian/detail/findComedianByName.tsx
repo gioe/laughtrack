@@ -166,6 +166,7 @@ export async function findComedianByName(
                     equals: name,
                     mode: Prisma.QueryMode.insensitive,
                 },
+                visible: true,
             },
             select: {
                 ...buildComedianSelect(),

@@ -238,7 +238,8 @@ export async function findComediansWithCount(
             const matchingRows = await db.$queryRaw<{ uuid: string }[]>(
                 Prisma.sql`
                     SELECT c.uuid FROM "comedians" c
-                    WHERE ${buildScopedUpcomingCountSql()} >= ${minUpcomingShowsValue}
+                    WHERE c.visible = true
+                      AND ${buildScopedUpcomingCountSql()} >= ${minUpcomingShowsValue}
                 `,
             );
             if (matchingRows.length === 0) {
@@ -251,6 +252,7 @@ export async function findComediansWithCount(
 
         const whereClause: Prisma.ComedianWhereInput = {
             ...helper.getComedianFiltersClause(),
+            visible: true,
             parentComedian: {
                 is: null,
             },
@@ -274,6 +276,7 @@ export async function findComediansWithCount(
 
             // Build parameterized WHERE conditions mirroring the Prisma whereClause
             const whereConditions: Prisma.Sql[] = [
+                Prisma.sql`c.visible = true`,
                 Prisma.sql`c."parent_comedian_id" IS NULL`,
                 Prisma.sql`NOT EXISTS (
                     SELECT 1 FROM "tagged_comedians" tc
@@ -347,7 +350,7 @@ export async function findComediansWithCount(
             }
 
             const comediansById = await db.comedian.findMany({
-                where: { id: { in: comedianIds } },
+                where: { id: { in: comedianIds }, visible: true },
                 select: {
                     ...COMEDIAN_SELECT,
                     ...upcomingCountSelect,

@@ -72,6 +72,7 @@ export async function findPastShowsForComedian(
                 lineupItems: {
                     where: {
                         comedian: {
+                            visible: true,
                             taggedComedians: {
                                 none: { tag: { userFacing: false } },
                             },

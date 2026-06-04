@@ -47,6 +47,7 @@ export async function findCoBilledComediansForComedian({
         JOIN target t ON TRUE
         JOIN "comedians" co_billed ON co_billed.uuid = li."comedian_id"
         WHERE li."comedian_id" <> t.uuid
+          AND co_billed.visible = true
           AND (
               co_billed."parent_comedian_id" IS NULL
               OR co_billed."parent_comedian_id" <> t.id
@@ -70,7 +71,7 @@ export async function findCoBilledComediansForComedian({
 
     const uuids = rows.map((row) => row.uuid);
     const comedians = await db.comedian.findMany({
-        where: { uuid: { in: uuids } },
+        where: { uuid: { in: uuids }, visible: true },
         select: {
             id: true,
             uuid: true,

@@ -41,9 +41,10 @@ export async function findRoomHistoryForComedian(
         LEFT JOIN "comedians" parent ON parent.id = c."parent_comedian_id"
         WHERE s.date < ${now}
           AND cl.visible = true
+          AND c.visible = true
           AND (
             (c.name ILIKE ${namePattern} AND c."parent_comedian_id" IS NULL)
-            OR parent.name ILIKE ${namePattern}
+            OR (parent.name ILIKE ${namePattern} AND parent.visible = true)
           )
         GROUP BY cl.id, cl.name, cl.city, cl.state, cl."has_image"
         ORDER BY play_count DESC, last_played_date DESC
