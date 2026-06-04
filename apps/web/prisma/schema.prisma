@@ -254,6 +254,7 @@ model Comedian {
   websiteScrapingUrlHealthCheckedAt    DateTime?                         @map("website_scraping_url_health_checked_at") @db.Timestamptz
   tourSourceReviewEvidence             Json?                             @map("tour_source_review_evidence")
   bio                                  String?
+  visible                              Boolean?                          @default(true)
   parentComedianId                     Int?                              @map("parent_comedian_id")
   parentComedian                       Comedian?                         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames                     Comedian[]                        @relation("ComedianAliases")
@@ -269,6 +270,7 @@ model Comedian {
   imageAssets                          ComedianImageAsset[]
 
   @@index([parentComedianId])
+  @@index([visible])
   @@map("comedians")
 }
 
