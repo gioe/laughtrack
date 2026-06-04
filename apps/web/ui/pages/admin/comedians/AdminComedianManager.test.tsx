@@ -1209,6 +1209,8 @@ describe("AdminComedianManager", () => {
         15000,
     );
 
+    // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
+    // candidates from the comedian row" — parallel-suite CPU starvation.
     it(
         "removes a host candidate after rejection",
         async () => {
@@ -1258,6 +1260,8 @@ describe("AdminComedianManager", () => {
         expect(screen.getByText(/Parent Comic Live/)).toBeTruthy();
     });
 
+    // 15s timeout: see TASK-2658 rationale block above "reviews podcast host
+    // candidates from the comedian row" — parallel-suite CPU starvation.
     it(
         "adds a comedian to the blocklist",
         async () => {
