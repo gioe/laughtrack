@@ -22,7 +22,7 @@ const mockQueryRaw = vi.mocked(db.$queryRaw);
 const mockZipRadius = vi.mocked(zipcodesMod.radius);
 
 type ComedianZipRow = ReturnType<typeof makeRow> & {
-    has_image?: boolean | null;
+    has_image: boolean;
 };
 
 function makeRow(
@@ -319,18 +319,14 @@ describe("getComediansByZip", () => {
 
         it("propagates has_image to the DTO as hasImage", async () => {
             mockZipRadius.mockReturnValue(["10001", "10002", "10003"]);
-            const rowWithImage: ComedianZipRow = makeRow({
-                id: 1,
-                uuid: "uuid-1",
-                name: "Has Pic",
-            });
-            rowWithImage.has_image = true;
-            const rowWithoutImage: ComedianZipRow = makeRow({
-                id: 2,
-                uuid: "uuid-2",
-                name: "No Pic",
-            });
-            rowWithoutImage.has_image = null;
+            const rowWithImage: ComedianZipRow = {
+                ...makeRow({ id: 1, uuid: "uuid-1", name: "Has Pic" }),
+                has_image: true,
+            };
+            const rowWithoutImage: ComedianZipRow = {
+                ...makeRow({ id: 2, uuid: "uuid-2", name: "No Pic" }),
+                has_image: false,
+            };
             mockQueryRaw.mockResolvedValue([rowWithImage, rowWithoutImage]);
 
             const result = await getComediansByZip("10001");

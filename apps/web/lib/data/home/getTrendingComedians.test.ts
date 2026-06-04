@@ -28,7 +28,7 @@ function makeRow(
         website: string | null;
         popularity: number;
         linktree: string | null;
-        has_image: boolean | null;
+        has_image: boolean;
         show_count: number;
     }> = {},
 ) {
@@ -336,9 +336,7 @@ describe("getTrendingComedians", () => {
 
     describe("hasImage propagation", () => {
         it("sets hasImage=true when the DB row's has_image is true", async () => {
-            const row: ReturnType<typeof makeRow> & {
-                has_image?: boolean | null;
-            } = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            const row = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
             row.has_image = true;
             mockQueryRaw.mockResolvedValue([row]);
 
@@ -347,11 +345,9 @@ describe("getTrendingComedians", () => {
             expect(result.hasImage).toBe(true);
         });
 
-        it("sets hasImage=false when the DB row's has_image is falsy (null/false)", async () => {
-            const row: ReturnType<typeof makeRow> & {
-                has_image?: boolean | null;
-            } = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
-            row.has_image = null;
+        it("sets hasImage=false when the DB row's has_image is false", async () => {
+            const row = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            row.has_image = false;
             mockQueryRaw.mockResolvedValue([row]);
 
             const [result] = await getTrendingComedians(1, 0);
