@@ -125,6 +125,7 @@ struct HomeView: View {
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
 
@@ -155,6 +156,10 @@ struct HomeView: View {
             .padding(.top, -4)
             .padding(.bottom, laughTrack.browseDensity.heroPadding)
         }
+        .rootScrollBottomClearance(
+            theme: theme,
+            isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
+        )
         .accessibilityIdentifier(LaughTrackViewTestID.homeScreen)
         .background(laughTrack.colors.canvas.ignoresSafeArea())
         .background(

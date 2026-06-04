@@ -14,6 +14,7 @@ struct LibraryView: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @Environment(\.appTheme) private var theme
     @Environment(\.serviceContainer) private var serviceContainer
 
@@ -50,6 +51,10 @@ struct LibraryView: View {
             .padding(.top, -4)
             .padding(.bottom, tokens.browseDensity.heroPadding)
         }
+        .rootScrollBottomClearance(
+            theme: theme,
+            isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
+        )
         .accessibilityIdentifier(LaughTrackViewTestID.favoritesTabScreen)
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle(Self.title)

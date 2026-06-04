@@ -439,3 +439,33 @@ enum AccountHeaderLayout {
         return max(theme.spacing.xs, safeAreaTop - overlap + theme.spacing.xs)
     }
 }
+
+enum RootScrollBottomSpacing {
+    static let floatingTabBarClearance: CGFloat = 88
+    static let podcastMiniPlayerClearance: CGFloat = 72
+
+    static func padding(
+        theme: AppThemeProtocol,
+        isPodcastMiniPlayerVisible: Bool = false
+    ) -> CGFloat {
+        theme.laughTrackTokens.browseDensity.heroPadding +
+            floatingTabBarClearance +
+            (isPodcastMiniPlayerVisible ? podcastMiniPlayerClearance : 0)
+    }
+}
+
+extension View {
+    func rootScrollBottomClearance(
+        theme: AppThemeProtocol,
+        isPodcastMiniPlayerVisible: Bool = false
+    ) -> some View {
+        safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear
+                .frame(height: RootScrollBottomSpacing.padding(
+                    theme: theme,
+                    isPodcastMiniPlayerVisible: isPodcastMiniPlayerVisible
+                ))
+                .accessibilityHidden(true)
+        }
+    }
+}

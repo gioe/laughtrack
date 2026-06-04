@@ -12,6 +12,7 @@ struct SearchRootView: View {
     @Binding private var selectedPrimitive: SearchRootModel.Pivot
 
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var podcastPlayer: PodcastPlaybackController
     @StateObject private var model = SearchRootModel()
     @StateObject private var showsModel: ShowsListModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
@@ -54,6 +55,10 @@ struct SearchRootView: View {
             .padding(.top, -4)
             .padding(.bottom, tokens.browseDensity.heroPadding)
         }
+        .rootScrollBottomClearance(
+            theme: theme,
+            isPodcastMiniPlayerVisible: podcastPlayer.currentItem != nil
+        )
         .accessibilityIdentifier(LaughTrackViewTestID.searchTabScreen)
         .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Search")
