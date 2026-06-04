@@ -180,43 +180,39 @@ struct ComedianRow: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
-    @Environment(\.appTheme) private var theme
 
     var body: some View {
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        HStack(spacing: theme.spacing.md) {
-            Button(action: openDetail) {
-                LaughTrackEntityRow(
-                    title: comedian.name,
-                    subtitle: Self.upcomingShowsText(for: comedian.showCount),
-                    systemImage: "music.mic",
-                    imageURL: comedian.imageUrl,
-                    showsDisclosureIndicator: true
-                )
-            }
-            .buttonStyle(.plain)
-
-            FavoriteButton(
-                isFavorite: isFavorite,
-                isPending: favorites.isPending(comedian.uuid)
-            ) {
-                let result = await favorites.toggle(
-                    uuid: comedian.uuid,
-                    currentValue: isFavorite,
-                    apiClient: apiClient,
-                    authManager: authManager
-                )
-                switch result {
-                case .updated(let next):
-                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                case .signInRequired:
-                    loginModalPresenter.present()
-                case .failure(let message):
-                    feedbackMessage = message
+        LaughTrackEntityRow(
+            title: comedian.name,
+            subtitle: Self.upcomingShowsText(for: comedian.showCount),
+            systemImage: "music.mic",
+            imageURL: comedian.imageUrl,
+            showsDisclosureIndicator: true,
+            action: openDetail,
+            trailingAccessory: {
+                FavoriteButton(
+                    isFavorite: isFavorite,
+                    isPending: favorites.isPending(comedian.uuid)
+                ) {
+                    let result = await favorites.toggle(
+                        uuid: comedian.uuid,
+                        currentValue: isFavorite,
+                        apiClient: apiClient,
+                        authManager: authManager
+                    )
+                    switch result {
+                    case .updated(let next):
+                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
+                    case .signInRequired:
+                        loginModalPresenter.present()
+                    case .failure(let message):
+                        feedbackMessage = message
+                    }
                 }
             }
-        }
+        )
     }
 
     static func upcomingShowsText(for showCount: Int) -> String {

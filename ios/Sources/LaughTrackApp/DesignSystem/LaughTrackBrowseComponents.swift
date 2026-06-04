@@ -358,7 +358,7 @@ struct LaughTrackEntityRowDesign: Equatable {
     )
 }
 
-struct LaughTrackEntityRow: View {
+struct LaughTrackEntityRow<TrailingAccessory: View>: View {
     @Environment(\.appTheme) private var theme
 
     let title: String
@@ -369,6 +369,9 @@ struct LaughTrackEntityRow: View {
     let accessoryTitle: String?
     let showsDisclosureIndicator: Bool
     let design: LaughTrackEntityRowDesign
+    let action: (() -> Void)?
+    let trailingAccessory: TrailingAccessory
+    let hasTrailingAccessory: Bool
 
     init(
         title: String,
@@ -379,6 +382,31 @@ struct LaughTrackEntityRow: View {
         accessoryTitle: String? = nil,
         showsDisclosureIndicator: Bool = false,
         design: LaughTrackEntityRowDesign = .searchCard
+    ) where TrailingAccessory == EmptyView {
+        self.title = title
+        self.subtitle = subtitle
+        self.metadata = metadata
+        self.systemImage = systemImage
+        self.imageURL = imageURL
+        self.accessoryTitle = accessoryTitle
+        self.showsDisclosureIndicator = showsDisclosureIndicator
+        self.design = design
+        self.action = nil
+        self.trailingAccessory = EmptyView()
+        self.hasTrailingAccessory = false
+    }
+
+    init(
+        title: String,
+        subtitle: String? = nil,
+        metadata: [String] = [],
+        systemImage: String,
+        imageURL: String? = nil,
+        accessoryTitle: String? = nil,
+        showsDisclosureIndicator: Bool = false,
+        design: LaughTrackEntityRowDesign = .searchCard,
+        action: (() -> Void)? = nil,
+        @ViewBuilder trailingAccessory: () -> TrailingAccessory
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -388,12 +416,44 @@ struct LaughTrackEntityRow: View {
         self.accessoryTitle = accessoryTitle
         self.showsDisclosureIndicator = showsDisclosureIndicator
         self.design = design
+        self.action = action
+        self.trailingAccessory = trailingAccessory()
+        self.hasTrailingAccessory = true
     }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
         HStack(spacing: theme.spacing.md) {
+            if let action {
+                Button(action: action) {
+                    rowContent
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                rowContent
+            }
+
+            if hasTrailingAccessory {
+                trailingAccessory
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: design.minHeight, alignment: .leading)
+        .padding(laughTrack.browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceMuted)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+
+    private var rowContent: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return HStack(spacing: theme.spacing.md) {
             artwork
 
             VStack(alignment: .leading, spacing: theme.spacing.xxs) {
@@ -433,15 +493,6 @@ struct LaughTrackEntityRow: View {
                     .foregroundStyle(laughTrack.colors.textSecondary)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: design.minHeight, alignment: .leading)
-        .padding(laughTrack.browseDensity.compactCardPadding)
-        .background(laughTrack.colors.surfaceMuted)
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderStrong.opacity(0.55), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .shadowStyle(laughTrack.shadows.card)
     }
 
     @ViewBuilder

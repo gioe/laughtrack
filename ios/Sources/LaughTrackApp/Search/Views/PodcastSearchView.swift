@@ -133,38 +133,39 @@ struct PodcastSearchRow: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var podcastFavorites: PodcastFavoriteStore
     @EnvironmentObject private var loginModalPresenter: LoginModalPresenter
-    @Environment(\.appTheme) private var theme
 
     var body: some View {
         let numericID = Self.numericID(for: podcast)
         let isFavorite = numericID.map { podcastFavorites.value(for: $0) } ?? false
 
-        HStack(spacing: theme.spacing.md) {
-            Button {
-                if let target = podcast.navigationTarget {
-                    coordinator.open(target)
+        LaughTrackEntityRow(
+            title: podcast.title,
+            subtitle: podcast.subtitle?.nonEmpty,
+            systemImage: "headphones",
+            imageURL: podcast.imageUrl,
+            design: .savedEntity,
+            action: rowAction,
+            trailingAccessory: {
+                if let numericID {
+                    FavoriteButton(
+                        isFavorite: isFavorite,
+                        isPending: podcastFavorites.isPending(numericID)
+                    ) {
+                        await toggle(podcastID: numericID, currentValue: isFavorite)
+                    }
                 }
-            } label: {
-                LaughTrackEntityRow(
-                    title: podcast.title,
-                    subtitle: podcast.subtitle?.nonEmpty,
-                    systemImage: "headphones",
-                    imageURL: podcast.imageUrl,
-                    design: .savedEntity
-                )
             }
-            .buttonStyle(.plain)
-            .disabled(podcast.navigationTarget == nil)
+        )
+    }
 
-            if let numericID {
-                FavoriteButton(
-                    isFavorite: isFavorite,
-                    isPending: podcastFavorites.isPending(numericID)
-                ) {
-                    await toggle(podcastID: numericID, currentValue: isFavorite)
-                }
-            }
-        }
+    private var rowAction: (() -> Void)? {
+        guard podcast.navigationTarget != nil else { return nil }
+        return openPodcastDetail
+    }
+
+    private func openPodcastDetail() {
+        guard let target = podcast.navigationTarget else { return }
+        coordinator.open(target)
     }
 
     private func toggle(podcastID: Int, currentValue: Bool) async {
