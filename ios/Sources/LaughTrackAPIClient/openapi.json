@@ -2493,7 +2493,7 @@
       },
       "PodcastDetailPodcast": {
         "type": "object",
-        "required": ["id", "slug", "title", "episodeCount"],
+        "required": ["id", "slug", "title", "episodeCount", "hosts"],
         "properties": {
           "id": { "type": "integer" },
           "slug": { "type": "string" },
@@ -2504,7 +2504,21 @@
           "imageUrl": { "type": ["string", "null"] },
           "description": { "type": ["string", "null"] },
           "episodeCount": { "type": "integer" },
+          "hosts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PodcastDetailHost" }
+          },
           "isFavorite": { "type": "boolean" }
+        }
+      },
+      "PodcastDetailHost": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" }
         }
       },
       "PodcastDetailEpisodeAppearance": {

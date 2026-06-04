@@ -1171,6 +1171,8 @@ public enum Components {
             public var description: Swift.String?
             /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/episodeCount`.
             public var episodeCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/hosts`.
+            public var hosts: [Components.Schemas.PodcastDetailHost]
             /// - Remark: Generated from `#/components/schemas/PodcastDetailPodcast/isFavorite`.
             public var isFavorite: Swift.Bool?
             /// Creates a new `PodcastDetailPodcast`.
@@ -1185,6 +1187,7 @@ public enum Components {
             ///   - imageUrl:
             ///   - description:
             ///   - episodeCount:
+            ///   - hosts:
             ///   - isFavorite:
             public init(
                 id: Swift.Int,
@@ -1196,6 +1199,7 @@ public enum Components {
                 imageUrl: Swift.String? = nil,
                 description: Swift.String? = nil,
                 episodeCount: Swift.Int,
+                hosts: [Components.Schemas.PodcastDetailHost],
                 isFavorite: Swift.Bool? = nil
             ) {
                 self.id = id
@@ -1207,6 +1211,7 @@ public enum Components {
                 self.imageUrl = imageUrl
                 self.description = description
                 self.episodeCount = episodeCount
+                self.hosts = hosts
                 self.isFavorite = isFavorite
             }
             public enum CodingKeys: String, CodingKey {
@@ -1219,7 +1224,43 @@ public enum Components {
                 case imageUrl
                 case description
                 case episodeCount
+                case hosts
                 case isFavorite
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/PodcastDetailHost`.
+        public struct PodcastDetailHost: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailHost/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailHost/uuid`.
+            public var uuid: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailHost/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/PodcastDetailHost/imageUrl`.
+            public var imageUrl: Swift.String
+            /// Creates a new `PodcastDetailHost`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - uuid:
+            ///   - name:
+            ///   - imageUrl:
+            public init(
+                id: Swift.Int,
+                uuid: Swift.String,
+                name: Swift.String,
+                imageUrl: Swift.String
+            ) {
+                self.id = id
+                self.uuid = uuid
+                self.name = name
+                self.imageUrl = imageUrl
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case uuid
+                case name
+                case imageUrl
             }
         }
         /// - Remark: Generated from `#/components/schemas/PodcastDetailEpisodeAppearance`.

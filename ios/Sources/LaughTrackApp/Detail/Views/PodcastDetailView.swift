@@ -18,6 +18,14 @@ struct PodcastDetail: Decodable, Equatable {
     let imageUrl: String?
     let description: String?
     let episodeCount: Int
+    let hosts: [PodcastDetailHost]
+}
+
+struct PodcastDetailHost: Decodable, Identifiable, Equatable {
+    let id: Int
+    let uuid: String
+    let name: String
+    let imageUrl: String
 }
 
 struct PodcastDetailEpisode: Decodable, Identifiable, Equatable {
@@ -157,7 +165,9 @@ struct PodcastDetailView: View {
                             imageURL: response.podcast.imageUrl ?? "",
                             badges: PodcastDetailPresentation.heroBadges(for: response.podcast),
                             actions: PodcastDetailPresentation.heroActions(for: response.podcast),
+                            hosts: PodcastDetailPresentation.heroHosts(for: response.podcast),
                             openURL: { url in openURL(url) },
+                            openComedian: { coordinator.open(.comedian($0)) },
                             fallbackSystemImage: "headphones"
                         )
                         .ignoresSafeArea(.container, edges: .top)
@@ -225,24 +235,23 @@ struct PodcastDetailView: View {
 
 enum PodcastDetailPresentation {
     static func heroBadges(for podcast: PodcastDetail) -> [DetailHeroBadge] {
-        var badges: [DetailHeroBadge] = []
-        if let authorName = podcast.authorName, !authorName.isEmpty {
-            badges.append(
-                DetailHeroBadge(
-                    title: "Hosted by \(authorName)",
-                    systemImage: "person.fill",
-                    tone: .neutral
-                )
-            )
-        }
-        badges.append(
+        [
             DetailHeroBadge(
                 title: "\(podcast.episodeCount) episodes",
                 systemImage: "headphones",
                 tone: .accent
             )
-        )
-        return badges
+        ]
+    }
+
+    static func heroHosts(for podcast: PodcastDetail) -> [DetailHeroHost] {
+        podcast.hosts.map { host in
+            DetailHeroHost(
+                id: host.id,
+                name: host.name,
+                imageURL: host.imageUrl
+            )
+        }
     }
 
     static func heroActions(for podcast: PodcastDetail) -> [DetailHeroAction] {

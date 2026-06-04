@@ -73,13 +73,40 @@ struct PodcastDetailViewTests {
 
         #expect(
             PodcastDetailPresentation.heroBadges(for: podcast).map(\.title)
-                == ["Hosted by Laugh Track Network", "12 episodes"]
+                == ["12 episodes"]
         )
         #expect(actions.map(\.title) == ["Website", "RSS"])
         #expect(actions.compactMap(\.url).map(\.absoluteString) == [
             "https://podcasts.example.com",
             "https://podcasts.example.com/feed.xml",
         ])
+    }
+
+    @Test("podcast detail hero exposes internal host comedians, ignoring RSS author")
+    func podcastDetailHeroHostsExposeInternalComedians() {
+        let podcast = PodcastDetailViewTests.makeResponse().podcast
+        let hosts = PodcastDetailPresentation.heroHosts(for: podcast)
+
+        #expect(hosts.map(\.id) == [101])
+        #expect(hosts.map(\.name) == ["Mark Normand"])
+        #expect(hosts.map(\.imageURL) == ["https://cdn.example.com/mark.jpg"])
+    }
+
+    @Test("podcast detail hero hosts are empty when no internal host is linked")
+    func podcastDetailHeroHostsEmptyWhenNoInternalHost() {
+        let podcast = PodcastDetail(
+            id: 99,
+            title: "Network-Owned Podcast",
+            authorName: "Generic Network",
+            websiteUrl: nil,
+            feedUrl: nil,
+            imageUrl: nil,
+            description: nil,
+            episodeCount: 3,
+            hosts: []
+        )
+
+        #expect(PodcastDetailPresentation.heroHosts(for: podcast).isEmpty)
     }
 
     private static func makeResponse() -> PodcastDetailResponse {
@@ -92,7 +119,15 @@ struct PodcastDetailViewTests {
                 feedUrl: "https://podcasts.example.com/feed.xml",
                 imageUrl: "https://cdn.example.com/podcast.jpg",
                 description: "Comedy conversations.",
-                episodeCount: 12
+                episodeCount: 12,
+                hosts: [
+                    PodcastDetailHost(
+                        id: 101,
+                        uuid: "demo-comedian-101",
+                        name: "Mark Normand",
+                        imageUrl: "https://cdn.example.com/mark.jpg"
+                    )
+                ]
             ),
             episodes: [
                 PodcastDetailEpisode(
