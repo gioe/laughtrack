@@ -169,27 +169,29 @@ struct DetailHero: View {
                     }
 
                     if let openComedian, !hosts.isEmpty {
-                        HStack(spacing: theme.spacing.md) {
-                            ForEach(hosts, id: \.id) { host in
-                                Button {
-                                    openComedian(host.id)
-                                } label: {
-                                    VStack(spacing: DetailHeroLayout.actionLabelVerticalGap) {
-                                        hostAvatar(for: host)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: theme.spacing.md) {
+                                ForEach(hosts, id: \.id) { host in
+                                    Button {
+                                        openComedian(host.id)
+                                    } label: {
+                                        VStack(spacing: DetailHeroLayout.actionLabelVerticalGap) {
+                                            hostAvatar(for: host)
 
-                                        Text("Host")
-                                            .font(laughTrack.typography.metadata)
-                                            .foregroundStyle(Color.white)
-                                            .shadow(
-                                                color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
-                                                radius: 3,
-                                                x: 0,
-                                                y: 2
-                                            )
+                                            Text("Host")
+                                                .font(laughTrack.typography.metadata)
+                                                .foregroundStyle(Color.white)
+                                                .shadow(
+                                                    color: .black.opacity(DetailHeroLayout.heroTextShadowOpacity),
+                                                    radius: 3,
+                                                    x: 0,
+                                                    y: 2
+                                                )
+                                        }
                                     }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel("\(host.name), host")
                                 }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("\(host.name), host")
                             }
                         }
                     }

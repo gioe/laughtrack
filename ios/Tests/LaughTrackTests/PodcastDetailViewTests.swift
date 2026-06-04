@@ -109,6 +109,33 @@ struct PodcastDetailViewTests {
         #expect(PodcastDetailPresentation.heroHosts(for: podcast).isEmpty)
     }
 
+    @Test("podcast detail hero hosts pass through empty image URLs from server")
+    func podcastDetailHeroHostsPassThroughEmptyImageURL() {
+        let podcast = PodcastDetail(
+            id: 99,
+            title: "Test Podcast",
+            authorName: nil,
+            websiteUrl: nil,
+            feedUrl: nil,
+            imageUrl: nil,
+            description: nil,
+            episodeCount: 1,
+            hosts: [
+                PodcastDetailHost(
+                    id: 200,
+                    uuid: "host-without-image",
+                    name: "Image-less Host",
+                    imageUrl: ""
+                )
+            ]
+        )
+
+        let hosts = PodcastDetailPresentation.heroHosts(for: podcast)
+
+        #expect(hosts.map(\.id) == [200])
+        #expect(hosts.map(\.imageURL) == [""])
+    }
+
     private static func makeResponse() -> PodcastDetailResponse {
         PodcastDetailResponse(
             podcast: PodcastDetail(
