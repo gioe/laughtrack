@@ -162,9 +162,11 @@ xcrun simctl boot <UDID>
 # then retry test_sim / xcodebuild test-without-building
 ```
 
-The XcodeBuildMCP equivalent is `stop_app_sim` followed by `boot_sim`. Don't
-try to disable Firebase or strip the plist as a one-off — the next agent will
-hit it cold. Treat the reboot as the documented recipe until/unless someone
+XcodeBuildMCP has `boot_sim` but no `shutdown_sim` wrapper — `stop_app_sim`
+only kills the host app process and does not clear the sim's networking
+state. Run the `xcrun simctl shutdown` step directly (then `boot_sim` or
+`xcrun simctl boot` works for the re-boot). Don't try to disable Firebase or
+strip the plist as a one-off — the next agent will hit it cold. Treat the reboot as the documented recipe until/unless someone
 short-circuits Firebase startup under XCTest (e.g. guarding
 `FirebaseApp.configure()` on the absence of `XCTestConfigurationFilePath`,
 which `xctest` sets on test-bundle load).
