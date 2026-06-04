@@ -137,6 +137,11 @@ struct AppShellViewTests {
                 .environmentObject(PodcastFavoriteStore())
                 .environmentObject(ClubFavoriteStore())
                 .environmentObject(PodcastPlaybackController(audioEngine: ShellRecordingPodcastAudioEngine()))
+                .environmentObject(
+                    LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(
+                        name: "shell-favorites-load"
+                    )
+                )
         )
         await host.settle()
 
@@ -174,6 +179,11 @@ struct AppShellViewTests {
             .environmentObject(PodcastFavoriteStore())
             .environmentObject(ClubFavoriteStore())
             .environmentObject(player)
+            .environmentObject(
+                LaughTrackHostedViewTestSupport.makeSoftPushPromptCoordinator(
+                    name: "shell-mini-player"
+                )
+            )
         )
         await host.settle()
 

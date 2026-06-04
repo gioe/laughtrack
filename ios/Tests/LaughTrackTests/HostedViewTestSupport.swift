@@ -30,6 +30,26 @@ enum LaughTrackHostedViewTestSupport {
         return NotificationPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
     }
 
+    /// Construct a fully-stubbed `SoftPushPromptCoordinator` for tests that mount
+    /// `AppShellView` (or any descendant that resolves the coordinator via
+    /// `@EnvironmentObject`). Each call gets its own UUID-isolated UserDefaults
+    /// suite so no state bleeds between tests; the authorization provider is
+    /// pinned to `.notDetermined` and the requester always reports false so
+    /// neither the system push prompt nor any persistent counter can mutate
+    /// real user defaults if an engagement signal does fire mid-test.
+    static func makeSoftPushPromptCoordinator(name: String) -> SoftPushPromptCoordinator {
+        let suiteName = "LaughTrackHostedViewTestSupport.softPush.\(name).\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        let storage = AppStateStorage(userDefaults: defaults)
+        return SoftPushPromptCoordinator(
+            stateStore: PushPermissionStateStore(appStateStorage: storage),
+            notificationPreferenceStore: NotificationPreferenceStore(appStateStorage: storage),
+            authorizationStatusProvider: SingleStatusPushAuthorizationStatusProvider(status: .notDetermined),
+            authorizationRequester: RecordingPushAuthorizationRequester(result: false)
+        )
+    }
+
     static func makeNearbyLocationResolver() -> any NearbyLocationResolving {
         StubNearbyLocationResolver()
     }
