@@ -37,4 +37,15 @@ enum UITestLaunchArgs {
     /// signed-in-user + live `POST /favorites` round-trip the production
     /// favorite-tap path requires. Value is the integer count as a string.
     static let simulatePostOnboardingFavoriteCount = "UITEST_SIMULATE_POST_ONBOARDING_FAVORITE_COUNT"
+
+    /// Launch-environment key (NOT a launch argument): DEBUG-only developer
+    /// seam. When set to `"1"`, `ContentView.shouldPresentComedianOnboarding`
+    /// short-circuits to `true` so the comedian-onboarding screen renders on
+    /// every relaunch even after the signed-in user's server-side
+    /// `comedianOnboardingCompleted` is `true`. Lets a dev iterate on the
+    /// onboarding UX without repeatedly `PATCH`-ing `/v1/me` against the
+    /// dev account. Centralised here alongside the other launch keys for
+    /// discoverability; the gate is `#if DEBUG`-guarded so the env var has
+    /// no effect in TestFlight / App Store builds.
+    static let forceComedianOnboarding = "FORCE_COMEDIAN_ONBOARDING"
 }

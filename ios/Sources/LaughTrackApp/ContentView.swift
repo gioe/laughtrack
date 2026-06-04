@@ -262,6 +262,18 @@ struct ContentView: View {
               let currentUser
         else { return false }
 
+#if DEBUG
+        // FORCE_COMEDIAN_ONBOARDING=1 forces the comedian-onboarding screen
+        // on every relaunch even when the signed-in user's server-side
+        // `comedianOnboardingCompleted` is true. Mirrors the existing
+        // `LAUNCHTRACK_DEBUG_ROUTE` env-var pattern; the key is centralized
+        // in `UITestLaunchArgs.forceComedianOnboarding`. Compiled out of
+        // release builds.
+        if ProcessInfo.processInfo.environment[UITestLaunchArgs.forceComedianOnboarding] == "1" {
+            return true
+        }
+#endif
+
         return !currentUser.comedianOnboardingCompleted
     }
 
