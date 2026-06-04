@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { isAdminSession } from "@/lib/auth/requireAdmin";
 import AdminDenyListManager, {
     type AdminDenyListEntry,
 } from "@/ui/pages/admin/deny-list/AdminDenyListManager";
+import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
 import { Button } from "@/ui/components/ui/button";
 
 export const dynamic = "force-dynamic";
@@ -54,41 +54,38 @@ export default async function AdminDenyListPage(props: {
         `;
 
     const entries = rows.map(serializeRow);
+    const entryLabel = `${entries.length.toLocaleString()} entr${entries.length === 1 ? "y" : "ies"}`;
+    const summary = query
+        ? `${entryLabel} matching "${query}"`
+        : entryLabel;
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-            <div className="mb-4 text-sm">
-                <Link
-                    href="/admin/clubs"
-                    className="text-copper-dark hover:underline"
-                >
-                    ← Admin clubs
-                </Link>
-            </div>
-            <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold mb-1">
-                        Admin · Deny List
-                    </h1>
-                    <p className="text-sm text-gray-700">
-                        {entries.length} entr
-                        {entries.length === 1 ? "y" : "ies"}
-                        {query ? ` matching "${query}"` : ""}
-                    </p>
-                </div>
-                <form method="get" className="flex gap-2 md:min-w-[360px]">
+        <div className="space-y-6">
+            <AdminPageHeader
+                eyebrow="Admin · Deny List"
+                title="Comedian deny list"
+                description="Names blocked from ingest. Add a new entry to suppress future scrapes, or remove an entry to allow re-ingest."
+                summary={summary}
+            />
+
+            <form
+                method="get"
+                className="grid gap-3 rounded-md border border-copper/25 bg-white p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
+            >
+                <label className="grid gap-1 font-dmSans text-body font-semibold text-cedar">
+                    Search
                     <input
-                        type="text"
+                        type="search"
                         name="q"
                         defaultValue={query}
                         placeholder="Search name, reason, actor"
-                        className="min-w-0 flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
+                        className="w-full rounded-md border border-soft-charcoal/30 bg-white px-3 py-2 font-dmSans text-body text-cedar outline-none placeholder:text-soft-charcoal focus:border-copper focus:ring-2 focus:ring-copper/30"
                     />
-                    <Button type="submit" variant="roundedShimmer">
-                        Search
-                    </Button>
-                </form>
-            </div>
+                </label>
+                <Button type="submit" variant="roundedShimmer">
+                    Search
+                </Button>
+            </form>
 
             <AdminDenyListManager entries={entries} />
         </div>
