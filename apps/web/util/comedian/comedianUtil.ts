@@ -13,7 +13,7 @@ type LineupComedian = {
     name: string;
     hasImage?: boolean | null;
     visible?: boolean | null;
-    parentComedian?: LineupComedian | null;
+    parentComedian?: (LineupComedian & { visible: boolean }) | null;
     taggedComedians?: TaggedComedian[] | null;
     favoriteComedians?: unknown[] | null;
     linktree?: string | null;
@@ -96,7 +96,7 @@ export const getEffectiveComedian = <
     TParent extends object = TComedian,
 >(
     comedian: TComedian & {
-        parentComedian?: (TParent & { visible?: boolean | null }) | null;
+        parentComedian?: (TParent & { visible: boolean }) | null;
     },
 ): TComedian | TParent => {
     const parent = comedian.parentComedian;
