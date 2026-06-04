@@ -21,7 +21,7 @@ export default async function AdminLayout({
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 md:px-8">
                     <AdminNavigationMenu />
                     <Link
-                        href="/admin"
+                        href="/admin/users"
                         className="flex min-w-0 flex-1 items-center gap-3"
                         aria-label="LaughTrack Admin home"
                     >
