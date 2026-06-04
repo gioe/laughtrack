@@ -155,7 +155,10 @@ implementation of this decision on the admin surface.
 
 3. **Backfill** — for each deny-list row whose normalized name matches an
    existing comedian, set that comedian's `visible=false` and remove the
-   deny-list row in the same statement:
+   deny-list row in a single statement. The UPDATE and DELETE share one
+   CTE chain so that the DELETE can reference the same `matched` set the
+   UPDATE consumed; splitting them into two statements would put `matched`
+   out of scope for the DELETE and the migration would error mid-flight:
 
    ```sql
    WITH matched AS (
@@ -166,17 +169,28 @@ implementation of this decision on the admin surface.
                                      '[[:space:]]+', ' ', 'g')))
         = lower(btrim(regexp_replace(replace(d.name, chr(160), ' '),
                                      '[[:space:]]+', ' ', 'g')))
+   ),
+   promoted AS (
+     UPDATE comedians SET visible = false
+     WHERE id IN (SELECT comedian_id FROM matched)
+     RETURNING id
    )
-   UPDATE comedians SET visible = false
-   WHERE id IN (SELECT comedian_id FROM matched);
-
    DELETE FROM comedian_deny_list
    WHERE name IN (SELECT deny_name FROM matched);
    ```
 
-   After this step the residual `comedian_deny_list` contains only orphan
-   name-only entries (~1,642 expected; exact count to be verified against
-   production at migration time).
+   After this statement the residual `comedian_deny_list` contains only
+   orphan name-only entries (~1,642 expected; exact count to be verified
+   against production at migration time).
+
+   The normalized-name JOIN cannot use the existing index on
+   `comedians.name` because both sides apply
+   `lower(btrim(regexp_replace(...)))`. With ~50k comedians and ~1,990
+   deny-list rows, expect a sequential expression-match. This is
+   acceptable for a one-shot migration; if measured runtime is
+   unreasonable, the implementation task can add a functional index on
+   `comedians (lower(btrim(regexp_replace(name, ...))))` immediately
+   before the backfill and drop it immediately after.
 
 ### Application changes that ship with the migration
 
@@ -205,14 +219,28 @@ The rollback is data-safe because step 2 snapshots the original deny-list
 before step 3 mutates it:
 
 1. **Application code**: standard `git revert` of the application PRs.
-2. **Data**: restore the deny-list from the archive snapshot —
+2. **Data**: restore the deny-list from the archive snapshot, then unhide
+   only the comedians that were promoted from the deny-list at migration
+   time. The `visible=true` update is scoped through the archive so that
+   any comedians an admin operator legitimately hid after the migration
+   (during the soak period) stay hidden through the rollback:
 
    ```sql
    TRUNCATE comedian_deny_list;
    INSERT INTO comedian_deny_list (name, reason, deleted_at, added_by)
      SELECT name, reason, deleted_at, added_by
      FROM   comedian_deny_list_archive_pre_consolidation;
-   UPDATE comedians SET visible = true WHERE visible = false;
+
+   UPDATE comedians SET visible = true
+   WHERE id IN (
+     SELECT c.id
+     FROM   comedians c
+     JOIN   comedian_deny_list_archive_pre_consolidation a
+       ON lower(btrim(regexp_replace(replace(c.name, chr(160), ' '),
+                                     '[[:space:]]+', ' ', 'g')))
+        = lower(btrim(regexp_replace(replace(a.name, chr(160), ' '),
+                                     '[[:space:]]+', ' ', 'g')))
+   );
    ```
 
 3. **Schema**: `ALTER TABLE comedians DROP COLUMN visible;`. No application
