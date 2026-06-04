@@ -543,30 +543,60 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         return allowed
 
     def _filter_denied_comedians(self, comedians: List[Comedian]) -> List[Comedian]:
-        """Return comedians whose names are NOT on the deny list.
+        """Return comedians whose names are NEITHER hidden in comedians NOR on the
+        residual deny list.
 
-        Names that are denied are logged at warn level and excluded from the result.
+        Two-stage suppression check per docs/comedian-visible-consolidation.md
+        Decision 1:
+
+        1. comedians table: names matching a row with ``visible=false``
+           (canonical "hidden" — comedian was ingested, then suppressed)
+        2. comedian_deny_list table: orphan name-only blocks (names that have
+           never been ingested as a comedian row)
+
+        The two stages are independent: a failure in stage 1 (e.g. the
+        ``visible`` column not yet deployed) does not skip stage 2. Names
+        flagged by either stage are excluded and logged.
         """
         names = [_normalize_deny_list_name(c.name) for c in comedians]
+        suppressed: set = set()
+
         try:
-            rows = self.execute_with_cursor(
+            hidden_rows = self.execute_with_cursor(
+                ComedianQueries.GET_HIDDEN_COMEDIAN_NAMES, (names,), return_results=True
+            ) or []
+            suppressed.update(
+                _normalize_deny_list_name(row["name"]) for row in hidden_rows
+            )
+        except Exception as e:
+            # comedians.visible column unavailable (migration not yet applied);
+            # log and fall through to the deny-list stage.
+            Logger.warn(
+                f"_filter_denied_comedians: hidden-comedian query failed, skipping stage: {e}"
+            )
+
+        try:
+            deny_rows = self.execute_with_cursor(
                 ComedianQueries.GET_DENIED_NAMES, (names,), return_results=True
             ) or []
+            suppressed.update(
+                _normalize_deny_list_name(row["name"]) for row in deny_rows
+            )
         except Exception as e:
-            # If the deny-list table is unavailable (e.g. migration not yet applied),
-            # log and proceed rather than blocking all ingestion.
-            Logger.warn(f"_filter_denied_comedians: deny-list query failed, skipping filter: {e}")
-            return comedians
+            # comedian_deny_list table unavailable; log and proceed with whatever
+            # stage 1 produced rather than blocking all ingestion.
+            Logger.warn(
+                f"_filter_denied_comedians: deny-list query failed, skipping stage: {e}"
+            )
 
-        denied = {_normalize_deny_list_name(row["name"]) for row in rows}
-        if not denied:
+        if not suppressed:
             return comedians
 
         allowed = [
-            c for c in comedians if _normalize_deny_list_name(c.name) not in denied
+            c for c in comedians if _normalize_deny_list_name(c.name) not in suppressed
         ]
-        for name in denied:
-            Logger.warn(f"lineup_filter: skipping deny-listed name '{name}'")
+        for name in suppressed:
+            Logger.warn(f"lineup_filter: skipping suppressed name '{name}'")
         return allowed
 
     def source_images_for_new_comedians(self, comedian_names: List[str]) -> int:

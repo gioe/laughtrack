@@ -652,14 +652,66 @@ class TestFilterDeniedComedians:
         handler = _make_handler()
         blocked = _make_stub("🔥👀\u00a0TEASE ME TUESDAYS…👀🔥")
         allowed = _make_stub("Dave Chappelle")
-        handler.execute_with_cursor.return_value = [
-            {"name": "🔥👀 TEASE ME TUESDAYS…👀🔥"},
+        # Both stages query with the same normalized names; the deny-list
+        # stage returns the suppressed name. The visible-comedian stage
+        # returns empty (the row was never ingested as a comedian).
+        handler.execute_with_cursor.side_effect = [
+            [],
+            [{"name": "🔥👀 TEASE ME TUESDAYS…👀🔥"}],
         ]
 
         with patch.object(_comedian_handler_mod, "Logger"):
             result = handler._filter_denied_comedians([blocked, allowed])
 
         assert result == [allowed]
-        args = handler.execute_with_cursor.call_args[0]
-        assert args[0] == ComedianQueries.GET_DENIED_NAMES
-        assert args[1] == (["🔥👀 tease me tuesdays…👀🔥", "dave chappelle"],)
+        # Second (deny-list) call carries the same normalized name set the
+        # original test asserted against — the contract did not change.
+        deny_call = handler.execute_with_cursor.call_args_list[1][0]
+        assert deny_call[0] == ComedianQueries.GET_DENIED_NAMES
+        assert deny_call[1] == (["🔥👀 tease me tuesdays…👀🔥", "dave chappelle"],)
+
+    def test_insert_comedians_skips_hidden(self):
+        """Names matching a comedians row with visible=false are filtered at
+        stage 1 (GET_HIDDEN_COMEDIAN_NAMES), before the deny-list stage is
+        consulted. Validates the two-stage check per
+        docs/comedian-visible-consolidation.md Decision 1.
+        """
+        handler = _make_handler()
+        hidden = _make_stub("HiddenComedian")
+        allowed = _make_stub("AllowedComedian")
+        # Stage 1 returns the hidden name; stage 2 returns nothing. Both
+        # stages always run so the deny-list check is not short-circuited.
+        handler.execute_with_cursor.side_effect = [
+            [{"name": "HiddenComedian"}],
+            [],
+        ]
+
+        with patch.object(_comedian_handler_mod, "Logger"):
+            result = handler._filter_denied_comedians([hidden, allowed])
+
+        assert result == [allowed]
+        assert handler.execute_with_cursor.call_count == 2
+        hidden_call = handler.execute_with_cursor.call_args_list[0][0]
+        assert hidden_call[0] == ComedianQueries.GET_HIDDEN_COMEDIAN_NAMES
+        assert hidden_call[1] == (["hiddencomedian", "allowedcomedian"],)
+        deny_call = handler.execute_with_cursor.call_args_list[1][0]
+        assert deny_call[0] == ComedianQueries.GET_DENIED_NAMES
+
+    def test_hidden_query_failure_falls_through_to_deny_list(self):
+        """Stage 1 failure (e.g. visible column not yet deployed) must not
+        prevent stage 2 from running. Regression guard for the rollout
+        window when the scraper ships before the Prisma migration.
+        """
+        handler = _make_handler()
+        denied = _make_stub("DeniedName")
+        allowed = _make_stub("AllowedName")
+        handler.execute_with_cursor.side_effect = [
+            RuntimeError("column \"visible\" does not exist"),
+            [{"name": "DeniedName"}],
+        ]
+
+        with patch.object(_comedian_handler_mod, "Logger"):
+            result = handler._filter_denied_comedians([denied, allowed])
+
+        assert result == [allowed]
+        assert handler.execute_with_cursor.call_count == 2

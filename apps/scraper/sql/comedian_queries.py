@@ -163,6 +163,18 @@ class ComedianQueries:
         WHERE lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) = ANY(%s)
     '''
 
+    # Check which names in a given list match existing comedians.visible=false rows.
+    # Companion to GET_DENIED_NAMES — together they form the two-stage suppression
+    # check per docs/comedian-visible-consolidation.md Decision 1: hidden comedians
+    # (already ingested, suppressed via visible=false) + orphan deny-list names
+    # (never ingested, pre-emptively blocked by name).
+    GET_HIDDEN_COMEDIAN_NAMES = '''
+        SELECT name
+        FROM comedians
+        WHERE visible = false
+          AND lower(btrim(regexp_replace(replace(name, chr(160), ' '), '[[:space:]]+', ' ', 'g'))) = ANY(%s)
+    '''
+
     BATCH_SET_HAS_IMAGE_TRUE = '''
         UPDATE comedians
         SET has_image = true
