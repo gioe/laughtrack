@@ -73,6 +73,41 @@ The duplicated 4–6 line block is a deliberate trade-off — small enough to co
 robust to refactoring, and avoids hardcoded `parents[N]` indices. See TASK-1789
 for the full rationale.
 
+## Suppressing Comedians (hide vs delete vs deny)
+
+Three paths exist for "stop showing a comedian". Pick the one that matches the
+situation, not the one closest at hand. The full policy lives in
+`docs/comedian-visible-consolidation.md`; this section is the operator-facing
+decision tree.
+
+- **`scripts/core/hide_comedians.py`** — the default for operator-driven
+  removal. Flips `comedians.visible = false` for names that match a row;
+  preserves `lineup_items`, favorites, podcast appearances, and social
+  handles. Names with no matching `comedians` row are added to
+  `comedian_deny_list` as orphan name-only blocks. Reversible (un-hide by
+  flipping the flag back). Use this for borderline cases, mistaken merges,
+  legal/operational suppression of real comedians, and anything an admin
+  could later want to reverse.
+- **`scripts/core/audit_false_positive_comedians.py`** — hard delete. The
+  explicit override for confirmed garbage rows (parse artifacts,
+  placeholders, structural false positives, "X & Y" composites that the
+  name-splitter would now reject). Removes `lineup_items` then the
+  `comedians` row, then INSERTs the name into `comedian_deny_list` so the
+  same string cannot reappear via a future scrape. Use this only when the
+  comedian record itself is wrong — never to hide a real comedian.
+- **Admin UI hide** (web admin, after TASK-2640 lands) — same DB effect as
+  `hide_comedians.py` but through the admin surface. Audit-logged via
+  `writeAdminActionAudit`. Prefer this over the CLI when you have an admin
+  session open.
+
+Ingest is gated by a two-stage check in
+`src/laughtrack/core/entities/comedian/handler.py::_filter_denied_comedians`:
+(1) does a comedians row exist with `visible = false` matching this
+normalized name? skip. (2) Otherwise, is the normalized name in the
+residual `comedian_deny_list`? skip. Both stages are independent so a
+missing `visible` column at deploy time falls through to the deny-list
+check rather than blocking ingestion entirely.
+
 ## Testing Patterns
 
 These patterns apply whenever writing or modifying test files in `apps/scraper/tests/`.
