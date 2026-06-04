@@ -42,6 +42,13 @@ FROM "comedian_deny_list";
 -- _normalize_deny_list_name). With ~50k comedians and ~1,990 deny-list rows,
 -- this is a one-shot sequential expression match; the ADR notes that a
 -- temporary functional index can be added if measured runtime is excessive.
+--
+-- The `promoted` CTE runs the UPDATE as a side-effect of WITH evaluation —
+-- data-modifying CTEs execute even when their RETURNING value is not read
+-- by the outer statement (see Postgres docs on WITH). The DELETE references
+-- `matched` (the SELECT-only CTE) so it consumes the same name set the
+-- UPDATE targeted; both statements share one snapshot, preventing a
+-- comedian from being un-promoted between the UPDATE and the DELETE.
 WITH matched AS (
     SELECT c.id   AS comedian_id,
            d.name AS deny_name

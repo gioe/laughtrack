@@ -161,7 +161,9 @@ def _confirm_hide(names: list, already_denied: set, found: dict) -> None:
                     """,
                     deny_rows,
                 )
-                denied_count = len(deny_rows)
+                # Report actual inserts: ON CONFLICT DO NOTHING silently
+                # skips pre-existing names, so len(deny_rows) would overstate.
+                denied_count = cur.rowcount
 
     print(
         f"Hid {hidden} comedian record(s) (lineup_items preserved). "
