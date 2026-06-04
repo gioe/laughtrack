@@ -181,6 +181,47 @@ struct MainPageCacheTests {
     }
 }
 
+@Suite("Home feed load coalescing")
+@MainActor
+struct HomeFeedLoadCoalescingTests {
+    @Test("concurrent Discover rails coalesce matching home feed requests")
+    func concurrentDiscoverRailsCoalesceMatchingHomeFeedRequests() async {
+        let zipCode = uniqueCacheKey("test-cache-coalescing")
+        let cache = DataCache<LaughTrackCacheKey>()
+        let transport = CountingHomeFeedTransport(
+            result: .success(homeFeed(showID: 720)),
+            responseDelay: .milliseconds(100)
+        )
+        let showsModel = HomeShowsTonightModel()
+        let comediansModel = HomeTrendingComediansModel()
+        let clubsModel = HomePopularClubsModel()
+        let client = makeClient(transport)
+
+        async let showsRefresh: Void = showsModel.refresh(
+            apiClient: client,
+            zipCode: zipCode,
+            cache: cache,
+            persistentCache: nil
+        )
+        async let comediansRefresh: Void = comediansModel.refresh(
+            apiClient: client,
+            zipCode: zipCode,
+            cache: cache,
+            persistentCache: nil
+        )
+        async let clubsRefresh: Void = clubsModel.refresh(
+            apiClient: client,
+            zipCode: zipCode,
+            cache: cache,
+            persistentCache: nil
+        )
+
+        _ = await (showsRefresh, comediansRefresh, clubsRefresh)
+
+        #expect(transport.requestCount == 1)
+    }
+}
+
 private func temporaryDirectory() throws -> URL {
     let directory = FileManager.default.temporaryDirectory
         .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -245,9 +286,11 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
 
     private let lock = NSLock()
     var result: Response
+    let responseDelay: Duration?
 
-    init(result: Response) {
+    init(result: Response, responseDelay: Duration? = nil) {
         self.result = result
+        self.responseDelay = responseDelay
     }
 
     var requestCount: Int {
@@ -264,6 +307,9 @@ private final class CountingHomeFeedTransport: ClientTransport, @unchecked Senda
     ) async throws -> (HTTPResponse, HTTPBody?) {
         lock.withLock {
             count += 1
+        }
+        if let responseDelay {
+            try await Task.sleep(for: responseDelay)
         }
 
         switch result {

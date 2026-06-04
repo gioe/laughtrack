@@ -1724,8 +1724,59 @@ enum MainPageCache {
     }
 }
 
+private actor HomeFeedRequestCoalescer {
+    static let shared = HomeFeedRequestCoalescer()
+
+    private var inFlight: [String: Task<Result<Components.Schemas.HomeFeed, LoadFailure>, Never>] = [:]
+
+    func load(
+        requestKey: String,
+        operation: @escaping @Sendable () async -> Result<Components.Schemas.HomeFeed, LoadFailure>
+    ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
+        if let task = inFlight[requestKey] {
+            return await task.value
+        }
+
+        let task = Task {
+            await operation()
+        }
+        inFlight[requestKey] = task
+        let result = await task.value
+        inFlight[requestKey] = nil
+        return result
+    }
+}
+
 private enum HomeFeedRequest {
     static func load(
+        apiClient: Client,
+        zipCode: String?,
+        cache: DataCache<LaughTrackCacheKey>?,
+        cacheTTL: TimeInterval,
+        badParamsMessage: String,
+        rateLimitMessage: String,
+        undocumentedContext: String,
+        networkContext: String,
+        networkMessage: String,
+        persistentCache: PersistentMainPageCache?
+    ) async -> Result<Components.Schemas.HomeFeed, LoadFailure> {
+        await HomeFeedRequestCoalescer.shared.load(requestKey: zipCode ?? "") {
+            await fetch(
+                apiClient: apiClient,
+                zipCode: zipCode,
+                cache: cache,
+                cacheTTL: cacheTTL,
+                badParamsMessage: badParamsMessage,
+                rateLimitMessage: rateLimitMessage,
+                undocumentedContext: undocumentedContext,
+                networkContext: networkContext,
+                networkMessage: networkMessage,
+                persistentCache: persistentCache
+            )
+        }
+    }
+
+    private static func fetch(
         apiClient: Client,
         zipCode: String?,
         cache: DataCache<LaughTrackCacheKey>?,
