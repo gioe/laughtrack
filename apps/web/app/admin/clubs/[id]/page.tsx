@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { db } from "@/lib/db";
 import AdminClubEditor from "@/ui/pages/admin/clubs/AdminClubEditor";
+import AdminPageHeader from "@/ui/pages/admin/shared/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -33,26 +33,25 @@ export default async function AdminClubEditPage(props: {
             ? (club.hours as Record<string, unknown>)
             : null;
 
+    const location = [club.city, club.state].filter(Boolean).join(", ");
+
     return (
-        <div className="mx-auto max-w-3xl">
-            <div className="mb-4 text-sm">
-                <Link
-                    href="/admin/clubs"
-                    className="text-copper-dark hover:underline"
-                >
-                    ← All clubs
-                </Link>
-            </div>
-            <h1 className="text-2xl font-bold mb-1">{club.name}</h1>
-            <div className="text-sm text-gray-700 mb-6">
-                {[club.city, club.state].filter(Boolean).join(", ") || "—"}
-            </div>
-            <AdminClubEditor
-                clubId={club.id}
-                clubName={club.name}
-                initialDescription={club.description ?? ""}
-                initialHours={initialHours}
+        <div className="space-y-6">
+            <AdminPageHeader
+                eyebrow={`Admin · Clubs · ${club.name}`}
+                title="Club details"
+                description="Edit venue description and operating hours."
+                summary={location || undefined}
             />
+
+            <div className="max-w-3xl">
+                <AdminClubEditor
+                    clubId={club.id}
+                    clubName={club.name}
+                    initialDescription={club.description ?? ""}
+                    initialHours={initialHours}
+                />
+            </div>
         </div>
     );
 }
