@@ -44,6 +44,7 @@ const SHOW_SELECT = {
     lineupItems: {
         where: {
             comedian: {
+                visible: true,
                 taggedComedians: {
                     none: {
                         tag: {

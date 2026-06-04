@@ -43,6 +43,7 @@ const HOME_SHOW_SELECT = {
     lineupItems: {
         where: {
             comedian: {
+                visible: true,
                 taggedComedians: {
                     none: { tag: { userFacing: false } },
                 },

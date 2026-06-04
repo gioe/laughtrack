@@ -52,6 +52,7 @@ export async function findShowById(id: number): Promise<FindShowByIdResult> {
                 lineupItems: {
                     where: {
                         comedian: {
+                            visible: true,
                             taggedComedians: {
                                 none: { tag: { userFacing: false } },
                             },

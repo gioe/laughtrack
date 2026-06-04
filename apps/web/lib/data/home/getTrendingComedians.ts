@@ -66,13 +66,16 @@ export async function getTrendingComedians(
                             FROM comedians alt
                             JOIN lineup_items li ON li.comedian_id = alt.uuid
                             JOIN shows s ON s.id = li.show_id
-                            WHERE alt.parent_comedian_id = c.id AND s.date > ${now}
+                            WHERE alt.parent_comedian_id = c.id
+                              AND alt.visible = true
+                              AND s.date > ${now}
                         ) t
                     ), 0)
                 )::int AS show_count
             FROM comedians c
             WHERE
-                c.parent_comedian_id IS NULL
+                c.visible = true
+                AND c.parent_comedian_id IS NULL
                 AND NOT EXISTS (
                     SELECT 1 FROM tagged_comedians tc
                     JOIN tags t ON t.id = tc.tag_id
@@ -92,7 +95,9 @@ export async function getTrendingComedians(
                         SELECT 1 FROM comedians alt
                         JOIN lineup_items li ON li.comedian_id = alt.uuid
                         JOIN shows s ON s.id = li.show_id
-                        WHERE alt.parent_comedian_id = c.id AND s.date > ${now}
+                        WHERE alt.parent_comedian_id = c.id
+                          AND alt.visible = true
+                          AND s.date > ${now}
                     )
                 )
         )

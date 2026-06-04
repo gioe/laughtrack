@@ -83,6 +83,7 @@ export async function getComediansByZip(
             JOIN clubs cl ON cl.id = s.club_id
             WHERE cl.zip_code IN (${Prisma.join(nearbyZips)})
               AND s.date > ${now}
+              AND c.visible = true
               AND c.parent_comedian_id IS NULL
               AND NOT EXISTS (
                   SELECT 1 FROM tagged_comedians tc

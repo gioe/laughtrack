@@ -64,6 +64,7 @@ function whereFor(
     const now = new Date();
     const nearbyZips = resolveZipCodes(zipCode, radius);
     const comedianWhere = {
+        visible: true,
         parentComedianId: null,
         lineupItems: {
             some: {

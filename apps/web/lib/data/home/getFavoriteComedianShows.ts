@@ -15,6 +15,7 @@ export async function getFavoriteComedianShows(
             lineupItems: {
                 some: {
                     comedian: {
+                        visible: true,
                         favoriteComedians: {
                             some: { profileId },
                         },
