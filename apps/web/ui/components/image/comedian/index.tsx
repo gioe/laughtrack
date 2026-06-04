@@ -72,7 +72,7 @@ const ComedianHeadshot = ({
 
     return (
         <div className={`${styles.container} ${className}`}>
-            <Link href={`/comedian/${comedian.name}`} className={styles.link}>
+            <Link href={`/comedian/${encodeURIComponent(comedian.name)}`} className={styles.link}>
                 {showFallback ? (
                     <ComedianAvatarFallback
                         name={comedian.name}
