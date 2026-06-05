@@ -90,6 +90,16 @@ struct OnboardingTests {
         ))
     }
 
+    @Test("debug launch flag can show comedian onboarding without auth")
+    func debugLaunchFlagCanShowComedianOnboardingWithoutAuth() {
+        #expect(ContentView.rootSurface(
+            authState: .signedOut(message: nil),
+            hasLoadedCurrentUser: false,
+            currentUser: nil,
+            forceComedianOnboardingScreen: true
+        ) == .comedianOnboarding)
+    }
+
     @Test("authenticated users wait for profile load before shell decisions")
     func authenticatedUsersWaitForProfileLoadBeforeShellDecisions() async {
         let manager = await makeAuthenticatedAuthManager(loadUserRequest: {
@@ -147,6 +157,31 @@ struct OnboardingTests {
 
         #expect(model.comedians.map(\.name) == ["Nate Bargatze"])
         #expect(await recorder.searchQueries == ["nate"])
+    }
+
+    @Test("onboarding rows do not show tracked show counts")
+    func onboardingRowsDoNotShowTrackedShowCounts() throws {
+        let source = try String(contentsOf: comedianOnboardingViewSourceURL(), encoding: .utf8)
+
+        #expect(!source.contains("tracked show"))
+    }
+
+    @Test("onboarding row artwork has softened corners")
+    func onboardingRowArtworkHasSoftenedCorners() throws {
+        let source = try String(contentsOf: comedianOnboardingViewSourceURL(), encoding: .utf8)
+
+        #expect(source.contains(".clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))"))
+    }
+
+    @Test("onboarding view does not render show alert controls")
+    func onboardingViewDoesNotRenderShowAlertControls() throws {
+        let source = try String(contentsOf: comedianOnboardingViewSourceURL(), encoding: .utf8)
+
+        #expect(!source.contains("notificationSection"))
+        #expect(!source.contains("Show alerts"))
+        #expect(!source.contains("Email alerts"))
+        #expect(!source.contains("Push alerts"))
+        #expect(!source.contains("saveNotificationPreferences"))
     }
 
     @Test("users can favorite any number of comedians and still see a target of 3")
@@ -371,6 +406,20 @@ struct OnboardingTests {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return AppStateStorage(userDefaults: defaults)
+    }
+
+    private func comedianOnboardingViewSourceURL(filePath: String = #filePath) throws -> URL {
+        let testFileURL = URL(fileURLWithPath: filePath)
+        let iosRoot = testFileURL
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let sourceURL = iosRoot
+            .appendingPathComponent("Sources/LaughTrackApp/Onboarding/ComedianOnboardingView.swift")
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return sourceURL
     }
 }
 

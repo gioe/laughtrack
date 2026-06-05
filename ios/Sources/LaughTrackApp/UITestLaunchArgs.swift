@@ -48,4 +48,12 @@ enum UITestLaunchArgs {
     /// discoverability; the gate is `#if DEBUG`-guarded so the env var has
     /// no effect in TestFlight / App Store builds.
     static let forceComedianOnboarding = "FORCE_COMEDIAN_ONBOARDING"
+
+    /// Launch-environment key (NOT a launch argument): DEBUG-only developer
+    /// seam. When set to `"1"`, `ContentView.rootSurface` renders the
+    /// comedian-onboarding screen directly, before auth and first-entry gates.
+    /// This is intentionally stronger than `forceComedianOnboarding`: it is
+    /// for visual/screen iteration when no auth session exists on the
+    /// simulator. Release builds never read it.
+    static let forceComedianOnboardingScreen = "FORCE_COMEDIAN_ONBOARDING_SCREEN"
 }

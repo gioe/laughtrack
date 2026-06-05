@@ -8,11 +8,10 @@ import {
 } from "../search/findComediansWithCount";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 
-// Popularity floor for onboarding suggestions. Live data: only ~33 comedians
-// sit at >= 0.65 and ~1429 at >= 0.60 (of ~2976 with upcoming shows), so 0.60
-// keeps the candidate pool wide enough for genuine variety while still biasing
-// the sample toward recognizable names.
-export const ONBOARDING_POPULARITY_FLOOR = 0.6;
+// Popularity floor for onboarding suggestions. The SQL predicate is strict
+// (`> ONBOARDING_POPULARITY_FLOOR`) so onboarding can draw from comedians with
+// a popularity score above 0.4 while still filtering out the lowest tail.
+export const ONBOARDING_POPULARITY_FLOOR = 0.4;
 
 // Number of suggestions returned per call (matches the onboarding grid).
 export const ONBOARDING_SUGGESTION_LIMIT = 12;
@@ -41,7 +40,7 @@ export async function getOnboardingComedianSuggestions(
             Prisma.sql`
                 SELECT c.id
                 FROM "comedians" c
-                WHERE c.popularity >= ${ONBOARDING_POPULARITY_FLOOR}
+                WHERE c.popularity > ${ONBOARDING_POPULARITY_FLOOR}
                   AND c.visible = true
                   AND c."parent_comedian_id" IS NULL
                   AND NOT EXISTS (

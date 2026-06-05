@@ -177,11 +177,7 @@ struct ContentView: View {
             case .comedianOnboarding:
                 ComedianOnboardingView(
                     apiClient: apiClient,
-                    favorites: favorites,
-                    notificationPreferenceStore: serviceContainer.resolve(NotificationPreferenceStore.self),
-                    notificationPreferenceSyncClient: serviceContainer.resolveOptional((any NotificationPreferenceSyncing).self),
-                    pushTokenManager: serviceContainer.resolveOptional((any PushDeviceTokenManaging).self),
-                    analytics: serviceContainer.resolveOptional(AnalyticsManagerProtocol.self)
+                    favorites: favorites
                 )
                 .environmentObject(favorites)
                 .transition(.opacity)
@@ -219,8 +215,13 @@ struct ContentView: View {
         authState: AuthManager.State,
         hasLoadedCurrentUser: Bool,
         currentUser: AuthenticatedUser?,
-        hasResolvedFirstEntryChoice: Bool = false
+        hasResolvedFirstEntryChoice: Bool = false,
+        forceComedianOnboardingScreen: Bool = Self.forceComedianOnboardingScreenFromEnvironment()
     ) -> RootSurface {
+        if forceComedianOnboardingScreen {
+            return .comedianOnboarding
+        }
+
         switch authState {
         case .restoring:
             return .loading
@@ -275,6 +276,14 @@ struct ContentView: View {
 #endif
 
         return !currentUser.comedianOnboardingCompleted
+    }
+
+    private static func forceComedianOnboardingScreenFromEnvironment() -> Bool {
+#if DEBUG
+        DebugComedianOnboardingLaunch.shouldForceScreen()
+#else
+        false
+#endif
     }
 
     @ViewBuilder

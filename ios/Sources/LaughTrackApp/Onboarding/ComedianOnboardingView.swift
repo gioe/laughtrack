@@ -6,9 +6,6 @@ import LaughTrackCore
 struct ComedianOnboardingView: View {
     let apiClient: Client
     let favorites: ComedianFavoriteStore
-    let notificationPreferenceStore: NotificationPreferenceStore
-    let notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)?
-    let pushTokenManager: (any PushDeviceTokenManaging)?
 
     @Environment(\.appTheme) private var theme
     @EnvironmentObject private var authManager: AuthManager
@@ -18,22 +15,12 @@ struct ComedianOnboardingView: View {
     init(
         apiClient: Client,
         favorites: ComedianFavoriteStore,
-        notificationPreferenceStore: NotificationPreferenceStore,
-        notificationPreferenceSyncClient: (any NotificationPreferenceSyncing)?,
-        pushTokenManager: (any PushDeviceTokenManaging)? = nil,
-        analytics: (any AnalyticsManagerProtocol)? = nil,
         model: ComedianOnboardingModel? = nil
     ) {
         self.apiClient = apiClient
         self.favorites = favorites
-        self.notificationPreferenceStore = notificationPreferenceStore
-        self.notificationPreferenceSyncClient = notificationPreferenceSyncClient
-        self.pushTokenManager = pushTokenManager
         _model = StateObject(
-            wrappedValue: model ?? ComedianOnboardingModel(
-                pushTokenManager: pushTokenManager,
-                analytics: analytics
-            )
+            wrappedValue: model ?? ComedianOnboardingModel()
         )
     }
 
@@ -66,8 +53,6 @@ struct ComedianOnboardingView: View {
                 .accessibilityIdentifier(LaughTrackViewTestID.onboardingSearchField)
 
                 comedianSection
-
-                notificationSection
             }
             .padding(.horizontal, theme.spacing.lg)
             .padding(.vertical, theme.spacing.xxl)
@@ -82,20 +67,6 @@ struct ComedianOnboardingView: View {
         .task {
             guard model.comedians.isEmpty else { return }
             await model.loadInitialComedians(apiClient: apiClient, favorites: favorites)
-        }
-        .alert(
-            "Turn on push notifications in Settings",
-            isPresented: $model.isPushDeniedAlertPresented
-        ) {
-            Button("Cancel", role: .cancel) {
-                Task { await model.complete(apiClient: apiClient, authManager: authManager) }
-            }
-            Button("Open Settings") {
-                model.openSystemSettings()
-                Task { await model.complete(apiClient: apiClient, authManager: authManager) }
-            }
-        } message: {
-            Text("LaughTrack can't enable push notifications until you allow them in Settings.")
         }
         .accessibilityIdentifier(LaughTrackViewTestID.onboardingScreen)
     }
@@ -147,29 +118,11 @@ struct ComedianOnboardingView: View {
         }
     }
 
-    private var notificationSection: some View {
-        LaughTrackCard(tone: .standard, density: .compact) {
-            VStack(alignment: .leading, spacing: theme.spacing.md) {
-                Text("Show alerts")
-                    .font(theme.laughTrackTokens.typography.cardTitle)
-                    .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-
-                Toggle("Email alerts", isOn: $model.emailAlertsEnabled)
-                    .accessibilityIdentifier(LaughTrackViewTestID.onboardingEmailToggle)
-
-                Toggle("Push alerts", isOn: $model.pushAlertsEnabled)
-                    .accessibilityIdentifier(LaughTrackViewTestID.onboardingPushToggle)
-            }
-        }
-    }
-
     private var continueBar: some View {
         let tokens = theme.laughTrackTokens
 
         return LaughTrackButton(model.phase == .saving ? "Saving..." : "Continue", systemImage: "checkmark") {
             Task {
-                await saveNotificationPreferences()
-                guard !model.isPushDeniedAlertPresented else { return }
                 await model.complete(apiClient: apiClient, authManager: authManager)
             }
         }
@@ -216,15 +169,6 @@ struct ComedianOnboardingView: View {
         .padding(.trailing, theme.spacing.lg)
         .accessibilityIdentifier(LaughTrackViewTestID.onboardingSkipButton)
     }
-
-    private func saveNotificationPreferences() async {
-        await model.setNotificationPreferences(
-            emailEnabled: model.emailAlertsEnabled,
-            pushEnabled: model.pushAlertsEnabled,
-            store: notificationPreferenceStore,
-            syncClient: notificationPreferenceSyncClient
-        )
-    }
 }
 
 private struct ComedianOnboardingRow: View {
@@ -243,15 +187,12 @@ private struct ComedianOnboardingRow: View {
                     aspectRatio: 1
                 )
                 .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 VStack(alignment: .leading, spacing: theme.spacing.xs) {
                     Text(comedian.name)
                         .font(theme.laughTrackTokens.typography.cardTitle)
                         .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-
-                    Text(comedian.showCount == 1 ? "1 tracked show" : "\(comedian.showCount) tracked shows")
-                        .font(theme.laughTrackTokens.typography.metadata)
-                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
                 }
 
                 Spacer(minLength: 0)

@@ -169,6 +169,17 @@ enum DebugLaunchRoute {
         }
     }
 }
+
+/// DEBUG-only hard jump into the post-auth comedian onboarding surface. Unlike
+/// `FORCE_COMEDIAN_ONBOARDING`, this bypasses auth/session state entirely so a
+/// developer can iterate on the screen in a simulator with no saved account.
+enum DebugComedianOnboardingLaunch {
+    static let environmentKey = UITestLaunchArgs.forceComedianOnboardingScreen
+
+    static func shouldForceScreen(processInfo: ProcessInfo = .processInfo) -> Bool {
+        processInfo.environment[environmentKey] == "1"
+    }
+}
 #endif
 
 #if canImport(UIKit)

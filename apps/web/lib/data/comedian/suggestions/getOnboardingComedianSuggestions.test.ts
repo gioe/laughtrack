@@ -61,11 +61,11 @@ beforeEach(() => {
 });
 
 describe("getOnboardingComedianSuggestions", () => {
-    it("exposes a 0.60 popularity floor constant", () => {
-        expect(ONBOARDING_POPULARITY_FLOOR).toBe(0.6);
+    it("exposes a 0.40 popularity floor constant", () => {
+        expect(ONBOARDING_POPULARITY_FLOOR).toBe(0.4);
     });
 
-    it("samples only comedians at or above the popularity floor", async () => {
+    it("samples only comedians above the popularity floor", async () => {
         mockQueryRaw.mockResolvedValue([{ id: 1 }] as never);
         mockFindMany.mockResolvedValue([makeRow(1)] as never);
 
@@ -74,7 +74,8 @@ describe("getOnboardingComedianSuggestions", () => {
         expect(mockQueryRaw).toHaveBeenCalledTimes(1);
         const arg = mockQueryRaw.mock.calls[0][0];
         // Floor predicate present and parameterized with the named constant.
-        expect(sqlText(arg)).toMatch(/c\.popularity\s*>=/i);
+        expect(sqlText(arg)).toMatch(/c\.popularity\s*>/i);
+        expect(sqlText(arg)).not.toMatch(/c\.popularity\s*>=/i);
         expect(sqlValues(arg)).toContain(ONBOARDING_POPULARITY_FLOOR);
     });
 

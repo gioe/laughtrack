@@ -10,33 +10,41 @@ struct RemoteImageView: View {
     var alignment: Alignment = .center
 
     var body: some View {
-        AsyncImage(url: URL.normalizedExternalURL(urlString)) { phase in
-            switch phase {
-            case .empty:
-                Rectangle()
-                    .fill(theme.laughTrackTokens.colors.surfaceElevated)
-                    .overlay {
-                        ProgressView()
-                    }
-            case .success(let image):
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
-            case .failure:
-                Rectangle()
-                    .fill(theme.laughTrackTokens.colors.surfaceElevated)
-                    .overlay {
-                        Image(systemName: "photo")
-                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                    }
-            @unknown default:
-                Rectangle()
-                    .fill(theme.laughTrackTokens.colors.surfaceElevated)
+        Group {
+            if let url = URL.normalizedExternalURL(urlString.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                CachedAsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+                } placeholder: {
+                    placeholderArtwork
+                } error: { _ in
+                    fallbackArtwork
+                }
+            } else {
+                fallbackArtwork
             }
         }
         .aspectRatio(aspectRatio, contentMode: .fill)
         .clipped()
+    }
+
+    private var placeholderArtwork: some View {
+        Rectangle()
+            .fill(theme.laughTrackTokens.colors.surfaceElevated)
+            .overlay {
+                ProgressView()
+            }
+    }
+
+    private var fallbackArtwork: some View {
+        Rectangle()
+            .fill(theme.laughTrackTokens.colors.surfaceElevated)
+            .overlay {
+                Image(systemName: "music.mic")
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+            }
     }
 }
 
