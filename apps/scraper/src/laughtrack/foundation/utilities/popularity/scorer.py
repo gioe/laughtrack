@@ -76,21 +76,28 @@ class PopularityScorer:
         cls, sold_out_shows: int, total_shows: int, recency_score: float
     ) -> float:
         """
-        Blend recency activity and historical sold-out track record into a single
+        Combine recency activity and historical sold-out track record into a single
         performance score in [0.0, 1.0].
 
-        Cold-start case (recency_score == 0) collapses to HISTORICAL_BLEND_WEIGHT *
-        historical_component — pure-historical comedians intentionally do not
-        outrank active touring ones with the same sell-out rate.
+        When recency_score > 0 (the comedian has shows in the 180-day recency
+        window), the two signals blend by RECENCY_BLEND_WEIGHT / HISTORICAL_BLEND_WEIGHT
+        so touring comedians keep credit for their sell-out history. When
+        recency_score == 0 (no shows in the window), the score falls back to
+        historical-only — a dormant headliner is not demoted across tiers just
+        because they happen to be between tours.
         """
-        recency_component = min(max(recency_score, 0.0), 1.0)
         historical_component = cls._calculate_performance_score(sold_out_shows, total_shows)
 
-        blended = (
+        if recency_score <= 0.0:
+            return historical_component
+
+        recency_component = min(recency_score, 1.0)
+        # Weights sum to 1.0 (enforced by test) and both components are in [0, 1],
+        # so the result is already bounded — no outer clamp needed.
+        return (
             cls.RECENCY_BLEND_WEIGHT * recency_component
             + cls.HISTORICAL_BLEND_WEIGHT * historical_component
         )
-        return min(blended, 1.0)
 
     @classmethod
     def _calculate_social_media_score(

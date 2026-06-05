@@ -80,50 +80,66 @@ class TestCalculateComedianPopularityRecencyScore:
 def test_performance_score_blends_recency_and_sold_out():
     """
     When both recency and historical sold-out data exist, both contribute to
-    performance_score. The blended score must exceed what either signal alone
-    would produce — the headliner-with-upcoming-show case the branch used to
-    mask.
+    performance_score — the headliner-with-upcoming-show case the original
+    branch used to mask. We pick a regime where recency > historical so the
+    blend genuinely sits between the two single-signal paths (the cold-start
+    fallback at recency=0 returns historical-only, so to beat sold_out_only
+    the recency contribution must exceed the historical one).
     """
-    # recency=0.5 + 100/100 sold_out (perf=min(1.0+0.2,1.0)=1.0)
-    # blended performance = 0.6*0.5 + 0.4*1.0 = 0.7
-    # popularity (no social) = 0.0*0.4 + 0.7*0.6 = 0.42
+    # recency=0.9 + 2/10 sold_out → historical = 0.2 + min(10/100, 0.2) = 0.3
+    # blended performance = 0.6*0.9 + 0.4*0.3 = 0.66
+    # popularity (no social) = 0.0*0.4 + 0.66*0.6 = 0.396
     blended = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=100, total_shows=100, recency_score=0.5
+        sold_out_shows=2, total_shows=10, recency_score=0.9
     )
-    recency_only = PopularityScorer.calculate_comedian_popularity(recency_score=0.5)
+    recency_only = PopularityScorer.calculate_comedian_popularity(recency_score=0.9)
     sold_out_only = PopularityScorer.calculate_comedian_popularity(
-        sold_out_shows=100, total_shows=100, recency_score=0.0
+        sold_out_shows=2, total_shows=10, recency_score=0.0
     )
 
     expected_perf = (
-        PopularityScorer.RECENCY_BLEND_WEIGHT * 0.5
-        + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 1.0
+        PopularityScorer.RECENCY_BLEND_WEIGHT * 0.9
+        + PopularityScorer.HISTORICAL_BLEND_WEIGHT * 0.3
     )
     assert blended == round(0.0 * 0.4 + expected_perf * 0.6, 4)
-    assert blended > recency_only
-    assert blended > sold_out_only
+    assert blended > recency_only  # historical contributes — bug-fix proof
+    assert blended > sold_out_only  # recency contributes too
 
 
 def test_performance_score_cold_start_historical_fallback():
     """
-    Cold start: recency_score=0 collapses performance to HISTORICAL_BLEND_WEIGHT *
-    historical_component. The historical component itself (sellout_rate +
-    experience_bonus, capped at 1.0) is unchanged in shape.
+    Cold start: when recency_score=0 (no shows in the recency window),
+    performance falls back to historical-only. A dormant headliner is neither
+    rewarded nor penalized for the missing recency signal — they keep the
+    score they would have had under the pre-blend formula.
     """
     # 10/10 sold_out → historical_component = min(1.0 + 0.1, 1.0) = 1.0
-    # blended performance = 0.6*0.0 + 0.4*1.0 = 0.4
-    # popularity (no social) = 0.0*0.4 + 0.4*0.6 = 0.24
+    # cold-start performance = 1.0 (historical only; no blend penalty)
+    # popularity (no social) = 0.0*0.4 + 1.0*0.6 = 0.6
     score = PopularityScorer.calculate_comedian_popularity(
         sold_out_shows=10, total_shows=10, recency_score=0.0
     )
-    expected_perf = PopularityScorer.HISTORICAL_BLEND_WEIGHT * 1.0
-    assert score == round(0.0 * 0.4 + expected_perf * 0.6, 4)
+    assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
 
     # default (omitted recency_score) matches explicit 0.0 — shape parity check
     default_recency = PopularityScorer.calculate_comedian_popularity(
         sold_out_shows=10, total_shows=10
     )
     assert default_recency == score
+
+
+def test_blend_weights_sum_to_one():
+    """
+    RECENCY_BLEND_WEIGHT + HISTORICAL_BLEND_WEIGHT must equal 1.0 — the blend
+    path's [0, 1] contract relies on it. Pinning the invariant here prevents a
+    future tuner from editing one constant without the other and silently
+    pushing performance_score out of bounds.
+    """
+    assert (
+        PopularityScorer.RECENCY_BLEND_WEIGHT
+        + PopularityScorer.HISTORICAL_BLEND_WEIGHT
+        == 1.0
+    )
 
 
 def test_performance_score_touring_only_recency_contribution():
