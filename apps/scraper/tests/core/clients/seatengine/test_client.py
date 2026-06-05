@@ -113,7 +113,6 @@ class TestSeatEngineClientTicketPricing:
         self,
         monkeypatch,
         stub_base_init,
-        caplog,
     ):
         client = _make_client(monkeypatch)
         client.venue_website = "https://example.com"

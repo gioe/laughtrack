@@ -8,8 +8,11 @@ SeatEngine REST API for non-classic venues — each inventory carries a ``price`
 field in cents.
 
 The listing page (``/events``) does not include prices, so the scraper must
-fetch each show page to recover them. The functions below are pure
-HTML/JSON → price helpers and do no I/O.
+fetch each show page to recover them. The functions below are HTML/JSON →
+price helpers and do no network I/O; ``cheapest_price`` does emit a
+``Logger.warn`` line (which the logger routes to its rotating file handler)
+when it drops a sentinel-priced inventory, so callers should not treat it as
+side-effect-free for test capture purposes.
 """
 
 import json

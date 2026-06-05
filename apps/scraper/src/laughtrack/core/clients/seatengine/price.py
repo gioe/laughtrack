@@ -36,8 +36,15 @@ high-end tiers untouched.
 """
 
 
-def coerce_inventory_price_cents(raw) -> Tuple[Optional[float], Optional[str]]:
+def coerce_inventory_price_cents(raw: object) -> Tuple[Optional[float], Optional[str]]:
     """Convert a raw ``inventory['price']`` value (integer cents) to dollars.
+
+    The SeatEngine v1 JSON API and the classic ``window.seat_engine_app_config``
+    embedded JSON both document ``price`` as an integer number of cents — any
+    fractional input is coerced via ``int(raw)`` and truncated toward zero,
+    matching the existing classic-extractor behavior and the integer-only
+    contract. If SeatEngine ever returns a float-shaped cents value, treat
+    that as an upstream bug rather than relaxing the truncation here.
 
     Returns ``(price_dollars, reject_reason)``:
 

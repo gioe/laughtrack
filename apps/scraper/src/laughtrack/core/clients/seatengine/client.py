@@ -226,7 +226,6 @@ class SeatEngineClient(BaseApiClient):
             # whole batch insert.
             price, reject_reason = coerce_inventory_price_cents(inventory.get("price"))
             if reject_reason is not None:
-                show_id = show_dict.get("id")
                 self.log_warning(
                     f"Dropped SeatEngine inventory {inventory.get('id')} for show "
                     f"{show_id}: {reject_reason}"
